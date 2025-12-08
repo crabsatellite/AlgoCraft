@@ -21,5 +21,10 @@ public class NetworkHandler {
             PacketSetSolvingState.STREAM_CODEC,
             PacketSetSolvingState::handle
         );
+        registrar.playToClient(
+            PacketSyncProgress.TYPE,
+            PacketSyncProgress.STREAM_CODEC,
+            PacketSyncProgress::handle
+        );
     }
 }

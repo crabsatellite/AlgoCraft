@@ -1,0 +1,21 @@
+package com.crabmods.algocraft.event;
+
+import com.crabmods.algocraft.AlgoCraft;
+import com.crabmods.algocraft.network.PacketSyncProgress;
+import com.crabmods.algocraft.world.AlgoCraftSavedData;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+@EventBusSubscriber(modid = AlgoCraft.MODID)
+public class PlayerEventHandler {
+    @SubscribeEvent
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            AlgoCraftSavedData data = AlgoCraftSavedData.get(player.serverLevel());
+            PacketDistributor.sendToPlayer(player, new PacketSyncProgress(data.getPlayerProgress(player.getUUID())));
+        }
+    }
+}

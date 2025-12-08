@@ -18,11 +18,13 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import com.crabmods.algocraft.web.AlgoCraftWebServer;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -82,6 +84,12 @@ public class AlgoCraft
     public void onServerStarting(ServerStartingEvent event)
     {
         LOGGER.info("AlgoCraft server starting");
+        AlgoCraftWebServer.start();
+    }
+    
+    @SubscribeEvent
+    public void onServerStopping(ServerStoppingEvent event) {
+        AlgoCraftWebServer.stop();
     }
 
     // @EventBusSubscriber(modid = MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)

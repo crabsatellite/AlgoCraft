@@ -4,6 +4,7 @@ import com.crabmods.algocraft.logic.CodeExecutor;
 import com.crabmods.algocraft.logic.Judge;
 import com.crabmods.algocraft.logic.Problem;
 import com.crabmods.algocraft.logic.ProblemManager;
+import com.crabmods.algocraft.logic.ProgressManager;
 import com.crabmods.algocraft.logic.SubmissionResult;
 import com.crabmods.algocraft.network.PacketSolveProblem;
 import net.minecraft.client.Minecraft;
@@ -78,7 +79,12 @@ public class ModernAlgorithmScreen extends Screen {
         // Sidebar Buttons (Problem List)
         int y = 50;
         for (Problem problem : problems) {
-            this.addRenderableWidget(Button.builder(Component.literal(problem.title), button -> {
+            net.minecraft.network.chat.MutableComponent label = Component.literal(problem.title);
+            if (ProgressManager.isPassed(problem.id)) {
+                label.append(Component.literal(" ✔").withStyle(net.minecraft.ChatFormatting.GREEN));
+            }
+            
+            this.addRenderableWidget(Button.builder(label, button -> {
                 selectProblem(problem);
             }).bounds(10, y, SIDEBAR_WIDTH - 20, 20).build());
             y += 25;

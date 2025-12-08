@@ -4,6 +4,7 @@ import com.crabmods.algocraft.logic.CodeExecutor;
 import com.crabmods.algocraft.logic.Judge;
 import com.crabmods.algocraft.logic.Problem;
 import com.crabmods.algocraft.logic.ProblemManager;
+import com.crabmods.algocraft.logic.ProgressManager;
 import com.crabmods.algocraft.logic.SubmissionResult;
 import com.crabmods.algocraft.network.PacketSolveProblem;
 import com.google.gson.Gson;
@@ -71,8 +72,13 @@ public class AlgoCraftWebServer {
         public void handle(HttpExchange exchange) throws IOException {
             if ("GET".equals(exchange.getRequestMethod())) {
                 List<Problem> problems = ProblemManager.getProblems();
-                String json = gson.toJson(problems);
-                sendResponse(exchange, json);
+                com.google.gson.JsonArray jsonArray = new com.google.gson.JsonArray();
+                for (Problem p : problems) {
+                    com.google.gson.JsonObject obj = gson.toJsonTree(p).getAsJsonObject();
+                    obj.addProperty("passed", ProgressManager.isPassed(p.id));
+                    jsonArray.add(obj);
+                }
+                sendResponse(exchange, gson.toJson(jsonArray));
             }
         }
     }
@@ -222,6 +228,7 @@ public class AlgoCraftWebServer {
                     <div class="flex items-center space-x-3 mb-6">
                         <h1 class="text-2xl font-semibold text-white" id="problem-title">Loading...</h1>
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface2 text-text border border-border" id="problem-difficulty">Easy</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900/30 text-green-400 border border-green-900/50 hidden" id="problem-passed">✔ Passed</span>
                     </div>
                     
                     <div class="prose prose-invert prose-sm max-w-none text-textMuted leading-relaxed" id="problem-desc">
@@ -350,6 +357,14 @@ public class AlgoCraftWebServer {
             
             document.getElementById('problem-title').innerText = currentProblem.title;
             document.getElementById('problem-difficulty').innerText = currentProblem.difficulty || 'Medium';
+            
+            const passedBadge = document.getElementById('problem-passed');
+            if (currentProblem.passed) {
+                passedBadge.classList.remove('hidden');
+            } else {
+                passedBadge.classList.add('hidden');
+            }
+
             document.getElementById('problem-desc').innerHTML = currentProblem.description.replace(/\\n/g, '<br>');
             document.getElementById('problem-counter').innerText = `${currentIndex + 1} / ${problems.length}`;
             

@@ -1,16 +1,47 @@
 package com.crabmods.algocraft.logic;
 
-import org.codehaus.janino.SimpleCompiler;
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
+import java.io.File;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 public class CodeExecutor {
     public static String execute(String code, String input, String expectedOutput) {
+        Path tempDir = null;
         try {
-            SimpleCompiler compiler = new SimpleCompiler();
-            compiler.cook(code);
-            Class<?> clazz = compiler.getClassLoader().loadClass("Solution");
-            Object instance = clazz.getDeclaredConstructor().newInstance();
+            // Use standard Java Compiler API
+            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+            if (compiler == null) {
+                return "ERROR: Java Compiler not found. Please run with a JDK, not a JRE.";
+            }
+
+            tempDir = Files.createTempDirectory("algocraft_exec_");
+            
+            // Write source code to file
+            // Assuming the class name in 'code' is 'Solution'
+            File sourceFile = new File(tempDir.toFile(), "Solution.java");
+            Files.writeString(sourceFile.toPath(), code);
+
+            // Compile
+            // -d sets the output directory
+            int result = compiler.run(null, null, null, "-d", tempDir.toString(), sourceFile.getPath());
+            
+            if (result != 0) {
+                return "ERROR: Compilation failed";
+            }
+
+            // Load class
+            URLClassLoader classLoader = URLClassLoader.newInstance(new URL[]{tempDir.toUri().toURL()});
+            Class<?> clazz = Class.forName("Solution", true, classLoader);
+            Constructor<?> constructor = clazz.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            Object instance = constructor.newInstance();
             
             // Find the first public method that isn't Object's methods
             Method method = null;
@@ -24,9 +55,10 @@ public class CodeExecutor {
             if (method == null) return "ERROR: No public method found in Solution class";
 
             Object[] args = parseArgs(input, method.getParameterTypes());
-            Object result = method.invoke(instance, args);
+            method.setAccessible(true);
+            Object invokeResult = method.invoke(instance, args);
             
-            String resultStr = formatResult(result);
+            String resultStr = formatResult(invokeResult);
             
             // Normalize for comparison (remove spaces)
             String normResult = resultStr.replaceAll("\\s+", "");
@@ -40,6 +72,16 @@ public class CodeExecutor {
         } catch (Throwable e) {
             e.printStackTrace();
             return "ERROR: " + e.getClass().getSimpleName() + ": " + e.getMessage();
+        } finally {
+            // Cleanup temp dir
+            if (tempDir != null) {
+                try {
+                    File dir = tempDir.toFile();
+                    File[] files = dir.listFiles();
+                    if (files != null) for (File f : files) f.delete();
+                    dir.delete();
+                } catch (Exception ignored) {}
+            }
         }
     }
 

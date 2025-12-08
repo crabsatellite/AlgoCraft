@@ -1,10 +1,20 @@
 package com.crabmods.algocraft.client.gui.modern;
 
+import com.crabmods.algocraft.logic.CodeExecutor;
+import com.crabmods.algocraft.logic.Judge;
+import com.crabmods.algocraft.logic.Problem;
+import com.crabmods.algocraft.logic.ProblemManager;
+import com.crabmods.algocraft.logic.SubmissionResult;
+import com.crabmods.algocraft.network.PacketSolveProblem;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.List;
 
 public class ModernAlgorithmScreen extends Screen {
     private static final int SIDEBAR_WIDTH = 150;
@@ -12,8 +22,10 @@ public class ModernAlgorithmScreen extends Screen {
     private static final int BOTTOM_BAR_HEIGHT = 120;
     
     private MultiLineEditBox codeEditor;
+    private MultiLineEditBox descriptionViewer;
     private String consoleText = "Ready...";
-    private String currentFile = "Solution.java";
+    private Problem currentProblem;
+    private boolean showingDescription = false;
 
     public ModernAlgorithmScreen() {
         super(Component.literal("AlgoCraft IDE"));
@@ -25,47 +37,92 @@ public class ModernAlgorithmScreen extends Screen {
         int editorHeight = this.height - TOP_BAR_HEIGHT - BOTTOM_BAR_HEIGHT - 20;
 
         // Code Editor
-        // Note: MultiLineEditBox might need a specific constructor or builder depending on exact version mappings.
-        // Assuming standard 1.21 constructor: Font, x, y, width, height, placeholder, message
         this.codeEditor = new MultiLineEditBox(this.font, SIDEBAR_WIDTH + 10, TOP_BAR_HEIGHT + 10, editorWidth, editorHeight, Component.literal(""), Component.literal("Code"));
-        this.codeEditor.setValue("public class Solution {\n    public static void main(String[] args) {\n        System.out.println(\"Hello AlgoCraft!\");\n    }\n}");
         this.addRenderableWidget(this.codeEditor);
 
-        // Run Button
-        this.addRenderableWidget(Button.builder(Component.literal("▶ Run Code"), button -> {
-            this.consoleText = "Compiling " + currentFile + "...\n> Hello AlgoCraft!\n> Process finished with exit code 0";
-        }).bounds(SIDEBAR_WIDTH + 10, 10, 80, 20).build());
+        // Description Viewer (Initially hidden)
+        this.descriptionViewer = new MultiLineEditBox(this.font, SIDEBAR_WIDTH + 10, TOP_BAR_HEIGHT + 10, editorWidth, editorHeight, Component.literal(""), Component.literal("Description"));
+        this.descriptionViewer.visible = false;
+        this.addRenderableWidget(this.descriptionViewer);
 
-        // Save Button
-        this.addRenderableWidget(Button.builder(Component.literal("💾 Save"), button -> {
-            this.consoleText = "Saved " + currentFile;
-        }).bounds(SIDEBAR_WIDTH + 100, 10, 60, 20).build());
+        // Load Problems
+        List<Problem> problems = ProblemManager.getProblems();
+        if (!problems.isEmpty()) {
+            selectProblem(problems.get(0));
+        }
+
+        // Run Button
+        this.addRenderableWidget(Button.builder(Component.literal("▶ Run"), button -> {
+            if (currentProblem == null) return;
+            runExamples();
+        }).bounds(SIDEBAR_WIDTH + 10, 10, 60, 20).build());
+
+        // Submit Button
+        this.addRenderableWidget(Button.builder(Component.literal("✔ Submit"), button -> {
+            if (currentProblem == null) return;
+            submitSolution();
+        }).bounds(SIDEBAR_WIDTH + 80, 10, 70, 20).build());
         
-        // Settings Button
-        this.addRenderableWidget(Button.builder(Component.literal("⚙ Settings"), button -> {
-            this.consoleText = "Settings opened (Not implemented)";
-        }).bounds(SIDEBAR_WIDTH + 170, 10, 80, 20).build());
+        // Toggle View Button
+        this.addRenderableWidget(Button.builder(Component.literal("Toggle View"), button -> {
+            showingDescription = !showingDescription;
+            codeEditor.visible = !showingDescription;
+            descriptionViewer.visible = showingDescription;
+        }).bounds(SIDEBAR_WIDTH + 160, 10, 80, 20).build());
 
         // Close Button
         this.addRenderableWidget(Button.builder(Component.literal("❌ Close"), button -> {
             this.onClose();
         }).bounds(this.width - 70, 10, 60, 20).build());
         
-        // Sidebar Buttons (Mock Files)
-        this.addRenderableWidget(Button.builder(Component.literal("Solution.java"), button -> {
-            this.currentFile = "Solution.java";
-            this.codeEditor.setValue("public class Solution {\n    public static void main(String[] args) {\n        System.out.println(\"Hello AlgoCraft!\");\n    }\n}");
-        }).bounds(10, 50, SIDEBAR_WIDTH - 20, 20).build());
+        // Sidebar Buttons (Problem List)
+        int y = 50;
+        for (Problem problem : problems) {
+            this.addRenderableWidget(Button.builder(Component.literal(problem.title), button -> {
+                selectProblem(problem);
+            }).bounds(10, y, SIDEBAR_WIDTH - 20, 20).build());
+            y += 25;
+        }
+    }
 
-        this.addRenderableWidget(Button.builder(Component.literal("Problem.md"), button -> {
-            this.currentFile = "Problem.md";
-            this.codeEditor.setValue("# Two Sum\n\nGiven an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.");
-        }).bounds(10, 75, SIDEBAR_WIDTH - 20, 20).build());
+    private void selectProblem(Problem problem) {
+        this.currentProblem = problem;
+        this.codeEditor.setValue(problem.initialCode);
+        this.descriptionViewer.setValue(problem.description);
+        this.consoleText = "Loaded problem: " + problem.title;
+    }
+
+    private void runExamples() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Running Examples for ").append(currentProblem.title).append("...\n");
         
-        this.addRenderableWidget(Button.builder(Component.literal("TestCases.json"), button -> {
-            this.currentFile = "TestCases.json";
-            this.codeEditor.setValue("{\n  \"tests\": [\n    { \"input\": [2, 7, 11, 15], \"target\": 9, \"output\": [0, 1] }\n  ]\n}");
-        }).bounds(10, 100, SIDEBAR_WIDTH - 20, 20).build());
+        if (currentProblem.examples != null) {
+            for (Problem.TestCase test : currentProblem.examples) {
+                String result = CodeExecutor.execute(codeEditor.getValue(), test.input, test.output);
+                sb.append("Input: ").append(test.input).append(" | Output: ").append(result).append("\n");
+            }
+        } else {
+            sb.append("No examples found.");
+        }
+        this.consoleText = sb.toString();
+    }
+
+    private void submitSolution() {
+        this.consoleText = "Submitting...";
+        SubmissionResult result = Judge.grade(currentProblem, codeEditor.getValue());
+        
+        StringBuilder sb = new StringBuilder();
+        if (result.isSuccess) {
+            sb.append("SUCCESS! All tests passed.\n");
+            // Send packet to server to reward player
+            PacketDistributor.sendToServer(new PacketSolveProblem(currentProblem.id, currentProblem.difficulty));
+        } else {
+            sb.append("FAILED. ").append(result.message != null ? result.message : "").append("\n");
+        }
+        sb.append("Passed: ").append(result.passedCount).append("/").append(result.totalCount).append("\n");
+        sb.append("Time: ").append(result.executionTimeMs).append("ms");
+        
+        this.consoleText = sb.toString();
     }
 
     @Override
@@ -87,8 +144,8 @@ public class ModernAlgorithmScreen extends Screen {
         guiGraphics.hLine(SIDEBAR_WIDTH, this.width, consoleY, 0xFF3E3E42); // Border
 
         // 5. Sidebar Header
-        guiGraphics.drawCenteredString(this.font, "PROJECT EXPLORER", SIDEBAR_WIDTH / 2, 15, 0xFFAAAAAA);
-        guiGraphics.drawString(this.font, "Files:", 10, 35, 0xFF888888);
+        guiGraphics.drawCenteredString(this.font, "PROBLEMS", SIDEBAR_WIDTH / 2, 15, 0xFFAAAAAA);
+        guiGraphics.drawString(this.font, "Available:", 10, 35, 0xFF888888);
 
         // 6. Console Header & Text
         guiGraphics.drawString(this.font, "TERMINAL", SIDEBAR_WIDTH + 10, consoleY + 5, 0xFFAAAAAA);
@@ -96,10 +153,18 @@ public class ModernAlgorithmScreen extends Screen {
         // Split console text by newlines and render
         String[] lines = this.consoleText.split("\n");
         for (int i = 0; i < lines.length; i++) {
+            if (consoleY + 20 + (i * 10) > this.height - 5) break; // Clip
             guiGraphics.drawString(this.font, lines[i], SIDEBAR_WIDTH + 10, consoleY + 20 + (i * 10), 0xFFCCCCCC);
         }
+        
+        // 7. Title in Top Bar
+        if (currentProblem != null) {
+            // Draw title to the right of the buttons to avoid overlap
+            // Buttons end at SIDEBAR_WIDTH + 240
+            guiGraphics.drawString(this.font, currentProblem.title + (showingDescription ? " (Description)" : " (Code)"), SIDEBAR_WIDTH + 260, 15, 0xFFFFFFFF);
+        }
 
-        // 7. Render Widgets (Editor, Buttons)
+        // 8. Render Widgets (Editor, Buttons)
         super.render(guiGraphics, mouseX, mouseY, partialTick);
     }
     

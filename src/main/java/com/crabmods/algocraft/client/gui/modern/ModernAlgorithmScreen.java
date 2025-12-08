@@ -126,6 +126,50 @@ public class ModernAlgorithmScreen extends Screen {
     }
 
     @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == 258 && this.codeEditor.isFocused()) { // Tab key
+            // Insert 4 spaces instead of switching focus
+            for (int i = 0; i < 4; i++) {
+                this.codeEditor.charTyped(' ', modifiers);
+            }
+            return true;
+        }
+        
+        if (keyCode == 257 && this.codeEditor.isFocused()) { // Enter key
+            // Handle auto-indentation
+            String content = this.codeEditor.getValue();
+            // We can't easily get the cursor position line index without reflection or complex logic,
+            // but we can try to append the indentation of the last line if we are at the end.
+            // However, MultiLineEditBox handles Enter internally.
+            // To do this properly, we'd need to intercept, insert newline, then insert spaces.
+            
+            // Since we can't easily get the current line's indentation from the widget's internal state,
+            // we will do a simple heuristic: if the last character typed was '{', indent.
+            // This is limited but better than nothing.
+            
+            // Actually, let's let the super handle the newline, then we inject spaces.
+            boolean result = super.keyPressed(keyCode, scanCode, modifiers);
+            if (result) {
+                // Newline was inserted. Now let's try to add indentation.
+                // This is tricky because we don't know *where* the cursor is exactly relative to the text structure easily.
+                // But we can try to find the indentation of the line preceding the cursor.
+                // For now, let's just add 4 spaces if the previous line ended with '{'.
+                
+                // A better approach for a mod:
+                // 1. Get full text.
+                // 2. Find cursor (not exposed).
+                // 3. ...
+                
+                // Since we can't do it perfectly without more access, let's skip complex auto-indent for now
+                // to avoid breaking the text flow, or just insert 4 spaces if we can detect we just opened a block.
+            }
+            return result;
+        }
+        
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         // 1. Background
         this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
@@ -157,12 +201,10 @@ public class ModernAlgorithmScreen extends Screen {
             guiGraphics.drawString(this.font, lines[i], SIDEBAR_WIDTH + 10, consoleY + 20 + (i * 10), 0xFFCCCCCC);
         }
         
-        // 7. Title in Top Bar
-        if (currentProblem != null) {
-            // Draw title to the right of the buttons to avoid overlap
-            // Buttons end at SIDEBAR_WIDTH + 240
-            guiGraphics.drawString(this.font, currentProblem.title + (showingDescription ? " (Description)" : " (Code)"), SIDEBAR_WIDTH + 260, 15, 0xFFFFFFFF);
-        }
+        // 7. Title in Top Bar - REMOVED as requested
+        // if (currentProblem != null) {
+        //    guiGraphics.drawString(this.font, currentProblem.title + (showingDescription ? " (Description)" : " (Code)"), SIDEBAR_WIDTH + 260, 15, 0xFFFFFFFF);
+        // }
 
         // 8. Render Widgets (Editor, Buttons)
         super.render(guiGraphics, mouseX, mouseY, partialTick);

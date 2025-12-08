@@ -74,12 +74,12 @@ public record PacketSolveProblem(String problemId, String difficulty) implements
                         } else {
                             player.getInventory().add(new ItemStack(Items.EMERALD, 10));
                         }
-                        player.sendSystemMessage(Component.literal("§aFirst clear! You received a rich reward!"));
+                        player.sendSystemMessage(Component.translatable("algocraft.msg.first_clear"));
                     } else {
                         // Daily rewards (Guaranteed small)
                         player.getInventory().add(new ItemStack(Items.GOLD_NUGGET, 3));
                         player.getInventory().add(new ItemStack(Items.EXPERIENCE_BOTTLE, 1));
-                        player.sendSystemMessage(Component.literal("§eDaily clear! You received a small reward."));
+                        player.sendSystemMessage(Component.translatable("algocraft.msg.daily_clear"));
                     }
                     
                     // Update progress
@@ -88,7 +88,7 @@ public record PacketSolveProblem(String problemId, String difficulty) implements
                     // Sync to client
                     PacketDistributor.sendToPlayer(player, new PacketSyncProgress(data.getPlayerProgress(player.getUUID())));
                 } else {
-                    player.sendSystemMessage(Component.literal("§7You have already cleared this problem today. Come back tomorrow!"));
+                    player.sendSystemMessage(Component.translatable("algocraft.msg.already_cleared"));
                 }
             }
         });

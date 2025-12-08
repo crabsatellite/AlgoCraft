@@ -25,12 +25,13 @@ public class ModernAlgorithmScreen extends Screen {
     
     private CodeEditorWidget codeEditor;
     private MultiLineEditBox descriptionViewer;
-    private String consoleText = "Ready...";
+    private String consoleText = "";
     private Problem currentProblem;
     private boolean showingDescription = false;
 
     public ModernAlgorithmScreen() {
-        super(Component.literal("AlgoCraft IDE"));
+        super(Component.translatable("algocraft.gui.ide_title"));
+        this.consoleText = Component.translatable("algocraft.gui.ready").getString();
     }
 
     @Override
@@ -39,11 +40,11 @@ public class ModernAlgorithmScreen extends Screen {
         int editorHeight = this.height - TOP_BAR_HEIGHT - BOTTOM_BAR_HEIGHT - 20;
 
         // Code Editor
-        this.codeEditor = new CodeEditorWidget(this.font, SIDEBAR_WIDTH + 10, TOP_BAR_HEIGHT + 10, editorWidth, editorHeight, Component.literal("Code"));
+        this.codeEditor = new CodeEditorWidget(this.font, SIDEBAR_WIDTH + 10, TOP_BAR_HEIGHT + 10, editorWidth, editorHeight, Component.translatable("algocraft.gui.code"));
         this.addRenderableWidget(this.codeEditor);
 
         // Description Viewer (Initially hidden)
-        this.descriptionViewer = new MultiLineEditBox(this.font, SIDEBAR_WIDTH + 10, TOP_BAR_HEIGHT + 10, editorWidth, editorHeight, Component.literal(""), Component.literal("Description"));
+        this.descriptionViewer = new MultiLineEditBox(this.font, SIDEBAR_WIDTH + 10, TOP_BAR_HEIGHT + 10, editorWidth, editorHeight, Component.literal(""), Component.translatable("algocraft.gui.description"));
         this.descriptionViewer.visible = false;
         this.addRenderableWidget(this.descriptionViewer);
 
@@ -54,26 +55,26 @@ public class ModernAlgorithmScreen extends Screen {
         }
 
         // Run Button
-        this.addRenderableWidget(Button.builder(Component.literal("▶ Run"), button -> {
+        this.addRenderableWidget(Button.builder(Component.literal("▶ ").append(Component.translatable("algocraft.gui.run")), button -> {
             if (currentProblem == null) return;
             runExamples();
         }).bounds(SIDEBAR_WIDTH + 10, 10, 60, 20).build());
 
         // Submit Button
-        this.addRenderableWidget(Button.builder(Component.literal("✔ Submit"), button -> {
+        this.addRenderableWidget(Button.builder(Component.literal("✔ ").append(Component.translatable("algocraft.gui.submit")), button -> {
             if (currentProblem == null) return;
             submitSolution();
         }).bounds(SIDEBAR_WIDTH + 80, 10, 70, 20).build());
         
         // Toggle View Button
-        this.addRenderableWidget(Button.builder(Component.literal("Toggle View"), button -> {
+        this.addRenderableWidget(Button.builder(Component.translatable("algocraft.gui.toggle_view"), button -> {
             showingDescription = !showingDescription;
             codeEditor.visible = !showingDescription;
             descriptionViewer.visible = showingDescription;
         }).bounds(SIDEBAR_WIDTH + 160, 10, 80, 20).build());
 
         // Close Button
-        this.addRenderableWidget(Button.builder(Component.literal("❌ Close"), button -> {
+        this.addRenderableWidget(Button.builder(Component.literal("❌ ").append(Component.translatable("algocraft.gui.close")), button -> {
             this.onClose();
         }).bounds(this.width - 70, 10, 60, 20).build());
         
@@ -96,38 +97,41 @@ public class ModernAlgorithmScreen extends Screen {
         this.currentProblem = problem;
         this.codeEditor.setValue(problem.initialCode);
         this.descriptionViewer.setValue(problem.description);
-        this.consoleText = "Loaded problem: " + problem.title;
+        this.consoleText = Component.translatable("algocraft.gui.loaded_problem", problem.title).getString();
     }
 
     private void runExamples() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Running Examples for ").append(currentProblem.title).append("...\n");
+        sb.append(Component.translatable("algocraft.gui.running_examples", currentProblem.title).getString()).append("\n");
         
         if (currentProblem.examples != null) {
             for (Problem.TestCase test : currentProblem.examples) {
                 String result = CodeExecutor.execute(codeEditor.getValue(), test.input, test.output);
-                sb.append("Input: ").append(test.input).append(" | Output: ").append(result).append("\n");
+                sb.append(Component.translatable("algocraft.gui.input", test.input).getString())
+                  .append(" | ")
+                  .append(Component.translatable("algocraft.gui.result", result).getString())
+                  .append("\n");
             }
         } else {
-            sb.append("No examples found.");
+            sb.append(Component.translatable("algocraft.gui.no_examples").getString());
         }
         this.consoleText = sb.toString();
     }
 
     private void submitSolution() {
-        this.consoleText = "Submitting...";
+        this.consoleText = Component.translatable("algocraft.gui.submitting").getString();
         SubmissionResult result = Judge.grade(currentProblem, codeEditor.getValue());
         
         StringBuilder sb = new StringBuilder();
         if (result.isSuccess) {
-            sb.append("SUCCESS! All tests passed.\n");
+            sb.append(Component.translatable("algocraft.gui.success_all_passed").getString()).append("\n");
             // Send packet to server to reward player
             PacketDistributor.sendToServer(new PacketSolveProblem(currentProblem.id, currentProblem.difficulty));
         } else {
-            sb.append("FAILED. ").append(result.message != null ? result.message : "").append("\n");
+            sb.append(Component.translatable("algocraft.msg.submission_failed").getString()).append(" ").append(result.message != null ? result.message : "").append("\n");
         }
-        sb.append("Passed: ").append(result.passedCount).append("/").append(result.totalCount).append("\n");
-        sb.append("Time: ").append(result.executionTimeMs).append("ms");
+        sb.append(Component.translatable("algocraft.gui.passed", result.passedCount, result.totalCount).getString()).append("\n");
+        sb.append(Component.translatable("algocraft.gui.time", result.executionTimeMs).getString());
         
         this.consoleText = sb.toString();
     }
@@ -157,11 +161,11 @@ public class ModernAlgorithmScreen extends Screen {
         guiGraphics.hLine(SIDEBAR_WIDTH, this.width, consoleY, 0xFF3E3E42); // Border
 
         // 5. Sidebar Header
-        guiGraphics.drawCenteredString(this.font, "PROBLEMS", SIDEBAR_WIDTH / 2, 15, 0xFFAAAAAA);
-        guiGraphics.drawString(this.font, "Available:", 10, 35, 0xFF888888);
+        guiGraphics.drawCenteredString(this.font, Component.translatable("algocraft.gui.problems"), SIDEBAR_WIDTH / 2, 15, 0xFFAAAAAA);
+        guiGraphics.drawString(this.font, Component.translatable("algocraft.gui.available"), 10, 35, 0xFF888888);
 
         // 6. Console Header & Text
-        guiGraphics.drawString(this.font, "TERMINAL", SIDEBAR_WIDTH + 10, consoleY + 5, 0xFFAAAAAA);
+        guiGraphics.drawString(this.font, Component.translatable("algocraft.gui.terminal"), SIDEBAR_WIDTH + 10, consoleY + 5, 0xFFAAAAAA);
         
         // Split console text by newlines and render
         String[] lines = this.consoleText.split("\n");

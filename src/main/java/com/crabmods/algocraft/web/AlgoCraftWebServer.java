@@ -186,7 +186,6 @@ public class AlgoCraftWebServer {
     </script>
     <style>
         body { background-color: #09090b; color: #e4e4e7; font-family: 'Inter', sans-serif; }
-        .monaco-editor { padding-top: 12px; }
         
         /* Clean Scrollbar */
         ::-webkit-scrollbar { width: 10px; height: 10px; }

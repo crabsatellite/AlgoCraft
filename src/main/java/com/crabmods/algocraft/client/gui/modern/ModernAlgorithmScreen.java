@@ -1,5 +1,6 @@
 package com.crabmods.algocraft.client.gui.modern;
 
+import com.crabmods.algocraft.client.gui.component.CodeEditorWidget;
 import com.crabmods.algocraft.logic.CodeExecutor;
 import com.crabmods.algocraft.logic.Judge;
 import com.crabmods.algocraft.logic.Problem;
@@ -22,7 +23,7 @@ public class ModernAlgorithmScreen extends Screen {
     private static final int TOP_BAR_HEIGHT = 40;
     private static final int BOTTOM_BAR_HEIGHT = 120;
     
-    private MultiLineEditBox codeEditor;
+    private CodeEditorWidget codeEditor;
     private MultiLineEditBox descriptionViewer;
     private String consoleText = "Ready...";
     private Problem currentProblem;
@@ -38,7 +39,7 @@ public class ModernAlgorithmScreen extends Screen {
         int editorHeight = this.height - TOP_BAR_HEIGHT - BOTTOM_BAR_HEIGHT - 20;
 
         // Code Editor
-        this.codeEditor = new MultiLineEditBox(this.font, SIDEBAR_WIDTH + 10, TOP_BAR_HEIGHT + 10, editorWidth, editorHeight, Component.literal(""), Component.literal("Code"));
+        this.codeEditor = new CodeEditorWidget(this.font, SIDEBAR_WIDTH + 10, TOP_BAR_HEIGHT + 10, editorWidth, editorHeight, Component.literal("Code"));
         this.addRenderableWidget(this.codeEditor);
 
         // Description Viewer (Initially hidden)
@@ -133,45 +134,7 @@ public class ModernAlgorithmScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == 258 && this.codeEditor.isFocused()) { // Tab key
-            // Insert 4 spaces instead of switching focus
-            for (int i = 0; i < 4; i++) {
-                this.codeEditor.charTyped(' ', modifiers);
-            }
-            return true;
-        }
-        
-        if (keyCode == 257 && this.codeEditor.isFocused()) { // Enter key
-            // Handle auto-indentation
-            String content = this.codeEditor.getValue();
-            // We can't easily get the cursor position line index without reflection or complex logic,
-            // but we can try to append the indentation of the last line if we are at the end.
-            // However, MultiLineEditBox handles Enter internally.
-            // To do this properly, we'd need to intercept, insert newline, then insert spaces.
-            
-            // Since we can't easily get the current line's indentation from the widget's internal state,
-            // we will do a simple heuristic: if the last character typed was '{', indent.
-            // This is limited but better than nothing.
-            
-            // Actually, let's let the super handle the newline, then we inject spaces.
-            boolean result = super.keyPressed(keyCode, scanCode, modifiers);
-            if (result) {
-                // Newline was inserted. Now let's try to add indentation.
-                // This is tricky because we don't know *where* the cursor is exactly relative to the text structure easily.
-                // But we can try to find the indentation of the line preceding the cursor.
-                // For now, let's just add 4 spaces if the previous line ended with '{'.
-                
-                // A better approach for a mod:
-                // 1. Get full text.
-                // 2. Find cursor (not exposed).
-                // 3. ...
-                
-                // Since we can't do it perfectly without more access, let's skip complex auto-indent for now
-                // to avoid breaking the text flow, or just insert 4 spaces if we can detect we just opened a block.
-            }
-            return result;
-        }
-        
+        // CodeEditorWidget handles its own keys, but we can intercept global shortcuts here if needed
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 

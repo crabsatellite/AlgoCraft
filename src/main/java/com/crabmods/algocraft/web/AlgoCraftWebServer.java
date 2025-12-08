@@ -153,7 +153,7 @@ public class AlgoCraftWebServer {
     <title>AlgoCraft IDE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -164,58 +164,51 @@ public class AlgoCraftWebServer {
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        dark: {
-                            bg: '#0f1117',
-                            surface: '#1e293b',
-                            border: '#334155',
-                            accent: '#3b82f6'
-                        }
+                        bg: '#09090b',       // Zinc 950
+                        surface: '#18181b',  // Zinc 900
+                        surface2: '#27272a', // Zinc 800
+                        border: '#3f3f46',   // Zinc 700
+                        text: '#e4e4e7',     // Zinc 200
+                        textMuted: '#a1a1aa',// Zinc 400
+                        primary: '#2563eb',  // Blue 600
+                        primaryHover: '#1d4ed8', // Blue 700
+                        success: '#16a34a',  // Green 600
                     }
                 }
             }
         }
     </script>
     <style>
-        body { background-color: #0f1117; color: #e2e8f0; font-family: 'Inter', sans-serif; }
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
+        body { background-color: #09090b; color: #e4e4e7; font-family: 'Inter', sans-serif; }
         .monaco-editor { padding-top: 12px; }
         
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #0f1117; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        /* Clean Scrollbar */
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 5px; border: 2px solid #09090b; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
 
-        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .btn-glow:hover {
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
-        }
+        .animate-fade-in { animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden bg-dark-bg selection:bg-blue-500/30">
+<body class="h-screen flex flex-col overflow-hidden bg-bg selection:bg-primary/30">
     <!-- Top Navigation -->
-    <nav class="h-14 border-b border-dark-border glass-panel flex items-center justify-between px-6 z-20">
+    <nav class="h-14 border-b border-border bg-bg flex items-center justify-between px-6 z-20">
         <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+            <div class="w-8 h-8 bg-primary rounded-md flex items-center justify-center shadow-sm">
                 <span class="font-bold text-white font-mono">&lt;/&gt;</span>
             </div>
-            <span class="font-bold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">AlgoCraft</span>
+            <span class="font-semibold text-lg tracking-tight text-white">AlgoCraft</span>
         </div>
         <div class="flex items-center space-x-4">
-            <div class="flex bg-dark-surface rounded-lg p-1 border border-dark-border">
-                <button onclick="prevProblem()" class="p-1.5 hover:bg-white/10 rounded-md transition-colors text-gray-400 hover:text-white">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            <div class="flex bg-surface rounded-md border border-border">
+                <button onclick="prevProblem()" class="p-1.5 hover:bg-surface2 rounded-l-md transition-colors text-textMuted hover:text-white border-r border-border">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                 </button>
-                <span class="px-3 py-1 text-sm font-medium text-gray-300 flex items-center" id="problem-counter">1 / 1</span>
-                <button onclick="nextProblem()" class="p-1.5 hover:bg-white/10 rounded-md transition-colors text-gray-400 hover:text-white">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                <span class="px-4 py-1 text-sm font-medium text-text flex items-center min-w-[80px] justify-center" id="problem-counter">1 / 1</span>
+                <button onclick="nextProblem()" class="p-1.5 hover:bg-surface2 rounded-r-md transition-colors text-textMuted hover:text-white border-l border-border">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </button>
             </div>
         </div>
@@ -223,15 +216,15 @@ public class AlgoCraftWebServer {
 
     <div class="flex-1 flex overflow-hidden">
         <!-- Left Panel: Problem Description -->
-        <div class="w-[40%] flex flex-col border-r border-dark-border bg-[#13161c]">
+        <div class="w-[40%] flex flex-col border-r border-border bg-bg">
             <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
                 <div class="animate-fade-in">
                     <div class="flex items-center space-x-3 mb-6">
-                        <h1 class="text-2xl font-bold text-white" id="problem-title">Loading...</h1>
-                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20" id="problem-difficulty">Easy</span>
+                        <h1 class="text-2xl font-semibold text-white" id="problem-title">Loading...</h1>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface2 text-text border border-border" id="problem-difficulty">Easy</span>
                     </div>
                     
-                    <div class="prose prose-invert prose-sm max-w-none text-gray-300 leading-relaxed" id="problem-desc">
+                    <div class="prose prose-invert prose-sm max-w-none text-textMuted leading-relaxed" id="problem-desc">
                         <!-- Description injected here -->
                     </div>
 
@@ -243,13 +236,13 @@ public class AlgoCraftWebServer {
             </div>
             
             <!-- Console / Output Panel -->
-            <div class="h-1/3 border-t border-dark-border bg-[#0f1117] flex flex-col">
-                <div class="flex items-center justify-between px-4 py-2 border-b border-dark-border bg-[#161b22]">
-                    <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Console</span>
-                    <button onclick="clearConsole()" class="text-xs text-gray-500 hover:text-white transition-colors">Clear</button>
+            <div class="h-1/3 border-t border-border bg-surface flex flex-col">
+                <div class="flex items-center justify-between px-4 py-2 border-b border-border bg-surface2">
+                    <span class="text-xs font-semibold text-textMuted uppercase tracking-wider">Console</span>
+                    <button onclick="clearConsole()" class="text-xs text-textMuted hover:text-white transition-colors">Clear</button>
                 </div>
                 <div class="flex-1 p-4 overflow-y-auto font-mono text-sm" id="output-container">
-                    <div class="text-gray-500 italic">Ready to run...</div>
+                    <div class="text-textMuted italic">Ready to run...</div>
                 </div>
             </div>
         </div>
@@ -258,8 +251,8 @@ public class AlgoCraftWebServer {
         <div class="flex-1 flex flex-col bg-[#1e1e1e] relative">
             <!-- Editor Toolbar -->
             <div class="h-10 bg-[#1e1e1e] border-b border-[#2b2b2b] flex items-center px-4 space-x-4">
-                <div class="flex items-center space-x-2 text-xs text-gray-400">
-                    <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+                <div class="flex items-center space-x-2 text-xs text-textMuted">
+                    <span class="w-2 h-2 rounded-full bg-primary"></span>
                     <span>Java</span>
                 </div>
             </div>
@@ -267,17 +260,17 @@ public class AlgoCraftWebServer {
             <div id="editor-container" class="flex-1"></div>
             
             <!-- Action Bar -->
-            <div class="h-16 border-t border-dark-border glass-panel absolute bottom-6 right-6 left-6 rounded-xl flex items-center justify-between px-6 shadow-2xl z-10">
-                <div class="text-sm text-gray-400 flex items-center space-x-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            <div class="h-16 border-t border-border bg-surface flex items-center justify-between px-6">
+                <div class="text-sm text-textMuted flex items-center space-x-2">
+                    <div class="w-2 h-2 rounded-full bg-green-500" id="status-dot"></div>
                     <span id="status-text">Ready</span>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <button onclick="runCode()" class="px-5 py-2 rounded-lg bg-dark-surface border border-dark-border text-gray-300 hover:bg-white/5 hover:text-white transition-all font-medium text-sm flex items-center space-x-2">
+                    <button onclick="runCode()" class="px-5 py-2 rounded-md bg-surface2 border border-border text-text hover:bg-border hover:text-white transition-all font-medium text-sm flex items-center space-x-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <span>Run</span>
                     </button>
-                    <button onclick="submitCode()" class="px-6 py-2 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium text-sm shadow-lg shadow-green-900/20 hover:shadow-green-600/30 hover:-translate-y-0.5 transition-all flex items-center space-x-2 btn-glow">
+                    <button onclick="submitCode()" class="px-6 py-2 rounded-md bg-success text-white font-medium text-sm hover:bg-green-700 transition-all flex items-center space-x-2 shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                         <span>Submit</span>
                     </button>
@@ -287,33 +280,28 @@ public class AlgoCraftWebServer {
     </div>
 
     <!-- Success Overlay -->
-    <div id="success-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center z-50 transition-opacity duration-300 opacity-0">
-        <div class="bg-[#1e293b] border border-white/10 p-10 rounded-2xl shadow-2xl transform scale-90 transition-all duration-300 max-w-md w-full text-center relative overflow-hidden" id="success-content">
-            <!-- Background Glow -->
-            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-green-500/20 blur-3xl rounded-full pointer-events-none"></div>
-            
-            <div class="relative z-10">
-                <div class="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6 ring-1 ring-green-500/30">
-                    <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                </div>
-                <h2 class="text-3xl font-bold text-white mb-2 tracking-tight">Accepted!</h2>
-                <p class="text-gray-400 mb-8">You have successfully solved the problem. Rewards have been sent to your inventory.</p>
-                
-                <div class="grid grid-cols-2 gap-4 mb-8">
-                    <div class="bg-black/20 p-3 rounded-lg">
-                        <div class="text-xs text-gray-500 uppercase">Runtime</div>
-                        <div class="text-green-400 font-mono font-bold" id="result-time">0 ms</div>
-                    </div>
-                    <div class="bg-black/20 p-3 rounded-lg">
-                        <div class="text-xs text-gray-500 uppercase">Passed</div>
-                        <div class="text-green-400 font-mono font-bold" id="result-passed">All</div>
-                    </div>
-                </div>
-
-                <button onclick="closeModal()" class="w-full py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-colors">
-                    Continue Coding
-                </button>
+    <div id="success-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-50 transition-opacity duration-200 opacity-0">
+        <div class="bg-surface border border-border p-8 rounded-xl shadow-2xl transform scale-95 transition-all duration-200 max-w-sm w-full text-center" id="success-content">
+            <div class="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
             </div>
+            <h2 class="text-2xl font-semibold text-white mb-2">Accepted</h2>
+            <p class="text-textMuted mb-6 text-sm">All test cases passed successfully.</p>
+            
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <div class="bg-bg p-3 rounded-lg border border-border">
+                    <div class="text-[10px] text-textMuted uppercase font-bold tracking-wider">Runtime</div>
+                    <div class="text-text font-mono font-medium mt-1" id="result-time">0 ms</div>
+                </div>
+                <div class="bg-bg p-3 rounded-lg border border-border">
+                    <div class="text-[10px] text-textMuted uppercase font-bold tracking-wider">Passed</div>
+                    <div class="text-text font-mono font-medium mt-1" id="result-passed">All</div>
+                </div>
+            </div>
+
+            <button onclick="closeModal()" class="w-full py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primaryHover transition-colors text-sm">
+                Continue
+            </button>
         </div>
     </div>
 
@@ -371,7 +359,7 @@ public class AlgoCraftWebServer {
 
         function prevProblem() { loadProblem((currentIndex - 1 + problems.length) % problems.length); }
         function nextProblem() { loadProblem((currentIndex + 1) % problems.length); }
-        function clearConsole() { document.getElementById('output-container').innerHTML = '<div class="text-gray-500 italic">Ready to run...</div>'; }
+        function clearConsole() { document.getElementById('output-container').innerHTML = '<div class="text-textMuted italic">Ready to run...</div>'; }
 
         function appendOutput(text, type = 'info') {
             const container = document.getElementById('output-container');
@@ -380,7 +368,7 @@ public class AlgoCraftWebServer {
             }
             
             const div = document.createElement('div');
-            div.className = 'mb-2 font-mono whitespace-pre-wrap ' + (type === 'error' ? 'text-red-400' : 'text-gray-300');
+            div.className = 'mb-2 font-mono whitespace-pre-wrap ' + (type === 'error' ? 'text-red-400' : 'text-text');
             div.innerText = text;
             container.appendChild(div);
             container.scrollTop = container.scrollHeight;
@@ -389,6 +377,7 @@ public class AlgoCraftWebServer {
         async function runCode() {
             const code = editor.getValue();
             document.getElementById('status-text').innerText = 'Running...';
+            document.getElementById('status-dot').className = 'w-2 h-2 rounded-full bg-yellow-500 animate-pulse';
             clearConsole();
             appendOutput('Compiling and running...', 'info');
             
@@ -400,14 +389,18 @@ public class AlgoCraftWebServer {
                 const data = await res.json();
                 appendOutput(data.output);
                 document.getElementById('status-text').innerText = 'Ready';
+                document.getElementById('status-dot').className = 'w-2 h-2 rounded-full bg-green-500';
             } catch (e) {
                 appendOutput('Network Error', 'error');
+                document.getElementById('status-text').innerText = 'Error';
+                document.getElementById('status-dot').className = 'w-2 h-2 rounded-full bg-red-500';
             }
         }
 
         async function submitCode() {
             const code = editor.getValue();
             document.getElementById('status-text').innerText = 'Judging...';
+            document.getElementById('status-dot').className = 'w-2 h-2 rounded-full bg-yellow-500 animate-pulse';
             clearConsole();
             appendOutput('Submitting solution...', 'info');
             
@@ -435,8 +428,11 @@ public class AlgoCraftWebServer {
                     appendOutput(msg, 'error');
                 }
                 document.getElementById('status-text').innerText = result.message;
+                document.getElementById('status-dot').className = result.isSuccess ? 'w-2 h-2 rounded-full bg-green-500' : 'w-2 h-2 rounded-full bg-red-500';
             } catch (e) {
                 appendOutput('Network Error', 'error');
+                document.getElementById('status-text').innerText = 'Error';
+                document.getElementById('status-dot').className = 'w-2 h-2 rounded-full bg-red-500';
             }
         }
 
@@ -447,7 +443,7 @@ public class AlgoCraftWebServer {
             // Trigger reflow
             void modal.offsetWidth;
             modal.classList.remove('opacity-0');
-            content.classList.remove('scale-90');
+            content.classList.remove('scale-95');
             content.classList.add('scale-100');
         }
 
@@ -456,8 +452,8 @@ public class AlgoCraftWebServer {
             const content = document.getElementById('success-content');
             modal.classList.add('opacity-0');
             content.classList.remove('scale-100');
-            content.classList.add('scale-90');
-            setTimeout(() => modal.classList.add('hidden'), 300);
+            content.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 200);
         }
     </script>
 </body>

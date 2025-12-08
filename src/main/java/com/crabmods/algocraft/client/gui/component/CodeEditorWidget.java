@@ -28,7 +28,9 @@ public class CodeEditorWidget extends AbstractWidget {
     private Consumer<String> onValueChanged;
     
     private static final int LINE_HEIGHT = 10;
+    private static final int LINE_NUMBER_WIDTH = 25;
     private static final int BACKGROUND_COLOR = 0xFF1E1E1E;
+    private static final int LINE_NUMBER_COLOR = 0xFF858585;
     private static final int TEXT_COLOR = 0xFFD4D4D4;
     private static final int KEYWORD_COLOR = 0xFF569CD6; // Blue
     private static final int TYPE_COLOR = 0xFF4EC9B0;    // Teal
@@ -88,15 +90,19 @@ public class CodeEditorWidget extends AbstractWidget {
             String line = lines.get(i);
             int y = getY() + 2 + (i - startLine) * LINE_HEIGHT;
             
+            // Draw Line Number
+            String lineNumStr = String.valueOf(i + 1);
+            guiGraphics.drawString(font, lineNumStr, getX() + LINE_NUMBER_WIDTH - 4 - font.width(lineNumStr), y, LINE_NUMBER_COLOR, false);
+
             // Simple Syntax Highlighting
-            renderHighlightedLine(guiGraphics, line, getX() + 4 - scrollX, y);
+            renderHighlightedLine(guiGraphics, line, getX() + LINE_NUMBER_WIDTH + 4 - scrollX, y);
         }
         
         // Render Cursor
         if (isFocused() && (System.currentTimeMillis() / 500) % 2 == 0) {
             if (cursorLine >= startLine && cursorLine < endLine) {
                 String lineBeforeCursor = lines.get(cursorLine).substring(0, Math.min(cursorCol, lines.get(cursorLine).length()));
-                int cursorX = getX() + 4 - scrollX + font.width(lineBeforeCursor);
+                int cursorX = getX() + LINE_NUMBER_WIDTH + 4 - scrollX + font.width(lineBeforeCursor);
                 int cursorY = getY() + 2 + (cursorLine - startLine) * LINE_HEIGHT;
                 guiGraphics.fill(cursorX, cursorY, cursorX + 1, cursorY + 9, 0xFFFFFFFF);
             }
@@ -104,45 +110,66 @@ public class CodeEditorWidget extends AbstractWidget {
     }
     
     private void renderHighlightedLine(GuiGraphics guiGraphics, String line, int x, int y) {
-        // This is a very basic tokenizer for rendering
-        // For a real implementation, we would need a proper lexer
-        // Here we just split by spaces and check keywords, which is imperfect but fast
-        
-        // Actually, splitting by delimiters is better
-        // Let's do a simple character loop for now to handle basic tokens
-        
         int currentX = x;
-        StringBuilder token = new StringBuilder();
-        int tokenStart = 0;
-        
-        for (int i = 0; i <= line.length(); i++) {
-            char c = (i < line.length()) ? line.charAt(i) : ' ';
-            boolean isDelimiter = " \t(){}[];,.<>+-*/%=&|!".indexOf(c) >= 0;
-            
-            if (isDelimiter) {
-                if (token.length() > 0) {
-                    String word = token.toString();
-                    int color = TEXT_COLOR;
-                    
-                    if (isKeyword(word)) color = KEYWORD_COLOR;
-                    else if (isType(word)) color = TYPE_COLOR;
-                    else if (isNumber(word)) color = NUMBER_COLOR;
-                    else if (word.equals("true") || word.equals("false") || word.equals("null")) color = KEYWORD_COLOR;
-                    
-                    guiGraphics.drawString(font, word, currentX, y, color, false);
-                    currentX += font.width(word);
-                    token.setLength(0);
-                }
-                
-                if (i < line.length()) {
-                    // Draw the delimiter
-                    guiGraphics.drawString(font, String.valueOf(c), currentX, y, TEXT_COLOR, false);
-                    currentX += font.width(String.valueOf(c));
-                }
-            } else {
-                token.append(c);
+        int i = 0;
+        while (i < line.length()) {
+            // Check for comment
+            if (i + 1 < line.length() && line.charAt(i) == '/' && line.charAt(i + 1) == '/') {
+                String comment = line.substring(i);
+                guiGraphics.drawString(font, comment, currentX, y, COMMENT_COLOR, false);
+                return; // Rest of line is comment
             }
+
+            // Check for string
+            if (line.charAt(i) == '"') {
+                int end = line.indexOf('"', i + 1);
+                while (end != -1 && line.charAt(end - 1) == '\\') { // Handle escaped quotes
+                    end = line.indexOf('"', end + 1);
+                }
+                if (end == -1) end = line.length(); // Unclosed string
+                else end++; // Include closing quote
+                
+                String stringLiteral = line.substring(i, end);
+                guiGraphics.drawString(font, stringLiteral, currentX, y, STRING_COLOR, false);
+                currentX += font.width(stringLiteral);
+                i = end;
+                continue;
+            }
+
+            char c = line.charAt(i);
+            if (Character.isWhitespace(c)) {
+                guiGraphics.drawString(font, String.valueOf(c), currentX, y, TEXT_COLOR, false);
+                currentX += font.width(String.valueOf(c));
+                i++;
+                continue;
+            }
+
+            if (isDelimiter(c)) {
+                guiGraphics.drawString(font, String.valueOf(c), currentX, y, TEXT_COLOR, false);
+                currentX += font.width(String.valueOf(c));
+                i++;
+                continue;
+            }
+
+            // Identifier or Number
+            int start = i;
+            while (i < line.length() && !isDelimiter(line.charAt(i)) && !Character.isWhitespace(line.charAt(i)) && line.charAt(i) != '"') {
+                i++;
+            }
+            String word = line.substring(start, i);
+            int color = TEXT_COLOR;
+            if (isKeyword(word)) color = KEYWORD_COLOR;
+            else if (isType(word)) color = TYPE_COLOR;
+            else if (isNumber(word)) color = NUMBER_COLOR;
+            else if (word.equals("true") || word.equals("false") || word.equals("null")) color = KEYWORD_COLOR;
+            
+            guiGraphics.drawString(font, word, currentX, y, color, false);
+            currentX += font.width(word);
         }
+    }
+
+    private boolean isDelimiter(char c) {
+        return "(){}[];,.<>+-*/%=&|!".indexOf(c) >= 0;
     }
     
     private boolean isKeyword(String word) {
@@ -155,8 +182,22 @@ public class CodeEditorWidget extends AbstractWidget {
     }
     
     private boolean isNumber(String word) {
+        if (word.isEmpty()) return false;
+        if (word.startsWith("0x") || word.startsWith("0X")) {
+            try {
+                Long.parseLong(word.substring(2), 16);
+                return true;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+        char last = word.charAt(word.length() - 1);
+        String check = word;
+        if (last == 'f' || last == 'F' || last == 'd' || last == 'D' || last == 'l' || last == 'L') {
+            check = word.substring(0, word.length() - 1);
+        }
         try {
-            Double.parseDouble(word);
+            Double.parseDouble(check);
             return true;
         } catch (NumberFormatException e) {
             return false;

@@ -1,13 +1,12 @@
 package com.crabmods.algocraft.client;
 
+import com.crabmods.algocraft.client.gui.AlgorithmSelectionScreen;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
 public class ClientHooks {
     public static void openAlgorithmScreen() {
-        // Open in external browser (Best experience)
-        Util.getPlatform().openUri("http://localhost:3000");
-        Minecraft.getInstance().player.displayClientMessage(Component.literal("Opened AlgoCraft IDE in your browser!"), true);
+        Minecraft.getInstance().setScreen(new AlgorithmSelectionScreen());
     }
 }

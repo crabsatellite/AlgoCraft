@@ -252,10 +252,10 @@ public class AlgoCraftWebServer {
         </div>
         
         <!-- Search Bar -->
-        <div class="relative mx-4 flex-1 max-w-md">
+        <!-- <div class="relative mx-4 flex-1 max-w-md">
             <input type="text" id="search-input" placeholder="Search problems or tags..." class="w-full bg-surface border border-border rounded-md px-3 py-1.5 text-sm text-text focus:outline-none focus:border-primary transition-colors" oninput="handleSearch()">
             <div id="search-results" class="absolute top-full left-0 right-0 mt-1 bg-surface border border-border rounded-md shadow-lg hidden max-h-60 overflow-y-auto z-50"></div>
-        </div>
+        </div> -->
 
         <div class="flex items-center space-x-4">
             <div class="flex bg-surface rounded-md border border-border">
@@ -271,8 +271,19 @@ public class AlgoCraftWebServer {
     </nav>
 
     <div class="flex-1 flex overflow-hidden">
-        <!-- Left Panel: Problem Description -->
-        <div class="w-[40%] flex flex-col border-r border-border bg-bg">
+        <!-- Sidebar: Problem List -->
+        <div class="w-64 flex flex-col border-r border-border bg-surface">
+            <div class="p-4 border-b border-border">
+                <h2 class="text-sm font-semibold text-textMuted uppercase tracking-wider mb-2">Problems</h2>
+                <input type="text" id="sidebar-search" placeholder="Filter..." class="w-full bg-bg border border-border rounded-md px-3 py-1.5 text-sm text-text focus:outline-none focus:border-primary transition-colors" oninput="filterSidebar()">
+            </div>
+            <div class="flex-1 overflow-y-auto custom-scrollbar" id="problem-list">
+                <!-- Problem items injected here -->
+            </div>
+        </div>
+
+        <!-- Middle Panel: Problem Description -->
+        <div class="w-[35%] flex flex-col border-r border-border bg-bg">
             <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
                 <div class="animate-fade-in">
                     <div class="flex items-center space-x-3 mb-2">
@@ -418,6 +429,7 @@ public class AlgoCraftWebServer {
                 }
                 const res = await fetch(url);
                 problems = await res.json();
+                renderSidebar();
                 if (problems.length > 0) {
                     loadProblem(0);
                 } else {
@@ -431,6 +443,58 @@ public class AlgoCraftWebServer {
             }
         }
         
+        function renderSidebar() {
+            const list = document.getElementById('problem-list');
+            list.innerHTML = '';
+            problems.forEach((p, idx) => {
+                const div = document.createElement('div');
+                div.className = `px-4 py-3 border-b border-border cursor-pointer hover:bg-surface2 transition-colors ${idx === currentIndex ? 'bg-surface2 border-l-2 border-l-primary' : ''}`;
+                div.onclick = () => loadProblem(idx);
+                
+                const title = document.createElement('div');
+                title.className = 'text-sm font-medium text-text truncate';
+                title.innerText = p.title;
+                
+                const meta = document.createElement('div');
+                meta.className = 'flex items-center justify-between mt-1';
+                
+                const diff = document.createElement('span');
+                diff.className = `text-xs font-medium ${getDiffColor(p.difficulty)}`;
+                diff.innerText = p.difficulty || 'Medium';
+                
+                meta.appendChild(diff);
+                
+                if (p.passed) {
+                    const passed = document.createElement('span');
+                    passed.className = 'text-xs text-green-500';
+                    passed.innerText = '✔';
+                    meta.appendChild(passed);
+                }
+                
+                div.appendChild(title);
+                div.appendChild(meta);
+                list.appendChild(div);
+            });
+        }
+        
+        function getDiffColor(diff) {
+            if (!diff) return 'text-yellow-500';
+            const d = diff.toLowerCase();
+            if (d === 'easy') return 'text-green-500';
+            if (d === 'hard') return 'text-red-500';
+            return 'text-yellow-500';
+        }
+        
+        function filterSidebar() {
+            const query = document.getElementById('sidebar-search').value.toLowerCase();
+            const items = document.getElementById('problem-list').children;
+            Array.from(items).forEach((item, idx) => {
+                const p = problems[idx];
+                const match = p.title.toLowerCase().includes(query) || (p.tags && p.tags.some(t => t.toLowerCase().includes(query)));
+                item.style.display = match ? 'block' : 'none';
+            });
+        }
+        
         function changeRepo() {
             const repoName = document.getElementById('repo-select').value;
             fetchProblems(repoName);
@@ -438,6 +502,17 @@ public class AlgoCraftWebServer {
 
         function loadProblem(index) {
             if (index < 0 || index >= problems.length) return;
+            
+            // Update active state in sidebar
+            const list = document.getElementById('problem-list');
+            if (list.children[currentIndex]) {
+                list.children[currentIndex].classList.remove('bg-surface2', 'border-l-2', 'border-l-primary');
+            }
+            if (list.children[index]) {
+                list.children[index].classList.add('bg-surface2', 'border-l-2', 'border-l-primary');
+                list.children[index].scrollIntoView({ block: 'nearest' });
+            }
+            
             currentIndex = index;
             currentProblem = problems[index];
             

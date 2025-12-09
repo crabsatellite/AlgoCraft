@@ -78,8 +78,13 @@ public class ModernAlgorithmScreen extends Screen {
             this.onClose();
         }).bounds(this.width - 70, 10, 60, 20).build());
         
+        // Import Button
+        this.addRenderableWidget(Button.builder(Component.translatable("algocraft.gui.import"), button -> {
+            Minecraft.getInstance().setScreen(new ImportProblemScreen(this));
+        }).bounds(10, 40, SIDEBAR_WIDTH - 20, 20).build());
+        
         // Sidebar Buttons (Problem List)
-        int y = 50;
+        int y = 70;
         for (Problem problem : problems) {
             net.minecraft.network.chat.MutableComponent label = Component.literal(problem.title);
             if (ProgressManager.isPassed(problem.id)) {

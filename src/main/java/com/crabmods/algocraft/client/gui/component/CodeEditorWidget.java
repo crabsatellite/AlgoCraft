@@ -86,6 +86,9 @@ public class CodeEditorWidget extends AbstractWidget {
         int startLine = scrollY;
         int endLine = Math.min(lines.size(), startLine + visibleLines + 1);
         
+        // Clip to widget bounds
+        guiGraphics.enableScissor(getX() + 1, getY() + 1, getX() + width - 1, getY() + height - 1);
+        
         for (int i = startLine; i < endLine; i++) {
             String line = lines.get(i);
             int y = getY() + 2 + (i - startLine) * LINE_HEIGHT;
@@ -107,6 +110,18 @@ public class CodeEditorWidget extends AbstractWidget {
                 guiGraphics.fill(cursorX, cursorY, cursorX + 1, cursorY + 9, 0xFFFFFFFF);
             }
         }
+        
+        // Render Scrollbar
+        if (lines.size() > visibleLines) {
+            int scrollbarHeight = (int) ((float) visibleLines / lines.size() * height);
+            if (scrollbarHeight < 10) scrollbarHeight = 10;
+            int scrollbarY = getY() + (int) ((float) scrollY / (lines.size() - visibleLines) * (height - scrollbarHeight));
+            
+            int scrollbarX = getX() + width - 6;
+            guiGraphics.fill(scrollbarX, scrollbarY, scrollbarX + 4, scrollbarY + scrollbarHeight, 0xFF888888);
+        }
+        
+        guiGraphics.disableScissor();
     }
     
     private void renderHighlightedLine(GuiGraphics guiGraphics, String line, int x, int y) {
@@ -334,6 +349,24 @@ public class CodeEditorWidget extends AbstractWidget {
         // Adjust scroll
         if (cursorLine < scrollY) scrollY = cursorLine;
         if (cursorLine >= scrollY + visibleLines) scrollY = cursorLine - visibleLines + 1;
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (isMouseOver(mouseX, mouseY)) {
+            if (Screen.hasShiftDown()) {
+                this.scrollX -= (int) (scrollY * 10);
+                if (this.scrollX < 0) this.scrollX = 0;
+            } else {
+                this.scrollY -= (int) scrollY;
+                if (this.scrollY < 0) this.scrollY = 0;
+                if (this.scrollY > lines.size() - visibleLines) {
+                    this.scrollY = Math.max(0, lines.size() - visibleLines);
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     @Override

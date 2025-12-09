@@ -33,6 +33,12 @@ public class ProblemManager {
         if (!localDir.exists()) localDir.mkdirs();
         repositories.add(new LocalProblemRepository("Local", localDir.toPath()));
         
+        // 2.5 Dev Environment Official Repo
+        File devOfficialDir = new File("../question_bank/official");
+        if (devOfficialDir.exists()) {
+             repositories.add(new LocalProblemRepository("Official (Dev)", devOfficialDir.toPath()));
+        }
+
         // 3. Downloaded Repositories
         for (RepositoryMetadata meta : RepositoryManager.getRepositories()) {
             File repoDir = RepositoryManager.getRepositoryDir(meta);
@@ -105,6 +111,11 @@ public class ProblemManager {
                 problemCache.put(p.id, p);
             }
         });
+    }
+
+    public static List<ProblemRepository> getRepositories() {
+        if (!initialized) init();
+        return new ArrayList<>(repositories);
     }
 
     public static List<Problem> getProblems() {

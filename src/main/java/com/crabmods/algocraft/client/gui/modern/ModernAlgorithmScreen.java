@@ -1,16 +1,19 @@
 package com.crabmods.algocraft.client.gui.modern;
 
 import com.crabmods.algocraft.client.gui.component.CodeEditorWidget;
+import com.crabmods.algocraft.client.gui.component.ProblemSelectionList;
 import com.crabmods.algocraft.logic.CodeExecutor;
 import com.crabmods.algocraft.logic.Judge;
 import com.crabmods.algocraft.logic.Problem;
 import com.crabmods.algocraft.logic.ProblemManager;
 import com.crabmods.algocraft.logic.ProgressManager;
 import com.crabmods.algocraft.logic.SubmissionResult;
+import com.crabmods.algocraft.logic.repo.ProblemRepository;
 import com.crabmods.algocraft.network.PacketSolveProblem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.MultiLineEditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -20,11 +23,16 @@ import java.util.List;
 
 public class ModernAlgorithmScreen extends Screen {
     private static final int SIDEBAR_WIDTH = 150;
-    private static final int TOP_BAR_HEIGHT = 40;
-    private static final int BOTTOM_BAR_HEIGHT = 120;
+    private static final int TOP_BAR_HEIGHT = 30;
+    private static final int BOTTOM_BAR_HEIGHT = 80;
     
     private CodeEditorWidget codeEditor;
     private MultiLineEditBox descriptionViewer;
+    private net.minecraft.client.gui.components.EditBox searchBox;
+    private ProblemSelectionList problemList;
+    private CycleButton<ProblemRepository> repositorySelector;
+    private ProblemRepository currentRepository;
+    
     private String consoleText = "";
     private Problem currentProblem;
     private boolean showingDescription = false;
@@ -78,23 +86,49 @@ public class ModernAlgorithmScreen extends Screen {
             this.onClose();
         }).bounds(this.width - 70, 10, 60, 20).build());
         
+        // Search Box
+        this.searchBox = new net.minecraft.client.gui.components.EditBox(this.font, 10, 10, SIDEBAR_WIDTH - 20, 20, Component.translatable("algocraft.gui.search"));
+        this.searchBox.setResponder(this::updateProblemList);
+        this.addRenderableWidget(this.searchBox);
+
+        // Repository Selector
+        List<ProblemRepository> repos = ProblemManager.getRepositories();
+        this.repositorySelector = CycleButton.builder((ProblemRepository repo) -> Component.literal(repo.getName()))
+            .withValues(repos)
+            .withInitialValue(repos.get(0))
+            .create(10, 35, SIDEBAR_WIDTH - 20, 20, Component.empty(), (btn, val) -> {
+                this.currentRepository = val;
+                this.updateProblemList(this.searchBox.getValue());
+            });
+        this.addRenderableWidget(this.repositorySelector);
+        this.currentRepository = this.repositorySelector.getValue();
+
         // Import Button
         this.addRenderableWidget(Button.builder(Component.translatable("algocraft.gui.import"), button -> {
             Minecraft.getInstance().setScreen(new ImportProblemScreen(this));
-        }).bounds(10, 40, SIDEBAR_WIDTH - 20, 20).build());
+        }).bounds(10, 60, SIDEBAR_WIDTH - 20, 20).build());
         
-        // Sidebar Buttons (Problem List)
-        int y = 70;
-        for (Problem problem : problems) {
-            net.minecraft.network.chat.MutableComponent label = Component.literal(problem.title);
-            if (ProgressManager.isPassed(problem.id)) {
-                label.append(Component.literal(" ✔").withStyle(net.minecraft.ChatFormatting.GREEN));
-            }
+        // Problem List
+        this.problemList = new ProblemSelectionList(this.minecraft, SIDEBAR_WIDTH, this.height, 85, 30);
+        this.addRenderableWidget(this.problemList);
+        
+        updateProblemList("");
+    }
+
+    private void updateProblemList(String filter) {
+        this.problemList.clearProblems();
+        if (this.currentRepository == null) return;
+        
+        String lowerFilter = filter.toLowerCase();
+        
+        for (Problem problem : this.currentRepository.getProblems()) {
+            boolean match = filter.isEmpty() || 
+                            problem.title.toLowerCase().contains(lowerFilter) ||
+                            (problem.tags != null && problem.tags.stream().anyMatch(t -> t.toLowerCase().contains(lowerFilter)));
             
-            this.addRenderableWidget(Button.builder(label, button -> {
-                selectProblem(problem);
-            }).bounds(10, y, SIDEBAR_WIDTH - 20, 20).build());
-            y += 25;
+            if (match) {
+                this.problemList.addProblem(problem, this::selectProblem);
+            }
         }
     }
 
@@ -167,7 +201,7 @@ public class ModernAlgorithmScreen extends Screen {
 
         // 5. Sidebar Header
         guiGraphics.drawCenteredString(this.font, Component.translatable("algocraft.gui.problems"), SIDEBAR_WIDTH / 2, 15, 0xFFAAAAAA);
-        guiGraphics.drawString(this.font, Component.translatable("algocraft.gui.available"), 10, 35, 0xFF888888);
+        // guiGraphics.drawString(this.font, Component.translatable("algocraft.gui.available"), 10, 35, 0xFF888888);
 
         // 6. Console Header & Text
         guiGraphics.drawString(this.font, Component.translatable("algocraft.gui.terminal"), SIDEBAR_WIDTH + 10, consoleY + 5, 0xFFAAAAAA);

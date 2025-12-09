@@ -6,6 +6,7 @@ import com.crabmods.algocraft.logic.Problem;
 import com.crabmods.algocraft.logic.ProblemManager;
 import com.crabmods.algocraft.logic.ProgressManager;
 import com.crabmods.algocraft.logic.SubmissionResult;
+import com.crabmods.algocraft.logic.repo.ProblemRepository;
 import com.crabmods.algocraft.network.PacketSolveProblem;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -32,6 +33,7 @@ public class AlgoCraftWebServer {
         try {
             server = HttpServer.create(new InetSocketAddress(PORT), 0);
             server.createContext("/", new StaticHandler());
+            server.createContext("/api/repositories", new RepositoriesHandler());
             server.createContext("/api/problems", new ProblemsHandler());
             server.createContext("/api/run", new RunHandler());
             server.createContext("/api/submit", new SubmitHandler());
@@ -67,11 +69,50 @@ public class AlgoCraftWebServer {
         }
     }
 
+    static class RepositoriesHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("GET".equals(exchange.getRequestMethod())) {
+                List<ProblemRepository> repos = ProblemManager.getRepositories();
+                com.google.gson.JsonArray jsonArray = new com.google.gson.JsonArray();
+                for (ProblemRepository repo : repos) {
+                    com.google.gson.JsonObject obj = new com.google.gson.JsonObject();
+                    obj.addProperty("name", repo.getName());
+                    jsonArray.add(obj);
+                }
+                sendResponse(exchange, gson.toJson(jsonArray));
+            }
+        }
+    }
+
     static class ProblemsHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             if ("GET".equals(exchange.getRequestMethod())) {
-                List<Problem> problems = ProblemManager.getProblems();
+                String query = exchange.getRequestURI().getQuery();
+                String repoName = null;
+                if (query != null && query.contains("repo=")) {
+                    for (String param : query.split("&")) {
+                        String[] pair = param.split("=");
+                        if (pair.length == 2 && pair[0].equals("repo")) {
+                            repoName = java.net.URLDecoder.decode(pair[1], StandardCharsets.UTF_8);
+                            break;
+                        }
+                    }
+                }
+
+                List<Problem> problems;
+                if (repoName != null) {
+                    String finalRepoName = repoName;
+                    ProblemRepository repo = ProblemManager.getRepositories().stream()
+                        .filter(r -> r.getName().equals(finalRepoName))
+                        .findFirst()
+                        .orElse(null);
+                    problems = repo != null ? repo.getProblems() : java.util.Collections.emptyList();
+                } else {
+                    problems = ProblemManager.getProblems();
+                }
+
                 com.google.gson.JsonArray jsonArray = new com.google.gson.JsonArray();
                 for (Problem p : problems) {
                     com.google.gson.JsonObject obj = gson.toJsonTree(p).getAsJsonObject();
@@ -205,7 +246,17 @@ public class AlgoCraftWebServer {
                 <span class="font-bold text-white font-mono">&lt;/&gt;</span>
             </div>
             <span class="font-semibold text-lg tracking-tight text-white">AlgoCraft</span>
+            <select id="repo-select" onchange="changeRepo()" class="bg-surface border border-border rounded-md px-2 py-1 text-sm text-text focus:outline-none focus:border-primary ml-4">
+                <option value="">Loading...</option>
+            </select>
         </div>
+        
+        <!-- Search Bar -->
+        <div class="relative mx-4 flex-1 max-w-md">
+            <input type="text" id="search-input" placeholder="Search problems or tags..." class="w-full bg-surface border border-border rounded-md px-3 py-1.5 text-sm text-text focus:outline-none focus:border-primary transition-colors" oninput="handleSearch()">
+            <div id="search-results" class="absolute top-full left-0 right-0 mt-1 bg-surface border border-border rounded-md shadow-lg hidden max-h-60 overflow-y-auto z-50"></div>
+        </div>
+
         <div class="flex items-center space-x-4">
             <div class="flex bg-surface rounded-md border border-border">
                 <button onclick="prevProblem()" class="p-1.5 hover:bg-surface2 rounded-l-md transition-colors text-textMuted hover:text-white border-r border-border">
@@ -224,11 +275,13 @@ public class AlgoCraftWebServer {
         <div class="w-[40%] flex flex-col border-r border-border bg-bg">
             <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
                 <div class="animate-fade-in">
-                    <div class="flex items-center space-x-3 mb-6">
+                    <div class="flex items-center space-x-3 mb-2">
                         <h1 class="text-2xl font-semibold text-white" id="problem-title">Loading...</h1>
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface2 text-text border border-border" id="problem-difficulty">Easy</span>
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900/30 text-green-400 border border-green-900/50 hidden" id="problem-passed">✔ Passed</span>
                     </div>
+                    
+                    <div class="flex flex-wrap gap-2 mb-6" id="problem-tags"></div>
                     
                     <div class="prose prose-invert prose-sm max-w-none text-textMuted leading-relaxed" id="problem-desc">
                         <!-- Description injected here -->
@@ -334,19 +387,53 @@ public class AlgoCraftWebServer {
                 cursorBlinking: 'smooth',
                 cursorSmoothCaretAnimation: true
             });
-            fetchProblems();
+            fetchRepos();
         });
 
-        async function fetchProblems() {
+        async function fetchRepos() {
             try {
-                const res = await fetch('/api/problems');
+                const res = await fetch('/api/repositories');
+                const repos = await res.json();
+                const select = document.getElementById('repo-select');
+                select.innerHTML = '';
+                repos.forEach(repo => {
+                    const option = document.createElement('option');
+                    option.value = repo.name;
+                    option.innerText = repo.name;
+                    select.appendChild(option);
+                });
+                if (repos.length > 0) {
+                    fetchProblems(repos[0].name);
+                }
+            } catch (e) {
+                console.error("Failed to fetch repos", e);
+            }
+        }
+
+        async function fetchProblems(repoName) {
+            try {
+                let url = '/api/problems';
+                if (repoName) {
+                    url += '?repo=' + encodeURIComponent(repoName);
+                }
+                const res = await fetch(url);
                 problems = await res.json();
                 if (problems.length > 0) {
                     loadProblem(0);
+                } else {
+                    document.getElementById('problem-title').innerText = 'No problems found';
+                    document.getElementById('problem-desc').innerText = '';
+                    editor.setValue('');
+                    document.getElementById('problem-counter').innerText = '0 / 0';
                 }
             } catch (e) {
                 console.error("Failed to fetch problems", e);
             }
+        }
+        
+        function changeRepo() {
+            const repoName = document.getElementById('repo-select').value;
+            fetchProblems(repoName);
         }
 
         function loadProblem(index) {
@@ -364,11 +451,58 @@ public class AlgoCraftWebServer {
                 passedBadge.classList.add('hidden');
             }
 
+            // Render Tags
+            const tagsContainer = document.getElementById('problem-tags');
+            tagsContainer.innerHTML = '';
+            if (currentProblem.tags) {
+                currentProblem.tags.forEach(tag => {
+                    const span = document.createElement('span');
+                    span.className = 'px-2 py-0.5 rounded text-xs font-medium bg-surface2 text-textMuted border border-border';
+                    span.innerText = tag;
+                    tagsContainer.appendChild(span);
+                });
+            }
+
             document.getElementById('problem-desc').innerHTML = currentProblem.description.replace(/\\n/g, '<br>');
             document.getElementById('problem-counter').innerText = `${currentIndex + 1} / ${problems.length}`;
             
             editor.setValue(currentProblem.initialCode || '');
             clearConsole();
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const resultsContainer = document.getElementById('search-results');
+            
+            if (!query) {
+                resultsContainer.classList.add('hidden');
+                return;
+            }
+            
+            const matches = problems.filter(p => 
+                p.title.toLowerCase().includes(query) || 
+                (p.tags && p.tags.some(t => t.toLowerCase().includes(query)))
+            );
+            
+            resultsContainer.innerHTML = '';
+            if (matches.length > 0) {
+                matches.forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = 'px-3 py-2 hover:bg-surface2 cursor-pointer text-sm text-text border-b border-border last:border-0';
+                    div.innerText = p.title;
+                    div.onclick = () => {
+                        const idx = problems.indexOf(p);
+                        loadProblem(idx);
+                        resultsContainer.classList.add('hidden');
+                        document.getElementById('search-input').value = '';
+                    };
+                    resultsContainer.appendChild(div);
+                });
+                resultsContainer.classList.remove('hidden');
+            } else {
+                resultsContainer.innerHTML = '<div class="px-3 py-2 text-sm text-textMuted">No results found</div>';
+                resultsContainer.classList.remove('hidden');
+            }
         }
 
         function prevProblem() { loadProblem((currentIndex - 1 + problems.length) % problems.length); }

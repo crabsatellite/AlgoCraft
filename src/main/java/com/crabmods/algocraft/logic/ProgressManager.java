@@ -20,12 +20,19 @@ public class ProgressManager {
     private static File progressFile;
 
     public static void init() {
+        if (progressFile != null) return;
         File configDir = new File(Minecraft.getInstance().gameDirectory, "config/algocraft");
         if (!configDir.exists()) {
             configDir.mkdirs();
         }
         progressFile = new File(configDir, "user_progress.json");
         loadProgress();
+    }
+
+    private static void ensureInit() {
+        if (progressFile == null) {
+            init();
+        }
     }
 
     private static void loadProgress() {
@@ -58,6 +65,7 @@ public class ProgressManager {
     }
 
     public static void saveProgress() {
+        ensureInit();
         try (FileWriter writer = new FileWriter(progressFile)) {
             gson.toJson(passedProblems, writer);
         } catch (IOException e) {
@@ -66,17 +74,20 @@ public class ProgressManager {
     }
 
     public static void markAsPassed(String problemId) {
+        ensureInit();
         passedProblems.put(problemId, System.currentTimeMillis());
         saveProgress();
     }
     
     public static void updateFromPacket(Map<String, Long> serverProgress) {
+        ensureInit();
         passedProblems.clear();
         passedProblems.putAll(serverProgress);
         saveProgress();
     }
 
     public static boolean isPassed(String problemId) {
+        ensureInit();
         return passedProblems.containsKey(problemId);
     }
     

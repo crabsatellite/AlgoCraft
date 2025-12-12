@@ -66,25 +66,30 @@ public class ModernAlgorithmScreen extends Screen {
         this.addRenderableWidget(Button.builder(Component.literal("▶ ").append(Component.translatable("algocraft.gui.run")), button -> {
             if (currentProblem == null) return;
             runExamples();
-        }).bounds(SIDEBAR_WIDTH + 10, 10, 60, 20).build());
+        }).bounds(SIDEBAR_WIDTH + 10, 5, 60, 20).build());
 
         // Submit Button
         this.addRenderableWidget(Button.builder(Component.literal("✔ ").append(Component.translatable("algocraft.gui.submit")), button -> {
             if (currentProblem == null) return;
             submitSolution();
-        }).bounds(SIDEBAR_WIDTH + 80, 10, 70, 20).build());
+        }).bounds(SIDEBAR_WIDTH + 75, 5, 70, 20).build());
         
+        // History Button
+        this.addRenderableWidget(Button.builder(Component.literal("🕒 ").append(Component.translatable("algocraft.gui.history")), button -> {
+            net.minecraft.client.Minecraft.getInstance().setScreen(new SubmissionHistoryScreen(this));
+        }).bounds(SIDEBAR_WIDTH + 150, 5, 70, 20).build());
+
         // Toggle View Button
         this.addRenderableWidget(Button.builder(Component.translatable("algocraft.gui.toggle_view"), button -> {
             showingDescription = !showingDescription;
             codeEditor.visible = !showingDescription;
             descriptionViewer.visible = showingDescription;
-        }).bounds(SIDEBAR_WIDTH + 160, 10, 80, 20).build());
+        }).bounds(SIDEBAR_WIDTH + 225, 5, 80, 20).build());
 
         // Close Button
-        this.addRenderableWidget(Button.builder(Component.literal("❌ ").append(Component.translatable("algocraft.gui.close")), button -> {
+        this.addRenderableWidget(Button.builder(Component.literal("X"), button -> {
             this.onClose();
-        }).bounds(this.width - 70, 10, 60, 20).build());
+        }).bounds(this.width - 25, 5, 20, 20).build());
         
         // Search Box
         this.searchBox = new net.minecraft.client.gui.components.EditBox(this.font, 10, 10, SIDEBAR_WIDTH - 20, 20, Component.translatable("algocraft.gui.search"));
@@ -161,6 +166,17 @@ public class ModernAlgorithmScreen extends Screen {
         this.consoleText = Component.translatable("algocraft.gui.submitting").getString();
         SubmissionResult result = Judge.grade(currentProblem, codeEditor.getValue());
         
+        // Save submission record
+        com.crabmods.algocraft.logic.SubmissionHistoryManager.saveRecord(new com.crabmods.algocraft.logic.SubmissionRecord(
+            System.currentTimeMillis(),
+            currentProblem.id,
+            currentProblem.title,
+            result.isSuccess ? "Accepted" : (result.message != null ? result.message : "Wrong Answer"),
+            result.executionTimeMs,
+            result.passedCount,
+            result.totalCount
+        ));
+
         StringBuilder sb = new StringBuilder();
         if (result.isSuccess) {
             sb.append(Component.translatable("algocraft.gui.success_all_passed").getString()).append("\n");

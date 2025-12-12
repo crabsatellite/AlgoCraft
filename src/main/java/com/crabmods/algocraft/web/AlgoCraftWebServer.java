@@ -5,6 +5,8 @@ import com.crabmods.algocraft.logic.Judge;
 import com.crabmods.algocraft.logic.Problem;
 import com.crabmods.algocraft.logic.ProblemManager;
 import com.crabmods.algocraft.logic.ProgressManager;
+import com.crabmods.algocraft.logic.SubmissionHistoryManager;
+import com.crabmods.algocraft.logic.SubmissionRecord;
 import com.crabmods.algocraft.logic.SubmissionResult;
 import com.crabmods.algocraft.logic.repo.ProblemRepository;
 import com.crabmods.algocraft.network.PacketSolveProblem;
@@ -17,7 +19,6 @@ import net.minecraft.client.Minecraft;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -37,6 +38,7 @@ public class AlgoCraftWebServer {
             server.createContext("/api/problems", new ProblemsHandler());
             server.createContext("/api/run", new RunHandler());
             server.createContext("/api/submit", new SubmitHandler());
+            server.createContext("/api/history", new HistoryHandler());
             server.setExecutor(Executors.newCachedThreadPool());
             server.start();
             System.out.println("AlgoCraft Web Server started on port " + PORT);
@@ -152,6 +154,16 @@ public class AlgoCraftWebServer {
         }
     }
 
+    static class HistoryHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if ("GET".equals(exchange.getRequestMethod())) {
+                List<SubmissionRecord> history = SubmissionHistoryManager.getHistory();
+                sendResponse(exchange, gson.toJson(history));
+            }
+        }
+    }
+
     static class SubmitHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -168,6 +180,17 @@ public class AlgoCraftWebServer {
 
                 SubmissionResult result = Judge.grade(problem, code);
                 
+                // Save submission record
+                SubmissionHistoryManager.saveRecord(new SubmissionRecord(
+                    System.currentTimeMillis(),
+                    problem.id,
+                    problem.title,
+                    result.isSuccess ? "Accepted" : (result.message != null ? result.message : "Wrong Answer"),
+                    result.executionTimeMs,
+                    result.passedCount,
+                    result.totalCount
+                ));
+
                 // If success, we need to notify the server game thread
                 if (result.isSuccess) {
                     Minecraft.getInstance().execute(() -> {
@@ -258,6 +281,7 @@ public class AlgoCraftWebServer {
         </div> -->
 
         <div class="flex items-center space-x-4">
+            <button onclick="showHistory()" class="px-3 py-1.5 bg-surface hover:bg-surface2 border border-border rounded-md text-sm font-medium transition-colors">History</button>
             <div class="flex bg-surface rounded-md border border-border">
                 <button onclick="prevProblem()" class="p-1.5 hover:bg-surface2 rounded-l-md transition-colors text-textMuted hover:text-white border-r border-border">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -372,6 +396,33 @@ public class AlgoCraftWebServer {
             <button onclick="closeModal()" class="w-full py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primaryHover transition-colors text-sm">
                 Continue
             </button>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="history-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div id="history-content" class="bg-surface border border-border rounded-lg shadow-2xl w-full max-w-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[80vh]">
+            <div class="p-6 border-b border-border flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">Submission History</h3>
+                <button onclick="closeHistoryModal()" class="text-textMuted hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="text-textMuted border-b border-border">
+                            <th class="pb-2">Time</th>
+                            <th class="pb-2">Problem</th>
+                            <th class="pb-2">Status</th>
+                            <th class="pb-2">Runtime</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-list">
+                        <!-- Items -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -677,6 +728,58 @@ public class AlgoCraftWebServer {
             content.classList.remove('scale-100');
             content.classList.add('scale-95');
             setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+
+        async function showHistory() {
+            const modal = document.getElementById('history-modal');
+            const content = document.getElementById('history-content');
+            const list = document.getElementById('history-list');
+            
+            list.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-textMuted">Loading...</td></tr>';
+            
+            modal.classList.remove('hidden');
+            // Trigger reflow
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0');
+            content.classList.remove('scale-95');
+            content.classList.add('scale-100');
+
+            try {
+                const res = await fetch('/api/history');
+                const history = await res.json();
+                
+                list.innerHTML = '';
+                if (history.length === 0) {
+                    list.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-textMuted">No submissions yet</td></tr>';
+                    return;
+                }
+
+                history.forEach(record => {
+                    const date = new Date(record.timestamp).toLocaleString();
+                    const statusColor = record.status === 'Accepted' ? 'text-green-500' : 'text-red-500';
+                    
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b border-border/50 hover:bg-surface2 transition-colors';
+                    tr.innerHTML = `
+                        <td class="py-3 text-textMuted">${date}</td>
+                        <td class="py-3 font-medium text-white">${record.problemTitle}</td>
+                        <td class="py-3 ${statusColor}">${record.status}</td>
+                        <td class="py-3 text-textMuted">${record.executionTime} ms</td>
+                    `;
+                    list.appendChild(tr);
+                });
+            } catch (e) {
+                list.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-red-500">Failed to load history</td></tr>';
+            }
+        }
+
+        function closeHistoryModal() {
+            const modal = document.getElementById('history-modal');
+            const content = document.getElementById('history-content');
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 300);
         }
     </script>
 </body>

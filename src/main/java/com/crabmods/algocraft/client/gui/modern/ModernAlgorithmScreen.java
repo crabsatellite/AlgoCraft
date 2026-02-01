@@ -36,6 +36,9 @@ public class ModernAlgorithmScreen extends Screen {
     private String consoleText = "";
     private Problem currentProblem;
     private boolean showingDescription = false;
+    private long problemStartTime = 0;  // Track when the current problem was loaded
+    private int consoleScrollY = 0;  // Console scroll position
+    private int maxConsoleLines = 5;  // Max visible lines in console
 
     public ModernAlgorithmScreen() {
         super(Component.translatable("algocraft.gui.ide_title"));
@@ -62,34 +65,51 @@ public class ModernAlgorithmScreen extends Screen {
             selectProblem(problems.get(0));
         }
 
+        // Calculate responsive button layout
+        int availableWidth = this.width - SIDEBAR_WIDTH - 30; // 30 for close button + padding
+        int buttonY = 5;
+        int buttonHeight = 20;
+        int buttonSpacing = 5;
+        
+        // Minimum button widths
+        int runWidth = Math.max(50, Math.min(60, availableWidth / 6));
+        int submitWidth = Math.max(55, Math.min(70, availableWidth / 5));
+        int historyWidth = Math.max(55, Math.min(70, availableWidth / 5));
+        int toggleWidth = Math.max(60, Math.min(80, availableWidth / 5));
+        
+        int buttonX = SIDEBAR_WIDTH + 10;
+        
         // Run Button
         this.addRenderableWidget(Button.builder(Component.literal("▶ ").append(Component.translatable("algocraft.gui.run")), button -> {
             if (currentProblem == null) return;
             runExamples();
-        }).bounds(SIDEBAR_WIDTH + 10, 5, 60, 20).build());
+        }).bounds(buttonX, buttonY, runWidth, buttonHeight).build());
+        buttonX += runWidth + buttonSpacing;
 
         // Submit Button
         this.addRenderableWidget(Button.builder(Component.literal("✔ ").append(Component.translatable("algocraft.gui.submit")), button -> {
             if (currentProblem == null) return;
             submitSolution();
-        }).bounds(SIDEBAR_WIDTH + 75, 5, 70, 20).build());
+        }).bounds(buttonX, buttonY, submitWidth, buttonHeight).build());
+        buttonX += submitWidth + buttonSpacing;
         
         // History Button
         this.addRenderableWidget(Button.builder(Component.literal("🕒 ").append(Component.translatable("algocraft.gui.history")), button -> {
             net.minecraft.client.Minecraft.getInstance().setScreen(new SubmissionHistoryScreen(this));
-        }).bounds(SIDEBAR_WIDTH + 150, 5, 70, 20).build());
+        }).bounds(buttonX, buttonY, historyWidth, buttonHeight).build());
+        buttonX += historyWidth + buttonSpacing;
 
         // Toggle View Button
         this.addRenderableWidget(Button.builder(Component.translatable("algocraft.gui.toggle_view"), button -> {
             showingDescription = !showingDescription;
             codeEditor.visible = !showingDescription;
             descriptionViewer.visible = showingDescription;
-        }).bounds(SIDEBAR_WIDTH + 225, 5, 80, 20).build());
+        }).bounds(buttonX, buttonY, toggleWidth, buttonHeight).build());
 
-        // Close Button
+        // Close Button (always at right edge)
         this.addRenderableWidget(Button.builder(Component.literal("X"), button -> {
             this.onClose();
-        }).bounds(this.width - 25, 5, 20, 20).build());
+        }).bounds(this.width - 25, buttonY, 20, buttonHeight).build());
         
         // Search Box
         this.searchBox = new net.minecraft.client.gui.components.EditBox(this.font, 10, 10, SIDEBAR_WIDTH - 20, 20, Component.translatable("algocraft.gui.search"));
@@ -113,8 +133,9 @@ public class ModernAlgorithmScreen extends Screen {
             Minecraft.getInstance().setScreen(new ImportProblemScreen(this));
         }).bounds(10, 60, SIDEBAR_WIDTH - 20, 20).build());
         
-        // Problem List
-        this.problemList = new ProblemSelectionList(this.minecraft, SIDEBAR_WIDTH, this.height, 85, 30);
+        // Problem List (constrained to sidebar, not extending into console)
+        int problemListHeight = this.height - 85;  // From top 85 to bottom
+        this.problemList = new ProblemSelectionList(this.minecraft, SIDEBAR_WIDTH, problemListHeight, 85, 30);
         this.addRenderableWidget(this.problemList);
         
         updateProblemList("");
@@ -128,8 +149,8 @@ public class ModernAlgorithmScreen extends Screen {
         
         for (Problem problem : this.currentRepository.getProblems()) {
             boolean match = filter.isEmpty() || 
-                            problem.title.toLowerCase().contains(lowerFilter) ||
-                            (problem.tags != null && problem.tags.stream().anyMatch(t -> t.toLowerCase().contains(lowerFilter)));
+                            problem.getTitle().toLowerCase().contains(lowerFilter) ||
+                            problem.getTags().stream().anyMatch(t -> t.toLowerCase().contains(lowerFilter));
             
             if (match) {
                 this.problemList.addProblem(problem, this::selectProblem);
@@ -138,27 +159,43 @@ public class ModernAlgorithmScreen extends Screen {
     }
 
     private void selectProblem(Problem problem) {
+        this.problemStartTime = System.currentTimeMillis();  // Start tracking solve time
         this.currentProblem = problem;
-        this.codeEditor.setValue(problem.initialCode);
-        this.descriptionViewer.setValue(problem.description);
-        this.consoleText = Component.translatable("algocraft.gui.loaded_problem", problem.title).getString();
+        this.codeEditor.setValue(problem.getInitialCode());
+        this.descriptionViewer.setValue(problem.getDescription());
+        this.consoleText = Component.translatable("algocraft.gui.loaded_problem", problem.getTitle()).getString();
     }
 
     private void runExamples() {
         StringBuilder sb = new StringBuilder();
-        sb.append(Component.translatable("algocraft.gui.running_examples", currentProblem.title).getString()).append("\n");
+        sb.append(Component.translatable("algocraft.gui.running_examples", currentProblem.getTitle()).getString()).append("\n");
         
-        if (currentProblem.examples != null) {
-            for (Problem.TestCase test : currentProblem.examples) {
-                String result = CodeExecutor.execute(codeEditor.getValue(), test.input, test.output);
-                sb.append(Component.translatable("algocraft.gui.input", test.input).getString())
-                  .append(" | ")
-                  .append(Component.translatable("algocraft.gui.result", result).getString())
-                  .append("\n");
-            }
-        } else {
+        List<Problem.TestCase> examples = currentProblem.getExamples();
+        
+        if (examples.isEmpty()) {
             sb.append(Component.translatable("algocraft.gui.no_examples").getString());
+            this.consoleText = sb.toString();
+            return;
         }
+        
+        // Use batch execution for better performance (compiles once)
+        List<CodeExecutor.TestCase> testCases = new java.util.ArrayList<>();
+        for (Problem.TestCase test : examples) {
+            testCases.add(new CodeExecutor.TestCase(test.getInput(), test.getOutput()));
+        }
+        
+        List<CodeExecutor.TestResult> results = CodeExecutor.executeBatch(codeEditor.getValue(), testCases);
+        
+        for (int i = 0; i < examples.size(); i++) {
+            Problem.TestCase test = examples.get(i);
+            CodeExecutor.TestResult result = results.get(i);
+            String resultStr = result.passed ? "PASS" : (result.message != null ? result.message : "FAIL");
+            sb.append(Component.translatable("algocraft.gui.input", test.getInput()).getString())
+              .append(" | ")
+              .append(Component.translatable("algocraft.gui.result", resultStr).getString())
+              .append("\n");
+        }
+        
         this.consoleText = sb.toString();
     }
 
@@ -169,24 +206,29 @@ public class ModernAlgorithmScreen extends Screen {
         // Save submission record
         com.crabmods.algocraft.logic.SubmissionHistoryManager.saveRecord(new com.crabmods.algocraft.logic.SubmissionRecord(
             System.currentTimeMillis(),
-            currentProblem.id,
-            currentProblem.title,
-            result.isSuccess ? "Accepted" : (result.message != null ? result.message : "Wrong Answer"),
-            result.executionTimeMs,
-            result.passedCount,
-            result.totalCount
+            currentProblem.getId(),
+            currentProblem.getTitle(),
+            result.isSuccess() ? "Accepted" : result.getMessage(),
+            result.getExecutionTimeMs(),
+            result.getPassedCount(),
+            result.getTotalCount()
         ));
 
         StringBuilder sb = new StringBuilder();
-        if (result.isSuccess) {
-            sb.append(Component.translatable("algocraft.gui.success_all_passed").getString()).append("\n");
-            // Send packet to server to reward player
-            PacketDistributor.sendToServer(new PacketSolveProblem(currentProblem.id, currentProblem.difficulty));
+        
+        if (result.isSuccess()) {
+            // Calculate solve time
+            long solveTimeMs = problemStartTime > 0 ? System.currentTimeMillis() - problemStartTime : 0;
+            // Send packet to server to reward player (with solve time for Speed Demon achievement)
+            PacketDistributor.sendToServer(new PacketSolveProblem(currentProblem.getId(), currentProblem.getDifficulty(), solveTimeMs));
         } else {
-            sb.append(Component.translatable("algocraft.msg.submission_failed").getString()).append(" ").append(result.message != null ? result.message : "").append("\n");
+            sb.append(Component.translatable("algocraft.msg.submission_failed").getString()).append(" ").append(result.getMessage()).append("\n");
+            // Send packet to server to reset consecutive correct count
+            PacketDistributor.sendToServer(new com.crabmods.algocraft.network.PacketSubmissionFailed(currentProblem.getId()));
         }
-        sb.append(Component.translatable("algocraft.gui.passed", result.passedCount, result.totalCount).getString()).append("\n");
-        sb.append(Component.translatable("algocraft.gui.time", result.executionTimeMs).getString());
+        
+        sb.append(Component.translatable("algocraft.gui.passed", result.getPassedCount(), result.getTotalCount()).getString()).append("\n");
+        sb.append(Component.translatable("algocraft.gui.time", result.getExecutionTimeMs()).getString());
         
         this.consoleText = sb.toString();
     }
@@ -195,6 +237,24 @@ public class ModernAlgorithmScreen extends Screen {
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         // CodeEditorWidget handles its own keys, but we can intercept global shortcuts here if needed
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+    
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        // Check if mouse is in console area
+        int consoleY = this.height - BOTTOM_BAR_HEIGHT;
+        if (mouseX > SIDEBAR_WIDTH && mouseY > consoleY) {
+            // Scroll console
+            String[] allLines = this.consoleText.split("\n");
+            int lineHeight = 10;
+            int maxVisibleLines = (BOTTOM_BAR_HEIGHT - 25) / lineHeight;
+            int maxScroll = Math.max(0, allLines.length - maxVisibleLines);
+            
+            consoleScrollY -= (int) scrollY;
+            consoleScrollY = Math.max(0, Math.min(consoleScrollY, maxScroll));
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
@@ -222,11 +282,37 @@ public class ModernAlgorithmScreen extends Screen {
         // 6. Console Header & Text
         guiGraphics.drawString(this.font, Component.translatable("algocraft.gui.terminal"), SIDEBAR_WIDTH + 10, consoleY + 5, 0xFFAAAAAA);
         
-        // Split console text by newlines and render
-        String[] lines = this.consoleText.split("\n");
-        for (int i = 0; i < lines.length; i++) {
-            if (consoleY + 20 + (i * 10) > this.height - 5) break; // Clip
-            guiGraphics.drawString(this.font, lines[i], SIDEBAR_WIDTH + 10, consoleY + 20 + (i * 10), 0xFFCCCCCC);
+        // Split console text by newlines and render with scroll support
+        String[] allLines = this.consoleText.split("\n");
+        int lineHeight = 10;
+        int consoleTextY = consoleY + 18;
+        int maxVisibleLines = (BOTTOM_BAR_HEIGHT - 25) / lineHeight;
+        
+        // Enable scissor to clip text within console bounds
+        guiGraphics.enableScissor(SIDEBAR_WIDTH + 5, consoleTextY, this.width - 5, this.height - 5);
+        
+        int startLine = Math.max(0, Math.min(consoleScrollY, allLines.length - maxVisibleLines));
+        for (int i = 0; i < maxVisibleLines && (startLine + i) < allLines.length; i++) {
+            String line = allLines[startLine + i];
+            // Truncate line if too long
+            int maxWidth = this.width - SIDEBAR_WIDTH - 20;
+            if (this.font.width(line) > maxWidth) {
+                line = this.font.plainSubstrByWidth(line, maxWidth - 10) + "...";
+            }
+            guiGraphics.drawString(this.font, line, SIDEBAR_WIDTH + 10, consoleTextY + (i * lineHeight), 0xFFCCCCCC);
+        }
+        
+        guiGraphics.disableScissor();
+        
+        // Scroll indicator if more lines available
+        if (allLines.length > maxVisibleLines) {
+            int scrollIndicatorColor = 0xFF666666;
+            if (consoleScrollY > 0) {
+                guiGraphics.drawString(this.font, "▲", this.width - 15, consoleY + 5, scrollIndicatorColor);
+            }
+            if (consoleScrollY + maxVisibleLines < allLines.length) {
+                guiGraphics.drawString(this.font, "▼", this.width - 15, this.height - 12, scrollIndicatorColor);
+            }
         }
         
         // 7. Title in Top Bar - REMOVED as requested

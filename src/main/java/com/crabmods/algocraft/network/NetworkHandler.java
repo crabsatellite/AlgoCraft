@@ -21,6 +21,11 @@ public class NetworkHandler {
             PacketSetSolvingState.STREAM_CODEC,
             PacketSetSolvingState::handle
         );
+        registrar.playToServer(
+            PacketSubmissionFailed.TYPE,
+            PacketSubmissionFailed.STREAM_CODEC,
+            PacketSubmissionFailed::handle
+        );
         registrar.playToClient(
             PacketSyncProgress.TYPE,
             PacketSyncProgress.STREAM_CODEC,

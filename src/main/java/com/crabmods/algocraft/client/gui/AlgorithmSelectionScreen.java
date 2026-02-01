@@ -11,25 +11,33 @@ import net.minecraft.network.chat.Component;
 public class AlgorithmSelectionScreen extends Screen {
 
     public AlgorithmSelectionScreen() {
-        super(Component.literal("Select IDE Mode"));
+        super(Component.translatable("algocraft.gui.select_mode"));
     }
 
     @Override
     protected void init() {
         int centerX = this.width / 2;
         int centerY = this.height / 2;
+        int buttonWidth = 200;
+        
+        // Ensure buttons don't overflow on narrow screens
+        if (buttonWidth > this.width - 40) {
+            buttonWidth = this.width - 40;
+        }
 
         // Button 1: Open In-Game IDE
-        this.addRenderableWidget(Button.builder(Component.literal("Open In-Game IDE"), button -> {
+        this.addRenderableWidget(Button.builder(Component.translatable("algocraft.gui.open_ingame_ide"), button -> {
             Minecraft.getInstance().setScreen(new ModernAlgorithmScreen());
-        }).bounds(centerX - 100, centerY - 30, 200, 20).build());
+        }).bounds(centerX - buttonWidth / 2, centerY - 30, buttonWidth, 20).build());
 
         // Button 2: Open Web IDE
-        this.addRenderableWidget(Button.builder(Component.literal("Open Web IDE"), button -> {
+        this.addRenderableWidget(Button.builder(Component.translatable("algocraft.gui.open_web_ide"), button -> {
             Util.getPlatform().openUri("http://localhost:3000");
-            Minecraft.getInstance().player.displayClientMessage(Component.literal("Opened AlgoCraft IDE in your browser!"), true);
+            if (Minecraft.getInstance().player != null) {
+                Minecraft.getInstance().player.displayClientMessage(Component.translatable("algocraft.msg.opened_web_ide"), true);
+            }
             this.onClose();
-        }).bounds(centerX - 100, centerY + 10, 200, 20).build());
+        }).bounds(centerX - buttonWidth / 2, centerY + 10, buttonWidth, 20).build());
     }
 
     @Override

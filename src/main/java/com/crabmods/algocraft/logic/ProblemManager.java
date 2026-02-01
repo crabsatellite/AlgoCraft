@@ -2,10 +2,13 @@ package com.crabmods.algocraft.logic;
 
 import com.crabmods.algocraft.logic.repo.BuiltInProblemRepository;
 import com.crabmods.algocraft.logic.repo.LocalProblemRepository;
+import com.crabmods.algocraft.logic.repo.OfficialRepository;
 import com.crabmods.algocraft.logic.repo.ProblemRepository;
 import com.crabmods.algocraft.logic.repo.RepositoryManager;
 import com.crabmods.algocraft.logic.repo.RepositoryMetadata;
+import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -15,56 +18,124 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CompletableFuture;
 
 public class ProblemManager {
+    private static final Logger LOGGER = LogUtils.getLogger();
     private static final List<ProblemRepository> repositories = new ArrayList<>();
     private static final Map<String, Problem> problemCache = new ConcurrentHashMap<>();
+    private static OfficialRepository officialRepository;
     private static boolean initialized = false;
+    private static boolean initialSyncComplete = false;
 
     public static void init() {
         if (initialized) return;
         
+        LOGGER.info("Initializing ProblemManager...");
+        
         ProgressManager.init();
         RepositoryManager.init();
         
-        // 1. Built-in Repository
+        // 1. Official Repository (synced from GitHub) - Highest priority
+        officialRepository = RepositoryManager.getOfficialRepository();
+        repositories.add(officialRepository);
+        
+        // 2. Built-in Repository (fallback)
         repositories.add(new BuiltInProblemRepository(Minecraft.getInstance().getResourceManager()));
         
-        // 2. Local Repository (User created)
+        // 3. Local Repository (User created)
         File localDir = new File(Minecraft.getInstance().gameDirectory, "algorithm_challenges/user");
         if (!localDir.exists()) localDir.mkdirs();
-        repositories.add(new LocalProblemRepository("Local", localDir.toPath()));
+        repositories.add(new LocalProblemRepository("User", localDir.toPath(), "user"));
         
-        // 2.5 Dev Environment Official Repo
+        // 4. Dev Environment Official Repo (only in dev)
         File devOfficialDir = new File("../question_bank/official");
         if (devOfficialDir.exists()) {
-             repositories.add(new LocalProblemRepository("Official (Dev)", devOfficialDir.toPath()));
+            LOGGER.info("Dev environment detected, loading local question bank");
+            repositories.add(new LocalProblemRepository("Official (Dev)", devOfficialDir.toPath(), "dev"));
         }
 
-        // 3. Downloaded Repositories
+        // 5. Custom Downloaded Repositories
         for (RepositoryMetadata meta : RepositoryManager.getRepositories()) {
             File repoDir = RepositoryManager.getRepositoryDir(meta);
-            repositories.add(new LocalProblemRepository(meta.name, repoDir.toPath()));
+            repositories.add(new LocalProblemRepository(meta.name, repoDir.toPath(), meta.name.toLowerCase()));
         }
         
+        // Sort by priority (higher first)
+        repositories.sort((a, b) -> Integer.compare(b.getPriority(), a.getPriority()));
+        
         initialized = true;
-        refreshAll();
+        
+        // Start async refresh
+        refreshAllAsync().thenRun(() -> {
+            initialSyncComplete = true;
+            LOGGER.info("Initial sync complete. Total problems: {}", problemCache.size());
+        });
     }
-
-    public static void refreshAll() {
-        problemCache.clear();
+    
+    /**
+     * Check if the initial sync is complete.
+     */
+    public static boolean isInitialSyncComplete() {
+        return initialSyncComplete;
+    }
+    
+    /**
+     * Get the official repository for status checking.
+     */
+    public static OfficialRepository getOfficialRepository() {
+        return officialRepository;
+    }
+    
+    /**
+     * Force refresh the official repository from remote.
+     */
+    public static CompletableFuture<Void> forceRefreshOfficial() {
+        if (officialRepository == null) return CompletableFuture.completedFuture(null);
+        return officialRepository.forceRefresh().thenRun(() -> {
+            rebuildCache();
+            LOGGER.info("Force refresh complete. Total problems: {}", problemCache.size());
+        });
+    }
+    
+    /**
+     * Async refresh all repositories.
+     */
+    public static CompletableFuture<Void> refreshAllAsync() {
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (ProblemRepository repo : repositories) {
-            futures.add(repo.refresh().thenAccept(v -> {
-                for (Problem p : repo.getProblems()) {
-                    problemCache.put(p.id, p);
-                }
+            futures.add(repo.refresh().exceptionally(e -> {
+                LOGGER.error("Failed to refresh repository: {}", repo.getName(), e);
+                return null;
             }));
         }
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+            .thenRun(ProblemManager::rebuildCache);
+    }
+    
+    /**
+     * Rebuild the problem cache from all repositories.
+     */
+    private static void rebuildCache() {
+        problemCache.clear();
+        for (ProblemRepository repo : repositories) {
+            for (Problem p : repo.getProblems()) {
+                // First repository to add a problem wins (respects priority)
+                problemCache.putIfAbsent(p.id, p);
+            }
+        }
         
         // Add hardcoded fallback if empty (for testing)
         if (problemCache.isEmpty()) {
             addFallbackProblems();
         }
+        
+        LOGGER.debug("Problem cache rebuilt with {} problems", problemCache.size());
+    }
+
+    /**
+     * Synchronously refresh all repositories and rebuild cache.
+     * Blocks until complete. Use refreshAllAsync() for non-blocking refresh.
+     */
+    public static void refreshAll() {
+        refreshAllAsync().join();
     }
     
     public static CompletableFuture<Void> downloadAndUpdateRepository(String name, String url) {

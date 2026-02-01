@@ -21,7 +21,7 @@ public class SubmissionHistoryList extends ObjectSelectionList<SubmissionHistory
 
     public class Entry extends ObjectSelectionList.Entry<Entry> {
         private final SubmissionRecord record;
-        private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        private final SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm");
 
         public Entry(SubmissionRecord record) {
             this.record = record;
@@ -34,12 +34,36 @@ public class SubmissionHistoryList extends ObjectSelectionList<SubmissionHistory
 
         @Override
         public void render(GuiGraphics guiGraphics, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isMouseOver, float partialTick) {
+            net.minecraft.client.gui.Font font = Minecraft.getInstance().font;
             int color = record.status.equals("Accepted") ? 0xFF55FF55 : 0xFFFF5555;
             
-            guiGraphics.drawString(Minecraft.getInstance().font, record.problemTitle, left + 5, top + 2, 0xFFFFFFFF);
-            guiGraphics.drawString(Minecraft.getInstance().font, record.status, left + 150, top + 2, color);
-            guiGraphics.drawString(Minecraft.getInstance().font, dateFormat.format(new Date(record.timestamp)), left + 250, top + 2, 0xFFAAAAAA);
-            guiGraphics.drawString(Minecraft.getInstance().font, record.executionTime + "ms", left + 400, top + 2, 0xFFAAAAAA);
+            // Responsive column widths based on available width
+            int col1Width = (int)(width * 0.35);  // Problem title
+            int col2Width = (int)(width * 0.25);  // Status
+            int col3Width = (int)(width * 0.25);  // Date
+            int col4Width = (int)(width * 0.15);  // Time
+            
+            int col1X = left + 5;
+            int col2X = col1X + col1Width;
+            int col3X = col2X + col2Width;
+            int col4X = col3X + col3Width;
+            
+            // Truncate problem title if too long
+            String title = record.problemTitle;
+            if (font.width(title) > col1Width - 10) {
+                title = font.plainSubstrByWidth(title, col1Width - 15) + "...";
+            }
+            
+            // Truncate status if needed
+            String status = record.status;
+            if (font.width(status) > col2Width - 10) {
+                status = font.plainSubstrByWidth(status, col2Width - 15) + "...";
+            }
+            
+            guiGraphics.drawString(font, title, col1X, top + 2, 0xFFFFFFFF);
+            guiGraphics.drawString(font, status, col2X, top + 2, color);
+            guiGraphics.drawString(font, dateFormat.format(new Date(record.timestamp)), col3X, top + 2, 0xFFAAAAAA);
+            guiGraphics.drawString(font, record.executionTime + "ms", col4X, top + 2, 0xFFAAAAAA);
         }
 
         @Override

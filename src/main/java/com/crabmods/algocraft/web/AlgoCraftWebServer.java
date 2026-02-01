@@ -39,6 +39,7 @@ public class AlgoCraftWebServer {
             server.createContext("/api/run", new RunHandler());
             server.createContext("/api/submit", new SubmitHandler());
             server.createContext("/api/history", new HistoryHandler());
+            server.createContext("/api/translations", new TranslationsHandler());
             server.setExecutor(Executors.newCachedThreadPool());
             server.start();
             System.out.println("AlgoCraft Web Server started on port " + PORT);
@@ -93,12 +94,23 @@ public class AlgoCraftWebServer {
             if ("GET".equals(exchange.getRequestMethod())) {
                 String query = exchange.getRequestURI().getQuery();
                 String repoName = null;
-                if (query != null && query.contains("repo=")) {
+                String lang = null;
+                
+                if (query != null) {
                     for (String param : query.split("&")) {
                         String[] pair = param.split("=");
-                        if (pair.length == 2 && pair[0].equals("repo")) {
-                            repoName = java.net.URLDecoder.decode(pair[1], StandardCharsets.UTF_8);
-                            break;
+                        if (pair.length == 2) {
+                            if (pair[0].equals("repo")) {
+                                repoName = java.net.URLDecoder.decode(pair[1], StandardCharsets.UTF_8);
+                            } else if (pair[0].equals("lang")) {
+                                String l = pair[1].toLowerCase();
+                                // Map browser locale to lang file format
+                                if (l.equals("zh") || l.startsWith("zh-") || l.equals("zh_cn")) {
+                                    lang = "zh_cn";
+                                } else if (l.equals("ja") || l.startsWith("ja-") || l.equals("ja_jp")) {
+                                    lang = "ja_jp";
+                                }
+                            }
                         }
                     }
                 }
@@ -115,10 +127,35 @@ public class AlgoCraftWebServer {
                     problems = ProblemManager.getProblems();
                 }
 
+                final String finalLang = lang;
                 com.google.gson.JsonArray jsonArray = new com.google.gson.JsonArray();
                 for (Problem p : problems) {
-                    com.google.gson.JsonObject obj = gson.toJsonTree(p).getAsJsonObject();
-                    obj.addProperty("passed", ProgressManager.isPassed(p.id));
+                    com.google.gson.JsonObject obj = new com.google.gson.JsonObject();
+                    obj.addProperty("id", p.getId());
+                    // Use translated title/description if language specified
+                    obj.addProperty("title", p.getTitle(finalLang));
+                    obj.addProperty("description", p.getDescription(finalLang));
+                    obj.addProperty("difficulty", p.getDifficulty());
+                    obj.addProperty("initialCode", p.getInitialCode());
+                    obj.addProperty("passed", ProgressManager.isPassed(p.getId()));
+                    
+                    // Add tags
+                    com.google.gson.JsonArray tagsArray = new com.google.gson.JsonArray();
+                    for (String tag : p.getTags()) {
+                        tagsArray.add(tag);
+                    }
+                    obj.add("tags", tagsArray);
+                    
+                    // Add examples
+                    com.google.gson.JsonArray examplesArray = new com.google.gson.JsonArray();
+                    for (Problem.TestCase ex : p.getExamples()) {
+                        com.google.gson.JsonObject exObj = new com.google.gson.JsonObject();
+                        exObj.addProperty("input", ex.getInput());
+                        exObj.addProperty("output", ex.getOutput());
+                        examplesArray.add(exObj);
+                    }
+                    obj.add("examples", examplesArray);
+                    
                     jsonArray.add(obj);
                 }
                 sendResponse(exchange, gson.toJson(jsonArray));
@@ -160,6 +197,78 @@ public class AlgoCraftWebServer {
             if ("GET".equals(exchange.getRequestMethod())) {
                 List<SubmissionRecord> history = SubmissionHistoryManager.getHistory();
                 sendResponse(exchange, gson.toJson(history));
+            }
+        }
+    }
+
+    static class TranslationsHandler implements HttpHandler {
+        private static final String[] SUPPORTED_LANGS = {"en_us", "zh_cn"};
+        
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (!"GET".equals(exchange.getRequestMethod())) {
+                exchange.sendResponseHeaders(405, -1);
+                return;
+            }
+            
+            // Get language parameter, default to en_us
+            String query = exchange.getRequestURI().getQuery();
+            String lang = "en_us";
+            if (query != null && query.startsWith("lang=")) {
+                String requestedLang = query.substring(5).toLowerCase();
+                // Map browser locale to mod lang file
+                if (requestedLang.equals("zh") || requestedLang.equals("zh_cn") || requestedLang.startsWith("zh-")) {
+                    lang = "zh_cn";
+                } else if (requestedLang.equals("ja") || requestedLang.startsWith("ja-")) {
+                    lang = "ja_jp";
+                }
+                // Validate language is supported
+                boolean isSupported = false;
+                for (String supported : SUPPORTED_LANGS) {
+                    if (supported.equals(lang)) {
+                        isSupported = true;
+                        break;
+                    }
+                }
+                if (!isSupported) {
+                    lang = "en_us";
+                }
+            }
+            
+            // Read language file from mod resources
+            String langPath = "/assets/algocraft/lang/" + lang + ".json";
+            String langJson = readResourceFile(langPath);
+            
+            if (langJson == null) {
+                // Fallback to en_us
+                langJson = readResourceFile("/assets/algocraft/lang/en_us.json");
+            }
+            
+            if (langJson == null) {
+                exchange.sendResponseHeaders(500, -1);
+                return;
+            }
+            
+            // Filter only web.* translations to reduce payload
+            JsonObject allTranslations = gson.fromJson(langJson, JsonObject.class);
+            JsonObject webTranslations = new JsonObject();
+            for (String key : allTranslations.keySet()) {
+                if (key.startsWith("algocraft.web.")) {
+                    // Convert key format: algocraft.web.nav.history -> nav.history
+                    String shortKey = key.substring("algocraft.web.".length());
+                    webTranslations.addProperty(shortKey, allTranslations.get(key).getAsString());
+                }
+            }
+            
+            sendResponse(exchange, gson.toJson(webTranslations));
+        }
+        
+        private String readResourceFile(String path) {
+            try (java.io.InputStream is = AlgoCraftWebServer.class.getResourceAsStream(path)) {
+                if (is == null) return null;
+                return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                return null;
             }
         }
     }
@@ -225,6 +334,76 @@ public class AlgoCraftWebServer {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script>
+        // Internationalization (i18n) System - loads from mod lang files via API
+        const i18n = {
+            currentLang: 'en',
+            translations: {},
+            loaded: false,
+            
+            t(key) {
+                return this.translations[key] || key;
+            },
+            
+            async loadTranslations(lang) {
+                try {
+                    const langCode = lang === 'zh' ? 'zh_cn' : (lang === 'ja' ? 'ja_jp' : 'en_us');
+                    const res = await fetch('/api/translations?lang=' + langCode);
+                    if (res.ok) {
+                        this.translations = await res.json();
+                        this.loaded = true;
+                    }
+                } catch (e) {
+                    console.error('Failed to load translations', e);
+                }
+            },
+            
+            async setLanguage(lang) {
+                this.currentLang = lang;
+                localStorage.setItem('algocraft-lang', lang);
+                await this.loadTranslations(lang);
+                this.updateUI();
+                // Re-fetch problems with new language
+                if (typeof fetchProblems === 'function') {
+                    const repoSelect = document.getElementById('repo-select');
+                    if (repoSelect && repoSelect.value) {
+                        fetchProblems(repoSelect.value);
+                    }
+                }
+            },
+            
+            detectLanguage() {
+                const saved = localStorage.getItem('algocraft-lang');
+                if (saved) {
+                    this.currentLang = saved;
+                    return saved;
+                }
+                const browserLang = navigator.language.split('-')[0];
+                if (['en', 'zh', 'ja'].includes(browserLang)) {
+                    this.currentLang = browserLang;
+                    return browserLang;
+                }
+                return 'en';
+            },
+            
+            updateUI() {
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    el.textContent = this.t(key);
+                });
+                document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                    const key = el.getAttribute('data-i18n-placeholder');
+                    el.placeholder = this.t(key);
+                });
+            },
+            
+            async init() {
+                const lang = this.detectLanguage();
+                await this.loadTranslations(lang);
+                this.updateUI();
+            }
+        };
+    </script>
+    <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
@@ -281,7 +460,13 @@ public class AlgoCraftWebServer {
         </div> -->
 
         <div class="flex items-center space-x-4">
-            <button onclick="showHistory()" class="px-3 py-1.5 bg-surface hover:bg-surface2 border border-border rounded-md text-sm font-medium transition-colors">History</button>
+            <!-- Language Selector -->
+            <select id="lang-select" onchange="i18n.setLanguage(this.value)" class="bg-surface border border-border rounded-md px-2 py-1 text-sm text-text focus:outline-none focus:border-primary">
+                <option value="en">🇬🇧 EN</option>
+                <option value="zh">🇨🇳 中文</option>
+                <option value="ja">🇯🇵 日本語</option>
+            </select>
+            <button onclick="showHistory()" class="px-3 py-1.5 bg-surface hover:bg-surface2 border border-border rounded-md text-sm font-medium transition-colors" data-i18n="nav.history">History</button>
             <div class="flex bg-surface rounded-md border border-border">
                 <button onclick="prevProblem()" class="p-1.5 hover:bg-surface2 rounded-l-md transition-colors text-textMuted hover:text-white border-r border-border">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -298,8 +483,8 @@ public class AlgoCraftWebServer {
         <!-- Sidebar: Problem List -->
         <div class="w-64 flex flex-col border-r border-border bg-surface">
             <div class="p-4 border-b border-border">
-                <h2 class="text-sm font-semibold text-textMuted uppercase tracking-wider mb-2">Problems</h2>
-                <input type="text" id="sidebar-search" placeholder="Filter..." class="w-full bg-bg border border-border rounded-md px-3 py-1.5 text-sm text-text focus:outline-none focus:border-primary transition-colors" oninput="filterSidebar()">
+                <h2 class="text-sm font-semibold text-textMuted uppercase tracking-wider mb-2" data-i18n="sidebar.problems">Problems</h2>
+                <input type="text" id="sidebar-search" data-i18n-placeholder="sidebar.filter" placeholder="Filter..." class="w-full bg-bg border border-border rounded-md px-3 py-1.5 text-sm text-text focus:outline-none focus:border-primary transition-colors" oninput="filterSidebar()">
             </div>
             <div class="flex-1 overflow-y-auto custom-scrollbar" id="problem-list">
                 <!-- Problem items injected here -->
@@ -332,11 +517,11 @@ public class AlgoCraftWebServer {
             <!-- Console / Output Panel -->
             <div class="h-1/3 border-t border-border bg-surface flex flex-col">
                 <div class="flex items-center justify-between px-4 py-2 border-b border-border bg-surface2">
-                    <span class="text-xs font-semibold text-textMuted uppercase tracking-wider">Console</span>
-                    <button onclick="clearConsole()" class="text-xs text-textMuted hover:text-white transition-colors">Clear</button>
+                    <span class="text-xs font-semibold text-textMuted uppercase tracking-wider" data-i18n="console.title">Console</span>
+                    <button onclick="clearConsole()" class="text-xs text-textMuted hover:text-white transition-colors" data-i18n="console.clear">Clear</button>
                 </div>
                 <div class="flex-1 p-4 overflow-y-auto font-mono text-sm" id="output-container">
-                    <div class="text-textMuted italic">Ready to run...</div>
+                    <div class="text-textMuted italic" data-i18n="console.ready">Ready to run...</div>
                 </div>
             </div>
         </div>
@@ -357,16 +542,16 @@ public class AlgoCraftWebServer {
             <div class="h-16 border-t border-border bg-surface flex items-center justify-between px-6">
                 <div class="text-sm text-textMuted flex items-center space-x-2">
                     <div class="w-2 h-2 rounded-full bg-green-500" id="status-dot"></div>
-                    <span id="status-text">Ready</span>
+                    <span id="status-text" data-i18n="editor.ready">Ready</span>
                 </div>
                 <div class="flex items-center space-x-3">
                     <button onclick="runCode()" class="px-5 py-2 rounded-md bg-surface2 border border-border text-text hover:bg-border hover:text-white transition-all font-medium text-sm flex items-center space-x-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span>Run</span>
+                        <span data-i18n="editor.run">Run</span>
                     </button>
                     <button onclick="submitCode()" class="px-6 py-2 rounded-md bg-success text-white font-medium text-sm hover:bg-green-700 transition-all flex items-center space-x-2 shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        <span>Submit</span>
+                        <span data-i18n="editor.submit">Submit</span>
                     </button>
                 </div>
             </div>
@@ -379,21 +564,21 @@ public class AlgoCraftWebServer {
             <div class="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
             </div>
-            <h2 class="text-2xl font-semibold text-white mb-2">Accepted</h2>
-            <p class="text-textMuted mb-6 text-sm">All test cases passed successfully.</p>
+            <h2 class="text-2xl font-semibold text-white mb-2" data-i18n="success.title">Accepted</h2>
+            <p class="text-textMuted mb-6 text-sm" data-i18n="success.message">All test cases passed successfully.</p>
             
             <div class="grid grid-cols-2 gap-3 mb-6">
                 <div class="bg-bg p-3 rounded-lg border border-border">
-                    <div class="text-[10px] text-textMuted uppercase font-bold tracking-wider">Runtime</div>
+                    <div class="text-[10px] text-textMuted uppercase font-bold tracking-wider" data-i18n="success.runtime">Runtime</div>
                     <div class="text-text font-mono font-medium mt-1" id="result-time">0 ms</div>
                 </div>
                 <div class="bg-bg p-3 rounded-lg border border-border">
-                    <div class="text-[10px] text-textMuted uppercase font-bold tracking-wider">Passed</div>
+                    <div class="text-[10px] text-textMuted uppercase font-bold tracking-wider" data-i18n="success.passed">Passed</div>
                     <div class="text-text font-mono font-medium mt-1" id="result-passed">All</div>
                 </div>
             </div>
 
-            <button onclick="closeModal()" class="w-full py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primaryHover transition-colors text-sm">
+            <button onclick="closeModal()" class="w-full py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primaryHover transition-colors text-sm" data-i18n="success.continue">
                 Continue
             </button>
         </div>
@@ -403,7 +588,7 @@ public class AlgoCraftWebServer {
     <div id="history-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
         <div id="history-content" class="bg-surface border border-border rounded-lg shadow-2xl w-full max-w-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[80vh]">
             <div class="p-6 border-b border-border flex justify-between items-center">
-                <h3 class="text-xl font-bold text-white">Submission History</h3>
+                <h3 class="text-xl font-bold text-white" data-i18n="history.title">Submission History</h3>
                 <button onclick="closeHistoryModal()" class="text-textMuted hover:text-white">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
@@ -412,10 +597,10 @@ public class AlgoCraftWebServer {
                 <table class="w-full text-left text-sm">
                     <thead>
                         <tr class="text-textMuted border-b border-border">
-                            <th class="pb-2">Time</th>
-                            <th class="pb-2">Problem</th>
-                            <th class="pb-2">Status</th>
-                            <th class="pb-2">Runtime</th>
+                            <th class="pb-2" data-i18n="history.time">Time</th>
+                            <th class="pb-2" data-i18n="history.problem">Problem</th>
+                            <th class="pb-2" data-i18n="history.status">Status</th>
+                            <th class="pb-2" data-i18n="history.runtime">Runtime</th>
                         </tr>
                     </thead>
                     <tbody id="history-list">
@@ -433,7 +618,11 @@ public class AlgoCraftWebServer {
         let currentIndex = 0;
 
         require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
-        require(['vs/editor/editor.main'], function() {
+        require(['vs/editor/editor.main'], async function() {
+            // Initialize i18n first
+            await i18n.init();
+            document.getElementById('lang-select').value = i18n.currentLang;
+            
             editor = monaco.editor.create(document.getElementById('editor-container'), {
                 value: '// Loading...',
                 language: 'java',
@@ -474,9 +663,9 @@ public class AlgoCraftWebServer {
 
         async function fetchProblems(repoName) {
             try {
-                let url = '/api/problems';
+                let url = '/api/problems?lang=' + encodeURIComponent(i18n.currentLang);
                 if (repoName) {
-                    url += '?repo=' + encodeURIComponent(repoName);
+                    url += '&repo=' + encodeURIComponent(repoName);
                 }
                 const res = await fetch(url);
                 problems = await res.json();
@@ -484,7 +673,7 @@ public class AlgoCraftWebServer {
                 if (problems.length > 0) {
                     loadProblem(0);
                 } else {
-                    document.getElementById('problem-title').innerText = 'No problems found';
+                    document.getElementById('problem-title').innerText = i18n.t('problems.empty') || 'No problems found';
                     document.getElementById('problem-desc').innerText = '';
                     editor.setValue('');
                     document.getElementById('problem-counter').innerText = '0 / 0';
@@ -626,14 +815,14 @@ public class AlgoCraftWebServer {
                 });
                 resultsContainer.classList.remove('hidden');
             } else {
-                resultsContainer.innerHTML = '<div class="px-3 py-2 text-sm text-textMuted">No results found</div>';
+                resultsContainer.innerHTML = '<div class="px-3 py-2 text-sm text-textMuted">' + (i18n.t('search.no_results') || 'No results found') + '</div>';
                 resultsContainer.classList.remove('hidden');
             }
         }
 
         function prevProblem() { loadProblem((currentIndex - 1 + problems.length) % problems.length); }
         function nextProblem() { loadProblem((currentIndex + 1) % problems.length); }
-        function clearConsole() { document.getElementById('output-container').innerHTML = '<div class="text-textMuted italic">Ready to run...</div>'; }
+        function clearConsole() { document.getElementById('output-container').innerHTML = '<div class="text-textMuted italic">' + (i18n.t('console.ready') || 'Ready to run...') + '</div>'; }
 
         function appendOutput(text, type = 'info') {
             const container = document.getElementById('output-container');
@@ -650,10 +839,10 @@ public class AlgoCraftWebServer {
 
         async function runCode() {
             const code = editor.getValue();
-            document.getElementById('status-text').innerText = 'Running...';
+            document.getElementById('status-text').innerText = i18n.t('editor.running') || 'Running...';
             document.getElementById('status-dot').className = 'w-2 h-2 rounded-full bg-yellow-500 animate-pulse';
             clearConsole();
-            appendOutput('Compiling and running...', 'info');
+            appendOutput(i18n.t('console.compiling') || 'Compiling and running...', 'info');
             
             try {
                 const res = await fetch('/api/run', {
@@ -662,21 +851,21 @@ public class AlgoCraftWebServer {
                 });
                 const data = await res.json();
                 appendOutput(data.output);
-                document.getElementById('status-text').innerText = 'Ready';
+                document.getElementById('status-text').innerText = i18n.t('editor.ready') || 'Ready';
                 document.getElementById('status-dot').className = 'w-2 h-2 rounded-full bg-green-500';
             } catch (e) {
-                appendOutput('Network Error', 'error');
-                document.getElementById('status-text').innerText = 'Error';
+                appendOutput(i18n.t('console.network_error') || 'Network Error', 'error');
+                document.getElementById('status-text').innerText = i18n.t('editor.error') || 'Error';
                 document.getElementById('status-dot').className = 'w-2 h-2 rounded-full bg-red-500';
             }
         }
 
         async function submitCode() {
             const code = editor.getValue();
-            document.getElementById('status-text').innerText = 'Judging...';
+            document.getElementById('status-text').innerText = i18n.t('editor.judging') || 'Judging...';
             document.getElementById('status-dot').className = 'w-2 h-2 rounded-full bg-yellow-500 animate-pulse';
             clearConsole();
-            appendOutput('Submitting solution...', 'info');
+            appendOutput(i18n.t('console.submitting') || 'Submitting solution...', 'info');
             
             try {
                 const res = await fetch('/api/submit', {
@@ -689,14 +878,14 @@ public class AlgoCraftWebServer {
                     document.getElementById('result-time').innerText = (result.executionTimeMs || 0) + ' ms';
                     document.getElementById('result-passed').innerText = `${result.passedCount}/${result.totalCount}`;
                     showSuccess();
-                    appendOutput('Accepted!', 'info');
+                    appendOutput(i18n.t('console.accepted') || 'Accepted!', 'info');
                 } else {
-                    let msg = `Status: ${result.message}\\n`;
+                    let msg = `${i18n.t('console.status') || 'Status'}: ${result.message}\\n`;
                     if (result.details) {
                         const fail = result.details.find(d => !d.passed);
                         if (fail) {
-                            msg += `Failed on input: ${fail.input}\\nExpected: ${fail.expected}\\nGot: ${fail.actual}`;
-                            if (fail.error) msg += `\\nError: ${fail.error}`;
+                            msg += `${i18n.t('console.failed_on') || 'Failed on input'}: ${fail.input}\\n${i18n.t('console.expected') || 'Expected'}: ${fail.expected}\\n${i18n.t('console.got') || 'Got'}: ${fail.actual}`;
+                            if (fail.error) msg += `\\n${i18n.t('console.error') || 'Error'}: ${fail.error}`;
                         }
                     }
                     appendOutput(msg, 'error');
@@ -704,8 +893,8 @@ public class AlgoCraftWebServer {
                 document.getElementById('status-text').innerText = result.message;
                 document.getElementById('status-dot').className = result.isSuccess ? 'w-2 h-2 rounded-full bg-green-500' : 'w-2 h-2 rounded-full bg-red-500';
             } catch (e) {
-                appendOutput('Network Error', 'error');
-                document.getElementById('status-text').innerText = 'Error';
+                appendOutput(i18n.t('console.network_error') || 'Network Error', 'error');
+                document.getElementById('status-text').innerText = i18n.t('editor.error') || 'Error';
                 document.getElementById('status-dot').className = 'w-2 h-2 rounded-full bg-red-500';
             }
         }
@@ -735,7 +924,7 @@ public class AlgoCraftWebServer {
             const content = document.getElementById('history-content');
             const list = document.getElementById('history-list');
             
-            list.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-textMuted">Loading...</td></tr>';
+            list.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-textMuted">' + (i18n.t('history.loading') || 'Loading...') + '</td></tr>';
             
             modal.classList.remove('hidden');
             // Trigger reflow
@@ -750,7 +939,7 @@ public class AlgoCraftWebServer {
                 
                 list.innerHTML = '';
                 if (history.length === 0) {
-                    list.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-textMuted">No submissions yet</td></tr>';
+                    list.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-textMuted">' + (i18n.t('history.empty') || 'No submissions yet') + '</td></tr>';
                     return;
                 }
 
@@ -769,7 +958,7 @@ public class AlgoCraftWebServer {
                     list.appendChild(tr);
                 });
             } catch (e) {
-                list.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-red-500">Failed to load history</td></tr>';
+                list.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-red-500">' + (i18n.t('history.load_error') || 'Failed to load history') + '</td></tr>';
             }
         }
 

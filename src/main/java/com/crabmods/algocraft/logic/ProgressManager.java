@@ -2,7 +2,9 @@ package com.crabmods.algocraft.logic;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.FileReader;
@@ -12,12 +14,20 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ProgressManager {
-    // ProblemID -> LastSolvedTimestamp
-    private static final Map<String, Long> passedProblems = new HashMap<>();
+    private static final Logger LOGGER = LogUtils.getLogger();
+    // ProblemID -> LastSolvedTimestamp (thread-safe)
+    private static final Map<String, Long> passedProblems = new ConcurrentHashMap<>();
     private static final Gson gson = new Gson();
-    private static File progressFile;
+    private static volatile File progressFile;
+    
+    // Debounce save operations to avoid excessive IO
+    private static final AtomicBoolean saveScheduled = new AtomicBoolean(false);
+    private static final long SAVE_DEBOUNCE_MS = 500;
 
     public static void init() {
         if (progressFile != null) return;
@@ -59,18 +69,54 @@ public class ProgressManager {
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.error("Failed to load progress", e);
             }
         }
     }
 
+    /**
+     * Save progress asynchronously with debouncing.
+     * This prevents excessive file IO when multiple problems are solved quickly.
+     */
     public static void saveProgress() {
-        ensureInit();
-        try (FileWriter writer = new FileWriter(progressFile)) {
-            gson.toJson(passedProblems, writer);
-        } catch (IOException e) {
-            e.printStackTrace();
+        // If a save is already scheduled, skip (debounce)
+        if (!saveScheduled.compareAndSet(false, true)) {
+            return;
         }
+        
+        CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(SAVE_DEBOUNCE_MS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            
+            saveScheduled.set(false);
+            saveProgressSync();
+        });
+    }
+    
+    /**
+     * Synchronous save - called by async debouncer or for forced saves.
+     */
+    private static void saveProgressSync() {
+        ensureInit();
+        if (progressFile == null) return;
+        
+        try (FileWriter writer = new FileWriter(progressFile)) {
+            gson.toJson(new HashMap<>(passedProblems), writer);
+        } catch (IOException e) {
+            LOGGER.error("Failed to save progress", e);
+        }
+    }
+    
+    /**
+     * Force immediate save (for shutdown).
+     */
+    public static void saveProgressImmediate() {
+        saveScheduled.set(false); // Cancel pending debounced save
+        saveProgressSync();
     }
 
     public static void markAsPassed(String problemId) {

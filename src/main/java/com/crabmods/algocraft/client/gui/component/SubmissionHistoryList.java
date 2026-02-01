@@ -29,13 +29,13 @@ public class SubmissionHistoryList extends ObjectSelectionList<SubmissionHistory
 
         @Override
         public Component getNarration() {
-            return Component.literal(record.problemTitle);
+            return Component.literal(record.getProblemTitle());
         }
 
         @Override
         public void render(GuiGraphics guiGraphics, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean isMouseOver, float partialTick) {
             net.minecraft.client.gui.Font font = Minecraft.getInstance().font;
-            int color = record.status.equals("Accepted") ? 0xFF55FF55 : 0xFFFF5555;
+            int color = record.getStatus().equals("Accepted") ? 0xFF55FF55 : 0xFFFF5555;
             
             // Responsive column widths based on available width
             int col1Width = (int)(width * 0.35);  // Problem title
@@ -49,21 +49,21 @@ public class SubmissionHistoryList extends ObjectSelectionList<SubmissionHistory
             int col4X = col3X + col3Width;
             
             // Truncate problem title if too long
-            String title = record.problemTitle;
+            String title = record.getProblemTitle();
             if (font.width(title) > col1Width - 10) {
                 title = font.plainSubstrByWidth(title, col1Width - 15) + "...";
             }
             
             // Truncate status if needed
-            String status = record.status;
+            String status = record.getStatus();
             if (font.width(status) > col2Width - 10) {
                 status = font.plainSubstrByWidth(status, col2Width - 15) + "...";
             }
             
             guiGraphics.drawString(font, title, col1X, top + 2, 0xFFFFFFFF);
             guiGraphics.drawString(font, status, col2X, top + 2, color);
-            guiGraphics.drawString(font, dateFormat.format(new Date(record.timestamp)), col3X, top + 2, 0xFFAAAAAA);
-            guiGraphics.drawString(font, record.executionTime + "ms", col4X, top + 2, 0xFFAAAAAA);
+            guiGraphics.drawString(font, dateFormat.format(new Date(record.getTimestamp())), col3X, top + 2, 0xFFAAAAAA);
+            guiGraphics.drawString(font, record.getExecutionTime() + "ms", col4X, top + 2, 0xFFAAAAAA);
         }
 
         @Override

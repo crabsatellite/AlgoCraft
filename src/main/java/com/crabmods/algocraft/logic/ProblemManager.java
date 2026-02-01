@@ -118,7 +118,7 @@ public class ProblemManager {
         for (ProblemRepository repo : repositories) {
             for (Problem p : repo.getProblems()) {
                 // First repository to add a problem wins (respects priority)
-                problemCache.putIfAbsent(p.id, p);
+                problemCache.putIfAbsent(p.getId(), p);
             }
         }
         
@@ -179,7 +179,7 @@ public class ProblemManager {
         repositories.add(repo);
         repo.refresh().thenAccept(v -> {
             for (Problem p : repo.getProblems()) {
-                problemCache.put(p.id, p);
+                problemCache.put(p.getId(), p);
             }
         });
     }
@@ -202,41 +202,45 @@ public class ProblemManager {
     private static void addFallbackProblems() {
         // Problem 0: A + B
         Problem p0 = new Problem();
-        p0.id = "0";
-        p0.title = "A + B Problem";
-        p0.description = "Given two integers a and b, return their sum.";
-        p0.difficulty = "EASY";
-        p0.initialCode = "class Solution {\n    public int aPlusB(int a, int b) {\n        // write your code here\n        return 0;\n    }\n}";
-        p0.examples = new ArrayList<>();
+        p0.setId("0");
+        p0.setTitle("A + B Problem");
+        p0.setDescription("Given two integers a and b, return their sum.");
+        p0.setDifficulty("EASY");
+        p0.setInitialCode("class Solution {\n    public int aPlusB(int a, int b) {\n        // write your code here\n        return 0;\n    }\n}");
+        List<Problem.TestCase> examples0 = new ArrayList<>();
         Problem.TestCase ex0 = new Problem.TestCase();
-        ex0.input = "a = 1, b = 2";
-        ex0.output = "3";
-        p0.examples.add(ex0);
+        ex0.setInput("a = 1, b = 2");
+        ex0.setOutput("3");
+        examples0.add(ex0);
+        p0.setExamples(examples0);
         
-        p0.tests = new ArrayList<>();
+        List<Problem.TestCase> tests0 = new ArrayList<>();
         Problem.TestCase t0 = new Problem.TestCase();
-        t0.input = "a = 10, b = 20";
-        t0.output = "30";
-        p0.tests.add(t0);
-        problemCache.put(p0.id, p0);
+        t0.setInput("a = 10, b = 20");
+        t0.setOutput("30");
+        tests0.add(t0);
+        p0.setTests(tests0);
+        problemCache.put(p0.getId(), p0);
 
         Problem p1 = new Problem();
-        p1.id = "1";
-        p1.title = "Two Sum";
-        p1.description = "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.";
-        p1.difficulty = "EASY";
-        p1.initialCode = "class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // write your code here\n        return new int[]{};\n    }\n}";
-        p1.examples = new ArrayList<>();
+        p1.setId("1");
+        p1.setTitle("Two Sum");
+        p1.setDescription("Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.");
+        p1.setDifficulty("EASY");
+        p1.setInitialCode("class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        // write your code here\n        return new int[]{};\n    }\n}");
+        List<Problem.TestCase> examples1 = new ArrayList<>();
         Problem.TestCase ex1 = new Problem.TestCase();
-        ex1.input = "nums = [2,7,11,15], target = 9";
-        ex1.output = "[0,1]";
-        p1.examples.add(ex1);
+        ex1.setInput("nums = [2,7,11,15], target = 9");
+        ex1.setOutput("[0,1]");
+        examples1.add(ex1);
+        p1.setExamples(examples1);
         
-        p1.tests = new ArrayList<>();
+        List<Problem.TestCase> tests1 = new ArrayList<>();
         Problem.TestCase t1 = new Problem.TestCase();
-        t1.input = "nums = [3,2,4], target = 6";
-        t1.output = "[1,2]";
-        p1.tests.add(t1);
-        problemCache.put(p1.id, p1);
+        t1.setInput("nums = [3,2,4], target = 6");
+        t1.setOutput("[1,2]");
+        tests1.add(t1);
+        p1.setTests(tests1);
+        problemCache.put(p1.getId(), p1);
     }
 }

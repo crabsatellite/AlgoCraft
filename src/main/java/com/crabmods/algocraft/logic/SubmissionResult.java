@@ -46,7 +46,7 @@ public class SubmissionResult {
      * Get the result message (e.g., "Accepted", "Wrong Answer", "Runtime Error").
      */
     public String getMessage() {
-        return message != null ? message : (isSuccess ? "Accepted" : "Unknown Error");
+        return message != null ? message : (success ? "Accepted" : "Unknown Error");
     }
 
     public void setMessage(String message) {

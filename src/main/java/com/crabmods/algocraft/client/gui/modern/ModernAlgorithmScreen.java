@@ -39,6 +39,13 @@ public class ModernAlgorithmScreen extends Screen {
     private long problemStartTime = 0;  // Track when the current problem was loaded
     private int consoleScrollY = 0;  // Console scroll position
     private int maxConsoleLines = 5;  // Max visible lines in console
+    
+    // State to preserve across window resize (init() is called again)
+    private String preservedCode = null;
+    private String preservedProblemId = null;
+    private String preservedSearchText = null;
+    private String preservedRepositoryName = null;
+    private String preservedConsoleText = null;
 
     public ModernAlgorithmScreen() {
         super(Component.translatable("algocraft.gui.ide_title"));
@@ -47,6 +54,23 @@ public class ModernAlgorithmScreen extends Screen {
 
     @Override
     protected void init() {
+        // Save state before recreating widgets (window resize triggers init() again)
+        if (this.codeEditor != null) {
+            this.preservedCode = this.codeEditor.getValue();
+        }
+        if (this.currentProblem != null) {
+            this.preservedProblemId = this.currentProblem.getId();
+        }
+        if (this.searchBox != null) {
+            this.preservedSearchText = this.searchBox.getValue();
+        }
+        if (this.currentRepository != null) {
+            this.preservedRepositoryName = this.currentRepository.getName();
+        }
+        if (this.consoleText != null && !this.consoleText.isEmpty()) {
+            this.preservedConsoleText = this.consoleText;
+        }
+        
         int editorWidth = this.width - SIDEBAR_WIDTH - 20;
         int editorHeight = this.height - TOP_BAR_HEIGHT - BOTTOM_BAR_HEIGHT - 20;
 
@@ -54,15 +78,46 @@ public class ModernAlgorithmScreen extends Screen {
         this.codeEditor = new CodeEditorWidget(this.font, SIDEBAR_WIDTH + 10, TOP_BAR_HEIGHT + 10, editorWidth, editorHeight, Component.translatable("algocraft.gui.code"));
         this.addRenderableWidget(this.codeEditor);
 
-        // Description Viewer (Initially hidden)
+        // Description Viewer (Initially hidden, preserving visibility state)
         this.descriptionViewer = new MultiLineEditBox(this.font, SIDEBAR_WIDTH + 10, TOP_BAR_HEIGHT + 10, editorWidth, editorHeight, Component.literal(""), Component.translatable("algocraft.gui.description"));
-        this.descriptionViewer.visible = false;
+        this.descriptionViewer.visible = this.showingDescription;
+        this.codeEditor.visible = !this.showingDescription;
         this.addRenderableWidget(this.descriptionViewer);
 
-        // Load Problems
+        // Load Problems and restore state if available
         List<Problem> problems = ProblemManager.getProblems();
-        if (!problems.isEmpty()) {
-            selectProblem(problems.get(0));
+        Problem problemToSelect = null;
+        
+        // Try to restore previously selected problem
+        if (this.preservedProblemId != null) {
+            for (Problem p : problems) {
+                if (p.getId().equals(this.preservedProblemId)) {
+                    problemToSelect = p;
+                    break;
+                }
+            }
+        }
+        
+        // Fall back to first problem if no preserved state
+        if (problemToSelect == null && !problems.isEmpty()) {
+            problemToSelect = problems.get(0);
+        }
+        
+        if (problemToSelect != null) {
+            // Don't reset timer if restoring the same problem
+            boolean sameAsPreserved = this.preservedProblemId != null && problemToSelect.getId().equals(this.preservedProblemId);
+            if (sameAsPreserved) {
+                this.currentProblem = problemToSelect;
+                this.descriptionViewer.setValue(problemToSelect.getDescription());
+                // Restore preserved code instead of resetting to initial code
+                if (this.preservedCode != null) {
+                    this.codeEditor.setValue(this.preservedCode);
+                } else {
+                    this.codeEditor.setValue(problemToSelect.getInitialCode());
+                }
+            } else {
+                selectProblem(problemToSelect);
+            }
         }
 
         // Calculate responsive button layout
@@ -111,22 +166,43 @@ public class ModernAlgorithmScreen extends Screen {
             this.onClose();
         }).bounds(this.width - 25, buttonY, 20, buttonHeight).build());
         
-        // Search Box
+        // Search Box - restore preserved search text
         this.searchBox = new net.minecraft.client.gui.components.EditBox(this.font, 10, 10, SIDEBAR_WIDTH - 20, 20, Component.translatable("algocraft.gui.search"));
-        this.searchBox.setResponder(this::updateProblemList);
+        // Set responder BEFORE setting value to avoid premature triggers
         this.addRenderableWidget(this.searchBox);
 
-        // Repository Selector
+        // Repository Selector - restore preserved repository
         List<ProblemRepository> repos = ProblemManager.getRepositories();
+        ProblemRepository initialRepo = repos.get(0);
+        if (this.preservedRepositoryName != null) {
+            for (ProblemRepository repo : repos) {
+                if (repo.getName().equals(this.preservedRepositoryName)) {
+                    initialRepo = repo;
+                    break;
+                }
+            }
+        }
+        final ProblemRepository finalInitialRepo = initialRepo;
         this.repositorySelector = CycleButton.builder((ProblemRepository repo) -> Component.literal(repo.getName()))
             .withValues(repos)
-            .withInitialValue(repos.get(0))
+            .withInitialValue(finalInitialRepo)
             .create(10, 35, SIDEBAR_WIDTH - 20, 20, Component.empty(), (btn, val) -> {
                 this.currentRepository = val;
                 this.updateProblemList(this.searchBox.getValue());
             });
         this.addRenderableWidget(this.repositorySelector);
         this.currentRepository = this.repositorySelector.getValue();
+        
+        // Now set the responder and value after repository is set
+        if (this.preservedSearchText != null) {
+            this.searchBox.setValue(this.preservedSearchText);
+        }
+        this.searchBox.setResponder(this::updateProblemList);
+        
+        // Restore console text if available
+        if (this.preservedConsoleText != null) {
+            this.consoleText = this.preservedConsoleText;
+        }
 
         // Import Button
         this.addRenderableWidget(Button.builder(Component.translatable("algocraft.gui.import"), button -> {
@@ -138,7 +214,8 @@ public class ModernAlgorithmScreen extends Screen {
         this.problemList = new ProblemSelectionList(this.minecraft, SIDEBAR_WIDTH, problemListHeight, 85, 30);
         this.addRenderableWidget(this.problemList);
         
-        updateProblemList("");
+        // Use preserved search text if available, otherwise use current searchBox value
+        updateProblemList(this.searchBox.getValue());
     }
 
     private void updateProblemList(String filter) {

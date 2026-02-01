@@ -14,7 +14,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public class ModItems {
     
     public static final DeferredRegister<Item> ITEMS = 
-        DeferredRegister.create(Registries.ITEM, AlgoCraft.MOD_ID);
+        DeferredRegister.create(Registries.ITEM, AlgoCraft.MODID);
     
     // Trophy items for different achievement rarities
     public static final DeferredHolder<Item, TrophyItem> BRONZE_TROPHY = ITEMS.register(

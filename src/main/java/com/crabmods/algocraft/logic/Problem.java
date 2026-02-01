@@ -2,6 +2,7 @@ package com.crabmods.algocraft.logic;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -69,6 +70,13 @@ public class Problem {
     }
     
     /**
+     * Set the problem title.
+     */
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    
+    /**
      * Get the problem title in specified language, with fallback to English.
      * Translations are loaded from separate files in lang/{language}/p{id}.json
      * @param lang Language code (e.g., "zh_cn", "ja_jp")
@@ -82,6 +90,13 @@ public class Problem {
      */
     public String getDescription() {
         return description != null ? description : "";
+    }
+    
+    /**
+     * Set the problem description.
+     */
+    public void setDescription(String description) {
+        this.description = description;
     }
     
     /**
@@ -102,10 +117,24 @@ public class Problem {
     }
     
     /**
+     * Set the difficulty level.
+     */
+    public void setDifficulty(String difficulty) {
+        this.difficulty = difficulty;
+    }
+    
+    /**
      * Get the initial code template, never null.
      */
     public String getInitialCode() {
         return initialCode != null ? initialCode : "class Solution {\n    // Write your code here\n}";
+    }
+    
+    /**
+     * Set the initial code template.
+     */
+    public void setInitialCode(String initialCode) {
+        this.initialCode = initialCode;
     }
     
     /**
@@ -123,10 +152,24 @@ public class Problem {
     }
     
     /**
+     * Set examples list.
+     */
+    public void setExamples(List<TestCase> examples) {
+        this.examples = examples;
+    }
+    
+    /**
      * Get hidden tests as an unmodifiable list.
      */
     public List<TestCase> getTests() {
         return tests != null ? Collections.unmodifiableList(tests) : Collections.emptyList();
+    }
+    
+    /**
+     * Set tests list.
+     */
+    public void setTests(List<TestCase> tests) {
+        this.tests = tests;
     }
     
     /**
@@ -190,10 +233,24 @@ public class Problem {
         }
         
         /**
+         * Set input.
+         */
+        public void setInput(String input) {
+            this.input = input;
+        }
+        
+        /**
          * Get expected output, never null.
          */
         public String getOutput() {
             return output != null ? output : "";
+        }
+        
+        /**
+         * Set expected output.
+         */
+        public void setOutput(String output) {
+            this.output = output;
         }
         
         /**

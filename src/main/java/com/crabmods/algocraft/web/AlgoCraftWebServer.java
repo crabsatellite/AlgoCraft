@@ -171,16 +171,16 @@ public class AlgoCraftWebServer {
                 String code = body.get("code").getAsString();
                 String problemId = body.get("problemId").getAsString();
                 
-                Problem problem = ProblemManager.getProblems().stream().filter(p -> p.id.equals(problemId)).findFirst().orElse(null);
+                Problem problem = ProblemManager.getProblems().stream().filter(p -> p.getId().equals(problemId)).findFirst().orElse(null);
                 if (problem == null) {
                     sendResponse(exchange, "{\"error\": \"Problem not found\"}");
                     return;
                 }
 
                 StringBuilder sb = new StringBuilder();
-                for (Problem.TestCase test : problem.examples) {
-                    String res = CodeExecutor.execute(code, test.input, test.output);
-                    sb.append("Input: ").append(test.input).append("\n");
+                for (Problem.TestCase test : problem.getExamples()) {
+                    String res = CodeExecutor.execute(code, test.getInput(), test.getOutput());
+                    sb.append("Input: ").append(test.getInput()).append("\n");
                     sb.append("Result: ").append(res).append("\n\n");
                 }
                 
@@ -281,7 +281,7 @@ public class AlgoCraftWebServer {
                 String code = body.get("code").getAsString();
                 String problemId = body.get("problemId").getAsString();
 
-                Problem problem = ProblemManager.getProblems().stream().filter(p -> p.id.equals(problemId)).findFirst().orElse(null);
+                Problem problem = ProblemManager.getProblems().stream().filter(p -> p.getId().equals(problemId)).findFirst().orElse(null);
                 if (problem == null) {
                     sendResponse(exchange, "{\"error\": \"Problem not found\"}");
                     return;
@@ -292,18 +292,18 @@ public class AlgoCraftWebServer {
                 // Save submission record
                 SubmissionHistoryManager.saveRecord(new SubmissionRecord(
                     System.currentTimeMillis(),
-                    problem.id,
-                    problem.title,
-                    result.isSuccess ? "Accepted" : (result.message != null ? result.message : "Wrong Answer"),
-                    result.executionTimeMs,
-                    result.passedCount,
-                    result.totalCount
+                    problem.getId(),
+                    problem.getTitle(),
+                    result.isSuccess() ? "Accepted" : (result.getMessage() != null ? result.getMessage() : "Wrong Answer"),
+                    result.getExecutionTimeMs(),
+                    result.getPassedCount(),
+                    result.getTotalCount()
                 ));
 
                 // If success, we need to notify the server game thread
-                if (result.isSuccess) {
+                if (result.isSuccess()) {
                     Minecraft.getInstance().execute(() -> {
-                        PacketDistributor.sendToServer(new PacketSolveProblem(problem.id, problem.difficulty));
+                        PacketDistributor.sendToServer(new PacketSolveProblem(problem.getId(), problem.getDifficulty()));
                     });
                 }
 

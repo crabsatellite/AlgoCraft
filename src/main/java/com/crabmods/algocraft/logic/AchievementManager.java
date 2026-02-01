@@ -240,9 +240,7 @@ public class AchievementManager {
         }
         
         // Perfectionist - 10 consecutive correct
-        if (consecutiveCorrect >= 10 && !earned.contains(AchievementRegistry.PERFECTIONIST)
-        // Perfectionist - 10 consecutive correct
-        if (consecutiveCorrect >= 10) {
+        if (consecutiveCorrect >= 10 && !earned.contains(AchievementRegistry.PERFECTIONIST)) {
             awardAchievement(player, AchievementRegistry.PERFECTIONIST);
         }
     }

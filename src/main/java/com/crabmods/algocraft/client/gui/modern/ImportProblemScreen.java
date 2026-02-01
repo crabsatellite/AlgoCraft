@@ -29,33 +29,37 @@ public class ImportProblemScreen extends Screen {
     protected void init() {
         int centerX = this.width / 2;
         int centerY = this.height / 2;
+        
+        // Responsive width - ensure elements fit on narrow screens
+        int elementWidth = Math.min(200, this.width - 40);
+        int halfWidth = elementWidth / 2;
 
         // Type Button
         this.typeButton = Button.builder(getTypeText(), button -> {
             importType = (importType + 1) % 2;
             button.setMessage(getTypeText());
             updateVisibility();
-        }).bounds(centerX - 100, centerY - 60, 200, 20).build();
+        }).bounds(centerX - halfWidth, centerY - 60, elementWidth, 20).build();
         this.addRenderableWidget(this.typeButton);
 
         // Name Field (for Repository Name)
-        this.nameField = new EditBox(this.font, centerX - 100, centerY - 30, 200, 20, Component.translatable("algocraft.gui.import.name"));
+        this.nameField = new EditBox(this.font, centerX - halfWidth, centerY - 30, elementWidth, 20, Component.translatable("algocraft.gui.import.name"));
         this.nameField.setHint(Component.translatable("algocraft.gui.import.name_hint"));
         this.addRenderableWidget(this.nameField);
 
         // Input Field (URL or Path)
-        this.inputField = new EditBox(this.font, centerX - 100, centerY, 200, 20, Component.translatable("algocraft.gui.import.input"));
+        this.inputField = new EditBox(this.font, centerX - halfWidth, centerY, elementWidth, 20, Component.translatable("algocraft.gui.import.input"));
         this.addRenderableWidget(this.inputField);
 
         // Import Button
         this.addRenderableWidget(Button.builder(Component.translatable("algocraft.gui.import.do_import"), button -> {
             doImport();
-        }).bounds(centerX - 100, centerY + 30, 200, 20).build());
+        }).bounds(centerX - halfWidth, centerY + 30, elementWidth, 20).build());
 
         // Back Button
         this.addRenderableWidget(Button.builder(Component.translatable("algocraft.gui.import.back"), button -> {
             this.onClose();
-        }).bounds(centerX - 100, centerY + 60, 200, 20).build());
+        }).bounds(centerX - halfWidth, centerY + 60, elementWidth, 20).build());
         
         updateVisibility();
     }

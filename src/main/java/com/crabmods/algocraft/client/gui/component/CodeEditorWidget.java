@@ -27,6 +27,13 @@ public class CodeEditorWidget extends AbstractWidget {
     private int visibleLines;
     private Consumer<String> onValueChanged;
     
+    // Selection support
+    private int selectionStartLine = -1;
+    private int selectionStartCol = -1;
+    private int selectionEndLine = -1;
+    private int selectionEndCol = -1;
+    private boolean hasSelection = false;
+    
     private static final int LINE_HEIGHT = 10;
     private static final int LINE_NUMBER_WIDTH = 25;
     private static final int BACKGROUND_COLOR = 0xFF1E1E1E;
@@ -37,6 +44,7 @@ public class CodeEditorWidget extends AbstractWidget {
     private static final int NUMBER_COLOR = 0xFFB5CEA8;  // Light Green
     private static final int STRING_COLOR = 0xFFCE9178;  // Orange
     private static final int COMMENT_COLOR = 0xFF6A9955; // Green
+    private static final int SELECTION_COLOR = 0xFF264F78; // Selection background
     
     private static final String[] KEYWORDS = {
         "public", "private", "protected", "class", "interface", "enum", "extends", "implements",
@@ -97,6 +105,11 @@ public class CodeEditorWidget extends AbstractWidget {
             String lineNumStr = String.valueOf(i + 1);
             guiGraphics.drawString(font, lineNumStr, getX() + LINE_NUMBER_WIDTH - 4 - font.width(lineNumStr), y, LINE_NUMBER_COLOR, false);
 
+            // Draw selection background
+            if (hasSelection) {
+                renderSelectionBackground(guiGraphics, i, line, getX() + LINE_NUMBER_WIDTH + 4 - scrollX, y);
+            }
+
             // Simple Syntax Highlighting
             renderHighlightedLine(guiGraphics, line, getX() + LINE_NUMBER_WIDTH + 4 - scrollX, y);
         }
@@ -122,6 +135,45 @@ public class CodeEditorWidget extends AbstractWidget {
         }
         
         guiGraphics.disableScissor();
+    }
+    
+    private void renderSelectionBackground(GuiGraphics guiGraphics, int lineIndex, String line, int x, int y) {
+        if (!hasSelection) return;
+        
+        int startLine = Math.min(selectionStartLine, selectionEndLine);
+        int endLine = Math.max(selectionStartLine, selectionEndLine);
+        int startCol, endCol;
+        
+        if (selectionStartLine < selectionEndLine || 
+            (selectionStartLine == selectionEndLine && selectionStartCol <= selectionEndCol)) {
+            startCol = selectionStartCol;
+            endCol = selectionEndCol;
+        } else {
+            startCol = selectionEndCol;
+            endCol = selectionStartCol;
+        }
+        
+        if (lineIndex < startLine || lineIndex > endLine) return;
+        
+        int selStart = 0;
+        int selEnd = line.length();
+        
+        if (lineIndex == startLine) {
+            selStart = Math.min(startCol, line.length());
+        }
+        if (lineIndex == endLine) {
+            selEnd = Math.min(endCol, line.length());
+        }
+        
+        if (selStart < selEnd) {
+            int xStart = x + font.width(line.substring(0, selStart));
+            int xEnd = x + font.width(line.substring(0, selEnd));
+            guiGraphics.fill(xStart, y - 1, xEnd, y + LINE_HEIGHT - 1, SELECTION_COLOR);
+        } else if (lineIndex > startLine && lineIndex < endLine) {
+            // Full line selection for middle lines
+            int lineWidth = Math.max(font.width(line), 5);
+            guiGraphics.fill(x, y - 1, x + lineWidth, y + LINE_HEIGHT - 1, SELECTION_COLOR);
+        }
     }
     
     private void renderHighlightedLine(GuiGraphics guiGraphics, String line, int x, int y) {
@@ -223,6 +275,11 @@ public class CodeEditorWidget extends AbstractWidget {
     public boolean charTyped(char codePoint, int modifiers) {
         if (!isFocused()) return false;
         
+        // Delete selection first if any
+        if (hasSelection) {
+            deleteSelection();
+        }
+        
         String line = lines.get(cursorLine);
         String newLine = line.substring(0, cursorCol) + codePoint + line.substring(cursorCol);
         lines.set(cursorLine, newLine);
@@ -234,27 +291,97 @@ public class CodeEditorWidget extends AbstractWidget {
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (!isFocused()) return false;
+        
+        boolean shiftDown = Screen.hasShiftDown();
+        boolean ctrlDown = Screen.hasControlDown();
 
         if (Screen.isSelectAll(keyCode)) {
-            // Select all (not implemented fully, just ignore)
+            selectAll();
             return true;
         }
         
-        if (Screen.isCopy(keyCode) || Screen.isPaste(keyCode) || Screen.isCut(keyCode)) {
-            // Clipboard (simplified: paste at cursor)
-            if (Screen.isPaste(keyCode)) {
-                String clipboard = Minecraft.getInstance().keyboardHandler.getClipboard();
-                if (clipboard != null) {
-                    insertText(clipboard);
-                }
-                return true;
+        if (Screen.isCopy(keyCode)) {
+            copySelection();
+            return true;
+        }
+        
+        if (Screen.isCut(keyCode)) {
+            cutSelection();
+            return true;
+        }
+        
+        if (Screen.isPaste(keyCode)) {
+            deleteSelection();
+            String clipboard = Minecraft.getInstance().keyboardHandler.getClipboard();
+            if (clipboard != null) {
+                insertText(clipboard);
             }
-            return false;
+            return true;
         }
 
         switch (keyCode) {
+            case GLFW.GLFW_KEY_DELETE:
+                if (hasSelection) {
+                    deleteSelection();
+                } else if (cursorCol < lines.get(cursorLine).length()) {
+                    String line = lines.get(cursorLine);
+                    lines.set(cursorLine, line.substring(0, cursorCol) + line.substring(cursorCol + 1));
+                } else if (cursorLine < lines.size() - 1) {
+                    String currentLine = lines.get(cursorLine);
+                    String nextLine = lines.get(cursorLine + 1);
+                    lines.set(cursorLine, currentLine + nextLine);
+                    lines.remove(cursorLine + 1);
+                }
+                notifyChange();
+                return true;
+            case GLFW.GLFW_KEY_HOME:
+                if (shiftDown) {
+                    startOrExtendSelection();
+                } else {
+                    clearSelection();
+                }
+                if (ctrlDown) {
+                    cursorLine = 0;
+                    cursorCol = 0;
+                } else {
+                    cursorCol = 0;
+                }
+                if (shiftDown) updateSelectionEnd();
+                notifyChange();
+                return true;
+            case GLFW.GLFW_KEY_END:
+                if (shiftDown) {
+                    startOrExtendSelection();
+                } else {
+                    clearSelection();
+                }
+                if (ctrlDown) {
+                    cursorLine = lines.size() - 1;
+                    cursorCol = lines.get(cursorLine).length();
+                } else {
+                    cursorCol = lines.get(cursorLine).length();
+                }
+                if (shiftDown) updateSelectionEnd();
+                notifyChange();
+                return true;
+            case GLFW.GLFW_KEY_PAGE_UP:
+                if (shiftDown) startOrExtendSelection(); else clearSelection();
+                cursorLine = Math.max(0, cursorLine - visibleLines);
+                cursorCol = Math.min(cursorCol, lines.get(cursorLine).length());
+                if (shiftDown) updateSelectionEnd();
+                notifyChange();
+                return true;
+            case GLFW.GLFW_KEY_PAGE_DOWN:
+                if (shiftDown) startOrExtendSelection(); else clearSelection();
+                cursorLine = Math.min(lines.size() - 1, cursorLine + visibleLines);
+                cursorCol = Math.min(cursorCol, lines.get(cursorLine).length());
+                if (shiftDown) updateSelectionEnd();
+                notifyChange();
+                return true;
             case GLFW.GLFW_KEY_BACKSPACE:
-                if (cursorCol > 0) {
+                if (hasSelection) {
+                    deleteSelection();
+                } else if (cursorCol > 0) {
                     String line = lines.get(cursorLine);
                     lines.set(cursorLine, line.substring(0, cursorCol - 1) + line.substring(cursorCol));
                     cursorCol--;
@@ -288,30 +415,38 @@ public class CodeEditorWidget extends AbstractWidget {
                 notifyChange();
                 return true;
             case GLFW.GLFW_KEY_LEFT:
+                if (shiftDown) startOrExtendSelection(); else clearSelection();
                 if (cursorCol > 0) cursorCol--;
                 else if (cursorLine > 0) {
                     cursorLine--;
                     cursorCol = lines.get(cursorLine).length();
                 }
+                if (shiftDown) updateSelectionEnd();
                 return true;
             case GLFW.GLFW_KEY_RIGHT:
+                if (shiftDown) startOrExtendSelection(); else clearSelection();
                 if (cursorCol < lines.get(cursorLine).length()) cursorCol++;
                 else if (cursorLine < lines.size() - 1) {
                     cursorLine++;
                     cursorCol = 0;
                 }
+                if (shiftDown) updateSelectionEnd();
                 return true;
             case GLFW.GLFW_KEY_UP:
+                if (shiftDown) startOrExtendSelection(); else clearSelection();
                 if (cursorLine > 0) {
                     cursorLine--;
                     cursorCol = Math.min(cursorCol, lines.get(cursorLine).length());
                 }
+                if (shiftDown) updateSelectionEnd();
                 return true;
             case GLFW.GLFW_KEY_DOWN:
+                if (shiftDown) startOrExtendSelection(); else clearSelection();
                 if (cursorLine < lines.size() - 1) {
                     cursorLine++;
                     cursorCol = Math.min(cursorCol, lines.get(cursorLine).length());
                 }
+                if (shiftDown) updateSelectionEnd();
                 return true;
             case GLFW.GLFW_KEY_TAB:
                 insertText("    ");
@@ -350,6 +485,129 @@ public class CodeEditorWidget extends AbstractWidget {
         if (cursorLine < scrollY) scrollY = cursorLine;
         if (cursorLine >= scrollY + visibleLines) scrollY = cursorLine - visibleLines + 1;
     }
+    
+    // Selection helper methods
+    private void clearSelection() {
+        hasSelection = false;
+        selectionStartLine = -1;
+        selectionStartCol = -1;
+        selectionEndLine = -1;
+        selectionEndCol = -1;
+    }
+    
+    private void startOrExtendSelection() {
+        if (!hasSelection) {
+            selectionStartLine = cursorLine;
+            selectionStartCol = cursorCol;
+            selectionEndLine = cursorLine;
+            selectionEndCol = cursorCol;
+            hasSelection = true;
+        }
+    }
+    
+    private void updateSelectionEnd() {
+        selectionEndLine = cursorLine;
+        selectionEndCol = cursorCol;
+    }
+    
+    private void selectAll() {
+        selectionStartLine = 0;
+        selectionStartCol = 0;
+        selectionEndLine = lines.size() - 1;
+        selectionEndCol = lines.get(lines.size() - 1).length();
+        cursorLine = selectionEndLine;
+        cursorCol = selectionEndCol;
+        hasSelection = true;
+    }
+    
+    private String getSelectedText() {
+        if (!hasSelection) return "";
+        
+        int startLine = selectionStartLine;
+        int startCol = selectionStartCol;
+        int endLine = selectionEndLine;
+        int endCol = selectionEndCol;
+        
+        // Normalize selection direction
+        if (startLine > endLine || (startLine == endLine && startCol > endCol)) {
+            int tempLine = startLine; startLine = endLine; endLine = tempLine;
+            int tempCol = startCol; startCol = endCol; endCol = tempCol;
+        }
+        
+        if (startLine == endLine) {
+            String line = lines.get(startLine);
+            return line.substring(Math.min(startCol, line.length()), Math.min(endCol, line.length()));
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        // First line
+        String firstLine = lines.get(startLine);
+        sb.append(firstLine.substring(Math.min(startCol, firstLine.length())));
+        
+        // Middle lines
+        for (int i = startLine + 1; i < endLine; i++) {
+            sb.append("\n").append(lines.get(i));
+        }
+        
+        // Last line
+        String lastLine = lines.get(endLine);
+        sb.append("\n").append(lastLine.substring(0, Math.min(endCol, lastLine.length())));
+        
+        return sb.toString();
+    }
+    
+    private void copySelection() {
+        if (hasSelection) {
+            String text = getSelectedText();
+            if (!text.isEmpty()) {
+                Minecraft.getInstance().keyboardHandler.setClipboard(text);
+            }
+        }
+    }
+    
+    private void cutSelection() {
+        if (hasSelection) {
+            copySelection();
+            deleteSelection();
+        }
+    }
+    
+    private void deleteSelection() {
+        if (!hasSelection) return;
+        
+        int startLine = selectionStartLine;
+        int startCol = selectionStartCol;
+        int endLine = selectionEndLine;
+        int endCol = selectionEndCol;
+        
+        // Normalize selection direction
+        if (startLine > endLine || (startLine == endLine && startCol > endCol)) {
+            int tempLine = startLine; startLine = endLine; endLine = tempLine;
+            int tempCol = startCol; startCol = endCol; endCol = tempCol;
+        }
+        
+        if (startLine == endLine) {
+            String line = lines.get(startLine);
+            startCol = Math.min(startCol, line.length());
+            endCol = Math.min(endCol, line.length());
+            lines.set(startLine, line.substring(0, startCol) + line.substring(endCol));
+        } else {
+            String firstLine = lines.get(startLine);
+            String lastLine = lines.get(endLine);
+            startCol = Math.min(startCol, firstLine.length());
+            endCol = Math.min(endCol, lastLine.length());
+            
+            lines.set(startLine, firstLine.substring(0, startCol) + lastLine.substring(endCol));
+            for (int i = endLine; i > startLine; i--) {
+                lines.remove(i);
+            }
+        }
+        
+        cursorLine = startLine;
+        cursorCol = startCol;
+        clearSelection();
+        notifyChange();
+    }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
@@ -373,14 +631,15 @@ public class CodeEditorWidget extends AbstractWidget {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (isMouseOver(mouseX, mouseY)) {
             setFocused(true);
-            // Calculate cursor position from mouse
+            clearSelection();
+            // Calculate cursor position from mouse (fixed: account for LINE_NUMBER_WIDTH)
             int relY = (int) (mouseY - getY() - 2);
             int lineIndex = scrollY + relY / LINE_HEIGHT;
             
             if (lineIndex >= 0 && lineIndex < lines.size()) {
                 cursorLine = lineIndex;
                 String line = lines.get(lineIndex);
-                int relX = (int) (mouseX - getX() - 4 + scrollX);
+                int relX = (int) (mouseX - getX() - LINE_NUMBER_WIDTH - 4 + scrollX);
                 
                 // Estimate column (simple)
                 int col = 0;
@@ -391,7 +650,7 @@ public class CodeEditorWidget extends AbstractWidget {
                     w += charW;
                     col++;
                 }
-                cursorCol = col;
+                cursorCol = Math.max(0, col);
             }
             return true;
         } else {

@@ -1,5 +1,9 @@
 package com.crabmods.algocraft;
 
+import com.crabmods.algocraft.logic.CodeExecutor;
+import com.crabmods.algocraft.logic.ModItems;
+import com.crabmods.algocraft.logic.ProgressManager;
+import com.crabmods.algocraft.logic.repo.OfficialRepositorySync;
 import com.crabmods.algocraft.network.NetworkHandler;
 import com.crabmods.algocraft.server.SolvingPlayerManager;
 import com.mojang.logging.LogUtils;
@@ -50,6 +54,12 @@ public class AlgoCraft
             .icon(() -> ALGORITHM_COMPUTER_BLOCK_ITEM.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
                 output.accept(ALGORITHM_COMPUTER_BLOCK_ITEM.get());
+                // Trophy items
+                output.accept(ModItems.BRONZE_TROPHY.get());
+                output.accept(ModItems.SILVER_TROPHY.get());
+                output.accept(ModItems.GOLD_TROPHY.get());
+                output.accept(ModItems.DIAMOND_TROPHY.get());
+                output.accept(ModItems.NETHERITE_TROPHY.get());
             }).build());
 
     public AlgoCraft(IEventBus modEventBus, ModContainer modContainer)
@@ -61,6 +71,7 @@ public class AlgoCraft
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         CREATIVE_MODE_TABS.register(modEventBus);
+        ModItems.register(modEventBus);
 
         NeoForge.EVENT_BUS.register(this);
         NeoForge.EVENT_BUS.register(SolvingPlayerManager.class);
@@ -89,7 +100,19 @@ public class AlgoCraft
     
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) {
+        LOGGER.info("AlgoCraft server stopping - cleaning up resources...");
+        
+        // Stop web server
         AlgoCraftWebServer.stop();
+        
+        // Shutdown executor services
+        CodeExecutor.shutdown();
+        OfficialRepositorySync.shutdown();
+        
+        // Force save any pending progress
+        ProgressManager.saveProgressImmediate();
+        
+        LOGGER.info("AlgoCraft cleanup complete");
     }
 
     // @EventBusSubscriber(modid = MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)

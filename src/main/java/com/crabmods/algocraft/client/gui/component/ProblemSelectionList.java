@@ -47,19 +47,19 @@ public class ProblemSelectionList extends ObjectSelectionList<ProblemSelectionLi
 
         @Override
         public Component getNarration() {
-            return Component.literal(problem.title);
+            return Component.literal(problem.getTitle());
         }
 
         @Override
         public void render(GuiGraphics guiGraphics, int index, int top, int left, int width, int height, int mouseX, int mouseY, boolean hovering, float partialTick) {
             int color = 0xFFFFFF;
-            boolean passed = ProgressManager.isPassed(problem.id);
+            boolean passed = ProgressManager.isPassed(problem.getId());
             if (passed) {
                 color = 0x55FF55;
             }
             
             // Title (Top)
-            String title = problem.title;
+            String title = problem.getTitle();
             int titleWidth = Minecraft.getInstance().font.width(title);
             int maxTitleWidth = width - 20; // Reserve space for checkmark
             
@@ -102,7 +102,7 @@ public class ProblemSelectionList extends ObjectSelectionList<ProblemSelectionLi
             }
             
             // Difficulty (Bottom)
-            String diff = problem.difficulty != null ? problem.difficulty : "MEDIUM";
+            String diff = problem.getDifficulty();
             int diffColor = 0xAAAAAA;
             if ("EASY".equalsIgnoreCase(diff)) diffColor = 0x55FF55;
             else if ("HARD".equalsIgnoreCase(diff)) diffColor = 0xFF5555;

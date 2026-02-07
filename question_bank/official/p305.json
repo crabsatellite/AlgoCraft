@@ -19,6 +19,16 @@
       "output": "[6,9,12]"
     }
   ],
+  "solutions": [
+    {
+      "name": "Sliding Window with HashMap",
+      "timeComplexity": "O(n * w)",
+      "spaceComplexity": "O(k * w)",
+      "description": "For each of the wordLen starting offsets, use a sliding window of size totalLen. Maintain a word frequency map and slide one word at a time, adding/removing words from the window.",
+      "code": "class Solution {\n    public List<Integer> findSubstring(String s, String[] words) {\n        List<Integer> result = new java.util.ArrayList<>();\n        if (s.length() == 0 || words.length == 0) return result;\n        int wordLen = words[0].length(), wordCount = words.length;\n        int totalLen = wordLen * wordCount;\n        java.util.Map<String, Integer> target = new java.util.HashMap<>();\n        for (String w : words) target.merge(w, 1, Integer::sum);\n        for (int i = 0; i < wordLen; i++) {\n            java.util.Map<String, Integer> window = new java.util.HashMap<>();\n            int count = 0;\n            for (int j = i; j + wordLen <= s.length(); j += wordLen) {\n                String word = s.substring(j, j + wordLen);\n                window.merge(word, 1, Integer::sum);\n                count++;\n                if (count > wordCount) {\n                    String remove = s.substring(j - totalLen, j - totalLen + wordLen);\n                    if (window.merge(remove, -1, Integer::sum) == 0) window.remove(remove);\n                    count--;\n                }\n                if (count == wordCount && window.equals(target)) {\n                    result.add(j - totalLen + wordLen);\n                }\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "s = \"barfoothefoobarman\", words = [\"foo\",\"bar\"]",

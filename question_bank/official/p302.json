@@ -10,6 +10,16 @@
     { "input": "s = \"aa\", p = \"a*\"", "output": "true" },
     { "input": "s = \"ab\", p = \".*\"", "output": "true" }
   ],
+  "solutions": [
+    {
+      "name": "Dynamic Programming",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "Use a 2D DP table where dp[i][j] = true if s[0..i-1] matches p[0..j-1]. Handle '.' as single char match and '*' as zero or more of preceding element.",
+      "code": "class Solution {\n    public boolean isMatch(String s, String p) {\n        int m = s.length(), n = p.length();\n        boolean[][] dp = new boolean[m + 1][n + 1];\n        dp[0][0] = true;\n        for (int j = 2; j <= n; j++) {\n            if (p.charAt(j - 1) == '*') dp[0][j] = dp[0][j - 2];\n        }\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                char sc = s.charAt(i - 1), pc = p.charAt(j - 1);\n                if (pc == '.' || pc == sc) {\n                    dp[i][j] = dp[i - 1][j - 1];\n                } else if (pc == '*') {\n                    dp[i][j] = dp[i][j - 2];\n                    char prev = p.charAt(j - 2);\n                    if (prev == '.' || prev == sc) {\n                        dp[i][j] = dp[i][j] || dp[i - 1][j];\n                    }\n                }\n            }\n        }\n        return dp[m][n];\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "s = \"aa\", p = \"a\"", "output": "false" },
     { "input": "s = \"aa\", p = \"a*\"", "output": "true" },

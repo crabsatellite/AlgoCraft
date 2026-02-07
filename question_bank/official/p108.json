@@ -31,5 +31,23 @@
       "input": "points = [[1,1],[2,2],[3,3]], k = 3",
       "output": "[[1,1],[2,2],[3,3]]"
     }
+  ],
+  "solutions": [
+    {
+      "name": "Max Heap of Size k",
+      "timeComplexity": "O(n log k)",
+      "spaceComplexity": "O(k)",
+      "description": "Use a max-heap of size k (by distance). Keep only the k smallest-distance points. At the end, the heap contains the k closest.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[][] kClosest(int[][] points, int k) {\n        // Max heap by distance\n        PriorityQueue<int[]> maxHeap = new PriorityQueue<>(\n            (a, b) -> (b[0]*b[0] + b[1]*b[1]) - (a[0]*a[0] + a[1]*a[1])\n        );\n        \n        for (int[] p : points) {\n            maxHeap.offer(p);\n            if (maxHeap.size() > k) maxHeap.poll();\n        }\n        \n        int[][] result = new int[k][2];\n        for (int i = 0; i < k; i++) {\n            result[i] = maxHeap.poll();\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sort by Distance",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(1)",
+      "description": "Sort the array by Euclidean distance squared, then return the first k elements.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[][] kClosest(int[][] points, int k) {\n        Arrays.sort(points, (a, b) -> \n            (a[0]*a[0] + a[1]*a[1]) - (b[0]*b[0] + b[1]*b[1])\n        );\n        return Arrays.copyOf(points, k);\n    }\n}",
+      "language": "java"
+    }
   ]
 }

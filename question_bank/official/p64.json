@@ -25,5 +25,23 @@
     },
     { "input": "nums = [1], k = 1", "output": "1", "note": "单元素" },
     { "input": "nums = [2,3,1,2,4,3], k = 3", "output": "6" }
+  ],
+  "solutions": [
+    {
+      "name": "Binary Search on Answer",
+      "timeComplexity": "O(n log S)",
+      "spaceComplexity": "O(1)",
+      "description": "Binary search on the largest subarray sum. The lower bound is max(nums), the upper bound is sum(nums). For each candidate max sum, greedily count how many subarrays are needed. This is the same pattern as 'Capacity To Ship Packages'.",
+      "code": "class Solution {\n    public int splitArray(int[] nums, int k) {\n        int left = 0, right = 0;\n        \n        for (int num : nums) {\n            left = Math.max(left, num);\n            right += num;\n        }\n        \n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            \n            if (canSplit(nums, k, mid)) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        \n        return left;\n    }\n    \n    private boolean canSplit(int[] nums, int k, int maxSum) {\n        int count = 1;\n        int currentSum = 0;\n        \n        for (int num : nums) {\n            if (currentSum + num > maxSum) {\n                count++;\n                currentSum = 0;\n            }\n            currentSum += num;\n        }\n        \n        return count <= k;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Dynamic Programming",
+      "timeComplexity": "O(n^2 * k)",
+      "spaceComplexity": "O(n * k)",
+      "description": "dp[i][j] = the minimized largest sum when splitting nums[0..i-1] into j subarrays. Use prefix sums to quickly compute subarray sums. Transition: dp[i][j] = min over all split points m of max(dp[m][j-1], sum(nums[m..i-1])).",
+      "code": "class Solution {\n    public int splitArray(int[] nums, int k) {\n        int n = nums.length;\n        int[] prefix = new int[n + 1];\n        \n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n        \n        int[][] dp = new int[n + 1][k + 1];\n        \n        for (int[] row : dp) {\n            Arrays.fill(row, Integer.MAX_VALUE);\n        }\n        dp[0][0] = 0;\n        \n        for (int i = 1; i <= n; i++) {\n            for (int j = 1; j <= Math.min(i, k); j++) {\n                for (int m = j - 1; m < i; m++) {\n                    int subarraySum = prefix[i] - prefix[m];\n                    dp[i][j] = Math.min(dp[i][j], Math.max(dp[m][j - 1], subarraySum));\n                }\n            }\n        }\n        \n        return dp[n][k];\n    }\n}",
+      "language": "java"
+    }
   ]
 }

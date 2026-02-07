@@ -54,5 +54,23 @@
       "file": "p67_example1_reordered.png",
       "caption": "Example 1 - After Reorder"
     }
+  ],
+  "solutions": [
+    {
+      "name": "Find Middle + Reverse + Merge",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Three steps: (1) Use slow/fast pointers to find the middle. (2) Reverse the second half. (3) Merge the two halves by alternating nodes.",
+      "code": "class Solution {\n    public void reorderList(ListNode head) {\n        if (head == null || head.next == null) return;\n        \n        // Step 1: Find middle\n        ListNode slow = head, fast = head;\n        while (fast.next != null && fast.next.next != null) {\n            slow = slow.next;\n            fast = fast.next.next;\n        }\n        \n        // Step 2: Reverse second half\n        ListNode second = slow.next;\n        slow.next = null;\n        ListNode prev = null;\n        while (second != null) {\n            ListNode next = second.next;\n            second.next = prev;\n            prev = second;\n            second = next;\n        }\n        second = prev;\n        \n        // Step 3: Merge two halves\n        ListNode first = head;\n        while (second != null) {\n            ListNode tmp1 = first.next;\n            ListNode tmp2 = second.next;\n            first.next = second;\n            second.next = tmp1;\n            first = tmp1;\n            second = tmp2;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Using Deque",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Store all nodes in a deque, then alternately take from front and back to rebuild the list.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public void reorderList(ListNode head) {\n        if (head == null) return;\n        \n        Deque<ListNode> deque = new ArrayDeque<>();\n        ListNode curr = head.next;\n        while (curr != null) {\n            deque.addLast(curr);\n            curr = curr.next;\n        }\n        \n        curr = head;\n        boolean fromBack = true;\n        while (!deque.isEmpty()) {\n            ListNode node = fromBack ? deque.pollLast() : deque.pollFirst();\n            curr.next = node;\n            curr = node;\n            fromBack = !fromBack;\n        }\n        curr.next = null;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

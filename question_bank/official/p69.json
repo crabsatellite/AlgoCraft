@@ -37,5 +37,23 @@
       "output": "[[5,null]]",
       "note": "单节点random为null"
     }
+  ],
+  "solutions": [
+    {
+      "name": "HashMap",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use a HashMap to map each original node to its copy. First pass: create all new nodes. Second pass: set next and random pointers using the map.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public Node copyRandomList(Node head) {\n        if (head == null) return null;\n        \n        Map<Node, Node> map = new HashMap<>();\n        \n        // First pass: create all nodes\n        Node curr = head;\n        while (curr != null) {\n            map.put(curr, new Node(curr.val));\n            curr = curr.next;\n        }\n        \n        // Second pass: set next and random pointers\n        curr = head;\n        while (curr != null) {\n            map.get(curr).next = map.get(curr.next);\n            map.get(curr).random = map.get(curr.random);\n            curr = curr.next;\n        }\n        \n        return map.get(head);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Interleave Nodes - O(1) Space",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Three passes without extra space: (1) Insert each copy node right after its original. (2) Set random pointers for copy nodes. (3) Separate the two interleaved lists.",
+      "code": "class Solution {\n    public Node copyRandomList(Node head) {\n        if (head == null) return null;\n        \n        // Step 1: Insert copy nodes A -> A' -> B -> B' -> ...\n        Node curr = head;\n        while (curr != null) {\n            Node copy = new Node(curr.val);\n            copy.next = curr.next;\n            curr.next = copy;\n            curr = copy.next;\n        }\n        \n        // Step 2: Set random pointers for copy nodes\n        curr = head;\n        while (curr != null) {\n            if (curr.random != null) {\n                curr.next.random = curr.random.next;\n            }\n            curr = curr.next.next;\n        }\n        \n        // Step 3: Separate the two lists\n        Node dummy = new Node(0);\n        Node copyTail = dummy;\n        curr = head;\n        while (curr != null) {\n            copyTail.next = curr.next;\n            copyTail = copyTail.next;\n            curr.next = curr.next.next;\n            curr = curr.next;\n        }\n        \n        return dummy.next;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

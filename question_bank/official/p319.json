@@ -25,6 +25,16 @@
       "output": "1"
     }
   ],
+  "solutions": [
+    {
+      "name": "Histogram per Row + Monotonic Stack",
+      "timeComplexity": "O(rows * cols)",
+      "spaceComplexity": "O(cols)",
+      "description": "Build histogram heights row by row. For each row, apply the largest rectangle in histogram algorithm using a monotonic stack.",
+      "code": "class Solution {\n    public int maximalRectangle(char[][] matrix) {\n        if (matrix.length == 0) return 0;\n        int cols = matrix[0].length;\n        int[] heights = new int[cols];\n        int maxArea = 0;\n        for (char[] row : matrix) {\n            for (int j = 0; j < cols; j++) {\n                heights[j] = row[j] == '1' ? heights[j] + 1 : 0;\n            }\n            maxArea = Math.max(maxArea, largestRectangle(heights));\n        }\n        return maxArea;\n    }\n    private int largestRectangle(int[] heights) {\n        java.util.Deque<Integer> stack = new java.util.ArrayDeque<>();\n        int max = 0, n = heights.length;\n        for (int i = 0; i <= n; i++) {\n            int h = (i == n) ? 0 : heights[i];\n            while (!stack.isEmpty() && h < heights[stack.peek()]) {\n                int height = heights[stack.pop()];\n                int width = stack.isEmpty() ? i : i - stack.peek() - 1;\n                max = Math.max(max, height * width);\n            }\n            stack.push(i);\n        }\n        return max;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "matrix = [[\"1\",\"0\",\"1\",\"0\",\"0\"],[\"1\",\"0\",\"1\",\"1\",\"1\"],[\"1\",\"1\",\"1\",\"1\",\"1\"],[\"1\",\"0\",\"0\",\"1\",\"0\"]]",

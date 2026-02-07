@@ -12,6 +12,16 @@
     },
     { "input": "n = 1", "output": "[[\"Q\"]]" }
   ],
+  "solutions": [
+    {
+      "name": "Backtracking",
+      "timeComplexity": "O(n!)",
+      "spaceComplexity": "O(n^2)",
+      "description": "Place queens row by row. Use boolean arrays for columns, main diagonals (row-col), and anti-diagonals (row+col) to check conflicts in O(1). Build board strings when a valid placement is found.",
+      "code": "class Solution {\n    public List<List<String>> solveNQueens(int n) {\n        List<List<String>> result = new java.util.ArrayList<>();\n        boolean[] cols = new boolean[n];\n        boolean[] d1 = new boolean[2 * n];\n        boolean[] d2 = new boolean[2 * n];\n        int[] queens = new int[n];\n        solve(0, n, cols, d1, d2, queens, result);\n        return result;\n    }\n    private void solve(int row, int n, boolean[] cols, boolean[] d1, boolean[] d2, int[] queens, List<List<String>> result) {\n        if (row == n) {\n            List<String> board = new java.util.ArrayList<>();\n            for (int q : queens) {\n                char[] r = new char[n];\n                java.util.Arrays.fill(r, '.');\n                r[q] = 'Q';\n                board.add(new String(r));\n            }\n            result.add(board);\n            return;\n        }\n        for (int col = 0; col < n; col++) {\n            if (!cols[col] && !d1[row - col + n] && !d2[row + col]) {\n                cols[col] = d1[row - col + n] = d2[row + col] = true;\n                queens[row] = col;\n                solve(row + 1, n, cols, d1, d2, queens, result);\n                cols[col] = d1[row - col + n] = d2[row + col] = false;\n            }\n        }\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "n = 4",

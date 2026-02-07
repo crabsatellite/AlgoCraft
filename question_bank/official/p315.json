@@ -15,6 +15,16 @@
       "output": "[\"What   must   be\",\"acknowledgment  \",\"shall be        \"]"
     }
   ],
+  "solutions": [
+    {
+      "name": "Greedy Line Packing",
+      "timeComplexity": "O(n * maxWidth)",
+      "spaceComplexity": "O(maxWidth)",
+      "description": "Greedily pack words into lines. For each line, calculate total spaces needed and distribute evenly with extra spaces on the left. Last line is left-justified.",
+      "code": "class Solution {\n    public List<String> fullJustify(String[] words, int maxWidth) {\n        List<String> result = new java.util.ArrayList<>();\n        int i = 0;\n        while (i < words.length) {\n            int j = i, lineLen = 0;\n            while (j < words.length && lineLen + words[j].length() + (j - i) <= maxWidth) {\n                lineLen += words[j].length();\n                j++;\n            }\n            int gaps = j - i - 1;\n            StringBuilder sb = new StringBuilder();\n            if (j == words.length || gaps == 0) {\n                for (int k = i; k < j; k++) {\n                    if (k > i) sb.append(' ');\n                    sb.append(words[k]);\n                }\n                while (sb.length() < maxWidth) sb.append(' ');\n            } else {\n                int spaces = maxWidth - lineLen;\n                int each = spaces / gaps, extra = spaces % gaps;\n                for (int k = i; k < j; k++) {\n                    if (k > i) {\n                        int sp = each + (k - i <= extra ? 1 : 0);\n                        for (int s = 0; s < sp; s++) sb.append(' ');\n                    }\n                    sb.append(words[k]);\n                }\n            }\n            result.add(sb.toString());\n            i = j;\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "words = [\"This\", \"is\", \"an\", \"example\", \"of\", \"text\", \"justification.\"], maxWidth = 16",

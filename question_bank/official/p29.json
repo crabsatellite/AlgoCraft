@@ -13,6 +13,39 @@
     { "input": "nums = [1,2,3,4,5,6,7], k = 3", "output": "[5,6,7,1,2,3,4]" },
     { "input": "nums = [-1,-100,3,99], k = 2", "output": "[3,99,-1,-100]" },
     { "input": "nums = [1], k = 0", "output": "[1]" },
-    { "input": "nums = [1,2], k = 3", "output": "[2,1]" }
+    { "input": "nums = [1,2], k = 3", "output": "[2,1]" },
+    {
+      "input": "nums = [1,2,3], k = 3",
+      "output": "[1,2,3]",
+      "description": "k equals length - no change"
+    },
+    {
+      "input": "nums = [1,2,3,4], k = 10",
+      "output": "[3,4,1,2]",
+      "description": "k > length (k=10 mod 4=2)"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Reverse Three Times - Optimal",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Reverse entire array, then reverse first k elements, then reverse remaining elements. This achieves rotation in-place with O(1) space.",
+      "code": "class Solution {\n    public void rotate(int[] nums, int k) {\n        int n = nums.length;\n        k = k % n; // Handle k > n\n        \n        if (k == 0) return;\n        \n        // Step 1: Reverse entire array\n        reverse(nums, 0, n - 1);\n        // Step 2: Reverse first k elements\n        reverse(nums, 0, k - 1);\n        // Step 3: Reverse remaining elements\n        reverse(nums, k, n - 1);\n    }\n    \n    private void reverse(int[] nums, int start, int end) {\n        while (start < end) {\n            int temp = nums[start];\n            nums[start] = nums[end];\n            nums[end] = temp;\n            start++;\n            end--;\n        }\n    }\n}"
+    },
+    {
+      "name": "Extra Array",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use extra array to store rotated result. Each element at index i moves to (i + k) % n.",
+      "code": "class Solution {\n    public void rotate(int[] nums, int k) {\n        int n = nums.length;\n        k = k % n;\n        \n        int[] rotated = new int[n];\n        \n        for (int i = 0; i < n; i++) {\n            rotated[(i + k) % n] = nums[i];\n        }\n        \n        // Copy back\n        System.arraycopy(rotated, 0, nums, 0, n);\n    }\n}"
+    },
+    {
+      "name": "Cyclic Replacements",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Move each element to its final position in a cycle. Track visited count and handle multiple cycles using GCD.",
+      "code": "class Solution {\n    public void rotate(int[] nums, int k) {\n        int n = nums.length;\n        k = k % n;\n        \n        if (k == 0) return;\n        \n        int count = 0; // Elements placed in correct position\n        \n        for (int start = 0; count < n; start++) {\n            int current = start;\n            int prev = nums[start];\n            \n            do {\n                int next = (current + k) % n;\n                int temp = nums[next];\n                nums[next] = prev;\n                prev = temp;\n                current = next;\n                count++;\n            } while (current != start);\n        }\n    }\n}"
+    }
   ]
 }

@@ -14,6 +14,29 @@
     { "input": "piles = [3,6,7,11], h = 8", "output": "4" },
     { "input": "piles = [30,11,23,4,20], h = 5", "output": "30" },
     { "input": "piles = [30,11,23,4,20], h = 6", "output": "23" },
-    { "input": "piles = [312884470], h = 312884469", "output": "2" }
+    { "input": "piles = [312884470], h = 312884469", "output": "2" },
+    { "input": "piles = [1], h = 1", "output": "1", "note": "单堆刚好" },
+    { "input": "piles = [1,1,1,1], h = 4", "output": "1", "note": "每堆都是1" },
+    {
+      "input": "piles = [3,6,7,11], h = 4",
+      "output": "11",
+      "note": "时间等于堆数，必须最大速度"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "二分查找答案",
+      "timeComplexity": "O(n log M)",
+      "spaceComplexity": "O(1)",
+      "description": "二分查找吃香蕉的速度 k。对于每个速度，计算吃完所有香蕉需要的小时数。如果能在 h 小时内吃完，尝试更小的速度；否则需要更大的速度。M 是最大堆的香蕉数。",
+      "code": "class Solution {\n    public int minEatingSpeed(int[] piles, int h) {\n        int left = 1;\n        int right = 0;\n        for (int pile : piles) {\n            right = Math.max(right, pile);\n        }\n        \n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            \n            if (canFinish(piles, mid, h)) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        \n        return left;\n    }\n    \n    private boolean canFinish(int[] piles, int k, int h) {\n        int hours = 0;\n        for (int pile : piles) {\n            hours += (pile + k - 1) / k; // 向上取整\n        }\n        return hours <= h;\n    }\n}"
+    },
+    {
+      "name": "二分查找 - 使用 Math.ceil",
+      "timeComplexity": "O(n log M)",
+      "spaceComplexity": "O(1)",
+      "description": "与方法一相同，但使用 Math.ceil 进行向上取整，代码更直观。",
+      "code": "class Solution {\n    public int minEatingSpeed(int[] piles, int h) {\n        int left = 1;\n        int right = Arrays.stream(piles).max().getAsInt();\n        \n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            long hours = getHours(piles, mid);\n            \n            if (hours <= h) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        \n        return left;\n    }\n    \n    private long getHours(int[] piles, int k) {\n        long hours = 0;\n        for (int pile : piles) {\n            hours += (long) Math.ceil((double) pile / k);\n        }\n        return hours;\n    }\n}"
+    }
   ]
 }

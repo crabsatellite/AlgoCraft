@@ -5,6 +5,12 @@
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int maxArea(int[] height) {\n        // Write your code here\n        return 0;\n    }\n}",
   "tags": ["Array", "Two Pointers", "Greedy"],
+  "images": [
+    {
+      "filename": "p24_example1.png",
+      "description": "Container With Most Water visualization showing bar chart of heights"
+    }
+  ],
   "examples": [
     { "input": "height = [1,8,6,2,5,4,8,3,7]", "output": "49" },
     { "input": "height = [1,1]", "output": "1" }
@@ -13,6 +19,39 @@
     { "input": "height = [1,8,6,2,5,4,8,3,7]", "output": "49" },
     { "input": "height = [1,1]", "output": "1" },
     { "input": "height = [4,3,2,1,4]", "output": "16" },
-    { "input": "height = [1,2,1]", "output": "2" }
+    { "input": "height = [1,2,1]", "output": "2" },
+    {
+      "input": "height = [1,2,3,4,5]",
+      "output": "6",
+      "description": "Increasing heights"
+    },
+    {
+      "input": "height = [5,4,3,2,1]",
+      "output": "6",
+      "description": "Decreasing heights"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Two Pointers - Optimal",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Use two pointers from both ends. Move the pointer with smaller height inward since moving the larger one can only decrease area.",
+      "code": "class Solution {\n    public int maxArea(int[] height) {\n        int left = 0, right = height.length - 1;\n        int maxArea = 0;\n        \n        while (left < right) {\n            // Calculate area with current pointers\n            int width = right - left;\n            int h = Math.min(height[left], height[right]);\n            int area = width * h;\n            maxArea = Math.max(maxArea, area);\n            \n            // Move the pointer with smaller height\n            if (height[left] < height[right]) {\n                left++;\n            } else {\n                right--;\n            }\n        }\n        \n        return maxArea;\n    }\n}"
+    },
+    {
+      "name": "Two Pointers with Skip Optimization",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Skip elements that are shorter than or equal to current while moving pointers.",
+      "code": "class Solution {\n    public int maxArea(int[] height) {\n        int left = 0, right = height.length - 1;\n        int maxArea = 0;\n        \n        while (left < right) {\n            int h = Math.min(height[left], height[right]);\n            maxArea = Math.max(maxArea, h * (right - left));\n            \n            // Skip all heights <= current minimum on left side\n            if (height[left] < height[right]) {\n                int currentLeft = height[left];\n                while (left < right && height[left] <= currentLeft) {\n                    left++;\n                }\n            } else {\n                // Skip all heights <= current minimum on right side\n                int currentRight = height[right];\n                while (left < right && height[right] <= currentRight) {\n                    right--;\n                }\n            }\n        }\n        \n        return maxArea;\n    }\n}"
+    },
+    {
+      "name": "Brute Force (For Reference)",
+      "timeComplexity": "O(n²)",
+      "spaceComplexity": "O(1)",
+      "description": "Check all pairs of lines. Not optimal but helps understand the problem.",
+      "code": "class Solution {\n    public int maxArea(int[] height) {\n        int maxArea = 0;\n        int n = height.length;\n        \n        for (int i = 0; i < n; i++) {\n            for (int j = i + 1; j < n; j++) {\n                int h = Math.min(height[i], height[j]);\n                int width = j - i;\n                maxArea = Math.max(maxArea, h * width);\n            }\n        }\n        \n        return maxArea;\n    }\n}"
+    }
   ]
 }

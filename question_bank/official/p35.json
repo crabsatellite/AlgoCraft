@@ -14,6 +14,32 @@
     { "input": "s = \"ADOBECODEBANC\", t = \"ABC\"", "output": "\"BANC\"" },
     { "input": "s = \"a\", t = \"a\"", "output": "\"a\"" },
     { "input": "s = \"a\", t = \"aa\"", "output": "\"\"" },
-    { "input": "s = \"ab\", t = \"b\"", "output": "\"b\"" }
+    { "input": "s = \"ab\", t = \"b\"", "output": "\"b\"" },
+    {
+      "input": "s = \"AABBCC\", t = \"ABC\"",
+      "output": "\"ABBC\"",
+      "description": "Multiple same characters in s"
+    },
+    {
+      "input": "s = \"cabwefgewcwaefgcf\", t = \"cae\"",
+      "output": "\"cwae\"",
+      "description": "Complex case with multiple valid windows"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Sliding Window with HashMap",
+      "timeComplexity": "O(m + n)",
+      "spaceComplexity": "O(m + n)",
+      "description": "Use two hashmaps: one for t's character count, one for current window. Expand right to find valid window, then shrink left to minimize.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String minWindow(String s, String t) {\n        if (s.length() < t.length()) return \"\";\n        \n        Map<Character, Integer> tCount = new HashMap<>();\n        Map<Character, Integer> windowCount = new HashMap<>();\n        \n        for (char c : t.toCharArray()) {\n            tCount.put(c, tCount.getOrDefault(c, 0) + 1);\n        }\n        \n        int required = tCount.size(); // Unique chars in t\n        int formed = 0; // Chars in window with required count\n        int[] result = {-1, 0, 0}; // {length, left, right}\n        \n        int left = 0;\n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            windowCount.put(c, windowCount.getOrDefault(c, 0) + 1);\n            \n            if (tCount.containsKey(c) && \n                windowCount.get(c).intValue() == tCount.get(c).intValue()) {\n                formed++;\n            }\n            \n            // Try to shrink window\n            while (formed == required && left <= right) {\n                if (result[0] == -1 || right - left + 1 < result[0]) {\n                    result[0] = right - left + 1;\n                    result[1] = left;\n                    result[2] = right;\n                }\n                \n                char leftChar = s.charAt(left);\n                windowCount.put(leftChar, windowCount.get(leftChar) - 1);\n                if (tCount.containsKey(leftChar) && \n                    windowCount.get(leftChar) < tCount.get(leftChar)) {\n                    formed--;\n                }\n                left++;\n            }\n        }\n        \n        return result[0] == -1 ? \"\" : s.substring(result[1], result[2] + 1);\n    }\n}"
+    },
+    {
+      "name": "Sliding Window with Array (Optimized)",
+      "timeComplexity": "O(m + n)",
+      "spaceComplexity": "O(1)",
+      "description": "Use array instead of HashMap for faster lookups. Track count of characters still needed.",
+      "code": "class Solution {\n    public String minWindow(String s, String t) {\n        if (s.length() < t.length()) return \"\";\n        \n        int[] need = new int[128];\n        for (char c : t.toCharArray()) {\n            need[c]++;\n        }\n        \n        int required = t.length();\n        int left = 0, minLen = Integer.MAX_VALUE, minStart = 0;\n        \n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            \n            // If this char is needed, decrement required\n            if (need[c] > 0) {\n                required--;\n            }\n            need[c]--;\n            \n            // Found valid window, try to shrink\n            while (required == 0) {\n                if (right - left + 1 < minLen) {\n                    minLen = right - left + 1;\n                    minStart = left;\n                }\n                \n                char leftChar = s.charAt(left);\n                need[leftChar]++;\n                if (need[leftChar] > 0) {\n                    required++;\n                }\n                left++;\n            }\n        }\n        \n        return minLen == Integer.MAX_VALUE ? \"\" : s.substring(minStart, minStart + minLen);\n    }\n}"
+    }
   ]
 }

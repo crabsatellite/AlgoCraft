@@ -18,7 +18,45 @@
     },
     {
       "input": "board = [[\"8\",\"3\",\".\",\".\",\"7\",\".\",\".\",\".\",\".\"],[\"6\",\".\",\".\",\"1\",\"9\",\"5\",\".\",\".\",\".\"],[\".\",\"9\",\"8\",\".\",\".\",\".\",\".\",\"6\",\".\"],[\"8\",\".\",\".\",\".\",\"6\",\".\",\".\",\".\",\"3\"],[\"4\",\".\",\".\",\"8\",\".\",\"3\",\".\",\".\",\"1\"],[\"7\",\".\",\".\",\".\",\"2\",\".\",\".\",\".\",\"6\"],[\".\",\"6\",\".\",\".\",\".\",\".\",\"2\",\"8\",\".\"],[\".\",\".\",\".\",\"4\",\"1\",\"9\",\".\",\".\",\"5\"],[\".\",\".\",\".\",\".\",\"8\",\".\",\".\",\"7\",\"9\"]]",
-      "output": "false"
+      "output": "false",
+      "description": "Column conflict: 8 appears twice in column 0"
+    },
+    {
+      "input": "board = [[\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\"],[\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\"],[\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\"],[\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\"],[\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\"],[\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\"],[\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\"],[\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\"],[\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\"]]",
+      "output": "true",
+      "description": "Empty board is valid"
+    },
+    {
+      "input": "board = [[\"1\",\"2\",\".\",\".\",\".\",\".\",\".\",\".\",\".\"],[\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\"],[\".\",\".\",\"1\",\".\",\".\",\".\",\".\",\".\",\".\"],[\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\"],[\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\"],[\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\"],[\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\"],[\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\"],[\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\",\".\"]]",
+      "output": "false",
+      "description": "Sub-box conflict: 1 appears twice in top-left 3x3 box"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p7_example1.png",
+      "caption": "Example 1 - Valid Sudoku Board"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "HashSet for Each Row, Column, Box",
+      "description": "## Approach\n\nUse HashSets to track seen digits for each row, column, and 3x3 box. The box index can be calculated as (row/3)*3 + (col/3).\n\n## Complexity Analysis\n- Time Complexity: O(81) = O(1) - Fixed size board\n- Space Complexity: O(81) = O(1)",
+      "code": "class Solution {\n    public boolean isValidSudoku(char[][] board) {\n        Set<Character>[] rows = new HashSet[9];\n        Set<Character>[] cols = new HashSet[9];\n        Set<Character>[] boxes = new HashSet[9];\n        \n        for (int i = 0; i < 9; i++) {\n            rows[i] = new HashSet<>();\n            cols[i] = new HashSet<>();\n            boxes[i] = new HashSet<>();\n        }\n        \n        for (int r = 0; r < 9; r++) {\n            for (int c = 0; c < 9; c++) {\n                char val = board[r][c];\n                if (val == '.') continue;\n                \n                int boxIdx = (r / 3) * 3 + (c / 3);\n                \n                if (rows[r].contains(val) || \n                    cols[c].contains(val) || \n                    boxes[boxIdx].contains(val)) {\n                    return false;\n                }\n                \n                rows[r].add(val);\n                cols[c].add(val);\n                boxes[boxIdx].add(val);\n            }\n        }\n        \n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Single HashSet with Encoding",
+      "description": "## Approach\n\nUse a single HashSet with encoded strings to track all constraints. Each digit creates three entries: one for row, one for column, one for box.\n\n## Complexity Analysis\n- Time Complexity: O(81) = O(1)\n- Space Complexity: O(81) = O(1)",
+      "code": "class Solution {\n    public boolean isValidSudoku(char[][] board) {\n        Set<String> seen = new HashSet<>();\n        \n        for (int r = 0; r < 9; r++) {\n            for (int c = 0; c < 9; c++) {\n                char val = board[r][c];\n                if (val == '.') continue;\n                \n                int boxIdx = (r / 3) * 3 + (c / 3);\n                \n                String rowKey = \"row\" + r + val;\n                String colKey = \"col\" + c + val;\n                String boxKey = \"box\" + boxIdx + val;\n                \n                if (seen.contains(rowKey) || \n                    seen.contains(colKey) || \n                    seen.contains(boxKey)) {\n                    return false;\n                }\n                \n                seen.add(rowKey);\n                seen.add(colKey);\n                seen.add(boxKey);\n            }\n        }\n        \n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bit Manipulation",
+      "description": "## Approach\n\nUse bit manipulation instead of HashSets. Each integer uses bits 1-9 to represent which digits have been seen.\n\n## Complexity Analysis\n- Time Complexity: O(81) = O(1)\n- Space Complexity: O(27) = O(1)",
+      "code": "class Solution {\n    public boolean isValidSudoku(char[][] board) {\n        int[] rows = new int[9];\n        int[] cols = new int[9];\n        int[] boxes = new int[9];\n        \n        for (int r = 0; r < 9; r++) {\n            for (int c = 0; c < 9; c++) {\n                char val = board[r][c];\n                if (val == '.') continue;\n                \n                int digit = val - '0';\n                int mask = 1 << digit;\n                int boxIdx = (r / 3) * 3 + (c / 3);\n                \n                if ((rows[r] & mask) != 0 || \n                    (cols[c] & mask) != 0 || \n                    (boxes[boxIdx] & mask) != 0) {\n                    return false;\n                }\n                \n                rows[r] |= mask;\n                cols[c] |= mask;\n                boxes[boxIdx] |= mask;\n            }\n        }\n        \n        return true;\n    }\n}",
+      "language": "java"
     }
   ]
 }

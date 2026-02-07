@@ -9,6 +9,36 @@
   "tests": [
     { "input": "nums = [4,3,2,7,8,2,3,1]", "output": "[5,6]" },
     { "input": "nums = [1,1]", "output": "[2]" },
-    { "input": "nums = [1,2,3]", "output": "[]" }
+    { "input": "nums = [1,2,3]", "output": "[]" },
+    {
+      "input": "nums = [1]",
+      "output": "[]",
+      "description": "Single element, no missing"
+    },
+    {
+      "input": "nums = [2,2]",
+      "output": "[1]",
+      "description": "All duplicates, missing 1"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Mark as Negative (In-place)",
+      "description": "## Approach\n\nFor each number, mark the position (num-1) as negative to indicate presence. Then collect positions that remain positive.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1) excluding output",
+      "code": "class Solution {\n    public List<Integer> findDisappearedNumbers(int[] nums) {\n        List<Integer> result = new ArrayList<>();\n        \n        // Mark presence by negating values at corresponding indices\n        for (int i = 0; i < nums.length; i++) {\n            int index = Math.abs(nums[i]) - 1;\n            if (nums[index] > 0) {\n                nums[index] = -nums[index];\n            }\n        }\n        \n        // Collect indices with positive values\n        for (int i = 0; i < nums.length; i++) {\n            if (nums[i] > 0) {\n                result.add(i + 1);\n            }\n        }\n        \n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Cyclic Sort",
+      "description": "## Approach\n\nPlace each number at its correct position (nums[i] at index nums[i]-1). Then find positions where nums[i] != i+1.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1) excluding output",
+      "code": "class Solution {\n    public List<Integer> findDisappearedNumbers(int[] nums) {\n        List<Integer> result = new ArrayList<>();\n        \n        // Place each number at correct position\n        int i = 0;\n        while (i < nums.length) {\n            int correctPos = nums[i] - 1;\n            if (nums[i] != nums[correctPos]) {\n                int temp = nums[i];\n                nums[i] = nums[correctPos];\n                nums[correctPos] = temp;\n            } else {\n                i++;\n            }\n        }\n        \n        // Find missing numbers\n        for (i = 0; i < nums.length; i++) {\n            if (nums[i] != i + 1) {\n                result.add(i + 1);\n            }\n        }\n        \n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "HashSet",
+      "description": "## Approach\n\nAdd all numbers to a HashSet. Check which numbers from 1 to n are missing.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public List<Integer> findDisappearedNumbers(int[] nums) {\n        List<Integer> result = new ArrayList<>();\n        Set<Integer> set = new HashSet<>();\n        \n        for (int num : nums) {\n            set.add(num);\n        }\n        \n        for (int i = 1; i <= nums.length; i++) {\n            if (!set.contains(i)) {\n                result.add(i);\n            }\n        }\n        \n        return result;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

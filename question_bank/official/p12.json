@@ -9,6 +9,36 @@
   "tests": [
     { "input": "nums = [3,2,3]", "output": "3" },
     { "input": "nums = [2,2,1,1,1,2,2]", "output": "2" },
-    { "input": "nums = [1]", "output": "1" }
+    { "input": "nums = [1]", "output": "1" },
+    {
+      "input": "nums = [5,5,5,5,5]",
+      "output": "5",
+      "description": "All same elements"
+    },
+    {
+      "input": "nums = [-1,-1,2]",
+      "output": "-1",
+      "description": "Negative majority element"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Boyer-Moore Voting Algorithm",
+      "description": "## Approach\n\nMaintain a candidate and a count. When count becomes 0, pick current element as new candidate. Increment count when same, decrement when different.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int majorityElement(int[] nums) {\n        int candidate = nums[0];\n        int count = 0;\n        \n        for (int num : nums) {\n            if (count == 0) {\n                candidate = num;\n            }\n            count += (num == candidate) ? 1 : -1;\n        }\n        \n        return candidate;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "HashMap Counting",
+      "description": "## Approach\n\nCount occurrences of each element using HashMap. Return the one that appears more than n/2 times.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int majorityElement(int[] nums) {\n        Map<Integer, Integer> counts = new HashMap<>();\n        int threshold = nums.length / 2;\n        \n        for (int num : nums) {\n            int count = counts.getOrDefault(num, 0) + 1;\n            if (count > threshold) {\n                return num;\n            }\n            counts.put(num, count);\n        }\n        \n        return -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorting",
+      "description": "## Approach\n\nAfter sorting, the majority element must be at the middle position n/2.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(1) or O(n) depending on sort",
+      "code": "class Solution {\n    public int majorityElement(int[] nums) {\n        Arrays.sort(nums);\n        return nums[nums.length / 2];\n    }\n}",
+      "language": "java"
+    }
   ]
 }

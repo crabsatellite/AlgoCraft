@@ -11,6 +11,36 @@
   "tests": [
     { "input": "nums1 = [1,2,2,1], nums2 = [2,2]", "output": "[2,2]" },
     { "input": "nums1 = [4,9,5], nums2 = [9,4,9,8,4]", "output": "[4,9]" },
-    { "input": "nums1 = [1,2,3], nums2 = [4,5,6]", "output": "[]" }
+    { "input": "nums1 = [1,2,3], nums2 = [4,5,6]", "output": "[]" },
+    {
+      "input": "nums1 = [1,2,3], nums2 = [1,2,3]",
+      "output": "[1,2,3]",
+      "description": "Identical arrays"
+    },
+    {
+      "input": "nums1 = [1,1,1], nums2 = [1,1]",
+      "output": "[1,1]",
+      "description": "One array is subset of another"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "HashMap Counting",
+      "description": "## Approach\n\nCount occurrences in the smaller array using HashMap. Iterate through the larger array and collect common elements.\n\n## Complexity Analysis\n- Time Complexity: O(m + n)\n- Space Complexity: O(min(m, n))",
+      "code": "class Solution {\n    public int[] intersect(int[] nums1, int[] nums2) {\n        if (nums1.length > nums2.length) {\n            return intersect(nums2, nums1);\n        }\n        \n        Map<Integer, Integer> map = new HashMap<>();\n        for (int num : nums1) {\n            map.put(num, map.getOrDefault(num, 0) + 1);\n        }\n        \n        List<Integer> result = new ArrayList<>();\n        for (int num : nums2) {\n            int count = map.getOrDefault(num, 0);\n            if (count > 0) {\n                result.add(num);\n                map.put(num, count - 1);\n            }\n        }\n        \n        int[] arr = new int[result.size()];\n        for (int i = 0; i < result.size(); i++) {\n            arr[i] = result.get(i);\n        }\n        return arr;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorting + Two Pointers",
+      "description": "## Approach\n\nSort both arrays. Use two pointers to find common elements.\n\n## Complexity Analysis\n- Time Complexity: O(m log m + n log n)\n- Space Complexity: O(1) excluding output",
+      "code": "class Solution {\n    public int[] intersect(int[] nums1, int[] nums2) {\n        Arrays.sort(nums1);\n        Arrays.sort(nums2);\n        \n        List<Integer> result = new ArrayList<>();\n        int i = 0, j = 0;\n        \n        while (i < nums1.length && j < nums2.length) {\n            if (nums1[i] < nums2[j]) {\n                i++;\n            } else if (nums1[i] > nums2[j]) {\n                j++;\n            } else {\n                result.add(nums1[i]);\n                i++;\n                j++;\n            }\n        }\n        \n        int[] arr = new int[result.size()];\n        for (int k = 0; k < result.size(); k++) {\n            arr[k] = result.get(k);\n        }\n        return arr;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Counting Array (For Small Range)",
+      "description": "## Approach\n\nUse counting array when element range is known and small.\n\n## Complexity Analysis\n- Time Complexity: O(m + n + k) where k is range\n- Space Complexity: O(k)",
+      "code": "class Solution {\n    public int[] intersect(int[] nums1, int[] nums2) {\n        int[] count = new int[1001];\n        \n        for (int num : nums1) {\n            count[num]++;\n        }\n        \n        List<Integer> result = new ArrayList<>();\n        for (int num : nums2) {\n            if (count[num] > 0) {\n                result.add(num);\n                count[num]--;\n            }\n        }\n        \n        int[] arr = new int[result.size()];\n        for (int i = 0; i < result.size(); i++) {\n            arr[i] = result.get(i);\n        }\n        return arr;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

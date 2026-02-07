@@ -11,6 +11,36 @@
     { "input": "nums = [0,3,7,2,5,8,4,6,0,1]", "output": "9" },
     { "input": "nums = []", "output": "0" },
     { "input": "nums = [1]", "output": "1" },
-    { "input": "nums = [1,2,0,1]", "output": "3" }
+    { "input": "nums = [1,2,0,1]", "output": "3" },
+    {
+      "input": "nums = [-5,-4,-3,-2,-1]",
+      "output": "5",
+      "description": "Consecutive negative numbers"
+    },
+    {
+      "input": "nums = [1000000000,-1000000000]",
+      "output": "1",
+      "description": "Large range scattered values"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "HashSet - Optimal",
+      "description": "## Approach\n\nUse HashSet for O(1) lookups. For each number, only start counting if it's the beginning of a sequence (num-1 doesn't exist).\n\n## Key Insight\n\nBy only starting from sequence beginnings, we ensure each element is visited at most twice.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int longestConsecutive(int[] nums) {\n        if (nums.length == 0) return 0;\n        \n        Set<Integer> numSet = new HashSet<>();\n        for (int num : nums) {\n            numSet.add(num);\n        }\n        \n        int maxLength = 0;\n        \n        for (int num : numSet) {\n            // Only start counting if num is the start of a sequence\n            if (!numSet.contains(num - 1)) {\n                int currentNum = num;\n                int currentLength = 1;\n                \n                while (numSet.contains(currentNum + 1)) {\n                    currentNum++;\n                    currentLength++;\n                }\n                \n                maxLength = Math.max(maxLength, currentLength);\n            }\n        }\n        \n        return maxLength;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorting",
+      "description": "## Approach\n\nSort the array first, then scan for consecutive sequences.\n\n## Complexity Analysis\n- Time Complexity: O(n log n) - Due to sorting\n- Space Complexity: O(1) or O(n) - Depends on sorting implementation",
+      "code": "class Solution {\n    public int longestConsecutive(int[] nums) {\n        if (nums.length == 0) return 0;\n        \n        Arrays.sort(nums);\n        \n        int maxLength = 1;\n        int currentLength = 1;\n        \n        for (int i = 1; i < nums.length; i++) {\n            // Skip duplicates\n            if (nums[i] == nums[i - 1]) continue;\n            \n            if (nums[i] == nums[i - 1] + 1) {\n                currentLength++;\n            } else {\n                maxLength = Math.max(maxLength, currentLength);\n                currentLength = 1;\n            }\n        }\n        \n        return Math.max(maxLength, currentLength);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Union Find",
+      "description": "## Approach\n\nUse Union-Find data structure. For each number, union it with num+1 if it exists. Track the size of each connected component.\n\n## Complexity Analysis\n- Time Complexity: O(n × α(n)) ≈ O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private int[] parent;\n    private int[] rank;\n    private int maxSize;\n    \n    public int longestConsecutive(int[] nums) {\n        if (nums.length == 0) return 0;\n        \n        Map<Integer, Integer> numToIdx = new HashMap<>();\n        int n = nums.length;\n        parent = new int[n];\n        rank = new int[n];\n        maxSize = 1;\n        \n        // Initialize\n        for (int i = 0; i < n; i++) {\n            parent[i] = i;\n            rank[i] = 1;\n        }\n        \n        for (int i = 0; i < n; i++) {\n            if (numToIdx.containsKey(nums[i])) continue;\n            numToIdx.put(nums[i], i);\n            \n            if (numToIdx.containsKey(nums[i] - 1)) {\n                union(i, numToIdx.get(nums[i] - 1));\n            }\n            if (numToIdx.containsKey(nums[i] + 1)) {\n                union(i, numToIdx.get(nums[i] + 1));\n            }\n        }\n        \n        return maxSize;\n    }\n    \n    private int find(int x) {\n        if (parent[x] != x) {\n            parent[x] = find(parent[x]);\n        }\n        return parent[x];\n    }\n    \n    private void union(int x, int y) {\n        int rootX = find(x);\n        int rootY = find(y);\n        \n        if (rootX != rootY) {\n            if (rank[rootX] < rank[rootY]) {\n                parent[rootX] = rootY;\n                rank[rootY] += rank[rootX];\n                maxSize = Math.max(maxSize, rank[rootY]);\n            } else {\n                parent[rootY] = rootX;\n                rank[rootX] += rank[rootY];\n                maxSize = Math.max(maxSize, rank[rootX]);\n            }\n        }\n    }\n}",
+      "language": "java"
+    }
   ]
 }

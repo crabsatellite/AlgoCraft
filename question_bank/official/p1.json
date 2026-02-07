@@ -15,5 +15,25 @@
     { "input": "nums = [3,3], target = 6", "output": "[0,1]" },
     { "input": "nums = [-1,-2,-3,-4,-5], target = -8", "output": "[2,4]" },
     { "input": "nums = [0,4,3,0], target = 0", "output": "[0,3]" }
+  ],
+  "solutions": [
+    {
+      "name": "Hash Map - One Pass",
+      "description": "## Approach\n\nUse a hash map to store each number and its index as we iterate through the array. For each number, check if the complement (target - current number) exists in the map.\n\n## Key Insight\n\nInstead of using nested loops to find two numbers, we can reduce the time complexity by trading space for time using a hash map.\n\n## Complexity Analysis\n- Time Complexity: O(n) - We traverse the array once\n- Space Complexity: O(n) - Hash map stores at most n elements",
+      "code": "class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        Map<Integer, Integer> map = new HashMap<>();\n        \n        for (int i = 0; i < nums.length; i++) {\n            int complement = target - nums[i];\n            \n            if (map.containsKey(complement)) {\n                return new int[] { map.get(complement), i };\n            }\n            \n            map.put(nums[i], i);\n        }\n        \n        return new int[] {}; // No solution found\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Brute Force",
+      "description": "## Approach\n\nCheck every pair of numbers to see if they sum to the target. Use nested loops where the outer loop picks the first number and the inner loop searches for the complement.\n\n## Complexity Analysis\n- Time Complexity: O(n²) - For each element, we loop through the rest of the array\n- Space Complexity: O(1) - No extra space needed",
+      "code": "class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        for (int i = 0; i < nums.length; i++) {\n            for (int j = i + 1; j < nums.length; j++) {\n                if (nums[i] + nums[j] == target) {\n                    return new int[] { i, j };\n                }\n            }\n        }\n        \n        return new int[] {}; // No solution found\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two Pointers (with Sorting)",
+      "description": "## Approach\n\nSort the array with indices preserved, then use two pointers from both ends. Note: This approach requires extra handling to return original indices.\n\n## Complexity Analysis\n- Time Complexity: O(n log n) - Due to sorting\n- Space Complexity: O(n) - Need to store original indices",
+      "code": "class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        int n = nums.length;\n        int[][] numWithIndex = new int[n][2];\n        \n        for (int i = 0; i < n; i++) {\n            numWithIndex[i][0] = nums[i];\n            numWithIndex[i][1] = i;\n        }\n        \n        Arrays.sort(numWithIndex, (a, b) -> a[0] - b[0]);\n        \n        int left = 0, right = n - 1;\n        \n        while (left < right) {\n            int sum = numWithIndex[left][0] + numWithIndex[right][0];\n            \n            if (sum == target) {\n                return new int[] { numWithIndex[left][1], numWithIndex[right][1] };\n            } else if (sum < target) {\n                left++;\n            } else {\n                right--;\n            }\n        }\n        \n        return new int[] {};\n    }\n}",
+      "language": "java"
+    }
   ]
 }

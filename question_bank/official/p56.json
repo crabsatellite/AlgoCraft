@@ -19,6 +19,32 @@
     {
       "input": "[\"TimeMap\",\"set\",\"set\",\"get\",\"get\",\"get\",\"get\",\"get\"]\n[[],[\"love\",\"high\",10],[\"love\",\"low\",20],[\"love\",5],[\"love\",10],[\"love\",15],[\"love\",20],[\"love\",25]]",
       "output": "[null,null,null,\"\",\"high\",\"high\",\"low\",\"low\"]"
+    },
+    {
+      "input": "[\"TimeMap\",\"get\"]\n[[],[\"notexist\",1]]",
+      "output": "[null,\"\"]",
+      "note": "查询不存在的key"
+    },
+    {
+      "input": "[\"TimeMap\",\"set\",\"set\",\"get\",\"get\"]\n[[],[\"a\",\"v1\",1],[\"b\",\"v2\",1],[\"a\",1],[\"b\",1]]",
+      "output": "[null,null,null,\"v1\",\"v2\"]",
+      "note": "多个不同的key"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "HashMap + 二分查找",
+      "timeComplexity": "set: O(1), get: O(log n)",
+      "spaceComplexity": "O(n)",
+      "description": "使用 HashMap 存储每个 key 对应的时间戳-值列表。由于时间戳严格递增，列表天然有序，可以用二分查找快速定位满足条件的最大时间戳。",
+      "code": "class TimeMap {\n    private Map<String, List<int[]>> map; // key -> list of [timestamp, valueIndex]\n    private Map<String, List<String>> values; // key -> list of values\n    \n    public TimeMap() {\n        map = new HashMap<>();\n        values = new HashMap<>();\n    }\n    \n    public void set(String key, String value, int timestamp) {\n        map.computeIfAbsent(key, k -> new ArrayList<>()).add(new int[]{timestamp, values.getOrDefault(key, new ArrayList<>()).size()});\n        values.computeIfAbsent(key, k -> new ArrayList<>()).add(value);\n    }\n    \n    public String get(String key, int timestamp) {\n        if (!map.containsKey(key)) return \"\";\n        \n        List<int[]> list = map.get(key);\n        int left = 0, right = list.size() - 1;\n        int resultIdx = -1;\n        \n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            if (list.get(mid)[0] <= timestamp) {\n                resultIdx = mid;\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        \n        if (resultIdx == -1) return \"\";\n        return values.get(key).get(list.get(resultIdx)[1]);\n    }\n}"
+    },
+    {
+      "name": "HashMap + TreeMap",
+      "timeComplexity": "set: O(log n), get: O(log n)",
+      "spaceComplexity": "O(n)",
+      "description": "使用 TreeMap 存储时间戳到值的映射，利用 TreeMap 的 floorEntry 方法直接获取小于等于给定时间戳的最大键。代码更简洁。",
+      "code": "class TimeMap {\n    private Map<String, TreeMap<Integer, String>> map;\n    \n    public TimeMap() {\n        map = new HashMap<>();\n    }\n    \n    public void set(String key, String value, int timestamp) {\n        map.computeIfAbsent(key, k -> new TreeMap<>()).put(timestamp, value);\n    }\n    \n    public String get(String key, int timestamp) {\n        if (!map.containsKey(key)) return \"\";\n        \n        TreeMap<Integer, String> treeMap = map.get(key);\n        Integer floorKey = treeMap.floorKey(timestamp);\n        \n        return floorKey == null ? \"\" : treeMap.get(floorKey);\n    }\n}"
     }
   ]
 }

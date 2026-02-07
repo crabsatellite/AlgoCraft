@@ -17,5 +17,28 @@
     { "input": "s = \"\"", "output": "0" },
     { "input": "s = \" \"", "output": "1" },
     { "input": "s = \"au\"", "output": "2" }
+  ],
+  "solutions": [
+    {
+      "name": "Sliding Window with HashMap",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(min(m, n))",
+      "description": "Use sliding window with HashMap to store character's last index. When duplicate found, move left pointer to max(left, lastIndex + 1).",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int lengthOfLongestSubstring(String s) {\n        Map<Character, Integer> map = new HashMap<>();\n        int maxLen = 0;\n        int left = 0;\n        \n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            \n            if (map.containsKey(c)) {\n                // Move left pointer past the duplicate\n                left = Math.max(left, map.get(c) + 1);\n            }\n            \n            map.put(c, right);\n            maxLen = Math.max(maxLen, right - left + 1);\n        }\n        \n        return maxLen;\n    }\n}"
+    },
+    {
+      "name": "Sliding Window with HashSet",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(min(m, n))",
+      "description": "Use HashSet to track characters in current window. Shrink window from left when duplicate is found.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int lengthOfLongestSubstring(String s) {\n        Set<Character> set = new HashSet<>();\n        int maxLen = 0;\n        int left = 0;\n        \n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            \n            // Shrink window until no duplicate\n            while (set.contains(c)) {\n                set.remove(s.charAt(left));\n                left++;\n            }\n            \n            set.add(c);\n            maxLen = Math.max(maxLen, right - left + 1);\n        }\n        \n        return maxLen;\n    }\n}"
+    },
+    {
+      "name": "Array as HashMap (ASCII)",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Use integer array of size 128 for ASCII characters. Faster than HashMap for character lookups.",
+      "code": "class Solution {\n    public int lengthOfLongestSubstring(String s) {\n        int[] lastIndex = new int[128]; // ASCII characters\n        java.util.Arrays.fill(lastIndex, -1);\n        \n        int maxLen = 0;\n        int left = 0;\n        \n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            \n            // Move left past the previous occurrence\n            if (lastIndex[c] >= left) {\n                left = lastIndex[c] + 1;\n            }\n            \n            lastIndex[c] = right;\n            maxLen = Math.max(maxLen, right - left + 1);\n        }\n        \n        return maxLen;\n    }\n}"
+    }
   ]
 }

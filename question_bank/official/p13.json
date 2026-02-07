@@ -10,6 +10,36 @@
     { "input": "nums = [0,1,0,3,12]", "output": "[1,3,12,0,0]" },
     { "input": "nums = [0]", "output": "[0]" },
     { "input": "nums = [1,2,3]", "output": "[1,2,3]" },
-    { "input": "nums = [0,0,1]", "output": "[1,0,0]" }
+    { "input": "nums = [0,0,1]", "output": "[1,0,0]" },
+    {
+      "input": "nums = [0,0,0,0]",
+      "output": "[0,0,0,0]",
+      "description": "All zeros"
+    },
+    {
+      "input": "nums = [1,0]",
+      "output": "[1,0]",
+      "description": "Single zero at end position"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Two Pointers - Optimal",
+      "description": "## Approach\n\nUse a slow pointer to track position for next non-zero. Fast pointer scans array. When non-zero found, swap with slow position.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int[] moveZeroes(int[] nums) {\n        int slow = 0;\n        \n        for (int fast = 0; fast < nums.length; fast++) {\n            if (nums[fast] != 0) {\n                int temp = nums[slow];\n                nums[slow] = nums[fast];\n                nums[fast] = temp;\n                slow++;\n            }\n        }\n        \n        return nums;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two Pass - Shift and Fill",
+      "description": "## Approach\n\nFirst pass: copy all non-zero elements to front. Second pass: fill remaining with zeros.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int[] moveZeroes(int[] nums) {\n        int insertPos = 0;\n        \n        // Move all non-zero elements to front\n        for (int num : nums) {\n            if (num != 0) {\n                nums[insertPos++] = num;\n            }\n        }\n        \n        // Fill rest with zeros\n        while (insertPos < nums.length) {\n            nums[insertPos++] = 0;\n        }\n        \n        return nums;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Snowball - Count Zeros",
+      "description": "## Approach\n\nCount zeros (snowball size). When we find non-zero and snowball exists, swap it with the first zero in the snowball.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int[] moveZeroes(int[] nums) {\n        int snowBall = 0;\n        \n        for (int i = 0; i < nums.length; i++) {\n            if (nums[i] == 0) {\n                snowBall++;\n            } else if (snowBall > 0) {\n                nums[i - snowBall] = nums[i];\n                nums[i] = 0;\n            }\n        }\n        \n        return nums;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

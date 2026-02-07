@@ -21,6 +21,36 @@
       "input": "strs = [\"a\", \"b\", \"c\"]",
       "output": "[\"a\",\"b\",\"c\"]"
     },
-    { "input": "strs = [\"#\", \"##\"]", "output": "[\"#\",\"##\"]" }
+    { "input": "strs = [\"#\", \"##\"]", "output": "[\"#\",\"##\"]" },
+    {
+      "input": "strs = []",
+      "output": "[]",
+      "description": "Empty list edge case"
+    },
+    {
+      "input": "strs = [\"4#abc\", \"5#hello\"]",
+      "output": "[\"4#abc\",\"5#hello\"]",
+      "description": "Strings containing length-prefix-like patterns"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Length Prefix",
+      "description": "## Approach\n\nEncode each string as: length + delimiter + string content. Use a non-digit delimiter like '#'.\n\nFormat: \"length#string\"\n\n## Complexity Analysis\n- Time Complexity: O(n) where n is total characters\n- Space Complexity: O(1) extra space",
+      "code": "class Solution {\n    public String encode(List<String> strs) {\n        StringBuilder sb = new StringBuilder();\n        for (String s : strs) {\n            sb.append(s.length()).append('#').append(s);\n        }\n        return sb.toString();\n    }\n    \n    public List<String> decode(String str) {\n        List<String> result = new ArrayList<>();\n        int i = 0;\n        \n        while (i < str.length()) {\n            int j = i;\n            while (str.charAt(j) != '#') {\n                j++;\n            }\n            \n            int len = Integer.parseInt(str.substring(i, j));\n            String s = str.substring(j + 1, j + 1 + len);\n            result.add(s);\n            i = j + 1 + len;\n        }\n        \n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Escape Character",
+      "description": "## Approach\n\nUse a delimiter between strings and escape any occurrences of the delimiter within strings.\n\nFor example, use '/' as escape and ':' as delimiter.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String encode(List<String> strs) {\n        StringBuilder sb = new StringBuilder();\n        for (String s : strs) {\n            for (char c : s.toCharArray()) {\n                if (c == '/' || c == ':') {\n                    sb.append('/');\n                }\n                sb.append(c);\n            }\n            sb.append(\":\");\n        }\n        return sb.toString();\n    }\n    \n    public List<String> decode(String str) {\n        List<String> result = new ArrayList<>();\n        StringBuilder current = new StringBuilder();\n        int i = 0;\n        \n        while (i < str.length()) {\n            if (str.charAt(i) == '/') {\n                i++;\n                current.append(str.charAt(i));\n            } else if (str.charAt(i) == ':') {\n                result.add(current.toString());\n                current = new StringBuilder();\n            } else {\n                current.append(str.charAt(i));\n            }\n            i++;\n        }\n        \n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Chunked Transfer Encoding",
+      "description": "## Approach\n\nSimilar to HTTP chunked transfer encoding. Use fixed-width length prefix (4 bytes) to avoid delimiter issues.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1) extra space",
+      "code": "class Solution {\n    public String encode(List<String> strs) {\n        StringBuilder sb = new StringBuilder();\n        for (String s : strs) {\n            // Use 4-character fixed width for length\n            sb.append(String.format(\"%4d\", s.length())).append(s);\n        }\n        return sb.toString();\n    }\n    \n    public List<String> decode(String str) {\n        List<String> result = new ArrayList<>();\n        int i = 0;\n        \n        while (i < str.length()) {\n            int len = Integer.parseInt(str.substring(i, i + 4).trim());\n            String s = str.substring(i + 4, i + 4 + len);\n            result.add(s);\n            i = i + 4 + len;\n        }\n        \n        return result;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

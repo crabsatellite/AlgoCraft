@@ -13,6 +13,32 @@
     { "input": "nums = [3,2,2,3], val = 3", "output": "2" },
     { "input": "nums = [0,1,2,2,3,0,4,2], val = 2", "output": "5" },
     { "input": "nums = [], val = 0", "output": "0" },
-    { "input": "nums = [1], val = 1", "output": "0" }
+    { "input": "nums = [1], val = 1", "output": "0" },
+    {
+      "input": "nums = [1,2,3,4], val = 5",
+      "output": "4",
+      "description": "Value not in array"
+    },
+    {
+      "input": "nums = [2,2,2,2], val = 2",
+      "output": "0",
+      "description": "All elements are val"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Two Pointers - Fast & Slow",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Slow pointer tracks position to place valid elements. Fast pointer scans array. Copy elements that don't equal val to slow position.",
+      "code": "class Solution {\n    public int removeElement(int[] nums, int val) {\n        int slow = 0; // Position to insert next valid element\n        \n        for (int fast = 0; fast < nums.length; fast++) {\n            if (nums[fast] != val) {\n                nums[slow] = nums[fast];\n                slow++;\n            }\n        }\n        \n        return slow;\n    }\n}"
+    },
+    {
+      "name": "Two Pointers - Swap with End",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "When val is found, swap with element at the end. This minimizes unnecessary writes when val elements are rare.",
+      "code": "class Solution {\n    public int removeElement(int[] nums, int val) {\n        int left = 0;\n        int right = nums.length;\n        \n        while (left < right) {\n            if (nums[left] == val) {\n                // Swap with last element\n                nums[left] = nums[right - 1];\n                right--;\n                // Don't increment left - need to check swapped element\n            } else {\n                left++;\n            }\n        }\n        \n        return left;\n    }\n}"
+    }
   ]
 }

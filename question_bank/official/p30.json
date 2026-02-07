@@ -13,6 +13,39 @@
     { "input": "nums = [-4,-1,0,3,10]", "output": "[0,1,9,16,100]" },
     { "input": "nums = [-7,-3,2,3,11]", "output": "[4,9,9,49,121]" },
     { "input": "nums = [0,1,2]", "output": "[0,1,4]" },
-    { "input": "nums = [-3,-2,-1]", "output": "[1,4,9]" }
+    { "input": "nums = [-3,-2,-1]", "output": "[1,4,9]" },
+    {
+      "input": "nums = [5]",
+      "output": "[25]",
+      "description": "Single element"
+    },
+    {
+      "input": "nums = [1,2,3,4,5]",
+      "output": "[1,4,9,16,25]",
+      "description": "All positive numbers"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Two Pointers - From Both Ends",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use two pointers from both ends. Compare absolute values and place the larger square at the end of result array, moving inward.",
+      "code": "class Solution {\n    public int[] sortedSquares(int[] nums) {\n        int n = nums.length;\n        int[] result = new int[n];\n        \n        int left = 0, right = n - 1;\n        int pos = n - 1; // Fill from the end (largest squares)\n        \n        while (left <= right) {\n            int leftSq = nums[left] * nums[left];\n            int rightSq = nums[right] * nums[right];\n            \n            if (leftSq > rightSq) {\n                result[pos] = leftSq;\n                left++;\n            } else {\n                result[pos] = rightSq;\n                right--;\n            }\n            pos--;\n        }\n        \n        return result;\n    }\n}"
+    },
+    {
+      "name": "Sort After Squaring",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(log n)",
+      "description": "Square all elements then sort. Simple but not optimal due to sorting overhead.",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int[] sortedSquares(int[] nums) {\n        int[] result = new int[nums.length];\n        \n        for (int i = 0; i < nums.length; i++) {\n            result[i] = nums[i] * nums[i];\n        }\n        \n        Arrays.sort(result);\n        return result;\n    }\n}"
+    },
+    {
+      "name": "Find Split Point & Merge",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Find the split point where numbers change from negative to non-negative. Then merge two halves like merge sort.",
+      "code": "class Solution {\n    public int[] sortedSquares(int[] nums) {\n        int n = nums.length;\n        \n        // Find first non-negative index\n        int split = 0;\n        while (split < n && nums[split] < 0) {\n            split++;\n        }\n        \n        int[] result = new int[n];\n        int left = split - 1; // Negative numbers (go left)\n        int right = split;     // Non-negative numbers (go right)\n        int pos = 0;\n        \n        // Merge two halves\n        while (left >= 0 && right < n) {\n            int leftSq = nums[left] * nums[left];\n            int rightSq = nums[right] * nums[right];\n            \n            if (leftSq < rightSq) {\n                result[pos++] = leftSq;\n                left--;\n            } else {\n                result[pos++] = rightSq;\n                right++;\n            }\n        }\n        \n        // Remaining negative squares\n        while (left >= 0) {\n            result[pos++] = nums[left] * nums[left];\n            left--;\n        }\n        \n        // Remaining positive squares\n        while (right < n) {\n            result[pos++] = nums[right] * nums[right];\n            right++;\n        }\n        \n        return result;\n    }\n}"
+    }
   ]
 }

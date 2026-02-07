@@ -13,6 +13,39 @@
     { "input": "s = \"A man, a plan, a canal: Panama\"", "output": "true" },
     { "input": "s = \"race a car\"", "output": "false" },
     { "input": "s = \" \"", "output": "true" },
-    { "input": "s = \"0P\"", "output": "false" }
+    { "input": "s = \"0P\"", "output": "false" },
+    {
+      "input": "s = \"a\"",
+      "output": "true",
+      "description": "Single character is palindrome"
+    },
+    {
+      "input": "s = \"12321\"",
+      "output": "true",
+      "description": "Numeric palindrome"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Two Pointers - Optimal",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Use two pointers from both ends, skip non-alphanumeric characters and compare.",
+      "code": "class Solution {\n    public boolean isPalindrome(String s) {\n        int left = 0, right = s.length() - 1;\n        \n        while (left < right) {\n            // Skip non-alphanumeric from left\n            while (left < right && !Character.isLetterOrDigit(s.charAt(left))) {\n                left++;\n            }\n            // Skip non-alphanumeric from right\n            while (left < right && !Character.isLetterOrDigit(s.charAt(right))) {\n                right--;\n            }\n            \n            // Compare characters (case-insensitive)\n            if (Character.toLowerCase(s.charAt(left)) != Character.toLowerCase(s.charAt(right))) {\n                return false;\n            }\n            left++;\n            right--;\n        }\n        \n        return true;\n    }\n}"
+    },
+    {
+      "name": "Clean String Then Compare",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "First clean the string by removing non-alphanumeric chars and converting to lowercase, then use two pointers.",
+      "code": "class Solution {\n    public boolean isPalindrome(String s) {\n        // Build cleaned string\n        StringBuilder sb = new StringBuilder();\n        for (char c : s.toCharArray()) {\n            if (Character.isLetterOrDigit(c)) {\n                sb.append(Character.toLowerCase(c));\n            }\n        }\n        \n        String cleaned = sb.toString();\n        int left = 0, right = cleaned.length() - 1;\n        \n        while (left < right) {\n            if (cleaned.charAt(left) != cleaned.charAt(right)) {\n                return false;\n            }\n            left++;\n            right--;\n        }\n        \n        return true;\n    }\n}"
+    },
+    {
+      "name": "Reverse and Compare",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Clean the string, reverse it, and compare with original cleaned string.",
+      "code": "class Solution {\n    public boolean isPalindrome(String s) {\n        StringBuilder sb = new StringBuilder();\n        for (char c : s.toCharArray()) {\n            if (Character.isLetterOrDigit(c)) {\n                sb.append(Character.toLowerCase(c));\n            }\n        }\n        \n        String cleaned = sb.toString();\n        String reversed = sb.reverse().toString();\n        \n        return cleaned.equals(reversed);\n    }\n}"
+    }
   ]
 }

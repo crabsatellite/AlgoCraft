@@ -13,6 +13,44 @@
     { "input": "nums = [-1,0,3,5,9,12], target = 9", "output": "4" },
     { "input": "nums = [-1,0,3,5,9,12], target = 2", "output": "-1" },
     { "input": "nums = [5], target = 5", "output": "0" },
-    { "input": "nums = [5], target = -5", "output": "-1" }
+    { "input": "nums = [5], target = -5", "output": "-1" },
+    {
+      "input": "nums = [-1,0,3,5,9,12], target = -1",
+      "output": "0",
+      "note": "目标是首元素"
+    },
+    {
+      "input": "nums = [-1,0,3,5,9,12], target = 12",
+      "output": "5",
+      "note": "目标是尾元素"
+    },
+    {
+      "input": "nums = [1,2,3,4,5,6,7,8,9,10], target = 5",
+      "output": "4",
+      "note": "恰好在中间"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "标准二分查找 - 闭区间",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(1)",
+      "description": "使用左闭右闭区间 [left, right]。当 left <= right 时继续循环，根据中间值与目标的比较缩小搜索范围。",
+      "code": "class Solution {\n    public int search(int[] nums, int target) {\n        int left = 0, right = nums.length - 1;\n        \n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            \n            if (nums[mid] == target) {\n                return mid;\n            } else if (nums[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        \n        return -1;\n    }\n}"
+    },
+    {
+      "name": "二分查找 - 左闭右开区间",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(1)",
+      "description": "使用左闭右开区间 [left, right)。当 left < right 时继续循环。这种写法在某些场景下更容易避免边界错误。",
+      "code": "class Solution {\n    public int search(int[] nums, int target) {\n        int left = 0, right = nums.length;\n        \n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            \n            if (nums[mid] == target) {\n                return mid;\n            } else if (nums[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        \n        return -1;\n    }\n}"
+    },
+    {
+      "name": "递归二分查找",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(log n)",
+      "description": "递归实现二分查找，代码更简洁但有递归栈开销。",
+      "code": "class Solution {\n    public int search(int[] nums, int target) {\n        return binarySearch(nums, target, 0, nums.length - 1);\n    }\n    \n    private int binarySearch(int[] nums, int target, int left, int right) {\n        if (left > right) {\n            return -1;\n        }\n        \n        int mid = left + (right - left) / 2;\n        \n        if (nums[mid] == target) {\n            return mid;\n        } else if (nums[mid] < target) {\n            return binarySearch(nums, target, mid + 1, right);\n        } else {\n            return binarySearch(nums, target, left, mid - 1);\n        }\n    }\n}"
+    }
   ]
 }

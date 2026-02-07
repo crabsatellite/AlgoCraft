@@ -30,5 +30,23 @@
       "output": "[null,-1,null,1]",
       "note": "get不存在的key"
     }
+  ],
+  "solutions": [
+    {
+      "name": "HashMap + Doubly Linked List",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(capacity)",
+      "description": "Use a HashMap for O(1) key lookup and a doubly linked list to maintain access order. The head of the list is the most recently used; the tail is the least recently used. On get/put, move the node to the head. On eviction, remove from the tail.",
+      "code": "import java.util.*;\n\nclass LRUCache {\n    private class Node {\n        int key, value;\n        Node prev, next;\n        Node(int key, int value) {\n            this.key = key;\n            this.value = value;\n        }\n    }\n    \n    private int capacity;\n    private Map<Integer, Node> map;\n    private Node head, tail; // dummy nodes\n    \n    public LRUCache(int capacity) {\n        this.capacity = capacity;\n        this.map = new HashMap<>();\n        head = new Node(0, 0);\n        tail = new Node(0, 0);\n        head.next = tail;\n        tail.prev = head;\n    }\n    \n    public int get(int key) {\n        if (!map.containsKey(key)) return -1;\n        Node node = map.get(key);\n        removeNode(node);\n        addToHead(node);\n        return node.value;\n    }\n    \n    public void put(int key, int value) {\n        if (map.containsKey(key)) {\n            Node node = map.get(key);\n            node.value = value;\n            removeNode(node);\n            addToHead(node);\n        } else {\n            Node node = new Node(key, value);\n            map.put(key, node);\n            addToHead(node);\n            if (map.size() > capacity) {\n                Node lru = tail.prev;\n                removeNode(lru);\n                map.remove(lru.key);\n            }\n        }\n    }\n    \n    private void addToHead(Node node) {\n        node.next = head.next;\n        node.prev = head;\n        head.next.prev = node;\n        head.next = node;\n    }\n    \n    private void removeNode(Node node) {\n        node.prev.next = node.next;\n        node.next.prev = node.prev;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "LinkedHashMap (Built-in)",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(capacity)",
+      "description": "Use Java's LinkedHashMap with access-order mode, overriding removeEldestEntry to evict when capacity is exceeded.",
+      "code": "import java.util.*;\n\nclass LRUCache extends LinkedHashMap<Integer, Integer> {\n    private int capacity;\n    \n    public LRUCache(int capacity) {\n        super(capacity, 0.75f, true);\n        this.capacity = capacity;\n    }\n    \n    public int get(int key) {\n        return super.getOrDefault(key, -1);\n    }\n    \n    public void put(int key, int value) {\n        super.put(key, value);\n    }\n    \n    @Override\n    protected boolean removeEldestEntry(Map.Entry<Integer, Integer> eldest) {\n        return size() > capacity;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

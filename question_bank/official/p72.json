@@ -27,5 +27,23 @@
       "output": "5",
       "note": "重复元素在末尾"
     }
+  ],
+  "solutions": [
+    {
+      "name": "Floyd's Cycle Detection",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Treat the array as a linked list where index i points to nums[i]. Since there's a duplicate, there must be a cycle. Use Floyd's algorithm to find the cycle entrance, which is the duplicate number.",
+      "code": "class Solution {\n    public int findDuplicate(int[] nums) {\n        // Phase 1: Find intersection point\n        int slow = nums[0];\n        int fast = nums[0];\n        \n        do {\n            slow = nums[slow];\n            fast = nums[nums[fast]];\n        } while (slow != fast);\n        \n        // Phase 2: Find cycle entrance\n        slow = nums[0];\n        while (slow != fast) {\n            slow = nums[slow];\n            fast = nums[fast];\n        }\n        \n        return slow;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Binary Search on Value Range",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(1)",
+      "description": "Binary search on the value range [1, n]. For a candidate mid, count how many numbers are <= mid. If count > mid, the duplicate is in [1, mid]; otherwise it's in [mid+1, n].",
+      "code": "class Solution {\n    public int findDuplicate(int[] nums) {\n        int left = 1, right = nums.length - 1;\n        \n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            int count = 0;\n            \n            for (int num : nums) {\n                if (num <= mid) count++;\n            }\n            \n            if (count > mid) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        \n        return left;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

@@ -32,5 +32,23 @@
       "output": "[1,1,2,3,3]",
       "note": "有重复元素"
     }
+  ],
+  "solutions": [
+    {
+      "name": "Merge Sort (Top-Down)",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(log n)",
+      "description": "Split the list in half using slow/fast pointers, recursively sort each half, then merge the two sorted halves.",
+      "code": "class Solution {\n    public ListNode sortList(ListNode head) {\n        if (head == null || head.next == null) return head;\n        \n        // Find middle\n        ListNode slow = head, fast = head.next;\n        while (fast != null && fast.next != null) {\n            slow = slow.next;\n            fast = fast.next.next;\n        }\n        \n        ListNode mid = slow.next;\n        slow.next = null;\n        \n        ListNode left = sortList(head);\n        ListNode right = sortList(mid);\n        \n        return merge(left, right);\n    }\n    \n    private ListNode merge(ListNode l1, ListNode l2) {\n        ListNode dummy = new ListNode(0);\n        ListNode tail = dummy;\n        \n        while (l1 != null && l2 != null) {\n            if (l1.val <= l2.val) {\n                tail.next = l1;\n                l1 = l1.next;\n            } else {\n                tail.next = l2;\n                l2 = l2.next;\n            }\n            tail = tail.next;\n        }\n        tail.next = (l1 != null) ? l1 : l2;\n        \n        return dummy.next;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Merge Sort (Bottom-Up) - O(1) Space",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(1)",
+      "description": "Iteratively merge sublists of increasing size (1, 2, 4, 8, ...). No recursion needed, achieving true O(1) extra space.",
+      "code": "class Solution {\n    public ListNode sortList(ListNode head) {\n        if (head == null || head.next == null) return head;\n        \n        // Count length\n        int length = 0;\n        ListNode curr = head;\n        while (curr != null) {\n            length++;\n            curr = curr.next;\n        }\n        \n        ListNode dummy = new ListNode(0, head);\n        \n        for (int size = 1; size < length; size *= 2) {\n            ListNode prev = dummy;\n            curr = dummy.next;\n            \n            while (curr != null) {\n                ListNode left = curr;\n                ListNode right = split(left, size);\n                curr = split(right, size);\n                prev = merge(left, right, prev);\n            }\n        }\n        \n        return dummy.next;\n    }\n    \n    private ListNode split(ListNode head, int size) {\n        for (int i = 1; head != null && i < size; i++) {\n            head = head.next;\n        }\n        if (head == null) return null;\n        ListNode next = head.next;\n        head.next = null;\n        return next;\n    }\n    \n    private ListNode merge(ListNode l1, ListNode l2, ListNode prev) {\n        while (l1 != null && l2 != null) {\n            if (l1.val <= l2.val) {\n                prev.next = l1;\n                l1 = l1.next;\n            } else {\n                prev.next = l2;\n                l2 = l2.next;\n            }\n            prev = prev.next;\n        }\n        prev.next = (l1 != null) ? l1 : l2;\n        while (prev.next != null) prev = prev.next;\n        return prev;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

@@ -20,6 +20,16 @@
     { "input": "words = [\"z\",\"x\"]", "output": "\"zx\"" },
     { "input": "words = [\"z\",\"x\",\"z\"]", "output": "\"\"" }
   ],
+  "solutions": [
+    {
+      "name": "Topological Sort (BFS)",
+      "timeComplexity": "O(C) where C = total chars in words",
+      "spaceComplexity": "O(1) (26 letters max)",
+      "description": "Compare adjacent words to extract ordering constraints. Build a directed graph and in-degree map. Topological sort via BFS. If result length != unique char count, invalid.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String alienOrder(String[] words) {\n        Map<Character, Set<Character>> adj = new HashMap<>();\n        Map<Character, Integer> indegree = new HashMap<>();\n        for (String w : words)\n            for (char c : w.toCharArray()) {\n                adj.putIfAbsent(c, new HashSet<>());\n                indegree.putIfAbsent(c, 0);\n            }\n        for (int i = 0; i < words.length - 1; i++) {\n            String w1 = words[i], w2 = words[i + 1];\n            if (w1.length() > w2.length() && w1.startsWith(w2)) return \"\";\n            for (int j = 0; j < Math.min(w1.length(), w2.length()); j++) {\n                if (w1.charAt(j) != w2.charAt(j)) {\n                    if (adj.get(w1.charAt(j)).add(w2.charAt(j)))\n                        indegree.merge(w2.charAt(j), 1, Integer::sum);\n                    break;\n                }\n            }\n        }\n        Queue<Character> queue = new LinkedList<>();\n        for (char c : indegree.keySet())\n            if (indegree.get(c) == 0) queue.offer(c);\n        StringBuilder sb = new StringBuilder();\n        while (!queue.isEmpty()) {\n            char c = queue.poll();\n            sb.append(c);\n            for (char next : adj.get(c))\n                if (indegree.merge(next, -1, Integer::sum) == 0) queue.offer(next);\n        }\n        return sb.length() == indegree.size() ? sb.toString() : \"\";\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "words = [\"wrt\",\"wrf\",\"er\",\"ett\",\"rftt\"]",

@@ -20,6 +20,16 @@
       "output": "16"
     }
   ],
+  "solutions": [
+    {
+      "name": "Modified Dijkstra (Min-Heap)",
+      "timeComplexity": "O(n^2 log n)",
+      "spaceComplexity": "O(n^2)",
+      "description": "Use a min-heap prioritized by the max elevation along the path. Start at (0,0) with value grid[0][0]. At each step, expand to neighbors, pushing max(current path max, neighbor elevation). First time we reach (n-1,n-1) is the answer.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int swimInWater(int[][] grid) {\n        int n = grid.length;\n        boolean[][] visited = new boolean[n][n];\n        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] - b[0]);\n        pq.offer(new int[]{grid[0][0], 0, 0});\n        int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};\n        while (!pq.isEmpty()) {\n            int[] cur = pq.poll();\n            int t = cur[0], i = cur[1], j = cur[2];\n            if (i == n - 1 && j == n - 1) return t;\n            if (visited[i][j]) continue;\n            visited[i][j] = true;\n            for (int[] d : dirs) {\n                int ni = i + d[0], nj = j + d[1];\n                if (ni >= 0 && ni < n && nj >= 0 && nj < n && !visited[ni][nj])\n                    pq.offer(new int[]{Math.max(t, grid[ni][nj]), ni, nj});\n            }\n        }\n        return -1;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "grid = [[0,2],[1,3]]", "output": "3" },
     {

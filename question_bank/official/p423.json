@@ -11,6 +11,16 @@
       "output": "[null, null, null, null, null, 1, 3, 4, 2, -1]"
     }
   ],
+  "solutions": [
+    {
+      "name": "Two Balanced Deques",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(n)",
+      "description": "Split elements into two deques (first half and second half). Keep balanced: first.size() == second.size() or first.size() + 1 == second.size(). Middle ops work at the boundary.",
+      "code": "class FrontMiddleBackQueue {\n    private java.util.Deque<Integer> first = new java.util.ArrayDeque<>();\n    private java.util.Deque<Integer> second = new java.util.ArrayDeque<>();\n    public FrontMiddleBackQueue() {}\n    private void balance() {\n        if (first.size() > second.size()) second.addFirst(first.pollLast());\n        if (second.size() > first.size() + 1) first.addLast(second.pollFirst());\n    }\n    public void pushFront(int val) { first.addFirst(val); balance(); }\n    public void pushMiddle(int val) { first.addLast(val); balance(); }\n    public void pushBack(int val) { second.addLast(val); balance(); }\n    public int popFront() {\n        if (second.isEmpty()) return -1;\n        int val = first.isEmpty() ? second.pollFirst() : first.pollFirst();\n        balance(); return val;\n    }\n    public int popMiddle() {\n        if (second.isEmpty()) return -1;\n        int val = first.size() == second.size() ? first.pollLast() : second.pollFirst();\n        balance(); return val;\n    }\n    public int popBack() {\n        if (second.isEmpty()) return -1;\n        int val = second.pollLast(); balance(); return val;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"FrontMiddleBackQueue\", \"pushFront\", \"pushBack\", \"pushMiddle\", \"pushMiddle\", \"popFront\", \"popMiddle\", \"popMiddle\", \"popBack\", \"popFront\"]\n[[], [1], [2], [3], [4], [], [], [], [], []]",

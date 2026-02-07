@@ -11,6 +11,16 @@
       "output": "[null,null,null,2,null,null,null,null,null,103,202,201,-1]"
     }
   ],
+  "solutions": [
+    {
+      "name": "Lazy Increment with Array",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(n)",
+      "description": "Use an array for stack and an increment array. Increment stores pending additions at each index. On pop, apply the pending increment and propagate it down to the element below.",
+      "code": "class CustomStack {\n    private int[] stack, inc;\n    private int top, maxSize;\n    public CustomStack(int maxSize) {\n        this.maxSize = maxSize; stack = new int[maxSize]; inc = new int[maxSize]; top = -1;\n    }\n    public void push(int x) { if (top < maxSize - 1) stack[++top] = x; }\n    public int pop() {\n        if (top < 0) return -1;\n        int val = stack[top] + inc[top];\n        if (top > 0) inc[top - 1] += inc[top];\n        inc[top] = 0; top--;\n        return val;\n    }\n    public void increment(int k, int val) {\n        int idx = Math.min(k - 1, top);\n        if (idx >= 0) inc[idx] += val;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"CustomStack\",\"push\",\"push\",\"pop\",\"push\",\"push\",\"push\",\"increment\",\"increment\",\"pop\",\"pop\",\"pop\",\"pop\"]\n[[3],[1],[2],[],[2],[3],[4],[5,100],[2,100],[],[],[],[]]",

@@ -15,6 +15,16 @@
       "output": "[null,null,null,null,null,null,73,null,null,null,141]"
     }
   ],
+  "solutions": [
+    {
+      "name": "HashMap + TreeMap",
+      "timeComplexity": "O(K log n) for top, O(log n) for others",
+      "spaceComplexity": "O(n)",
+      "description": "HashMap maps playerId to score. TreeMap (descending) maps score to count. top() iterates TreeMap collecting top K scores. addScore/reset update both maps.",
+      "code": "class Leaderboard {\n    private java.util.Map<Integer, Integer> scores = new java.util.HashMap<>();\n    private java.util.TreeMap<Integer, Integer> sorted = new java.util.TreeMap<>(java.util.Collections.reverseOrder());\n    public Leaderboard() {}\n    public void addScore(int playerId, int score) {\n        if (scores.containsKey(playerId)) {\n            int old = scores.get(playerId);\n            sorted.merge(old, -1, Integer::sum); if (sorted.get(old) == 0) sorted.remove(old);\n            score += old;\n        }\n        scores.put(playerId, score);\n        sorted.merge(score, 1, Integer::sum);\n    }\n    public int top(int K) {\n        int sum = 0, count = 0;\n        for (var e : sorted.entrySet()) {\n            int take = Math.min(e.getValue(), K - count);\n            sum += e.getKey() * take; count += take;\n            if (count == K) break;\n        }\n        return sum;\n    }\n    public void reset(int playerId) {\n        int old = scores.remove(playerId);\n        sorted.merge(old, -1, Integer::sum); if (sorted.get(old) == 0) sorted.remove(old);\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"Leaderboard\",\"addScore\",\"addScore\",\"addScore\",\"addScore\",\"addScore\",\"top\",\"reset\",\"reset\",\"addScore\",\"top\"]\n[[],[1,73],[2,56],[3,39],[4,51],[5,4],[1],[1],[2],[2,51],[3]]",

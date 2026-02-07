@@ -9,6 +9,16 @@
     { "input": "s = \"aaabbb\"", "output": "2" },
     { "input": "s = \"aba\"", "output": "2" }
   ],
+  "solutions": [
+    {
+      "name": "Interval DP",
+      "timeComplexity": "O(n^3)",
+      "spaceComplexity": "O(n^2)",
+      "description": "dp[i][j] = minimum turns to print s[i..j]. Base case: dp[i][i] = 1. For interval [i,j], if s[i]==s[k] for some k in (i,j], we can merge those prints, trying dp[i][k-1] + dp[k+1][j] for each such k.",
+      "code": "class Solution {\n    public int strangePrinter(String s) {\n        int n = s.length();\n        int[][] dp = new int[n][n];\n        for (int i = n - 1; i >= 0; i--) {\n            dp[i][i] = 1;\n            for (int j = i + 1; j < n; j++) {\n                dp[i][j] = dp[i][j - 1] + 1;\n                for (int k = i; k < j; k++) {\n                    if (s.charAt(k) == s.charAt(j)) {\n                        dp[i][j] = Math.min(dp[i][j], dp[i][k] + (k + 1 <= j - 1 ? dp[k + 1][j - 1] : 0));\n                    }\n                }\n            }\n        }\n        return dp[0][n - 1];\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "s = \"aaabbb\"", "output": "2" },
     { "input": "s = \"aba\"", "output": "2" }

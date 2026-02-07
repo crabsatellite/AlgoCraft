@@ -4,7 +4,13 @@
   "description": "# Word Search II\n\nGiven an `m x n` `board` of characters and a list of strings `words`, return *all words on the board*.\n\nEach word must be constructed from letters of sequentially adjacent cells, where **adjacent cells** are horizontally or vertically neighboring. The same letter cell may not be used more than once in a word.\n\n## Example 1:\n\n**Input:** board = [[\"o\",\"a\",\"a\",\"n\"],[\"e\",\"t\",\"a\",\"e\"],[\"i\",\"h\",\"k\",\"r\"],[\"i\",\"f\",\"l\",\"v\"]], words = [\"oath\",\"pea\",\"eat\",\"rain\"]\n**Output:** [\"eat\",\"oath\"]\n\n## Example 2:\n\n**Input:** board = [[\"a\",\"b\"],[\"c\",\"d\"]], words = [\"abcb\"]\n**Output:** []\n\n## Constraints:\n\n*   `m == board.length`\n*   `n == board[i].length`\n*   `1 <= m, n <= 12`\n*   `board[i][j]` is a lowercase English letter.\n*   `1 <= words.length <= 3 * 10^4`\n*   `1 <= words[i].length <= 10`\n*   `words[i]` consists of lowercase English letters.\n*   All the strings of `words` are unique.",
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public List<String> findWords(char[][] board, String[] words) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["Array", "String", "Backtracking", "Trie", "Matrix"],
+  "tags": [
+    "Array",
+    "String",
+    "Backtracking",
+    "Trie",
+    "Matrix"
+  ],
   "examples": [
     {
       "input": "board = [[\"o\",\"a\",\"a\",\"n\"],[\"e\",\"t\",\"a\",\"e\"],[\"i\",\"h\",\"k\",\"r\"],[\"i\",\"f\",\"l\",\"v\"]], words = [\"oath\",\"pea\",\"eat\",\"rain\"]",
@@ -41,6 +47,13 @@
       "description": "Build a Trie from the word list. DFS from each cell on the board, following trie paths. Prune branches when no trie child exists. Remove found words from trie to avoid duplicates.",
       "code": "import java.util.*;\n\nclass Solution {\n    private int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n    \n    public List<String> findWords(char[][] board, String[] words) {\n        // Build Trie\n        int[][] trie = new int[200001][26];\n        String[] endWord = new String[200001];\n        int cnt = 1;\n        \n        for (String word : words) {\n            int node = 0;\n            for (char c : word.toCharArray()) {\n                int idx = c - 'a';\n                if (trie[node][idx] == 0) trie[node][idx] = cnt++;\n                node = trie[node][idx];\n            }\n            endWord[node] = word;\n        }\n        \n        List<String> result = new ArrayList<>();\n        int m = board.length, n = board[0].length;\n        \n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                dfs(board, i, j, 0, trie, endWord, result);\n            }\n        }\n        return result;\n    }\n    \n    private void dfs(char[][] board, int r, int c, int node, int[][] trie, String[] endWord, List<String> result) {\n        if (r < 0 || r >= board.length || c < 0 || c >= board[0].length) return;\n        char ch = board[r][c];\n        if (ch == '#' || trie[node][ch - 'a'] == 0) return;\n        \n        node = trie[node][ch - 'a'];\n        if (endWord[node] != null) {\n            result.add(endWord[node]);\n            endWord[node] = null;\n        }\n        \n        board[r][c] = '#';\n        for (int[] d : dirs) dfs(board, r + d[0], c + d[1], node, trie, endWord, result);\n        board[r][c] = ch;\n    }\n}",
       "language": "java"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "board",
+      "file": "p103_board.png",
+      "caption": "Example 1: 4x4 Character Board"
     }
   ]
 }

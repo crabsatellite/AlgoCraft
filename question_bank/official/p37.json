@@ -13,6 +13,32 @@
     { "input": "s = \"cbaebabacd\", p = \"abc\"", "output": "[0,6]" },
     { "input": "s = \"abab\", p = \"ab\"", "output": "[0,1,2]" },
     { "input": "s = \"a\", p = \"a\"", "output": "[0]" },
-    { "input": "s = \"a\", p = \"b\"", "output": "[]" }
+    { "input": "s = \"a\", p = \"b\"", "output": "[]" },
+    {
+      "input": "s = \"ab\", p = \"abc\"",
+      "output": "[]",
+      "description": "p is longer than s"
+    },
+    {
+      "input": "s = \"aabbcc\", p = \"abc\"",
+      "output": "[]",
+      "description": "p with duplicates not matching"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Sliding Window with Frequency Array",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Fixed-size sliding window with frequency comparison. Compare arrays when window is complete.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<Integer> findAnagrams(String s, String p) {\n        List<Integer> result = new ArrayList<>();\n        if (s.length() < p.length()) return result;\n        \n        int[] pCount = new int[26];\n        int[] windowCount = new int[26];\n        \n        for (char c : p.toCharArray()) {\n            pCount[c - 'a']++;\n        }\n        \n        int windowSize = p.length();\n        \n        for (int i = 0; i < s.length(); i++) {\n            windowCount[s.charAt(i) - 'a']++;\n            \n            if (i >= windowSize) {\n                windowCount[s.charAt(i - windowSize) - 'a']--;\n            }\n            \n            if (Arrays.equals(pCount, windowCount)) {\n                result.add(i - windowSize + 1);\n            }\n        }\n        \n        return result;\n    }\n}"
+    },
+    {
+      "name": "Sliding Window with Match Count",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Track number of matching character frequencies. When matches == 26, found an anagram.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<Integer> findAnagrams(String s, String p) {\n        List<Integer> result = new ArrayList<>();\n        if (s.length() < p.length()) return result;\n        \n        int[] pCount = new int[26];\n        int[] sCount = new int[26];\n        \n        for (char c : p.toCharArray()) {\n            pCount[c - 'a']++;\n        }\n        \n        int matches = 0;\n        int windowSize = p.length();\n        \n        // Initialize matches\n        for (int i = 0; i < 26; i++) {\n            if (pCount[i] == 0) matches++;\n        }\n        \n        for (int i = 0; i < s.length(); i++) {\n            int idx = s.charAt(i) - 'a';\n            sCount[idx]++;\n            if (sCount[idx] == pCount[idx]) matches++;\n            else if (sCount[idx] == pCount[idx] + 1) matches--;\n            \n            if (i >= windowSize) {\n                int leftIdx = s.charAt(i - windowSize) - 'a';\n                sCount[leftIdx]--;\n                if (sCount[leftIdx] == pCount[leftIdx]) matches++;\n                else if (sCount[leftIdx] == pCount[leftIdx] - 1) matches--;\n            }\n            \n            if (matches == 26) {\n                result.add(i - windowSize + 1);\n            }\n        }\n        \n        return result;\n    }\n}"
+    }
   ]
 }

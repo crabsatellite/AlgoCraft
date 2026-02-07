@@ -12,6 +12,25 @@
   "tests": [
     { "input": "n = 5, bad = 4", "output": "4" },
     { "input": "n = 1, bad = 1", "output": "1" },
-    { "input": "n = 2147483647, bad = 2147483647", "output": "2147483647" }
+    { "input": "n = 2147483647, bad = 2147483647", "output": "2147483647" },
+    { "input": "n = 5, bad = 1", "output": "1", "note": "首个版本就是坏的" },
+    { "input": "n = 10, bad = 5", "output": "5", "note": "中间版本坏" },
+    { "input": "n = 2, bad = 2", "output": "2", "note": "两个版本，最后一个坏" }
+  ],
+  "solutions": [
+    {
+      "name": "二分查找",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(1)",
+      "description": "二分查找第一个坏版本。如果 mid 是坏版本，说明第一个坏版本在左边（包含 mid）；否则在右边。注意使用 left + (right - left) / 2 防止整数溢出。",
+      "code": "/* The isBadVersion API is defined in the parent class VersionControl.\n      boolean isBadVersion(int version); */\n\npublic class Solution extends VersionControl {\n    public int firstBadVersion(int n) {\n        int left = 1, right = n;\n        \n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            \n            if (isBadVersion(mid)) {\n                right = mid; // 第一个坏版本在 mid 或左边\n            } else {\n                left = mid + 1; // 第一个坏版本在右边\n            }\n        }\n        \n        return left;\n    }\n}"
+    },
+    {
+      "name": "二分查找 - 闭区间写法",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(1)",
+      "description": "使用闭区间 [left, right] 的写法。当 left == right 时循环结束，此时左右指针重合在第一个坏版本上。",
+      "code": "/* The isBadVersion API is defined in the parent class VersionControl.\n      boolean isBadVersion(int version); */\n\npublic class Solution extends VersionControl {\n    public int firstBadVersion(int n) {\n        int left = 1, right = n;\n        \n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            \n            if (isBadVersion(mid)) {\n                if (mid == 1 || !isBadVersion(mid - 1)) {\n                    return mid; // 找到第一个坏版本\n                }\n                right = mid - 1;\n            } else {\n                left = mid + 1;\n            }\n        }\n        \n        return left;\n    }\n}"
+    }
   ]
 }

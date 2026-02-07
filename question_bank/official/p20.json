@@ -25,6 +25,43 @@
       "output": "[[0,0,0,0],[0,4,5,0],[0,3,1,0]]"
     },
     { "input": "matrix = [[1]]", "output": "[[1]]" },
-    { "input": "matrix = [[0]]", "output": "[[0]]" }
+    { "input": "matrix = [[0]]", "output": "[[0]]" },
+    {
+      "input": "matrix = [[1,2,3,4]]",
+      "output": "[[1,2,3,4]]",
+      "description": "Single row matrix without zero"
+    },
+    {
+      "input": "matrix = [[1],[0],[3]]",
+      "output": "[[0],[0],[0]]",
+      "description": "Single column matrix with zero"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p20_example1.png",
+      "caption": "Matrix transformation - Set zeros"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "O(1) Space - Use First Row/Column as Markers",
+      "description": "## Approach\n\nUse first row and column to mark which rows/columns should be zeroed. Handle first row/column separately.\n\n## Complexity Analysis\n- Time Complexity: O(m*n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int[][] setZeroes(int[][] matrix) {\n        int m = matrix.length, n = matrix[0].length;\n        boolean firstRowZero = false, firstColZero = false;\n        \n        // Check if first row/column has zeros\n        for (int j = 0; j < n; j++) {\n            if (matrix[0][j] == 0) firstRowZero = true;\n        }\n        for (int i = 0; i < m; i++) {\n            if (matrix[i][0] == 0) firstColZero = true;\n        }\n        \n        // Use first row/column as markers\n        for (int i = 1; i < m; i++) {\n            for (int j = 1; j < n; j++) {\n                if (matrix[i][j] == 0) {\n                    matrix[i][0] = 0;\n                    matrix[0][j] = 0;\n                }\n            }\n        }\n        \n        // Zero out cells based on markers\n        for (int i = 1; i < m; i++) {\n            for (int j = 1; j < n; j++) {\n                if (matrix[i][0] == 0 || matrix[0][j] == 0) {\n                    matrix[i][j] = 0;\n                }\n            }\n        }\n        \n        // Handle first row and column\n        if (firstRowZero) {\n            for (int j = 0; j < n; j++) matrix[0][j] = 0;\n        }\n        if (firstColZero) {\n            for (int i = 0; i < m; i++) matrix[i][0] = 0;\n        }\n        \n        return matrix;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "O(m+n) Space - Boolean Arrays",
+      "description": "## Approach\n\nUse two boolean arrays to track which rows and columns need to be zeroed.\n\n## Complexity Analysis\n- Time Complexity: O(m*n)\n- Space Complexity: O(m+n)",
+      "code": "class Solution {\n    public int[][] setZeroes(int[][] matrix) {\n        int m = matrix.length, n = matrix[0].length;\n        boolean[] rowZero = new boolean[m];\n        boolean[] colZero = new boolean[n];\n        \n        // Find zeros\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (matrix[i][j] == 0) {\n                    rowZero[i] = true;\n                    colZero[j] = true;\n                }\n            }\n        }\n        \n        // Set zeros\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (rowZero[i] || colZero[j]) {\n                    matrix[i][j] = 0;\n                }\n            }\n        }\n        \n        return matrix;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "HashSet Approach",
+      "description": "## Approach\n\nStore zero positions in HashSets, then iterate and set zeros.\n\n## Complexity Analysis\n- Time Complexity: O(m*n)\n- Space Complexity: O(m+n)",
+      "code": "class Solution {\n    public int[][] setZeroes(int[][] matrix) {\n        Set<Integer> rows = new HashSet<>();\n        Set<Integer> cols = new HashSet<>();\n        int m = matrix.length, n = matrix[0].length;\n        \n        // Find all zero positions\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (matrix[i][j] == 0) {\n                    rows.add(i);\n                    cols.add(j);\n                }\n            }\n        }\n        \n        // Set zeros\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (rows.contains(i) || cols.contains(j)) {\n                    matrix[i][j] = 0;\n                }\n            }\n        }\n        \n        return matrix;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

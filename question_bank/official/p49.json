@@ -15,6 +15,39 @@
     { "input": "s = \"3[a2[c]]\"", "output": "\"accaccacc\"" },
     { "input": "s = \"2[abc]3[cd]ef\"", "output": "\"abcabccdcdcdef\"" },
     { "input": "s = \"10[a]\"", "output": "\"aaaaaaaaaa\"" },
-    { "input": "s = \"2[2[b]]\"", "output": "\"bbbb\"" }
+    { "input": "s = \"2[2[b]]\"", "output": "\"bbbb\"" },
+    {
+      "input": "s = \"abc\"",
+      "output": "\"abc\"",
+      "description": "No encoding - plain string"
+    },
+    {
+      "input": "s = \"2[a2[b2[c]]]\"",
+      "output": "\"abccbccabccbcc\"",
+      "description": "Deep nesting"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "双栈法",
+      "timeComplexity": "O(n × maxK)",
+      "spaceComplexity": "O(n)",
+      "description": "使用两个栈：一个存储重复次数，一个存储当前构建的字符串。遇到 '[' 时保存当前状态入栈，遇到 ']' 时弹出并重复拼接字符串。",
+      "code": "class Solution {\n    public String decodeString(String s) {\n        Deque<Integer> countStack = new ArrayDeque<>();\n        Deque<StringBuilder> stringStack = new ArrayDeque<>();\n        StringBuilder current = new StringBuilder();\n        int k = 0;\n        \n        for (char c : s.toCharArray()) {\n            if (Character.isDigit(c)) {\n                k = k * 10 + (c - '0');\n            } else if (c == '[') {\n                // 保存当前状态入栈\n                countStack.push(k);\n                stringStack.push(current);\n                // 重置\n                k = 0;\n                current = new StringBuilder();\n            } else if (c == ']') {\n                // 弹出并重复\n                int repeatCount = countStack.pop();\n                StringBuilder prev = stringStack.pop();\n                String repeated = current.toString().repeat(repeatCount);\n                current = prev.append(repeated);\n            } else {\n                current.append(c);\n            }\n        }\n        \n        return current.toString();\n    }\n}"
+    },
+    {
+      "name": "递归法",
+      "timeComplexity": "O(n × maxK)",
+      "spaceComplexity": "O(n)",
+      "description": "递归处理嵌套结构。遇到 '[' 递归处理内部，遇到 ']' 返回当前结果。使用全局索引跟踪解析位置。",
+      "code": "class Solution {\n    private int index = 0;\n    \n    public String decodeString(String s) {\n        StringBuilder result = new StringBuilder();\n        \n        while (index < s.length() && s.charAt(index) != ']') {\n            char c = s.charAt(index);\n            \n            if (Character.isDigit(c)) {\n                // 解析数字\n                int k = 0;\n                while (index < s.length() && Character.isDigit(s.charAt(index))) {\n                    k = k * 10 + (s.charAt(index) - '0');\n                    index++;\n                }\n                \n                index++; // 跳过 '['\n                String decoded = decodeString(s); // 递归解析\n                index++; // 跳过 ']'\n                \n                // 重复 k 次\n                for (int i = 0; i < k; i++) {\n                    result.append(decoded);\n                }\n            } else {\n                result.append(c);\n                index++;\n            }\n        }\n        \n        return result.toString();\n    }\n}"
+    },
+    {
+      "name": "单栈法",
+      "timeComplexity": "O(n × maxK)",
+      "spaceComplexity": "O(n)",
+      "description": "使用单个栈存储字符和数字。遇到 ']' 时从栈中弹出字符直到 '['，再弹出数字进行重复。",
+      "code": "class Solution {\n    public String decodeString(String s) {\n        Deque<Object> stack = new ArrayDeque<>();\n        int k = 0;\n        \n        for (char c : s.toCharArray()) {\n            if (Character.isDigit(c)) {\n                k = k * 10 + (c - '0');\n            } else if (c == '[') {\n                stack.push(k);\n                k = 0;\n            } else if (c == ']') {\n                // 收集括号内的字符串\n                StringBuilder sb = new StringBuilder();\n                while (!stack.isEmpty() && stack.peek() instanceof String) {\n                    sb.insert(0, stack.pop());\n                }\n                \n                // 弹出重复次数\n                int repeatCount = (Integer) stack.pop();\n                String repeated = sb.toString().repeat(repeatCount);\n                stack.push(repeated);\n            } else {\n                stack.push(String.valueOf(c));\n            }\n        }\n        \n        // 收集结果\n        StringBuilder result = new StringBuilder();\n        while (!stack.isEmpty()) {\n            result.insert(0, stack.pop());\n        }\n        \n        return result.toString();\n    }\n}"
+    }
   ]
 }

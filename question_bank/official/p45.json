@@ -23,6 +23,37 @@
     {
       "input": "temperatures = [89,62,70,58,47,47,46,76,100,70]",
       "output": "[8,1,5,4,3,2,1,1,0,0]"
+    },
+    {
+      "input": "temperatures = [100,90,80,70]",
+      "output": "[0,0,0,0]",
+      "description": "Decreasing temperatures - no warmer day"
+    },
+    {
+      "input": "temperatures = [50]",
+      "output": "[0]",
+      "description": "Single day"
+    },
+    {
+      "input": "temperatures = [70,70,70,70]",
+      "output": "[0,0,0,0]",
+      "description": "All same temperatures"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Monotonic Stack - Decreasing",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use monotonic decreasing stack storing indices. When warmer temp found, pop and calculate days.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] dailyTemperatures(int[] temperatures) {\n        int n = temperatures.length;\n        int[] result = new int[n];\n        Deque<Integer> stack = new ArrayDeque<>(); // Store indices\n        \n        for (int i = 0; i < n; i++) {\n            // Pop all colder temperatures\n            while (!stack.isEmpty() && \n                   temperatures[i] > temperatures[stack.peek()]) {\n                int prevIndex = stack.pop();\n                result[prevIndex] = i - prevIndex;\n            }\n            stack.push(i);\n        }\n        \n        // Remaining indices have no warmer day (default 0)\n        return result;\n    }\n}"
+    },
+    {
+      "name": "Traverse from Right",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Traverse from right. For each day, use already computed answers to jump to potential warmer days.",
+      "code": "class Solution {\n    public int[] dailyTemperatures(int[] temperatures) {\n        int n = temperatures.length;\n        int[] result = new int[n];\n        \n        for (int i = n - 2; i >= 0; i--) {\n            int j = i + 1;\n            \n            while (j < n) {\n                if (temperatures[j] > temperatures[i]) {\n                    result[i] = j - i;\n                    break;\n                } else if (result[j] == 0) {\n                    // No warmer day after j\n                    result[i] = 0;\n                    break;\n                } else {\n                    // Jump to the next warmer day after j\n                    j = j + result[j];\n                }\n            }\n        }\n        \n        return result;\n    }\n}"
     }
   ]
 }

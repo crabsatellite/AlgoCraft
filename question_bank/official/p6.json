@@ -11,5 +11,19 @@
     { "input": "nums = [-1,1,0,-3,3]", "output": "[0,0,9,0,0]" },
     { "input": "nums = [0,0]", "output": "[0,0]" },
     { "input": "nums = [1,0]", "output": "[0,1]" }
+  ],
+  "solutions": [
+    {
+      "name": "Prefix and Suffix Products",
+      "description": "## Approach\n\nFor each position i, we need product of all elements except nums[i]. This equals (product of all elements before i) × (product of all elements after i).\n\n1. First pass: calculate prefix products\n2. Second pass: multiply with suffix products\n\n## Complexity Analysis\n- Time Complexity: O(n) - Two passes through the array\n- Space Complexity: O(1) - Output array doesn't count as extra space",
+      "code": "class Solution {\n    public int[] productExceptSelf(int[] nums) {\n        int n = nums.length;\n        int[] answer = new int[n];\n        \n        // Calculate prefix products\n        answer[0] = 1;\n        for (int i = 1; i < n; i++) {\n            answer[i] = answer[i - 1] * nums[i - 1];\n        }\n        \n        // Multiply with suffix products\n        int suffix = 1;\n        for (int i = n - 1; i >= 0; i--) {\n            answer[i] *= suffix;\n            suffix *= nums[i];\n        }\n        \n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two Arrays (Prefix and Suffix)",
+      "description": "## Approach\n\nUse two separate arrays to store prefix and suffix products, then multiply them together.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n) - Using two extra arrays",
+      "code": "class Solution {\n    public int[] productExceptSelf(int[] nums) {\n        int n = nums.length;\n        int[] prefix = new int[n];\n        int[] suffix = new int[n];\n        int[] answer = new int[n];\n        \n        // Calculate prefix products\n        prefix[0] = 1;\n        for (int i = 1; i < n; i++) {\n            prefix[i] = prefix[i - 1] * nums[i - 1];\n        }\n        \n        // Calculate suffix products\n        suffix[n - 1] = 1;\n        for (int i = n - 2; i >= 0; i--) {\n            suffix[i] = suffix[i + 1] * nums[i + 1];\n        }\n        \n        // Combine\n        for (int i = 0; i < n; i++) {\n            answer[i] = prefix[i] * suffix[i];\n        }\n        \n        return answer;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

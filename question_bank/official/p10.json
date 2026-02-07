@@ -9,7 +9,37 @@
   "tests": [
     { "input": "nums = [1,1,1], k = 2", "output": "2" },
     { "input": "nums = [1,2,3], k = 3", "output": "2" },
-    { "input": "nums = [1,-1,1], k = 0", "output": "1" },
-    { "input": "nums = [1], k = 0", "output": "0" }
+    { "input": "nums = [1,-1,1], k = 0", "output": "2" },
+    { "input": "nums = [1], k = 0", "output": "0" },
+    {
+      "input": "nums = [-1,-2,-3], k = -3",
+      "output": "2",
+      "description": "All negative numbers with negative k"
+    },
+    {
+      "input": "nums = [1,1,1,1], k = 2",
+      "output": "3",
+      "description": "Multiple overlapping subarrays"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Prefix Sum with HashMap",
+      "description": "## Approach\n\nUse prefix sum and HashMap. For each position, check how many previous prefix sums equal (currentSum - k).\n\n## Key Insight\n\nIf prefixSum[j] - prefixSum[i] = k, then subarray [i+1, j] has sum k.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int subarraySum(int[] nums, int k) {\n        Map<Integer, Integer> prefixCount = new HashMap<>();\n        prefixCount.put(0, 1);  // Empty prefix has sum 0\n        \n        int sum = 0;\n        int count = 0;\n        \n        for (int num : nums) {\n            sum += num;\n            \n            // Check if there's a prefix with sum = (sum - k)\n            if (prefixCount.containsKey(sum - k)) {\n                count += prefixCount.get(sum - k);\n            }\n            \n            prefixCount.put(sum, prefixCount.getOrDefault(sum, 0) + 1);\n        }\n        \n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Brute Force with Prefix Sum",
+      "description": "## Approach\n\nCalculate prefix sums, then check all possible subarrays.\n\n## Complexity Analysis\n- Time Complexity: O(n²)\n- Space Complexity: O(n) for prefix sum array",
+      "code": "class Solution {\n    public int subarraySum(int[] nums, int k) {\n        int n = nums.length;\n        int[] prefix = new int[n + 1];\n        \n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n        \n        int count = 0;\n        for (int i = 0; i < n; i++) {\n            for (int j = i + 1; j <= n; j++) {\n                if (prefix[j] - prefix[i] == k) {\n                    count++;\n                }\n            }\n        }\n        \n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Brute Force",
+      "description": "## Approach\n\nCheck all possible subarrays and calculate their sums.\n\n## Complexity Analysis\n- Time Complexity: O(n²)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int subarraySum(int[] nums, int k) {\n        int count = 0;\n        \n        for (int i = 0; i < nums.length; i++) {\n            int sum = 0;\n            for (int j = i; j < nums.length; j++) {\n                sum += nums[j];\n                if (sum == k) {\n                    count++;\n                }\n            }\n        }\n        \n        return count;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

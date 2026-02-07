@@ -1,0 +1,44 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '16px' }}}%%
+flowchart TD
+    subgraph INPUT["📝 Input: words = [wrt, wrf, er, ett, rftt]"]
+        W1["wrt"]
+        W2["wrf"]
+        W3["er"]
+        W4["ett"]
+        W5["rftt"]
+    end
+    
+    subgraph COMPARE["🔍 Compare Adjacent Words"]
+        C1["wrt vs wrf → t < f"]
+        C2["wrf vs er → w < e"]
+        C3["er vs ett → r < t"]
+        C4["ett vs rftt → e < r"]
+    end
+    
+    subgraph GRAPH["📊 Build Directed Graph"]
+        direction LR
+        T1((t)) --> F1((f))
+        W((w)) --> E((e))
+        R1((r)) --> T2((t))
+        E2((e)) --> R2((r))
+    end
+    
+    subgraph TOPO["🔄 Topological Sort (BFS)"]
+        direction LR
+        S1["indegree=0: w"] --> S2["w → e<br/>indegree=0: e"]
+        S2 --> S3["e → r<br/>indegree=0: r"]
+        S3 --> S4["r → t<br/>indegree=0: t"]
+        S4 --> S5["t → f<br/>indegree=0: f"]
+    end
+    
+    subgraph RESULT["✅ Result: wertf"]
+        RES["Alien alphabet order:<br/>w → e → r → t → f"]
+    end
+    
+    INPUT --> COMPARE --> GRAPH --> TOPO --> RESULT
+    
+    style INPUT fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+    style COMPARE fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style GRAPH fill:#e3f2fd,stroke:#2196f3,stroke-width:2px
+    style TOPO fill:#fce4ec,stroke:#e91e63,stroke-width:2px
+    style RESULT fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px

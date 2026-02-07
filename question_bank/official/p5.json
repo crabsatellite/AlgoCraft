@@ -17,6 +17,28 @@
     { "input": "nums = [1,1,1,2,2,3], k = 2", "output": "[1,2]" },
     { "input": "nums = [1], k = 1", "output": "[1]" },
     { "input": "nums = [4,1,-1,2,-1,2,3], k = 2", "output": "[-1,2]" },
-    { "input": "nums = [1,2,2,3,3,3], k = 1", "output": "[3]" }
+    { "input": "nums = [1,2,2,3,3,3], k = 1", "output": "[3]" },
+    { "input": "nums = [1,1,2,2,3,3], k = 3", "output": "[1,2,3]" },
+    { "input": "nums = [-1,-1,-1,2,2,3], k = 2", "output": "[-1,2]" }
+  ],
+  "solutions": [
+    {
+      "name": "Bucket Sort",
+      "description": "## Approach\n\nUse bucket sort where index represents frequency. Create buckets for each possible frequency (1 to n), then collect from highest frequency buckets.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int[] topKFrequent(int[] nums, int k) {\n        Map<Integer, Integer> freqMap = new HashMap<>();\n        for (int num : nums) {\n            freqMap.put(num, freqMap.getOrDefault(num, 0) + 1);\n        }\n        \n        List<Integer>[] buckets = new List[nums.length + 1];\n        for (int i = 0; i < buckets.length; i++) {\n            buckets[i] = new ArrayList<>();\n        }\n        \n        for (Map.Entry<Integer, Integer> entry : freqMap.entrySet()) {\n            buckets[entry.getValue()].add(entry.getKey());\n        }\n        \n        int[] result = new int[k];\n        int idx = 0;\n        \n        for (int i = buckets.length - 1; i >= 0 && idx < k; i--) {\n            for (int num : buckets[i]) {\n                result[idx++] = num;\n                if (idx == k) break;\n            }\n        }\n        \n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Min Heap",
+      "description": "## Approach\n\nUse a min heap of size k to keep track of the k most frequent elements. The heap stores entries by frequency.\n\n## Complexity Analysis\n- Time Complexity: O(n log k)\n- Space Complexity: O(n + k)",
+      "code": "class Solution {\n    public int[] topKFrequent(int[] nums, int k) {\n        Map<Integer, Integer> freqMap = new HashMap<>();\n        for (int num : nums) {\n            freqMap.put(num, freqMap.getOrDefault(num, 0) + 1);\n        }\n        \n        PriorityQueue<Map.Entry<Integer, Integer>> minHeap = \n            new PriorityQueue<>((a, b) -> a.getValue() - b.getValue());\n        \n        for (Map.Entry<Integer, Integer> entry : freqMap.entrySet()) {\n            minHeap.offer(entry);\n            if (minHeap.size() > k) {\n                minHeap.poll();\n            }\n        }\n        \n        int[] result = new int[k];\n        for (int i = 0; i < k; i++) {\n            result[i] = minHeap.poll().getKey();\n        }\n        \n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "QuickSelect",
+      "description": "## Approach\n\nUse QuickSelect algorithm to find the kth most frequent element in O(n) average time.\n\n## Complexity Analysis\n- Time Complexity: O(n) average, O(n²) worst case\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int[] topKFrequent(int[] nums, int k) {\n        Map<Integer, Integer> freqMap = new HashMap<>();\n        for (int num : nums) {\n            freqMap.put(num, freqMap.getOrDefault(num, 0) + 1);\n        }\n        \n        int[] unique = new int[freqMap.size()];\n        int i = 0;\n        for (int num : freqMap.keySet()) {\n            unique[i++] = num;\n        }\n        \n        int n = unique.length;\n        quickSelect(unique, freqMap, 0, n - 1, n - k);\n        \n        return Arrays.copyOfRange(unique, n - k, n);\n    }\n    \n    private void quickSelect(int[] arr, Map<Integer, Integer> freq, int left, int right, int k) {\n        if (left >= right) return;\n        \n        int pivot = partition(arr, freq, left, right);\n        \n        if (pivot == k) return;\n        else if (pivot < k) quickSelect(arr, freq, pivot + 1, right, k);\n        else quickSelect(arr, freq, left, pivot - 1, k);\n    }\n    \n    private int partition(int[] arr, Map<Integer, Integer> freq, int left, int right) {\n        int pivotFreq = freq.get(arr[right]);\n        int i = left;\n        \n        for (int j = left; j < right; j++) {\n            if (freq.get(arr[j]) < pivotFreq) {\n                swap(arr, i, j);\n                i++;\n            }\n        }\n        swap(arr, i, right);\n        return i;\n    }\n    \n    private void swap(int[] arr, int i, int j) {\n        int temp = arr[i];\n        arr[i] = arr[j];\n        arr[j] = temp;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

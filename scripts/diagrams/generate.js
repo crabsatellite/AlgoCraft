@@ -6,10 +6,12 @@
  * Converts Mermaid (.mmd) files to PNG images for algorithm problem visualization.
  *
  * Usage:
- *   node generate.js              # Generate all diagrams
- *   node generate.js --problem 94 # Generate diagrams for problem 94
- *   node generate.js --watch      # Watch mode
- *   node generate.js --clean      # Remove all generated images
+ *   node generate.js                      # Generate all diagrams
+ *   node generate.js p24_example1         # Generate specific diagram(s) by name
+ *   node generate.js p24_example1 p25_example1  # Multiple specific diagrams
+ *   node generate.js --problem 94         # Generate diagrams for problem 94
+ *   node generate.js --watch              # Watch mode
+ *   node generate.js --clean              # Remove all generated images
  */
 
 const { execSync, spawn } = require("child_process");
@@ -62,9 +64,14 @@ program
   .option("-w, --watch", "Watch mode - regenerate on file change")
   .option("-c, --clean", "Remove all generated images")
   .option("-v, --verbose", "Verbose output")
+  .argument(
+    "[names...]",
+    "Specific diagram names to generate (without extension)",
+  )
   .parse();
 
 const options = program.opts();
+const diagramNames = program.args;
 
 /**
  * Ensure output directory exists
@@ -86,7 +93,23 @@ async function writeMermaidConfig() {
 /**
  * Get all Mermaid files
  */
-async function getMermaidFiles(problemId = null) {
+async function getMermaidFiles(problemId = null, specificNames = []) {
+  // If specific names provided, find those exact files
+  if (specificNames && specificNames.length > 0) {
+    const files = [];
+    for (const name of specificNames) {
+      const fileName = name.endsWith(".mmd") ? name : `${name}.mmd`;
+      const filePath = path.join(MERMAID_DIR, fileName);
+      if (await fs.pathExists(filePath)) {
+        files.push(filePath);
+      } else {
+        console.log(`  ⚠️  File not found: ${fileName}`);
+      }
+    }
+    return files;
+  }
+
+  // Otherwise use pattern matching
   const pattern = problemId
     ? path.join(MERMAID_DIR, `p${problemId}_*.mmd`)
     : path.join(MERMAID_DIR, "*.mmd");
@@ -127,13 +150,13 @@ async function generateDiagram(mmdFile, configPath) {
 /**
  * Generate all diagrams
  */
-async function generateAll(problemId = null) {
+async function generateAll(problemId = null, specificNames = []) {
   console.log("\n🎨 AlgoCraft Diagram Generator\n");
 
   await ensureOutputDir();
   const configPath = await writeMermaidConfig();
 
-  const files = await getMermaidFiles(problemId);
+  const files = await getMermaidFiles(problemId, specificNames);
 
   if (files.length === 0) {
     console.log("📭 No Mermaid files found.");
@@ -250,7 +273,10 @@ async function main() {
     } else if (options.watch) {
       await watchMode();
     } else if (options.problem) {
-      await generateAll(options.problem);
+      await generateAll(options.problem, []);
+    } else if (diagramNames.length > 0) {
+      // Generate specific diagrams by name
+      await generateAll(null, diagramNames);
     } else {
       await generateAll();
     }

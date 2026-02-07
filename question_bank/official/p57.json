@@ -14,6 +14,39 @@
     { "input": "nums1 = [1,2], nums2 = [3,4]", "output": "2.5" },
     { "input": "nums1 = [0,0], nums2 = [0,0]", "output": "0.0" },
     { "input": "nums1 = [], nums2 = [1]", "output": "1.0" },
-    { "input": "nums1 = [2], nums2 = []", "output": "2.0" }
+    { "input": "nums1 = [2], nums2 = []", "output": "2.0" },
+    {
+      "input": "nums1 = [1,2,3,4,5], nums2 = [6,7,8]",
+      "output": "4.5",
+      "note": "不等长数组"
+    },
+    {
+      "input": "nums1 = [-5,-3,-1], nums2 = [2,4,6]",
+      "output": "0.5",
+      "note": "负数与正数混合"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "二分查找划分",
+      "timeComplexity": "O(log(min(m,n)))",
+      "spaceComplexity": "O(1)",
+      "description": "在较短的数组上进行二分查找，找到一个切分点，使得左边所有元素都小于等于右边所有元素。中位数由左边最大和右边最小的元素决定。",
+      "code": "class Solution {\n    public double findMedianSortedArrays(int[] nums1, int[] nums2) {\n        // 确保 nums1 是较短的数组\n        if (nums1.length > nums2.length) {\n            return findMedianSortedArrays(nums2, nums1);\n        }\n        \n        int m = nums1.length, n = nums2.length;\n        int left = 0, right = m;\n        \n        while (left <= right) {\n            int i = (left + right) / 2;  // nums1 的切分点\n            int j = (m + n + 1) / 2 - i; // nums2 的切分点\n            \n            int maxLeft1 = (i == 0) ? Integer.MIN_VALUE : nums1[i - 1];\n            int minRight1 = (i == m) ? Integer.MAX_VALUE : nums1[i];\n            int maxLeft2 = (j == 0) ? Integer.MIN_VALUE : nums2[j - 1];\n            int minRight2 = (j == n) ? Integer.MAX_VALUE : nums2[j];\n            \n            if (maxLeft1 <= minRight2 && maxLeft2 <= minRight1) {\n                // 找到正确的切分\n                int maxLeft = Math.max(maxLeft1, maxLeft2);\n                int minRight = Math.min(minRight1, minRight2);\n                \n                if ((m + n) % 2 == 0) {\n                    return (maxLeft + minRight) / 2.0;\n                } else {\n                    return maxLeft;\n                }\n            } else if (maxLeft1 > minRight2) {\n                right = i - 1;\n            } else {\n                left = i + 1;\n            }\n        }\n        \n        return 0.0;\n    }\n}"
+    },
+    {
+      "name": "合并数组法",
+      "timeComplexity": "O(m + n)",
+      "spaceComplexity": "O(m + n)",
+      "description": "先合并两个有序数组，然后直接取中位数。虽然不满足 O(log(m+n)) 的要求，但代码简单易懂，适合面试时快速实现。",
+      "code": "class Solution {\n    public double findMedianSortedArrays(int[] nums1, int[] nums2) {\n        int m = nums1.length, n = nums2.length;\n        int[] merged = new int[m + n];\n        \n        int i = 0, j = 0, k = 0;\n        while (i < m && j < n) {\n            if (nums1[i] <= nums2[j]) {\n                merged[k++] = nums1[i++];\n            } else {\n                merged[k++] = nums2[j++];\n            }\n        }\n        \n        while (i < m) merged[k++] = nums1[i++];\n        while (j < n) merged[k++] = nums2[j++];\n        \n        int total = m + n;\n        if (total % 2 == 0) {\n            return (merged[total / 2 - 1] + merged[total / 2]) / 2.0;\n        } else {\n            return merged[total / 2];\n        }\n    }\n}"
+    },
+    {
+      "name": "双指针找第k小",
+      "timeComplexity": "O(m + n)",
+      "spaceComplexity": "O(1)",
+      "description": "使用双指针遍历两个数组，不真正合并，只记录遍历过程中的第 k 和 k+1 个元素（其中 k 是中位索引）。空间复杂度优化为 O(1)。",
+      "code": "class Solution {\n    public double findMedianSortedArrays(int[] nums1, int[] nums2) {\n        int m = nums1.length, n = nums2.length;\n        int total = m + n;\n        int mid = total / 2;\n        \n        int i = 0, j = 0;\n        int prev = 0, curr = 0;\n        \n        for (int count = 0; count <= mid; count++) {\n            prev = curr;\n            \n            if (i < m && (j >= n || nums1[i] <= nums2[j])) {\n                curr = nums1[i++];\n            } else {\n                curr = nums2[j++];\n            }\n        }\n        \n        if (total % 2 == 0) {\n            return (prev + curr) / 2.0;\n        } else {\n            return curr;\n        }\n    }\n}"
+    }
   ]
 }

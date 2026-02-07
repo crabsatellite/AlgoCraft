@@ -13,6 +13,32 @@
     { "input": "s = \"ABAB\", k = 2", "output": "4" },
     { "input": "s = \"AABABBA\", k = 1", "output": "4" },
     { "input": "s = \"AAAA\", k = 2", "output": "4" },
-    { "input": "s = \"ABBB\", k = 2", "output": "4" }
+    { "input": "s = \"ABBB\", k = 2", "output": "4" },
+    {
+      "input": "s = \"ABCD\", k = 0",
+      "output": "1",
+      "description": "No replacement allowed"
+    },
+    {
+      "input": "s = \"A\", k = 0",
+      "output": "1",
+      "description": "Single character"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Sliding Window - Track Max Count",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Use sliding window tracking the count of each character. Valid window: windowSize - maxCount <= k. Shrink window when invalid.",
+      "code": "class Solution {\n    public int characterReplacement(String s, int k) {\n        int[] count = new int[26];\n        int maxCount = 0; // Max frequency of any single character in window\n        int maxLen = 0;\n        int left = 0;\n        \n        for (int right = 0; right < s.length(); right++) {\n            count[s.charAt(right) - 'A']++;\n            maxCount = Math.max(maxCount, count[s.charAt(right) - 'A']);\n            \n            // If window invalid (need more than k replacements), shrink\n            while (right - left + 1 - maxCount > k) {\n                count[s.charAt(left) - 'A']--;\n                left++;\n            }\n            \n            maxLen = Math.max(maxLen, right - left + 1);\n        }\n        \n        return maxLen;\n    }\n}"
+    },
+    {
+      "name": "Sliding Window - Optimized (No Shrink)",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Optimization: never shrink window, only slide. maxCount never needs to decrease since we only care about max length.",
+      "code": "class Solution {\n    public int characterReplacement(String s, int k) {\n        int[] count = new int[26];\n        int maxCount = 0;\n        int left = 0;\n        int maxLen = 0;\n        \n        for (int right = 0; right < s.length(); right++) {\n            count[s.charAt(right) - 'A']++;\n            maxCount = Math.max(maxCount, count[s.charAt(right) - 'A']);\n            \n            // Window size = right - left + 1\n            // Characters to replace = windowSize - maxCount\n            if (right - left + 1 - maxCount > k) {\n                // Slide window (don't shrink)\n                count[s.charAt(left) - 'A']--;\n                left++;\n            }\n            \n            maxLen = right - left + 1;\n        }\n        \n        return maxLen;\n    }\n}"
+    }
   ]
 }

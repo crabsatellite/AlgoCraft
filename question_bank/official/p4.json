@@ -21,6 +21,28 @@
     {
       "input": "strs = [\"abc\", \"bca\", \"cba\", \"xyz\", \"zyx\", \"aaa\"]",
       "output": "[[\"aaa\"],[\"abc\",\"bca\",\"cba\"],[\"xyz\",\"zyx\"]]"
+    },
+    {
+      "input": "strs = [\"abc\", \"cba\", \"bac\"]",
+      "output": "[[\"abc\",\"bac\",\"cba\"]]"
+    },
+    {
+      "input": "strs = [\"\", \"\", \"\"]",
+      "output": "[[\"\",\"\",\"\"]]"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Sorted String as Key",
+      "description": "## Approach\n\nGroup strings by their sorted version. Anagrams will have the same sorted string.\n\n## Complexity Analysis\n- Time Complexity: O(n * k log k) where n is number of strings, k is max string length\n- Space Complexity: O(n * k) - Storing all strings in groups",
+      "code": "class Solution {\n    public List<List<String>> groupAnagrams(String[] strs) {\n        Map<String, List<String>> groups = new HashMap<>();\n        \n        for (String s : strs) {\n            char[] chars = s.toCharArray();\n            Arrays.sort(chars);\n            String key = new String(chars);\n            \n            groups.computeIfAbsent(key, k -> new ArrayList<>()).add(s);\n        }\n        \n        return new ArrayList<>(groups.values());\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Character Count as Key",
+      "description": "## Approach\n\nUse character frequency count as the key instead of sorting. Create a unique key from character counts.\n\n## Complexity Analysis\n- Time Complexity: O(n * k) where n is number of strings, k is max string length\n- Space Complexity: O(n * k)",
+      "code": "class Solution {\n    public List<List<String>> groupAnagrams(String[] strs) {\n        Map<String, List<String>> groups = new HashMap<>();\n        \n        for (String s : strs) {\n            int[] count = new int[26];\n            for (char c : s.toCharArray()) {\n                count[c - 'a']++;\n            }\n            \n            StringBuilder sb = new StringBuilder();\n            for (int i = 0; i < 26; i++) {\n                sb.append('#').append(count[i]);\n            }\n            String key = sb.toString();\n            \n            groups.computeIfAbsent(key, k -> new ArrayList<>()).add(s);\n        }\n        \n        return new ArrayList<>(groups.values());\n    }\n}",
+      "language": "java"
     }
   ]
 }

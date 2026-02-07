@@ -5,6 +5,12 @@
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public int largestRectangleArea(int[] heights) {\n        // Write your code here\n        return 0;\n    }\n}",
   "tags": ["Array", "Stack", "Monotonic Stack"],
+  "images": [
+    {
+      "filename": "p47_example1.png",
+      "description": "Histogram visualization with largest rectangle highlighted"
+    }
+  ],
   "examples": [
     { "input": "heights = [2,1,5,6,2,3]", "output": "10" },
     { "input": "heights = [2,4]", "output": "4" }
@@ -14,6 +20,32 @@
     { "input": "heights = [2,4]", "output": "4" },
     { "input": "heights = [2,1,2]", "output": "3" },
     { "input": "heights = [1,1]", "output": "2" },
-    { "input": "heights = [4,2,0,3,2,5]", "output": "6" }
+    { "input": "heights = [4,2,0,3,2,5]", "output": "6" },
+    {
+      "input": "heights = [5]",
+      "output": "5",
+      "description": "Single bar"
+    },
+    {
+      "input": "heights = [3,3,3,3]",
+      "output": "12",
+      "description": "All same height"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "单调栈",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "维护一个单调递增栈存储柱子索引。当遇到更矮的柱子时，弹出栈顶计算以该柱子高度为高的最大矩形面积。关键在于确定矩形的宽度：左边界是新栈顶右边一位，右边界是当前索引左边一位。",
+      "code": "class Solution {\n    public int largestRectangleArea(int[] heights) {\n        int n = heights.length;\n        Deque<Integer> stack = new ArrayDeque<>();\n        int maxArea = 0;\n        \n        for (int i = 0; i <= n; i++) {\n            // i == n 时使用高度0来清空栈\n            int currHeight = (i == n) ? 0 : heights[i];\n            \n            while (!stack.isEmpty() && currHeight < heights[stack.peek()]) {\n                int height = heights[stack.pop()];\n                // 宽度：如果栈空，左边界为0；否则为栈顶+1\n                int width = stack.isEmpty() ? i : i - stack.peek() - 1;\n                maxArea = Math.max(maxArea, height * width);\n            }\n            \n            stack.push(i);\n        }\n        \n        return maxArea;\n    }\n}"
+    },
+    {
+      "name": "左右边界数组",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "预计算每个柱子向左和向右能延伸的边界（第一个比它矮的柱子位置）。对于每个柱子，以它为高度的最大矩形面积 = 高度 × (右边界 - 左边界 - 1)。",
+      "code": "class Solution {\n    public int largestRectangleArea(int[] heights) {\n        int n = heights.length;\n        int[] left = new int[n];   // 左边第一个更矮的索引\n        int[] right = new int[n];  // 右边第一个更矮的索引\n        \n        Deque<Integer> stack = new ArrayDeque<>();\n        \n        // 计算左边界\n        for (int i = 0; i < n; i++) {\n            while (!stack.isEmpty() && heights[stack.peek()] >= heights[i]) {\n                stack.pop();\n            }\n            left[i] = stack.isEmpty() ? -1 : stack.peek();\n            stack.push(i);\n        }\n        \n        stack.clear();\n        \n        // 计算右边界\n        for (int i = n - 1; i >= 0; i--) {\n            while (!stack.isEmpty() && heights[stack.peek()] >= heights[i]) {\n                stack.pop();\n            }\n            right[i] = stack.isEmpty() ? n : stack.peek();\n            stack.push(i);\n        }\n        \n        // 计算最大面积\n        int maxArea = 0;\n        for (int i = 0; i < n; i++) {\n            maxArea = Math.max(maxArea, heights[i] * (right[i] - left[i] - 1));\n        }\n        \n        return maxArea;\n    }\n}"
+    }
   ]
 }

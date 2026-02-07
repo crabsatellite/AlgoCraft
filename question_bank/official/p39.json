@@ -13,6 +13,32 @@
     { "input": "s = \"eceba\", k = 2", "output": "3" },
     { "input": "s = \"aa\", k = 1", "output": "2" },
     { "input": "s = \"a\", k = 0", "output": "0" },
-    { "input": "s = \"abaccc\", k = 2", "output": "4" }
+    { "input": "s = \"abaccc\", k = 2", "output": "4" },
+    {
+      "input": "s = \"abc\", k = 10",
+      "output": "3",
+      "description": "k larger than distinct char count"
+    },
+    {
+      "input": "s = \"aaaaaaa\", k = 1",
+      "output": "7",
+      "description": "All same character"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Sliding Window with HashMap",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(k)",
+      "description": "Use sliding window with HashMap to track character counts. Shrink window when distinct chars exceed k.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int lengthOfLongestSubstringKDistinct(String s, int k) {\n        if (k == 0) return 0;\n        \n        Map<Character, Integer> count = new HashMap<>();\n        int maxLen = 0;\n        int left = 0;\n        \n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            count.put(c, count.getOrDefault(c, 0) + 1);\n            \n            // Shrink window if more than k distinct chars\n            while (count.size() > k) {\n                char leftChar = s.charAt(left);\n                count.put(leftChar, count.get(leftChar) - 1);\n                if (count.get(leftChar) == 0) {\n                    count.remove(leftChar);\n                }\n                left++;\n            }\n            \n            maxLen = Math.max(maxLen, right - left + 1);\n        }\n        \n        return maxLen;\n    }\n}"
+    },
+    {
+      "name": "Sliding Window with Array (Optimized)",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Use array instead of HashMap for lowercase letters. Track distinct count separately.",
+      "code": "class Solution {\n    public int lengthOfLongestSubstringKDistinct(String s, int k) {\n        if (k == 0) return 0;\n        \n        int[] count = new int[128];\n        int distinct = 0;\n        int maxLen = 0;\n        int left = 0;\n        \n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            if (count[c] == 0) distinct++;\n            count[c]++;\n            \n            while (distinct > k) {\n                char leftChar = s.charAt(left);\n                count[leftChar]--;\n                if (count[leftChar] == 0) distinct--;\n                left++;\n            }\n            \n            maxLen = Math.max(maxLen, right - left + 1);\n        }\n        \n        return maxLen;\n    }\n}"
+    }
   ]
 }

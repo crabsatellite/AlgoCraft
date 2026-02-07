@@ -3,6 +3,7 @@
   "title": "Find First and Last Position of Element in Sorted Array",
   "description": "# Find First and Last Position of Element in Sorted Array\n\nGiven an array of integers `nums` sorted in non-decreasing order, find the starting and ending position of a given `target` value.\n\nIf `target` is not found in the array, return `[-1, -1]`.\n\nYou must write an algorithm with `O(log n)` runtime complexity.\n\n## Example 1:\n\n**Input:** nums = [5,7,7,8,8,10], target = 8\n**Output:** [3,4]\n\n## Example 2:\n\n**Input:** nums = [5,7,7,8,8,10], target = 6\n**Output:** [-1,-1]\n\n## Example 3:\n\n**Input:** nums = [], target = 0\n**Output:** [-1,-1]\n\n## Constraints:\n\n*   `0 <= nums.length <= 10^5`\n*   `-10^9 <= nums[i] <= 10^9`\n*   `nums` is a non-decreasing array.\n*   `-10^9 <= target <= 10^9`",
   "difficulty": "MEDIUM",
+  "images": ["images/p60_search_range.png"],
   "initialCode": "class Solution {\n    public int[] searchRange(int[] nums, int target) {\n        // Write your code here\n        return new int[]{-1, -1};\n    }\n}",
   "tags": ["Array", "Binary Search"],
   "examples": [
@@ -15,6 +16,44 @@
     { "input": "nums = [5,7,7,8,8,10], target = 6", "output": "[-1,-1]" },
     { "input": "nums = [], target = 0", "output": "[-1,-1]" },
     { "input": "nums = [1], target = 1", "output": "[0,0]" },
-    { "input": "nums = [2,2], target = 2", "output": "[0,1]" }
+    { "input": "nums = [2,2], target = 2", "output": "[0,1]" },
+    {
+      "input": "nums = [1,1,1,1,1], target = 1",
+      "output": "[0,4]",
+      "note": "全相同元素"
+    },
+    {
+      "input": "nums = [5,7,7,8,8,10], target = 5",
+      "output": "[0,0]",
+      "note": "目标在首位"
+    },
+    {
+      "input": "nums = [5,7,7,8,8,10], target = 10",
+      "output": "[5,5]",
+      "note": "目标在末位"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "两次二分查找",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(1)",
+      "description": "分别用二分查找找左边界（第一个 >= target 的位置）和右边界（最后一个 <= target 的位置）。验证找到的位置是否确实等于 target。",
+      "code": "class Solution {\n    public int[] searchRange(int[] nums, int target) {\n        int left = findLeft(nums, target);\n        int right = findRight(nums, target);\n        return new int[]{left, right};\n    }\n    \n    private int findLeft(int[] nums, int target) {\n        int left = 0, right = nums.length - 1;\n        int result = -1;\n        \n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            \n            if (nums[mid] == target) {\n                result = mid;\n                right = mid - 1; // 继续向左找\n            } else if (nums[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        \n        return result;\n    }\n    \n    private int findRight(int[] nums, int target) {\n        int left = 0, right = nums.length - 1;\n        int result = -1;\n        \n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            \n            if (nums[mid] == target) {\n                result = mid;\n                left = mid + 1; // 继续向右找\n            } else if (nums[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        \n        return result;\n    }\n}"
+    },
+    {
+      "name": "两次 lower_bound",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(1)",
+      "description": "左边界是第一个 >= target 的位置，右边界是第一个 > target 的位置 - 1。可以复用同一个 lower_bound 函数。",
+      "code": "class Solution {\n    public int[] searchRange(int[] nums, int target) {\n        int leftIdx = lowerBound(nums, target);\n        \n        // 检查是否找到 target\n        if (leftIdx == nums.length || nums[leftIdx] != target) {\n            return new int[]{-1, -1};\n        }\n        \n        // 右边界是第一个 > target 的位置 - 1\n        int rightIdx = lowerBound(nums, target + 1) - 1;\n        \n        return new int[]{leftIdx, rightIdx};\n    }\n    \n    // 找第一个 >= target 的位置\n    private int lowerBound(int[] nums, int target) {\n        int left = 0, right = nums.length;\n        \n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            \n            if (nums[mid] >= target) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        \n        return left;\n    }\n}"
+    },
+    {
+      "name": "使用 Arrays.binarySearch",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(1)",
+      "description": "使用 Java 内置的 Arrays.binarySearch，但需要额外处理找到左右边界的逻辑。适合快速实现。",
+      "code": "class Solution {\n    public int[] searchRange(int[] nums, int target) {\n        if (nums.length == 0) return new int[]{-1, -1};\n        \n        int idx = Arrays.binarySearch(nums, target);\n        \n        if (idx < 0) return new int[]{-1, -1};\n        \n        // 向左找边界\n        int left = idx;\n        while (left > 0 && nums[left - 1] == target) {\n            left--;\n        }\n        \n        // 向右找边界\n        int right = idx;\n        while (right < nums.length - 1 && nums[right + 1] == target) {\n            right++;\n        }\n        \n        return new int[]{left, right};\n    }\n}"
+    }
   ]
 }

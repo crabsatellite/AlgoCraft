@@ -17,6 +17,20 @@
     { "input": "s = \"([)]\"", "output": "false" },
     { "input": "s = \"{[]}\"", "output": "true" },
     { "input": "s = \"[\"", "output": "false" },
-    { "input": "s = \"]\"", "output": "false" }
-  ]
+    { "input": "s = \"]\"", "output": "false" }  ],
+  "solutions": [
+    {
+      "name": "Stack with HashMap",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use stack to store opening brackets. When closing bracket encountered, check if it matches the top of stack. Use HashMap for bracket pairs.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isValid(String s) {\n        Deque<Character> stack = new ArrayDeque<>();\n        Map<Character, Character> pairs = new HashMap<>();\n        pairs.put(')', '(');\n        pairs.put(']', '[');\n        pairs.put('}', '{');\n        \n        for (char c : s.toCharArray()) {\n            if (pairs.containsKey(c)) {\n                // Closing bracket\n                if (stack.isEmpty() || stack.pop() != pairs.get(c)) {\n                    return false;\n                }\n            } else {\n                // Opening bracket\n                stack.push(c);\n            }\n        }\n        \n        return stack.isEmpty();\n    }\n}"
+    },
+    {
+      "name": "Stack with Direct Comparison",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Push expected closing bracket when seeing opening bracket. Simpler comparison logic.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isValid(String s) {\n        Deque<Character> stack = new ArrayDeque<>();\n        \n        for (char c : s.toCharArray()) {\n            if (c == '(') {\n                stack.push(')');\n            } else if (c == '[') {\n                stack.push(']');\n            } else if (c == '{') {\n                stack.push('}');\n            } else {\n                // Closing bracket - must match top\n                if (stack.isEmpty() || stack.pop() != c) {\n                    return false;\n                }\n            }\n        }\n        \n        return stack.isEmpty();\n    }\n}"
+    }  ]
 }

@@ -18,6 +18,34 @@
       "output": "[\"((()))\",\"(()())\",\"(())()\",\"()(())\",\"()()()\"]"
     },
     { "input": "n = 1", "output": "[\"()\"]" },
-    { "input": "n = 2", "output": "[\"(())\",\"()()\"]" }
+    { "input": "n = 2", "output": "[\"(())\",\"()()\"]" },
+    {
+      "input": "n = 4",
+      "output": "[\"(((())))\",\"((()()))\",\"((())())\",\"((()))()\",\"(()(()))\",\"(()()())\",\"(()())()\",\"(())(())\",\"(())()()\",\"()((()))\",\"()(()())\",\"()(())()\",\"()()(())\",\"()()()()\"]",
+      "description": "14 combinations for n=4"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Backtracking",
+      "timeComplexity": "O(4^n / sqrt(n))",
+      "spaceComplexity": "O(n)",
+      "description": "Recursively build valid combinations. Add '(' if open count < n, add ')' if close count < open count.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> generateParenthesis(int n) {\n        List<String> result = new ArrayList<>();\n        backtrack(result, new StringBuilder(), 0, 0, n);\n        return result;\n    }\n    \n    private void backtrack(List<String> result, StringBuilder sb, \n                           int open, int close, int n) {\n        if (sb.length() == 2 * n) {\n            result.add(sb.toString());\n            return;\n        }\n        \n        // Add '(' if we haven't used all n\n        if (open < n) {\n            sb.append('(');\n            backtrack(result, sb, open + 1, close, n);\n            sb.deleteCharAt(sb.length() - 1);\n        }\n        \n        // Add ')' if it won't make invalid\n        if (close < open) {\n            sb.append(')');\n            backtrack(result, sb, open, close + 1, n);\n            sb.deleteCharAt(sb.length() - 1);\n        }\n    }\n}"
+    },
+    {
+      "name": "Backtracking with String",
+      "timeComplexity": "O(4^n / sqrt(n))",
+      "spaceComplexity": "O(n)",
+      "description": "Same backtracking approach but using string concatenation (simpler but slightly less efficient).",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> generateParenthesis(int n) {\n        List<String> result = new ArrayList<>();\n        generate(result, \"\", 0, 0, n);\n        return result;\n    }\n    \n    private void generate(List<String> result, String current, \n                          int open, int close, int n) {\n        if (current.length() == 2 * n) {\n            result.add(current);\n            return;\n        }\n        \n        if (open < n) {\n            generate(result, current + \"(\", open + 1, close, n);\n        }\n        \n        if (close < open) {\n            generate(result, current + \")\", open, close + 1, n);\n        }\n    }\n}"
+    },
+    {
+      "name": "Dynamic Programming",
+      "timeComplexity": "O(4^n / sqrt(n))",
+      "spaceComplexity": "O(4^n / sqrt(n))",
+      "description": "Build solutions for n using solutions for smaller values. dp[n] = '(' + dp[i] + ')' + dp[n-1-i] for all i.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> generateParenthesis(int n) {\n        List<List<String>> dp = new ArrayList<>();\n        dp.add(Arrays.asList(\"\")); // dp[0] = empty string\n        \n        for (int i = 1; i <= n; i++) {\n            List<String> current = new ArrayList<>();\n            \n            for (int j = 0; j < i; j++) {\n                // '(' + dp[j] + ')' + dp[i-1-j]\n                for (String left : dp.get(j)) {\n                    for (String right : dp.get(i - 1 - j)) {\n                        current.add(\"(\" + left + \")\" + right);\n                    }\n                }\n            }\n            \n            dp.add(current);\n        }\n        \n        return dp.get(n);\n    }\n}"
+    }
   ]
 }

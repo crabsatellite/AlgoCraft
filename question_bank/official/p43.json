@@ -21,6 +21,32 @@
       "output": "22"
     },
     { "input": "tokens = [\"3\",\"11\",\"+\",\"5\",\"-\"]", "output": "9" },
-    { "input": "tokens = [\"3\",\"11\",\"5\",\"+\",\"-\"]", "output": "-13" }
+    { "input": "tokens = [\"3\",\"11\",\"5\",\"+\",\"-\"]", "output": "-13" },
+    {
+      "input": "tokens = [\"42\"]",
+      "output": "42",
+      "description": "Single number"
+    },
+    {
+      "input": "tokens = [\"-5\",\"3\",\"+\"]",
+      "output": "-2",
+      "description": "Negative operand"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Stack - Standard",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Push numbers onto stack. When operator found, pop two operands, apply operator, push result.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int evalRPN(String[] tokens) {\n        Deque<Integer> stack = new ArrayDeque<>();\n        \n        for (String token : tokens) {\n            if (isOperator(token)) {\n                int b = stack.pop(); // Second operand\n                int a = stack.pop(); // First operand\n                stack.push(calculate(a, b, token));\n            } else {\n                stack.push(Integer.parseInt(token));\n            }\n        }\n        \n        return stack.pop();\n    }\n    \n    private boolean isOperator(String s) {\n        return s.equals(\"+\") || s.equals(\"-\") || \n               s.equals(\"*\") || s.equals(\"/\");\n    }\n    \n    private int calculate(int a, int b, String op) {\n        switch (op) {\n            case \"+\": return a + b;\n            case \"-\": return a - b;\n            case \"*\": return a * b;\n            case \"/\": return a / b;\n            default: return 0;\n        }\n    }\n}"
+    },
+    {
+      "name": "Stack with Switch Expression",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Clean implementation using switch expression for operators.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int evalRPN(String[] tokens) {\n        Deque<Integer> stack = new ArrayDeque<>();\n        Set<String> ops = Set.of(\"+\", \"-\", \"*\", \"/\");\n        \n        for (String token : tokens) {\n            if (ops.contains(token)) {\n                int b = stack.pop();\n                int a = stack.pop();\n                int result = switch (token) {\n                    case \"+\" -> a + b;\n                    case \"-\" -> a - b;\n                    case \"*\" -> a * b;\n                    case \"/\" -> a / b;\n                    default -> 0;\n                };\n                stack.push(result);\n            } else {\n                stack.push(Integer.parseInt(token));\n            }\n        }\n        \n        return stack.pop();\n    }\n}"
+    }
   ]
 }

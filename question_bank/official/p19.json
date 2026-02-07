@@ -19,6 +19,38 @@
     },
     { "input": "numRows = 1", "output": "[[1]]" },
     { "input": "numRows = 2", "output": "[[1],[1,1]]" },
-    { "input": "numRows = 3", "output": "[[1],[1,1],[1,2,1]]" }
+    { "input": "numRows = 3", "output": "[[1],[1,1],[1,2,1]]" },
+    {
+      "input": "numRows = 6",
+      "output": "[[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1],[1,5,10,10,5,1]]",
+      "description": "Six rows of Pascal's triangle"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p19_example1.png",
+      "caption": "Pascal's Triangle with 5 rows"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Dynamic Programming",
+      "description": "## Approach\n\nBuild each row based on previous row. Each element is sum of two elements above it.\n\n## Complexity Analysis\n- Time Complexity: O(n²)\n- Space Complexity: O(1) excluding output",
+      "code": "class Solution {\n    public List<List<Integer>> generate(int numRows) {\n        List<List<Integer>> result = new ArrayList<>();\n        \n        for (int i = 0; i < numRows; i++) {\n            List<Integer> row = new ArrayList<>();\n            \n            for (int j = 0; j <= i; j++) {\n                if (j == 0 || j == i) {\n                    row.add(1);\n                } else {\n                    List<Integer> prevRow = result.get(i - 1);\n                    row.add(prevRow.get(j - 1) + prevRow.get(j));\n                }\n            }\n            \n            result.add(row);\n        }\n        \n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Mathematical Formula",
+      "description": "## Approach\n\nUse binomial coefficient: C(n,k) = C(n,k-1) * (n-k+1) / k\n\n## Complexity Analysis\n- Time Complexity: O(n²)\n- Space Complexity: O(1) excluding output",
+      "code": "class Solution {\n    public List<List<Integer>> generate(int numRows) {\n        List<List<Integer>> result = new ArrayList<>();\n        \n        for (int i = 0; i < numRows; i++) {\n            List<Integer> row = new ArrayList<>();\n            long val = 1;\n            \n            for (int j = 0; j <= i; j++) {\n                row.add((int) val);\n                val = val * (i - j) / (j + 1);\n            }\n            \n            result.add(row);\n        }\n        \n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative Row Building",
+      "description": "## Approach\n\nBuild each row by adding 1 at end and updating from right to left.\n\n## Complexity Analysis\n- Time Complexity: O(n²)\n- Space Complexity: O(n) for current row",
+      "code": "class Solution {\n    public List<List<Integer>> generate(int numRows) {\n        List<List<Integer>> result = new ArrayList<>();\n        List<Integer> prev = new ArrayList<>();\n        \n        for (int i = 0; i < numRows; i++) {\n            List<Integer> curr = new ArrayList<>();\n            curr.add(1);\n            \n            for (int j = 1; j < i; j++) {\n                curr.add(prev.get(j - 1) + prev.get(j));\n            }\n            \n            if (i > 0) curr.add(1);\n            \n            result.add(curr);\n            prev = curr;\n        }\n        \n        return result;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

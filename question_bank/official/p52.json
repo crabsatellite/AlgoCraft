@@ -3,6 +3,7 @@
   "title": "Search a 2D Matrix",
   "description": "# Search a 2D Matrix\n\nYou are given an `m x n` integer matrix `matrix` with the following two properties:\n\n*   Each row is sorted in non-decreasing order.\n*   The first integer of each row is greater than the last integer of the previous row.\n\nGiven an integer `target`, return `true` *if* `target` *is in* `matrix` *or* `false` *otherwise*.\n\nYou must write a solution in `O(log(m * n))` time complexity.\n\n## Example 1:\n\n**Input:** matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 3\n**Output:** true\n\n## Example 2:\n\n**Input:** matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 13\n**Output:** false\n\n## Constraints:\n\n*   `m == matrix.length`\n*   `n == matrix[i].length`\n*   `1 <= m, n <= 100`\n*   `-10^4 <= matrix[i][j], target <= 10^4`",
   "difficulty": "MEDIUM",
+  "images": ["images/p52_matrix_search.png"],
   "initialCode": "class Solution {\n    public boolean searchMatrix(int[][] matrix, int target) {\n        // Write your code here\n        return false;\n    }\n}",
   "tags": ["Array", "Binary Search", "Matrix"],
   "examples": [
@@ -25,6 +26,44 @@
       "output": "false"
     },
     { "input": "matrix = [[1]], target = 1", "output": "true" },
-    { "input": "matrix = [[1]], target = 2", "output": "false" }
+    { "input": "matrix = [[1]], target = 2", "output": "false" },
+    {
+      "input": "matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 1",
+      "output": "true",
+      "note": "左上角"
+    },
+    {
+      "input": "matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 60",
+      "output": "true",
+      "note": "右下角"
+    },
+    {
+      "input": "matrix = [[1,3,5,7],[10,11,16,20],[23,30,34,60]], target = 23",
+      "output": "true",
+      "note": "行首元素"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "一次二分查找",
+      "timeComplexity": "O(log(m*n))",
+      "spaceComplexity": "O(1)",
+      "description": "将二维矩阵视为一维有序数组进行二分查找。索引 mid 对应的元素位于 matrix[mid/n][mid%n]。",
+      "code": "class Solution {\n    public boolean searchMatrix(int[][] matrix, int target) {\n        int m = matrix.length, n = matrix[0].length;\n        int left = 0, right = m * n - 1;\n        \n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            int val = matrix[mid / n][mid % n];\n            \n            if (val == target) {\n                return true;\n            } else if (val < target) {\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        \n        return false;\n    }\n}"
+    },
+    {
+      "name": "两次二分查找",
+      "timeComplexity": "O(log m + log n)",
+      "spaceComplexity": "O(1)",
+      "description": "先二分查找确定目标可能在哪一行（找最后一个首元素 <= target 的行），再在该行内二分查找目标。",
+      "code": "class Solution {\n    public boolean searchMatrix(int[][] matrix, int target) {\n        int m = matrix.length, n = matrix[0].length;\n        \n        // 第一次二分：找到目标可能所在的行\n        int top = 0, bottom = m - 1;\n        while (top < bottom) {\n            int mid = top + (bottom - top + 1) / 2;\n            if (matrix[mid][0] <= target) {\n                top = mid;\n            } else {\n                bottom = mid - 1;\n            }\n        }\n        \n        int row = top;\n        \n        // 第二次二分：在该行中查找\n        int left = 0, right = n - 1;\n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            if (matrix[row][mid] == target) {\n                return true;\n            } else if (matrix[row][mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        \n        return false;\n    }\n}"
+    },
+    {
+      "name": "右上角搜索",
+      "timeComplexity": "O(m + n)",
+      "spaceComplexity": "O(1)",
+      "description": "从右上角开始搜索。如果当前值大于目标，左移；如果小于目标，下移。利用矩阵的有序性质进行搜索。",
+      "code": "class Solution {\n    public boolean searchMatrix(int[][] matrix, int target) {\n        int m = matrix.length, n = matrix[0].length;\n        int row = 0, col = n - 1;\n        \n        while (row < m && col >= 0) {\n            if (matrix[row][col] == target) {\n                return true;\n            } else if (matrix[row][col] > target) {\n                col--;\n            } else {\n                row++;\n            }\n        }\n        \n        return false;\n    }\n}"
+    }
   ]
 }

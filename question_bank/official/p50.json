@@ -15,6 +15,32 @@
     { "input": "asteroids = [8,-8]", "output": "[]" },
     { "input": "asteroids = [10,2,-5]", "output": "[10]" },
     { "input": "asteroids = [-2,-1,1,2]", "output": "[-2,-1,1,2]" },
-    { "input": "asteroids = [-2,-2,1,-2]", "output": "[-2,-2,-2]" }
+    { "input": "asteroids = [-2,-2,1,-2]", "output": "[-2,-2,-2]" },
+    {
+      "input": "asteroids = [1,2,3,4]",
+      "output": "[1,2,3,4]",
+      "description": "All moving right - no collision"
+    },
+    {
+      "input": "asteroids = [-4,-3,-2,-1]",
+      "output": "[-4,-3,-2,-1]",
+      "description": "All moving left - no collision"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "栈模拟",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "用栈模拟碰撞过程。正数直接入栈，负数需要与栈顶正数比较：如果负数更大则弹出栈顶继续比较，相等则两者都销毁，否则负数被销毁。",
+      "code": "class Solution {\n    public int[] asteroidCollision(int[] asteroids) {\n        Deque<Integer> stack = new ArrayDeque<>();\n        \n        for (int asteroid : asteroids) {\n            boolean survived = true;\n            \n            // 只有正数在栈顶且当前为负数时才会碰撞\n            while (survived && !stack.isEmpty() && \n                   stack.peek() > 0 && asteroid < 0) {\n                \n                int top = stack.peek();\n                \n                if (top < -asteroid) {\n                    // 栈顶小，被摧毁，继续比较\n                    stack.pop();\n                } else if (top == -asteroid) {\n                    // 相等，两者都销毁\n                    stack.pop();\n                    survived = false;\n                } else {\n                    // 栈顶大，当前小行星被摧毁\n                    survived = false;\n                }\n            }\n            \n            if (survived) {\n                stack.push(asteroid);\n            }\n        }\n        \n        // 转换为数组（需要反转顺序）\n        int[] result = new int[stack.size()];\n        for (int i = result.length - 1; i >= 0; i--) {\n            result[i] = stack.pop();\n        }\n        \n        return result;\n    }\n}"
+    },
+    {
+      "name": "ArrayList 模拟",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "使用 ArrayList 代替栈，避免最后需要反转。逻辑相同，但可以直接转换为数组输出。",
+      "code": "class Solution {\n    public int[] asteroidCollision(int[] asteroids) {\n        List<Integer> list = new ArrayList<>();\n        \n        for (int asteroid : asteroids) {\n            boolean survived = true;\n            \n            while (survived && !list.isEmpty() && \n                   list.get(list.size() - 1) > 0 && asteroid < 0) {\n                \n                int top = list.get(list.size() - 1);\n                \n                if (top < -asteroid) {\n                    list.remove(list.size() - 1);\n                } else if (top == -asteroid) {\n                    list.remove(list.size() - 1);\n                    survived = false;\n                } else {\n                    survived = false;\n                }\n            }\n            \n            if (survived) {\n                list.add(asteroid);\n            }\n        }\n        \n        return list.stream().mapToInt(i -> i).toArray();\n    }\n}"
+    }
   ]
 }

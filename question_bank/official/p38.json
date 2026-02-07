@@ -14,6 +14,32 @@
     { "input": "target = 7, nums = [2,3,1,2,4,3]", "output": "2" },
     { "input": "target = 4, nums = [1,4,4]", "output": "1" },
     { "input": "target = 11, nums = [1,1,1,1,1,1,1,1]", "output": "0" },
-    { "input": "target = 15, nums = [1,2,3,4,5]", "output": "5" }
+    { "input": "target = 15, nums = [1,2,3,4,5]", "output": "5" },
+    {
+      "input": "target = 5, nums = [5]",
+      "output": "1",
+      "description": "Single element satisfies target"
+    },
+    {
+      "input": "target = 3, nums = [1,1,1]",
+      "output": "3",
+      "description": "Entire array needed"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Sliding Window - Two Pointers",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Expand window until sum >= target, then shrink to minimize length while maintaining valid sum.",
+      "code": "class Solution {\n    public int minSubArrayLen(int target, int[] nums) {\n        int minLen = Integer.MAX_VALUE;\n        int sum = 0;\n        int left = 0;\n        \n        for (int right = 0; right < nums.length; right++) {\n            sum += nums[right];\n            \n            // Shrink window while sum is valid\n            while (sum >= target) {\n                minLen = Math.min(minLen, right - left + 1);\n                sum -= nums[left];\n                left++;\n            }\n        }\n        \n        return minLen == Integer.MAX_VALUE ? 0 : minLen;\n    }\n}"
+    },
+    {
+      "name": "Binary Search with Prefix Sum",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "Build prefix sum array. For each index, binary search for smallest j where prefix[j] - prefix[i] >= target.",
+      "code": "class Solution {\n    public int minSubArrayLen(int target, int[] nums) {\n        int n = nums.length;\n        long[] prefix = new long[n + 1];\n        \n        // Build prefix sum\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n        \n        int minLen = Integer.MAX_VALUE;\n        \n        for (int i = 0; i < n; i++) {\n            // Find smallest j where prefix[j] - prefix[i] >= target\n            // => prefix[j] >= prefix[i] + target\n            long toFind = prefix[i] + target;\n            int j = lowerBound(prefix, i + 1, n + 1, toFind);\n            \n            if (j <= n) {\n                minLen = Math.min(minLen, j - i);\n            }\n        }\n        \n        return minLen == Integer.MAX_VALUE ? 0 : minLen;\n    }\n    \n    private int lowerBound(long[] arr, int start, int end, long target) {\n        while (start < end) {\n            int mid = start + (end - start) / 2;\n            if (arr[mid] >= target) {\n                end = mid;\n            } else {\n                start = mid + 1;\n            }\n        }\n        return start;\n    }\n}"
+    }
   ]
 }

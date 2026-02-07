@@ -13,6 +13,39 @@
     { "input": "prices = [7,1,5,3,6,4]", "output": "5" },
     { "input": "prices = [7,6,4,3,1]", "output": "0" },
     { "input": "prices = [1,2]", "output": "1" },
-    { "input": "prices = [2,1]", "output": "0" }
+    { "input": "prices = [2,1]", "output": "0" },
+    {
+      "input": "prices = [5]",
+      "output": "0",
+      "description": "Single day - no transaction possible"
+    },
+    {
+      "input": "prices = [3,3,3,3,3]",
+      "output": "0",
+      "description": "All same price - no profit"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "One Pass - Track Minimum",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Track the minimum price seen so far and calculate potential profit at each day. Update max profit if current profit is higher.",
+      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int minPrice = Integer.MAX_VALUE;\n        int maxProfit = 0;\n        \n        for (int price : prices) {\n            if (price < minPrice) {\n                minPrice = price; // Update minimum buying price\n            } else {\n                maxProfit = Math.max(maxProfit, price - minPrice);\n            }\n        }\n        \n        return maxProfit;\n    }\n}"
+    },
+    {
+      "name": "One Pass - Simplified",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Same approach but with simplified logic - always update both min price and max profit in each iteration.",
+      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int minPrice = Integer.MAX_VALUE;\n        int maxProfit = 0;\n        \n        for (int price : prices) {\n            minPrice = Math.min(minPrice, price);\n            maxProfit = Math.max(maxProfit, price - minPrice);\n        }\n        \n        return maxProfit;\n    }\n}"
+    },
+    {
+      "name": "Kadane's Algorithm Variant",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Think of it as maximum subarray problem on price differences. Calculate daily gains and find max contiguous sum.",
+      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int maxProfit = 0;\n        int currentProfit = 0;\n        \n        for (int i = 1; i < prices.length; i++) {\n            int dailyGain = prices[i] - prices[i - 1];\n            \n            // Either extend current profit or start fresh\n            currentProfit = Math.max(0, currentProfit + dailyGain);\n            maxProfit = Math.max(maxProfit, currentProfit);\n        }\n        \n        return maxProfit;\n    }\n}"
+    }
   ]
 }

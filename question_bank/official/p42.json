@@ -19,6 +19,32 @@
     {
       "input": "[\"MinStack\",\"push\",\"push\",\"getMin\",\"getMin\",\"push\",\"getMin\",\"push\",\"getMin\",\"top\",\"pop\",\"getMin\"]\n[[],[2147483646],[2147483646],[],[],[2147483647],[],[-2147483648],[],[],[],[]]",
       "output": "[null,null,null,2147483646,2147483646,null,2147483646,null,-2147483648,-2147483648,null,2147483646]"
+    },
+    {
+      "input": "[\"MinStack\",\"push\",\"top\",\"getMin\"]\n[[],[5],[],[]]",
+      "output": "[null,null,5,5]",
+      "description": "Single element stack"
+    },
+    {
+      "input": "[\"MinStack\",\"push\",\"push\",\"push\",\"getMin\",\"pop\",\"getMin\"]\n[[],[1],[1],[1],[],[],[]]",
+      "output": "[null,null,null,null,1,null,1]",
+      "description": "All same values"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Two Stacks",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(n)",
+      "description": "Use two stacks: one for values, one for minimums. Push to min stack when value <= current min.",
+      "code": "import java.util.*;\n\nclass MinStack {\n    private Deque<Integer> stack;\n    private Deque<Integer> minStack;\n    \n    public MinStack() {\n        stack = new ArrayDeque<>();\n        minStack = new ArrayDeque<>();\n    }\n    \n    public void push(int val) {\n        stack.push(val);\n        // Push to min stack if empty or val <= current min\n        if (minStack.isEmpty() || val <= minStack.peek()) {\n            minStack.push(val);\n        }\n    }\n    \n    public void pop() {\n        int val = stack.pop();\n        // Remove from min stack if it was the minimum\n        if (val == minStack.peek()) {\n            minStack.pop();\n        }\n    }\n    \n    public int top() {\n        return stack.peek();\n    }\n    \n    public int getMin() {\n        return minStack.peek();\n    }\n}"
+    },
+    {
+      "name": "Single Stack with Pair",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(n)",
+      "description": "Store (value, currentMin) pairs in a single stack. Each element knows the minimum at its level.",
+      "code": "import java.util.*;\n\nclass MinStack {\n    private Deque<int[]> stack; // [value, currentMin]\n    \n    public MinStack() {\n        stack = new ArrayDeque<>();\n    }\n    \n    public void push(int val) {\n        int currentMin = stack.isEmpty() ? val : Math.min(val, stack.peek()[1]);\n        stack.push(new int[]{val, currentMin});\n    }\n    \n    public void pop() {\n        stack.pop();\n    }\n    \n    public int top() {\n        return stack.peek()[0];\n    }\n    \n    public int getMin() {\n        return stack.peek()[1];\n    }\n}"
     }
   ]
 }

@@ -10,6 +10,16 @@
     { "input": "arr = [1,1,0,1,1]", "output": "[-1,-1]" },
     { "input": "arr = [1,1,0,0,1]", "output": "[0,2]" }
   ],
+  "solutions": [
+    {
+      "name": "Count Ones and Match Pattern",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Count total 1s. If not divisible by 3, impossible. If zero 1s, any split works. Find the 3 starting positions of each third's 1-bits. Match the bit patterns from these positions. Account for trailing zeros from the third part.",
+      "code": "class Solution {\n    public int[] threeEqualParts(int[] arr) {\n        int ones = 0;\n        for (int b : arr) ones += b;\n        if (ones == 0) return new int[]{0, 2};\n        if (ones % 3 != 0) return new int[]{-1, -1};\n        int k = ones / 3;\n        int i1 = -1, i2 = -1, i3 = -1, count = 0;\n        for (int i = 0; i < arr.length; i++) {\n            if (arr[i] == 1) {\n                count++;\n                if (count == 1) i1 = i;\n                if (count == k + 1) i2 = i;\n                if (count == 2 * k + 1) i3 = i;\n            }\n        }\n        while (i3 < arr.length) {\n            if (arr[i1] != arr[i2] || arr[i1] != arr[i3]) return new int[]{-1, -1};\n            i1++; i2++; i3++;\n        }\n        return new int[]{i1 - 1, i2};\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "arr = [1,0,1,0,1]", "output": "[0,3]" },
     { "input": "arr = [1,1,0,1,1]", "output": "[-1,-1]" },

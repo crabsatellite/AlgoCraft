@@ -25,6 +25,16 @@
       "output": "1"
     }
   ],
+  "solutions": [
+    {
+      "name": "Union Find with Component Analysis",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "Build connected components using Union Find. For each component, count how many initially infected nodes it contains. If exactly one infected node in a component, removing it saves the entire component. Pick the node that saves the most; break ties by smallest index.",
+      "code": "class Solution {\n    private int[] parent, rank, size;\n    public int minMalwareSpread(int[][] graph, int[] initial) {\n        int n = graph.length;\n        parent = new int[n]; rank = new int[n]; size = new int[n];\n        for (int i = 0; i < n; i++) { parent[i] = i; size[i] = 1; }\n        for (int i = 0; i < n; i++)\n            for (int j = i + 1; j < n; j++)\n                if (graph[i][j] == 1) union(i, j);\n        java.util.Map<Integer, Integer> compInfected = new java.util.HashMap<>();\n        java.util.Set<Integer> initSet = new java.util.HashSet<>();\n        for (int node : initial) initSet.add(node);\n        for (int node : initial) {\n            int root = find(node);\n            compInfected.merge(root, 1, Integer::sum);\n        }\n        java.util.Arrays.sort(initial);\n        int bestNode = initial[0], bestSave = 0;\n        for (int node : initial) {\n            int root = find(node);\n            if (compInfected.get(root) == 1) {\n                if (size[root] > bestSave) { bestSave = size[root]; bestNode = node; }\n            }\n        }\n        return bestNode;\n    }\n    private int find(int x) { if (parent[x] != x) parent[x] = find(parent[x]); return parent[x]; }\n    private void union(int a, int b) {\n        int ra = find(a), rb = find(b);\n        if (ra == rb) return;\n        if (rank[ra] < rank[rb]) { int t = ra; ra = rb; rb = t; }\n        parent[rb] = ra; size[ra] += size[rb];\n        if (rank[ra] == rank[rb]) rank[ra]++;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "graph = [[1,1,0],[1,1,0],[0,0,1]], initial = [0,1]",

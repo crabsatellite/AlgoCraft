@@ -11,6 +11,16 @@
       "output": "[null, false, false, false, true, false, true, false, false, false, false, false, true]"
     }
   ],
+  "solutions": [
+    {
+      "name": "Reverse Trie",
+      "timeComplexity": "O(W * L + Q * L)",
+      "spaceComplexity": "O(W * L + Q)",
+      "description": "Insert reversed words into a trie. Maintain a buffer of streamed characters. For each query, walk the trie from the latest character backwards. If we reach a word end, return true.",
+      "code": "class StreamChecker {\n    private int[][] trie;\n    private boolean[] end;\n    private int cnt = 0;\n    private StringBuilder sb = new StringBuilder();\n    public StreamChecker(String[] words) {\n        trie = new int[200 * 2000 + 1][26];\n        end = new boolean[200 * 2000 + 1];\n        for (int[] row : trie) java.util.Arrays.fill(row, -1);\n        for (String w : words) {\n            int node = 0;\n            for (int i = w.length() - 1; i >= 0; i--) {\n                int c = w.charAt(i) - 'a';\n                if (trie[node][c] == -1) trie[node][c] = ++cnt;\n                node = trie[node][c];\n            }\n            end[node] = true;\n        }\n    }\n    public boolean query(char letter) {\n        sb.append(letter);\n        int node = 0;\n        for (int i = sb.length() - 1; i >= 0; i--) {\n            int c = sb.charAt(i) - 'a';\n            if (trie[node][c] == -1) return false;\n            node = trie[node][c];\n            if (end[node]) return true;\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"StreamChecker\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\"]\n[[[\"cd\", \"f\", \"kl\"]], [\"a\"], [\"b\"], [\"c\"], [\"d\"], [\"e\"], [\"f\"], [\"g\"], [\"h\"], [\"i\"], [\"j\"], [\"k\"], [\"l\"]]",

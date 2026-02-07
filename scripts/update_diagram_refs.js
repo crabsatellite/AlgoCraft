@@ -15,78 +15,57 @@ const PROBLEMS_DIR = path.resolve(__dirname, "../question_bank/official");
 // Define updates: { id, diagrams: [{ id, file, caption }] }
 const updates = [
   {
-    id: "84",
+    id: "68",
     diagrams: [
-      { id: "example1", file: "p84_example1.png", caption: "Example 1: Balanced Tree [3,9,20,null,null,15,7]" },
-      { id: "example2", file: "p84_example2.png", caption: "Example 2: Unbalanced Tree [1,2,2,3,3,null,null,4,4]" }
+      { id: "example1", file: "p68_example1.png", caption: "Example 1: Linked List [1,2,3,4,5], remove 2nd from end" }
     ]
   },
   {
-    id: "85",
+    id: "69",
     diagrams: [
-      { id: "example1", file: "p85_example1.png", caption: "Example 1: Same Trees p=[1,2,3], q=[1,2,3]" },
-      { id: "example2", file: "p85_example2.png", caption: "Example 2: Different Structure p=[1,2], q=[1,null,2]" }
+      { id: "example1", file: "p69_example1.png", caption: "Example 1: Linked List with Random Pointers" }
     ]
   },
   {
-    id: "86",
+    id: "73",
     diagrams: [
-      { id: "example1", file: "p86_example1.png", caption: "Example 1: Subtree Match" },
-      { id: "example2", file: "p86_example2.png", caption: "Example 2: Subtree Mismatch (extra node 0)" }
+      { id: "lru", file: "p73_lru.png", caption: "LRU Cache: Doubly Linked List + HashMap Structure" }
     ]
   },
   {
-    id: "93",
+    id: "78",
     diagrams: [
-      { id: "example1", file: "p93_example1.png", caption: "Example 1: Constructed Tree [3,9,20,null,null,15,7]" }
+      { id: "example1", file: "p78_example1.png", caption: "Example 1: Unsorted List [4,2,1,3]" }
     ]
   },
   {
-    id: "98",
+    id: "79",
     diagrams: [
-      { id: "example1", file: "p98_example1.png", caption: "Example 1: Tree [5,4,8,11,null,13,4,7,2,5,1]" }
+      { id: "example1", file: "p79_example1.png", caption: "Example 1: List [1,4,3,2,5,2] with x=3 (green < x, red >= x)" }
     ]
   },
   {
-    id: "99",
+    id: "80",
     diagrams: [
-      { id: "example1", file: "p99_example1.png", caption: "Example 1: Tree [10,5,-3,3,2,null,11,3,-2,null,1]" }
+      { id: "example1", file: "p80_example1.png", caption: "Example 1: List [1,2,3,4,5], rotate by k=2" }
     ]
   },
   {
-    id: "101",
+    id: "207",
     diagrams: [
-      { id: "trie", file: "p101_trie.png", caption: "Trie Structure after inserting 'apple' and 'app'" }
+      { id: "example1", file: "p207_example1.png", caption: "Example: Sorted List with Duplicates [1,1,2,3,3]" }
     ]
   },
   {
-    id: "102",
+    id: "208",
     diagrams: [
-      { id: "trie", file: "p102_trie.png", caption: "Trie Structure for WordDictionary with 'bad' and 'mad'" }
+      { id: "example1", file: "p208_example1.png", caption: "Example 1: List [1,2,3,3,4,4,5] (red = duplicate groups)" }
     ]
   },
   {
-    id: "103",
+    id: "304",
     diagrams: [
-      { id: "board", file: "p103_board.png", caption: "Example 1: 4x4 Character Board" }
-    ]
-  },
-  {
-    id: "104",
-    diagrams: [
-      { id: "trie", file: "p104_trie.png", caption: "Trie of dictionary roots: cat, bat, rat" }
-    ]
-  },
-  {
-    id: "105",
-    diagrams: [
-      { id: "trie", file: "p105_trie.png", caption: "Trie with cumulative sum values" }
-    ]
-  },
-  {
-    id: "106",
-    diagrams: [
-      { id: "kth_stream", file: "p106_kth_stream.png", caption: "Min-Heap for Kth Largest Element Stream" }
+      { id: "example1", file: "p304_example1.png", caption: "Example 1: List [1,2,3,4] (pairs to swap highlighted)" }
     ]
   }
 ];

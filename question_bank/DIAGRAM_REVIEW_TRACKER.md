@@ -17,7 +17,7 @@
 | Patch | Problems | Type | Status |
 |-------|----------|------|--------|
 | Patch 1 | p84-p106 | Tree problems batch 1 | **Done** |
-| Patch 2 | p68-p80, p207-p208, p304 | Linked list problems | Pending |
+| Patch 2 | p68-p80, p207-p208, p304 | Linked list problems | **Done** |
 | Patch 3 | p114, p160, p205, p238, p303, p322, p326 | Tree problems batch 2 | Pending |
 | Patch 4 | p52, p125, p147, p149, p190, p242, p253, etc. | Matrix/Grid problems | Pending |
 | Patch 5 | p182-p185, p364, p41, p49, p181, p206, p279, p306, p318 | Interval + Stack/Queue | Pending |
@@ -83,16 +83,16 @@
 - [ ] p500 - Trim a Binary Search Tree
 
 ### Linked Lists (18 problems)
-- [ ] p68 - Remove Nth Node From End of List
-- [ ] p69 - Copy List with Random Pointer
-- [ ] p73 - LRU Cache
-- [ ] p78 - Sort List
-- [ ] p79 - Partition List
-- [ ] p80 - Rotate List
+- [x] p68 - Remove Nth Node From End of List
+- [x] p69 - Copy List with Random Pointer
+- [x] p73 - LRU Cache
+- [x] p78 - Sort List
+- [x] p79 - Partition List
+- [x] p80 - Rotate List
 - [ ] p111 - Design Twitter
-- [ ] p207 - Remove Duplicates from Sorted List
-- [ ] p208 - Remove Duplicates from Sorted List II
-- [ ] p304 - Swap Nodes in Pairs
+- [x] p207 - Remove Duplicates from Sorted List
+- [x] p208 - Remove Duplicates from Sorted List II
+- [x] p304 - Swap Nodes in Pairs
 - [ ] p401 - Design HashMap
 - [ ] p402 - Design HashSet
 - [ ] p403 - Design Linked List

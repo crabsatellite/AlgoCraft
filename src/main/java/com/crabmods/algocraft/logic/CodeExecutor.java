@@ -169,6 +169,130 @@ public class CodeExecutor {
         "java.lang.Boolean"
     );
 
+    // ─── Helper class source code for injection ────────────────────────────
+
+    private static final String TREE_NODE_SOURCE =
+            "public class TreeNode {\n" +
+            "    public int val;\n" +
+            "    public TreeNode left;\n" +
+            "    public TreeNode right;\n" +
+            "    public TreeNode() {}\n" +
+            "    public TreeNode(int val) { this.val = val; }\n" +
+            "    public TreeNode(int val, TreeNode left, TreeNode right) {\n" +
+            "        this.val = val; this.left = left; this.right = right;\n" +
+            "    }\n" +
+            "}\n";
+
+    private static final String LIST_NODE_SOURCE =
+            "public class ListNode {\n" +
+            "    public int val;\n" +
+            "    public ListNode next;\n" +
+            "    public ListNode() {}\n" +
+            "    public ListNode(int val) { this.val = val; }\n" +
+            "    public ListNode(int val, ListNode next) {\n" +
+            "        this.val = val; this.next = next;\n" +
+            "    }\n" +
+            "}\n";
+
+    private static final String VERSION_CONTROL_SOURCE =
+            "public class VersionControl {\n" +
+            "    private int badVersion = 1;\n" +
+            "    public void setBadVersion(int bad) { this.badVersion = bad; }\n" +
+            "    public boolean isBadVersion(int version) { return version >= badVersion; }\n" +
+            "}\n";
+
+    // Pre-compiled pattern for class name detection
+    private static final Pattern CLASS_NAME_PATTERN = Pattern.compile("(?:public\\s+)?class\\s+(\\w+)");
+    private static final Set<String> HELPER_CLASS_NAMES = Set.of("TreeNode", "ListNode", "Node", "VersionControl");
+
+    /**
+     * Inject import statements if not already present.
+     */
+    private static String injectImports(String code) {
+        if (!code.contains("import java.util.*")) {
+            code = "import java.util.*;\nimport java.util.stream.*;\n" + code;
+        }
+        return code;
+    }
+
+    /**
+     * Detect the actual class name from source code (handles design classes like MinStack, LRUCache).
+     */
+    private static String detectClassName(String code) {
+        String codeNoComments = removeComments(code);
+        Matcher cm = CLASS_NAME_PATTERN.matcher(codeNoComments);
+        while (cm.find()) {
+            String name = cm.group(1);
+            if (!HELPER_CLASS_NAMES.contains(name)) {
+                return name;
+            }
+        }
+        return "Solution";
+    }
+
+    /**
+     * Check if user code already defines a class (not just references it in comments).
+     */
+    private static boolean codeDefinesClass(String code, String className) {
+        String codeNoComments = removeComments(code);
+        return codeNoComments.contains("class " + className);
+    }
+
+    /**
+     * Write a helper source file to the temp directory.
+     */
+    private static File writeHelperSource(Path tempDir, String className, String source) throws java.io.IOException {
+        File file = new File(tempDir.toFile(), className + ".java");
+        Files.writeString(file.toPath(), source);
+        return file;
+    }
+
+    /**
+     * Prepare all source files for compilation: inject imports, write helper classes, write main source.
+     *
+     * @param code the user's source code (will have imports injected)
+     * @param tempDir the temporary directory for compilation
+     * @return array where [0] = modified code, [1] = class name; source files are written to tempDir
+     */
+    private static List<File> prepareSourceFiles(String code, String className, Path tempDir) throws java.io.IOException {
+        List<File> sourceFiles = new ArrayList<>();
+
+        // Write helper classes if referenced but not defined by user
+        if (code.contains("TreeNode") && !codeDefinesClass(code, "TreeNode")) {
+            sourceFiles.add(writeHelperSource(tempDir, "TreeNode", TREE_NODE_SOURCE));
+        }
+        if (code.contains("ListNode") && !codeDefinesClass(code, "ListNode")) {
+            sourceFiles.add(writeHelperSource(tempDir, "ListNode", LIST_NODE_SOURCE));
+        }
+        if (code.contains("extends VersionControl")) {
+            sourceFiles.add(writeHelperSource(tempDir, "VersionControl", VERSION_CONTROL_SOURCE));
+        }
+
+        // Write main source file
+        File sourceFile = new File(tempDir.toFile(), className + ".java");
+        Files.writeString(sourceFile.toPath(), code);
+        sourceFiles.add(sourceFile);
+
+        return sourceFiles;
+    }
+
+    /**
+     * Set up parent class state if needed (e.g., VersionControl.setBadVersion for First Bad Version).
+     */
+    private static void setupParentClass(Object instance, String input) {
+        try {
+            Matcher m = Pattern.compile("bad\\s*=\\s*(\\d+)").matcher(input);
+            if (m.find()) {
+                int badVersion = Integer.parseInt(m.group(1));
+                Method setBad = instance.getClass().getMethod("setBadVersion", int.class);
+                setBad.setAccessible(true);
+                setBad.invoke(instance, badVersion);
+            }
+        } catch (Exception ignored) {
+            // Not all classes have these methods
+        }
+    }
+
     public static String execute(String code, String input, String expectedOutput) {
         // Validate code length to prevent DoS
         if (code == null || code.isEmpty()) {
@@ -204,15 +328,16 @@ public class CodeExecutor {
             }
 
             tempDir = Files.createTempDirectory("algocraft_exec_");
-            
-            // Write source code to file
-            File sourceFile = new File(tempDir.toFile(), "Solution.java");
-            Files.writeString(sourceFile.toPath(), code);
+
+            // Prepare source: inject imports, write helper classes, detect class name
+            code = injectImports(code);
+            String className = detectClassName(code);
+            List<File> sourceFiles = prepareSourceFiles(code, className, tempDir);
 
             // Compile with diagnostic collector for better error messages
             DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
             try (StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null)) {
-                Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(List.of(sourceFile));
+                Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(sourceFiles);
                 StringWriter compileOutput = new StringWriter();
                 
                 JavaCompiler.CompilationTask task = compiler.getTask(
@@ -253,16 +378,19 @@ public class CodeExecutor {
                 CodeExecutor.class.getClassLoader()
             );
             
-            Class<?> clazz = Class.forName("Solution", true, classLoader);
+            Class<?> clazz = Class.forName(className, true, classLoader);
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
             Object instance = constructor.newInstance();
-            
+
+            // Set up parent class state if needed (e.g., VersionControl)
+            setupParentClass(instance, input);
+
             // Find the first public method that isn't Object's methods
             Method method = findSolutionMethod(clazz);
-            
+
             if (method == null) {
-                return "ERROR: No public method found in Solution class";
+                return "ERROR: No public method found in " + className + " class";
             }
 
             final Object[] args = parseArgs(input, method.getParameterTypes());
@@ -299,13 +427,16 @@ public class CodeExecutor {
                 return "ERROR: Server busy, please try again later";
             }
             
-            String resultStr = formatResult(invokeResult);
-            
-            // Normalize for comparison (remove spaces)
-            String normResult = normalizeOutput(resultStr);
-            String normExpected = normalizeOutput(expectedOutput);
-            
-            if (normResult.equals(normExpected)) {
+            // Handle void methods: return the modified first argument
+            String resultStr;
+            if (method.getReturnType() == void.class && args.length > 0) {
+                resultStr = formatResult(args[0]);
+            } else {
+                resultStr = formatResult(invokeResult);
+            }
+
+            // Compare with normalization
+            if (outputsMatch(resultStr, expectedOutput)) {
                 return "PASS";
             } else {
                 return "FAIL: Expected " + expectedOutput + ", got " + resultStr;
@@ -425,15 +556,16 @@ public class CodeExecutor {
             }
 
             tempDir = Files.createTempDirectory("algocraft_exec_");
-            
-            // Write source code to file
-            File sourceFile = new File(tempDir.toFile(), "Solution.java");
-            Files.writeString(sourceFile.toPath(), code);
+
+            // Prepare source: inject imports, write helper classes, detect class name
+            code = injectImports(code);
+            String className = detectClassName(code);
+            List<File> sourceFiles = prepareSourceFiles(code, className, tempDir);
 
             // Compile ONCE
             DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
             try (StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, null)) {
-                Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(List.of(sourceFile));
+                Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(sourceFiles);
                 StringWriter compileOutput = new StringWriter();
                 
                 JavaCompiler.CompilationTask task = compiler.getTask(
@@ -477,18 +609,18 @@ public class CodeExecutor {
                 CodeExecutor.class.getClassLoader()
             );
             
-            Class<?> clazz = Class.forName("Solution", true, classLoader);
+            Class<?> clazz = Class.forName(className, true, classLoader);
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
-            
+
             Method method = findSolutionMethod(clazz);
             if (method == null) {
-                TestResult error = new TestResult(false, "ERROR: No public method found in Solution class", null);
+                TestResult error = new TestResult(false, "ERROR: No public method found in " + className + " class", null);
                 for (int i = 0; i < testCases.size(); i++) results.add(error);
                 return results;
             }
             method.setAccessible(true);
-            
+
             // Run all test cases with the compiled class
             for (TestCase testCase : testCases) {
                 results.add(runSingleTestCase(constructor, method, testCase, timeoutMs));
@@ -521,16 +653,20 @@ public class CodeExecutor {
     /**
      * Run a single test case with the compiled class.
      */
-    private static TestResult runSingleTestCase(Constructor<?> constructor, Method method, 
+    private static TestResult runSingleTestCase(Constructor<?> constructor, Method method,
                                                  TestCase testCase, int timeoutMs) {
         try {
             Object instance = constructor.newInstance();
+
+            // Set up parent class state if needed (e.g., VersionControl)
+            setupParentClass(instance, testCase.input);
+
             final Object[] args = parseArgs(testCase.input, method.getParameterTypes());
             final Object finalInstance = instance;
             final Method finalMethod = method;
-            
+
             Future<Object> future = EXECUTOR.submit(() -> finalMethod.invoke(finalInstance, args));
-            
+
             Object invokeResult;
             try {
                 invokeResult = future.get(timeoutMs, TimeUnit.MILLISECONDS);
@@ -553,12 +689,16 @@ public class CodeExecutor {
             } catch (RejectedExecutionException e) {
                 return new TestResult(false, "ERROR: Server busy, please try again later", null);
             }
-            
-            String resultStr = formatResult(invokeResult);
-            String normResult = normalizeOutput(resultStr);
-            String normExpected = normalizeOutput(testCase.expectedOutput);
-            
-            if (normResult.equals(normExpected)) {
+
+            // Handle void methods: return the modified first argument
+            String resultStr;
+            if (method.getReturnType() == void.class && args.length > 0) {
+                resultStr = formatResult(args[0]);
+            } else {
+                resultStr = formatResult(invokeResult);
+            }
+
+            if (outputsMatch(resultStr, testCase.expectedOutput)) {
                 return new TestResult(true, "PASS", resultStr);
             } else {
                 return new TestResult(false, "FAIL: Expected " + testCase.expectedOutput + ", got " + resultStr, resultStr);
@@ -576,10 +716,18 @@ public class CodeExecutor {
      * Find the solution method in the class, excluding Object methods.
      */
     private static Method findSolutionMethod(Class<?> clazz) {
-        Set<String> objectMethods = Set.of("equals", "hashCode", "toString", "getClass", "notify", "notifyAll", "wait");
+        Set<String> objectMethods = Set.of("equals", "hashCode", "toString", "getClass", "notify", "notifyAll", "wait",
+                "setBadVersion", "isBadVersion"); // Exclude parent class methods
+        // First pass: prefer public methods
         for (Method m : clazz.getDeclaredMethods()) {
-            if (java.lang.reflect.Modifier.isPublic(m.getModifiers()) 
+            if (java.lang.reflect.Modifier.isPublic(m.getModifiers())
                 && !objectMethods.contains(m.getName())) {
+                return m;
+            }
+        }
+        // Second pass: accept any non-synthetic, non-Object method
+        for (Method m : clazz.getDeclaredMethods()) {
+            if (!m.isSynthetic() && !objectMethods.contains(m.getName())) {
                 return m;
             }
         }
@@ -866,9 +1014,105 @@ public class CodeExecutor {
         if (type == List.class) {
             return Arrays.asList(toObjectArray(parseIntArray(val)));
         }
-        
+
+        // TreeNode and ListNode (dynamically compiled helper classes)
+        String typeName = type.getSimpleName();
+        if (typeName.equals("TreeNode")) {
+            return parseTreeNode(val, type);
+        }
+        if (typeName.equals("ListNode")) {
+            return parseListNode(val, type);
+        }
+
         LOGGER.warn("Unsupported parameter type: {}", type.getName());
         return null;
+    }
+
+    /**
+     * Parse a level-order array into a TreeNode tree using reflection.
+     * Input format: [1,2,3,null,4,5]
+     */
+    private static Object parseTreeNode(String val, Class<?> treeNodeClass) {
+        try {
+            val = val.trim();
+            if (val.equals("[]") || val.equals("null")) return null;
+
+            val = val.replaceAll("[\\[\\]]", "");
+            String[] parts = val.split(",");
+            if (parts.length == 0 || parts[0].trim().isEmpty()) return null;
+
+            Constructor<?> ctor = treeNodeClass.getConstructor(int.class);
+            java.lang.reflect.Field leftField = treeNodeClass.getField("left");
+            java.lang.reflect.Field rightField = treeNodeClass.getField("right");
+
+            Object root = ctor.newInstance(Integer.parseInt(parts[0].trim()));
+            Queue<Object> queue = new LinkedList<>();
+            queue.offer(root);
+            int i = 1;
+
+            while (!queue.isEmpty() && i < parts.length) {
+                Object node = queue.poll();
+
+                // Left child
+                if (i < parts.length) {
+                    String leftVal = parts[i].trim();
+                    i++;
+                    if (!leftVal.equals("null")) {
+                        Object leftNode = ctor.newInstance(Integer.parseInt(leftVal));
+                        leftField.set(node, leftNode);
+                        queue.offer(leftNode);
+                    }
+                }
+
+                // Right child
+                if (i < parts.length) {
+                    String rightVal = parts[i].trim();
+                    i++;
+                    if (!rightVal.equals("null")) {
+                        Object rightNode = ctor.newInstance(Integer.parseInt(rightVal));
+                        rightField.set(node, rightNode);
+                        queue.offer(rightNode);
+                    }
+                }
+            }
+
+            return root;
+        } catch (Exception e) {
+            LOGGER.warn("Failed to parse TreeNode: {}", val, e);
+            return null;
+        }
+    }
+
+    /**
+     * Parse an array into a ListNode linked list using reflection.
+     * Input format: [1,2,3,4,5]
+     */
+    private static Object parseListNode(String val, Class<?> listNodeClass) {
+        try {
+            val = val.trim();
+            if (val.equals("[]") || val.equals("null")) return null;
+
+            val = val.replaceAll("[\\[\\]]", "");
+            String[] parts = val.split(",");
+            if (parts.length == 0 || parts[0].trim().isEmpty()) return null;
+
+            Constructor<?> ctor = listNodeClass.getConstructor(int.class);
+            java.lang.reflect.Field nextField = listNodeClass.getField("next");
+
+            Object head = ctor.newInstance(Integer.parseInt(parts[0].trim()));
+            Object current = head;
+
+            for (int i = 1; i < parts.length; i++) {
+                Object nextNode = ctor.newInstance(Integer.parseInt(parts[i].trim()));
+                nextField.set(current, nextNode);
+                current = nextNode;
+            }
+
+            return head;
+        } catch (Exception e) {
+            LOGGER.warn("Failed to parse ListNode: {}", val, e);
+            return null;
+        }
     }
     
     private static int[] parseIntArray(String val) {
@@ -1073,7 +1317,16 @@ public class CodeExecutor {
         if (result == null) {
             return "null";
         }
-        
+
+        // Check for TreeNode/ListNode by class name (loaded from sandbox classloader)
+        String className = result.getClass().getSimpleName();
+        if (className.equals("TreeNode")) {
+            return formatTreeNode(result);
+        }
+        if (className.equals("ListNode")) {
+            return formatListNode(result);
+        }
+
         if (result instanceof int[]) {
             return Arrays.toString((int[]) result);
         }
@@ -1089,22 +1342,113 @@ public class CodeExecutor {
         if (result instanceof char[]) {
             return Arrays.toString((char[]) result);
         }
-        
+
         if (result instanceof Object[]) {
             return Arrays.deepToString((Object[]) result);
         }
-        
+
         if (result instanceof int[][]) {
             return Arrays.deepToString((int[][]) result);
         }
         if (result instanceof char[][]) {
             return Arrays.deepToString((char[][]) result);
         }
-        
+
         if (result instanceof List) {
             return result.toString();
         }
-        
+
         return String.valueOf(result);
+    }
+
+    /**
+     * Format a TreeNode object as a level-order array string using reflection.
+     */
+    private static String formatTreeNode(Object node) {
+        if (node == null) return "[]";
+        try {
+            Class<?> clazz = node.getClass();
+            java.lang.reflect.Field valField = clazz.getField("val");
+            java.lang.reflect.Field leftField = clazz.getField("left");
+            java.lang.reflect.Field rightField = clazz.getField("right");
+
+            List<String> result = new ArrayList<>();
+            Queue<Object> queue = new LinkedList<>();
+            queue.offer(node);
+
+            while (!queue.isEmpty()) {
+                Object current = queue.poll();
+                if (current == null) {
+                    result.add("null");
+                } else {
+                    result.add(String.valueOf(valField.get(current)));
+                    queue.offer(leftField.get(current));
+                    queue.offer(rightField.get(current));
+                }
+            }
+
+            // Remove trailing nulls
+            while (!result.isEmpty() && result.get(result.size() - 1).equals("null")) {
+                result.remove(result.size() - 1);
+            }
+
+            return "[" + String.join(",", result) + "]";
+        } catch (Exception e) {
+            return String.valueOf(node);
+        }
+    }
+
+    /**
+     * Format a ListNode object as an array string using reflection.
+     */
+    private static String formatListNode(Object node) {
+        if (node == null) return "[]";
+        try {
+            Class<?> clazz = node.getClass();
+            java.lang.reflect.Field valField = clazz.getField("val");
+            java.lang.reflect.Field nextField = clazz.getField("next");
+
+            List<String> result = new ArrayList<>();
+            Object current = node;
+            int maxLen = 10000; // Prevent infinite loop for cyclic lists
+
+            while (current != null && result.size() < maxLen) {
+                result.add(String.valueOf(valField.get(current)));
+                current = nextField.get(current);
+            }
+
+            return "[" + String.join(",", result) + "]";
+        } catch (Exception e) {
+            return String.valueOf(node);
+        }
+    }
+
+    /**
+     * Compare actual output against expected, with normalization and special cases.
+     * Handles null/[] equivalence, double precision, and whitespace differences.
+     */
+    private static boolean outputsMatch(String actual, String expected) {
+        if (actual == null) actual = "null";
+        if (expected == null) expected = "";
+
+        // Exact match after normalization
+        String normActual = normalizeOutput(actual);
+        String normExpected = normalizeOutput(expected);
+        if (normActual.equals(normExpected)) return true;
+
+        // null / [] equivalence
+        Set<String> emptyEquivalents = Set.of("null", "[]", "");
+        if (emptyEquivalents.contains(normActual) && emptyEquivalents.contains(normExpected)) {
+            return true;
+        }
+
+        // Double/float precision: try parsing as doubles
+        try {
+            double a = Double.parseDouble(actual.trim());
+            double b = Double.parseDouble(expected.trim());
+            if (Math.abs(a - b) < 1e-5) return true;
+        } catch (NumberFormatException ignored) {}
+
+        return false;
     }
 }

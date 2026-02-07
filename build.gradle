@@ -117,6 +117,12 @@ configurations {
 }
 
 dependencies {
+    // JUnit 5 for solution testing
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'com.google.code.gson:gson:2.11.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
     // implementation 'org.codehaus.janino:janino:3.1.12'
     // implementation 'org.codehaus.janino:commons-compiler:3.1.12'
     // jarJar 'org.codehaus.janino:janino:3.1.12'
@@ -186,6 +192,20 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+// JUnit 5 test configuration
+tasks.named('test', Test) {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        showStandardStreams = false
+        exceptionFormat = 'short'
+    }
+    // Increase heap for compiling 500+ solutions
+    jvmArgs '-Xmx2g'
+    // Set timeout per test class
+    systemProperty 'junit.jupiter.execution.timeout.default', '300s'
 }
 
 // IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.

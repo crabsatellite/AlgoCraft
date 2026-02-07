@@ -4,18 +4,46 @@
   "description": "# Decode String\n\nGiven an encoded string, return its decoded string.\n\nThe encoding rule is: `k[encoded_string]`, where the `encoded_string` inside the square brackets is being repeated exactly `k` times. Note that `k` is guaranteed to be a positive integer.\n\nYou may assume that the input string is always valid; there are no extra white spaces, square brackets are well-formed, etc. Furthermore, you may assume that the original data does not contain any digits and that digits are only for those repeat numbers, `k`. For example, there will not be input like `3a` or `2[4]`.\n\nThe test cases are generated so that the length of the output will never exceed `10^5`.\n\n## Example 1:\n\n**Input:** s = \"3[a]2[bc]\"\n**Output:** \"aaabcbc\"\n\n## Example 2:\n\n**Input:** s = \"3[a2[c]]\"\n**Output:** \"accaccacc\"\n\n## Example 3:\n\n**Input:** s = \"2[abc]3[cd]ef\"\n**Output:** \"abcabccdcdcdef\"\n\n## Constraints:\n\n*   `1 <= s.length <= 30`\n*   `s` consists of lowercase English letters, digits, and square brackets `'[]'`.\n*   `s` is guaranteed to be a valid input.\n*   All the integers in `s` are in the range `[1, 300]`.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public String decodeString(String s) {\n        // Write your code here\n        return \"\";\n    }\n}",
-  "tags": ["String", "Stack", "Recursion"],
+  "tags": [
+    "String",
+    "Stack",
+    "Recursion"
+  ],
   "examples": [
-    { "input": "s = \"3[a]2[bc]\"", "output": "\"aaabcbc\"" },
-    { "input": "s = \"3[a2[c]]\"", "output": "\"accaccacc\"" },
-    { "input": "s = \"2[abc]3[cd]ef\"", "output": "\"abcabccdcdcdef\"" }
+    {
+      "input": "s = \"3[a]2[bc]\"",
+      "output": "\"aaabcbc\""
+    },
+    {
+      "input": "s = \"3[a2[c]]\"",
+      "output": "\"accaccacc\""
+    },
+    {
+      "input": "s = \"2[abc]3[cd]ef\"",
+      "output": "\"abcabccdcdcdef\""
+    }
   ],
   "tests": [
-    { "input": "s = \"3[a]2[bc]\"", "output": "\"aaabcbc\"" },
-    { "input": "s = \"3[a2[c]]\"", "output": "\"accaccacc\"" },
-    { "input": "s = \"2[abc]3[cd]ef\"", "output": "\"abcabccdcdcdef\"" },
-    { "input": "s = \"10[a]\"", "output": "\"aaaaaaaaaa\"" },
-    { "input": "s = \"2[2[b]]\"", "output": "\"bbbb\"" },
+    {
+      "input": "s = \"3[a]2[bc]\"",
+      "output": "\"aaabcbc\""
+    },
+    {
+      "input": "s = \"3[a2[c]]\"",
+      "output": "\"accaccacc\""
+    },
+    {
+      "input": "s = \"2[abc]3[cd]ef\"",
+      "output": "\"abcabccdcdcdef\""
+    },
+    {
+      "input": "s = \"10[a]\"",
+      "output": "\"aaaaaaaaaa\""
+    },
+    {
+      "input": "s = \"2[2[b]]\"",
+      "output": "\"bbbb\""
+    },
     {
       "input": "s = \"abc\"",
       "output": "\"abc\"",
@@ -48,6 +76,13 @@
       "spaceComplexity": "O(n)",
       "description": "使用单个栈存储字符和数字。遇到 ']' 时从栈中弹出字符直到 '['，再弹出数字进行重复。",
       "code": "class Solution {\n    public String decodeString(String s) {\n        Deque<Object> stack = new ArrayDeque<>();\n        int k = 0;\n        \n        for (char c : s.toCharArray()) {\n            if (Character.isDigit(c)) {\n                k = k * 10 + (c - '0');\n            } else if (c == '[') {\n                stack.push(k);\n                k = 0;\n            } else if (c == ']') {\n                // 收集括号内的字符串\n                StringBuilder sb = new StringBuilder();\n                while (!stack.isEmpty() && stack.peek() instanceof String) {\n                    sb.insert(0, stack.pop());\n                }\n                \n                // 弹出重复次数\n                int repeatCount = (Integer) stack.pop();\n                String repeated = sb.toString().repeat(repeatCount);\n                stack.push(repeated);\n            } else {\n                stack.push(String.valueOf(c));\n            }\n        }\n        \n        // 收集结果\n        StringBuilder result = new StringBuilder();\n        while (!stack.isEmpty()) {\n            result.insert(0, stack.pop());\n        }\n        \n        return result.toString();\n    }\n}"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p49_example1.png",
+      "caption": "Decode String: 3[a]2[bc] -> aaabcbc"
     }
   ]
 }

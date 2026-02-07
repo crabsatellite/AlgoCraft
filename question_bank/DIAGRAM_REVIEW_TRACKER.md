@@ -18,12 +18,9 @@
 |-------|----------|------|--------|
 | Patch 1 | p84-p106 | Tree problems batch 1 | **Done** |
 | Patch 2 | p68-p80, p207-p208, p304 | Linked list problems | **Done** |
-| Patch 3 | p114, p160, p205, p238, p303, p322, p326 | Tree problems batch 2 | Pending |
-| Patch 4 | p52, p125, p147, p149, p190, p242, p253, etc. | Matrix/Grid problems | Pending |
-| Patch 5 | p182-p185, p364, p41, p49, p181, p206, p279, p306, p318 | Interval + Stack/Queue | Pending |
-| Patch 6 | p401-p451 | Design problems | Pending |
-| Patch 7 | p331-p500 remaining | Remaining tree/graph/matrix | Pending |
-| Patch 8 | p139 fix | Missing image fix | Pending |
+| Patch 3 | Trees + Graphs + Intervals + Matrix + Stack | Large batch (31 problems) | **Done** |
+| Patch 4 | p401-p451+ | Design + remaining problems | Pending |
+| Patch 5 | p139 fix + remaining | Missing image fix + cleanup | Pending |
 
 ## Problems Needing Diagrams (120 total)
 
@@ -43,10 +40,10 @@
 - [ ] p114 - Top K Frequent Words
 - [ ] p160 - Word Break
 - [ ] p205 - Longest Common Prefix
-- [ ] p238 - Range Sum of BST
+- [x] p238 - Range Sum of BST
 - [ ] p303 - Count of Range Sum
-- [ ] p322 - Recover Binary Search Tree
-- [ ] p326 - Sum Root to Leaf Numbers
+- [x] p322 - Recover Binary Search Tree
+- [x] p326 - Sum Root to Leaf Numbers
 - [ ] p331 - Word Break II
 - [ ] p336 - The Skyline Problem
 - [ ] p343 - Count of Smaller Numbers After Self
@@ -57,7 +54,7 @@
 - [ ] p370 - K-th Smallest in Lexicographical Order
 - [ ] p371 - Cut Off Trees for Golf Event
 - [ ] p374 - Falling Squares
-- [ ] p389 - Binary Tree Cameras
+- [x] p389 - Binary Tree Cameras
 - [ ] p395 - Recover a Tree From Preorder Traversal
 - [ ] p396 - Stream of Characters
 - [ ] p420 - Range Sum Query - Mutable
@@ -69,18 +66,18 @@
 - [ ] p449 - My Calendar I
 - [ ] p450 - My Calendar II
 - [ ] p451 - My Calendar III
-- [ ] p465 - Maximum Depth of N-ary Tree
-- [ ] p467 - Binary Tree Tilt
-- [ ] p469 - Flip Equivalent Binary Trees
-- [ ] p475 - Construct String from Binary Tree
-- [ ] p479 - Average of Levels in Binary Tree
+- [x] p465 - Maximum Depth of N-ary Tree
+- [x] p467 - Binary Tree Tilt
+- [x] p469 - Flip Equivalent Binary Trees
+- [x] p475 - Construct String from Binary Tree
+- [x] p479 - Average of Levels in Binary Tree
 - [ ] p484 - Longest Word in Dictionary
-- [ ] p487 - Find Duplicate Subtrees
-- [ ] p488 - Two Sum IV - Input is a BST
-- [ ] p489 - Maximum Binary Tree
-- [ ] p490 - Print Binary Tree
-- [ ] p496 - Maximum Width of Binary Tree
-- [ ] p500 - Trim a Binary Search Tree
+- [x] p487 - Find Duplicate Subtrees
+- [x] p488 - Two Sum IV - Input is a BST
+- [x] p489 - Maximum Binary Tree
+- [x] p490 - Print Binary Tree
+- [x] p496 - Maximum Width of Binary Tree
+- [x] p500 - Trim a Binary Search Tree
 
 ### Linked Lists (18 problems)
 - [x] p68 - Remove Nth Node From End of List
@@ -107,26 +104,26 @@
 - [ ] p441 - All O'one Data Structure
 - [ ] p448 - Design Text Editor
 
-### Graphs (6 problems)
-- [ ] p146 - Alien Dictionary
+### Graphs (8 problems)
+- [x] p146 - Alien Dictionary
 - [ ] p169 - Longest Increasing Path in a Matrix
 - [ ] p376 - Cracking the Safe
 - [ ] p377 - Couples Holding Hands
-- [ ] p383 - Minimize Malware Spread
-- [ ] p385 - Cat and Mouse
-- [ ] p387 - Minimize Malware Spread II
-- [ ] p417 - Design Graph With Shortest Path Calculator
+- [x] p383 - Minimize Malware Spread
+- [x] p385 - Cat and Mouse
+- [x] p387 - Minimize Malware Spread II
+- [x] p417 - Design Graph With Shortest Path Calculator
 
 ### Matrix/Grid (18 problems)
-- [ ] p52 - Search a 2D Matrix
+- [x] p52 - Search a 2D Matrix
 - [ ] p125 - Sudoku Solver
-- [ ] p147 - Swim in Rising Water
-- [ ] p149 - Path With Minimum Effort
-- [ ] p190 - Spiral Matrix II
+- [x] p147 - Swim in Rising Water
+- [x] p149 - Path With Minimum Effort
+- [x] p190 - Spiral Matrix II
 - [ ] p242 - Matrix Cells in Distance Order
 - [ ] p253 - Richest Customer Wealth
 - [ ] p294 - Check if Matrix Is X-Matrix
-- [ ] p307 - Sliding Puzzle
+- [x] p307 - Sliding Puzzle
 - [ ] p319 - Maximal Rectangle
 - [ ] p335 - Dungeon Game
 - [ ] p339 - Kth Smallest Element in a Sorted Matrix
@@ -143,15 +140,15 @@
 - [ ] p495 - Image Smoother
 
 ### Intervals (5 problems)
-- [ ] p182 - Insert Interval
-- [ ] p183 - Merge Intervals
-- [ ] p184 - Non-overlapping Intervals
-- [ ] p185 - Meeting Rooms
+- [x] p182 - Insert Interval
+- [x] p183 - Merge Intervals
+- [x] p184 - Non-overlapping Intervals
+- [x] p185 - Meeting Rooms
 - [ ] p364 - Data Stream as Disjoint Intervals
 
 ### Stack/Queue (8 problems)
-- [ ] p41 - Valid Parentheses
-- [ ] p49 - Decode String
+- [x] p41 - Valid Parentheses
+- [x] p49 - Decode String
 - [ ] p181 - Valid Parenthesis String
 - [ ] p206 - Minimum Remove to Make Valid Parentheses
 - [ ] p279 - Maximum Nesting Depth of the Parentheses

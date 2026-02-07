@@ -31,5 +31,23 @@
       "output": "[1,2]",
       "note": "移除尾节点"
     }
+  ],
+  "solutions": [
+    {
+      "name": "Two Pointers - One Pass",
+      "timeComplexity": "O(L)",
+      "spaceComplexity": "O(1)",
+      "description": "Use two pointers with a gap of n between them. When the fast pointer reaches the end, the slow pointer is right before the node to remove. A dummy node handles the edge case of removing the head.",
+      "code": "class Solution {\n    public ListNode removeNthFromEnd(ListNode head, int n) {\n        ListNode dummy = new ListNode(0, head);\n        ListNode fast = dummy;\n        ListNode slow = dummy;\n        \n        // Advance fast by n+1 steps\n        for (int i = 0; i <= n; i++) {\n            fast = fast.next;\n        }\n        \n        // Move both until fast reaches the end\n        while (fast != null) {\n            fast = fast.next;\n            slow = slow.next;\n        }\n        \n        // Remove the nth node from end\n        slow.next = slow.next.next;\n        \n        return dummy.next;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two Pass - Count Length",
+      "timeComplexity": "O(L)",
+      "spaceComplexity": "O(1)",
+      "description": "First pass: count the total length L. Second pass: remove the (L - n + 1)th node from the beginning.",
+      "code": "class Solution {\n    public ListNode removeNthFromEnd(ListNode head, int n) {\n        ListNode dummy = new ListNode(0, head);\n        \n        // Count length\n        int length = 0;\n        ListNode curr = head;\n        while (curr != null) {\n            length++;\n            curr = curr.next;\n        }\n        \n        // Find the node before the target\n        curr = dummy;\n        for (int i = 0; i < length - n; i++) {\n            curr = curr.next;\n        }\n        \n        curr.next = curr.next.next;\n        \n        return dummy.next;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

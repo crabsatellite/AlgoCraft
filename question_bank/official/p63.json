@@ -29,5 +29,15 @@
       "output": "15",
       "note": "1天运完，容量=总重"
     }
+  ],
+  "solutions": [
+    {
+      "name": "Binary Search on Answer",
+      "timeComplexity": "O(n log S)",
+      "spaceComplexity": "O(1)",
+      "description": "Binary search on the ship capacity. The lower bound is max(weights) (must carry the heaviest single package), the upper bound is sum(weights) (carry everything in one day). For each candidate capacity, greedily check if we can ship within the given days.",
+      "code": "class Solution {\n    public int shipWithinDays(int[] weights, int days) {\n        int left = 0, right = 0;\n        \n        for (int w : weights) {\n            left = Math.max(left, w);\n            right += w;\n        }\n        \n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            \n            if (canShip(weights, days, mid)) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        \n        return left;\n    }\n    \n    private boolean canShip(int[] weights, int days, int capacity) {\n        int daysNeeded = 1;\n        int currentLoad = 0;\n        \n        for (int w : weights) {\n            if (currentLoad + w > capacity) {\n                daysNeeded++;\n                currentLoad = 0;\n            }\n            currentLoad += w;\n        }\n        \n        return daysNeeded <= days;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

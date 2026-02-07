@@ -26,6 +26,16 @@
       "output": "1"
     }
   ],
+  "solutions": [
+    {
+      "name": "DFS with Memoization",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "For each cell, DFS to find the longest increasing path starting from it. Cache results in a memo array. Since we only move to strictly larger values, there are no cycles and no visited array is needed.",
+      "code": "class Solution {\n    private int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n    public int longestIncreasingPath(int[][] matrix) {\n        int m = matrix.length, n = matrix[0].length;\n        int[][] memo = new int[m][n];\n        int result = 0;\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++)\n                result = Math.max(result, dfs(matrix, i, j, memo));\n        return result;\n    }\n    private int dfs(int[][] matrix, int r, int c, int[][] memo) {\n        if (memo[r][c] != 0) return memo[r][c];\n        int best = 1;\n        for (int[] d : dirs) {\n            int nr = r + d[0], nc = c + d[1];\n            if (nr >= 0 && nr < matrix.length && nc >= 0 && nc < matrix[0].length && matrix[nr][nc] > matrix[r][c]) {\n                best = Math.max(best, 1 + dfs(matrix, nr, nc, memo));\n            }\n        }\n        memo[r][c] = best;\n        return best;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "matrix = [[9,9,4],[6,6,8],[2,1,1]]",

@@ -9,6 +9,16 @@
     { "input": "n = \"123\"", "output": "\"121\"" },
     { "input": "n = \"1\"", "output": "\"0\"" }
   ],
+  "solutions": [
+    {
+      "name": "Generate Candidates from Half",
+      "timeComplexity": "O(L)",
+      "spaceComplexity": "O(L)",
+      "description": "Generate 5 candidates: mirror the first half, mirror first half +/- 1, 10^(len-1) - 1 (all 9s), 10^len + 1 (100..001). Pick the closest to n that is not n itself. On tie, pick the smaller.",
+      "code": "class Solution {\n    public String nearestPalindromic(String n) {\n        int len = n.length();\n        long num = Long.parseLong(n);\n        java.util.Set<Long> candidates = new java.util.HashSet<>();\n        candidates.add((long) Math.pow(10, len - 1) - 1);\n        candidates.add((long) Math.pow(10, len) + 1);\n        long half = Long.parseLong(n.substring(0, (len + 1) / 2));\n        for (long h = half - 1; h <= half + 1; h++) {\n            String hs = String.valueOf(h);\n            StringBuilder sb = new StringBuilder(hs);\n            for (int i = len / 2 - 1; i >= 0; i--) sb.append(hs.charAt(i));\n            candidates.add(Long.parseLong(sb.toString()));\n        }\n        candidates.remove(num);\n        long closest = -1;\n        for (long c : candidates) {\n            if (closest == -1 || Math.abs(c - num) < Math.abs(closest - num) ||\n                (Math.abs(c - num) == Math.abs(closest - num) && c < closest)) {\n                closest = c;\n            }\n        }\n        return String.valueOf(closest);\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "n = \"123\"", "output": "\"121\"" },
     { "input": "n = \"1\"", "output": "\"0\"" }

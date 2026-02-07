@@ -9,6 +9,16 @@
     { "input": "nums = [2,4,6,8,10]", "output": "7" },
     { "input": "nums = [7,7,7,7,7]", "output": "16" }
   ],
+  "solutions": [
+    {
+      "name": "DP with HashMap per Index",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "For each index i, maintain a map from common difference to the count of weak arithmetic subsequences (length >= 2) ending at i. For each pair (j, i), diff = nums[i] - nums[j], dp[i][diff] += dp[j][diff] + 1. The +1 accounts for the pair (j,i). Add dp[j][diff] to result (those become length >= 3).",
+      "code": "class Solution {\n    public int numberOfArithmeticSlices(int[] nums) {\n        int n = nums.length, result = 0;\n        java.util.Map<Long, Integer>[] dp = new java.util.HashMap[n];\n        for (int i = 0; i < n; i++) {\n            dp[i] = new java.util.HashMap<>();\n            for (int j = 0; j < i; j++) {\n                long diff = (long) nums[i] - nums[j];\n                int countJ = dp[j].getOrDefault(diff, 0);\n                int countI = dp[i].getOrDefault(diff, 0);\n                result += countJ;\n                dp[i].put(diff, countI + countJ + 1);\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "nums = [2,4,6,8,10]", "output": "7" },
     { "input": "nums = [7,7,7,7,7]", "output": "16" }

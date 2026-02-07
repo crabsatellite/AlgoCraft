@@ -13,6 +13,16 @@
     { "input": "words = [\"bat\",\"tab\",\"cat\"]", "output": "[[0,1],[1,0]]" },
     { "input": "words = [\"a\",\"\"]", "output": "[[0,1],[1,0]]" }
   ],
+  "solutions": [
+    {
+      "name": "HashMap with Reverse Lookup",
+      "timeComplexity": "O(n * L^2)",
+      "spaceComplexity": "O(n * L)",
+      "description": "Store each word's reverse in a map. For each word, split at every position. If left half is a palindrome and map contains reverse of right half, pair found (prepend). If right half is palindrome and map has reverse of left half, pair found (append).",
+      "code": "class Solution {\n    public List<List<Integer>> palindromePairs(String[] words) {\n        java.util.Map<String, Integer> map = new java.util.HashMap<>();\n        for (int i = 0; i < words.length; i++) map.put(words[i], i);\n        List<List<Integer>> result = new java.util.ArrayList<>();\n        for (int i = 0; i < words.length; i++) {\n            String w = words[i];\n            for (int j = 0; j <= w.length(); j++) {\n                String left = w.substring(0, j), right = w.substring(j);\n                if (isPalindrome(left)) {\n                    String revRight = new StringBuilder(right).reverse().toString();\n                    if (map.containsKey(revRight) && map.get(revRight) != i) {\n                        result.add(java.util.Arrays.asList(map.get(revRight), i));\n                    }\n                }\n                if (right.length() > 0 && isPalindrome(right)) {\n                    String revLeft = new StringBuilder(left).reverse().toString();\n                    if (map.containsKey(revLeft) && map.get(revLeft) != i) {\n                        result.add(java.util.Arrays.asList(i, map.get(revLeft)));\n                    }\n                }\n            }\n        }\n        return result;\n    }\n    private boolean isPalindrome(String s) {\n        int l = 0, r = s.length() - 1;\n        while (l < r) { if (s.charAt(l++) != s.charAt(r--)) return false; }\n        return true;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "words = [\"abcd\",\"dcba\",\"lls\",\"s\",\"sssll\"]",

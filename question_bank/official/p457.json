@@ -10,6 +10,16 @@
     { "input": "nums = [-1,2]", "output": "false" },
     { "input": "nums = [-2,1,-1,-2,-2]", "output": "false" }
   ],
+  "solutions": [
+    {
+      "name": "Fast and Slow Pointers with Marking",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "For each unvisited index, use fast/slow pointers to detect a cycle. Ensure all elements in the cycle have the same sign and cycle length > 1. Mark visited indices to avoid reprocessing.",
+      "code": "class Solution {\n    public boolean circularArrayLoop(int[] nums) {\n        int n = nums.length;\n        for (int i = 0; i < n; i++) {\n            if (nums[i] == 0) continue;\n            int slow = i, fast = i;\n            while (nums[next(slow, nums)] * nums[i] > 0 &&\n                   nums[next(fast, nums)] * nums[i] > 0 &&\n                   nums[next(next(fast, nums), nums)] * nums[i] > 0) {\n                slow = next(slow, nums);\n                fast = next(next(fast, nums), nums);\n                if (slow == fast) {\n                    if (slow == next(slow, nums)) break;\n                    return true;\n                }\n            }\n            int j = i;\n            while (nums[j] * nums[i] > 0) {\n                int tmp = next(j, nums);\n                nums[j] = 0;\n                j = tmp;\n            }\n        }\n        return false;\n    }\n\n    private int next(int i, int[] nums) {\n        int n = nums.length;\n        return ((i + nums[i]) % n + n) % n;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "nums = [2,-1,1,2,2]", "output": "true" },
     { "input": "nums = [-1,2]", "output": "false" },

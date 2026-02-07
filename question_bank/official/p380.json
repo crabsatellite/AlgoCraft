@@ -9,6 +9,16 @@
     { "input": "target = 3", "output": "2" },
     { "input": "target = 6", "output": "5" }
   ],
+  "solutions": [
+    {
+      "name": "Dynamic Programming",
+      "timeComplexity": "O(t * log t)",
+      "spaceComplexity": "O(t)",
+      "description": "dp[t] = min instructions to reach position t. If 2^k - 1 == t, answer is k. Otherwise, try overshooting (2^k - 1 > t, reverse, solve remaining) or undershooting (2^k - 1 < t, reverse, go back j steps, reverse, solve remaining).",
+      "code": "class Solution {\n    public int racecar(int target) {\n        int[] dp = new int[target + 1];\n        java.util.Arrays.fill(dp, Integer.MAX_VALUE);\n        for (int t = 1; t <= target; t++) {\n            int k = 1, pos = 1;\n            while (pos < t + 1) { pos = (1 << k) - 1; k++; }\n            k--;\n            pos = (1 << k) - 1;\n            if (pos == t) { dp[t] = k; continue; }\n            dp[t] = k + 1 + dp[pos - t];\n            for (int j = 0; j < k - 1; j++) {\n                int pos2 = (1 << (k - 1)) - 1 - ((1 << j) - 1);\n                dp[t] = Math.min(dp[t], (k - 1) + 1 + j + 1 + dp[t - pos2]);\n            }\n        }\n        return dp[target];\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "target = 3", "output": "2" },
     { "input": "target = 6", "output": "5" }

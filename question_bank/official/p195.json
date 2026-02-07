@@ -11,6 +11,16 @@
       "output": "[null, null, null, null, 1, 0, null, 2]"
     }
   ],
+  "solutions": [
+    {
+      "name": "HashMap Count",
+      "timeComplexity": "O(n) per count",
+      "spaceComplexity": "O(n)",
+      "description": "Store point counts in a HashMap. For a query point, iterate all points with the same x-coordinate as a diagonal candidate, compute the side length, and check if the other two corners exist.",
+      "code": "class DetectSquares {\n    private java.util.Map<String, Integer> counts;\n    private java.util.List<int[]> points;\n    \n    public DetectSquares() {\n        counts = new java.util.HashMap<>();\n        points = new java.util.ArrayList<>();\n    }\n    \n    public void add(int[] point) {\n        String key = point[0] + \",\" + point[1];\n        counts.merge(key, 1, Integer::sum);\n        points.add(point);\n    }\n    \n    public int count(int[] point) {\n        int px = point[0], py = point[1], result = 0;\n        for (int[] p : points) {\n            int x = p[0], y = p[1];\n            if (Math.abs(px - x) != Math.abs(py - y) || px == x && py == y) continue;\n            result += counts.getOrDefault(px + \",\" + y, 0)\n                    * counts.getOrDefault(x + \",\" + py, 0);\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"DetectSquares\", \"add\", \"add\", \"add\", \"count\", \"count\", \"add\", \"count\"]\n[[], [[3, 10]], [[11, 2]], [[3, 2]], [[11, 10]], [[14, 8]], [[11, 2]], [[11, 10]]]",

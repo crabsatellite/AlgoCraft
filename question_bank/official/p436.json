@@ -11,6 +11,16 @@
       "output": "[null,null,null,null,false,true,true,true]"
     }
   ],
+  "solutions": [
+    {
+      "name": "Trie with DFS for Wildcard",
+      "timeComplexity": "O(L) for add, O(26^dots * L) for search",
+      "spaceComplexity": "O(N * L)",
+      "description": "Use a trie for storage. AddWord inserts normally. Search uses DFS: for regular characters follow the child, for '.' try all 26 children recursively.",
+      "code": "class WordDictionary {\n    private WordDictionary[] children;\n    private boolean isEnd;\n\n    public WordDictionary() {\n        children = new WordDictionary[26];\n        isEnd = false;\n    }\n\n    public void addWord(String word) {\n        WordDictionary node = this;\n        for (char c : word.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) {\n                node.children[idx] = new WordDictionary();\n            }\n            node = node.children[idx];\n        }\n        node.isEnd = true;\n    }\n\n    public boolean search(String word) {\n        return dfs(word, 0, this);\n    }\n\n    private boolean dfs(String word, int pos, WordDictionary node) {\n        if (pos == word.length()) return node.isEnd;\n        char c = word.charAt(pos);\n        if (c == '.') {\n            for (int i = 0; i < 26; i++) {\n                if (node.children[i] != null && dfs(word, pos + 1, node.children[i])) {\n                    return true;\n                }\n            }\n            return false;\n        } else {\n            int idx = c - 'a';\n            if (node.children[idx] == null) return false;\n            return dfs(word, pos + 1, node.children[idx]);\n        }\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"WordDictionary\",\"addWord\",\"addWord\",\"addWord\",\"search\",\"search\",\"search\",\"search\"]\n[[],[\"bad\"],[\"dad\"],[\"mad\"],[\"pad\"],[\"bad\"],[\".ad\"],[\"b..\"]]",

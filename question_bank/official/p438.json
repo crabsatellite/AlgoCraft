@@ -16,6 +16,16 @@
       "output": "[null, null, null, 1, null, -1, 3, null, -1, 3, 4]"
     }
   ],
+  "solutions": [
+    {
+      "name": "HashMap + Frequency Buckets with Doubly Linked List",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(capacity)",
+      "description": "Maintain a HashMap for key->node lookup, and a HashMap from frequency to a doubly linked list (using LinkedHashSet) of keys at that frequency. Track minFreq to find the LFU key in O(1). On access, move the key from its current frequency bucket to the next.",
+      "code": "class LFUCache {\n    private int capacity;\n    private int minFreq;\n    private java.util.HashMap<Integer, int[]> keyMap;\n    private java.util.HashMap<Integer, java.util.LinkedHashSet<Integer>> freqMap;\n\n    public LFUCache(int capacity) {\n        this.capacity = capacity;\n        this.minFreq = 0;\n        keyMap = new java.util.HashMap<>();\n        freqMap = new java.util.HashMap<>();\n    }\n\n    public int get(int key) {\n        if (!keyMap.containsKey(key)) return -1;\n        int[] info = keyMap.get(key);\n        int val = info[0], freq = info[1];\n        freqMap.get(freq).remove(key);\n        if (freqMap.get(freq).isEmpty()) {\n            freqMap.remove(freq);\n            if (minFreq == freq) minFreq++;\n        }\n        info[1] = freq + 1;\n        freqMap.computeIfAbsent(freq + 1, k -> new java.util.LinkedHashSet<>()).add(key);\n        return val;\n    }\n\n    public void put(int key, int value) {\n        if (capacity <= 0) return;\n        if (keyMap.containsKey(key)) {\n            keyMap.get(key)[0] = value;\n            get(key);\n            return;\n        }\n        if (keyMap.size() >= capacity) {\n            java.util.LinkedHashSet<Integer> minSet = freqMap.get(minFreq);\n            int evict = minSet.iterator().next();\n            minSet.remove(evict);\n            if (minSet.isEmpty()) freqMap.remove(minFreq);\n            keyMap.remove(evict);\n        }\n        keyMap.put(key, new int[]{value, 1});\n        freqMap.computeIfAbsent(1, k -> new java.util.LinkedHashSet<>()).add(key);\n        minFreq = 1;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"LFUCache\", \"put\", \"put\", \"get\", \"put\", \"get\", \"get\", \"put\", \"get\", \"get\", \"get\"]\n[[2], [1, 1], [2, 2], [1], [3, 3], [2], [3], [4, 4], [1], [3], [4]]",

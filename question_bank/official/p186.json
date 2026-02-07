@@ -15,6 +15,24 @@
     { "input": "intervals = [[0,30],[5,10],[15,20]]", "output": "2" },
     { "input": "intervals = [[7,10],[2,4]]", "output": "1" }
   ],
+  "solutions": [
+    {
+      "name": "Min Heap",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "Sort by start time. Use a min-heap tracking end times of active rooms. If earliest ending room ends before current meeting starts, reuse it. Otherwise allocate a new room.",
+      "code": "class Solution {\n    public int minMeetingRooms(int[][] intervals) {\n        java.util.Arrays.sort(intervals, (a, b) -> a[0] - b[0]);\n        java.util.PriorityQueue<Integer> heap = new java.util.PriorityQueue<>();\n        for (int[] interval : intervals) {\n            if (!heap.isEmpty() && heap.peek() <= interval[0]) {\n                heap.poll();\n            }\n            heap.offer(interval[1]);\n        }\n        return heap.size();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Chronological Ordering",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "Separate start and end times, sort both. Use two pointers to simulate events. When a meeting starts before one ends, need an extra room.",
+      "code": "class Solution {\n    public int minMeetingRooms(int[][] intervals) {\n        int n = intervals.length;\n        int[] starts = new int[n], ends = new int[n];\n        for (int i = 0; i < n; i++) {\n            starts[i] = intervals[i][0];\n            ends[i] = intervals[i][1];\n        }\n        java.util.Arrays.sort(starts);\n        java.util.Arrays.sort(ends);\n        int rooms = 0, endPtr = 0;\n        for (int i = 0; i < n; i++) {\n            if (starts[i] < ends[endPtr]) rooms++;\n            else endPtr++;\n        }\n        return rooms;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "intervals = [[0,30],[5,10],[15,20]]", "output": "2" },
     { "input": "intervals = [[7,10],[2,4]]", "output": "1" },

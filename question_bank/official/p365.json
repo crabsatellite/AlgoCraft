@@ -21,6 +21,16 @@
       "output": "3"
     }
   ],
+  "solutions": [
+    {
+      "name": "Column Compression + TreeSet",
+      "timeComplexity": "O(min(m,n)^2 * max(m,n) * log(max(m,n)))",
+      "spaceComplexity": "O(max(m,n))",
+      "description": "Fix two column boundaries. Compress each row between them into a 1D prefix sum array. For each prefix sum, find the largest previous prefix sum such that current - previous <= k using TreeSet ceiling.",
+      "code": "class Solution {\n    public int maxSumSubmatrix(int[][] matrix, int k) {\n        int m = matrix.length, n = matrix[0].length;\n        int result = Integer.MIN_VALUE;\n        for (int c1 = 0; c1 < n; c1++) {\n            int[] rowSum = new int[m];\n            for (int c2 = c1; c2 < n; c2++) {\n                for (int r = 0; r < m; r++) rowSum[r] += matrix[r][c2];\n                java.util.TreeSet<Integer> set = new java.util.TreeSet<>();\n                set.add(0);\n                int prefix = 0;\n                for (int s : rowSum) {\n                    prefix += s;\n                    Integer ceil = set.ceiling(prefix - k);\n                    if (ceil != null) result = Math.max(result, prefix - ceil);\n                    set.add(prefix);\n                }\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "matrix = [[1,0,1],[0,-2,3]], k = 2",

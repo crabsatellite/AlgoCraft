@@ -9,6 +9,16 @@
     { "input": "n = 13, k = 2", "output": "10" },
     { "input": "n = 1, k = 1", "output": "1" }
   ],
+  "solutions": [
+    {
+      "name": "Trie-like Prefix Counting",
+      "timeComplexity": "O(log^2 n)",
+      "spaceComplexity": "O(1)",
+      "description": "Think of numbers 1..n in a virtual trie. Count nodes under each prefix to navigate: if count <= k, skip this subtree; otherwise go deeper. Count function calculates nodes between prefix and prefix+1 bounded by n.",
+      "code": "class Solution {\n    public int findKthNumber(int n, int k) {\n        long cur = 1;\n        k--;\n        while (k > 0) {\n            long steps = countSteps(n, cur, cur + 1);\n            if (steps <= k) { k -= steps; cur++; }\n            else { k--; cur *= 10; }\n        }\n        return (int) cur;\n    }\n    private long countSteps(int n, long cur, long next) {\n        long steps = 0;\n        while (cur <= n) {\n            steps += Math.min(n + 1, next) - cur;\n            cur *= 10;\n            next *= 10;\n        }\n        return steps;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "n = 13, k = 2", "output": "10" },
     { "input": "n = 1, k = 1", "output": "1" }

@@ -24,6 +24,16 @@
       "output": "[0]"
     }
   ],
+  "solutions": [
+    {
+      "name": "Topological Sort (BFS - Kahn's)",
+      "timeComplexity": "O(V + E)",
+      "spaceComplexity": "O(V + E)",
+      "description": "Build adjacency list and in-degree array. BFS from nodes with in-degree 0, recording the order. If order length != numCourses, cycle exists, return empty array.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] findOrder(int numCourses, int[][] prerequisites) {\n        List<List<Integer>> adj = new ArrayList<>();\n        int[] indegree = new int[numCourses];\n        for (int i = 0; i < numCourses; i++) adj.add(new ArrayList<>());\n        for (int[] pre : prerequisites) {\n            adj.get(pre[1]).add(pre[0]);\n            indegree[pre[0]]++;\n        }\n        Queue<Integer> queue = new LinkedList<>();\n        for (int i = 0; i < numCourses; i++)\n            if (indegree[i] == 0) queue.offer(i);\n        int[] order = new int[numCourses];\n        int idx = 0;\n        while (!queue.isEmpty()) {\n            int course = queue.poll();\n            order[idx++] = course;\n            for (int next : adj.get(course))\n                if (--indegree[next] == 0) queue.offer(next);\n        }\n        return idx == numCourses ? order : new int[]{};\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "numCourses = 2, prerequisites = [[1,0]]",

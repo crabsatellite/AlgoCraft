@@ -10,6 +10,24 @@
     { "input": "nums = [0,1,0,3,2,3]", "output": "4" },
     { "input": "nums = [7,7,7,7,7,7,7]", "output": "1" }
   ],
+  "solutions": [
+    {
+      "name": "Dynamic Programming",
+      "timeComplexity": "O(n²)",
+      "spaceComplexity": "O(n)",
+      "description": "For each element, find the longest increasing subsequence ending at that element by checking all previous elements.",
+      "code": "class Solution {\n    public int lengthOfLIS(int[] nums) {\n        int n = nums.length;\n        int[] dp = new int[n];\n        java.util.Arrays.fill(dp, 1);\n        int max = 1;\n        for (int i = 1; i < n; i++) {\n            for (int j = 0; j < i; j++) {\n                if (nums[j] < nums[i]) {\n                    dp[i] = Math.max(dp[i], dp[j] + 1);\n                }\n            }\n            max = Math.max(max, dp[i]);\n        }\n        return max;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Binary Search (Patience Sorting)",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "Maintain a tails array where tails[i] is the smallest tail element for an increasing subsequence of length i+1. Use binary search to find the position to update.",
+      "code": "class Solution {\n    public int lengthOfLIS(int[] nums) {\n        int[] tails = new int[nums.length];\n        int size = 0;\n        for (int num : nums) {\n            int lo = 0, hi = size;\n            while (lo < hi) {\n                int mid = lo + (hi - lo) / 2;\n                if (tails[mid] < num) lo = mid + 1;\n                else hi = mid;\n            }\n            tails[lo] = num;\n            if (lo == size) size++;\n        }\n        return size;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "nums = [10,9,2,5,3,7,101,18]", "output": "4" },
     { "input": "nums = [0,1,0,3,2,3]", "output": "4" },

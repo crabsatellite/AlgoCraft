@@ -9,6 +9,24 @@
     { "input": "nums = [1,1,1,1,1], target = 3", "output": "5" },
     { "input": "nums = [1], target = 1", "output": "1" }
   ],
+  "solutions": [
+    {
+      "name": "DP with Subset Sum Transformation",
+      "timeComplexity": "O(n * sum)",
+      "spaceComplexity": "O(sum)",
+      "description": "Transform to subset sum: if P is the set with +, N with -, then sum(P) = (target + totalSum) / 2. Count subsets summing to this value using 0/1 knapsack.",
+      "code": "class Solution {\n    public int findTargetSumWays(int[] nums, int target) {\n        int sum = 0;\n        for (int num : nums) sum += num;\n        if ((sum + target) % 2 != 0 || Math.abs(target) > sum) return 0;\n        int s = (sum + target) / 2;\n        int[] dp = new int[s + 1];\n        dp[0] = 1;\n        for (int num : nums) {\n            for (int j = s; j >= num; j--) {\n                dp[j] += dp[j - num];\n            }\n        }\n        return dp[s];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "DFS with Memoization",
+      "timeComplexity": "O(n * sum)",
+      "spaceComplexity": "O(n * sum)",
+      "description": "Recursively try adding + or - to each number. Use a HashMap to memoize (index, currentSum) states.",
+      "code": "class Solution {\n    public int findTargetSumWays(int[] nums, int target) {\n        java.util.Map<String, Integer> memo = new java.util.HashMap<>();\n        return dfs(nums, 0, 0, target, memo);\n    }\n    \n    private int dfs(int[] nums, int i, int sum, int target, java.util.Map<String, Integer> memo) {\n        if (i == nums.length) return sum == target ? 1 : 0;\n        String key = i + \",\" + sum;\n        if (memo.containsKey(key)) return memo.get(key);\n        int result = dfs(nums, i + 1, sum + nums[i], target, memo)\n                   + dfs(nums, i + 1, sum - nums[i], target, memo);\n        memo.put(key, result);\n        return result;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "nums = [1,1,1,1,1], target = 3", "output": "5" },
     { "input": "nums = [1], target = 1", "output": "1" },

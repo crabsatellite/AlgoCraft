@@ -9,6 +9,24 @@
     { "input": "nums = [1,5,11,5]", "output": "true" },
     { "input": "nums = [1,2,3,5]", "output": "false" }
   ],
+  "solutions": [
+    {
+      "name": "Bottom-Up DP (0/1 Knapsack)",
+      "timeComplexity": "O(n * sum)",
+      "spaceComplexity": "O(sum)",
+      "description": "Reduce to subset sum problem: can we find a subset with sum equal to totalSum/2? Use a 1D boolean DP array.",
+      "code": "class Solution {\n    public boolean canPartition(int[] nums) {\n        int sum = 0;\n        for (int num : nums) sum += num;\n        if (sum % 2 != 0) return false;\n        int target = sum / 2;\n        boolean[] dp = new boolean[target + 1];\n        dp[0] = true;\n        for (int num : nums) {\n            for (int j = target; j >= num; j--) {\n                dp[j] = dp[j] || dp[j - num];\n            }\n        }\n        return dp[target];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bitset Optimization",
+      "timeComplexity": "O(n * sum / 64)",
+      "spaceComplexity": "O(sum)",
+      "description": "Use a BitSet to represent reachable sums. Shifting the bitset left by num is equivalent to adding num to all reachable sums.",
+      "code": "class Solution {\n    public boolean canPartition(int[] nums) {\n        int sum = 0;\n        for (int num : nums) sum += num;\n        if (sum % 2 != 0) return false;\n        int target = sum / 2;\n        java.util.BitSet bits = new java.util.BitSet(target + 1);\n        bits.set(0);\n        for (int num : nums) {\n            for (int j = target; j >= num; j--) {\n                if (bits.get(j - num)) bits.set(j);\n            }\n        }\n        return bits.get(target);\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "nums = [1,5,11,5]", "output": "true" },
     { "input": "nums = [1,2,3,5]", "output": "false" },

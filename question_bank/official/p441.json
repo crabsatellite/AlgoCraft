@@ -16,6 +16,16 @@
       "output": "[null, null, null, \"hello\", \"hello\", null, \"hello\", \"leet\"]"
     }
   ],
+  "solutions": [
+    {
+      "name": "HashMap + Doubly Linked List by Count",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(n)",
+      "description": "Maintain a doubly linked list of count buckets, each containing a set of keys with that count. A HashMap maps each key to its current count. Inc/dec moves the key between adjacent buckets, creating or removing buckets as needed. Min/max are the head/tail of the list.",
+      "code": "class AllOne {\n    private java.util.HashMap<String, Integer> keyCount;\n    private java.util.TreeMap<Integer, java.util.LinkedHashSet<String>> countKeys;\n\n    public AllOne() {\n        keyCount = new java.util.HashMap<>();\n        countKeys = new java.util.TreeMap<>();\n    }\n\n    public void inc(String key) {\n        int oldCount = keyCount.getOrDefault(key, 0);\n        int newCount = oldCount + 1;\n        keyCount.put(key, newCount);\n        if (oldCount > 0) {\n            countKeys.get(oldCount).remove(key);\n            if (countKeys.get(oldCount).isEmpty()) countKeys.remove(oldCount);\n        }\n        countKeys.computeIfAbsent(newCount, k -> new java.util.LinkedHashSet<>()).add(key);\n    }\n\n    public void dec(String key) {\n        int oldCount = keyCount.get(key);\n        int newCount = oldCount - 1;\n        countKeys.get(oldCount).remove(key);\n        if (countKeys.get(oldCount).isEmpty()) countKeys.remove(oldCount);\n        if (newCount == 0) {\n            keyCount.remove(key);\n        } else {\n            keyCount.put(key, newCount);\n            countKeys.computeIfAbsent(newCount, k -> new java.util.LinkedHashSet<>()).add(key);\n        }\n    }\n\n    public String getMaxKey() {\n        if (countKeys.isEmpty()) return \"\";\n        return countKeys.lastEntry().getValue().iterator().next();\n    }\n\n    public String getMinKey() {\n        if (countKeys.isEmpty()) return \"\";\n        return countKeys.firstEntry().getValue().iterator().next();\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"AllOne\", \"inc\", \"inc\", \"getMaxKey\", \"getMinKey\", \"inc\", \"getMaxKey\", \"getMinKey\"]\n[[], [\"hello\"], [\"hello\"], [], [], [\"leet\"], [], []]",

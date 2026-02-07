@@ -11,6 +11,16 @@
       "output": "[null, null, [0,0,1,0,1], null, [-1], [0,1,0,0,1]]"
     }
   ],
+  "solutions": [
+    {
+      "name": "Greedy from Largest Denomination",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(1)",
+      "description": "Store counts of each denomination. On withdraw, greedily use as many of the largest denomination as possible, working down. If the remaining amount is not zero, return [-1] without modifying counts.",
+      "code": "class ATM {\n    private long[] count;\n    private int[] denom;\n\n    public ATM() {\n        count = new long[5];\n        denom = new int[]{20, 50, 100, 200, 500};\n    }\n\n    public void deposit(int[] banknotesCount) {\n        for (int i = 0; i < 5; i++) {\n            count[i] += banknotesCount[i];\n        }\n    }\n\n    public int[] withdraw(int amount) {\n        int[] used = new int[5];\n        long remaining = amount;\n        for (int i = 4; i >= 0; i--) {\n            used[i] = (int) Math.min(count[i], remaining / denom[i]);\n            remaining -= (long) used[i] * denom[i];\n        }\n        if (remaining > 0) return new int[]{-1};\n        for (int i = 0; i < 5; i++) {\n            count[i] -= used[i];\n        }\n        return used;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"ATM\", \"deposit\", \"withdraw\", \"deposit\", \"withdraw\", \"withdraw\"]\n[[], [[0,0,1,2,1]], [600], [[0,1,0,1,1]], [600], [550]]",

@@ -11,6 +11,16 @@
       "output": "[null, \"kimchi\", \"ramen\", null, \"sushi\", null, \"ramen\"]"
     }
   ],
+  "solutions": [
+    {
+      "name": "HashMap + TreeSet per Cuisine",
+      "timeComplexity": "O(log n) per operation",
+      "spaceComplexity": "O(n)",
+      "description": "Map each food to its cuisine and rating. For each cuisine, maintain a TreeSet sorted by (-rating, name). ChangeRating removes old entry and inserts new. HighestRated returns first element of the TreeSet.",
+      "code": "class FoodRatings {\n    private java.util.HashMap<String, String> foodCuisine;\n    private java.util.HashMap<String, Integer> foodRating;\n    private java.util.HashMap<String, java.util.TreeSet<String>> cuisineSet;\n\n    public FoodRatings(String[] foods, String[] cuisines, int[] ratings) {\n        foodCuisine = new java.util.HashMap<>();\n        foodRating = new java.util.HashMap<>();\n        cuisineSet = new java.util.HashMap<>();\n        for (int i = 0; i < foods.length; i++) {\n            foodCuisine.put(foods[i], cuisines[i]);\n            foodRating.put(foods[i], ratings[i]);\n            cuisineSet.computeIfAbsent(cuisines[i], k -> new java.util.TreeSet<>((a, b) -> {\n                int ra = foodRating.getOrDefault(a, 0);\n                int rb = foodRating.getOrDefault(b, 0);\n                if (ra != rb) return rb - ra;\n                return a.compareTo(b);\n            })).add(foods[i]);\n        }\n    }\n\n    public void changeRating(String food, int newRating) {\n        String cuisine = foodCuisine.get(food);\n        java.util.TreeSet<String> set = cuisineSet.get(cuisine);\n        set.remove(food);\n        foodRating.put(food, newRating);\n        set.add(food);\n    }\n\n    public String highestRated(String cuisine) {\n        return cuisineSet.get(cuisine).first();\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"FoodRatings\", \"highestRated\", \"highestRated\", \"changeRating\", \"highestRated\", \"changeRating\", \"highestRated\"]\n[[[\"kimchi\", \"miso\", \"sushi\", \"moussaka\", \"ramen\", \"bulgogi\"], [\"korean\", \"japanese\", \"japanese\", \"greek\", \"japanese\", \"korean\"], [9, 12, 8, 15, 14, 7]], [\"korean\"], [\"japanese\"], [\"sushi\", 16], [\"japanese\"], [\"ramen\", 16], [\"japanese\"]]",

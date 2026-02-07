@@ -11,6 +11,16 @@
       "output": "[null, -1, null, null, null, null, 1, null, 2]"
     }
   ],
+  "solutions": [
+    {
+      "name": "HashMap + TreeSet per Number",
+      "timeComplexity": "O(log n) per operation",
+      "spaceComplexity": "O(n)",
+      "description": "Use a HashMap from index to number, and a HashMap from number to a TreeSet of indices. On change, remove index from old number's set and add to new number's set. Find returns the first element of the TreeSet.",
+      "code": "class NumberContainers {\n    private java.util.HashMap<Integer, Integer> indexToNum;\n    private java.util.HashMap<Integer, java.util.TreeSet<Integer>> numToIndices;\n\n    public NumberContainers() {\n        indexToNum = new java.util.HashMap<>();\n        numToIndices = new java.util.HashMap<>();\n    }\n\n    public void change(int index, int number) {\n        if (indexToNum.containsKey(index)) {\n            int oldNum = indexToNum.get(index);\n            numToIndices.get(oldNum).remove(index);\n            if (numToIndices.get(oldNum).isEmpty()) numToIndices.remove(oldNum);\n        }\n        indexToNum.put(index, number);\n        numToIndices.computeIfAbsent(number, k -> new java.util.TreeSet<>()).add(index);\n    }\n\n    public int find(int number) {\n        if (!numToIndices.containsKey(number) || numToIndices.get(number).isEmpty()) return -1;\n        return numToIndices.get(number).first();\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"NumberContainers\", \"find\", \"change\", \"change\", \"change\", \"change\", \"find\", \"change\", \"find\"]\n[[], [10], [2, 10], [1, 10], [3, 10], [5, 10], [10], [1, 20], [10]]",

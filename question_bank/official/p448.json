@@ -17,6 +17,16 @@
       "output": "[null, null, 4, null, \"etpractice\", \"leet\", 4, \"\", \"practi\"]"
     }
   ],
+  "solutions": [
+    {
+      "name": "Two Stacks (Left and Right of Cursor)",
+      "timeComplexity": "O(k) per operation",
+      "spaceComplexity": "O(n)",
+      "description": "Use two stacks: left stack holds characters before the cursor, right stack holds characters after. AddText pushes to left. DeleteText pops from left. CursorLeft moves from left to right. CursorRight moves from right to left. Return last min(10, len) from left.",
+      "code": "class TextEditor {\n    private StringBuilder left;\n    private StringBuilder right;\n\n    public TextEditor() {\n        left = new StringBuilder();\n        right = new StringBuilder();\n    }\n\n    public void addText(String text) {\n        left.append(text);\n    }\n\n    public int deleteText(int k) {\n        int del = Math.min(k, left.length());\n        left.delete(left.length() - del, left.length());\n        return del;\n    }\n\n    private String getLeftText() {\n        int len = left.length();\n        int start = Math.max(0, len - 10);\n        return left.substring(start, len);\n    }\n\n    public String cursorLeft(int k) {\n        int move = Math.min(k, left.length());\n        for (int i = 0; i < move; i++) {\n            right.append(left.charAt(left.length() - 1));\n            left.deleteCharAt(left.length() - 1);\n        }\n        return getLeftText();\n    }\n\n    public String cursorRight(int k) {\n        int move = Math.min(k, right.length());\n        for (int i = 0; i < move; i++) {\n            left.append(right.charAt(right.length() - 1));\n            right.deleteCharAt(right.length() - 1);\n        }\n        return getLeftText();\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"TextEditor\", \"addText\", \"deleteText\", \"addText\", \"cursorRight\", \"cursorLeft\", \"deleteText\", \"cursorLeft\", \"cursorRight\"]\n[[], [\"leetcode\"], [4], [\"practice\"], [3], [8], [10], [2], [6]]",

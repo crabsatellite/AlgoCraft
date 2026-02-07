@@ -24,6 +24,14 @@
       "description": "Use a read pointer to scan groups of consecutive characters and a write pointer to overwrite the array in-place with the compressed result.",
       "code": "class Solution {\n    public int compress(char[] chars) {\n        int write = 0, read = 0;\n        while (read < chars.length) {\n            char ch = chars[read];\n            int count = 0;\n            while (read < chars.length && chars[read] == ch) {\n                read++;\n                count++;\n            }\n            chars[write++] = ch;\n            if (count > 1) {\n                String cnt = String.valueOf(count);\n                for (char c : cnt.toCharArray()) {\n                    chars[write++] = c;\n                }\n            }\n        }\n        return write;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Group Index Tracking",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Track group start index. For each group, write the character and its length (if > 1) digit by digit without using String.valueOf.",
+      "code": "class Solution {\n    public int compress(char[] chars) {\n        int write = 0;\n        int i = 0;\n        while (i < chars.length) {\n            char ch = chars[i];\n            int start = i;\n            while (i < chars.length && chars[i] == ch) i++;\n            chars[write++] = ch;\n            int count = i - start;\n            if (count > 1) {\n                int anchor = write;\n                while (count > 0) {\n                    chars[write++] = (char)('0' + count % 10);\n                    count /= 10;\n                }\n                int left = anchor;\n                int right = write - 1;\n                while (left < right) {\n                    char tmp = chars[left];\n                    chars[left] = chars[right];\n                    chars[right] = tmp;\n                    left++;\n                    right--;\n                }\n            }\n        }\n        return write;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

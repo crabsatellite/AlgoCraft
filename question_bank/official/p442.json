@@ -19,6 +19,14 @@
       "description": "Each index maintains a TreeMap mapping snap_id to value. Set records the value at the current snap_id. Get uses floorEntry to find the latest value at or before the given snap_id.",
       "code": "class SnapshotArray {\n    private java.util.TreeMap<Integer, Integer>[] data;\n    private int snapId;\n\n    public SnapshotArray(int length) {\n        data = new java.util.TreeMap[length];\n        for (int i = 0; i < length; i++) {\n            data[i] = new java.util.TreeMap<>();\n            data[i].put(0, 0);\n        }\n        snapId = 0;\n    }\n\n    public void set(int index, int val) {\n        data[index].put(snapId, val);\n    }\n\n    public int snap() {\n        return snapId++;\n    }\n\n    public int get(int index, int snap_id) {\n        return data[index].floorEntry(snap_id).getValue();\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "ArrayList of Changes with Binary Search",
+      "timeComplexity": "O(log S) per get, O(1) for set/snap",
+      "spaceComplexity": "O(n + S)",
+      "description": "Each index has an ArrayList of (snap_id, value) pairs. Set appends or updates the latest entry. Get uses binary search to find the value at or before the given snap_id.",
+      "code": "import java.util.*;\n\nclass SnapshotArray {\n    private List<int[]>[] history;\n    private int snapId;\n\n    public SnapshotArray(int length) {\n        history = new ArrayList[length];\n        for (int i = 0; i < length; i++) {\n            history[i] = new ArrayList();\n            history[i].add(new int[]{0, 0});\n        }\n        snapId = 0;\n    }\n\n    public void set(int index, int val) {\n        List<int[]> list = history[index];\n        int[] last = list.get(list.size() - 1);\n        if (last[0] == snapId) {\n            last[1] = val;\n        } else {\n            list.add(new int[]{snapId, val});\n        }\n    }\n\n    public int snap() {\n        return snapId++;\n    }\n\n    public int get(int index, int snap_id) {\n        List<int[]> list = history[index];\n        int lo = 0, hi = list.size() - 1;\n        int result = 0;\n        while (lo <= hi) {\n            int mid = (lo + hi) / 2;\n            if (list.get(mid)[0] <= snap_id) {\n                result = list.get(mid)[1];\n                lo = mid + 1;\n            } else {\n                hi = mid - 1;\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

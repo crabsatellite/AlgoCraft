@@ -17,6 +17,14 @@
       "description": "Sort the array first. Use backtracking like Subsets I, but skip duplicate elements at the same level: if nums[i] == nums[i-1] and i > start, skip.",
       "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> subsetsWithDup(int[] nums) {\n        List<List<Integer>> result = new ArrayList<>();\n        Arrays.sort(nums);\n        backtrack(nums, 0, new ArrayList<>(), result);\n        return result;\n    }\n\n    private void backtrack(int[] nums, int start, List<Integer> path, List<List<Integer>> result) {\n        result.add(new ArrayList<>(path));\n        for (int i = start; i < nums.length; i++) {\n            if (i > start && nums[i] == nums[i - 1]) continue;\n            path.add(nums[i]);\n            backtrack(nums, i + 1, path, result);\n            path.remove(path.size() - 1);\n        }\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Iterative Build-Up",
+      "timeComplexity": "O(n * 2^n)",
+      "spaceComplexity": "O(2^n)",
+      "description": "Sort the array. Start with an empty subset. For each new element, if it equals the previous element, only extend the subsets added in the last round (to avoid duplicates). Otherwise, extend all existing subsets.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> subsetsWithDup(int[] nums) {\n        Arrays.sort(nums);\n        List<List<Integer>> result = new ArrayList<>();\n        result.add(new ArrayList<>());\n        int prevSize = 0;\n        \n        for (int i = 0; i < nums.length; i++) {\n            int start = (i > 0 && nums[i] == nums[i - 1]) ? prevSize : 0;\n            int currentSize = result.size();\n            for (int j = start; j < currentSize; j++) {\n                List<Integer> newSubset = new ArrayList<>(result.get(j));\n                newSubset.add(nums[i]);\n                result.add(newSubset);\n            }\n            prevSize = currentSize;\n        }\n        return result;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

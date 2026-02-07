@@ -54,7 +54,15 @@
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
       "description": "DFS passing the maximum value seen along the path from root. A node is 'good' if its value >= the max so far.",
-      "code": "class Solution {\n    public int goodNodes(TreeNode root) {\n        return dfs(root, Integer.MIN_VALUE);\n    }\n    \n    private int dfs(TreeNode node, int maxSoFar) {\n        if (node == null) return 0;\n        \n        int count = (node.val >= maxSoFar) ? 1 : 0;\n        maxSoFar = Math.max(maxSoFar, node.val);\n        \n        count += dfs(node.left, maxSoFar);\n        count += dfs(node.right, maxSoFar);\n        \n        return count;\n    }\n}",
+      "code": "class Solution {\n    public int goodNodes(TreeNode root) {\n        return dfs(root, Integer.MIN_VALUE);\n    }\n\n    private int dfs(TreeNode node, int maxSoFar) {\n        if (node == null) return 0;\n        int count = (node.val >= maxSoFar) ? 1 : 0;\n        maxSoFar = Math.max(maxSoFar, node.val);\n        count += dfs(node.left, maxSoFar);\n        count += dfs(node.right, maxSoFar);\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "BFS with Max Tracking",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use BFS with a queue storing (node, maxSoFar) pairs. Count nodes where val >= maxSoFar.",
+      "code": "class Solution {\n    public int goodNodes(TreeNode root) {\n        if (root == null) return 0;\n        int count = 0;\n        Queue<Object[]> queue = new LinkedList<>();\n        queue.offer(new Object[]{root, root.val});\n        while (!queue.isEmpty()) {\n            Object[] curr = queue.poll();\n            TreeNode node = (TreeNode) curr[0];\n            int maxSoFar = (int) curr[1];\n            if (node.val >= maxSoFar) count++;\n            int newMax = Math.max(maxSoFar, node.val);\n            if (node.left != null) queue.offer(new Object[]{node.left, newMax});\n            if (node.right != null) queue.offer(new Object[]{node.right, newMax});\n        }\n        return count;\n    }\n}",
       "language": "java"
     }
   ]

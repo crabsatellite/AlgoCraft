@@ -38,6 +38,14 @@
       "description": "Use a Trie where each node stores a cumulative sum. On insert, update delta along the path (handling key overwrites). On sum, traverse to the prefix node and return its stored sum.",
       "code": "import java.util.*;\n\nclass MapSum {\n    private class TrieNode {\n        TrieNode[] children = new TrieNode[26];\n        int sum = 0;\n    }\n    \n    private TrieNode root;\n    private Map<String, Integer> map;\n    \n    public MapSum() {\n        root = new TrieNode();\n        map = new HashMap<>();\n    }\n    \n    public void insert(String key, int val) {\n        int delta = val - map.getOrDefault(key, 0);\n        map.put(key, val);\n        TrieNode node = root;\n        for (char c : key.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) {\n                node.children[idx] = new TrieNode();\n            }\n            node = node.children[idx];\n            node.sum += delta;\n        }\n    }\n    \n    public int sum(String prefix) {\n        TrieNode node = root;\n        for (char c : prefix.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) return 0;\n            node = node.children[idx];\n        }\n        return node.sum;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "HashMap Brute Force",
+      "timeComplexity": "O(m) insert, O(n * m) sum",
+      "spaceComplexity": "O(n * m)",
+      "description": "Store key-value pairs in a HashMap. For sum, iterate all keys and check if each starts with the given prefix, accumulating the values of matching keys.",
+      "code": "import java.util.*;\n\nclass MapSum {\n    private Map<String, Integer> map;\n    \n    public MapSum() {\n        map = new HashMap<>();\n    }\n    \n    public void insert(String key, int val) {\n        map.put(key, val);\n    }\n    \n    public int sum(String prefix) {\n        int total = 0;\n        for (Map.Entry<String, Integer> entry : map.entrySet()) {\n            if (entry.getKey().startsWith(prefix)) {\n                total += entry.getValue();\n            }\n        }\n        return total;\n    }\n}",
+      "language": "java"
     }
   ],
   "diagrams": [

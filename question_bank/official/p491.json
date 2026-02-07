@@ -17,6 +17,14 @@
       "description": "Binary search on the answer value x. For a given x, count how many numbers in the multiplication table are <= x by summing min(x/i, n) for each row i. Find the smallest x where count >= k.",
       "code": "class Solution {\n    public int findKthNumber(int m, int n, int k) {\n        int lo = 1, hi = m * n;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            int count = 0;\n            for (int i = 1; i <= m; i++) {\n                count += Math.min(mid / i, n);\n            }\n            if (count < k) lo = mid + 1;\n            else hi = mid;\n        }\n        return lo;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Binary Search with Enough Function",
+      "timeComplexity": "O(m * log(m*n))",
+      "spaceComplexity": "O(1)",
+      "description": "Same binary search approach but structured with a separate helper function that checks if there are at least k values less than or equal to a given number in the multiplication table.",
+      "code": "class Solution {\n    public int findKthNumber(int m, int n, int k) {\n        int lo = 1, hi = m * n;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (enough(mid, m, n, k)) hi = mid;\n            else lo = mid + 1;\n        }\n        return lo;\n    }\n\n    private boolean enough(int x, int m, int n, int k) {\n        int count = 0;\n        for (int i = 1; i <= m; i++) {\n            count += Math.min(x / i, n);\n            if (count >= k) return true;\n        }\n        return false;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

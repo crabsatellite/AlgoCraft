@@ -25,6 +25,14 @@
       "description": "Use two stacks: left stack holds characters before the cursor, right stack holds characters after. AddText pushes to left. DeleteText pops from left. CursorLeft moves from left to right. CursorRight moves from right to left. Return last min(10, len) from left.",
       "code": "class TextEditor {\n    private StringBuilder left;\n    private StringBuilder right;\n\n    public TextEditor() {\n        left = new StringBuilder();\n        right = new StringBuilder();\n    }\n\n    public void addText(String text) {\n        left.append(text);\n    }\n\n    public int deleteText(int k) {\n        int del = Math.min(k, left.length());\n        left.delete(left.length() - del, left.length());\n        return del;\n    }\n\n    private String getLeftText() {\n        int len = left.length();\n        int start = Math.max(0, len - 10);\n        return left.substring(start, len);\n    }\n\n    public String cursorLeft(int k) {\n        int move = Math.min(k, left.length());\n        for (int i = 0; i < move; i++) {\n            right.append(left.charAt(left.length() - 1));\n            left.deleteCharAt(left.length() - 1);\n        }\n        return getLeftText();\n    }\n\n    public String cursorRight(int k) {\n        int move = Math.min(k, right.length());\n        for (int i = 0; i < move; i++) {\n            left.append(right.charAt(right.length() - 1));\n            right.deleteCharAt(right.length() - 1);\n        }\n        return getLeftText();\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Single StringBuilder with Cursor Index",
+      "timeComplexity": "O(n) for insert/delete, O(1) for cursor move",
+      "spaceComplexity": "O(n)",
+      "description": "Use a single StringBuilder with a cursor position. AddText inserts at cursor position. DeleteText removes characters before cursor. CursorLeft/Right adjusts the cursor index.",
+      "code": "class TextEditor {\n    private StringBuilder sb;\n    private int cursor;\n\n    public TextEditor() {\n        sb = new StringBuilder();\n        cursor = 0;\n    }\n\n    public void addText(String text) {\n        sb.insert(cursor, text);\n        cursor += text.length();\n    }\n\n    public int deleteText(int k) {\n        int del = Math.min(k, cursor);\n        sb.delete(cursor - del, cursor);\n        cursor -= del;\n        return del;\n    }\n\n    private String getLeft() {\n        int start = Math.max(0, cursor - 10);\n        return sb.substring(start, cursor);\n    }\n\n    public String cursorLeft(int k) {\n        cursor = Math.max(0, cursor - k);\n        return getLeft();\n    }\n\n    public String cursorRight(int k) {\n        cursor = Math.min(sb.length(), cursor + k);\n        return getLeft();\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

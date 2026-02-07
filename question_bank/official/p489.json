@@ -30,6 +30,14 @@
       "description": "Find the maximum element in the current range and make it the root. Recursively build the left subtree from elements left of the max, and the right subtree from elements right of the max.",
       "code": "class Solution {\n    public TreeNode constructMaximumBinaryTree(int[] nums) {\n        return build(nums, 0, nums.length - 1);\n    }\n    \n    private TreeNode build(int[] nums, int lo, int hi) {\n        if (lo > hi) return null;\n        int maxIdx = lo;\n        for (int i = lo + 1; i <= hi; i++) {\n            if (nums[i] > nums[maxIdx]) maxIdx = i;\n        }\n        TreeNode root = new TreeNode(nums[maxIdx]);\n        root.left = build(nums, lo, maxIdx - 1);\n        root.right = build(nums, maxIdx + 1, hi);\n        return root;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Monotonic Stack",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use a decreasing monotonic stack. For each element, pop stack nodes smaller than it and make the last popped node its left child. The current stack top (if any) gets the new node as its right child. Push the new node onto the stack.",
+      "code": "class Solution {\n    public TreeNode constructMaximumBinaryTree(int[] nums) {\n        java.util.Deque<TreeNode> stack = new java.util.ArrayDeque<>();\n        for (int num : nums) {\n            TreeNode node = new TreeNode(num);\n            while (!stack.isEmpty() && stack.peek().val < num) {\n                node.left = stack.pop();\n            }\n            if (!stack.isEmpty()) {\n                stack.peek().right = node;\n            }\n            stack.push(node);\n        }\n        TreeNode root = null;\n        while (!stack.isEmpty()) {\n            root = stack.pop();\n        }\n        return root;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

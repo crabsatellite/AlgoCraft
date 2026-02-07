@@ -17,6 +17,14 @@
       "description": "Start from any point. Use a min-heap to always pick the nearest unvisited point. Add the edge cost and mark the point as visited. Repeat until all points are connected.",
       "code": "import java.util.*;\n\nclass Solution {\n    public int minCostConnectPoints(int[][] points) {\n        int n = points.length, cost = 0, connected = 0;\n        boolean[] visited = new boolean[n];\n        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] - b[0]);\n        pq.offer(new int[]{0, 0});\n        while (connected < n) {\n            int[] cur = pq.poll();\n            if (visited[cur[1]]) continue;\n            visited[cur[1]] = true;\n            cost += cur[0];\n            connected++;\n            for (int j = 0; j < n; j++) {\n                if (!visited[j]) {\n                    int dist = Math.abs(points[cur[1]][0] - points[j][0]) + Math.abs(points[cur[1]][1] - points[j][1]);\n                    pq.offer(new int[]{dist, j});\n                }\n            }\n        }\n        return cost;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Kruskal's Algorithm",
+      "timeComplexity": "O(n^2 log n)",
+      "spaceComplexity": "O(n^2)",
+      "description": "Generate all possible edges with Manhattan distance weights. Sort by weight. Use Union-Find to greedily add edges that connect different components until all points are connected.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private int[] parent, rank;\n\n    public int minCostConnectPoints(int[][] points) {\n        int n = points.length;\n        List<int[]> edges = new ArrayList<>();\n        for (int i = 0; i < n; i++)\n            for (int j = i + 1; j < n; j++) {\n                int dist = Math.abs(points[i][0] - points[j][0]) + Math.abs(points[i][1] - points[j][1]);\n                edges.add(new int[]{dist, i, j});\n            }\n        Collections.sort(edges, (a, b) -> a[0] - b[0]);\n        parent = new int[n];\n        rank = new int[n];\n        for (int i = 0; i < n; i++) parent[i] = i;\n        int cost = 0, edgesUsed = 0;\n        for (int[] edge : edges) {\n            if (edgesUsed == n - 1) break;\n            int ra = find(edge[1]), rb = find(edge[2]);\n            if (ra != rb) {\n                if (rank[ra] < rank[rb]) { int t = ra; ra = rb; rb = t; }\n                parent[rb] = ra;\n                if (rank[ra] == rank[rb]) rank[ra]++;\n                cost += edge[0];\n                edgesUsed++;\n            }\n        }\n        return cost;\n    }\n\n    private int find(int x) {\n        if (parent[x] != x) parent[x] = find(parent[x]);\n        return parent[x];\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

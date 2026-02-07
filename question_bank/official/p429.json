@@ -23,6 +23,14 @@
       "description": "HashMap maps playerId to score. TreeMap (descending) maps score to count. top() iterates TreeMap collecting top K scores. addScore/reset update both maps.",
       "code": "class Leaderboard {\n    private java.util.Map<Integer, Integer> scores = new java.util.HashMap<>();\n    private java.util.TreeMap<Integer, Integer> sorted = new java.util.TreeMap<>(java.util.Collections.reverseOrder());\n    public Leaderboard() {}\n    public void addScore(int playerId, int score) {\n        if (scores.containsKey(playerId)) {\n            int old = scores.get(playerId);\n            sorted.merge(old, -1, Integer::sum); if (sorted.get(old) == 0) sorted.remove(old);\n            score += old;\n        }\n        scores.put(playerId, score);\n        sorted.merge(score, 1, Integer::sum);\n    }\n    public int top(int K) {\n        int sum = 0, count = 0;\n        for (var e : sorted.entrySet()) {\n            int take = Math.min(e.getValue(), K - count);\n            sum += e.getKey() * take; count += take;\n            if (count == K) break;\n        }\n        return sum;\n    }\n    public void reset(int playerId) {\n        int old = scores.remove(playerId);\n        sorted.merge(old, -1, Integer::sum); if (sorted.get(old) == 0) sorted.remove(old);\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "HashMap with Sorting on top()",
+      "timeComplexity": "O(n log n) for top, O(1) for add/reset",
+      "spaceComplexity": "O(n)",
+      "description": "Use a HashMap mapping playerId to score. For top(K), collect all scores into a list, sort descending, and sum the top K values.",
+      "code": "import java.util.*;\n\nclass Leaderboard {\n    private Map<Integer, Integer> scores;\n    public Leaderboard() {\n        scores = new HashMap();\n    }\n    public void addScore(int playerId, int score) {\n        scores.put(playerId, scores.getOrDefault(playerId, 0) + score);\n    }\n    public int top(int K) {\n        List<Integer> vals = new ArrayList(scores.values());\n        Collections.sort(vals, Collections.reverseOrder());\n        int sum = 0;\n        for (int i = 0; i < K && i < vals.size(); i++) {\n            sum += vals.get(i).intValue();\n        }\n        return sum;\n    }\n    public void reset(int playerId) {\n        scores.remove(playerId);\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

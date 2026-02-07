@@ -18,6 +18,14 @@
       "description": "dp[i][j] = min cost to merge stones[i..j] into as few piles as possible. Merge k consecutive groups at a time. Only add prefix sum cost when (j-i) % (k-1) == 0 meaning we can merge to 1 pile.",
       "code": "class Solution {\n    public int mergeStones(int[] stones, int k) {\n        int n = stones.length;\n        if ((n - 1) % (k - 1) != 0) return -1;\n        int[] prefix = new int[n + 1];\n        for (int i = 0; i < n; i++) prefix[i + 1] = prefix[i] + stones[i];\n        int[][] dp = new int[n][n];\n        for (int len = k; len <= n; len++) {\n            for (int i = 0; i + len - 1 < n; i++) {\n                int j = i + len - 1;\n                dp[i][j] = Integer.MAX_VALUE;\n                for (int mid = i; mid < j; mid += k - 1)\n                    dp[i][j] = Math.min(dp[i][j], dp[i][mid] + dp[mid + 1][j]);\n                if ((j - i) % (k - 1) == 0)\n                    dp[i][j] += prefix[j + 1] - prefix[i];\n            }\n        }\n        return dp[0][n - 1];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Top-Down DP with Memoization",
+      "timeComplexity": "O(n^3)",
+      "spaceComplexity": "O(n^2)",
+      "description": "Recursive approach with memoization. dp(i, j) = min cost to merge piles i..j into as few piles as possible. Split at intervals of (k-1). If the interval can be merged into 1 pile, add the prefix sum cost.",
+      "code": "class Solution {\n    private int[][] memo;\n    private int[] prefix;\n    public int mergeStones(int[] stones, int k) {\n        int n = stones.length;\n        if ((n - 1) % (k - 1) != 0) return -1;\n        prefix = new int[n + 1];\n        for (int i = 0; i < n; i++) prefix[i + 1] = prefix[i] + stones[i];\n        memo = new int[n][n];\n        for (int[] row : memo) java.util.Arrays.fill(row, -1);\n        return solve(0, n - 1, k);\n    }\n    private int solve(int i, int j, int k) {\n        if (i == j) return 0;\n        if (memo[i][j] != -1) return memo[i][j];\n        int res = Integer.MAX_VALUE;\n        for (int mid = i; mid < j; mid += k - 1) {\n            res = Math.min(res, solve(i, mid, k) + solve(mid + 1, j, k));\n        }\n        if ((j - i) % (k - 1) == 0) {\n            res += prefix[j + 1] - prefix[i];\n        }\n        memo[i][j] = res;\n        return res;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

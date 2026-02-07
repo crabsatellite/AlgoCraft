@@ -29,6 +29,14 @@
       "description": "For each unvisited land cell, run DFS to compute the island area. Track the global maximum area.",
       "code": "class Solution {\n    public int maxAreaOfIsland(int[][] grid) {\n        int maxArea = 0;\n        for (int i = 0; i < grid.length; i++) {\n            for (int j = 0; j < grid[0].length; j++) {\n                if (grid[i][j] == 1) {\n                    maxArea = Math.max(maxArea, dfs(grid, i, j));\n                }\n            }\n        }\n        return maxArea;\n    }\n\n    private int dfs(int[][] grid, int i, int j) {\n        if (i < 0 || i >= grid.length || j < 0 || j >= grid[0].length || grid[i][j] != 1) return 0;\n        grid[i][j] = 0;\n        return 1 + dfs(grid, i + 1, j) + dfs(grid, i - 1, j) + dfs(grid, i, j + 1) + dfs(grid, i, j - 1);\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "BFS Iterative",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "Use BFS instead of DFS to compute each island's area. For each unvisited land cell, use a queue to explore all connected cells and count the area.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxAreaOfIsland(int[][] grid) {\n        int m = grid.length, n = grid[0].length;\n        int maxArea = 0;\n        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (grid[i][j] == 1) {\n                    int area = 0;\n                    Queue<int[]> queue = new LinkedList<>();\n                    queue.offer(new int[]{i, j});\n                    grid[i][j] = 0;\n                    while (!queue.isEmpty()) {\n                        int[] cell = queue.poll();\n                        area++;\n                        for (int[] d : dirs) {\n                            int ni = cell[0] + d[0], nj = cell[1] + d[1];\n                            if (ni >= 0 && ni < m && nj >= 0 && nj < n && grid[ni][nj] == 1) {\n                                grid[ni][nj] = 0;\n                                queue.offer(new int[]{ni, nj});\n                            }\n                        }\n                    }\n                    maxArea = Math.max(maxArea, area);\n                }\n            }\n        }\n        return maxArea;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

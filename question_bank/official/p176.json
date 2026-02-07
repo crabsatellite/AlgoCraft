@@ -9,6 +9,24 @@
     { "input": "nums = [2,3,1,1,4]", "output": "2" },
     { "input": "nums = [2,3,0,1,4]", "output": "2" }
   ],
+  "solutions": [
+    {
+      "name": "Greedy BFS",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Treat the array as a BFS graph where each level represents one jump. Track the current level's end and the farthest reachable position. Increment jumps each time we pass the current level's end.",
+      "code": "class Solution {\n    public int jump(int[] nums) {\n        int jumps = 0, curEnd = 0, farthest = 0;\n        for (int i = 0; i < nums.length - 1; i++) {\n            farthest = Math.max(farthest, i + nums[i]);\n            if (i == curEnd) {\n                jumps++;\n                curEnd = farthest;\n            }\n        }\n        return jumps;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "DP (Bottom-Up)",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "Use a DP array where dp[i] is the minimum jumps to reach index i. For each position i, update all reachable positions j from i by setting dp[j] = min(dp[j], dp[i] + 1).",
+      "code": "class Solution {\n    public int jump(int[] nums) {\n        int n = nums.length;\n        int[] dp = new int[n];\n        java.util.Arrays.fill(dp, Integer.MAX_VALUE);\n        dp[0] = 0;\n        for (int i = 0; i < n; i++) {\n            for (int j = 1; j <= nums[i] && i + j < n; j++) {\n                dp[i + j] = Math.min(dp[i + j], dp[i] + 1);\n            }\n        }\n        return dp[n - 1];\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "nums = [2,3,1,1,4]", "output": "2" },
     { "input": "nums = [2,3,0,1,4]", "output": "2" },

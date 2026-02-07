@@ -17,6 +17,14 @@
       "description": "Use a HashMap mapping each stone position to a set of possible jump sizes that can reach it. For each stone, try jumping k-1, k, k+1 to the next stones. If the last stone is reachable, return true.",
       "code": "class Solution {\n    public boolean canCross(int[] stones) {\n        java.util.Map<Integer, java.util.Set<Integer>> map = new java.util.HashMap<>();\n        for (int s : stones) map.put(s, new java.util.HashSet<>());\n        map.get(0).add(0);\n        for (int s : stones) {\n            for (int k : map.get(s)) {\n                for (int step = k - 1; step <= k + 1; step++) {\n                    if (step > 0 && map.containsKey(s + step)) {\n                        map.get(s + step).add(step);\n                    }\n                }\n            }\n        }\n        return !map.get(stones[stones.length - 1]).isEmpty();\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "2D DP Array",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "Use a 2D boolean array dp[i][k] where i is the stone index and k is the last jump size. Map stone positions to indices for fast lookup. For each stone, try all valid previous jumps.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean canCross(int[] stones) {\n        int n = stones.length;\n        Map<Integer, Integer> posToIdx = new HashMap<>();\n        for (int i = 0; i < n; i++) posToIdx.put(stones[i], i);\n        boolean[][] dp = new boolean[n][n + 1];\n        dp[0][0] = true;\n        for (int i = 0; i < n; i++) {\n            for (int k = 0; k <= i; k++) {\n                if (!dp[i][k]) continue;\n                for (int jump = k - 1; jump <= k + 1; jump++) {\n                    if (jump <= 0) continue;\n                    int nextPos = stones[i] + jump;\n                    if (posToIdx.containsKey(nextPos)) {\n                        int nextIdx = posToIdx.get(nextPos);\n                        if (jump < dp[0].length) {\n                            dp[nextIdx][jump] = true;\n                        }\n                    }\n                }\n            }\n        }\n        for (int k = 0; k <= n; k++) {\n            if (dp[n - 1][k]) return true;\n        }\n        return false;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

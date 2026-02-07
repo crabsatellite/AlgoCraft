@@ -17,6 +17,14 @@
       "description": "Sort envelopes by width ascending, then by height descending (to avoid using two envelopes with the same width). Then find the Longest Increasing Subsequence on heights using patience sorting with binary search.",
       "code": "class Solution {\n    public int maxEnvelopes(int[][] envelopes) {\n        java.util.Arrays.sort(envelopes, (a, b) -> a[0] != b[0] ? a[0] - b[0] : b[1] - a[1]);\n        int[] tails = new int[envelopes.length];\n        int size = 0;\n        for (int[] e : envelopes) {\n            int lo = 0, hi = size;\n            while (lo < hi) {\n                int mid = lo + (hi - lo) / 2;\n                if (tails[mid] < e[1]) lo = mid + 1;\n                else hi = mid;\n            }\n            tails[lo] = e[1];\n            if (lo == size) size++;\n        }\n        return size;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Sort + O(n^2) LIS DP",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "Sort envelopes by width ascending, then height ascending. Use classic O(n^2) LIS DP where dp[i] = longest chain ending at envelope i, checking all previous envelopes for strict width AND height containment.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxEnvelopes(int[][] envelopes) {\n        Arrays.sort(envelopes, (a, b) -> a[0] != b[0] ? a[0] - b[0] : a[1] - b[1]);\n        int n = envelopes.length;\n        int[] dp = new int[n];\n        Arrays.fill(dp, 1);\n        int max = 1;\n        for (int i = 1; i < n; i++) {\n            for (int j = 0; j < i; j++) {\n                if (envelopes[j][0] < envelopes[i][0] && envelopes[j][1] < envelopes[i][1]) {\n                    dp[i] = Math.max(dp[i], dp[j] + 1);\n                }\n            }\n            max = Math.max(max, dp[i]);\n        }\n        return max;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

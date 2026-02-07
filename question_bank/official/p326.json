@@ -28,6 +28,14 @@
       "description": "For each node, compute the max single-path sum (going down one branch). Update global max considering the path through this node (left + node + right). Return single-path max to parent.",
       "code": "class Solution {\n    private int maxSum = Integer.MIN_VALUE;\n    public int maxPathSum(TreeNode root) {\n        dfs(root);\n        return maxSum;\n    }\n    private int dfs(TreeNode node) {\n        if (node == null) return 0;\n        int left = Math.max(0, dfs(node.left));\n        int right = Math.max(0, dfs(node.right));\n        maxSum = Math.max(maxSum, left + right + node.val);\n        return Math.max(left, right) + node.val;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Iterative Postorder with Stack",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "Use an explicit stack for postorder traversal. Maintain a map from node to its max single-path sum. When both children are processed, compute the path-through sum and update the global maximum.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxPathSum(TreeNode root) {\n        int[] maxSum = {Integer.MIN_VALUE};\n        Map<TreeNode, Integer> gains = new HashMap<>();\n        gains.put(null, 0);\n        Deque<TreeNode> stack = new ArrayDeque<>();\n        TreeNode curr = root;\n        TreeNode lastVisited = null;\n        while (curr != null || !stack.isEmpty()) {\n            while (curr != null) {\n                stack.push(curr);\n                curr = curr.left;\n            }\n            TreeNode peek = stack.peek();\n            if (peek.right != null && peek.right != lastVisited) {\n                curr = peek.right;\n            } else {\n                stack.pop();\n                int leftGain = Math.max(0, gains.getOrDefault(peek.left, 0));\n                int rightGain = Math.max(0, gains.getOrDefault(peek.right, 0));\n                int pathSum = leftGain + rightGain + peek.val;\n                maxSum[0] = Math.max(maxSum[0], pathSum);\n                gains.put(peek, Math.max(leftGain, rightGain) + peek.val);\n                lastVisited = peek;\n            }\n        }\n        return maxSum[0];\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

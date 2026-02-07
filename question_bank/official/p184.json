@@ -32,6 +32,14 @@
       "description": "Sort by end time. Greedily keep intervals that don't overlap with the last kept interval. Count removals = total - kept.",
       "code": "class Solution {\n    public int eraseOverlapIntervals(int[][] intervals) {\n        java.util.Arrays.sort(intervals, (a, b) -> Integer.compare(a[1], b[1]));\n        int count = 0, prevEnd = Integer.MIN_VALUE;\n        for (int[] interval : intervals) {\n            if (interval[0] >= prevEnd) {\n                prevEnd = interval[1];\n            } else {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Greedy (Sort by Start, Track End)",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(1)",
+      "description": "Sort by start time. When two intervals overlap, remove the one with the larger end time (keep the one ending earlier to minimize future conflicts).",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int eraseOverlapIntervals(int[][] intervals) {\n        Arrays.sort(intervals, new Comparator<int[]>() {\n            public int compare(int[] a, int[] b) {\n                return a[0] != b[0] ? Integer.compare(a[0], b[0]) : Integer.compare(a[1], b[1]);\n            }\n        });\n        int count = 0;\n        int prevEnd = intervals[0][1];\n        for (int i = 1; i < intervals.length; i++) {\n            if (intervals[i][0] < prevEnd) {\n                count++;\n                prevEnd = Math.min(prevEnd, intervals[i][1]);\n            } else {\n                prevEnd = intervals[i][1];\n            }\n        }\n        return count;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

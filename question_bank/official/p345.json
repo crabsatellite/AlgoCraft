@@ -17,6 +17,14 @@
       "description": "Binary search on the maximum subarray sum. For a given max sum, greedily check if we can split the array into at most k subarrays. Search range is [max(nums), sum(nums)].",
       "code": "class Solution {\n    public int splitArray(int[] nums, int k) {\n        long lo = 0, hi = 0;\n        for (int num : nums) { lo = Math.max(lo, num); hi += num; }\n        while (lo < hi) {\n            long mid = lo + (hi - lo) / 2;\n            if (canSplit(nums, k, mid)) hi = mid;\n            else lo = mid + 1;\n        }\n        return (int) lo;\n    }\n    private boolean canSplit(int[] nums, int k, long maxSum) {\n        int count = 1;\n        long curSum = 0;\n        for (int num : nums) {\n            curSum += num;\n            if (curSum > maxSum) { count++; curSum = num; }\n        }\n        return count <= k;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Dynamic Programming",
+      "timeComplexity": "O(n^2 * k)",
+      "spaceComplexity": "O(n * k)",
+      "description": "Use dp[i][j] = minimum largest sum when splitting nums[0..j-1] into i groups. For each split point, compute the sum of the last group using prefix sums and take the minimum over all split points.",
+      "code": "class Solution {\n    public int splitArray(int[] nums, int k) {\n        int n = nums.length;\n        long[] prefix = new long[n + 1];\n        for (int i = 0; i < n; i++) prefix[i + 1] = prefix[i] + nums[i];\n        long[][] dp = new long[k + 1][n + 1];\n        for (long[] row : dp) java.util.Arrays.fill(row, Long.MAX_VALUE);\n        dp[0][0] = 0;\n        for (int i = 1; i <= k; i++) {\n            for (int j = i; j <= n; j++) {\n                for (int m = i - 1; m < j; m++) {\n                    long lastSum = prefix[j] - prefix[m];\n                    long val = Math.max(dp[i - 1][m], lastSum);\n                    dp[i][j] = Math.min(dp[i][j], val);\n                }\n            }\n        }\n        return (int) dp[k][n];\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

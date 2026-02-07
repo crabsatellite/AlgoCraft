@@ -25,6 +25,14 @@
       "description": "Add all intervals that end before newInterval starts. Merge all overlapping intervals. Add all intervals that start after newInterval ends.",
       "code": "class Solution {\n    public int[][] insert(int[][] intervals, int[] newInterval) {\n        java.util.List<int[]> result = new java.util.ArrayList<>();\n        int i = 0, n = intervals.length;\n        while (i < n && intervals[i][1] < newInterval[0])\n            result.add(intervals[i++]);\n        while (i < n && intervals[i][0] <= newInterval[1]) {\n            newInterval[0] = Math.min(newInterval[0], intervals[i][0]);\n            newInterval[1] = Math.max(newInterval[1], intervals[i][1]);\n            i++;\n        }\n        result.add(newInterval);\n        while (i < n)\n            result.add(intervals[i++]);\n        return result.toArray(new int[0][]);\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Binary Search + Merge",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use binary search to find the position where newInterval starts overlapping. Then merge all overlapping intervals and build the result.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[][] insert(int[][] intervals, int[] newInterval) {\n        List<int[]> result = new ArrayList<>();\n        int n = intervals.length;\n        int left = 0, right = n - 1;\n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            if (intervals[mid][1] < newInterval[0]) {\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        int mergeStart = left;\n        left = 0;\n        right = n - 1;\n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            if (intervals[mid][0] <= newInterval[1]) {\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        int mergeEnd = right;\n        for (int i = 0; i < mergeStart; i++) {\n            result.add(intervals[i]);\n        }\n        int[] merged = new int[]{newInterval[0], newInterval[1]};\n        for (int i = mergeStart; i <= mergeEnd; i++) {\n            merged[0] = Math.min(merged[0], intervals[i][0]);\n            merged[1] = Math.max(merged[1], intervals[i][1]);\n        }\n        result.add(merged);\n        for (int i = mergeEnd + 1; i < n; i++) {\n            result.add(intervals[i]);\n        }\n        return result.toArray(new int[0][]);\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

@@ -18,6 +18,14 @@
       "description": "Track the range [lo, hi] of possible open parenthesis counts. '(' increments both, ')' decrements both, '*' decrements lo and increments hi. If hi < 0, invalid. Keep lo >= 0.",
       "code": "class Solution {\n    public boolean checkValidString(String s) {\n        int lo = 0, hi = 0;\n        for (char c : s.toCharArray()) {\n            if (c == '(') { lo++; hi++; }\n            else if (c == ')') { lo--; hi--; }\n            else { lo--; hi++; }\n            if (hi < 0) return false;\n            lo = Math.max(lo, 0);\n        }\n        return lo == 0;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Two Stack Approach",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use two stacks: one for indices of '(' and one for indices of '*'. After processing, try to match remaining '(' with remaining '*' (star must appear after the parenthesis).",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean checkValidString(String s) {\n        Deque<Integer> openStack = new ArrayDeque<>();\n        Deque<Integer> starStack = new ArrayDeque<>();\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (c == '(') {\n                openStack.push(i);\n            } else if (c == '*') {\n                starStack.push(i);\n            } else {\n                if (!openStack.isEmpty()) {\n                    openStack.pop();\n                } else if (!starStack.isEmpty()) {\n                    starStack.pop();\n                } else {\n                    return false;\n                }\n            }\n        }\n        while (!openStack.isEmpty() && !starStack.isEmpty()) {\n            if (openStack.pop() > starStack.pop()) return false;\n        }\n        return openStack.isEmpty();\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

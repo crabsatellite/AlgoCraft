@@ -10,6 +10,24 @@
     { "input": "s = \"aa\", p = \"a*\"", "output": "true" },
     { "input": "s = \"ab\", p = \".*\"", "output": "true" }
   ],
+  "solutions": [
+    {
+      "name": "Bottom-Up DP",
+      "timeComplexity": "O(m*n)",
+      "spaceComplexity": "O(m*n)",
+      "description": "Build a 2D DP table where dp[i][j] indicates whether s[0..i-1] matches p[0..j-1]. Handle '*' by checking zero occurrences (dp[i][j-2]) or one+ occurrences when the preceding character matches.",
+      "code": "class Solution {\n    public boolean isMatch(String s, String p) {\n        int m = s.length(), n = p.length();\n        boolean[][] dp = new boolean[m + 1][n + 1];\n        dp[0][0] = true;\n        for (int j = 1; j <= n; j++) {\n            if (p.charAt(j - 1) == '*') dp[0][j] = dp[0][j - 2];\n        }\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                if (p.charAt(j - 1) == '*') {\n                    dp[i][j] = dp[i][j - 2];\n                    if (p.charAt(j - 2) == '.' || p.charAt(j - 2) == s.charAt(i - 1)) {\n                        dp[i][j] = dp[i][j] || dp[i - 1][j];\n                    }\n                } else if (p.charAt(j - 1) == '.' || p.charAt(j - 1) == s.charAt(i - 1)) {\n                    dp[i][j] = dp[i - 1][j - 1];\n                }\n            }\n        }\n        return dp[m][n];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive with Memoization",
+      "timeComplexity": "O(m*n)",
+      "spaceComplexity": "O(m*n)",
+      "description": "Recursively match from left to right with memoization. At each position, check if the next pattern character is '*' to handle zero or more matches, otherwise match single characters directly.",
+      "code": "class Solution {\n    private Boolean[][] memo;\n    public boolean isMatch(String s, String p) {\n        memo = new Boolean[s.length() + 1][p.length() + 1];\n        return dp(s, p, 0, 0);\n    }\n    private boolean dp(String s, String p, int i, int j) {\n        if (j == p.length()) return i == s.length();\n        if (memo[i][j] != null) return memo[i][j];\n        boolean firstMatch = i < s.length() && (p.charAt(j) == '.' || p.charAt(j) == s.charAt(i));\n        boolean result;\n        if (j + 1 < p.length() && p.charAt(j + 1) == '*') {\n            result = dp(s, p, i, j + 2) || (firstMatch && dp(s, p, i + 1, j));\n        } else {\n            result = firstMatch && dp(s, p, i + 1, j + 1);\n        }\n        memo[i][j] = result;\n        return result;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "s = \"aa\", p = \"a\"", "output": "false" },
     { "input": "s = \"aa\", p = \"a*\"", "output": "true" },

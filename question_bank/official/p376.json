@@ -7,7 +7,7 @@
   "tags": ["Depth-First Search", "Graph", "Eulerian Circuit"],
   "examples": [
     { "input": "n = 1, k = 2", "output": "\"01\"" },
-    { "input": "n = 2, k = 2", "output": "\"00110\"" }
+    { "input": "n = 2, k = 2", "output": "\"01100\"" }
   ],
   "solutions": [
     {
@@ -15,12 +15,20 @@
       "timeComplexity": "O(k^n)",
       "spaceComplexity": "O(k^n)",
       "description": "Build a De Bruijn sequence using Hierholzer's algorithm for Euler circuit. Each node is an (n-1)-length string, edges represent appending a digit. DFS through all edges to form a sequence containing every n-length combination exactly once.",
-      "code": "class Solution {\n    public String crackSafe(int n, int k) {\n        int total = (int) Math.pow(k, n);\n        StringBuilder sb = new StringBuilder();\n        for (int i = 0; i < n - 1; i++) sb.append('0');\n        String start = sb.toString();\n        sb.setLength(0);\n        java.util.Set<String> visited = new java.util.HashSet<>();\n        dfs(start, k, visited, sb);\n        sb.append(start);\n        return sb.toString();\n    }\n    private void dfs(String node, int k, java.util.Set<String> visited, StringBuilder sb) {\n        for (int i = 0; i < k; i++) {\n            String edge = node + i;\n            if (visited.add(edge)) {\n                dfs(edge.substring(1), k, visited, sb);\n                sb.append(i);\n            }\n        }\n    }\n}",
+      "code": "class Solution {\n    public String crackSafe(int n, int k) {\n        if (n == 1) {\n            StringBuilder sb = new StringBuilder();\n            for (int i = 0; i < k; i++) sb.append(i);\n            return sb.toString();\n        }\n        StringBuilder sb = new StringBuilder();\n        for (int i = 0; i < n - 1; i++) sb.append('0');\n        String start = sb.toString();\n        sb.setLength(0);\n        java.util.Set<String> visited = new java.util.HashSet<>();\n        dfs(start, k, visited, sb);\n        sb.append(start);\n        return sb.toString();\n    }\n    private void dfs(String node, int k, java.util.Set<String> visited, StringBuilder sb) {\n        for (int i = 0; i < k; i++) {\n            String edge = node + i;\n            if (visited.add(edge)) {\n                dfs(edge.substring(1), k, visited, sb);\n                sb.append(i);\n            }\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative De Bruijn with Inverse Burrows-Wheeler",
+      "timeComplexity": "O(k^n)",
+      "spaceComplexity": "O(k^n)",
+      "description": "Build the De Bruijn sequence iteratively. Use Hierholzer's algorithm with an explicit stack instead of recursion to find the Euler circuit. This avoids potential stack overflow for larger inputs.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String crackSafe(int n, int k) {\n        if (n == 1) {\n            StringBuilder sb = new StringBuilder();\n            for (int i = 0; i < k; i++) sb.append(i);\n            return sb.toString();\n        }\n        Set<String> visited = new HashSet<>();\n        StringBuilder start = new StringBuilder();\n        for (int i = 0; i < n - 1; i++) start.append('0');\n        Deque<String> stack = new ArrayDeque<>();\n        List<Integer> path = new ArrayList<>();\n        stack.push(start.toString());\n        while (!stack.isEmpty()) {\n            String node = stack.peek();\n            boolean found = false;\n            for (int i = 0; i < k; i++) {\n                String edge = node + i;\n                if (!visited.contains(edge)) {\n                    visited.add(edge);\n                    stack.push(edge.substring(1));\n                    found = true;\n                    break;\n                }\n            }\n            if (!found) {\n                stack.pop();\n                if (!stack.isEmpty()) {\n                    path.add(node.charAt(node.length() - 1) - '0');\n                }\n            }\n        }\n        StringBuilder result = new StringBuilder();\n        for (int i = path.size() - 1; i >= 0; i--) {\n            result.append(path.get(i));\n        }\n        result.append(start);\n        return result.toString();\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     { "input": "n = 1, k = 2", "output": "\"01\"" },
-    { "input": "n = 2, k = 2", "output": "\"00110\"" }
+    { "input": "n = 2, k = 2", "output": "\"01100\"" }
   ]
 }

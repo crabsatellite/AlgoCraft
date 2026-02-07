@@ -60,7 +60,15 @@
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
       "description": "Subtract the current node's value from targetSum as you go. At a leaf, check if the remaining sum is 0.",
-      "code": "class Solution {\n    public boolean hasPathSum(TreeNode root, int targetSum) {\n        if (root == null) return false;\n        \n        targetSum -= root.val;\n        \n        if (root.left == null && root.right == null) {\n            return targetSum == 0;\n        }\n        \n        return hasPathSum(root.left, targetSum) \n            || hasPathSum(root.right, targetSum);\n    }\n}",
+      "code": "class Solution {\n    public boolean hasPathSum(TreeNode root, int targetSum) {\n        if (root == null) return false;\n        targetSum -= root.val;\n        if (root.left == null && root.right == null) return targetSum == 0;\n        return hasPathSum(root.left, targetSum) || hasPathSum(root.right, targetSum);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative BFS with Stack",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use a stack storing (node, remainingSum) pairs. At each leaf, check if remainingSum equals 0.",
+      "code": "class Solution {\n    public boolean hasPathSum(TreeNode root, int targetSum) {\n        if (root == null) return false;\n        Stack<Object[]> stack = new Stack<>();\n        stack.push(new Object[]{root, targetSum - root.val});\n        while (!stack.isEmpty()) {\n            Object[] curr = stack.pop();\n            TreeNode node = (TreeNode) curr[0];\n            int remain = (int) curr[1];\n            if (node.left == null && node.right == null && remain == 0) return true;\n            if (node.right != null) stack.push(new Object[]{node.right, remain - node.right.val});\n            if (node.left != null) stack.push(new Object[]{node.left, remain - node.left.val});\n        }\n        return false;\n    }\n}",
       "language": "java"
     }
   ]

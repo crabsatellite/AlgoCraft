@@ -27,6 +27,14 @@
       "description": "Maintain a stack of indices with increasing heights. When a shorter bar is found, pop and calculate area using the popped height and the width between current index and new stack top.",
       "code": "class Solution {\n    public int largestRectangleArea(int[] heights) {\n        java.util.Deque<Integer> stack = new java.util.ArrayDeque<>();\n        int maxArea = 0, n = heights.length;\n        for (int i = 0; i <= n; i++) {\n            int h = (i == n) ? 0 : heights[i];\n            while (!stack.isEmpty() && h < heights[stack.peek()]) {\n                int height = heights[stack.pop()];\n                int width = stack.isEmpty() ? i : i - stack.peek() - 1;\n                maxArea = Math.max(maxArea, height * width);\n            }\n            stack.push(i);\n        }\n        return maxArea;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Divide and Conquer",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(log n)",
+      "description": "Recursively split the histogram into left and right halves. The largest rectangle is either in the left half, right half, or spanning the middle. For the crossing case, expand from the middle outward, always choosing the taller side.",
+      "code": "class Solution {\n    public int largestRectangleArea(int[] heights) {\n        return helper(heights, 0, heights.length - 1);\n    }\n    private int helper(int[] heights, int lo, int hi) {\n        if (lo > hi) return 0;\n        if (lo == hi) return heights[lo];\n        int mid = lo + (hi - lo) / 2;\n        int left = helper(heights, lo, mid);\n        int right = helper(heights, mid + 1, hi);\n        int cross = crossArea(heights, lo, hi, mid);\n        return Math.max(cross, Math.max(left, right));\n    }\n    private int crossArea(int[] heights, int lo, int hi, int mid) {\n        int l = mid, r = mid + 1;\n        int minH = Math.min(heights[l], heights[r]);\n        int maxArea = minH * 2;\n        while (l > lo || r < hi) {\n            if (r < hi && (l == lo || heights[r + 1] >= heights[l - 1])) {\n                r++;\n                minH = Math.min(minH, heights[r]);\n            } else {\n                l--;\n                minH = Math.min(minH, heights[l]);\n            }\n            maxArea = Math.max(maxArea, minH * (r - l + 1));\n        }\n        return maxArea;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

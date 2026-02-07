@@ -24,6 +24,14 @@
       "description": "Compute target = totalSum/k. Sort descending to prune early. Try to fill k buckets one at a time. For each bucket, pick unused elements. Skip duplicates and prune when sum exceeds target.",
       "code": "import java.util.*;\n\nclass Solution {\n    public boolean canPartitionKSubsets(int[] nums, int k) {\n        int sum = 0;\n        for (int n : nums) sum += n;\n        if (sum % k != 0) return false;\n        int target = sum / k;\n        Arrays.sort(nums);\n        if (nums[nums.length - 1] > target) return false;\n        boolean[] used = new boolean[nums.length];\n        return backtrack(nums, used, k, 0, 0, target);\n    }\n\n    private boolean backtrack(int[] nums, boolean[] used, int k, int start, int curSum, int target) {\n        if (k == 0) return true;\n        if (curSum == target) return backtrack(nums, used, k - 1, 0, 0, target);\n        for (int i = start; i < nums.length; i++) {\n            if (used[i] || curSum + nums[i] > target) continue;\n            if (i > 0 && nums[i] == nums[i - 1] && !used[i - 1]) continue;\n            used[i] = true;\n            if (backtrack(nums, used, k, i + 1, curSum + nums[i], target)) return true;\n            used[i] = false;\n        }\n        return false;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Bitmask DP",
+      "timeComplexity": "O(n * 2^n)",
+      "spaceComplexity": "O(2^n)",
+      "description": "Use bitmask to represent which elements have been used. dp[mask] stores the current sum mod target for the subset represented by mask. If adding an element stays within target, transition to the new mask.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean canPartitionKSubsets(int[] nums, int k) {\n        int sum = 0;\n        for (int n : nums) sum += n;\n        if (sum % k != 0) return false;\n        int target = sum / k;\n        for (int n : nums) if (n > target) return false;\n        int total = 1 << nums.length;\n        int[] dp = new int[total];\n        Arrays.fill(dp, -1);\n        dp[0] = 0;\n        for (int mask = 0; mask < total; mask++) {\n            if (dp[mask] == -1) continue;\n            for (int i = 0; i < nums.length; i++) {\n                if ((mask & (1 << i)) != 0) continue;\n                int nextMask = mask | (1 << i);\n                if (dp[nextMask] != -1) continue;\n                int newSum = dp[mask] + nums[i];\n                if (newSum <= target) {\n                    dp[nextMask] = newSum % target;\n                }\n            }\n        }\n        return dp[total - 1] == 0;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

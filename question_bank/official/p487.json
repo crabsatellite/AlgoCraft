@@ -33,6 +33,14 @@
       "description": "Serialize each subtree via post-order DFS into a string representation. Use a HashMap to count how many times each serialization appears. When the count reaches 2, add the root to the result.",
       "code": "class Solution {\n    Map<String, Integer> count = new HashMap<>();\n    List<TreeNode> result = new ArrayList<>();\n    \n    public List<TreeNode> findDuplicateSubtrees(TreeNode root) {\n        serialize(root);\n        return result;\n    }\n    \n    private String serialize(TreeNode node) {\n        if (node == null) return \"#\";\n        String s = node.val + \",\" + serialize(node.left) + \",\" + serialize(node.right);\n        count.put(s, count.getOrDefault(s, 0) + 1);\n        if (count.get(s) == 2) result.add(node);\n        return s;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Integer ID Serialization",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Assign each unique subtree structure an integer ID instead of a full string serialization. Use a HashMap from (val, leftID, rightID) triple to a unique ID. This avoids O(n) string hashing at each node, making it O(n) total.",
+      "code": "class Solution {\n    private int nextId = 1;\n    private java.util.Map<String, Integer> tripleToId = new java.util.HashMap<>();\n    private java.util.Map<Integer, Integer> idCount = new java.util.HashMap<>();\n    private java.util.List<TreeNode> result = new java.util.ArrayList<>();\n    \n    public java.util.List<TreeNode> findDuplicateSubtrees(TreeNode root) {\n        tripleToId.clear();\n        idCount.clear();\n        result.clear();\n        nextId = 1;\n        getId(root);\n        return result;\n    }\n    \n    private int getId(TreeNode node) {\n        if (node == null) return 0;\n        int leftId = getId(node.left);\n        int rightId = getId(node.right);\n        String triple = node.val + \",\" + leftId + \",\" + rightId;\n        if (!tripleToId.containsKey(triple)) {\n            tripleToId.put(triple, nextId++);\n        }\n        int id = tripleToId.get(triple);\n        idCount.put(id, idCount.getOrDefault(id, 0) + 1);\n        if (idCount.get(id) == 2) result.add(node);\n        return id;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

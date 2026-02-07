@@ -27,6 +27,14 @@
       "description": "Generate all cells, then sort by Manhattan distance from the center.",
       "code": "import java.util.Arrays;\n\nclass Solution {\n    public int[][] allCellsDistOrder(int rows, int cols, int rCenter, int cCenter) {\n        int[][] cells = new int[rows * cols][2];\n        int idx = 0;\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                cells[idx++] = new int[]{r, c};\n            }\n        }\n        Arrays.sort(cells, (a, b) ->\n            Math.abs(a[0] - rCenter) + Math.abs(a[1] - cCenter)\n            - Math.abs(b[0] - rCenter) - Math.abs(b[1] - cCenter));\n        return cells;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "BFS from Center",
+      "timeComplexity": "O(rows * cols)",
+      "spaceComplexity": "O(rows * cols)",
+      "description": "Use BFS starting from the center cell. Explore cells level by level, naturally producing them in distance order.",
+      "code": "import java.util.LinkedList;\nimport java.util.Queue;\n\nclass Solution {\n    public int[][] allCellsDistOrder(int rows, int cols, int rCenter, int cCenter) {\n        boolean[][] visited = new boolean[rows][cols];\n        int[][] result = new int[rows * cols][2];\n        Queue<int[]> queue = new LinkedList<>();\n        queue.add(new int[]{rCenter, cCenter});\n        visited[rCenter][cCenter] = true;\n        int idx = 0;\n        int[] dr = {0, 0, 1, -1};\n        int[] dc = {1, -1, 0, 0};\n        while (!queue.isEmpty()) {\n            int[] cell = queue.poll();\n            result[idx++] = cell;\n            for (int d = 0; d < 4; d++) {\n                int nr = cell[0] + dr[d];\n                int nc = cell[1] + dc[d];\n                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && !visited[nr][nc]) {\n                    visited[nr][nc] = true;\n                    queue.add(new int[]{nr, nc});\n                }\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

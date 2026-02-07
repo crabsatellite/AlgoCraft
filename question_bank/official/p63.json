@@ -38,6 +38,14 @@
       "description": "Binary search on the ship capacity. The lower bound is max(weights) (must carry the heaviest single package), the upper bound is sum(weights) (carry everything in one day). For each candidate capacity, greedily check if we can ship within the given days.",
       "code": "class Solution {\n    public int shipWithinDays(int[] weights, int days) {\n        int left = 0, right = 0;\n        \n        for (int w : weights) {\n            left = Math.max(left, w);\n            right += w;\n        }\n        \n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            \n            if (canShip(weights, days, mid)) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        \n        return left;\n    }\n    \n    private boolean canShip(int[] weights, int days, int capacity) {\n        int daysNeeded = 1;\n        int currentLoad = 0;\n        \n        for (int w : weights) {\n            if (currentLoad + w > capacity) {\n                daysNeeded++;\n                currentLoad = 0;\n            }\n            currentLoad += w;\n        }\n        \n        return daysNeeded <= days;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Dynamic Programming (Prefix Sum)",
+      "timeComplexity": "O(n^2 * days)",
+      "spaceComplexity": "O(n * days)",
+      "description": "Use DP where dp[i][j] represents the minimum capacity needed to ship the first i packages in exactly j days. Use prefix sums to compute subarray sums efficiently. For each state, try all possible split points for the last day's packages.",
+      "code": "class Solution {\n    public int shipWithinDays(int[] weights, int days) {\n        int n = weights.length;\n        int[] prefix = new int[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + weights[i];\n        }\n        \n        // dp[i][j] = min capacity to ship first i packages in j days\n        int[][] dp = new int[n + 1][days + 1];\n        for (int i = 0; i <= n; i++) {\n            for (int j = 0; j <= days; j++) {\n                dp[i][j] = Integer.MAX_VALUE;\n            }\n        }\n        dp[0][0] = 0;\n        \n        for (int i = 1; i <= n; i++) {\n            for (int j = 1; j <= Math.min(i, days); j++) {\n                for (int m = j - 1; m < i; m++) {\n                    if (dp[m][j - 1] == Integer.MAX_VALUE) continue;\n                    int load = prefix[i] - prefix[m];\n                    int needed = Math.max(dp[m][j - 1], load);\n                    dp[i][j] = Math.min(dp[i][j], needed);\n                }\n            }\n        }\n        \n        return dp[n][days];\n    }\n}",
+      "language": "java"
     }
   ]
 }

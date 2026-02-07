@@ -18,6 +18,14 @@
       "description": "Track four states: buy1 (max profit after 1st buy), sell1 (after 1st sell), buy2 (after 2nd buy), sell2 (after 2nd sell). Update greedily in one pass.",
       "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int buy1 = Integer.MIN_VALUE, sell1 = 0;\n        int buy2 = Integer.MIN_VALUE, sell2 = 0;\n        for (int p : prices) {\n            buy1 = Math.max(buy1, -p);\n            sell1 = Math.max(sell1, buy1 + p);\n            buy2 = Math.max(buy2, sell1 - p);\n            sell2 = Math.max(sell2, buy2 + p);\n        }\n        return sell2;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Left-Right Scan DP",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Compute left[i] = max profit from one transaction in prices[0..i] (scan left to right tracking min price). Compute right[i] = max profit from one transaction in prices[i..n-1] (scan right to left tracking max price). Answer is max of left[i] + right[i].",
+      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int n = prices.length;\n        int[] left = new int[n];\n        int[] right = new int[n];\n        int minPrice = prices[0];\n        for (int i = 1; i < n; i++) {\n            minPrice = Math.min(minPrice, prices[i]);\n            left[i] = Math.max(left[i - 1], prices[i] - minPrice);\n        }\n        int maxPrice = prices[n - 1];\n        for (int i = n - 2; i >= 0; i--) {\n            maxPrice = Math.max(maxPrice, prices[i]);\n            right[i] = Math.max(right[i + 1], maxPrice - prices[i]);\n        }\n        int maxProfit = 0;\n        for (int i = 0; i < n; i++) {\n            maxProfit = Math.max(maxProfit, left[i] + right[i]);\n        }\n        return maxProfit;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

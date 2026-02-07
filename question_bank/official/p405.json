@@ -19,6 +19,14 @@
       "description": "One HashMap maps passenger id to (station, time) at check-in. Another maps route (start->end) to (totalTime, count). On checkout, compute travel time and update the route stats.",
       "code": "class UndergroundSystem {\n    private java.util.Map<Integer, String[]> checkIns = new java.util.HashMap<>();\n    private java.util.Map<String, long[]> routes = new java.util.HashMap<>();\n    public UndergroundSystem() {}\n    public void checkIn(int id, String stationName, int t) {\n        checkIns.put(id, new String[]{stationName, String.valueOf(t)});\n    }\n    public void checkOut(int id, String stationName, int t) {\n        String[] info = checkIns.remove(id);\n        String route = info[0] + \"->\" + stationName;\n        long time = t - Integer.parseInt(info[1]);\n        routes.computeIfAbsent(route, k -> new long[2]);\n        routes.get(route)[0] += time;\n        routes.get(route)[1]++;\n    }\n    public double getAverageTime(String startStation, String endStation) {\n        long[] data = routes.get(startStation + \"->\" + endStation);\n        return (double) data[0] / data[1];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Two HashMaps with int arrays",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(P + S^2)",
+      "description": "Use one HashMap to store check-in info (station and time) per passenger id, and another to store cumulative travel time and count per route key. Compute average on demand.",
+      "code": "import java.util.*;\n\nclass UndergroundSystem {\n    private Map<Integer, String> checkInStation;\n    private Map<Integer, Integer> checkInTime;\n    private Map<String, int[]> routeData;\n    public UndergroundSystem() {\n        checkInStation = new HashMap();\n        checkInTime = new HashMap();\n        routeData = new HashMap();\n    }\n    public void checkIn(int id, String stationName, int t) {\n        checkInStation.put(id, stationName);\n        checkInTime.put(id, t);\n    }\n    public void checkOut(int id, String stationName, int t) {\n        String start = checkInStation.get(id);\n        int startTime = checkInTime.get(id).intValue();\n        String route = start + \",\" + stationName;\n        if (!routeData.containsKey(route)) {\n            routeData.put(route, new int[]{0, 0});\n        }\n        int[] data = routeData.get(route);\n        data[0] += t - startTime;\n        data[1]++;\n        checkInStation.remove(id);\n        checkInTime.remove(id);\n    }\n    public double getAverageTime(String startStation, String endStation) {\n        int[] data = routeData.get(startStation + \",\" + endStation);\n        return (double) data[0] / data[1];\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

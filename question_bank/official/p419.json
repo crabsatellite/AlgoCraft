@@ -24,6 +24,14 @@
       "description": "Build a 2D prefix sum where prefix[i][j] = sum of elements in rectangle (0,0) to (i-1,j-1). Use inclusion-exclusion to answer region queries in O(1).",
       "code": "class NumMatrix {\n    private int[][] prefix;\n    public NumMatrix(int[][] matrix) {\n        int m = matrix.length, n = matrix[0].length;\n        prefix = new int[m + 1][n + 1];\n        for (int i = 1; i <= m; i++)\n            for (int j = 1; j <= n; j++)\n                prefix[i][j] = matrix[i-1][j-1] + prefix[i-1][j] + prefix[i][j-1] - prefix[i-1][j-1];\n    }\n    public int sumRegion(int row1, int col1, int row2, int col2) {\n        return prefix[row2+1][col2+1] - prefix[row1][col2+1] - prefix[row2+1][col1] + prefix[row1][col1];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Row-wise Prefix Sum",
+      "timeComplexity": "O(m*n) init, O(m) query",
+      "spaceComplexity": "O(m*n)",
+      "description": "Build prefix sums for each row. For a region query, iterate over each row from row1 to row2 and use the row prefix sum to compute the row contribution in O(1).",
+      "code": "class NumMatrix {\n    private int[][] rowPrefix;\n    public NumMatrix(int[][] matrix) {\n        int m = matrix.length;\n        int n = matrix[0].length;\n        rowPrefix = new int[m][n + 1];\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                rowPrefix[i][j + 1] = rowPrefix[i][j] + matrix[i][j];\n            }\n        }\n    }\n    public int sumRegion(int row1, int col1, int row2, int col2) {\n        int sum = 0;\n        for (int i = row1; i <= row2; i++) {\n            sum += rowPrefix[i][col2 + 1] - rowPrefix[i][col1];\n        }\n        return sum;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

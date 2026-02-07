@@ -26,6 +26,14 @@
       "description": "Maintain a max-heap for the lower half and a min-heap for the upper half. Balance so that sizes differ by at most 1. Median is from the top of one or both heaps.",
       "code": "import java.util.*;\n\nclass MedianFinder {\n    private PriorityQueue<Integer> maxHeap;\n    private PriorityQueue<Integer> minHeap;\n\n    public MedianFinder() {\n        maxHeap = new PriorityQueue<>(Collections.reverseOrder());\n        minHeap = new PriorityQueue<>();\n    }\n\n    public void addNum(int num) {\n        maxHeap.offer(num);\n        minHeap.offer(maxHeap.poll());\n        if (minHeap.size() > maxHeap.size()) {\n            maxHeap.offer(minHeap.poll());\n        }\n    }\n\n    public double findMedian() {\n        if (maxHeap.size() > minHeap.size()) {\n            return maxHeap.peek();\n        }\n        return (maxHeap.peek() + minHeap.peek()) / 2.0;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Sorted List with Binary Search Insert",
+      "timeComplexity": "O(n) addNum (due to insert shift), O(1) findMedian",
+      "spaceComplexity": "O(n)",
+      "description": "Maintain a sorted ArrayList. Use binary search to find the correct insertion position for each new number. The median is directly accessible by index in O(1).",
+      "code": "import java.util.*;\n\nclass MedianFinder {\n    private List<Integer> sorted;\n    \n    public MedianFinder() {\n        sorted = new ArrayList<>();\n    }\n    \n    public void addNum(int num) {\n        int pos = Collections.binarySearch(sorted, num);\n        if (pos < 0) pos = -(pos + 1);\n        sorted.add(pos, num);\n    }\n    \n    public double findMedian() {\n        int size = sorted.size();\n        if (size % 2 == 1) {\n            return sorted.get(size / 2);\n        }\n        return (sorted.get(size / 2 - 1) + sorted.get(size / 2)) / 2.0;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

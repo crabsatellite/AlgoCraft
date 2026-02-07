@@ -17,6 +17,14 @@
       "description": "Use two queues storing indices of R and D senators. In each round, the senator with the smaller index bans the other and re-enters the queue with index + n (next round). Continue until one queue is empty.",
       "code": "class Solution {\n    public String predictPartyVictory(String senate) {\n        Queue<Integer> rQueue = new LinkedList<>();\n        Queue<Integer> dQueue = new LinkedList<>();\n        int n = senate.length();\n        for (int i = 0; i < n; i++) {\n            if (senate.charAt(i) == 'R') rQueue.offer(i);\n            else dQueue.offer(i);\n        }\n        while (!rQueue.isEmpty() && !dQueue.isEmpty()) {\n            int r = rQueue.poll(), d = dQueue.poll();\n            if (r < d) rQueue.offer(r + n);\n            else dQueue.offer(d + n);\n        }\n        return rQueue.isEmpty() ? \"Dire\" : \"Radiant\";\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Boolean Array Simulation",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "Simulate the process directly. Track banned senators with a boolean array. In each round, each active senator bans the next active opponent. Repeat until only one party remains.",
+      "code": "class Solution {\n    public String predictPartyVictory(String senate) {\n        int n = senate.length();\n        boolean[] banned = new boolean[n];\n        int rCount = 0, dCount = 0;\n        for (char c : senate.toCharArray()) {\n            if (c == 'R') rCount++;\n            else dCount++;\n        }\n        int rBan = 0, dBan = 0;\n        while (rCount > 0 && dCount > 0) {\n            for (int i = 0; i < n; i++) {\n                if (banned[i]) continue;\n                if (senate.charAt(i) == 'R') {\n                    if (dBan > 0) {\n                        dBan--;\n                        banned[i] = true;\n                        rCount--;\n                    } else {\n                        rBan++;\n                    }\n                } else {\n                    if (rBan > 0) {\n                        rBan--;\n                        banned[i] = true;\n                        dCount--;\n                    } else {\n                        dBan++;\n                    }\n                }\n            }\n        }\n        return rCount > 0 ? \"Radiant\" : \"Dire\";\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

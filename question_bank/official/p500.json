@@ -28,6 +28,14 @@
       "description": "Recursively trim the BST. If node.val < low, the entire left subtree is out of range, so return trimmed right subtree. If node.val > high, return trimmed left subtree. Otherwise, trim both children.",
       "code": "class Solution {\n    public TreeNode trimBST(TreeNode root, int low, int high) {\n        if (root == null) return null;\n        if (root.val < low) return trimBST(root.right, low, high);\n        if (root.val > high) return trimBST(root.left, low, high);\n        root.left = trimBST(root.left, low, high);\n        root.right = trimBST(root.right, low, high);\n        return root;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Iterative Trim",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Iteratively find the new root that falls within [low, high]. Then iteratively trim the left and right subtrees by relinking nodes that fall outside the range.",
+      "code": "class Solution {\n    public TreeNode trimBST(TreeNode root, int low, int high) {\n        while (root != null && (root.val < low || root.val > high)) {\n            if (root.val < low) root = root.right;\n            else root = root.left;\n        }\n        TreeNode node = root;\n        while (node != null) {\n            while (node.left != null && node.left.val < low) {\n                node.left = node.left.right;\n            }\n            node = node.left;\n        }\n        node = root;\n        while (node != null) {\n            while (node.right != null && node.right.val > high) {\n                node.right = node.right.left;\n            }\n            node = node.right;\n        }\n        return root;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

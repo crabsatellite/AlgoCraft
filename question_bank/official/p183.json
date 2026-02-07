@@ -26,6 +26,14 @@
       "description": "Sort intervals by start time. Iterate and merge overlapping intervals by extending the end of the current interval.",
       "code": "class Solution {\n    public int[][] merge(int[][] intervals) {\n        java.util.Arrays.sort(intervals, (a, b) -> a[0] - b[0]);\n        java.util.List<int[]> merged = new java.util.ArrayList<>();\n        for (int[] interval : intervals) {\n            if (merged.isEmpty() || merged.get(merged.size() - 1)[1] < interval[0]) {\n                merged.add(interval);\n            } else {\n                merged.get(merged.size() - 1)[1] = Math.max(merged.get(merged.size() - 1)[1], interval[1]);\n            }\n        }\n        return merged.toArray(new int[0][]);\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Connected Components (Graph-Based)",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "Model intervals as a graph where overlapping intervals are connected. Find connected components; each component merges into one interval covering the min start to max end.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[][] merge(int[][] intervals) {\n        int n = intervals.length;\n        if (n <= 1) return intervals;\n        Arrays.sort(intervals, new Comparator<int[]>() {\n            public int compare(int[] a, int[] b) {\n                return a[0] - b[0];\n            }\n        });\n        LinkedList<int[]> merged = new LinkedList<>();\n        merged.add(new int[]{intervals[0][0], intervals[0][1]});\n        for (int i = 1; i < n; i++) {\n            int[] last = merged.getLast();\n            if (intervals[i][0] <= last[1]) {\n                last[1] = Math.max(last[1], intervals[i][1]);\n            } else {\n                merged.add(new int[]{intervals[i][0], intervals[i][1]});\n            }\n        }\n        return merged.toArray(new int[0][]);\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

@@ -17,6 +17,14 @@
       "description": "The max gap must be >= ceil((max-min)/(n-1)). Create buckets of this size. Only track min/max per bucket. The answer is the max gap between consecutive non-empty bucket boundaries.",
       "code": "class Solution {\n    public int maximumGap(int[] nums) {\n        int n = nums.length;\n        if (n < 2) return 0;\n        int min = nums[0], max = nums[0];\n        for (int num : nums) { min = Math.min(min, num); max = Math.max(max, num); }\n        if (min == max) return 0;\n        int bucketSize = Math.max(1, (max - min) / (n - 1));\n        int bucketCount = (max - min) / bucketSize + 1;\n        int[] bucketMin = new int[bucketCount], bucketMax = new int[bucketCount];\n        java.util.Arrays.fill(bucketMin, Integer.MAX_VALUE);\n        java.util.Arrays.fill(bucketMax, Integer.MIN_VALUE);\n        for (int num : nums) {\n            int idx = (num - min) / bucketSize;\n            bucketMin[idx] = Math.min(bucketMin[idx], num);\n            bucketMax[idx] = Math.max(bucketMax[idx], num);\n        }\n        int maxGap = 0, prevMax = bucketMax[0];\n        for (int i = 1; i < bucketCount; i++) {\n            if (bucketMin[i] == Integer.MAX_VALUE) continue;\n            maxGap = Math.max(maxGap, bucketMin[i] - prevMax);\n            prevMax = bucketMax[i];\n        }\n        return maxGap;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Radix Sort",
+      "timeComplexity": "O(n * d)",
+      "spaceComplexity": "O(n)",
+      "description": "Sort the array using radix sort (base 10) in linear time, then scan for the maximum gap between consecutive elements in the sorted array.",
+      "code": "class Solution {\n    public int maximumGap(int[] nums) {\n        int n = nums.length;\n        if (n < 2) return 0;\n        int max = 0;\n        for (int num : nums) max = Math.max(max, num);\n        int[] buf = new int[n];\n        for (long exp = 1; exp <= max; exp *= 10) {\n            int[] count = new int[10];\n            for (int num : nums) {\n                count[(int)((num / exp) % 10)]++;\n            }\n            for (int i = 1; i < 10; i++) count[i] += count[i - 1];\n            for (int i = n - 1; i >= 0; i--) {\n                int digit = (int)((nums[i] / exp) % 10);\n                buf[--count[digit]] = nums[i];\n            }\n            System.arraycopy(buf, 0, nums, 0, n);\n        }\n        int maxGap = 0;\n        for (int i = 1; i < n; i++) {\n            maxGap = Math.max(maxGap, nums[i] - nums[i - 1]);\n        }\n        return maxGap;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

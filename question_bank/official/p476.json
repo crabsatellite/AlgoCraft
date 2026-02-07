@@ -28,6 +28,14 @@
       "description": "Recursively merge two trees. If one is null, return the other. Otherwise create a new node with summed values and recursively merge left and right children.",
       "code": "class Solution {\n    public TreeNode mergeTrees(TreeNode root1, TreeNode root2) {\n        if (root1 == null) return root2;\n        if (root2 == null) return root1;\n        TreeNode merged = new TreeNode(root1.val + root2.val);\n        merged.left = mergeTrees(root1.left, root2.left);\n        merged.right = mergeTrees(root1.right, root2.right);\n        return merged;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Iterative BFS Merge",
+      "timeComplexity": "O(min(n, m))",
+      "spaceComplexity": "O(min(n, m))",
+      "description": "Use a queue-based BFS to merge both trees iteratively. Process nodes level by level, merging values and linking children appropriately.",
+      "code": "class Solution {\n    public TreeNode mergeTrees(TreeNode root1, TreeNode root2) {\n        if (root1 == null) return root2;\n        if (root2 == null) return root1;\n        java.util.Queue<TreeNode[]> queue = new java.util.LinkedList<>();\n        queue.offer(new TreeNode[]{root1, root2});\n        while (!queue.isEmpty()) {\n            TreeNode[] pair = queue.poll();\n            TreeNode t1 = pair[0], t2 = pair[1];\n            t1.val += t2.val;\n            if (t1.left != null && t2.left != null) {\n                queue.offer(new TreeNode[]{t1.left, t2.left});\n            } else if (t1.left == null) {\n                t1.left = t2.left;\n            }\n            if (t1.right != null && t2.right != null) {\n                queue.offer(new TreeNode[]{t1.right, t2.right});\n            } else if (t1.right == null) {\n                t1.right = t2.right;\n            }\n        }\n        return root1;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

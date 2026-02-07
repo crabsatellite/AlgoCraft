@@ -29,6 +29,14 @@
       "description": "Sort words by length. For each word, use Word Break DP to check if it can be formed by concatenating shorter words already in the set. Add each word to the set after checking.",
       "code": "class Solution {\n    public List<String> findAllConcatenatedWordsInADict(String[] words) {\n        java.util.Arrays.sort(words, (a, b) -> a.length() - b.length());\n        List<String> result = new java.util.ArrayList<>();\n        java.util.Set<String> dict = new java.util.HashSet<>();\n        for (String word : words) {\n            if (word.isEmpty()) { dict.add(word); continue; }\n            if (canForm(word, dict)) result.add(word);\n            dict.add(word);\n        }\n        return result;\n    }\n    private boolean canForm(String word, java.util.Set<String> dict) {\n        if (dict.isEmpty()) return false;\n        int n = word.length();\n        boolean[] dp = new boolean[n + 1];\n        dp[0] = true;\n        for (int i = 1; i <= n; i++) {\n            for (int j = 0; j < i; j++) {\n                if (dp[j] && dict.contains(word.substring(j, i))) { dp[i] = true; break; }\n            }\n        }\n        return dp[n];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "DFS with HashSet Lookup",
+      "timeComplexity": "O(n * L^3)",
+      "spaceComplexity": "O(n * L)",
+      "description": "Put all words in a HashSet. For each word, use DFS to check if it can be split into 2+ parts that are all in the set. Use early termination when a valid split is found.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> findAllConcatenatedWordsInADict(String[] words) {\n        Set<String> dict = new HashSet<>();\n        for (String w : words) dict.add(w);\n        List<String> result = new ArrayList<>();\n        for (String word : words) {\n            if (word.length() == 0) continue;\n            if (canBreak(word, dict, 0, 0)) {\n                result.add(word);\n            }\n        }\n        return result;\n    }\n    private boolean canBreak(String word, Set<String> dict, int start, int count) {\n        if (start == word.length()) return count >= 2;\n        for (int end = start + 1; end <= word.length(); end++) {\n            String sub = word.substring(start, end);\n            if (end - start < word.length() && dict.contains(sub)) {\n                if (canBreak(word, dict, end, count + 1)) return true;\n            } else if (end == word.length() && count >= 1 && dict.contains(sub)) {\n                return true;\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

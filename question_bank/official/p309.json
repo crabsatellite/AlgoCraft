@@ -23,6 +23,14 @@
       "description": "Use left and right pointers with leftMax and rightMax. Move the pointer with the smaller max inward. Water at each position is determined by the smaller of the two max heights minus the current height.",
       "code": "class Solution {\n    public int trap(int[] height) {\n        int left = 0, right = height.length - 1;\n        int leftMax = 0, rightMax = 0, water = 0;\n        while (left < right) {\n            if (height[left] < height[right]) {\n                leftMax = Math.max(leftMax, height[left]);\n                water += leftMax - height[left];\n                left++;\n            } else {\n                rightMax = Math.max(rightMax, height[right]);\n                water += rightMax - height[right];\n                right--;\n            }\n        }\n        return water;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Monotonic Stack",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use a decreasing stack of indices. When a taller bar is found, pop and calculate trapped water using the bounded width between current bar and new stack top, with height being the minimum of boundary bars minus the popped bar height.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int trap(int[] height) {\n        Deque<Integer> stack = new ArrayDeque<>();\n        int water = 0;\n        for (int i = 0; i < height.length; i++) {\n            while (!stack.isEmpty() && height[i] > height[stack.peek()]) {\n                int bottom = stack.pop();\n                if (stack.isEmpty()) break;\n                int width = i - stack.peek() - 1;\n                int h = Math.min(height[i], height[stack.peek()]) - height[bottom];\n                water += width * h;\n            }\n            stack.push(i);\n        }\n        return water;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

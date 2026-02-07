@@ -27,6 +27,14 @@
       "description": "A perfect rectangle has: (1) total area equals bounding rectangle area, and (2) only the 4 corners of the bounding rectangle appear an odd number of times. All other corners appear exactly 2 or 4 times (even). Use a HashSet to toggle corners.",
       "code": "class Solution {\n    public boolean isRectangleCover(int[][] rectangles) {\n        int x1 = Integer.MAX_VALUE, y1 = Integer.MAX_VALUE;\n        int x2 = Integer.MIN_VALUE, y2 = Integer.MIN_VALUE;\n        long area = 0;\n        java.util.Set<String> corners = new java.util.HashSet<>();\n        for (int[] r : rectangles) {\n            x1 = Math.min(x1, r[0]); y1 = Math.min(y1, r[1]);\n            x2 = Math.max(x2, r[2]); y2 = Math.max(y2, r[3]);\n            area += (long)(r[2] - r[0]) * (r[3] - r[1]);\n            String[] pts = {r[0]+\" \"+r[1], r[0]+\" \"+r[3], r[2]+\" \"+r[1], r[2]+\" \"+r[3]};\n            for (String p : pts) { if (!corners.add(p)) corners.remove(p); }\n        }\n        if (area != (long)(x2 - x1) * (y2 - y1)) return false;\n        if (corners.size() != 4) return false;\n        return corners.contains(x1+\" \"+y1) && corners.contains(x1+\" \"+y2) && corners.contains(x2+\" \"+y1) && corners.contains(x2+\" \"+y2);\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Line Sweep with Event Processing",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use the same corner counting logic but with long-encoded point keys for better performance. Encode each corner as a long (x * offset + y) instead of strings. Also verify area sum equals bounding rectangle area and exactly 4 bounding corners remain.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isRectangleCover(int[][] rectangles) {\n        int x1 = Integer.MAX_VALUE, y1 = Integer.MAX_VALUE;\n        int x2 = Integer.MIN_VALUE, y2 = Integer.MIN_VALUE;\n        long area = 0;\n        Set<Long> corners = new HashSet<>();\n        for (int[] r : rectangles) {\n            x1 = Math.min(x1, r[0]); y1 = Math.min(y1, r[1]);\n            x2 = Math.max(x2, r[2]); y2 = Math.max(y2, r[3]);\n            area += (long)(r[2] - r[0]) * (r[3] - r[1]);\n            long[] pts = {\n                encode(r[0], r[1]), encode(r[0], r[3]),\n                encode(r[2], r[1]), encode(r[2], r[3])\n            };\n            for (long p : pts) {\n                if (!corners.add(p)) corners.remove(p);\n            }\n        }\n        if (area != (long)(x2 - x1) * (y2 - y1)) return false;\n        if (corners.size() != 4) return false;\n        return corners.contains(encode(x1, y1)) && corners.contains(encode(x1, y2))\n            && corners.contains(encode(x2, y1)) && corners.contains(encode(x2, y2));\n    }\n    private long encode(int x, int y) {\n        return (long) x * 200001L + y;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

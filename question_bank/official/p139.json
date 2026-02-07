@@ -28,6 +28,14 @@
       "description": "Process edges in order. For each edge, if both nodes share the same root, this edge is redundant. Otherwise, union them.",
       "code": "class Solution {\n    private int[] parent, rank;\n\n    public int[] findRedundantConnection(int[][] edges) {\n        int n = edges.length;\n        parent = new int[n + 1];\n        rank = new int[n + 1];\n        for (int i = 1; i <= n; i++) parent[i] = i;\n        for (int[] e : edges) {\n            int ra = find(e[0]), rb = find(e[1]);\n            if (ra == rb) return e;\n            if (rank[ra] < rank[rb]) { int t = ra; ra = rb; rb = t; }\n            parent[rb] = ra;\n            if (rank[ra] == rank[rb]) rank[ra]++;\n        }\n        return new int[]{};\n    }\n\n    private int find(int x) {\n        if (parent[x] != x) parent[x] = find(parent[x]);\n        return parent[x];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "DFS Cycle Detection",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "Process edges one by one. For each edge, build adjacency list so far, then DFS to check if the two nodes are already connected. If they are, this edge creates a cycle and is redundant.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] findRedundantConnection(int[][] edges) {\n        int n = edges.length;\n        List<List<Integer>> adj = new ArrayList<>();\n        for (int i = 0; i <= n; i++) adj.add(new ArrayList<>());\n        for (int[] e : edges) {\n            boolean[] visited = new boolean[n + 1];\n            if (hasPath(adj, visited, e[0], e[1])) return e;\n            adj.get(e[0]).add(e[1]);\n            adj.get(e[1]).add(e[0]);\n        }\n        return new int[]{};\n    }\n\n    private boolean hasPath(List<List<Integer>> adj, boolean[] visited, int src, int dst) {\n        if (src == dst) return true;\n        visited[src] = true;\n        for (int neighbor : adj.get(src)) {\n            if (!visited[neighbor] && hasPath(adj, visited, neighbor, dst)) return true;\n        }\n        return false;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

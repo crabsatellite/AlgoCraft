@@ -18,6 +18,14 @@
       "description": "If total dresses not divisible by n, return -1. For each machine, track the running sum of excess dresses (machines[i] - avg). The answer is max of |running_sum| and (machines[i] - avg) for positive excess, since a machine giving away dresses is a bottleneck.",
       "code": "class Solution {\n    public int findMinMoves(int[] machines) {\n        int total = 0;\n        for (int m : machines) total += m;\n        int n = machines.length;\n        if (total % n != 0) return -1;\n        int avg = total / n;\n        int result = 0, runningSum = 0;\n        for (int m : machines) {\n            runningSum += m - avg;\n            result = Math.max(result, Math.max(Math.abs(runningSum), m - avg));\n        }\n        return result;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Prefix Sum Approach",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Compute prefix sums and expected prefix sums (if each machine had avg dresses). The max flow across any boundary is the max absolute difference of actual vs expected prefix sums. Also consider individual machine excess. Answer is the max of these.",
+      "code": "class Solution {\n    public int findMinMoves(int[] machines) {\n        int n = machines.length;\n        int total = 0;\n        for (int m : machines) total += m;\n        if (total % n != 0) return -1;\n        int avg = total / n;\n        int[] prefix = new int[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + machines[i];\n        }\n        int result = 0;\n        for (int i = 0; i < n; i++) {\n            int expected = (int)((long) avg * (i + 1));\n            int balance = prefix[i + 1] - expected;\n            result = Math.max(result, Math.abs(balance));\n            result = Math.max(result, machines[i] - avg);\n        }\n        return result;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

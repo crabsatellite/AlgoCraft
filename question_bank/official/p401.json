@@ -25,6 +25,14 @@
       "description": "Use an array of linked list buckets. Hash key by modding with bucket count. Search, insert, or delete within the corresponding bucket's linked list.",
       "code": "class MyHashMap {\n    private int[] data;\n    public MyHashMap() {\n        data = new int[1000001];\n        java.util.Arrays.fill(data, -1);\n    }\n    public void put(int key, int value) {\n        data[key] = value;\n    }\n    public int get(int key) {\n        return data[key];\n    }\n    public void remove(int key) {\n        data[key] = -1;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Hash Table with Chaining (Linked List Buckets)",
+      "timeComplexity": "O(n/k) per operation",
+      "spaceComplexity": "O(k + n)",
+      "description": "Use an array of linked list buckets with a hash function. Each bucket stores key-value pairs in a linked list. Hash collisions are resolved by chaining.",
+      "code": "import java.util.*;\n\nclass MyHashMap {\n    private static final int SIZE = 769;\n    private List<int[]>[] buckets;\n    public MyHashMap() {\n        buckets = new ArrayList[SIZE];\n        for (int i = 0; i < SIZE; i++) {\n            buckets[i] = new ArrayList();\n        }\n    }\n    private int hash(int key) {\n        return key % SIZE;\n    }\n    public void put(int key, int value) {\n        int h = hash(key);\n        List<int[]> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i)[0] == key) {\n                bucket.get(i)[1] = value;\n                return;\n            }\n        }\n        bucket.add(new int[]{key, value});\n    }\n    public int get(int key) {\n        int h = hash(key);\n        List<int[]> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i)[0] == key) {\n                return bucket.get(i)[1];\n            }\n        }\n        return -1;\n    }\n    public void remove(int key) {\n        int h = hash(key);\n        List<int[]> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i)[0] == key) {\n                bucket.remove(i);\n                return;\n            }\n        }\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

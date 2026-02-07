@@ -18,6 +18,14 @@
       "description": "For each unvisited index, use fast/slow pointers to detect a cycle. Ensure all elements in the cycle have the same sign and cycle length > 1. Mark visited indices to avoid reprocessing.",
       "code": "class Solution {\n    public boolean circularArrayLoop(int[] nums) {\n        int n = nums.length;\n        for (int i = 0; i < n; i++) {\n            if (nums[i] == 0) continue;\n            int slow = i, fast = i;\n            while (nums[next(slow, nums)] * nums[i] > 0 &&\n                   nums[next(fast, nums)] * nums[i] > 0 &&\n                   nums[next(next(fast, nums), nums)] * nums[i] > 0) {\n                slow = next(slow, nums);\n                fast = next(next(fast, nums), nums);\n                if (slow == fast) {\n                    if (slow == next(slow, nums)) break;\n                    return true;\n                }\n            }\n            int j = i;\n            while (nums[j] * nums[i] > 0) {\n                int tmp = next(j, nums);\n                nums[j] = 0;\n                j = tmp;\n            }\n        }\n        return false;\n    }\n\n    private int next(int i, int[] nums) {\n        int n = nums.length;\n        return ((i + nums[i]) % n + n) % n;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Visited Array with DFS",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use a visited color array. For each unvisited index, follow the path marking nodes with a unique color. If we revisit a node with the same color and the cycle has consistent direction and length > 1, return true.",
+      "code": "class Solution {\n    public boolean circularArrayLoop(int[] nums) {\n        int n = nums.length;\n        int[] color = new int[n];\n        int colorId = 0;\n        for (int i = 0; i < n; i++) {\n            if (color[i] != 0) continue;\n            colorId++;\n            int j = i;\n            while (color[j] == 0 && nums[j] * nums[i] > 0) {\n                color[j] = colorId;\n                j = ((j + nums[j]) % n + n) % n;\n            }\n            if (color[j] == colorId) {\n                int k = j;\n                int len = 0;\n                do {\n                    len++;\n                    k = ((k + nums[k]) % n + n) % n;\n                } while (k != j);\n                if (len > 1) return true;\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

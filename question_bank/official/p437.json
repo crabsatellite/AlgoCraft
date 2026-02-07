@@ -19,6 +19,14 @@
       "description": "Use a trie where each node stores a cumulative sum of all values passing through it. On insert, compute the delta (new val minus old val if key existed) and add delta to every node along the path. Sum query just traverses to the prefix node.",
       "code": "class MapSum {\n    private int[][] children;\n    private int[] prefixSum;\n    private int cnt;\n    private java.util.HashMap<String, Integer> map;\n\n    public MapSum() {\n        children = new int[2501][26];\n        prefixSum = new int[2501];\n        cnt = 1;\n        map = new java.util.HashMap<>();\n    }\n\n    public void insert(String key, int val) {\n        int delta = val - map.getOrDefault(key, 0);\n        map.put(key, val);\n        int node = 0;\n        for (char c : key.toCharArray()) {\n            int idx = c - 'a';\n            if (children[node][idx] == 0) {\n                children[node][idx] = cnt++;\n            }\n            node = children[node][idx];\n            prefixSum[node] += delta;\n        }\n    }\n\n    public int sum(String prefix) {\n        int node = 0;\n        for (char c : prefix.toCharArray()) {\n            int idx = c - 'a';\n            if (children[node][idx] == 0) return 0;\n            node = children[node][idx];\n        }\n        return prefixSum[node];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "HashMap with Brute Force Prefix Scan",
+      "timeComplexity": "O(n * L) for sum, O(1) for insert",
+      "spaceComplexity": "O(n * L)",
+      "description": "Store all key-value pairs in a HashMap. For sum, iterate over all keys and check if each starts with the given prefix. Sum matching values.",
+      "code": "import java.util.*;\n\nclass MapSum {\n    private Map<String, Integer> map;\n\n    public MapSum() {\n        map = new HashMap();\n    }\n\n    public void insert(String key, int val) {\n        map.put(key, val);\n    }\n\n    public int sum(String prefix) {\n        int total = 0;\n        Iterator<Map.Entry<String, Integer>> it = map.entrySet().iterator();\n        while (it.hasNext()) {\n            Map.Entry<String, Integer> entry = it.next();\n            if (entry.getKey().startsWith(prefix)) {\n                total += entry.getValue().intValue();\n            }\n        }\n        return total;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

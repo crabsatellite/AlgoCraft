@@ -18,6 +18,14 @@
       "description": "Track 6 states: (0 or 1 absences) x (0, 1, or 2 consecutive lates). For each day, transition by appending P, L, or A. Use rolling variables for O(1) space.",
       "code": "class Solution {\n    public int checkRecord(int n) {\n        long MOD = 1000000007;\n        long a0l0 = 1, a0l1 = 0, a0l2 = 0;\n        long a1l0 = 0, a1l1 = 0, a1l2 = 0;\n        for (int i = 0; i < n; i++) {\n            long na0l0 = (a0l0 + a0l1 + a0l2) % MOD;\n            long na0l1 = a0l0;\n            long na0l2 = a0l1;\n            long na1l0 = (a0l0 + a0l1 + a0l2 + a1l0 + a1l1 + a1l2) % MOD;\n            long na1l1 = a1l0;\n            long na1l2 = a1l1;\n            a0l0 = na0l0; a0l1 = na0l1; a0l2 = na0l2;\n            a1l0 = na1l0; a1l1 = na1l1; a1l2 = na1l2;\n        }\n        return (int) ((a0l0 + a0l1 + a0l2 + a1l0 + a1l1 + a1l2) % MOD);\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Matrix Exponentiation",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(1)",
+      "description": "Model the 6 states as a vector and transitions as a 6x6 matrix. Use matrix exponentiation to compute the result in O(log n) time. The transition matrix encodes P/L/A choices and their effects on state.",
+      "code": "class Solution {\n    private static final long MOD = 1000000007;\n    public int checkRecord(int n) {\n        long[][] mat = {\n            {1, 1, 1, 0, 0, 0},\n            {1, 0, 0, 0, 0, 0},\n            {0, 1, 0, 0, 0, 0},\n            {1, 1, 1, 1, 1, 1},\n            {0, 0, 0, 1, 0, 0},\n            {0, 0, 0, 0, 1, 0}\n        };\n        long[][] result = matPow(mat, n);\n        long ans = 0;\n        for (int j = 0; j < 6; j++) {\n            ans = (ans + result[j][0]) % MOD;\n        }\n        return (int) ans;\n    }\n    private long[][] matMul(long[][] a, long[][] b) {\n        int n = a.length;\n        long[][] c = new long[n][n];\n        for (int i = 0; i < n; i++)\n            for (int k = 0; k < n; k++)\n                if (a[i][k] != 0)\n                    for (int j = 0; j < n; j++)\n                        c[i][j] = (c[i][j] + a[i][k] * b[k][j]) % MOD;\n        return c;\n    }\n    private long[][] matPow(long[][] m, int p) {\n        int n = m.length;\n        long[][] result = new long[n][n];\n        for (int i = 0; i < n; i++) result[i][i] = 1;\n        while (p > 0) {\n            if ((p & 1) == 1) result = matMul(result, m);\n            m = matMul(m, m);\n            p >>= 1;\n        }\n        return result;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

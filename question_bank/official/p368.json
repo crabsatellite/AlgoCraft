@@ -17,6 +17,14 @@
       "description": "For each index i, maintain a map from common difference to the count of weak arithmetic subsequences (length >= 2) ending at i. For each pair (j, i), diff = nums[i] - nums[j], dp[i][diff] += dp[j][diff] + 1. The +1 accounts for the pair (j,i). Add dp[j][diff] to result (those become length >= 3).",
       "code": "class Solution {\n    public int numberOfArithmeticSlices(int[] nums) {\n        int n = nums.length, result = 0;\n        java.util.Map<Long, Integer>[] dp = new java.util.HashMap[n];\n        for (int i = 0; i < n; i++) {\n            dp[i] = new java.util.HashMap<>();\n            for (int j = 0; j < i; j++) {\n                long diff = (long) nums[i] - nums[j];\n                int countJ = dp[j].getOrDefault(diff, 0);\n                int countI = dp[i].getOrDefault(diff, 0);\n                result += countJ;\n                dp[i].put(diff, countI + countJ + 1);\n            }\n        }\n        return result;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "DP with Array of Maps (Long Key)",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "Same DP approach but uses an explicit long difference to handle integer overflow. For each pair (j, i), compute diff as a long. Track counts of weak arithmetic subsequences ending at each index with each difference. Accumulate the answer from completed subsequences.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int numberOfArithmeticSlices(int[] nums) {\n        int n = nums.length;\n        int total = 0;\n        HashMap<Long, Integer>[] dp = new HashMap[n];\n        for (int i = 0; i < n; i++) {\n            dp[i] = new HashMap<>();\n            for (int j = 0; j < i; j++) {\n                long diff = (long) nums[i] - (long) nums[j];\n                int prev = dp[j].containsKey(diff) ? dp[j].get(diff) : 0;\n                int cur = dp[i].containsKey(diff) ? dp[i].get(diff) : 0;\n                total += prev;\n                dp[i].put(diff, cur + prev + 1);\n            }\n        }\n        return total;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

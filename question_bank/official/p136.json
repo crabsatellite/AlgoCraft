@@ -32,6 +32,14 @@
       "description": "Build adjacency list and in-degree array. BFS from nodes with in-degree 0, recording the order. If order length != numCourses, cycle exists, return empty array.",
       "code": "import java.util.*;\n\nclass Solution {\n    public int[] findOrder(int numCourses, int[][] prerequisites) {\n        List<List<Integer>> adj = new ArrayList<>();\n        int[] indegree = new int[numCourses];\n        for (int i = 0; i < numCourses; i++) adj.add(new ArrayList<>());\n        for (int[] pre : prerequisites) {\n            adj.get(pre[1]).add(pre[0]);\n            indegree[pre[0]]++;\n        }\n        Queue<Integer> queue = new LinkedList<>();\n        for (int i = 0; i < numCourses; i++)\n            if (indegree[i] == 0) queue.offer(i);\n        int[] order = new int[numCourses];\n        int idx = 0;\n        while (!queue.isEmpty()) {\n            int course = queue.poll();\n            order[idx++] = course;\n            for (int next : adj.get(course))\n                if (--indegree[next] == 0) queue.offer(next);\n        }\n        return idx == numCourses ? order : new int[]{};\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "DFS Topological Sort (Post-order)",
+      "timeComplexity": "O(V + E)",
+      "spaceComplexity": "O(V + E)",
+      "description": "DFS with 3-state coloring. Post-order: add node to stack after visiting all descendants. If a cycle is detected (visiting node encountered), return empty. Reverse the post-order for topological sort.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] findOrder(int numCourses, int[][] prerequisites) {\n        List<List<Integer>> adj = new ArrayList<>();\n        for (int i = 0; i < numCourses; i++) adj.add(new ArrayList<>());\n        for (int[] pre : prerequisites) adj.get(pre[1]).add(pre[0]);\n        int[] state = new int[numCourses];\n        List<Integer> order = new ArrayList<>();\n        for (int i = 0; i < numCourses; i++)\n            if (!dfs(adj, state, i, order)) return new int[]{};\n        int[] result = new int[numCourses];\n        for (int i = 0; i < numCourses; i++)\n            result[i] = order.get(numCourses - 1 - i);\n        return result;\n    }\n\n    private boolean dfs(List<List<Integer>> adj, int[] state, int node, List<Integer> order) {\n        if (state[node] == 1) return false;\n        if (state[node] == 2) return true;\n        state[node] = 1;\n        for (int next : adj.get(node))\n            if (!dfs(adj, state, next, order)) return false;\n        state[node] = 2;\n        order.add(node);\n        return true;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

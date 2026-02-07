@@ -54,6 +54,14 @@
       "description": "The first element of preorder is the root. Find its index in inorder to split left/right subtrees. Use a HashMap for O(1) index lookup in inorder.",
       "code": "import java.util.*;\n\nclass Solution {\n    private Map<Integer, Integer> inorderMap;\n    private int preIdx = 0;\n    \n    public TreeNode buildTree(int[] preorder, int[] inorder) {\n        inorderMap = new HashMap<>();\n        for (int i = 0; i < inorder.length; i++) {\n            inorderMap.put(inorder[i], i);\n        }\n        return build(preorder, 0, inorder.length - 1);\n    }\n    \n    private TreeNode build(int[] preorder, int inLeft, int inRight) {\n        if (inLeft > inRight) return null;\n        \n        int rootVal = preorder[preIdx++];\n        TreeNode root = new TreeNode(rootVal);\n        \n        int inIdx = inorderMap.get(rootVal);\n        \n        root.left = build(preorder, inLeft, inIdx - 1);\n        root.right = build(preorder, inIdx + 1, inRight);\n        \n        return root;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Recursive with Index Boundaries",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "Recursively build the tree by passing explicit preorder and inorder boundaries. Find the root in inorder by linear scan (no HashMap). Simpler but less optimal.",
+      "code": "class Solution {\n    public TreeNode buildTree(int[] preorder, int[] inorder) {\n        return build(preorder, 0, preorder.length - 1, inorder, 0, inorder.length - 1);\n    }\n    \n    private TreeNode build(int[] preorder, int preStart, int preEnd, int[] inorder, int inStart, int inEnd) {\n        if (preStart > preEnd || inStart > inEnd) return null;\n        \n        int rootVal = preorder[preStart];\n        TreeNode root = new TreeNode(rootVal);\n        \n        int inIdx = inStart;\n        while (inorder[inIdx] != rootVal) {\n            inIdx++;\n        }\n        \n        int leftSize = inIdx - inStart;\n        \n        root.left = build(preorder, preStart + 1, preStart + leftSize, inorder, inStart, inIdx - 1);\n        root.right = build(preorder, preStart + leftSize + 1, preEnd, inorder, inIdx + 1, inEnd);\n        \n        return root;\n    }\n}",
+      "language": "java"
     }
   ],
   "diagrams": [

@@ -17,6 +17,14 @@
       "description": "If total gas >= total cost, a solution exists. Track current tank; when it goes negative, reset start to next station. The key insight: if we can't reach station j from i, then no station between i and j can reach j either.",
       "code": "class Solution {\n    public int canCompleteCircuit(int[] gas, int[] cost) {\n        int totalTank = 0, currTank = 0, start = 0;\n        for (int i = 0; i < gas.length; i++) {\n            int diff = gas[i] - cost[i];\n            totalTank += diff;\n            currTank += diff;\n            if (currTank < 0) {\n                start = i + 1;\n                currTank = 0;\n            }\n        }\n        return totalTank >= 0 ? start : -1;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Brute Force with Early Exit",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "Try each station as a starting point. Simulate the trip around the circuit. If the tank goes negative, skip to the station after the failure point since all stations in between would also fail.",
+      "code": "class Solution {\n    public int canCompleteCircuit(int[] gas, int[] cost) {\n        int n = gas.length;\n        int i = 0;\n        while (i < n) {\n            int tank = 0;\n            int count = 0;\n            while (count < n) {\n                int idx = (i + count) % n;\n                tank += gas[idx] - cost[idx];\n                if (tank < 0) break;\n                count++;\n            }\n            if (count == n) return i;\n            i = i + count + 1;\n        }\n        return -1;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

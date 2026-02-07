@@ -19,6 +19,14 @@
       "description": "Use an array with front pointer and size counter. Enqueue at (front+size)%cap, dequeue by advancing front. isEmpty/isFull check size.",
       "code": "class MyCircularQueue {\n    private int[] data;\n    private int front, size, cap;\n    public MyCircularQueue(int k) { data = new int[k]; cap = k; }\n    public boolean enQueue(int value) {\n        if (isFull()) return false;\n        data[(front + size) % cap] = value; size++; return true;\n    }\n    public boolean deQueue() {\n        if (isEmpty()) return false;\n        front = (front + 1) % cap; size--; return true;\n    }\n    public int Front() { return isEmpty() ? -1 : data[front]; }\n    public int Rear() { return isEmpty() ? -1 : data[(front + size - 1) % cap]; }\n    public boolean isEmpty() { return size == 0; }\n    public boolean isFull() { return size == cap; }\n}",
       "language": "java"
+    },
+    {
+      "name": "Linked List Based Circular Queue",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(k)",
+      "description": "Use a singly linked list with head and tail references. Track size and capacity. Enqueue appends to tail, dequeue removes from head. Wrap-around is implicit in the linked structure.",
+      "code": "class MyCircularQueue {\n    private int[] vals, nexts;\n    private int head, tail, size, cap, cnt;\n    public MyCircularQueue(int k) {\n        cap = k; vals = new int[k + 1]; nexts = new int[k + 1];\n        java.util.Arrays.fill(nexts, -1);\n        head = -1; tail = -1; size = 0; cnt = 0;\n    }\n    public boolean enQueue(int value) {\n        if (isFull()) return false;\n        int node = cnt++;\n        vals[node] = value; nexts[node] = -1;\n        if (isEmpty()) { head = node; tail = node; }\n        else { nexts[tail] = node; tail = node; }\n        size++;\n        return true;\n    }\n    public boolean deQueue() {\n        if (isEmpty()) return false;\n        head = nexts[head]; size--;\n        if (size == 0) { head = -1; tail = -1; }\n        return true;\n    }\n    public int Front() { return isEmpty() ? -1 : vals[head]; }\n    public int Rear() { return isEmpty() ? -1 : vals[tail]; }\n    public boolean isEmpty() { return size == 0; }\n    public boolean isFull() { return size == cap; }\n}",
+      "language": "java"
     }
   ],
   "tests": [

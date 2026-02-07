@@ -18,6 +18,14 @@
       "description": "Use a stack of characters. Push operators and operands. On closing paren, pop all operands until '(', then pop the operator and evaluate. Push the result back.",
       "code": "class Solution {\n    public boolean parseBoolExpr(String expression) {\n        java.util.Deque<Character> stack = new java.util.ArrayDeque<>();\n        for (char c : expression.toCharArray()) {\n            if (c == ',') continue;\n            if (c != ')') { stack.push(c); continue; }\n            boolean hasTrue = false, hasFalse = false;\n            while (stack.peek() != '(') {\n                char val = stack.pop();\n                if (val == 't') hasTrue = true;\n                else hasFalse = true;\n            }\n            stack.pop();\n            char op = stack.pop();\n            if (op == '!') stack.push(hasTrue ? 'f' : 't');\n            else if (op == '&') stack.push(hasFalse ? 'f' : 't');\n            else stack.push(hasTrue ? 't' : 'f');\n        }\n        return stack.peek() == 't';\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Recursive Descent Parser",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Parse the expression recursively. For 't' or 'f', return the value directly. For operators, parse the sub-expressions between parentheses, applying the operator as each sub-expression is evaluated.",
+      "code": "class Solution {\n    private int pos;\n    public boolean parseBoolExpr(String expression) {\n        pos = 0;\n        return parse(expression);\n    }\n    private boolean parse(String s) {\n        char c = s.charAt(pos);\n        if (c == 't') { pos++; return true; }\n        if (c == 'f') { pos++; return false; }\n        char op = c;\n        pos += 2;\n        boolean result;\n        if (op == '!') {\n            result = !parse(s);\n            pos++;\n            return result;\n        }\n        result = (op == '&');\n        boolean first = true;\n        while (s.charAt(pos) != ')') {\n            if (s.charAt(pos) == ',') pos++;\n            boolean val = parse(s);\n            if (first) { result = val; first = false; }\n            else if (op == '&') result = result && val;\n            else result = result || val;\n        }\n        pos++;\n        return result;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

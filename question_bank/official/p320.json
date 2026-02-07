@@ -18,6 +18,14 @@
       "description": "dp[len][i][j] = true if s1 starting at i with length len is a scramble of s2 starting at j. For each split point k, check both swap and no-swap configurations.",
       "code": "class Solution {\n    public boolean isScramble(String s1, String s2) {\n        int n = s1.length();\n        boolean[][][] dp = new boolean[n + 1][n][n];\n        for (int i = 0; i < n; i++)\n            for (int j = 0; j < n; j++)\n                dp[1][i][j] = s1.charAt(i) == s2.charAt(j);\n        for (int len = 2; len <= n; len++) {\n            for (int i = 0; i <= n - len; i++) {\n                for (int j = 0; j <= n - len; j++) {\n                    for (int k = 1; k < len; k++) {\n                        if ((dp[k][i][j] && dp[len - k][i + k][j + k]) ||\n                            (dp[k][i][j + len - k] && dp[len - k][i + k][j])) {\n                            dp[len][i][j] = true;\n                            break;\n                        }\n                    }\n                }\n            }\n        }\n        return dp[n][0][0];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Recursive with Memoization",
+      "timeComplexity": "O(n^4)",
+      "spaceComplexity": "O(n^3)",
+      "description": "Use top-down recursion with a HashMap to memoize (i, j, len) states. At each step, try all split points and check both swapped and non-swapped configurations. Prune by checking character frequency match.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private Map<String, Boolean> memo = new HashMap<>();\n    public boolean isScramble(String s1, String s2) {\n        memo = new HashMap<>();\n        return solve(s1, s2);\n    }\n    private boolean solve(String s1, String s2) {\n        if (s1.equals(s2)) return true;\n        if (s1.length() != s2.length()) return false;\n        String key = s1 + \"#\" + s2;\n        if (memo.containsKey(key)) return memo.get(key);\n        int n = s1.length();\n        int[] count = new int[26];\n        for (int i = 0; i < n; i++) {\n            count[s1.charAt(i) - 'a']++;\n            count[s2.charAt(i) - 'a']--;\n        }\n        for (int c : count) {\n            if (c != 0) {\n                memo.put(key, false);\n                return false;\n            }\n        }\n        for (int i = 1; i < n; i++) {\n            if (solve(s1.substring(0, i), s2.substring(0, i)) && solve(s1.substring(i), s2.substring(i))) {\n                memo.put(key, true);\n                return true;\n            }\n            if (solve(s1.substring(0, i), s2.substring(n - i)) && solve(s1.substring(i), s2.substring(0, n - i))) {\n                memo.put(key, true);\n                return true;\n            }\n        }\n        memo.put(key, false);\n        return false;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

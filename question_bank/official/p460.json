@@ -32,6 +32,14 @@
       "description": "For each land cell, start with 4 edges. Subtract 1 for each adjacent land cell (shared edge). Sum over all land cells.",
       "code": "class Solution {\n    public int islandPerimeter(int[][] grid) {\n        int rows = grid.length, cols = grid[0].length;\n        int perimeter = 0;\n        for (int i = 0; i < rows; i++) {\n            for (int j = 0; j < cols; j++) {\n                if (grid[i][j] == 1) {\n                    perimeter += 4;\n                    if (i > 0 && grid[i - 1][j] == 1) perimeter -= 2;\n                    if (j > 0 && grid[i][j - 1] == 1) perimeter -= 2;\n                }\n            }\n        }\n        return perimeter;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "DFS Perimeter Count",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "Use DFS from any land cell to traverse the island. For each land cell, count how many of its 4 neighbors are water or out of bounds. Sum these counts for the perimeter.",
+      "code": "class Solution {\n    public int islandPerimeter(int[][] grid) {\n        int rows = grid.length, cols = grid[0].length;\n        boolean[][] visited = new boolean[rows][cols];\n        for (int i = 0; i < rows; i++) {\n            for (int j = 0; j < cols; j++) {\n                if (grid[i][j] == 1) {\n                    return dfs(grid, visited, i, j, rows, cols);\n                }\n            }\n        }\n        return 0;\n    }\n\n    private int dfs(int[][] grid, boolean[][] visited, int i, int j, int rows, int cols) {\n        if (i < 0 || i >= rows || j < 0 || j >= cols || grid[i][j] == 0) return 1;\n        if (visited[i][j]) return 0;\n        visited[i][j] = true;\n        int perim = 0;\n        perim += dfs(grid, visited, i - 1, j, rows, cols);\n        perim += dfs(grid, visited, i + 1, j, rows, cols);\n        perim += dfs(grid, visited, i, j - 1, rows, cols);\n        perim += dfs(grid, visited, i, j + 1, rows, cols);\n        return perim;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

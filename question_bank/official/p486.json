@@ -17,6 +17,14 @@
       "description": "The minimum operations equals the sum of prime factors of n. Each prime factor p means: copy once + paste (p-1) times = p operations to multiply the count by p.",
       "code": "class Solution {\n    public int minSteps(int n) {\n        int result = 0;\n        for (int d = 2; d * d <= n; d++) {\n            while (n % d == 0) {\n                result += d;\n                n /= d;\n            }\n        }\n        if (n > 1) result += n;\n        return result;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Bottom-Up DP",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "Use dynamic programming where dp[i] is the minimum operations to get i A's. For each i, try all divisors d of i: dp[i] = min(dp[i/d] + d) because we can copy i/d A's and paste d-1 times.",
+      "code": "class Solution {\n    public int minSteps(int n) {\n        int[] dp = new int[n + 1];\n        for (int i = 2; i <= n; i++) {\n            dp[i] = i;\n            for (int j = 2; j * j <= i; j++) {\n                if (i % j == 0) {\n                    dp[i] = Math.min(dp[i], dp[i / j] + j);\n                }\n            }\n        }\n        return dp[n];\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

@@ -31,6 +31,14 @@
       "description": "Use post-order traversal. Each recursive call returns the subtree sum. The tilt at each node is |leftSum - rightSum|. Accumulate total tilt in a global variable.",
       "code": "class Solution {\n    private int totalTilt = 0;\n\n    public int findTilt(TreeNode root) {\n        totalTilt = 0;\n        subtreeSum(root);\n        return totalTilt;\n    }\n\n    private int subtreeSum(TreeNode node) {\n        if (node == null) return 0;\n        int leftSum = subtreeSum(node.left);\n        int rightSum = subtreeSum(node.right);\n        totalTilt += Math.abs(leftSum - rightSum);\n        return node.val + leftSum + rightSum;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Iterative Post-order with Stack",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use an iterative approach with a stack. Store each node alongside its subtree sum. Process nodes in post-order and accumulate the total tilt.",
+      "code": "class Solution {\n    public int findTilt(TreeNode root) {\n        if (root == null) return 0;\n        int totalTilt = 0;\n        java.util.Map<TreeNode, Integer> sumMap = new java.util.HashMap<>();\n        java.util.Deque<TreeNode> stack = new java.util.ArrayDeque<>();\n        java.util.Deque<TreeNode> output = new java.util.ArrayDeque<>();\n        stack.push(root);\n        while (!stack.isEmpty()) {\n            TreeNode node = stack.pop();\n            output.push(node);\n            if (node.left != null) stack.push(node.left);\n            if (node.right != null) stack.push(node.right);\n        }\n        while (!output.isEmpty()) {\n            TreeNode node = output.pop();\n            int leftSum = node.left != null ? sumMap.get(node.left) : 0;\n            int rightSum = node.right != null ? sumMap.get(node.right) : 0;\n            totalTilt += Math.abs(leftSum - rightSum);\n            sumMap.put(node, node.val + leftSum + rightSum);\n        }\n        return totalTilt;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

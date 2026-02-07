@@ -17,6 +17,14 @@
       "description": "For each point, compute the slope to every other point using reduced fraction (dx/gcd, dy/gcd) as the key. Track the max count of collinear points for each anchor.",
       "code": "class Solution {\n    public int maxPoints(int[][] points) {\n        int n = points.length, max = 1;\n        for (int i = 0; i < n; i++) {\n            java.util.Map<String, Integer> map = new java.util.HashMap<>();\n            for (int j = i + 1; j < n; j++) {\n                int dx = points[j][0] - points[i][0];\n                int dy = points[j][1] - points[i][1];\n                int g = gcd(Math.abs(dx), Math.abs(dy));\n                if (g != 0) { dx /= g; dy /= g; }\n                if (dx < 0) { dx = -dx; dy = -dy; }\n                if (dx == 0) dy = Math.abs(dy);\n                String key = dx + \",\" + dy;\n                int count = map.merge(key, 2, (a, b) -> a + 1);\n                max = Math.max(max, count);\n            }\n        }\n        return max;\n    }\n    private int gcd(int a, int b) { return b == 0 ? a : gcd(b, a % b); }\n}",
       "language": "java"
+    },
+    {
+      "name": "Brute Force with Cross Product",
+      "timeComplexity": "O(n^3)",
+      "spaceComplexity": "O(1)",
+      "description": "For each pair of points defining a line, count how many other points are collinear using cross product (avoiding floating-point slope). Track the maximum count.",
+      "code": "class Solution {\n    public int maxPoints(int[][] points) {\n        int n = points.length;\n        if (n <= 2) return n;\n        int max = 2;\n        for (int i = 0; i < n; i++) {\n            for (int j = i + 1; j < n; j++) {\n                int count = 2;\n                for (int k = j + 1; k < n; k++) {\n                    int dx1 = points[j][0] - points[i][0];\n                    int dy1 = points[j][1] - points[i][1];\n                    int dx2 = points[k][0] - points[i][0];\n                    int dy2 = points[k][1] - points[i][1];\n                    if ((long) dx1 * dy2 == (long) dy1 * dx2) {\n                        count++;\n                    }\n                }\n                max = Math.max(max, count);\n            }\n        }\n        return max;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

@@ -17,6 +17,14 @@
       "description": "Use a HashMap mapping each stone position to a set of possible jump sizes that can reach it. For each stone, try jumping k-1, k, k+1 to the next stones. If the last stone is reachable, return true.",
       "code": "class Solution {\n    public boolean canCross(int[] stones) {\n        java.util.Map<Integer, java.util.Set<Integer>> map = new java.util.HashMap<>();\n        for (int s : stones) map.put(s, new java.util.HashSet<>());\n        map.get(0).add(0);\n        for (int s : stones) {\n            for (int k : map.get(s)) {\n                for (int step = k - 1; step <= k + 1; step++) {\n                    if (step > 0 && map.containsKey(s + step)) {\n                        map.get(s + step).add(step);\n                    }\n                }\n            }\n        }\n        return !map.get(stones[stones.length - 1]).isEmpty();\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Recursive DFS with Memoization",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "Recursively try jumping from the current stone with k-1, k, or k+1 steps. Use a HashSet for O(1) stone lookup and a HashMap for memoization on (position, lastJump) pairs.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean canCross(int[] stones) {\n        Set<Integer> stoneSet = new HashSet<>();\n        for (int s : stones) stoneSet.add(s);\n        int target = stones[stones.length - 1];\n        Map<Long, Boolean> memo = new HashMap<>();\n        return dfs(stoneSet, target, 0, 0, memo);\n    }\n    private boolean dfs(Set<Integer> stoneSet, int target, int pos, int lastJump, Map<Long, Boolean> memo) {\n        if (pos == target) return true;\n        long key = (long) pos * 100000L + lastJump;\n        if (memo.containsKey(key)) return memo.get(key);\n        boolean result = false;\n        for (int jump = lastJump - 1; jump <= lastJump + 1; jump++) {\n            if (jump > 0 && stoneSet.contains(pos + jump)) {\n                if (dfs(stoneSet, target, pos + jump, jump, memo)) {\n                    result = true;\n                    break;\n                }\n            }\n        }\n        memo.put(key, result);\n        return result;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

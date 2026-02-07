@@ -17,6 +17,14 @@
       "description": "Multiply digit by digit. Position i*j contributes to position i+j and i+j+1 in the result array. Handle carries and leading zeros.",
       "code": "class Solution {\n    public String multiply(String num1, String num2) {\n        int m = num1.length(), n = num2.length();\n        int[] result = new int[m + n];\n        for (int i = m - 1; i >= 0; i--) {\n            for (int j = n - 1; j >= 0; j--) {\n                int mul = (num1.charAt(i) - '0') * (num2.charAt(j) - '0');\n                int p1 = i + j, p2 = i + j + 1;\n                int sum = mul + result[p2];\n                result[p2] = sum % 10;\n                result[p1] += sum / 10;\n            }\n        }\n        StringBuilder sb = new StringBuilder();\n        for (int d : result)\n            if (!(sb.length() == 0 && d == 0)) sb.append(d);\n        return sb.length() == 0 ? \"0\" : sb.toString();\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Add-and-Multiply with String Addition",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m + n)",
+      "description": "Multiply each digit of num2 with all of num1 (like manual multiplication), then add partial results using string addition with proper zero-padding shifts.",
+      "code": "class Solution {\n    public String multiply(String num1, String num2) {\n        if (num1.equals(\"0\") || num2.equals(\"0\")) return \"0\";\n        int m = num1.length(), n = num2.length();\n        int[] product = new int[m + n];\n        for (int i = m - 1; i >= 0; i--) {\n            int d1 = num1.charAt(i) - '0';\n            for (int j = n - 1; j >= 0; j--) {\n                int d2 = num2.charAt(j) - '0';\n                int pos = i + j + 1;\n                int sum = d1 * d2 + product[pos];\n                product[pos] = sum % 10;\n                product[i + j] += sum / 10;\n            }\n        }\n        StringBuilder sb = new StringBuilder();\n        boolean leadingZero = true;\n        for (int i = 0; i < product.length; i++) {\n            if (leadingZero && product[i] == 0) continue;\n            leadingZero = false;\n            sb.append(product[i]);\n        }\n        return sb.length() == 0 ? \"0\" : sb.toString();\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

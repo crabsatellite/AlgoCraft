@@ -34,6 +34,14 @@
       "description": "Run Bellman-Ford for at most k+1 iterations (k stops = k+1 edges). Copy dist array each iteration to avoid using updates from the same round.",
       "code": "import java.util.*;\n\nclass Solution {\n    public int findCheapestPrice(int n, int[][] flights, int src, int dst, int k) {\n        int[] dist = new int[n];\n        Arrays.fill(dist, Integer.MAX_VALUE);\n        dist[src] = 0;\n        for (int i = 0; i <= k; i++) {\n            int[] temp = Arrays.copyOf(dist, n);\n            for (int[] f : flights) {\n                if (dist[f[0]] != Integer.MAX_VALUE) {\n                    temp[f[1]] = Math.min(temp[f[1]], dist[f[0]] + f[2]);\n                }\n            }\n            dist = temp;\n        }\n        return dist[dst] == Integer.MAX_VALUE ? -1 : dist[dst];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "BFS with Pruning",
+      "timeComplexity": "O(n * k)",
+      "spaceComplexity": "O(n)",
+      "description": "BFS level by level where each level represents one stop. Track the best known cost to each node. If a path to a node is cheaper, update and add to queue. Stop after k+1 levels.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int findCheapestPrice(int n, int[][] flights, int src, int dst, int k) {\n        List<List<int[]>> adj = new ArrayList<>();\n        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());\n        for (int[] f : flights) adj.get(f[0]).add(new int[]{f[1], f[2]});\n        int[] best = new int[n];\n        Arrays.fill(best, Integer.MAX_VALUE);\n        best[src] = 0;\n        Queue<int[]> queue = new LinkedList<>();\n        queue.offer(new int[]{src, 0});\n        int stops = 0;\n        while (!queue.isEmpty() && stops <= k) {\n            int size = queue.size();\n            int[] curBest = Arrays.copyOf(best, n);\n            for (int i = 0; i < size; i++) {\n                int[] cur = queue.poll();\n                int node = cur[0], cost = cur[1];\n                for (int[] next : adj.get(node)) {\n                    int newCost = cost + next[1];\n                    if (newCost < curBest[next[0]]) {\n                        curBest[next[0]] = newCost;\n                        queue.offer(new int[]{next[0], newCost});\n                    }\n                }\n            }\n            best = curBest;\n            stops++;\n        }\n        return best[dst] == Integer.MAX_VALUE ? -1 : best[dst];\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

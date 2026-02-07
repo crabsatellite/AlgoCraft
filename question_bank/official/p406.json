@@ -26,6 +26,14 @@
       "description": "Use an ArrayList to store history. Track current position and the end boundary. Visit clears forward history by updating end. Back and forward clamp to valid range.",
       "code": "class BrowserHistory {\n    private java.util.List<String> history = new java.util.ArrayList<>();\n    private int cur = 0, end = 0;\n    public BrowserHistory(String homepage) {\n        history.add(homepage);\n    }\n    public void visit(String url) {\n        cur++;\n        if (cur < history.size()) history.set(cur, url);\n        else history.add(url);\n        end = cur;\n    }\n    public String back(int steps) {\n        cur = Math.max(0, cur - steps);\n        return history.get(cur);\n    }\n    public String forward(int steps) {\n        cur = Math.min(end, cur + steps);\n        return history.get(cur);\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Doubly Linked List",
+      "timeComplexity": "O(steps) per back/forward",
+      "spaceComplexity": "O(n)",
+      "description": "Use a doubly linked list where each node stores a URL. Visit creates a new node after current and discards forward nodes. Back and forward traverse the list.",
+      "code": "class BrowserHistory {\n    private String[] urls;\n    private int[] prev, next;\n    private int cur, cnt;\n    public BrowserHistory(String homepage) {\n        urls = new String[5002];\n        prev = new int[5002];\n        next = new int[5002];\n        java.util.Arrays.fill(next, -1);\n        java.util.Arrays.fill(prev, -1);\n        urls[0] = homepage;\n        cur = 0;\n        cnt = 1;\n    }\n    public void visit(String url) {\n        int node = cnt++;\n        urls[node] = url;\n        next[cur] = node;\n        prev[node] = cur;\n        next[node] = -1;\n        cur = node;\n    }\n    public String back(int steps) {\n        while (steps > 0 && prev[cur] != -1) {\n            cur = prev[cur];\n            steps--;\n        }\n        return urls[cur];\n    }\n    public String forward(int steps) {\n        while (steps > 0 && next[cur] != -1) {\n            cur = next[cur];\n            steps--;\n        }\n        return urls[cur];\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

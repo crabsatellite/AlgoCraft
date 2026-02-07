@@ -23,6 +23,14 @@
       "description": "For each email, split at '@'. In the local part, remove dots and truncate at '+'. Combine with domain and add to a HashSet. Return the set size.",
       "code": "import java.util.Set;\nimport java.util.HashSet;\n\nclass Solution {\n    public int numUniqueEmails(String[] emails) {\n        Set<String> set = new HashSet<>();\n        for (String email : emails) {\n            String[] parts = email.split(\"@\");\n            String local = parts[0];\n            int plusIdx = local.indexOf('+');\n            if (plusIdx != -1) local = local.substring(0, plusIdx);\n            local = local.replace(\".\", \"\");\n            set.add(local + \"@\" + parts[1]);\n        }\n        return set.size();\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Manual Parsing with StringBuilder",
+      "timeComplexity": "O(n * m)",
+      "spaceComplexity": "O(n * m)",
+      "description": "For each email, manually parse the local part character by character. Skip dots, stop at '+', then append '@' and the domain. Use a HashSet to count unique results.",
+      "code": "import java.util.Set;\nimport java.util.HashSet;\n\nclass Solution {\n    public int numUniqueEmails(String[] emails) {\n        Set<String> set = new HashSet<>();\n        for (String email : emails) {\n            StringBuilder sb = new StringBuilder();\n            boolean atDomain = false;\n            boolean plusSeen = false;\n            for (int i = 0; i < email.length(); i++) {\n                char c = email.charAt(i);\n                if (c == '@') {\n                    atDomain = true;\n                    sb.append(c);\n                } else if (atDomain) {\n                    sb.append(c);\n                } else if (c == '+') {\n                    plusSeen = true;\n                } else if (c == '.') {\n                    if (plusSeen) continue;\n                } else {\n                    if (!plusSeen) sb.append(c);\n                }\n            }\n            set.add(sb.toString());\n        }\n        return set.size();\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

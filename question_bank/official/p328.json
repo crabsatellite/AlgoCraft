@@ -17,6 +17,14 @@
       "description": "Put all numbers in a HashSet. For each number that is the start of a sequence (num-1 not in set), count consecutive numbers forward. Track the longest sequence.",
       "code": "class Solution {\n    public int longestConsecutive(int[] nums) {\n        java.util.Set<Integer> set = new java.util.HashSet<>();\n        for (int num : nums) set.add(num);\n        int longest = 0;\n        for (int num : set) {\n            if (!set.contains(num - 1)) {\n                int len = 1;\n                while (set.contains(num + len)) len++;\n                longest = Math.max(longest, len);\n            }\n        }\n        return longest;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Union-Find",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Map each number to a Union-Find node. For each number, if num+1 exists in the map, union them. Track component sizes and return the maximum size.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private int[] parent;\n    private int[] size;\n    public int longestConsecutive(int[] nums) {\n        if (nums.length == 0) return 0;\n        Map<Integer, Integer> map = new HashMap<>();\n        parent = new int[nums.length];\n        size = new int[nums.length];\n        for (int i = 0; i < nums.length; i++) {\n            parent[i] = i;\n            size[i] = 1;\n        }\n        for (int i = 0; i < nums.length; i++) {\n            if (map.containsKey(nums[i])) continue;\n            map.put(nums[i], i);\n            if (map.containsKey(nums[i] - 1)) {\n                union(i, map.get(nums[i] - 1));\n            }\n            if (map.containsKey(nums[i] + 1)) {\n                union(i, map.get(nums[i] + 1));\n            }\n        }\n        int longest = 0;\n        for (int i = 0; i < nums.length; i++) {\n            longest = Math.max(longest, size[find(i)]);\n        }\n        return longest;\n    }\n    private int find(int x) {\n        while (parent[x] != x) {\n            parent[x] = parent[parent[x]];\n            x = parent[x];\n        }\n        return x;\n    }\n    private void union(int a, int b) {\n        int ra = find(a), rb = find(b);\n        if (ra == rb) return;\n        if (size[ra] < size[rb]) { int t = ra; ra = rb; rb = t; }\n        parent[rb] = ra;\n        size[ra] += size[rb];\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

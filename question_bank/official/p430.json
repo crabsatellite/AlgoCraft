@@ -23,6 +23,14 @@
       "description": "Use a HashMap mapping full path strings to values. createPath checks if path already exists and if parent path exists (by trimming last segment). get does a direct lookup.",
       "code": "class FileSystem {\n    private java.util.Map<String, Integer> map = new java.util.HashMap<>();\n    public FileSystem() { map.put(\"\", 0); }\n    public boolean createPath(String path, int value) {\n        if (map.containsKey(path)) return false;\n        String parent = path.substring(0, path.lastIndexOf('/'));\n        if (!map.containsKey(parent)) return false;\n        map.put(path, value);\n        return true;\n    }\n    public int get(String path) {\n        return map.getOrDefault(path, -1);\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Trie Based File System",
+      "timeComplexity": "O(L) per operation",
+      "spaceComplexity": "O(n * L)",
+      "description": "Use a Trie where each node represents a path component. createPath splits the path by '/' and traverses the trie, checking that the parent exists. get traverses to the target node.",
+      "code": "import java.util.*;\n\nclass FileSystem {\n    private Map<String, Integer>[] children;\n    private int[] values;\n    private int cnt;\n    public FileSystem() {\n        children = new HashMap[100001];\n        values = new int[100001];\n        Arrays.fill(values, -1);\n        children[0] = new HashMap();\n        cnt = 1;\n    }\n    public boolean createPath(String path, int value) {\n        String[] parts = path.split(\"/\");\n        int node = 0;\n        for (int i = 1; i < parts.length - 1; i++) {\n            if (!children[node].containsKey(parts[i])) return false;\n            node = children[node].get(parts[i]).intValue();\n        }\n        String last = parts[parts.length - 1];\n        if (children[node].containsKey(last)) return false;\n        int newNode = cnt++;\n        children[newNode] = new HashMap();\n        values[newNode] = value;\n        children[node].put(last, newNode);\n        return true;\n    }\n    public int get(String path) {\n        String[] parts = path.split(\"/\");\n        int node = 0;\n        for (int i = 1; i < parts.length; i++) {\n            if (!children[node].containsKey(parts[i])) return -1;\n            node = children[node].get(parts[i]).intValue();\n        }\n        return values[node];\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

@@ -59,7 +59,15 @@
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
       "description": "For each node, compute the max 'one-sided' path sum (node + best child). Update a global max with the 'through-node' path sum (left + node + right). Return the one-sided max to the parent.",
-      "code": "class Solution {\n    private int maxSum = Integer.MIN_VALUE;\n    \n    public int maxPathSum(TreeNode root) {\n        dfs(root);\n        return maxSum;\n    }\n    \n    private int dfs(TreeNode node) {\n        if (node == null) return 0;\n        \n        int left = Math.max(0, dfs(node.left));\n        int right = Math.max(0, dfs(node.right));\n        \n        // Path through this node\n        maxSum = Math.max(maxSum, left + node.val + right);\n        \n        // Return max one-sided path\n        return node.val + Math.max(left, right);\n    }\n}",
+      "code": "class Solution {\n    private int maxSum;\n\n    public int maxPathSum(TreeNode root) {\n        maxSum = Integer.MIN_VALUE;\n        dfs(root);\n        return maxSum;\n    }\n\n    private int dfs(TreeNode node) {\n        if (node == null) return 0;\n        int left = Math.max(0, dfs(node.left));\n        int right = Math.max(0, dfs(node.right));\n        maxSum = Math.max(maxSum, left + node.val + right);\n        return node.val + Math.max(left, right);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "DFS Returning Pair (No Global State)",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "Avoid instance fields by returning both the max path sum and max one-sided gain from each subtree as an int array.",
+      "code": "class Solution {\n    public int maxPathSum(TreeNode root) {\n        return dfs(root)[0];\n    }\n\n    private int[] dfs(TreeNode node) {\n        if (node == null) return new int[]{Integer.MIN_VALUE, 0};\n        int[] left = dfs(node.left);\n        int[] right = dfs(node.right);\n        int leftGain = Math.max(0, left[1]);\n        int rightGain = Math.max(0, right[1]);\n        int pathThrough = node.val + leftGain + rightGain;\n        int maxPath = Math.max(pathThrough, Math.max(left[0], right[0]));\n        int maxGain = node.val + Math.max(leftGain, rightGain);\n        return new int[]{maxPath, maxGain};\n    }\n}",
       "language": "java"
     }
   ]

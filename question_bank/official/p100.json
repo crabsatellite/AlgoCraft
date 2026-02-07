@@ -54,5 +54,23 @@
       "file": "p100_example1_flattened.png",
       "caption": "Example 1 - After Flatten"
     }
+  ],
+  "solutions": [
+    {
+      "name": "Morris Traversal - O(1) Space",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "For each node with a left child: find the rightmost node of the left subtree, attach the current right subtree there, then move the left subtree to the right and set left to null.",
+      "code": "class Solution {\n    public void flatten(TreeNode root) {\n        TreeNode curr = root;\n        \n        while (curr != null) {\n            if (curr.left != null) {\n                // Find rightmost node of left subtree\n                TreeNode rightmost = curr.left;\n                while (rightmost.right != null) {\n                    rightmost = rightmost.right;\n                }\n                \n                // Attach right subtree to rightmost\n                rightmost.right = curr.right;\n                \n                // Move left subtree to right\n                curr.right = curr.left;\n                curr.left = null;\n            }\n            curr = curr.right;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Reverse Postorder (Right-Left-Root)",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "Process nodes in reverse preorder (right, left, root). Each node's right pointer points to the previously processed node.",
+      "code": "class Solution {\n    private TreeNode prev = null;\n    \n    public void flatten(TreeNode root) {\n        if (root == null) return;\n        \n        flatten(root.right);\n        flatten(root.left);\n        \n        root.right = prev;\n        root.left = null;\n        prev = root;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

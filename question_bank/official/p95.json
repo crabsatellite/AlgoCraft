@@ -56,5 +56,23 @@
       "file": "p95_example1.png",
       "caption": "Example 1"
     }
+  ],
+  "solutions": [
+    {
+      "name": "Preorder DFS with Markers",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Serialize using preorder DFS, marking null nodes with a sentinel (e.g., '#'). Deserialize by reading tokens in order, recursively building left then right subtrees.",
+      "code": "import java.util.*;\n\npublic class Codec {\n    public String serialize(TreeNode root) {\n        StringBuilder sb = new StringBuilder();\n        serializeHelper(root, sb);\n        return sb.toString();\n    }\n    \n    private void serializeHelper(TreeNode node, StringBuilder sb) {\n        if (node == null) {\n            sb.append(\"#,\");\n            return;\n        }\n        sb.append(node.val).append(\",\");\n        serializeHelper(node.left, sb);\n        serializeHelper(node.right, sb);\n    }\n    \n    public TreeNode deserialize(String data) {\n        Queue<String> queue = new LinkedList<>(Arrays.asList(data.split(\",\")));\n        return deserializeHelper(queue);\n    }\n    \n    private TreeNode deserializeHelper(Queue<String> queue) {\n        String val = queue.poll();\n        if (\"#\".equals(val)) return null;\n        \n        TreeNode node = new TreeNode(Integer.parseInt(val));\n        node.left = deserializeHelper(queue);\n        node.right = deserializeHelper(queue);\n        return node;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "BFS Level-Order",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Serialize using BFS level-order traversal, including null markers. Deserialize by processing tokens level by level with a queue.",
+      "code": "import java.util.*;\n\npublic class Codec {\n    public String serialize(TreeNode root) {\n        if (root == null) return \"\";\n        StringBuilder sb = new StringBuilder();\n        Queue<TreeNode> queue = new LinkedList<>();\n        queue.offer(root);\n        \n        while (!queue.isEmpty()) {\n            TreeNode node = queue.poll();\n            if (node == null) {\n                sb.append(\"#,\");\n            } else {\n                sb.append(node.val).append(\",\");\n                queue.offer(node.left);\n                queue.offer(node.right);\n            }\n        }\n        return sb.toString();\n    }\n    \n    public TreeNode deserialize(String data) {\n        if (data.isEmpty()) return null;\n        String[] tokens = data.split(\",\");\n        TreeNode root = new TreeNode(Integer.parseInt(tokens[0]));\n        Queue<TreeNode> queue = new LinkedList<>();\n        queue.offer(root);\n        int i = 1;\n        \n        while (!queue.isEmpty()) {\n            TreeNode node = queue.poll();\n            if (!\"#\".equals(tokens[i])) {\n                node.left = new TreeNode(Integer.parseInt(tokens[i]));\n                queue.offer(node.left);\n            }\n            i++;\n            if (!\"#\".equals(tokens[i])) {\n                node.right = new TreeNode(Integer.parseInt(tokens[i]));\n                queue.offer(node.right);\n            }\n            i++;\n        }\n        return root;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

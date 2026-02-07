@@ -15,6 +15,24 @@
       "output": "1"
     }
   ],
+  "solutions": [
+    {
+      "name": "Union Find",
+      "timeComplexity": "O(n * α(n))",
+      "spaceComplexity": "O(n)",
+      "description": "Start with n components. For each edge, union the two nodes. Each successful union decreases component count by 1.",
+      "code": "class Solution {\n    private int[] parent, rank;\n\n    public int countComponents(int n, int[][] edges) {\n        parent = new int[n];\n        rank = new int[n];\n        for (int i = 0; i < n; i++) parent[i] = i;\n        int components = n;\n        for (int[] e : edges) {\n            int ra = find(e[0]), rb = find(e[1]);\n            if (ra != rb) {\n                if (rank[ra] < rank[rb]) { int t = ra; ra = rb; rb = t; }\n                parent[rb] = ra;\n                if (rank[ra] == rank[rb]) rank[ra]++;\n                components--;\n            }\n        }\n        return components;\n    }\n\n    private int find(int x) {\n        if (parent[x] != x) parent[x] = find(parent[x]);\n        return parent[x];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "DFS",
+      "timeComplexity": "O(V + E)",
+      "spaceComplexity": "O(V + E)",
+      "description": "Build adjacency list. DFS from each unvisited node, marking all reachable nodes. Each DFS start is a new component.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int countComponents(int n, int[][] edges) {\n        List<List<Integer>> adj = new ArrayList<>();\n        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());\n        for (int[] e : edges) {\n            adj.get(e[0]).add(e[1]);\n            adj.get(e[1]).add(e[0]);\n        }\n        boolean[] visited = new boolean[n];\n        int count = 0;\n        for (int i = 0; i < n; i++) {\n            if (!visited[i]) {\n                count++;\n                dfs(adj, visited, i);\n            }\n        }\n        return count;\n    }\n\n    private void dfs(List<List<Integer>> adj, boolean[] visited, int node) {\n        visited[node] = true;\n        for (int neighbor : adj.get(node))\n            if (!visited[neighbor]) dfs(adj, visited, neighbor);\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "n = 5, edges = [[0,1],[1,2],[3,4]]",

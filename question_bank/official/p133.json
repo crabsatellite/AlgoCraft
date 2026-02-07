@@ -15,6 +15,16 @@
       "output": "[[0,0]]"
     }
   ],
+  "solutions": [
+    {
+      "name": "DFS from Ocean Borders",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "DFS from Pacific border (top+left) marking reachable cells. DFS from Atlantic border (bottom+right) marking reachable cells. Return cells reachable from both.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> pacificAtlantic(int[][] heights) {\n        int m = heights.length, n = heights[0].length;\n        boolean[][] pacific = new boolean[m][n], atlantic = new boolean[m][n];\n        for (int i = 0; i < m; i++) {\n            dfs(heights, pacific, i, 0);\n            dfs(heights, atlantic, i, n - 1);\n        }\n        for (int j = 0; j < n; j++) {\n            dfs(heights, pacific, 0, j);\n            dfs(heights, atlantic, m - 1, j);\n        }\n        List<List<Integer>> result = new ArrayList<>();\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++)\n                if (pacific[i][j] && atlantic[i][j])\n                    result.add(Arrays.asList(i, j));\n        return result;\n    }\n\n    private void dfs(int[][] heights, boolean[][] visited, int i, int j) {\n        if (visited[i][j]) return;\n        visited[i][j] = true;\n        int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};\n        for (int[] d : dirs) {\n            int ni = i + d[0], nj = j + d[1];\n            if (ni >= 0 && ni < heights.length && nj >= 0 && nj < heights[0].length && heights[ni][nj] >= heights[i][j])\n                dfs(heights, visited, ni, nj);\n        }\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "heights = [[1,2,2,3,5],[3,2,3,4,4],[2,4,5,3,1],[6,7,1,4,5],[5,1,1,2,4]]",

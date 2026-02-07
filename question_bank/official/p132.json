@@ -19,6 +19,16 @@
       "output": "0"
     }
   ],
+  "solutions": [
+    {
+      "name": "Multi-Source BFS",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "Add all rotten oranges to queue and count fresh oranges. BFS level by level; each level represents one minute. Decrement fresh count as oranges rot. If fresh remains, return -1.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int orangesRotting(int[][] grid) {\n        int m = grid.length, n = grid[0].length, fresh = 0, minutes = 0;\n        Queue<int[]> queue = new LinkedList<>();\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++) {\n                if (grid[i][j] == 2) queue.offer(new int[]{i, j});\n                else if (grid[i][j] == 1) fresh++;\n            }\n        int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};\n        while (!queue.isEmpty() && fresh > 0) {\n            int size = queue.size();\n            for (int k = 0; k < size; k++) {\n                int[] cell = queue.poll();\n                for (int[] d : dirs) {\n                    int ni = cell[0] + d[0], nj = cell[1] + d[1];\n                    if (ni >= 0 && ni < m && nj >= 0 && nj < n && grid[ni][nj] == 1) {\n                        grid[ni][nj] = 2;\n                        fresh--;\n                        queue.offer(new int[]{ni, nj});\n                    }\n                }\n            }\n            minutes++;\n        }\n        return fresh == 0 ? minutes : -1;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "grid = [[2,1,1],[1,1,0],[0,1,1]]",

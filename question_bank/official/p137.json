@@ -15,6 +15,16 @@
       "output": "false"
     }
   ],
+  "solutions": [
+    {
+      "name": "Union Find",
+      "timeComplexity": "O(n * α(n))",
+      "spaceComplexity": "O(n)",
+      "description": "A valid tree has exactly n-1 edges and is connected. Use Union Find: if adding an edge connects already-connected nodes, there's a cycle. Also check edge count.",
+      "code": "class Solution {\n    private int[] parent, rank;\n\n    public boolean validTree(int n, int[][] edges) {\n        if (edges.length != n - 1) return false;\n        parent = new int[n];\n        rank = new int[n];\n        for (int i = 0; i < n; i++) parent[i] = i;\n        for (int[] e : edges)\n            if (!union(e[0], e[1])) return false;\n        return true;\n    }\n\n    private int find(int x) {\n        if (parent[x] != x) parent[x] = find(parent[x]);\n        return parent[x];\n    }\n\n    private boolean union(int a, int b) {\n        int ra = find(a), rb = find(b);\n        if (ra == rb) return false;\n        if (rank[ra] < rank[rb]) { int t = ra; ra = rb; rb = t; }\n        parent[rb] = ra;\n        if (rank[ra] == rank[rb]) rank[ra]++;\n        return true;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "n = 5, edges = [[0,1],[0,2],[0,3],[1,4]]",

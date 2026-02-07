@@ -20,6 +20,16 @@
       "output": "false"
     }
   ],
+  "solutions": [
+    {
+      "name": "Topological Sort (BFS - Kahn's)",
+      "timeComplexity": "O(V + E)",
+      "spaceComplexity": "O(V + E)",
+      "description": "Build adjacency list and in-degree array. Enqueue nodes with in-degree 0. Process queue: for each neighbor, decrement in-degree. If all nodes are processed, no cycle exists.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean canFinish(int numCourses, int[][] prerequisites) {\n        List<List<Integer>> adj = new ArrayList<>();\n        int[] indegree = new int[numCourses];\n        for (int i = 0; i < numCourses; i++) adj.add(new ArrayList<>());\n        for (int[] pre : prerequisites) {\n            adj.get(pre[1]).add(pre[0]);\n            indegree[pre[0]]++;\n        }\n        Queue<Integer> queue = new LinkedList<>();\n        for (int i = 0; i < numCourses; i++)\n            if (indegree[i] == 0) queue.offer(i);\n        int count = 0;\n        while (!queue.isEmpty()) {\n            int course = queue.poll();\n            count++;\n            for (int next : adj.get(course))\n                if (--indegree[next] == 0) queue.offer(next);\n        }\n        return count == numCourses;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "numCourses = 2, prerequisites = [[1,0]]",

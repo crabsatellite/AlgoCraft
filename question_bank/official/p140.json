@@ -15,6 +15,16 @@
       "output": "0"
     }
   ],
+  "solutions": [
+    {
+      "name": "BFS",
+      "timeComplexity": "O(M * 26 * L) where M = wordList size, L = word length",
+      "spaceComplexity": "O(M * L)",
+      "description": "Put all words in a set. BFS from beginWord, trying all 26 letter replacements at each position. If a valid word is found in the set, add to queue and remove from set.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int ladderLength(String beginWord, String endWord, List<String> wordList) {\n        Set<String> wordSet = new HashSet<>(wordList);\n        if (!wordSet.contains(endWord)) return 0;\n        Queue<String> queue = new LinkedList<>();\n        queue.offer(beginWord);\n        int level = 1;\n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            for (int i = 0; i < size; i++) {\n                char[] word = queue.poll().toCharArray();\n                for (int j = 0; j < word.length; j++) {\n                    char orig = word[j];\n                    for (char c = 'a'; c <= 'z'; c++) {\n                        if (c == orig) continue;\n                        word[j] = c;\n                        String next = new String(word);\n                        if (next.equals(endWord)) return level + 1;\n                        if (wordSet.contains(next)) {\n                            wordSet.remove(next);\n                            queue.offer(next);\n                        }\n                    }\n                    word[j] = orig;\n                }\n            }\n            level++;\n        }\n        return 0;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "beginWord = \"hit\", endWord = \"cog\", wordList = [\"hot\",\"dot\",\"dog\",\"lot\",\"log\",\"cog\"]",

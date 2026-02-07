@@ -12,6 +12,16 @@
     },
     { "input": "rooms = [[-1]]", "output": "[[-1]]" }
   ],
+  "solutions": [
+    {
+      "name": "Multi-Source BFS",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "Add all gate cells to a queue. BFS outward, updating empty rooms with distance. Each cell is visited at most once, guaranteeing shortest distance.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public void wallsAndGates(int[][] rooms) {\n        int m = rooms.length, n = rooms[0].length;\n        Queue<int[]> queue = new LinkedList<>();\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++)\n                if (rooms[i][j] == 0) queue.offer(new int[]{i, j});\n        int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};\n        while (!queue.isEmpty()) {\n            int[] cell = queue.poll();\n            for (int[] d : dirs) {\n                int ni = cell[0] + d[0], nj = cell[1] + d[1];\n                if (ni >= 0 && ni < m && nj >= 0 && nj < n && rooms[ni][nj] == Integer.MAX_VALUE) {\n                    rooms[ni][nj] = rooms[cell[0]][cell[1]] + 1;\n                    queue.offer(new int[]{ni, nj});\n                }\n            }\n        }\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "rooms = [[2147483647,-1,0,2147483647],[2147483647,2147483647,2147483647,-1],[2147483647,-1,2147483647,-1],[0,-1,2147483647,2147483647]]",

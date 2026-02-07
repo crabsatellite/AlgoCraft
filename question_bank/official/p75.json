@@ -52,5 +52,23 @@
       "file": "p75_example1_reversed.png",
       "caption": "Example 1 - After Reversal"
     }
+  ],
+  "solutions": [
+    {
+      "name": "Iterative with Group Counting",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Process the list in groups of k. For each group, first check if there are k nodes remaining. If yes, reverse the group and connect it to the previous group. Use a dummy node to simplify head handling.",
+      "code": "class Solution {\n    public ListNode reverseKGroup(ListNode head, int k) {\n        ListNode dummy = new ListNode(0, head);\n        ListNode prevGroupEnd = dummy;\n        \n        while (true) {\n            // Check if k nodes remain\n            ListNode kth = prevGroupEnd;\n            for (int i = 0; i < k; i++) {\n                kth = kth.next;\n                if (kth == null) return dummy.next;\n            }\n            \n            ListNode groupStart = prevGroupEnd.next;\n            ListNode nextGroupStart = kth.next;\n            \n            // Reverse k nodes\n            ListNode prev = nextGroupStart;\n            ListNode curr = groupStart;\n            for (int i = 0; i < k; i++) {\n                ListNode next = curr.next;\n                curr.next = prev;\n                prev = curr;\n                curr = next;\n            }\n            \n            prevGroupEnd.next = kth;\n            prevGroupEnd = groupStart;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n/k)",
+      "description": "Check if k nodes exist. If yes, reverse the first k nodes then recursively process the rest. The result of the recursive call becomes the next pointer of the last node in the reversed group.",
+      "code": "class Solution {\n    public ListNode reverseKGroup(ListNode head, int k) {\n        // Check if k nodes exist\n        ListNode curr = head;\n        for (int i = 0; i < k; i++) {\n            if (curr == null) return head;\n            curr = curr.next;\n        }\n        \n        // Reverse first k nodes\n        ListNode prev = null;\n        curr = head;\n        for (int i = 0; i < k; i++) {\n            ListNode next = curr.next;\n            curr.next = prev;\n            prev = curr;\n            curr = next;\n        }\n        \n        // head is now the tail of reversed group\n        head.next = reverseKGroup(curr, k);\n        return prev;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

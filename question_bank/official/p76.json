@@ -47,5 +47,23 @@
       "file": "p76_example1.png",
       "caption": "Example 1"
     }
+  ],
+  "solutions": [
+    {
+      "name": "Reverse Second Half",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Find the middle using slow/fast pointers, reverse the second half, then compare both halves node by node.",
+      "code": "class Solution {\n    public boolean isPalindrome(ListNode head) {\n        if (head == null || head.next == null) return true;\n        \n        // Find middle\n        ListNode slow = head, fast = head;\n        while (fast.next != null && fast.next.next != null) {\n            slow = slow.next;\n            fast = fast.next.next;\n        }\n        \n        // Reverse second half\n        ListNode prev = null;\n        ListNode curr = slow.next;\n        while (curr != null) {\n            ListNode next = curr.next;\n            curr.next = prev;\n            prev = curr;\n            curr = next;\n        }\n        \n        // Compare\n        ListNode p1 = head, p2 = prev;\n        while (p2 != null) {\n            if (p1.val != p2.val) return false;\n            p1 = p1.next;\n            p2 = p2.next;\n        }\n        \n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Stack (First Half)",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Push first half onto a stack, then compare the stack top with the second half of the list.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isPalindrome(ListNode head) {\n        ListNode slow = head, fast = head;\n        Deque<Integer> stack = new ArrayDeque<>();\n        \n        while (fast != null && fast.next != null) {\n            stack.push(slow.val);\n            slow = slow.next;\n            fast = fast.next.next;\n        }\n        \n        // Skip middle element for odd length\n        if (fast != null) {\n            slow = slow.next;\n        }\n        \n        while (slow != null) {\n            if (stack.pop() != slow.val) return false;\n            slow = slow.next;\n        }\n        \n        return true;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

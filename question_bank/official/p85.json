@@ -18,5 +18,23 @@
     { "input": "p = [], q = [1]", "output": "false" },
     { "input": "p = [1], q = [1]", "output": "true" },
     { "input": "p = [1,2,3,4,5], q = [1,2,3,4,6]", "output": "false" }
+  ],
+  "solutions": [
+    {
+      "name": "Recursive DFS",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "Two trees are the same if roots have the same value and left/right subtrees are the same.",
+      "code": "class Solution {\n    public boolean isSameTree(TreeNode p, TreeNode q) {\n        if (p == null && q == null) return true;\n        if (p == null || q == null) return false;\n        \n        return p.val == q.val \n            && isSameTree(p.left, q.left) \n            && isSameTree(p.right, q.right);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative BFS",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use two queues to traverse both trees in parallel. Compare nodes at each step.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isSameTree(TreeNode p, TreeNode q) {\n        Queue<TreeNode> queue = new LinkedList<>();\n        queue.offer(p);\n        queue.offer(q);\n        \n        while (!queue.isEmpty()) {\n            TreeNode n1 = queue.poll();\n            TreeNode n2 = queue.poll();\n            \n            if (n1 == null && n2 == null) continue;\n            if (n1 == null || n2 == null) return false;\n            if (n1.val != n2.val) return false;\n            \n            queue.offer(n1.left);\n            queue.offer(n2.left);\n            queue.offer(n1.right);\n            queue.offer(n2.right);\n        }\n        \n        return true;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

@@ -21,5 +21,23 @@
     { "input": "root = [1]", "output": "true" },
     { "input": "root = [1,2,null,3,null,4]", "output": "false" },
     { "input": "root = [1,null,2,null,3]", "output": "false" }
+  ],
+  "solutions": [
+    {
+      "name": "Bottom-Up DFS (Optimal)",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "Compute height bottom-up. Return -1 immediately if any subtree is unbalanced. This avoids repeated height computations.",
+      "code": "class Solution {\n    public boolean isBalanced(TreeNode root) {\n        return height(root) != -1;\n    }\n    \n    private int height(TreeNode node) {\n        if (node == null) return 0;\n        \n        int left = height(node.left);\n        if (left == -1) return -1;\n        \n        int right = height(node.right);\n        if (right == -1) return -1;\n        \n        if (Math.abs(left - right) > 1) return -1;\n        \n        return 1 + Math.max(left, right);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down (Brute Force)",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(h)",
+      "description": "For each node, check if the height difference of left and right subtrees is <= 1, then recursively check both subtrees.",
+      "code": "class Solution {\n    public boolean isBalanced(TreeNode root) {\n        if (root == null) return true;\n        \n        int leftH = getHeight(root.left);\n        int rightH = getHeight(root.right);\n        \n        return Math.abs(leftH - rightH) <= 1 \n            && isBalanced(root.left) \n            && isBalanced(root.right);\n    }\n    \n    private int getHeight(TreeNode node) {\n        if (node == null) return 0;\n        return 1 + Math.max(getHeight(node.left), getHeight(node.right));\n    }\n}",
+      "language": "java"
+    }
   ]
 }

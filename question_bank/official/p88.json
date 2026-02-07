@@ -47,5 +47,23 @@
       "file": "p88_example1.png",
       "caption": "Example 1"
     }
+  ],
+  "solutions": [
+    {
+      "name": "BFS with Queue",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use a queue for level-order traversal. Process all nodes at each level, collecting their values into a list.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> levelOrder(TreeNode root) {\n        List<List<Integer>> result = new ArrayList<>();\n        if (root == null) return result;\n        \n        Queue<TreeNode> queue = new LinkedList<>();\n        queue.offer(root);\n        \n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            List<Integer> level = new ArrayList<>();\n            \n            for (int i = 0; i < size; i++) {\n                TreeNode node = queue.poll();\n                level.add(node.val);\n                if (node.left != null) queue.offer(node.left);\n                if (node.right != null) queue.offer(node.right);\n            }\n            \n            result.add(level);\n        }\n        \n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "DFS with Level Tracking",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use DFS with a level parameter. When visiting a node, add its value to the list at the corresponding level index.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> levelOrder(TreeNode root) {\n        List<List<Integer>> result = new ArrayList<>();\n        dfs(root, 0, result);\n        return result;\n    }\n    \n    private void dfs(TreeNode node, int level, List<List<Integer>> result) {\n        if (node == null) return;\n        \n        if (level == result.size()) {\n            result.add(new ArrayList<>());\n        }\n        \n        result.get(level).add(node.val);\n        dfs(node.left, level + 1, result);\n        dfs(node.right, level + 1, result);\n    }\n}",
+      "language": "java"
+    }
   ]
 }

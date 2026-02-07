@@ -23,6 +23,14 @@
       "description": "Build a boolean set of allowed characters. For each word, check if all its characters are in the allowed set.",
       "code": "class Solution {\n    public int countConsistentStrings(String allowed, String[] words) {\n        boolean[] ok = new boolean[26];\n        for (char c : allowed.toCharArray()) ok[c - 'a'] = true;\n        int count = 0;\n        for (String w : words) {\n            boolean consistent = true;\n            for (char c : w.toCharArray()) {\n                if (!ok[c - 'a']) { consistent = false; break; }\n            }\n            if (consistent) count++;\n        }\n        return count;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Bitmask Check",
+      "timeComplexity": "O(n * L)",
+      "spaceComplexity": "O(1)",
+      "description": "Represent allowed characters as a bitmask. For each word, compute its character bitmask. A word is consistent if its bitmask is a subset of the allowed bitmask (i.e., wordMask & ~allowedMask == 0).",
+      "code": "class Solution {\n    public int countConsistentStrings(String allowed, String[] words) {\n        int allowedMask = 0;\n        for (char c : allowed.toCharArray()) allowedMask |= (1 << (c - 'a'));\n        int count = 0;\n        for (String w : words) {\n            int wordMask = 0;\n            for (char c : w.toCharArray()) wordMask |= (1 << (c - 'a'));\n            if ((wordMask & ~allowedMask) == 0) count++;\n        }\n        return count;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

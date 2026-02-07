@@ -23,6 +23,14 @@
       "description": "Use four boundaries (top, bottom, left, right). Traverse right, down, left, up in each layer, shrinking boundaries after each direction.",
       "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> spiralOrder(int[][] matrix) {\n        List<Integer> result = new ArrayList<>();\n        int top = 0, bottom = matrix.length - 1;\n        int left = 0, right = matrix[0].length - 1;\n        while (top <= bottom && left <= right) {\n            for (int j = left; j <= right; j++) result.add(matrix[top][j]);\n            top++;\n            for (int i = top; i <= bottom; i++) result.add(matrix[i][right]);\n            right--;\n            if (top <= bottom) {\n                for (int j = right; j >= left; j--) result.add(matrix[bottom][j]);\n                bottom--;\n            }\n            if (left <= right) {\n                for (int i = bottom; i >= top; i--) result.add(matrix[i][left]);\n                left++;\n            }\n        }\n        return result;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Direction Vectors with Visited Matrix",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "Use direction vectors (right, down, left, up) and a visited matrix. Move in the current direction until hitting a boundary or visited cell, then turn clockwise.",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> spiralOrder(int[][] matrix) {\n        List<Integer> result = new ArrayList<>();\n        int m = matrix.length, n = matrix[0].length;\n        boolean[][] visited = new boolean[m][n];\n        int[] dr = {0, 1, 0, -1};\n        int[] dc = {1, 0, -1, 0};\n        int r = 0, c = 0, dir = 0;\n        for (int i = 0; i < m * n; i++) {\n            result.add(matrix[r][c]);\n            visited[r][c] = true;\n            int nr = r + dr[dir];\n            int nc = c + dc[dir];\n            if (nr < 0 || nr >= m || nc < 0 || nc >= n || visited[nr][nc]) {\n                dir = (dir + 1) % 4;\n                nr = r + dr[dir];\n                nc = c + dc[dir];\n            }\n            r = nr;\n            c = nc;\n        }\n        return result;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

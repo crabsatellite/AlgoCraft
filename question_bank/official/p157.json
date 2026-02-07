@@ -18,6 +18,14 @@
       "description": "dp[i] = number of ways to decode s[0..i-1]. If s[i-1] != '0', dp[i] += dp[i-1] (single digit). If s[i-2..i-1] forms 10-26, dp[i] += dp[i-2] (two digits).",
       "code": "class Solution {\n    public int numDecodings(String s) {\n        if (s.charAt(0) == '0') return 0;\n        int n = s.length();\n        int[] dp = new int[n + 1];\n        dp[0] = 1; dp[1] = 1;\n        for (int i = 2; i <= n; i++) {\n            int one = s.charAt(i - 1) - '0';\n            int two = Integer.parseInt(s.substring(i - 2, i));\n            if (one >= 1) dp[i] += dp[i - 1];\n            if (two >= 10 && two <= 26) dp[i] += dp[i - 2];\n        }\n        return dp[n];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Bottom-Up DP O(1) Space",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Use two variables instead of a DP array. prev2 and prev1 track dp[i-2] and dp[i-1] respectively.",
+      "code": "class Solution {\n    public int numDecodings(String s) {\n        if (s.charAt(0) == '0') return 0;\n        int prev2 = 1, prev1 = 1;\n        for (int i = 1; i < s.length(); i++) {\n            int curr = 0;\n            if (s.charAt(i) != '0') curr = prev1;\n            int two = Integer.parseInt(s.substring(i - 1, i + 1));\n            if (two >= 10 && two <= 26) curr += prev2;\n            prev2 = prev1;\n            prev1 = curr;\n        }\n        return prev1;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

@@ -17,6 +17,14 @@
       "description": "First pass left to right: if rating increases, increment candy count. Second pass right to left: if rating increases, take max of current and neighbor+1. Sum all candies.",
       "code": "class Solution {\n    public int candy(int[] ratings) {\n        int n = ratings.length;\n        int[] candies = new int[n];\n        java.util.Arrays.fill(candies, 1);\n        for (int i = 1; i < n; i++) {\n            if (ratings[i] > ratings[i - 1]) candies[i] = candies[i - 1] + 1;\n        }\n        for (int i = n - 2; i >= 0; i--) {\n            if (ratings[i] > ratings[i + 1]) candies[i] = Math.max(candies[i], candies[i + 1] + 1);\n        }\n        int sum = 0;\n        for (int c : candies) sum += c;\n        return sum;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Single Pass with Up/Down Counting",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Track ascending and descending slopes. When direction changes, compute candies for the completed slope using arithmetic sum formula. Handle peaks by assigning max of up and down slopes.",
+      "code": "class Solution {\n    public int candy(int[] ratings) {\n        int n = ratings.length;\n        if (n <= 1) return n;\n        int candies = 0;\n        int up = 0, down = 0, peak = 0;\n        for (int i = 1; i < n; i++) {\n            if (ratings[i] > ratings[i - 1]) {\n                up++;\n                peak = up;\n                down = 0;\n                candies += 1 + up;\n            } else if (ratings[i] < ratings[i - 1]) {\n                up = 0;\n                down++;\n                candies += down + (down > peak ? 1 : 0);\n            } else {\n                peak = 0;\n                up = 0;\n                down = 0;\n                candies += 1;\n            }\n        }\n        return candies + 1;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

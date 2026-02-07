@@ -19,6 +19,14 @@
       "description": "Use an array for stack and an increment array. Increment stores pending additions at each index. On pop, apply the pending increment and propagate it down to the element below.",
       "code": "class CustomStack {\n    private int[] stack, inc;\n    private int top, maxSize;\n    public CustomStack(int maxSize) {\n        this.maxSize = maxSize; stack = new int[maxSize]; inc = new int[maxSize]; top = -1;\n    }\n    public void push(int x) { if (top < maxSize - 1) stack[++top] = x; }\n    public int pop() {\n        if (top < 0) return -1;\n        int val = stack[top] + inc[top];\n        if (top > 0) inc[top - 1] += inc[top];\n        inc[top] = 0; top--;\n        return val;\n    }\n    public void increment(int k, int val) {\n        int idx = Math.min(k - 1, top);\n        if (idx >= 0) inc[idx] += val;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Direct Array Increment",
+      "timeComplexity": "O(k) for increment, O(1) for push/pop",
+      "spaceComplexity": "O(n)",
+      "description": "Use a simple array-based stack. Increment directly adds val to the bottom k elements. Push and pop are standard stack operations.",
+      "code": "class CustomStack {\n    private int[] stack;\n    private int top, maxSize;\n    public CustomStack(int maxSize) {\n        this.maxSize = maxSize;\n        stack = new int[maxSize];\n        top = -1;\n    }\n    public void push(int x) {\n        if (top < maxSize - 1) {\n            top++;\n            stack[top] = x;\n        }\n    }\n    public int pop() {\n        if (top < 0) return -1;\n        int val = stack[top];\n        top--;\n        return val;\n    }\n    public void increment(int k, int val) {\n        int limit = Math.min(k, top + 1);\n        for (int i = 0; i < limit; i++) {\n            stack[i] += val;\n        }\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

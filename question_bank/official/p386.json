@@ -18,6 +18,14 @@
       "description": "dp[i][j] = number of playlists of length i that contain exactly j unique songs. Transition: add a new song (n-j+1 choices) or replay an old song (max(j-k, 0) choices).",
       "code": "class Solution {\n    public int numMusicPlaylists(int n, int goal, int k) {\n        long MOD = 1000000007;\n        long[][] dp = new long[goal + 1][n + 1];\n        dp[0][0] = 1;\n        for (int i = 1; i <= goal; i++) {\n            for (int j = 1; j <= n; j++) {\n                dp[i][j] = (dp[i - 1][j - 1] * (n - j + 1)) % MOD;\n                dp[i][j] = (dp[i][j] + dp[i - 1][j] * Math.max(j - k, 0)) % MOD;\n            }\n        }\n        return (int) dp[goal][n];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "DP with Space Optimization (1D)",
+      "timeComplexity": "O(goal * n)",
+      "spaceComplexity": "O(n)",
+      "description": "Optimize space by using a 1D DP array. dp[j] = number of playlists using exactly j unique songs. Update row by row for each playlist length from 1 to goal.",
+      "code": "class Solution {\n    public int numMusicPlaylists(int n, int goal, int k) {\n        long MOD = 1000000007;\n        long[] dp = new long[n + 1];\n        dp[0] = 1;\n        for (int i = 1; i <= goal; i++) {\n            long[] ndp = new long[n + 1];\n            for (int j = 1; j <= n; j++) {\n                ndp[j] = (dp[j - 1] * (n - j + 1)) % MOD;\n                ndp[j] = (ndp[j] + dp[j] * Math.max(j - k, 0)) % MOD;\n            }\n            dp = ndp;\n        }\n        return (int) dp[n];\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

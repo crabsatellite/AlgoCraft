@@ -17,6 +17,14 @@
       "description": "Use the array itself as a hash map by negating values at index positions. The index that gets visited twice (already negative) gives the duplicate, then scan for the positive value to find the missing number.",
       "code": "class Solution {\n    public int[] findErrorNums(int[] nums) {\n        int dup = -1, missing = -1;\n        for (int n : nums) {\n            int idx = Math.abs(n) - 1;\n            if (nums[idx] < 0) dup = Math.abs(n);\n            else nums[idx] = -nums[idx];\n        }\n        for (int i = 0; i < nums.length; i++) {\n            if (nums[i] > 0) missing = i + 1;\n        }\n        return new int[]{dup, missing};\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Math Sum and Sum of Squares",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Use sum and sum-of-squares equations. Let a = duplicate, b = missing. Then sum(nums) - sum(1..n) = a - b, and sum(nums^2) - sum(1^2..n^2) = a^2 - b^2 = (a-b)(a+b). Solve for a and b.",
+      "code": "class Solution {\n    public int[] findErrorNums(int[] nums) {\n        int n = nums.length;\n        long sumDiff = 0, sqDiff = 0;\n        for (int i = 0; i < n; i++) {\n            sumDiff += nums[i] - (i + 1);\n            sqDiff += (long) nums[i] * nums[i] - (long) (i + 1) * (i + 1);\n        }\n        long sumAB = sqDiff / sumDiff;\n        int dup = (int) ((sumDiff + sumAB) / 2);\n        int missing = (int) ((sumAB - sumDiff) / 2);\n        return new int[]{dup, missing};\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

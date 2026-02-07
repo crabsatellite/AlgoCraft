@@ -18,6 +18,14 @@
       "description": "Use a stack to track the sign before each parenthesis group. Maintain running result and current sign. On '(' push result and sign, reset. On ')' combine with saved state.",
       "code": "class Solution {\n    public int calculate(String s) {\n        java.util.Deque<Integer> stack = new java.util.ArrayDeque<>();\n        int result = 0, num = 0, sign = 1;\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (Character.isDigit(c)) {\n                num = num * 10 + (c - '0');\n            } else if (c == '+') {\n                result += sign * num;\n                num = 0;\n                sign = 1;\n            } else if (c == '-') {\n                result += sign * num;\n                num = 0;\n                sign = -1;\n            } else if (c == '(') {\n                stack.push(result);\n                stack.push(sign);\n                result = 0;\n                sign = 1;\n            } else if (c == ')') {\n                result += sign * num;\n                num = 0;\n                result *= stack.pop();\n                result += stack.pop();\n            }\n        }\n        return result + sign * num;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Recursive Descent Parser",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use recursive descent parsing with a global index. Parse numbers, handle + and - operators, and recurse into parenthesized sub-expressions. Each '(' triggers a recursive call, ')' returns.",
+      "code": "class Solution {\n    private int idx;\n    public int calculate(String s) {\n        idx = 0;\n        return eval(s);\n    }\n    private int eval(String s) {\n        int result = 0;\n        int sign = 1;\n        while (idx < s.length()) {\n            char c = s.charAt(idx);\n            if (c == ' ') {\n                idx++;\n            } else if (c == '(') {\n                idx++;\n                result += sign * eval(s);\n            } else if (c == ')') {\n                idx++;\n                return result;\n            } else if (c == '+') {\n                sign = 1;\n                idx++;\n            } else if (c == '-') {\n                sign = -1;\n                idx++;\n            } else {\n                int num = 0;\n                while (idx < s.length() && s.charAt(idx) >= '0' && s.charAt(idx) <= '9') {\n                    num = num * 10 + (s.charAt(idx) - '0');\n                    idx++;\n                }\n                result += sign * num;\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

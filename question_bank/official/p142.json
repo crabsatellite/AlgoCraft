@@ -33,6 +33,14 @@
       "description": "Build adjacency list. Use Dijkstra from node k. The answer is the maximum shortest distance to any node. If any node is unreachable, return -1.",
       "code": "import java.util.*;\n\nclass Solution {\n    public int networkDelayTime(int[][] times, int n, int k) {\n        List<List<int[]>> adj = new ArrayList<>();\n        for (int i = 0; i <= n; i++) adj.add(new ArrayList<>());\n        for (int[] t : times) adj.get(t[0]).add(new int[]{t[1], t[2]});\n        int[] dist = new int[n + 1];\n        Arrays.fill(dist, Integer.MAX_VALUE);\n        dist[k] = 0;\n        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[1] - b[1]);\n        pq.offer(new int[]{k, 0});\n        while (!pq.isEmpty()) {\n            int[] cur = pq.poll();\n            if (cur[1] > dist[cur[0]]) continue;\n            for (int[] next : adj.get(cur[0])) {\n                int newDist = dist[cur[0]] + next[1];\n                if (newDist < dist[next[0]]) {\n                    dist[next[0]] = newDist;\n                    pq.offer(new int[]{next[0], newDist});\n                }\n            }\n        }\n        int maxDist = 0;\n        for (int i = 1; i <= n; i++) {\n            if (dist[i] == Integer.MAX_VALUE) return -1;\n            maxDist = Math.max(maxDist, dist[i]);\n        }\n        return maxDist;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Bellman-Ford",
+      "timeComplexity": "O(V * E)",
+      "spaceComplexity": "O(V)",
+      "description": "Initialize distances to infinity, set source to 0. Relax all edges n-1 times. The answer is the max distance among all nodes. If any node remains at infinity, return -1.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int networkDelayTime(int[][] times, int n, int k) {\n        int[] dist = new int[n + 1];\n        Arrays.fill(dist, Integer.MAX_VALUE);\n        dist[k] = 0;\n        for (int i = 0; i < n - 1; i++) {\n            boolean updated = false;\n            for (int[] t : times) {\n                int u = t[0], v = t[1], w = t[2];\n                if (dist[u] != Integer.MAX_VALUE && dist[u] + w < dist[v]) {\n                    dist[v] = dist[u] + w;\n                    updated = true;\n                }\n            }\n            if (!updated) break;\n        }\n        int maxDist = 0;\n        for (int i = 1; i <= n; i++) {\n            if (dist[i] == Integer.MAX_VALUE) return -1;\n            maxDist = Math.max(maxDist, dist[i]);\n        }\n        return maxDist;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

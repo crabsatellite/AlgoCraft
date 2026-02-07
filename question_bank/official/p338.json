@@ -17,6 +17,14 @@
       "description": "Build string s + '#' + reverse(s). Compute KMP failure array. The last value tells the length of the longest palindrome prefix. Prepend the remaining suffix (reversed) to s.",
       "code": "class Solution {\n    public String shortestPalindrome(String s) {\n        String rev = new StringBuilder(s).reverse().toString();\n        String combined = s + \"#\" + rev;\n        int[] fail = new int[combined.length()];\n        for (int i = 1; i < combined.length(); i++) {\n            int j = fail[i - 1];\n            while (j > 0 && combined.charAt(i) != combined.charAt(j)) j = fail[j - 1];\n            if (combined.charAt(i) == combined.charAt(j)) j++;\n            fail[i] = j;\n        }\n        int palLen = fail[combined.length() - 1];\n        return rev.substring(0, s.length() - palLen) + s;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Rolling Hash (Rabin-Karp)",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Compute rolling hash forward and backward simultaneously. Find the longest prefix palindrome by checking where forward hash equals backward hash. Prepend the remaining reversed suffix.",
+      "code": "class Solution {\n    public String shortestPalindrome(String s) {\n        if (s.length() <= 1) return s;\n        long MOD = 1000000007L;\n        long BASE = 31L;\n        long forwardHash = 0, backwardHash = 0;\n        long power = 1;\n        int bestLen = 0;\n        for (int i = 0; i < s.length(); i++) {\n            int c = s.charAt(i) - 'a' + 1;\n            forwardHash = (forwardHash * BASE + c) % MOD;\n            backwardHash = (backwardHash + c * power) % MOD;\n            power = (power * BASE) % MOD;\n            if (forwardHash == backwardHash) {\n                bestLen = i + 1;\n            }\n        }\n        String suffix = s.substring(bestLen);\n        String reversed = new StringBuilder(suffix).reverse().toString();\n        return reversed + s;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

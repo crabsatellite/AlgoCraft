@@ -19,6 +19,14 @@
       "description": "Store token expiry times in a HashMap. Generate sets expiry = currentTime + timeToLive. Renew updates expiry only if token exists and hasn't expired. Count iterates and checks each token.",
       "code": "class AuthenticationManager {\n    private int ttl;\n    private java.util.Map<String, Integer> tokens = new java.util.HashMap<>();\n    public AuthenticationManager(int timeToLive) { this.ttl = timeToLive; }\n    public void generate(String tokenId, int currentTime) {\n        tokens.put(tokenId, currentTime + ttl);\n    }\n    public void renew(String tokenId, int currentTime) {\n        if (tokens.containsKey(tokenId) && tokens.get(tokenId) > currentTime)\n            tokens.put(tokenId, currentTime + ttl);\n    }\n    public int countUnexpiredTokens(int currentTime) {\n        int count = 0;\n        for (int expiry : tokens.values())\n            if (expiry > currentTime) count++;\n        return count;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "LinkedHashMap with Lazy Cleanup",
+      "timeComplexity": "O(n) for count, O(1) for others",
+      "spaceComplexity": "O(n)",
+      "description": "Use a LinkedHashMap to maintain insertion order. Store expiry times as values. On count, iterate and count unexpired tokens. On renew, check and update if not expired.",
+      "code": "import java.util.*;\n\nclass AuthenticationManager {\n    private int ttl;\n    private LinkedHashMap<String, Integer> tokens;\n    public AuthenticationManager(int timeToLive) {\n        this.ttl = timeToLive;\n        this.tokens = new LinkedHashMap();\n    }\n    public void generate(String tokenId, int currentTime) {\n        tokens.put(tokenId, currentTime + ttl);\n    }\n    public void renew(String tokenId, int currentTime) {\n        if (tokens.containsKey(tokenId)) {\n            int expiry = tokens.get(tokenId).intValue();\n            if (expiry > currentTime) {\n                tokens.remove(tokenId);\n                tokens.put(tokenId, currentTime + ttl);\n            }\n        }\n    }\n    public int countUnexpiredTokens(int currentTime) {\n        int count = 0;\n        Iterator<Map.Entry<String, Integer>> it = tokens.entrySet().iterator();\n        while (it.hasNext()) {\n            Map.Entry<String, Integer> entry = it.next();\n            if (entry.getValue().intValue() > currentTime) {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

@@ -17,6 +17,14 @@
       "description": "Think of numbers 1..n in a virtual trie. Count nodes under each prefix to navigate: if count <= k, skip this subtree; otherwise go deeper. Count function calculates nodes between prefix and prefix+1 bounded by n.",
       "code": "class Solution {\n    public int findKthNumber(int n, int k) {\n        long cur = 1;\n        k--;\n        while (k > 0) {\n            long steps = countSteps(n, cur, cur + 1);\n            if (steps <= k) { k -= steps; cur++; }\n            else { k--; cur *= 10; }\n        }\n        return (int) cur;\n    }\n    private long countSteps(int n, long cur, long next) {\n        long steps = 0;\n        while (cur <= n) {\n            steps += Math.min(n + 1, next) - cur;\n            cur *= 10;\n            next *= 10;\n        }\n        return steps;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Iterative Prefix Tree Traversal",
+      "timeComplexity": "O(log^2 n)",
+      "spaceComplexity": "O(1)",
+      "description": "Navigate a virtual decimal trie. Start at prefix 1. At each step, count how many numbers exist under the current prefix. If k is within this subtree, go deeper (prefix *= 10). Otherwise skip to the next sibling (prefix++) and subtract the count.",
+      "code": "class Solution {\n    public int findKthNumber(int n, int k) {\n        long prefix = 1;\n        k--;\n        while (k > 0) {\n            long count = 0;\n            long first = prefix;\n            long last = prefix + 1;\n            while (first <= n) {\n                count += Math.min((long) n + 1, last) - first;\n                first *= 10;\n                last *= 10;\n            }\n            if (k >= count) {\n                k -= (int) count;\n                prefix++;\n            } else {\n                k--;\n                prefix *= 10;\n            }\n        }\n        return (int) prefix;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

@@ -20,6 +20,14 @@
       "description": "Compute the difference array for the first two words. If they match, that's the common pattern. Otherwise compare with the third word to determine which of the first two is odd. Then scan remaining words.",
       "code": "class Solution {\n    public String oddString(String[] words) {\n        int n = words[0].length();\n        int[] diff0 = getDiff(words[0]);\n        int[] diff1 = getDiff(words[1]);\n        if (!java.util.Arrays.equals(diff0, diff1)) {\n            int[] diff2 = getDiff(words[2]);\n            return java.util.Arrays.equals(diff0, diff2) ? words[1] : words[0];\n        }\n        for (int i = 2; i < words.length; i++) {\n            if (!java.util.Arrays.equals(diff0, getDiff(words[i]))) return words[i];\n        }\n        return \"\";\n    }\n    private int[] getDiff(String w) {\n        int[] d = new int[w.length() - 1];\n        for (int i = 0; i < d.length; i++) d[i] = w.charAt(i + 1) - w.charAt(i);\n        return d;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "String Key HashMap",
+      "timeComplexity": "O(n * m)",
+      "spaceComplexity": "O(n * m)",
+      "description": "Convert each word's difference array to a string key. Use a HashMap to group words by their key. The group with only one word contains the odd string.",
+      "code": "import java.util.HashMap;\nimport java.util.Map;\nimport java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public String oddString(String[] words) {\n        Map<String, List<String>> map = new HashMap<>();\n        for (String w : words) {\n            StringBuilder sb = new StringBuilder();\n            for (int i = 0; i < w.length() - 1; i++) {\n                if (i > 0) sb.append(',');\n                sb.append(w.charAt(i + 1) - w.charAt(i));\n            }\n            String key = sb.toString();\n            if (!map.containsKey(key)) map.put(key, new ArrayList<>());\n            map.get(key).add(w);\n        }\n        for (List<String> group : map.values()) {\n            if (group.size() == 1) return group.get(0);\n        }\n        return \"\";\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

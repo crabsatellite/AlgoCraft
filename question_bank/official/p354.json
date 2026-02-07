@@ -22,6 +22,14 @@
       "description": "dp[i][j] = minimum steps to spell key[i..end] when ring position j is at 12:00. For each key character, try all matching positions on the ring and take the minimum rotation distance plus 1 for pressing.",
       "code": "class Solution {\n    public int findRotateSteps(String ring, String key) {\n        int n = ring.length(), m = key.length();\n        int[][] dp = new int[m + 1][n];\n        for (int i = m - 1; i >= 0; i--) {\n            java.util.Arrays.fill(dp[i], Integer.MAX_VALUE);\n            for (int j = 0; j < n; j++) {\n                for (int k = 0; k < n; k++) {\n                    if (ring.charAt(k) == key.charAt(i)) {\n                        int diff = Math.abs(j - k);\n                        int step = Math.min(diff, n - diff);\n                        dp[i][j] = Math.min(dp[i][j], step + 1 + dp[i + 1][k]);\n                    }\n                }\n            }\n        }\n        return dp[0][0];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Top-Down DFS with Memoization",
+      "timeComplexity": "O(m * n^2)",
+      "spaceComplexity": "O(m * n)",
+      "description": "Recursive DFS approach: for each character in key, try all positions on ring that match and recursively solve. Memoize on (keyIndex, ringPosition) to avoid recomputation.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int findRotateSteps(String ring, String key) {\n        int n = ring.length();\n        int m = key.length();\n        Map<Character, List<Integer>> posMap = new HashMap<>();\n        for (int i = 0; i < n; i++) {\n            char c = ring.charAt(i);\n            if (!posMap.containsKey(c)) posMap.put(c, new ArrayList<>());\n            posMap.get(c).add(i);\n        }\n        int[][] memo = new int[m][n];\n        for (int[] row : memo) Arrays.fill(row, -1);\n        return dfs(ring, key, 0, 0, posMap, memo);\n    }\n    private int dfs(String ring, String key, int ki, int ri, Map<Character, List<Integer>> posMap, int[][] memo) {\n        if (ki == key.length()) return 0;\n        if (memo[ki][ri] != -1) return memo[ki][ri];\n        int n = ring.length();\n        int best = Integer.MAX_VALUE;\n        for (int pos : posMap.get(key.charAt(ki))) {\n            int diff = Math.abs(ri - pos);\n            int step = Math.min(diff, n - diff) + 1;\n            best = Math.min(best, step + dfs(ring, key, ki + 1, pos, posMap, memo));\n        }\n        memo[ki][ri] = best;\n        return best;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

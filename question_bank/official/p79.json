@@ -59,6 +59,14 @@
       "description": "Maintain two separate lists: one for nodes < x and one for nodes >= x. Traverse the original list, appending each node to the appropriate list. Finally, connect the two lists.",
       "code": "class Solution {\n    public ListNode partition(ListNode head, int x) {\n        ListNode lessHead = new ListNode(0);\n        ListNode greaterHead = new ListNode(0);\n        ListNode less = lessHead, greater = greaterHead;\n        \n        while (head != null) {\n            if (head.val < x) {\n                less.next = head;\n                less = less.next;\n            } else {\n                greater.next = head;\n                greater = greater.next;\n            }\n            head = head.next;\n        }\n        \n        greater.next = null;\n        less.next = greaterHead.next;\n        \n        return lessHead.next;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "In-Place Insertion",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Use a dummy node and two pointers. The 'lastSmall' pointer tracks the end of the partition with values < x. Traverse the list; when a node with value < x is found after the partition boundary, detach it and insert it right after lastSmall.",
+      "code": "class Solution {\n    public ListNode partition(ListNode head, int x) {\n        ListNode dummy = new ListNode(0);\n        dummy.next = head;\n        \n        // Find the last node in the 'less than x' section\n        ListNode lastSmall = dummy;\n        // First, advance lastSmall past any initial nodes < x\n        while (lastSmall.next != null && lastSmall.next.val < x) {\n            lastSmall = lastSmall.next;\n        }\n        \n        // Now scan the rest, moving nodes < x to after lastSmall\n        ListNode prev = lastSmall;\n        while (prev.next != null) {\n            if (prev.next.val < x) {\n                // Detach node\n                ListNode node = prev.next;\n                prev.next = node.next;\n                // Insert after lastSmall\n                node.next = lastSmall.next;\n                lastSmall.next = node;\n                lastSmall = node;\n            } else {\n                prev = prev.next;\n            }\n        }\n        \n        return dummy.next;\n    }\n}",
+      "language": "java"
     }
   ],
   "diagrams": [

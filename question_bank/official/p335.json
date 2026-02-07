@@ -27,6 +27,14 @@
       "description": "Work backwards from bottom-right. dp[i][j] = min health needed at (i,j) to reach the princess alive. dp[i][j] = max(1, min(dp[i+1][j], dp[i][j+1]) - dungeon[i][j]).",
       "code": "class Solution {\n    public int calculateMinimumHP(int[][] dungeon) {\n        int m = dungeon.length, n = dungeon[0].length;\n        int[][] dp = new int[m + 1][n + 1];\n        for (int[] row : dp) java.util.Arrays.fill(row, Integer.MAX_VALUE);\n        dp[m][n - 1] = dp[m - 1][n] = 1;\n        for (int i = m - 1; i >= 0; i--) {\n            for (int j = n - 1; j >= 0; j--) {\n                dp[i][j] = Math.max(1, Math.min(dp[i + 1][j], dp[i][j + 1]) - dungeon[i][j]);\n            }\n        }\n        return dp[0][0];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Space-Optimized Reverse DP (1D Array)",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(n)",
+      "description": "Optimize space by using a single 1D array of size n+1. Process rows from bottom to top, columns right to left, updating dp[j] in place using dp[j] (below) and dp[j+1] (right).",
+      "code": "class Solution {\n    public int calculateMinimumHP(int[][] dungeon) {\n        int m = dungeon.length, n = dungeon[0].length;\n        int[] dp = new int[n + 1];\n        java.util.Arrays.fill(dp, Integer.MAX_VALUE);\n        dp[n - 1] = 1;\n        for (int i = m - 1; i >= 0; i--) {\n            for (int j = n - 1; j >= 0; j--) {\n                int minNext = Math.min(dp[j], dp[j + 1]);\n                dp[j] = Math.max(1, minNext - dungeon[i][j]);\n            }\n            dp[n] = Integer.MAX_VALUE;\n        }\n        return dp[0];\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

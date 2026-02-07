@@ -17,6 +17,14 @@
       "description": "Build a failure/prefix function for the needle. Then scan the haystack, using the prefix function to skip unnecessary comparisons.",
       "code": "class Solution {\n    public int strStr(String haystack, String needle) {\n        int m = haystack.length(), n = needle.length();\n        if (n == 0) return 0;\n        int[] lps = new int[n];\n        for (int i = 1, len = 0; i < n; ) {\n            if (needle.charAt(i) == needle.charAt(len)) {\n                lps[i++] = ++len;\n            } else if (len > 0) {\n                len = lps[len - 1];\n            } else {\n                lps[i++] = 0;\n            }\n        }\n        for (int i = 0, j = 0; i < m; ) {\n            if (haystack.charAt(i) == needle.charAt(j)) {\n                i++; j++;\n                if (j == n) return i - n;\n            } else if (j > 0) {\n                j = lps[j - 1];\n            } else {\n                i++;\n            }\n        }\n        return -1;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Sliding Window (Brute Force)",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(1)",
+      "description": "Try every possible starting position in haystack. For each position, compare character by character with needle. Return the first match.",
+      "code": "class Solution {\n    public int strStr(String haystack, String needle) {\n        int m = haystack.length(), n = needle.length();\n        if (n == 0) return 0;\n        for (int i = 0; i <= m - n; i++) {\n            int j = 0;\n            while (j < n && haystack.charAt(i + j) == needle.charAt(j)) {\n                j++;\n            }\n            if (j == n) return i;\n        }\n        return -1;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

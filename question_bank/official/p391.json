@@ -18,6 +18,14 @@
       "description": "dp[diff] = max taller support height when the difference between two supports is diff. For each rod, try adding it to the taller side, shorter side, or skipping it.",
       "code": "class Solution {\n    public int tallestBillboard(int[] rods) {\n        java.util.Map<Integer, Integer> dp = new java.util.HashMap<>();\n        dp.put(0, 0);\n        for (int rod : rods) {\n            java.util.Map<Integer, Integer> cur = new java.util.HashMap<>(dp);\n            for (var e : cur.entrySet()) {\n                int diff = e.getKey(), tall = e.getValue();\n                dp.merge(diff + rod, tall + rod, Math::max);\n                dp.merge(diff - rod, tall, Math::max);\n            }\n        }\n        return dp.getOrDefault(0, 0);\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Meet in the Middle",
+      "timeComplexity": "O(3^(n/2))",
+      "spaceComplexity": "O(3^(n/2))",
+      "description": "Split rods into two halves. For each half, enumerate all possibilities: each rod goes to left support, right support, or neither. Record (diff, maxTaller) for each combo. Then combine halves: for each combo from first half, look up complementary diff from second half.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int tallestBillboard(int[] rods) {\n        int n = rods.length;\n        int half = n / 2;\n        Map<Integer, Integer> left = enumerate(rods, 0, half);\n        Map<Integer, Integer> right = enumerate(rods, half, n);\n        int result = 0;\n        for (Map.Entry<Integer, Integer> entry : left.entrySet()) {\n            int diff = entry.getKey();\n            int tall = entry.getValue();\n            if (right.containsKey(-diff)) {\n                result = Math.max(result, tall + right.get(-diff));\n            }\n        }\n        return result;\n    }\n    private Map<Integer, Integer> enumerate(int[] rods, int start, int end) {\n        Map<Integer, Integer> dp = new HashMap<>();\n        dp.put(0, 0);\n        for (int i = start; i < end; i++) {\n            Map<Integer, Integer> ndp = new HashMap<>(dp);\n            for (Map.Entry<Integer, Integer> entry : dp.entrySet()) {\n                int diff = entry.getKey();\n                int tall = entry.getValue();\n                int newDiff1 = diff + rods[i];\n                ndp.merge(newDiff1, tall + rods[i], Math::max);\n                int newDiff2 = diff - rods[i];\n                ndp.merge(newDiff2, tall, Math::max);\n            }\n            dp = ndp;\n        }\n        return dp;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

@@ -23,6 +23,14 @@
       "description": "Maintain a min-heap of size k. For each element, add to heap; if size exceeds k, remove the smallest. The root of the heap is the kth largest.",
       "code": "class Solution {\n    public int findKthLargest(int[] nums, int k) {\n        java.util.PriorityQueue<Integer> pq = new java.util.PriorityQueue<>();\n        for (int num : nums) {\n            pq.offer(num);\n            if (pq.size() > k) pq.poll();\n        }\n        return pq.peek();\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Quickselect (Hoare's Partition)",
+      "timeComplexity": "O(n) average, O(n^2) worst",
+      "spaceComplexity": "O(1)",
+      "description": "Use quickselect to find the kth largest element in O(n) average time. Partition the array and recurse only into the half containing the target index. Shuffle the array first to avoid worst case.",
+      "code": "class Solution {\n    public int findKthLargest(int[] nums, int k) {\n        int target = nums.length - k;\n        int lo = 0, hi = nums.length - 1;\n        java.util.Random rand = new java.util.Random();\n        while (lo < hi) {\n            int pivotIdx = lo + rand.nextInt(hi - lo + 1);\n            int temp = nums[pivotIdx];\n            nums[pivotIdx] = nums[lo];\n            nums[lo] = temp;\n            int pivot = nums[lo];\n            int i = lo, j = hi;\n            while (i < j) {\n                while (i < j && nums[j] >= pivot) j--;\n                nums[i] = nums[j];\n                while (i < j && nums[i] <= pivot) i++;\n                nums[j] = nums[i];\n            }\n            nums[i] = pivot;\n            if (i == target) return nums[i];\n            else if (i < target) lo = i + 1;\n            else hi = i - 1;\n        }\n        return nums[lo];\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

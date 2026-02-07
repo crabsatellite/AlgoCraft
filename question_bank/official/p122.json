@@ -20,6 +20,14 @@
       "description": "Try every possible partition point. For each substring starting at index, check if it's a palindrome. If yes, add it and recurse on the remainder.",
       "code": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> partition(String s) {\n        List<List<String>> result = new ArrayList<>();\n        backtrack(s, 0, new ArrayList<>(), result);\n        return result;\n    }\n\n    private void backtrack(String s, int start, List<String> path, List<List<String>> result) {\n        if (start == s.length()) {\n            result.add(new ArrayList<>(path));\n            return;\n        }\n        for (int end = start + 1; end <= s.length(); end++) {\n            String sub = s.substring(start, end);\n            if (isPalindrome(sub)) {\n                path.add(sub);\n                backtrack(s, end, path, result);\n                path.remove(path.size() - 1);\n            }\n        }\n    }\n\n    private boolean isPalindrome(String s) {\n        int l = 0, r = s.length() - 1;\n        while (l < r) {\n            if (s.charAt(l++) != s.charAt(r--)) return false;\n        }\n        return true;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Backtracking with DP Palindrome Check",
+      "timeComplexity": "O(n * 2^n)",
+      "spaceComplexity": "O(n^2)",
+      "description": "Precompute a DP table where dp[i][j] is true if s[i..j] is a palindrome. Then backtrack using this table for O(1) palindrome checks instead of O(n) each time.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> partition(String s) {\n        int n = s.length();\n        boolean[][] dp = new boolean[n][n];\n        for (int i = n - 1; i >= 0; i--) {\n            for (int j = i; j < n; j++) {\n                if (s.charAt(i) == s.charAt(j) && (j - i <= 2 || dp[i + 1][j - 1])) {\n                    dp[i][j] = true;\n                }\n            }\n        }\n        List<List<String>> result = new ArrayList<>();\n        backtrack(s, 0, dp, new ArrayList<String>(), result);\n        return result;\n    }\n\n    private void backtrack(String s, int start, boolean[][] dp, List<String> path, List<List<String>> result) {\n        if (start == s.length()) {\n            result.add(new ArrayList<>(path));\n            return;\n        }\n        for (int end = start; end < s.length(); end++) {\n            if (dp[start][end]) {\n                path.add(s.substring(start, end + 1));\n                backtrack(s, end + 1, dp, path, result);\n                path.remove(path.size() - 1);\n            }\n        }\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

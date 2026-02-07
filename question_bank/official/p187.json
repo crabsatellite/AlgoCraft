@@ -18,6 +18,14 @@
       "description": "Sort balloons by end position. Shoot arrow at the end of the first balloon. Skip all balloons that this arrow also bursts. Repeat for remaining balloons.",
       "code": "class Solution {\n    public int findMinArrowShots(int[][] points) {\n        java.util.Arrays.sort(points, (a, b) -> Integer.compare(a[1], b[1]));\n        int arrows = 1;\n        int arrowPos = points[0][1];\n        for (int i = 1; i < points.length; i++) {\n            if (points[i][0] > arrowPos) {\n                arrows++;\n                arrowPos = points[i][1];\n            }\n        }\n        return arrows;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Greedy (Sort by Start)",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(1)",
+      "description": "Sort balloons by start position. Track the current intersection window. When a new balloon doesn't overlap the window, shoot a new arrow and reset the window.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int findMinArrowShots(int[][] points) {\n        Arrays.sort(points, new Comparator<int[]>() {\n            public int compare(int[] a, int[] b) {\n                return Integer.compare(a[0], b[0]);\n            }\n        });\n        int arrows = 1;\n        int currentEnd = points[0][1];\n        for (int i = 1; i < points.length; i++) {\n            if (points[i][0] > currentEnd) {\n                arrows++;\n                currentEnd = points[i][1];\n            } else {\n                currentEnd = Math.min(currentEnd, points[i][1]);\n            }\n        }\n        return arrows;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

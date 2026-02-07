@@ -24,6 +24,14 @@
       "description": "Sort candidates. DFS from each index, subtracting from target. Since elements can be reused, recurse from the same index. Prune when target < 0.",
       "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> combinationSum(int[] candidates, int target) {\n        List<List<Integer>> result = new ArrayList<>();\n        Arrays.sort(candidates);\n        backtrack(candidates, target, 0, new ArrayList<>(), result);\n        return result;\n    }\n\n    private void backtrack(int[] candidates, int remain, int start, List<Integer> path, List<List<Integer>> result) {\n        if (remain == 0) {\n            result.add(new ArrayList<>(path));\n            return;\n        }\n        for (int i = start; i < candidates.length; i++) {\n            if (candidates[i] > remain) break;\n            path.add(candidates[i]);\n            backtrack(candidates, remain - candidates[i], i, path, result);\n            path.remove(path.size() - 1);\n        }\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Bottom-Up DP",
+      "timeComplexity": "O(n * target)",
+      "spaceComplexity": "O(target * C) where C = number of combinations",
+      "description": "Use dynamic programming where dp[t] stores all combinations that sum to t. For each candidate and each reachable sum, extend existing combinations. Build from amount 0 up to target.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> combinationSum(int[] candidates, int target) {\n        Arrays.sort(candidates);\n        List<List<List<Integer>>> dp = new ArrayList<>();\n        for (int i = 0; i <= target; i++) {\n            dp.add(new ArrayList<>());\n        }\n        dp.get(0).add(new ArrayList<>());\n        \n        for (int cand : candidates) {\n            for (int t = cand; t <= target; t++) {\n                List<List<Integer>> combsForRemainder = dp.get(t - cand);\n                for (List<Integer> combo : combsForRemainder) {\n                    if (!combo.isEmpty() && combo.get(combo.size() - 1) > cand) continue;\n                    List<Integer> newCombo = new ArrayList<>(combo);\n                    newCombo.add(cand);\n                    dp.get(t).add(newCombo);\n                }\n            }\n        }\n        return dp.get(target);\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

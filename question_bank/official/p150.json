@@ -28,6 +28,14 @@
       "description": "Try to 2-color the graph using BFS. Assign color 0 to start node, color 1 to neighbors. If a neighbor already has the same color, the graph is not bipartite. Handle disconnected components.",
       "code": "import java.util.*;\n\nclass Solution {\n    public boolean isBipartite(int[][] graph) {\n        int n = graph.length;\n        int[] color = new int[n];\n        Arrays.fill(color, -1);\n        for (int i = 0; i < n; i++) {\n            if (color[i] != -1) continue;\n            Queue<Integer> queue = new LinkedList<>();\n            queue.offer(i);\n            color[i] = 0;\n            while (!queue.isEmpty()) {\n                int node = queue.poll();\n                for (int neighbor : graph[node]) {\n                    if (color[neighbor] == -1) {\n                        color[neighbor] = 1 - color[node];\n                        queue.offer(neighbor);\n                    } else if (color[neighbor] == color[node]) {\n                        return false;\n                    }\n                }\n            }\n        }\n        return true;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "DFS Coloring",
+      "timeComplexity": "O(V + E)",
+      "spaceComplexity": "O(V)",
+      "description": "DFS-based 2-coloring. Assign color 0 to start node. For each neighbor, if uncolored, assign opposite color and recurse. If already colored with same color, not bipartite. Handle disconnected components.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isBipartite(int[][] graph) {\n        int n = graph.length;\n        int[] color = new int[n];\n        Arrays.fill(color, -1);\n        for (int i = 0; i < n; i++) {\n            if (color[i] == -1) {\n                if (!dfs(graph, color, i, 0)) return false;\n            }\n        }\n        return true;\n    }\n\n    private boolean dfs(int[][] graph, int[] color, int node, int c) {\n        color[node] = c;\n        for (int neighbor : graph[node]) {\n            if (color[neighbor] == -1) {\n                if (!dfs(graph, color, neighbor, 1 - c)) return false;\n            } else if (color[neighbor] == c) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

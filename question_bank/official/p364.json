@@ -23,6 +23,14 @@
       "description": "Use a TreeMap keyed by interval start. On addNum, find the floor and ceiling entries. Merge with adjacent intervals if they touch or overlap. getIntervals returns all values.",
       "code": "class SummaryRanges {\n    private java.util.TreeMap<Integer, int[]> tree;\n    public SummaryRanges() { tree = new java.util.TreeMap<>(); }\n    public void addNum(int value) {\n        if (tree.containsKey(value)) return;\n        Integer lo = tree.lowerKey(value), hi = tree.higherKey(value);\n        if (lo != null && tree.get(lo)[1] >= value - 1 && hi != null && hi == value + 1) {\n            tree.get(lo)[1] = tree.get(hi)[1];\n            tree.remove(hi);\n        } else if (lo != null && tree.get(lo)[1] >= value - 1) {\n            tree.get(lo)[1] = Math.max(tree.get(lo)[1], value);\n        } else if (hi != null && hi == value + 1) {\n            tree.put(value, new int[]{value, tree.get(hi)[1]});\n            tree.remove(hi);\n        } else {\n            tree.put(value, new int[]{value, value});\n        }\n    }\n    public int[][] getIntervals() {\n        return tree.values().toArray(new int[0][]);\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Boolean Array with Merge",
+      "timeComplexity": "O(n) per addNum amortized, O(n) per getIntervals",
+      "spaceComplexity": "O(n)",
+      "description": "Use a boolean array to mark which values have been added (since values are bounded 0-10000). For getIntervals, scan the array to find contiguous runs of true values and build interval arrays.",
+      "code": "class SummaryRanges {\n    private boolean[] seen;\n    private int min;\n    private int max;\n    public SummaryRanges() {\n        seen = new boolean[10002];\n        min = Integer.MAX_VALUE;\n        max = Integer.MIN_VALUE;\n    }\n    public void addNum(int value) {\n        seen[value] = true;\n        if (value < min) min = value;\n        if (value > max) max = value;\n    }\n    public int[][] getIntervals() {\n        java.util.List<int[]> intervals = new java.util.ArrayList<>();\n        if (min > max) return new int[0][];\n        int i = min;\n        while (i <= max) {\n            if (seen[i]) {\n                int start = i;\n                while (i <= max && seen[i]) i++;\n                intervals.add(new int[]{start, i - 1});\n            } else {\n                i++;\n            }\n        }\n        return intervals.toArray(new int[0][]);\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

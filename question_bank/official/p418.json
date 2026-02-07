@@ -19,6 +19,14 @@
       "description": "Build a prefix sum array where prefix[i+1] = prefix[i] + nums[i]. Range sum from left to right = prefix[right+1] - prefix[left].",
       "code": "class NumArray {\n    private int[] prefix;\n    public NumArray(int[] nums) {\n        prefix = new int[nums.length + 1];\n        for (int i = 0; i < nums.length; i++) prefix[i + 1] = prefix[i] + nums[i];\n    }\n    public int sumRange(int left, int right) {\n        return prefix[right + 1] - prefix[left];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Block Decomposition (Sqrt Decomposition)",
+      "timeComplexity": "O(n) init, O(sqrt(n)) query",
+      "spaceComplexity": "O(n)",
+      "description": "Divide the array into blocks of size sqrt(n). Precompute sum for each block. Range query sums partial blocks at edges and whole blocks in the middle.",
+      "code": "class NumArray {\n    private int[] nums;\n    private int[] blockSum;\n    private int blockSize;\n    public NumArray(int[] nums) {\n        this.nums = nums;\n        blockSize = (int) Math.ceil(Math.sqrt(nums.length));\n        blockSum = new int[blockSize + 1];\n        for (int i = 0; i < nums.length; i++) {\n            blockSum[i / blockSize] += nums[i];\n        }\n    }\n    public int sumRange(int left, int right) {\n        int sum = 0;\n        int startBlock = left / blockSize;\n        int endBlock = right / blockSize;\n        if (startBlock == endBlock) {\n            for (int i = left; i <= right; i++) sum += nums[i];\n        } else {\n            for (int i = left; i < (startBlock + 1) * blockSize; i++) sum += nums[i];\n            for (int b = startBlock + 1; b < endBlock; b++) sum += blockSum[b];\n            for (int i = endBlock * blockSize; i <= right; i++) sum += nums[i];\n        }\n        return sum;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

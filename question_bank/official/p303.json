@@ -32,6 +32,14 @@
       "description": "Use a min-heap to always extract the smallest node among k list heads. Push the next node from that list back into the heap.",
       "code": "class Solution {\n    public ListNode mergeKLists(ListNode[] lists) {\n        java.util.PriorityQueue<ListNode> pq = new java.util.PriorityQueue<>((a, b) -> a.val - b.val);\n        for (ListNode node : lists) {\n            if (node != null) pq.offer(node);\n        }\n        ListNode dummy = new ListNode(0), curr = dummy;\n        while (!pq.isEmpty()) {\n            ListNode min = pq.poll();\n            curr.next = min;\n            curr = curr.next;\n            if (min.next != null) pq.offer(min.next);\n        }\n        return dummy.next;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Divide and Conquer (Pairwise Merge)",
+      "timeComplexity": "O(N log k)",
+      "spaceComplexity": "O(log k)",
+      "description": "Recursively divide the list of k lists into two halves, merge each half, then merge the two resulting lists. Uses a helper to merge two sorted linked lists.",
+      "code": "class Solution {\n    public ListNode mergeKLists(ListNode[] lists) {\n        if (lists == null || lists.length == 0) return null;\n        return mergeRange(lists, 0, lists.length - 1);\n    }\n    private ListNode mergeRange(ListNode[] lists, int lo, int hi) {\n        if (lo == hi) return lists[lo];\n        int mid = lo + (hi - lo) / 2;\n        ListNode left = mergeRange(lists, lo, mid);\n        ListNode right = mergeRange(lists, mid + 1, hi);\n        return mergeTwoLists(left, right);\n    }\n    private ListNode mergeTwoLists(ListNode a, ListNode b) {\n        ListNode dummy = new ListNode(0);\n        ListNode curr = dummy;\n        while (a != null && b != null) {\n            if (a.val <= b.val) {\n                curr.next = a;\n                a = a.next;\n            } else {\n                curr.next = b;\n                b = b.next;\n            }\n            curr = curr.next;\n        }\n        curr.next = (a != null) ? a : b;\n        return dummy.next;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

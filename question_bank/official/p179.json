@@ -19,6 +19,24 @@
       "output": "true"
     }
   ],
+  "solutions": [
+    {
+      "name": "Greedy Coverage Check",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Check each triplet is usable (no component exceeds target), then check if all 3 target values are covered.",
+      "code": "class Solution {\n    public boolean mergeTriplets(int[][] triplets, int[] target) {\n        boolean[] found = new boolean[3];\n        for (int[] t : triplets) {\n            if (t[0] <= target[0] && t[1] <= target[1] && t[2] <= target[2]) {\n                if (t[0] == target[0]) found[0] = true;\n                if (t[1] == target[1]) found[1] = true;\n                if (t[2] == target[2]) found[2] = true;\n            }\n        }\n        return found[0] && found[1] && found[2];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Set-Based Filtering",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Use a set to track which target indices have been matched. Filter out triplets where any component exceeds the target, then for valid triplets, add matching indices to the set. Return true if all 3 indices are covered.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean mergeTriplets(int[][] triplets, int[] target) {\n        HashSet<Integer> matched = new HashSet<>();\n        for (int[] t : triplets) {\n            if (t[0] > target[0] || t[1] > target[1] || t[2] > target[2]) continue;\n            for (int i = 0; i < 3; i++) {\n                if (t[i] == target[i]) matched.add(i);\n            }\n        }\n        return matched.size() == 3;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "triplets = [[2,5,3],[1,8,4],[1,7,5]], target = [2,7,5]", "output": "true" },
     { "input": "triplets = [[3,4,5],[4,5,6]], target = [3,2,5]", "output": "false" },

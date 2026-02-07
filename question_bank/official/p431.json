@@ -19,6 +19,14 @@
       "description": "Since keys are bounded by 10^6, use a boolean array for direct addressing. Each operation is O(1).",
       "code": "class MyHashSet {\n    private boolean[] set;\n\n    public MyHashSet() {\n        set = new boolean[1000001];\n    }\n\n    public void add(int key) {\n        set[key] = true;\n    }\n\n    public void remove(int key) {\n        set[key] = false;\n    }\n\n    public boolean contains(int key) {\n        return set[key];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Hash Table with Chaining",
+      "timeComplexity": "O(n/k) per operation",
+      "spaceComplexity": "O(k + n)",
+      "description": "Use an array of linked list buckets with a prime-sized hash function. Each bucket stores keys in a list. Hash collisions are resolved by chaining.",
+      "code": "import java.util.*;\n\nclass MyHashSet {\n    private static final int SIZE = 769;\n    private List<Integer>[] buckets;\n    public MyHashSet() {\n        buckets = new ArrayList[SIZE];\n        for (int i = 0; i < SIZE; i++) {\n            buckets[i] = new ArrayList();\n        }\n    }\n    private int hash(int key) {\n        return key % SIZE;\n    }\n    public void add(int key) {\n        int h = hash(key);\n        List<Integer> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i).intValue() == key) return;\n        }\n        bucket.add(key);\n    }\n    public void remove(int key) {\n        int h = hash(key);\n        List<Integer> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i).intValue() == key) {\n                bucket.remove(i);\n                return;\n            }\n        }\n    }\n    public boolean contains(int key) {\n        int h = hash(key);\n        List<Integer> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i).intValue() == key) return true;\n        }\n        return false;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

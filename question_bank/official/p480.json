@@ -17,6 +17,14 @@
       "description": "Compute the sum of the first k elements. Slide the window: add the next element and remove the leftmost. Track the maximum sum and return max/k.",
       "code": "class Solution {\n    public double findMaxAverage(int[] nums, int k) {\n        int sum = 0;\n        for (int i = 0; i < k; i++) sum += nums[i];\n        int maxSum = sum;\n        for (int i = k; i < nums.length; i++) {\n            sum += nums[i] - nums[i - k];\n            maxSum = Math.max(maxSum, sum);\n        }\n        return (double) maxSum / k;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Prefix Sum Approach",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Build a prefix sum array. For each window ending at index i, the window sum is prefix[i+1] - prefix[i+1-k]. Track the maximum window sum and return max/k.",
+      "code": "class Solution {\n    public double findMaxAverage(int[] nums, int k) {\n        int n = nums.length;\n        long[] prefix = new long[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n        long maxSum = prefix[k] - prefix[0];\n        for (int i = k; i <= n; i++) {\n            long windowSum = prefix[i] - prefix[i - k];\n            if (windowSum > maxSum) maxSum = windowSum;\n        }\n        return (double) maxSum / k;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

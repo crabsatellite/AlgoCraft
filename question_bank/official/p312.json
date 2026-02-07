@@ -17,6 +17,14 @@
       "description": "Same as N-Queens but only count solutions instead of building boards. Use boolean arrays for columns and both diagonal directions.",
       "code": "class Solution {\n    private int count = 0;\n    public int totalNQueens(int n) {\n        solve(0, n, new boolean[n], new boolean[2 * n], new boolean[2 * n]);\n        return count;\n    }\n    private void solve(int row, int n, boolean[] cols, boolean[] d1, boolean[] d2) {\n        if (row == n) { count++; return; }\n        for (int col = 0; col < n; col++) {\n            if (!cols[col] && !d1[row - col + n] && !d2[row + col]) {\n                cols[col] = d1[row - col + n] = d2[row + col] = true;\n                solve(row + 1, n, cols, d1, d2);\n                cols[col] = d1[row - col + n] = d2[row + col] = false;\n            }\n        }\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Bitmask Backtracking",
+      "timeComplexity": "O(n!)",
+      "spaceComplexity": "O(n)",
+      "description": "Use bitmasks for columns, diagonals, and anti-diagonals. Extract available positions using bit manipulation. Count valid placements without building boards.",
+      "code": "class Solution {\n    private int count;\n    public int totalNQueens(int n) {\n        count = 0;\n        solve(0, n, 0, 0, 0);\n        return count;\n    }\n    private void solve(int row, int n, int colMask, int d1Mask, int d2Mask) {\n        if (row == n) {\n            count++;\n            return;\n        }\n        int available = ((1 << n) - 1) & ~(colMask | d1Mask | d2Mask);\n        while (available != 0) {\n            int bit = available & (-available);\n            available &= available - 1;\n            solve(row + 1, n, colMask | bit, (d1Mask | bit) << 1, (d2Mask | bit) >>> 1);\n        }\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

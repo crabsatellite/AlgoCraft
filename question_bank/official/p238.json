@@ -28,6 +28,14 @@
       "description": "Recursively traverse the BST. If node value < low, only search right subtree. If node value > high, only search left subtree. Otherwise, include the node value and search both subtrees.",
       "code": "class Solution {\n    public int rangeSumBST(TreeNode root, int low, int high) {\n        if (root == null) return 0;\n        if (root.val < low) return rangeSumBST(root.right, low, high);\n        if (root.val > high) return rangeSumBST(root.left, low, high);\n        return root.val + rangeSumBST(root.left, low, high) + rangeSumBST(root.right, low, high);\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Iterative BFS with Pruning",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use an iterative BFS approach with a queue. For each node, only add children that could contain values in the range.",
+      "code": "import java.util.LinkedList;\nimport java.util.Queue;\n\nclass Solution {\n    public int rangeSumBST(TreeNode root, int low, int high) {\n        if (root == null) return 0;\n        int sum = 0;\n        Queue<TreeNode> queue = new LinkedList<>();\n        queue.add(root);\n        while (!queue.isEmpty()) {\n            TreeNode node = queue.poll();\n            if (node == null) continue;\n            if (node.val >= low && node.val <= high) sum += node.val;\n            if (node.val > low) queue.add(node.left);\n            if (node.val < high) queue.add(node.right);\n        }\n        return sum;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

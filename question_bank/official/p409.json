@@ -25,6 +25,14 @@
       "description": "Maintain two deques: first half and second half. Keep them balanced so that first.size() == second.size() or first.size() == second.size() - 1. Middle operations target the boundary.",
       "code": "class FrontMiddleBackQueue {\n    private java.util.Deque<Integer> first = new java.util.ArrayDeque<>();\n    private java.util.Deque<Integer> second = new java.util.ArrayDeque<>();\n    public FrontMiddleBackQueue() {}\n    private void balance() {\n        if (first.size() > second.size()) second.addFirst(first.pollLast());\n        if (second.size() > first.size() + 1) first.addLast(second.pollFirst());\n    }\n    public void pushFront(int val) { first.addFirst(val); balance(); }\n    public void pushMiddle(int val) { first.addLast(val); balance(); }\n    public void pushBack(int val) { second.addLast(val); balance(); }\n    public int popFront() {\n        if (first.isEmpty() && second.isEmpty()) return -1;\n        int val = first.isEmpty() ? second.pollFirst() : first.pollFirst();\n        balance();\n        return val;\n    }\n    public int popMiddle() {\n        if (second.isEmpty()) return -1;\n        int val = first.size() == second.size() ? first.pollLast() : second.pollFirst();\n        balance();\n        return val;\n    }\n    public int popBack() {\n        if (second.isEmpty()) return -1;\n        int val = second.pollLast();\n        balance();\n        return val;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "ArrayList Based",
+      "timeComplexity": "O(n) per operation",
+      "spaceComplexity": "O(n)",
+      "description": "Use a single ArrayList. Push and pop at front, middle, and back using ArrayList add/remove with index. Middle index is size/2.",
+      "code": "import java.util.*;\n\nclass FrontMiddleBackQueue {\n    private List<Integer> list;\n    public FrontMiddleBackQueue() {\n        list = new ArrayList();\n    }\n    public void pushFront(int val) {\n        list.add(0, val);\n    }\n    public void pushMiddle(int val) {\n        list.add(list.size() / 2, val);\n    }\n    public void pushBack(int val) {\n        list.add(val);\n    }\n    public int popFront() {\n        if (list.isEmpty()) return -1;\n        return list.remove(0).intValue();\n    }\n    public int popMiddle() {\n        if (list.isEmpty()) return -1;\n        int mid = (list.size() - 1) / 2;\n        return list.remove(mid).intValue();\n    }\n    public int popBack() {\n        if (list.isEmpty()) return -1;\n        return list.remove(list.size() - 1).intValue();\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

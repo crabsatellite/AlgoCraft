@@ -23,6 +23,14 @@
       "description": "Build adjacency list with sorted destinations (PriorityQueue). DFS using Hierholzer's algorithm for Eulerian path. Post-order add to result and reverse at end.",
       "code": "import java.util.*;\n\nclass Solution {\n    private Map<String, PriorityQueue<String>> graph = new HashMap<>();\n    private LinkedList<String> result = new LinkedList<>();\n\n    public List<String> findItinerary(List<List<String>> tickets) {\n        for (List<String> ticket : tickets)\n            graph.computeIfAbsent(ticket.get(0), k -> new PriorityQueue<>()).offer(ticket.get(1));\n        dfs(\"JFK\");\n        return result;\n    }\n\n    private void dfs(String airport) {\n        PriorityQueue<String> dests = graph.get(airport);\n        while (dests != null && !dests.isEmpty())\n            dfs(dests.poll());\n        result.addFirst(airport);\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Iterative Hierholzer's with Stack",
+      "timeComplexity": "O(E log E)",
+      "spaceComplexity": "O(E)",
+      "description": "Iterative version of Hierholzer's algorithm using an explicit stack. Push airports onto the stack, pop destinations from the priority queue. When no more destinations, add to result.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> findItinerary(List<List<String>> tickets) {\n        Map<String, PriorityQueue<String>> graph = new HashMap<>();\n        for (List<String> ticket : tickets)\n            graph.computeIfAbsent(ticket.get(0), k -> new PriorityQueue<>()).offer(ticket.get(1));\n        LinkedList<String> result = new LinkedList<>();\n        Deque<String> stack = new ArrayDeque<>();\n        stack.push(\"JFK\");\n        while (!stack.isEmpty()) {\n            String curr = stack.peek();\n            PriorityQueue<String> dests = graph.get(curr);\n            if (dests != null && !dests.isEmpty()) {\n                stack.push(dests.poll());\n            } else {\n                result.addFirst(stack.pop());\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

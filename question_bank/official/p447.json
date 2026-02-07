@@ -19,6 +19,14 @@
       "description": "Use a HashMap from index to number, and a HashMap from number to a TreeSet of indices. On change, remove index from old number's set and add to new number's set. Find returns the first element of the TreeSet.",
       "code": "class NumberContainers {\n    private java.util.HashMap<Integer, Integer> indexToNum;\n    private java.util.HashMap<Integer, java.util.TreeSet<Integer>> numToIndices;\n\n    public NumberContainers() {\n        indexToNum = new java.util.HashMap<>();\n        numToIndices = new java.util.HashMap<>();\n    }\n\n    public void change(int index, int number) {\n        if (indexToNum.containsKey(index)) {\n            int oldNum = indexToNum.get(index);\n            numToIndices.get(oldNum).remove(index);\n            if (numToIndices.get(oldNum).isEmpty()) numToIndices.remove(oldNum);\n        }\n        indexToNum.put(index, number);\n        numToIndices.computeIfAbsent(number, k -> new java.util.TreeSet<>()).add(index);\n    }\n\n    public int find(int number) {\n        if (!numToIndices.containsKey(number) || numToIndices.get(number).isEmpty()) return -1;\n        return numToIndices.get(number).first();\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "HashMap + PriorityQueue with Lazy Deletion",
+      "timeComplexity": "O(log n) amortized per operation",
+      "spaceComplexity": "O(n)",
+      "description": "Use a HashMap from index to number, and a HashMap from number to a min-heap of indices. On find, lazily remove stale indices from the top of the heap.",
+      "code": "import java.util.*;\n\nclass NumberContainers {\n    private Map<Integer, Integer> indexToNum;\n    private Map<Integer, PriorityQueue<Integer>> numToHeap;\n\n    public NumberContainers() {\n        indexToNum = new HashMap();\n        numToHeap = new HashMap();\n    }\n\n    public void change(int index, int number) {\n        indexToNum.put(index, number);\n        if (!numToHeap.containsKey(number)) {\n            numToHeap.put(number, new PriorityQueue());\n        }\n        numToHeap.get(number).offer(index);\n    }\n\n    public int find(int number) {\n        if (!numToHeap.containsKey(number)) return -1;\n        PriorityQueue<Integer> heap = numToHeap.get(number);\n        while (!heap.isEmpty()) {\n            int idx = heap.peek().intValue();\n            if (indexToNum.containsKey(idx) && indexToNum.get(idx).intValue() == number) {\n                return idx;\n            }\n            heap.poll();\n        }\n        return -1;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

@@ -18,6 +18,14 @@
       "description": "dp[l][r][k] = max points from boxes[l..r] with k extra boxes same color as boxes[l] attached to the left. Either remove boxes[l] with the k extra (getting (k+1)^2 points), or find a box[m] with same color as boxes[l] and merge them.",
       "code": "class Solution {\n    private int[][][] memo;\n    public int removeBoxes(int[] boxes) {\n        int n = boxes.length;\n        memo = new int[n][n][n];\n        return dp(boxes, 0, n - 1, 0);\n    }\n    private int dp(int[] boxes, int l, int r, int k) {\n        if (l > r) return 0;\n        if (memo[l][r][k] != 0) return memo[l][r][k];\n        int origL = l, origK = k;\n        while (l + 1 <= r && boxes[l + 1] == boxes[l]) { l++; k++; }\n        int res = (k + 1) * (k + 1) + dp(boxes, l + 1, r, 0);\n        for (int m = l + 1; m <= r; m++) {\n            if (boxes[m] == boxes[l]) {\n                res = Math.max(res, dp(boxes, l + 1, m - 1, 0) + dp(boxes, m, r, k + 1));\n            }\n        }\n        memo[origL][r][origK] = res;\n        return res;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Bottom-Up 3D DP",
+      "timeComplexity": "O(n^4)",
+      "spaceComplexity": "O(n^3)",
+      "description": "Iterative bottom-up DP. dp[l][r][k] represents max points from subarray boxes[l..r] with k identical boxes attached before l. Fill in order of increasing interval length. For each state, either remove boxes[l] with k extras or find matching box to merge.",
+      "code": "class Solution {\n    public int removeBoxes(int[] boxes) {\n        int n = boxes.length;\n        int[][][] dp = new int[n][n][n + 1];\n        for (int i = 0; i < n; i++) {\n            for (int k = 0; k < n; k++) {\n                dp[i][i][k] = (k + 1) * (k + 1);\n            }\n        }\n        for (int len = 2; len <= n; len++) {\n            for (int l = 0; l <= n - len; l++) {\n                int r = l + len - 1;\n                for (int k = 0; k < n; k++) {\n                    int res = (k + 1) * (k + 1) + dp[l + 1][r][0];\n                    for (int m = l + 1; m <= r; m++) {\n                        if (boxes[m] == boxes[l]) {\n                            int left = (l + 1 <= m - 1) ? dp[l + 1][m - 1][0] : 0;\n                            res = Math.max(res, left + dp[m][r][k + 1]);\n                        }\n                    }\n                    dp[l][r][k] = res;\n                }\n            }\n        }\n        return dp[0][n - 1][0];\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

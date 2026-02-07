@@ -21,6 +21,14 @@
       "description": "Map each digit to its letters. Backtrack through each digit, appending each possible letter and recursing to the next digit.",
       "code": "import java.util.*;\n\nclass Solution {\n    private static final String[] MAPPING = {\n        \"\", \"\", \"abc\", \"def\", \"ghi\", \"jkl\", \"mno\", \"pqrs\", \"tuv\", \"wxyz\"\n    };\n\n    public List<String> letterCombinations(String digits) {\n        List<String> result = new ArrayList<>();\n        if (digits.isEmpty()) return result;\n        backtrack(digits, 0, new StringBuilder(), result);\n        return result;\n    }\n\n    private void backtrack(String digits, int idx, StringBuilder sb, List<String> result) {\n        if (idx == digits.length()) {\n            result.add(sb.toString());\n            return;\n        }\n        String letters = MAPPING[digits.charAt(idx) - '0'];\n        for (char c : letters.toCharArray()) {\n            sb.append(c);\n            backtrack(digits, idx + 1, sb, result);\n            sb.deleteCharAt(sb.length() - 1);\n        }\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Iterative BFS-style",
+      "timeComplexity": "O(4^n) where n = digits length",
+      "spaceComplexity": "O(4^n)",
+      "description": "Iteratively build combinations. Start with an empty string in the result. For each digit, take every existing string and append each letter of the current digit to form new strings.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> letterCombinations(String digits) {\n        List<String> result = new ArrayList<>();\n        if (digits.isEmpty()) return result;\n        String[] mapping = {\"\", \"\", \"abc\", \"def\", \"ghi\", \"jkl\", \"mno\", \"pqrs\", \"tuv\", \"wxyz\"};\n        result.add(\"\");\n        for (int i = 0; i < digits.length(); i++) {\n            String letters = mapping[digits.charAt(i) - '0'];\n            List<String> next = new ArrayList<>();\n            for (String prev : result) {\n                for (char c : letters.toCharArray()) {\n                    next.add(prev + c);\n                }\n            }\n            result = next;\n        }\n        return result;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

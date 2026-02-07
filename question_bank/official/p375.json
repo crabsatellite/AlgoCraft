@@ -17,6 +17,14 @@
       "description": "Use absolute value of target (symmetric). Keep adding steps until sum >= target and (sum - target) is even. When sum - target is even, we can flip one step's direction to exactly reach target.",
       "code": "class Solution {\n    public int reachNumber(int target) {\n        target = Math.abs(target);\n        int step = 0, sum = 0;\n        while (sum < target || (sum - target) % 2 != 0) {\n            step++;\n            sum += step;\n        }\n        return step;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Binary Search for Starting Step",
+      "timeComplexity": "O(sqrt(target))",
+      "spaceComplexity": "O(1)",
+      "description": "Use the formula sum = k*(k+1)/2 to binary search for the smallest k where sum >= |target|. Then check parity: if (sum - target) is even, k is the answer. Otherwise, increment k by 1 or 2 to make the difference even.",
+      "code": "class Solution {\n    public int reachNumber(int target) {\n        target = Math.abs(target);\n        long lo = 1, hi = 2 * (long) Math.ceil(Math.sqrt(2.0 * target));\n        while (lo < hi) {\n            long mid = lo + (hi - lo) / 2;\n            long sum = mid * (mid + 1) / 2;\n            if (sum >= target) hi = mid;\n            else lo = mid + 1;\n        }\n        long k = lo;\n        long sum = k * (k + 1) / 2;\n        while ((sum - target) % 2 != 0) {\n            k++;\n            sum += k;\n        }\n        return (int) k;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

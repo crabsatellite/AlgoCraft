@@ -28,6 +28,14 @@
       "description": "Preorder traversal building the string. For each node, append its value. Add left child in parentheses (or empty parentheses if left is null but right exists). Add right child in parentheses if it exists.",
       "code": "class Solution {\n    public String tree2str(TreeNode root) {\n        if (root == null) return \"\";\n        StringBuilder sb = new StringBuilder();\n        build(root, sb);\n        return sb.toString();\n    }\n\n    private void build(TreeNode node, StringBuilder sb) {\n        if (node == null) return;\n        sb.append(node.val);\n        if (node.left != null || node.right != null) {\n            sb.append('(');\n            build(node.left, sb);\n            sb.append(')');\n        }\n        if (node.right != null) {\n            sb.append('(');\n            build(node.right, sb);\n            sb.append(')');\n        }\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Iterative Stack-based Preorder",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use an explicit stack to perform iterative preorder traversal, building the string with parentheses. Track whether to add opening or closing parentheses by storing state with each node.",
+      "code": "class Solution {\n    public String tree2str(TreeNode root) {\n        if (root == null) return \"\";\n        StringBuilder sb = new StringBuilder();\n        java.util.Deque<TreeNode> stack = new java.util.ArrayDeque<>();\n        java.util.Set<TreeNode> visited = new java.util.HashSet<>();\n        stack.push(root);\n        while (!stack.isEmpty()) {\n            TreeNode node = stack.peek();\n            if (visited.contains(node)) {\n                stack.pop();\n                sb.append(')');\n            } else {\n                visited.add(node);\n                sb.append('(').append(node.val);\n                if (node.left == null && node.right != null) {\n                    sb.append(\"()\");\n                }\n                if (node.right != null) stack.push(node.right);\n                if (node.left != null) stack.push(node.left);\n            }\n        }\n        return sb.substring(1, sb.length() - 1);\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

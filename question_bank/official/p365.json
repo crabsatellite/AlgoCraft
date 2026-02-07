@@ -29,6 +29,14 @@
       "description": "Fix two column boundaries. Compress each row between them into a 1D prefix sum array. For each prefix sum, find the largest previous prefix sum such that current - previous <= k using TreeSet ceiling.",
       "code": "class Solution {\n    public int maxSumSubmatrix(int[][] matrix, int k) {\n        int m = matrix.length, n = matrix[0].length;\n        int result = Integer.MIN_VALUE;\n        for (int c1 = 0; c1 < n; c1++) {\n            int[] rowSum = new int[m];\n            for (int c2 = c1; c2 < n; c2++) {\n                for (int r = 0; r < m; r++) rowSum[r] += matrix[r][c2];\n                java.util.TreeSet<Integer> set = new java.util.TreeSet<>();\n                set.add(0);\n                int prefix = 0;\n                for (int s : rowSum) {\n                    prefix += s;\n                    Integer ceil = set.ceiling(prefix - k);\n                    if (ceil != null) result = Math.max(result, prefix - ceil);\n                    set.add(prefix);\n                }\n            }\n        }\n        return result;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Row Compression + Kadane with Brute Force Bound",
+      "timeComplexity": "O(min(m,n)^2 * max(m,n)^2)",
+      "spaceComplexity": "O(max(m,n))",
+      "description": "Fix two row boundaries. Compress columns between them into a 1D array. Use Kadane's algorithm to find max subarray sum. If max <= k, that's a candidate. Otherwise, brute-force check all subarray sums to find the largest <= k.",
+      "code": "class Solution {\n    public int maxSumSubmatrix(int[][] matrix, int k) {\n        int m = matrix.length, n = matrix[0].length;\n        int result = Integer.MIN_VALUE;\n        for (int r1 = 0; r1 < m; r1++) {\n            int[] colSum = new int[n];\n            for (int r2 = r1; r2 < m; r2++) {\n                for (int c = 0; c < n; c++) colSum[c] += matrix[r2][c];\n                int kadane = kadaneMax(colSum);\n                if (kadane <= k) {\n                    result = Math.max(result, kadane);\n                    if (result == k) return k;\n                } else {\n                    for (int c1 = 0; c1 < n; c1++) {\n                        int sum = 0;\n                        for (int c2 = c1; c2 < n; c2++) {\n                            sum += colSum[c2];\n                            if (sum <= k) result = Math.max(result, sum);\n                        }\n                    }\n                    if (result == k) return k;\n                }\n            }\n        }\n        return result;\n    }\n    private int kadaneMax(int[] arr) {\n        int maxSum = arr[0], curSum = arr[0];\n        for (int i = 1; i < arr.length; i++) {\n            curSum = Math.max(arr[i], curSum + arr[i]);\n            maxSum = Math.max(maxSum, curSum);\n        }\n        return maxSum;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

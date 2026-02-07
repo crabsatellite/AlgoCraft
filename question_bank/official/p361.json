@@ -18,6 +18,14 @@
       "description": "Track 'miss' = the smallest number we can't form yet. If nums[i] <= miss, extend coverage to miss + nums[i]. Otherwise, patch by adding miss itself (doubles coverage). Continue until miss > n.",
       "code": "class Solution {\n    public int minPatches(int[] nums, int n) {\n        long miss = 1;\n        int patches = 0, i = 0;\n        while (miss <= n) {\n            if (i < nums.length && nums[i] <= miss) {\n                miss += nums[i++];\n            } else {\n                miss += miss;\n                patches++;\n            }\n        }\n        return patches;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Greedy with Explicit Tracking",
+      "timeComplexity": "O(m + log n)",
+      "spaceComplexity": "O(1)",
+      "description": "Same greedy principle but explicitly track the reachable range [1, reach]. Iterate through nums: if current num fits within reach+1, extend reach. Otherwise, patch by adding reach+1 which doubles the reachable range.",
+      "code": "class Solution {\n    public int minPatches(int[] nums, int n) {\n        long reach = 0;\n        int patches = 0;\n        int i = 0;\n        while (reach < n) {\n            if (i < nums.length && nums[i] <= reach + 1) {\n                reach += nums[i];\n                i++;\n            } else {\n                reach += reach + 1;\n                patches++;\n            }\n        }\n        return patches;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

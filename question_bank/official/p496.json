@@ -32,6 +32,14 @@
       "description": "BFS level by level, assigning each node a position index (left child = 2*i, right child = 2*i+1). Normalize indices per level by subtracting the first index to prevent overflow. Width = last - first + 1.",
       "code": "class Solution {\n    public int widthOfBinaryTree(TreeNode root) {\n        if (root == null) return 0;\n        int maxWidth = 0;\n        Queue<int[]> queue = new LinkedList<>();\n        queue.offer(new int[]{0});\n        Queue<TreeNode> nodeQueue = new LinkedList<>();\n        nodeQueue.offer(root);\n        while (!nodeQueue.isEmpty()) {\n            int size = nodeQueue.size();\n            int first = 0, last = 0;\n            int offset = -1;\n            for (int i = 0; i < size; i++) {\n                TreeNode node = nodeQueue.poll();\n                int idx = queue.poll()[0];\n                if (offset == -1) offset = idx;\n                idx -= offset;\n                if (i == 0) first = idx;\n                if (i == size - 1) last = idx;\n                if (node.left != null) {\n                    nodeQueue.offer(node.left);\n                    queue.offer(new int[]{2 * idx});\n                }\n                if (node.right != null) {\n                    nodeQueue.offer(node.right);\n                    queue.offer(new int[]{2 * idx + 1});\n                }\n            }\n            maxWidth = Math.max(maxWidth, last - first + 1);\n        }\n        return maxWidth;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "DFS with First Index Per Level",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "Use DFS, tracking each node's index position. For each level, record the first (leftmost) index. Width at each level is current index - first index + 1. Track maximum width.",
+      "code": "class Solution {\n    private int maxWidth = 0;\n    private java.util.List<Integer> firstIndices = new java.util.ArrayList<>();\n\n    public int widthOfBinaryTree(TreeNode root) {\n        maxWidth = 0;\n        firstIndices = new java.util.ArrayList<>();\n        dfs(root, 0, 0);\n        return maxWidth;\n    }\n\n    private void dfs(TreeNode node, int depth, int index) {\n        if (node == null) return;\n        if (depth == firstIndices.size()) {\n            firstIndices.add(index);\n        }\n        int width = index - firstIndices.get(depth) + 1;\n        maxWidth = Math.max(maxWidth, width);\n        dfs(node.left, depth + 1, 2 * (index - firstIndices.get(depth)));\n        dfs(node.right, depth + 1, 2 * (index - firstIndices.get(depth)) + 1);\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

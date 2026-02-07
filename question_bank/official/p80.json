@@ -59,6 +59,14 @@
       "description": "Count the length, connect tail to head forming a circle. Then find the new tail at position (length - k % length - 1) from the old head, and break the circle there.",
       "code": "class Solution {\n    public ListNode rotateRight(ListNode head, int k) {\n        if (head == null || head.next == null || k == 0) return head;\n        \n        // Count length and find tail\n        int length = 1;\n        ListNode tail = head;\n        while (tail.next != null) {\n            length++;\n            tail = tail.next;\n        }\n        \n        k = k % length;\n        if (k == 0) return head;\n        \n        // Form circle\n        tail.next = head;\n        \n        // Find new tail (length - k - 1 steps from head)\n        ListNode newTail = head;\n        for (int i = 0; i < length - k - 1; i++) {\n            newTail = newTail.next;\n        }\n        \n        ListNode newHead = newTail.next;\n        newTail.next = null;\n        \n        return newHead;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Two Pointers with Length",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Count the list length and compute effective rotation k % length. Use two pointers: advance the fast pointer k steps ahead, then move both until fast reaches the last node. The slow pointer is at the new tail. Relink: fast.next = head, new head = slow.next, slow.next = null.",
+      "code": "class Solution {\n    public ListNode rotateRight(ListNode head, int k) {\n        if (head == null || head.next == null || k == 0) return head;\n        \n        // Count length\n        int length = 0;\n        ListNode curr = head;\n        while (curr != null) {\n            length++;\n            curr = curr.next;\n        }\n        \n        k = k % length;\n        if (k == 0) return head;\n        \n        // Fast pointer advances k steps\n        ListNode fast = head;\n        for (int i = 0; i < k; i++) {\n            fast = fast.next;\n        }\n        \n        // Move both until fast is at the last node\n        ListNode slow = head;\n        while (fast.next != null) {\n            slow = slow.next;\n            fast = fast.next;\n        }\n        \n        // Relink\n        ListNode newHead = slow.next;\n        slow.next = null;\n        fast.next = head;\n        \n        return newHead;\n    }\n}",
+      "language": "java"
     }
   ],
   "diagrams": [

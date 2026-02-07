@@ -33,6 +33,14 @@
       "description": "dp[i] = true if s[0..i-1] can be segmented. For each position i, check all words: if dp[i - word.length] is true and s ends with that word at position i, set dp[i] = true.",
       "code": "import java.util.*;\n\nclass Solution {\n    public boolean wordBreak(String s, List<String> wordDict) {\n        Set<String> words = new HashSet<>(wordDict);\n        boolean[] dp = new boolean[s.length() + 1];\n        dp[0] = true;\n        for (int i = 1; i <= s.length(); i++)\n            for (int j = 0; j < i; j++)\n                if (dp[j] && words.contains(s.substring(j, i))) {\n                    dp[i] = true;\n                    break;\n                }\n        return dp[s.length()];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "BFS",
+      "timeComplexity": "O(n^2 * m) where n = s.length, m = wordDict size",
+      "spaceComplexity": "O(n)",
+      "description": "Use BFS to explore all possible word break positions. Start from index 0, try all words, and add reachable indices to the queue.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean wordBreak(String s, List<String> wordDict) {\n        Set<String> set = new HashSet<>(wordDict);\n        boolean[] visited = new boolean[s.length() + 1];\n        Queue<Integer> queue = new LinkedList<>();\n        queue.offer(0);\n        while (!queue.isEmpty()) {\n            int start = queue.poll();\n            if (visited[start]) continue;\n            visited[start] = true;\n            for (int end = start + 1; end <= s.length(); end++) {\n                if (set.contains(s.substring(start, end))) {\n                    if (end == s.length()) return true;\n                    queue.offer(end);\n                }\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

@@ -27,6 +27,14 @@
       "description": "Standard BFS from (0,0) to (n-1,n-1) moving in 8 directions. Each cell is visited once. The level count gives the shortest path length.",
       "code": "import java.util.*;\n\nclass Solution {\n    public int shortestPathBinaryMatrix(int[][] grid) {\n        int n = grid.length;\n        if (grid[0][0] == 1 || grid[n - 1][n - 1] == 1) return -1;\n        Queue<int[]> queue = new LinkedList<>();\n        queue.offer(new int[]{0, 0});\n        grid[0][0] = 1;\n        int length = 1;\n        int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0},{1,1},{1,-1},{-1,1},{-1,-1}};\n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            for (int i = 0; i < size; i++) {\n                int[] cell = queue.poll();\n                if (cell[0] == n - 1 && cell[1] == n - 1) return length;\n                for (int[] d : dirs) {\n                    int ni = cell[0] + d[0], nj = cell[1] + d[1];\n                    if (ni >= 0 && ni < n && nj >= 0 && nj < n && grid[ni][nj] == 0) {\n                        grid[ni][nj] = 1;\n                        queue.offer(new int[]{ni, nj});\n                    }\n                }\n            }\n            length++;\n        }\n        return -1;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "A* Search",
+      "timeComplexity": "O(n^2 log n)",
+      "spaceComplexity": "O(n^2)",
+      "description": "Use A* with Chebyshev distance heuristic (max of dx, dy to target). Priority queue ordered by f = g + h where g is current path length and h is estimated remaining distance. Guarantees shortest path.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int shortestPathBinaryMatrix(int[][] grid) {\n        int n = grid.length;\n        if (grid[0][0] == 1 || grid[n - 1][n - 1] == 1) return -1;\n        if (n == 1) return 1;\n        int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0},{1,1},{1,-1},{-1,1},{-1,-1}};\n        boolean[][] visited = new boolean[n][n];\n        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[2] - b[2]);\n        int h = Math.max(n - 1, n - 1);\n        pq.offer(new int[]{0, 0, 1 + h, 1});\n        visited[0][0] = true;\n        while (!pq.isEmpty()) {\n            int[] cur = pq.poll();\n            int r = cur[0], c = cur[1], g = cur[3];\n            for (int[] d : dirs) {\n                int nr = r + d[0], nc = c + d[1];\n                if (nr < 0 || nr >= n || nc < 0 || nc >= n) continue;\n                if (visited[nr][nc] || grid[nr][nc] == 1) continue;\n                if (nr == n - 1 && nc == n - 1) return g + 1;\n                visited[nr][nc] = true;\n                int newH = Math.max(n - 1 - nr, n - 1 - nc);\n                pq.offer(new int[]{nr, nc, g + 1 + newH, g + 1});\n            }\n        }\n        return -1;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

@@ -18,6 +18,14 @@
       "description": "Track flags for whether we've seen a digit, dot, or exponent. Validate each character against the current state and update flags accordingly.",
       "code": "class Solution {\n    public boolean isNumber(String s) {\n        boolean seenDigit = false, seenDot = false, seenExp = false;\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (c >= '0' && c <= '9') {\n                seenDigit = true;\n            } else if (c == '.') {\n                if (seenDot || seenExp) return false;\n                seenDot = true;\n            } else if (c == 'e' || c == 'E') {\n                if (seenExp || !seenDigit) return false;\n                seenExp = true;\n                seenDigit = false;\n            } else if (c == '+' || c == '-') {\n                if (i > 0 && s.charAt(i - 1) != 'e' && s.charAt(i - 1) != 'E') return false;\n            } else {\n                return false;\n            }\n        }\n        return seenDigit;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Deterministic Finite Automaton (DFA)",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Model the valid number grammar as a state machine with transitions for digits, signs, dots, and exponents. Track current state and check if it ends in an accepting state.",
+      "code": "class Solution {\n    public boolean isNumber(String s) {\n        // States: 0=start, 1=sign, 2=digit, 3=dot-after-digit, 4=dot-no-digit, 5=digit-after-dot\n        // 6=exp, 7=exp-sign, 8=exp-digit\n        int state = 0;\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (c >= '0' && c <= '9') {\n                if (state == 0 || state == 1) state = 2;\n                else if (state == 2) state = 2;\n                else if (state == 3) state = 5;\n                else if (state == 4) state = 5;\n                else if (state == 5) state = 5;\n                else if (state == 6 || state == 7) state = 8;\n                else if (state == 8) state = 8;\n                else return false;\n            } else if (c == '+' || c == '-') {\n                if (state == 0) state = 1;\n                else if (state == 6) state = 7;\n                else return false;\n            } else if (c == '.') {\n                if (state == 0 || state == 1) state = 4;\n                else if (state == 2) state = 3;\n                else return false;\n            } else if (c == 'e' || c == 'E') {\n                if (state == 2 || state == 3 || state == 5) state = 6;\n                else return false;\n            } else {\n                return false;\n            }\n        }\n        return state == 2 || state == 3 || state == 5 || state == 8;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

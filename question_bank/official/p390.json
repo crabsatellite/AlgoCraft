@@ -18,6 +18,14 @@
       "description": "Expand the repeating part enough times (e.g., 20 digits) to get a precise decimal representation. Compare the two expanded decimal values with epsilon tolerance.",
       "code": "class Solution {\n    public boolean isRationalEqual(String s, String t) {\n        return Math.abs(parse(s) - parse(t)) < 1e-9;\n    }\n    private double parse(String s) {\n        int lparen = s.indexOf('(');\n        if (lparen < 0) return Double.parseDouble(s);\n        String base = s.substring(0, lparen);\n        String rep = s.substring(lparen + 1, s.length() - 1);\n        StringBuilder sb = new StringBuilder(base);\n        for (int i = 0; i < 20; i++) sb.append(rep);\n        return Double.parseDouble(sb.toString());\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Fraction Comparison (Exact Arithmetic)",
+      "timeComplexity": "O(L)",
+      "spaceComplexity": "O(L)",
+      "description": "Convert each rational number to an exact fraction (numerator/denominator) using the formula: for 0.abc(def), the value is (abcdef - abc) / (999...000...). Compare the two fractions by cross-multiplication to avoid floating point errors.",
+      "code": "class Solution {\n    public boolean isRationalEqual(String s, String t) {\n        long[] f1 = toFraction(s);\n        long[] f2 = toFraction(t);\n        return f1[0] * f2[1] == f1[1] * f2[0];\n    }\n    private long[] toFraction(String s) {\n        int dotIdx = s.indexOf('.');\n        int lp = s.indexOf('(');\n        if (dotIdx < 0) {\n            return new long[]{Long.parseLong(s), 1};\n        }\n        String intPart = s.substring(0, dotIdx);\n        String nonRep = lp < 0 ? s.substring(dotIdx + 1) : s.substring(dotIdx + 1, lp);\n        String rep = lp < 0 ? \"\" : s.substring(lp + 1, s.length() - 1);\n        long intVal = intPart.isEmpty() ? 0 : Long.parseLong(intPart);\n        long nonRepVal = nonRep.isEmpty() ? 0 : Long.parseLong(nonRep);\n        int nonRepLen = nonRep.length();\n        if (rep.isEmpty()) {\n            long den = 1;\n            for (int i = 0; i < nonRepLen; i++) den *= 10;\n            long num = intVal * den + nonRepVal;\n            long g = gcd(Math.abs(num), den);\n            return new long[]{num / g, den / g};\n        }\n        long repVal = Long.parseLong(rep);\n        int repLen = rep.length();\n        long nines = 1;\n        for (int i = 0; i < repLen; i++) nines *= 10;\n        nines -= 1;\n        long pow10 = 1;\n        for (int i = 0; i < nonRepLen; i++) pow10 *= 10;\n        long den = nines * pow10;\n        long num = intVal * den + nonRepVal * nines + repVal;\n        long g = gcd(Math.abs(num), den);\n        return new long[]{num / g, den / g};\n    }\n    private long gcd(long a, long b) {\n        while (b != 0) { long t = b; b = a % b; a = t; }\n        return a;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

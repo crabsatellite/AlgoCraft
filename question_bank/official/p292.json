@@ -18,6 +18,14 @@
       "description": "Check length >= 8, then iterate once tracking flags for lowercase, uppercase, digit, special character, and adjacent duplicates.",
       "code": "class Solution {\n    public boolean strongPasswordCheckerII(String password) {\n        if (password.length() < 8) return false;\n        boolean hasLower = false, hasUpper = false, hasDigit = false, hasSpecial = false;\n        String special = \"!@#$%^&*()-+\";\n        for (int i = 0; i < password.length(); i++) {\n            char c = password.charAt(i);\n            if (i > 0 && c == password.charAt(i - 1)) return false;\n            if (Character.isLowerCase(c)) hasLower = true;\n            else if (Character.isUpperCase(c)) hasUpper = true;\n            else if (Character.isDigit(c)) hasDigit = true;\n            if (special.indexOf(c) >= 0) hasSpecial = true;\n        }\n        return hasLower && hasUpper && hasDigit && hasSpecial;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Multi-Pass Validation",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Check each condition in separate passes. First check length, then scan for lowercase, uppercase, digit, special, and adjacent duplicates in separate loops.",
+      "code": "class Solution {\n    public boolean strongPasswordCheckerII(String password) {\n        if (password.length() < 8) return false;\n        String special = \"!@#$%^&*()-+\";\n        boolean hasLower = false, hasUpper = false, hasDigit = false, hasSpecial = false;\n        for (int i = 0; i < password.length(); i++) {\n            char c = password.charAt(i);\n            if (c >= 'a' && c <= 'z') hasLower = true;\n            if (c >= 'A' && c <= 'Z') hasUpper = true;\n            if (c >= '0' && c <= '9') hasDigit = true;\n            if (special.indexOf(c) >= 0) hasSpecial = true;\n        }\n        if (!hasLower || !hasUpper || !hasDigit || !hasSpecial) return false;\n        for (int i = 1; i < password.length(); i++) {\n            if (password.charAt(i) == password.charAt(i - 1)) return false;\n        }\n        return true;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

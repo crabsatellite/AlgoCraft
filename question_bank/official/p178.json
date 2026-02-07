@@ -17,6 +17,14 @@
       "description": "Use a TreeMap to count card frequencies. Always start a group from the smallest available card and try to form a consecutive sequence of groupSize.",
       "code": "class Solution {\n    public boolean isNStraightHand(int[] hand, int groupSize) {\n        if (hand.length % groupSize != 0) return false;\n        java.util.TreeMap<Integer, Integer> map = new java.util.TreeMap<>();\n        for (int card : hand) map.merge(card, 1, Integer::sum);\n        while (!map.isEmpty()) {\n            int first = map.firstKey();\n            for (int i = first; i < first + groupSize; i++) {\n                if (!map.containsKey(i)) return false;\n                if (map.get(i) == 1) map.remove(i);\n                else map.merge(i, -1, Integer::sum);\n            }\n        }\n        return true;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Sort and HashMap",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "Sort the array, then use a HashMap for frequency counts. Iterate through sorted cards, and for each card that still has remaining count, try to build a consecutive group of groupSize starting from that card.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isNStraightHand(int[] hand, int groupSize) {\n        if (hand.length % groupSize != 0) return false;\n        Arrays.sort(hand);\n        HashMap<Integer, Integer> freq = new HashMap<>();\n        for (int card : hand) freq.put(card, freq.getOrDefault(card, 0) + 1);\n        for (int card : hand) {\n            if (freq.get(card) == 0) continue;\n            for (int j = 0; j < groupSize; j++) {\n                int cur = card + j;\n                int count = freq.getOrDefault(cur, 0);\n                if (count == 0) return false;\n                freq.put(cur, count - 1);\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

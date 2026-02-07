@@ -26,6 +26,14 @@
       "description": "Modified merge sort that counts how many elements from the right half are moved before elements from the left half during merge. Track original indices to accumulate counts correctly.",
       "code": "class Solution {\n    private int[] counts;\n    public List<Integer> countSmaller(int[] nums) {\n        int n = nums.length;\n        counts = new int[n];\n        int[][] indexed = new int[n][2];\n        for (int i = 0; i < n; i++) indexed[i] = new int[]{nums[i], i};\n        mergeSort(indexed, 0, n - 1);\n        List<Integer> result = new java.util.ArrayList<>();\n        for (int c : counts) result.add(c);\n        return result;\n    }\n    private void mergeSort(int[][] arr, int lo, int hi) {\n        if (lo >= hi) return;\n        int mid = lo + (hi - lo) / 2;\n        mergeSort(arr, lo, mid);\n        mergeSort(arr, mid + 1, hi);\n        merge(arr, lo, mid, hi);\n    }\n    private void merge(int[][] arr, int lo, int mid, int hi) {\n        int[][] temp = new int[hi - lo + 1][2];\n        int i = lo, j = mid + 1, k = 0, rightCount = 0;\n        while (i <= mid && j <= hi) {\n            if (arr[j][0] < arr[i][0]) { rightCount++; temp[k++] = arr[j++]; }\n            else { counts[arr[i][1]] += rightCount; temp[k++] = arr[i++]; }\n        }\n        while (i <= mid) { counts[arr[i][1]] += rightCount; temp[k++] = arr[i++]; }\n        while (j <= hi) temp[k++] = arr[j++];\n        System.arraycopy(temp, 0, arr, lo, temp.length);\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Binary Indexed Tree (BIT)",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "Coordinate-compress the values. Iterate from right to left, querying the BIT for the count of values smaller than the current value, then updating the BIT with the current value.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private int[] tree;\n    public List<Integer> countSmaller(int[] nums) {\n        int n = nums.length;\n        int[] sorted = nums.clone();\n        Arrays.sort(sorted);\n        Map<Integer, Integer> ranks = new HashMap<>();\n        int rank = 1;\n        for (int v : sorted) {\n            if (!ranks.containsKey(v)) {\n                ranks.put(v, rank++);\n            }\n        }\n        tree = new int[rank + 1];\n        Integer[] result = new Integer[n];\n        for (int i = n - 1; i >= 0; i--) {\n            int r = ranks.get(nums[i]);\n            result[i] = query(r - 1);\n            update(r, rank);\n        }\n        return Arrays.asList(result);\n    }\n    private void update(int i, int max) {\n        for (; i <= max; i += i & (-i)) tree[i]++;\n    }\n    private int query(int i) {\n        int sum = 0;\n        for (; i > 0; i -= i & (-i)) sum += tree[i];\n        return sum;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

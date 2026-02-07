@@ -50,6 +50,14 @@
       "description": "Count frequencies. The most frequent task determines the frame: (maxFreq-1) * (n+1) + countOfMax. The answer is max of this formula and total tasks (when tasks fill all idle slots).",
       "code": "class Solution {\n    public int leastInterval(char[] tasks, int n) {\n        int[] freq = new int[26];\n        for (char t : tasks) freq[t - 'A']++;\n        \n        int maxFreq = 0;\n        int countMax = 0;\n        for (int f : freq) {\n            if (f > maxFreq) {\n                maxFreq = f;\n                countMax = 1;\n            } else if (f == maxFreq) {\n                countMax++;\n            }\n        }\n        \n        int result = (maxFreq - 1) * (n + 1) + countMax;\n        return Math.max(result, tasks.length);\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Max Heap Simulation",
+      "timeComplexity": "O(n log 26) = O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Use a max-heap of task frequencies. Each round, pick up to n+1 most frequent tasks. Decrement their counts and re-add non-zero counts after the round. Count total time including idle slots.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int leastInterval(char[] tasks, int n) {\n        int[] freq = new int[26];\n        for (char t : tasks) freq[t - 'A']++;\n        \n        PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());\n        for (int f : freq) {\n            if (f > 0) maxHeap.offer(f);\n        }\n        \n        int time = 0;\n        while (!maxHeap.isEmpty()) {\n            List<Integer> temp = new ArrayList<>();\n            int cycle = n + 1;\n            int taskCount = 0;\n            while (cycle > 0 && !maxHeap.isEmpty()) {\n                int count = maxHeap.poll();\n                if (count > 1) temp.add(count - 1);\n                taskCount++;\n                cycle--;\n            }\n            for (int t : temp) maxHeap.offer(t);\n            time += maxHeap.isEmpty() ? taskCount : n + 1;\n        }\n        return time;\n    }\n}",
+      "language": "java"
     }
   ]
 }

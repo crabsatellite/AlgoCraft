@@ -27,6 +27,14 @@
       "description": "Build an order mapping array. Compare each adjacent pair of words character by character using the custom order.",
       "code": "class Solution {\n    public boolean isAlienSorted(String[] words, String order) {\n        int[] map = new int[26];\n        for (int i = 0; i < 26; i++) {\n            map[order.charAt(i) - 'a'] = i;\n        }\n        for (int i = 0; i < words.length - 1; i++) {\n            if (!inOrder(words[i], words[i + 1], map)) return false;\n        }\n        return true;\n    }\n    \n    private boolean inOrder(String a, String b, int[] map) {\n        int len = Math.min(a.length(), b.length());\n        for (int i = 0; i < len; i++) {\n            if (map[a.charAt(i) - 'a'] < map[b.charAt(i) - 'a']) return true;\n            if (map[a.charAt(i) - 'a'] > map[b.charAt(i) - 'a']) return false;\n        }\n        return a.length() <= b.length();\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Character Remapping",
+      "timeComplexity": "O(n * m)",
+      "spaceComplexity": "O(n * m)",
+      "description": "Remap each character in each word to its position in the alien order, then check if the remapped words are in standard sorted order.",
+      "code": "class Solution {\n    public boolean isAlienSorted(String[] words, String order) {\n        int[] map = new int[26];\n        for (int i = 0; i < 26; i++) {\n            map[order.charAt(i) - 'a'] = i;\n        }\n        for (int i = 0; i < words.length - 1; i++) {\n            String w1 = words[i];\n            String w2 = words[i + 1];\n            boolean found = false;\n            for (int j = 0; j < Math.min(w1.length(), w2.length()); j++) {\n                int c1 = map[w1.charAt(j) - 'a'];\n                int c2 = map[w2.charAt(j) - 'a'];\n                if (c1 < c2) { found = true; break; }\n                if (c1 > c2) return false;\n            }\n            if (!found && w1.length() > w2.length()) return false;\n        }\n        return true;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

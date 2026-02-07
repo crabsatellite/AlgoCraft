@@ -17,6 +17,14 @@
       "description": "dp[i][j] = minimum turns to print s[i..j]. Base case: dp[i][i] = 1. For interval [i,j], if s[i]==s[k] for some k in (i,j], we can merge those prints, trying dp[i][k-1] + dp[k+1][j] for each such k.",
       "code": "class Solution {\n    public int strangePrinter(String s) {\n        int n = s.length();\n        int[][] dp = new int[n][n];\n        for (int i = n - 1; i >= 0; i--) {\n            dp[i][i] = 1;\n            for (int j = i + 1; j < n; j++) {\n                dp[i][j] = dp[i][j - 1] + 1;\n                for (int k = i; k < j; k++) {\n                    if (s.charAt(k) == s.charAt(j)) {\n                        dp[i][j] = Math.min(dp[i][j], dp[i][k] + (k + 1 <= j - 1 ? dp[k + 1][j - 1] : 0));\n                    }\n                }\n            }\n        }\n        return dp[0][n - 1];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Top-Down Memoization",
+      "timeComplexity": "O(n^3)",
+      "spaceComplexity": "O(n^2)",
+      "description": "Use recursive top-down DP with memoization. memo[i][j] = minimum turns to print s[i..j]. For each interval, try splitting at every position where the character matches s[j] to merge prints.",
+      "code": "class Solution {\n    private int[][] memo;\n\n    public int strangePrinter(String s) {\n        int n = s.length();\n        memo = new int[n][n];\n        return solve(s, 0, n - 1);\n    }\n\n    private int solve(String s, int i, int j) {\n        if (i > j) return 0;\n        if (i == j) return 1;\n        if (memo[i][j] != 0) return memo[i][j];\n        int result = solve(s, i, j - 1) + 1;\n        for (int k = i; k < j; k++) {\n            if (s.charAt(k) == s.charAt(j)) {\n                result = Math.min(result, solve(s, i, k) + solve(s, k + 1, j - 1));\n            }\n        }\n        memo[i][j] = result;\n        return result;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

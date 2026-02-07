@@ -17,6 +17,14 @@
       "description": "Add boundary 1s. dp[i][j] = max coins from bursting all balloons between i and j (exclusive). For each k in (i,j), k is the LAST balloon burst in that range: dp[i][j] = max(dp[i][k] + dp[k][j] + nums[i]*nums[k]*nums[j]).",
       "code": "class Solution {\n    public int maxCoins(int[] nums) {\n        int n = nums.length;\n        int[] val = new int[n + 2];\n        val[0] = val[n + 1] = 1;\n        for (int i = 0; i < n; i++) val[i + 1] = nums[i];\n        int[][] dp = new int[n + 2][n + 2];\n        for (int len = 2; len <= n + 1; len++) {\n            for (int i = 0; i + len <= n + 1; i++) {\n                int j = i + len;\n                for (int k = i + 1; k < j; k++) {\n                    dp[i][j] = Math.max(dp[i][j], dp[i][k] + dp[k][j] + val[i] * val[k] * val[j]);\n                }\n            }\n        }\n        return dp[0][n + 1];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Top-Down DP with Memoization",
+      "timeComplexity": "O(n^3)",
+      "spaceComplexity": "O(n^2)",
+      "description": "Recursive approach with memoization. For the range (left, right), try each balloon k as the last one to burst. Memoize results for each (left, right) pair to avoid recomputation.",
+      "code": "class Solution {\n    private int[][] memo;\n    private int[] val;\n    public int maxCoins(int[] nums) {\n        int n = nums.length;\n        val = new int[n + 2];\n        val[0] = val[n + 1] = 1;\n        for (int i = 0; i < n; i++) val[i + 1] = nums[i];\n        memo = new int[n + 2][n + 2];\n        for (int[] row : memo) java.util.Arrays.fill(row, -1);\n        return solve(0, n + 1);\n    }\n    private int solve(int left, int right) {\n        if (left + 1 == right) return 0;\n        if (memo[left][right] != -1) return memo[left][right];\n        int best = 0;\n        for (int k = left + 1; k < right; k++) {\n            int coins = val[left] * val[k] * val[right] + solve(left, k) + solve(k, right);\n            best = Math.max(best, coins);\n        }\n        memo[left][right] = best;\n        return best;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

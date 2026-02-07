@@ -17,6 +17,14 @@
       "description": "First compute cnt[v] = number of pairs (i,j) where nums[i] & nums[j] == v. Then for each k, count pairs where v & nums[k] == 0. Use a frequency map of pairwise ANDs.",
       "code": "class Solution {\n    public int countTriplets(int[] nums) {\n        int[] cnt = new int[1 << 16];\n        for (int a : nums)\n            for (int b : nums)\n                cnt[a & b]++;\n        int res = 0;\n        for (int c : nums)\n            for (int v = 0; v < (1 << 16); v++)\n                if ((v & c) == 0) res += cnt[v];\n        return res;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Subset Sum over Supersets (SOS DP)",
+      "timeComplexity": "O(2^16 * 16 + n)",
+      "spaceComplexity": "O(2^16)",
+      "description": "Count frequency of each pairwise AND. Then for each value c in nums, count complement supermasks that sum to 0 AND. Use sum over subsets (SOS) DP to efficiently compute the sum over all supersets of the complement bitmask.",
+      "code": "class Solution {\n    public int countTriplets(int[] nums) {\n        int[] pairCount = new int[1 << 16];\n        for (int a : nums)\n            for (int b : nums)\n                pairCount[a & b]++;\n        int result = 0;\n        for (int c : nums) {\n            int complement = ((1 << 16) - 1) ^ c;\n            int sub = complement;\n            result += pairCount[0];\n            while (sub > 0) {\n                result += pairCount[sub];\n                sub = (sub - 1) & complement;\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

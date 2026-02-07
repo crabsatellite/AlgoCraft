@@ -9,6 +9,24 @@
     { "input": "word1 = \"horse\", word2 = \"ros\"", "output": "3" },
     { "input": "word1 = \"intention\", word2 = \"execution\"", "output": "5" }
   ],
+  "solutions": [
+    {
+      "name": "Bottom-Up DP",
+      "timeComplexity": "O(m*n)",
+      "spaceComplexity": "O(m*n)",
+      "description": "Build a 2D DP table where dp[i][j] represents the edit distance between word1[0..i-1] and word2[0..j-1]. Fill base cases (empty string distances) then compute each cell using insert, delete, or replace operations.",
+      "code": "class Solution {\n    public int minDistance(String word1, String word2) {\n        int m = word1.length(), n = word2.length();\n        int[][] dp = new int[m + 1][n + 1];\n        for (int i = 0; i <= m; i++) dp[i][0] = i;\n        for (int j = 0; j <= n; j++) dp[0][j] = j;\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                if (word1.charAt(i - 1) == word2.charAt(j - 1)) {\n                    dp[i][j] = dp[i - 1][j - 1];\n                } else {\n                    dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], Math.min(dp[i - 1][j], dp[i][j - 1]));\n                }\n            }\n        }\n        return dp[m][n];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Memoization",
+      "timeComplexity": "O(m*n)",
+      "spaceComplexity": "O(m*n)",
+      "description": "Recursively compute edit distance with memoization. At each state (i, j), if characters match we skip; otherwise we try all three operations and take the minimum.",
+      "code": "class Solution {\n    private int[][] memo;\n    public int minDistance(String word1, String word2) {\n        memo = new int[word1.length() + 1][word2.length() + 1];\n        for (int[] row : memo) java.util.Arrays.fill(row, -1);\n        return dp(word1, word2, word1.length(), word2.length());\n    }\n    private int dp(String w1, String w2, int i, int j) {\n        if (i == 0) return j;\n        if (j == 0) return i;\n        if (memo[i][j] != -1) return memo[i][j];\n        if (w1.charAt(i - 1) == w2.charAt(j - 1)) {\n            memo[i][j] = dp(w1, w2, i - 1, j - 1);\n        } else {\n            memo[i][j] = 1 + Math.min(dp(w1, w2, i - 1, j - 1), Math.min(dp(w1, w2, i - 1, j), dp(w1, w2, i, j - 1)));\n        }\n        return memo[i][j];\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "word1 = \"horse\", word2 = \"ros\"", "output": "3" },
     { "input": "word1 = \"intention\", word2 = \"execution\"", "output": "5" },

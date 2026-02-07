@@ -19,6 +19,14 @@
       "description": "Use a TreeMap as a difference array of events. For each booking, increment at start and decrement at end. To find max k, sweep through the TreeMap computing prefix sums and track the maximum.",
       "code": "class MyCalendarThree {\n    private java.util.TreeMap<Integer, Integer> map;\n\n    public MyCalendarThree() {\n        map = new java.util.TreeMap<>();\n    }\n\n    public int book(int start, int end) {\n        map.merge(start, 1, Integer::sum);\n        map.merge(end, -1, Integer::sum);\n        int maxK = 0, active = 0;\n        for (int val : map.values()) {\n            active += val;\n            maxK = Math.max(maxK, active);\n        }\n        return maxK;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Segment Tree (Lazy Propagation)",
+      "timeComplexity": "O(n log C)",
+      "spaceComplexity": "O(n log C)",
+      "description": "Use a dynamic segment tree with lazy propagation over the coordinate space. Each book operation adds 1 to the interval [start, end). Query the global max after each update.",
+      "code": "class MyCalendarThree {\n    private java.util.Map<Integer, Integer> tree;\n    private java.util.Map<Integer, Integer> lazy;\n\n    public MyCalendarThree() {\n        tree = new java.util.HashMap<>();\n        lazy = new java.util.HashMap<>();\n    }\n\n    public int book(int start, int end) {\n        update(start, end - 1, 0, 1000000000, 1);\n        return tree.getOrDefault(1, 0);\n    }\n\n    private void update(int s, int e, int lo, int hi, int node) {\n        if (s > hi || e < lo) return;\n        if (s <= lo && hi <= e) {\n            tree.put(node, tree.getOrDefault(node, 0) + 1);\n            lazy.put(node, lazy.getOrDefault(node, 0) + 1);\n            return;\n        }\n        int mid = lo + (hi - lo) / 2;\n        update(s, e, lo, mid, 2 * node);\n        update(s, e, mid + 1, hi, 2 * node + 1);\n        tree.put(node, lazy.getOrDefault(node, 0) + Math.max(tree.getOrDefault(2 * node, 0), tree.getOrDefault(2 * node + 1, 0)));\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

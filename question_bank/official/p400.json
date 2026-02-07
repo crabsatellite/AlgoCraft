@@ -24,6 +24,14 @@
       "description": "Use two pointers from both ends. Greedily match the shortest prefix from left with suffix from right. Each match adds 2 to the count. If a middle portion remains, add 1.",
       "code": "class Solution {\n    public int longestDecomposition(String text) {\n        int n = text.length(), res = 0;\n        int lo = 0, hi = n - 1;\n        String left = \"\", right = \"\";\n        while (lo < hi) {\n            left += text.charAt(lo);\n            right = text.charAt(hi) + right;\n            if (left.equals(right)) {\n                res += 2;\n                left = \"\";\n                right = \"\";\n            }\n            lo++;\n            hi--;\n        }\n        if (lo == hi || !left.isEmpty()) res++;\n        return res;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Rolling Hash Two Pointers",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Use rolling hash to compare prefixes and suffixes efficiently. From both ends, build hash values incrementally. When the hashes and lengths match, verify equality and count chunks. This achieves O(n) expected time.",
+      "code": "class Solution {\n    public int longestDecomposition(String text) {\n        int n = text.length();\n        int count = 0;\n        long MOD = 1000000007L;\n        long BASE = 31L;\n        int lo = 0, hi = n - 1;\n        long leftHash = 0, rightHash = 0;\n        long power = 1;\n        int len = 0;\n        while (lo < hi) {\n            leftHash = (leftHash * BASE + (text.charAt(lo) - 'a' + 1)) % MOD;\n            rightHash = (rightHash + (text.charAt(hi) - 'a' + 1) * power) % MOD;\n            power = power * BASE % MOD;\n            len++;\n            if (leftHash == rightHash) {\n                boolean match = true;\n                for (int k = 0; k < len; k++) {\n                    if (text.charAt(lo - len + 1 + k) != text.charAt(hi + k)) {\n                        match = false;\n                        break;\n                    }\n                }\n                if (match) {\n                    count += 2;\n                    leftHash = 0;\n                    rightHash = 0;\n                    power = 1;\n                    len = 0;\n                }\n            }\n            lo++;\n            hi--;\n        }\n        if (lo == hi || len > 0) count++;\n        return count;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

@@ -20,6 +20,14 @@
       "description": "Add all gate cells to a queue. BFS outward, updating empty rooms with distance. Each cell is visited at most once, guaranteeing shortest distance.",
       "code": "import java.util.*;\n\nclass Solution {\n    public void wallsAndGates(int[][] rooms) {\n        int m = rooms.length, n = rooms[0].length;\n        Queue<int[]> queue = new LinkedList<>();\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++)\n                if (rooms[i][j] == 0) queue.offer(new int[]{i, j});\n        int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};\n        while (!queue.isEmpty()) {\n            int[] cell = queue.poll();\n            for (int[] d : dirs) {\n                int ni = cell[0] + d[0], nj = cell[1] + d[1];\n                if (ni >= 0 && ni < m && nj >= 0 && nj < n && rooms[ni][nj] == Integer.MAX_VALUE) {\n                    rooms[ni][nj] = rooms[cell[0]][cell[1]] + 1;\n                    queue.offer(new int[]{ni, nj});\n                }\n            }\n        }\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "DFS from Gates",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "DFS from each gate cell. At each cell, if the current distance is less than the stored value, update and recurse to neighbors with distance+1. Naturally prunes when distance is not an improvement.",
+      "code": "class Solution {\n    public void wallsAndGates(int[][] rooms) {\n        int m = rooms.length, n = rooms[0].length;\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (rooms[i][j] == 0) {\n                    dfs(rooms, i, j, 0);\n                }\n            }\n        }\n    }\n\n    private void dfs(int[][] rooms, int i, int j, int dist) {\n        if (i < 0 || i >= rooms.length || j < 0 || j >= rooms[0].length) return;\n        if (rooms[i][j] < dist) return;\n        rooms[i][j] = dist;\n        dfs(rooms, i + 1, j, dist + 1);\n        dfs(rooms, i - 1, j, dist + 1);\n        dfs(rooms, i, j + 1, dist + 1);\n        dfs(rooms, i, j - 1, dist + 1);\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

@@ -32,6 +32,14 @@
       "description": "Parse the string character by character. Count dashes for depth, then parse the number. Use a stack to track ancestors. Pop until stack size equals depth, then attach as left or right child.",
       "code": "class Solution {\n    public TreeNode recoverFromPreorder(String traversal) {\n        java.util.Deque<TreeNode> stack = new java.util.ArrayDeque<>();\n        int i = 0, n = traversal.length();\n        while (i < n) {\n            int depth = 0;\n            while (i < n && traversal.charAt(i) == '-') { depth++; i++; }\n            int val = 0;\n            while (i < n && traversal.charAt(i) != '-') { val = val * 10 + (traversal.charAt(i) - '0'); i++; }\n            TreeNode node = new TreeNode(val);\n            while (stack.size() > depth) stack.pop();\n            if (!stack.isEmpty()) {\n                if (stack.peek().left == null) stack.peek().left = node;\n                else stack.peek().right = node;\n            }\n            stack.push(node);\n        }\n        while (stack.size() > 1) stack.pop();\n        return stack.peek();\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Recursive DFS Parsing",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Parse the string recursively. Track current index globally. At each level, count dashes to determine depth. If depth matches expected level, create node and recurse for left and right children.",
+      "code": "class Solution {\n    private int idx = 0;\n    public TreeNode recoverFromPreorder(String traversal) {\n        idx = 0;\n        return build(traversal, 0);\n    }\n    private TreeNode build(String s, int depth) {\n        int n = s.length();\n        int dashes = 0;\n        int tempIdx = idx;\n        while (tempIdx < n && s.charAt(tempIdx) == '-') {\n            dashes++;\n            tempIdx++;\n        }\n        if (dashes != depth) return null;\n        idx = tempIdx;\n        int val = 0;\n        while (idx < n && s.charAt(idx) != '-') {\n            val = val * 10 + (s.charAt(idx) - '0');\n            idx++;\n        }\n        TreeNode node = new TreeNode(val);\n        node.left = build(s, depth + 1);\n        node.right = build(s, depth + 1);\n        return node;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

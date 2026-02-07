@@ -17,6 +17,14 @@
       "description": "Generalize the 2-transaction approach. Use arrays buy[k] and sell[k]. If k >= n/2, collect all positive differences (unlimited transactions).",
       "code": "class Solution {\n    public int maxProfit(int k, int[] prices) {\n        int n = prices.length;\n        if (k >= n / 2) {\n            int profit = 0;\n            for (int i = 1; i < n; i++) profit += Math.max(0, prices[i] - prices[i - 1]);\n            return profit;\n        }\n        int[] buy = new int[k], sell = new int[k];\n        java.util.Arrays.fill(buy, Integer.MIN_VALUE);\n        for (int p : prices) {\n            for (int i = 0; i < k; i++) {\n                buy[i] = Math.max(buy[i], (i == 0 ? 0 : sell[i - 1]) - p);\n                sell[i] = Math.max(sell[i], buy[i] + p);\n            }\n        }\n        return k == 0 ? 0 : sell[k - 1];\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "2D DP Table",
+      "timeComplexity": "O(n * k)",
+      "spaceComplexity": "O(n * k)",
+      "description": "Use a 2D table dp[t][i] = max profit using at most t transactions up to day i. For each transaction count, track the maximum of (dp[t-1][j] - prices[j]) for all j < i to optimize the inner loop.",
+      "code": "class Solution {\n    public int maxProfit(int k, int[] prices) {\n        int n = prices.length;\n        if (n <= 1) return 0;\n        if (k >= n / 2) {\n            int profit = 0;\n            for (int i = 1; i < n; i++) {\n                if (prices[i] > prices[i - 1]) profit += prices[i] - prices[i - 1];\n            }\n            return profit;\n        }\n        int[][] dp = new int[k + 1][n];\n        for (int t = 1; t <= k; t++) {\n            int maxDiff = -prices[0];\n            for (int i = 1; i < n; i++) {\n                dp[t][i] = Math.max(dp[t][i - 1], prices[i] + maxDiff);\n                maxDiff = Math.max(maxDiff, dp[t - 1][i] - prices[i]);\n            }\n        }\n        return dp[k][n - 1];\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

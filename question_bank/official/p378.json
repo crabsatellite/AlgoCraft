@@ -17,6 +17,14 @@
       "description": "Maintain a stack of chunk maximums. For each element, if it's smaller than the stack top, pop (merge chunks) keeping track of the maximum. Push the max back. The stack size is the number of chunks.",
       "code": "class Solution {\n    public int maxChunksToSorted(int[] arr) {\n        java.util.Deque<Integer> stack = new java.util.ArrayDeque<>();\n        for (int num : arr) {\n            int max = num;\n            while (!stack.isEmpty() && stack.peek() > num) {\n                max = Math.max(max, stack.pop());\n            }\n            stack.push(max);\n        }\n        return stack.size();\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Prefix Sum Comparison with Sorted Array",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "A chunk boundary can exist at position i if the max of arr[0..i] equals the max of sorted[0..i] and the sum of arr[0..i] equals the sum of sorted[0..i]. Equivalently, compare prefix sums of arr with prefix sums of sorted arr.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxChunksToSorted(int[] arr) {\n        int n = arr.length;\n        int[] sorted = arr.clone();\n        Arrays.sort(sorted);\n        long sum1 = 0, sum2 = 0;\n        int chunks = 0;\n        for (int i = 0; i < n; i++) {\n            sum1 += arr[i];\n            sum2 += sorted[i];\n            if (sum1 == sum2) chunks++;\n        }\n        return chunks;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

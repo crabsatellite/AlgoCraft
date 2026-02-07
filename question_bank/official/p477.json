@@ -17,6 +17,14 @@
       "description": "Track the global min and max seen so far. For each new array, compute distance using current array's max with global min and current array's min with global max. Update global min and max.",
       "code": "class Solution {\n    public int maxDistance(java.util.List<java.util.List<Integer>> arrays) {\n        int globalMin = arrays.get(0).get(0);\n        int globalMax = arrays.get(0).get(arrays.get(0).size() - 1);\n        int result = 0;\n        for (int i = 1; i < arrays.size(); i++) {\n            java.util.List<Integer> arr = arrays.get(i);\n            int curMin = arr.get(0);\n            int curMax = arr.get(arr.size() - 1);\n            result = Math.max(result, Math.abs(curMax - globalMin));\n            result = Math.max(result, Math.abs(globalMax - curMin));\n            globalMin = Math.min(globalMin, curMin);\n            globalMax = Math.max(globalMax, curMax);\n        }\n        return result;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Sort Min-Max Pairs",
+      "timeComplexity": "O(m log m)",
+      "spaceComplexity": "O(m)",
+      "description": "Extract (min, max, index) from each array. Sort by min, then check max of earlier arrays against min of later arrays, and vice versa. Actually simpler: collect all (min, arrayIndex) and (max, arrayIndex) and find the max difference ensuring different arrays.",
+      "code": "class Solution {\n    public int maxDistance(java.util.List<java.util.List<Integer>> arrays) {\n        int m = arrays.size();\n        int[][] minArr = new int[m][2];\n        int[][] maxArr = new int[m][2];\n        for (int i = 0; i < m; i++) {\n            java.util.List<Integer> arr = arrays.get(i);\n            minArr[i] = new int[]{arr.get(0), i};\n            maxArr[i] = new int[]{arr.get(arr.size() - 1), i};\n        }\n        java.util.Arrays.sort(minArr, (a, b) -> a[0] - b[0]);\n        java.util.Arrays.sort(maxArr, (a, b) -> b[0] - a[0]);\n        if (minArr[0][1] != maxArr[0][1]) {\n            return maxArr[0][0] - minArr[0][0];\n        }\n        return Math.max(maxArr[0][0] - minArr[1][0], maxArr[1][0] - minArr[0][0]);\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

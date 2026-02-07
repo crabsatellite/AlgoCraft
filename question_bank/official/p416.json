@@ -19,6 +19,14 @@
       "description": "Map table names to a list of rows. Each row is a List<String>. insertRow appends to the list. selectCell indexes by rowId-1 and columnId-1.",
       "code": "class SQL {\n    private java.util.Map<String, java.util.List<java.util.List<String>>> tables = new java.util.HashMap<>();\n    public SQL(java.util.List<String> names, java.util.List<Integer> columns) {\n        for (String name : names) tables.put(name, new java.util.ArrayList<>());\n    }\n    public void insertRow(String name, java.util.List<String> row) {\n        tables.get(name).add(row);\n    }\n    public String selectCell(String name, int rowId, int columnId) {\n        return tables.get(name).get(rowId - 1).get(columnId - 1);\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "HashMap with Row ID Tracking",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(rows * cols)",
+      "description": "Use a nested HashMap: table name maps to a map of rowId to row data. Track auto-increment ID per table. SelectCell looks up by table name, rowId, and columnId.",
+      "code": "import java.util.*;\n\nclass SQL {\n    private Map<String, Map<Integer, List<String>>> tables;\n    private Map<String, Integer> nextId;\n    public SQL(List<String> names, List<Integer> columns) {\n        tables = new HashMap();\n        nextId = new HashMap();\n        for (int i = 0; i < names.size(); i++) {\n            tables.put(names.get(i), new HashMap());\n            nextId.put(names.get(i), 1);\n        }\n    }\n    public void insertRow(String name, List<String> row) {\n        int id = nextId.get(name).intValue();\n        tables.get(name).put(id, row);\n        nextId.put(name, id + 1);\n    }\n    public String selectCell(String name, int rowId, int columnId) {\n        return tables.get(name).get(rowId).get(columnId - 1);\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

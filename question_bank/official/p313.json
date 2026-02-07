@@ -18,6 +18,14 @@
       "description": "Use factorial number system to determine each digit. For position i, divide (k-1) by (n-1-i)! to get the index into remaining available digits.",
       "code": "class Solution {\n    public String getPermutation(int n, int k) {\n        List<Integer> nums = new java.util.ArrayList<>();\n        int[] fact = new int[n + 1];\n        fact[0] = 1;\n        for (int i = 1; i <= n; i++) {\n            fact[i] = fact[i - 1] * i;\n            nums.add(i);\n        }\n        k--;\n        StringBuilder sb = new StringBuilder();\n        for (int i = n; i > 0; i--) {\n            int idx = k / fact[i - 1];\n            sb.append(nums.remove(idx));\n            k %= fact[i - 1];\n        }\n        return sb.toString();\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Iterative Permutation Generation",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "Use an array-based approach. Maintain available digits in a boolean array. For each position, compute which digit to pick using factorial division, then scan the boolean array to find the k-th available digit.",
+      "code": "class Solution {\n    public String getPermutation(int n, int k) {\n        boolean[] used = new boolean[n + 1];\n        int[] fact = new int[n + 1];\n        fact[0] = 1;\n        for (int i = 1; i <= n; i++) {\n            fact[i] = fact[i - 1] * i;\n        }\n        k--;\n        StringBuilder sb = new StringBuilder();\n        for (int i = n; i > 0; i--) {\n            int idx = k / fact[i - 1];\n            k %= fact[i - 1];\n            int count = 0;\n            for (int j = 1; j <= n; j++) {\n                if (!used[j]) {\n                    if (count == idx) {\n                        sb.append(j);\n                        used[j] = true;\n                        break;\n                    }\n                    count++;\n                }\n            }\n        }\n        return sb.toString();\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

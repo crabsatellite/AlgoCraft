@@ -26,6 +26,14 @@
       "description": "For each cell, iterate over all 9 neighbors (including itself). Sum valid neighbors and divide by the count of valid neighbors to get the floor average.",
       "code": "class Solution {\n    public int[][] imageSmoother(int[][] img) {\n        int m = img.length, n = img[0].length;\n        int[][] res = new int[m][n];\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                int sum = 0, count = 0;\n                for (int di = -1; di <= 1; di++) {\n                    for (int dj = -1; dj <= 1; dj++) {\n                        int ni = i + di, nj = j + dj;\n                        if (ni >= 0 && ni < m && nj >= 0 && nj < n) {\n                            sum += img[ni][nj];\n                            count++;\n                        }\n                    }\n                }\n                res[i][j] = sum / count;\n            }\n        }\n        return res;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Prefix Sum 2D",
+      "timeComplexity": "O(m*n)",
+      "spaceComplexity": "O(m*n)",
+      "description": "Build a 2D prefix sum array. For each cell, compute the sum of its 3x3 neighborhood using the prefix sum in O(1). Divide by the valid neighbor count to get the floor average.",
+      "code": "class Solution {\n    public int[][] imageSmoother(int[][] img) {\n        int m = img.length, n = img[0].length;\n        int[][] prefix = new int[m + 1][n + 1];\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                prefix[i][j] = img[i - 1][j - 1] + prefix[i - 1][j] + prefix[i][j - 1] - prefix[i - 1][j - 1];\n            }\n        }\n        int[][] res = new int[m][n];\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                int r1 = Math.max(0, i - 1), c1 = Math.max(0, j - 1);\n                int r2 = Math.min(m - 1, i + 1), c2 = Math.min(n - 1, j + 1);\n                int sum = prefix[r2 + 1][c2 + 1] - prefix[r1][c2 + 1] - prefix[r2 + 1][c1] + prefix[r1][c1];\n                int count = (r2 - r1 + 1) * (c2 - c1 + 1);\n                res[i][j] = sum / count;\n            }\n        }\n        return res;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

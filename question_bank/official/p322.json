@@ -28,6 +28,14 @@
       "description": "In a valid BST, inorder traversal is sorted. Find the two swapped nodes by detecting inversions during inorder traversal, then swap their values.",
       "code": "class Solution {\n    private TreeNode first, second, prev;\n    public void recoverTree(TreeNode root) {\n        inorder(root);\n        int temp = first.val;\n        first.val = second.val;\n        second.val = temp;\n    }\n    private void inorder(TreeNode node) {\n        if (node == null) return;\n        inorder(node.left);\n        if (prev != null && prev.val > node.val) {\n            if (first == null) first = prev;\n            second = node;\n        }\n        prev = node;\n        inorder(node.right);\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Morris Inorder Traversal",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Use Morris traversal (threaded binary tree) to achieve O(1) space inorder traversal. Detect the two swapped nodes by finding inversions, then swap their values.",
+      "code": "class Solution {\n    public void recoverTree(TreeNode root) {\n        TreeNode first = null, second = null, prev = null;\n        TreeNode curr = root;\n        while (curr != null) {\n            if (curr.left == null) {\n                if (prev != null && prev.val > curr.val) {\n                    if (first == null) first = prev;\n                    second = curr;\n                }\n                prev = curr;\n                curr = curr.right;\n            } else {\n                TreeNode pred = curr.left;\n                while (pred.right != null && pred.right != curr) {\n                    pred = pred.right;\n                }\n                if (pred.right == null) {\n                    pred.right = curr;\n                    curr = curr.left;\n                } else {\n                    pred.right = null;\n                    if (prev != null && prev.val > curr.val) {\n                        if (first == null) first = prev;\n                        second = curr;\n                    }\n                    prev = curr;\n                    curr = curr.right;\n                }\n            }\n        }\n        int temp = first.val;\n        first.val = second.val;\n        second.val = temp;\n    }\n}",
+      "language": "java"
     }
   ],
   "tests": [

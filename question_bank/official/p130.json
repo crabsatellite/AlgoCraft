@@ -24,6 +24,24 @@
       "output": "[]"
     }
   ],
+  "solutions": [
+    {
+      "name": "DFS with HashMap",
+      "timeComplexity": "O(V + E)",
+      "spaceComplexity": "O(V)",
+      "description": "Use a HashMap mapping original node to cloned node. DFS from the given node: clone it, store in map, then recursively clone all neighbors.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private Map<Node, Node> visited = new HashMap<>();\n\n    public Node cloneGraph(Node node) {\n        if (node == null) return null;\n        if (visited.containsKey(node)) return visited.get(node);\n        Node clone = new Node(node.val);\n        visited.put(node, clone);\n        for (Node neighbor : node.neighbors) {\n            clone.neighbors.add(cloneGraph(neighbor));\n        }\n        return clone;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "BFS with HashMap",
+      "timeComplexity": "O(V + E)",
+      "spaceComplexity": "O(V)",
+      "description": "BFS from the given node. Clone each node when first encountered and store in a map. For each neighbor, clone if not yet cloned and add to the clone's neighbor list.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public Node cloneGraph(Node node) {\n        if (node == null) return null;\n        Map<Node, Node> map = new HashMap<>();\n        Queue<Node> queue = new LinkedList<>();\n        map.put(node, new Node(node.val));\n        queue.offer(node);\n        while (!queue.isEmpty()) {\n            Node cur = queue.poll();\n            for (Node neighbor : cur.neighbors) {\n                if (!map.containsKey(neighbor)) {\n                    map.put(neighbor, new Node(neighbor.val));\n                    queue.offer(neighbor);\n                }\n                map.get(cur).neighbors.add(map.get(neighbor));\n            }\n        }\n        return map.get(node);\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "adjList = [[2,4],[1,3],[2,4],[1,3]]",

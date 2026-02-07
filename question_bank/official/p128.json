@@ -21,6 +21,24 @@
       "output": "3"
     }
   ],
+  "solutions": [
+    {
+      "name": "DFS",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "Iterate through the grid. When a '1' is found, increment count and DFS to mark all connected '1's as '0' (visited).",
+      "code": "class Solution {\n    public int numIslands(char[][] grid) {\n        int count = 0;\n        for (int i = 0; i < grid.length; i++) {\n            for (int j = 0; j < grid[0].length; j++) {\n                if (grid[i][j] == '1') {\n                    count++;\n                    dfs(grid, i, j);\n                }\n            }\n        }\n        return count;\n    }\n\n    private void dfs(char[][] grid, int i, int j) {\n        if (i < 0 || i >= grid.length || j < 0 || j >= grid[0].length || grid[i][j] != '1') return;\n        grid[i][j] = '0';\n        dfs(grid, i + 1, j);\n        dfs(grid, i - 1, j);\n        dfs(grid, i, j + 1);\n        dfs(grid, i, j - 1);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "BFS",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(min(m, n))",
+      "description": "Same idea but use a queue for BFS instead of recursion. Mark cells as visited when adding to queue to avoid duplicates.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int numIslands(char[][] grid) {\n        int m = grid.length, n = grid[0].length, count = 0;\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (grid[i][j] == '1') {\n                    count++;\n                    grid[i][j] = '0';\n                    Queue<int[]> queue = new LinkedList<>();\n                    queue.offer(new int[]{i, j});\n                    int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};\n                    while (!queue.isEmpty()) {\n                        int[] cell = queue.poll();\n                        for (int[] d : dirs) {\n                            int ni = cell[0] + d[0], nj = cell[1] + d[1];\n                            if (ni >= 0 && ni < m && nj >= 0 && nj < n && grid[ni][nj] == '1') {\n                                grid[ni][nj] = '0';\n                                queue.offer(new int[]{ni, nj});\n                            }\n                        }\n                    }\n                }\n            }\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "grid = [[\"1\",\"1\",\"1\",\"1\",\"0\"],[\"1\",\"1\",\"0\",\"1\",\"0\"],[\"1\",\"1\",\"0\",\"0\",\"0\"],[\"0\",\"0\",\"0\",\"0\",\"0\"]]",

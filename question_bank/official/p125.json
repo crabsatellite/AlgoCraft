@@ -11,6 +11,16 @@
       "output": "[[\"5\",\"3\",\"4\",\"6\",\"7\",\"8\",\"9\",\"1\",\"2\"],[\"6\",\"7\",\"2\",\"1\",\"9\",\"5\",\"3\",\"4\",\"8\"],[\"1\",\"9\",\"8\",\"3\",\"4\",\"2\",\"5\",\"6\",\"7\"],[\"8\",\"5\",\"9\",\"7\",\"6\",\"1\",\"4\",\"2\",\"3\"],[\"4\",\"2\",\"6\",\"8\",\"5\",\"3\",\"7\",\"9\",\"1\"],[\"7\",\"1\",\"3\",\"9\",\"2\",\"4\",\"8\",\"5\",\"6\"],[\"9\",\"6\",\"1\",\"5\",\"3\",\"7\",\"2\",\"8\",\"4\"],[\"2\",\"8\",\"7\",\"4\",\"1\",\"9\",\"6\",\"3\",\"5\"],[\"3\",\"4\",\"5\",\"2\",\"8\",\"6\",\"1\",\"7\",\"9\"]]"
     }
   ],
+  "solutions": [
+    {
+      "name": "Backtracking",
+      "timeComplexity": "O(9^empty_cells)",
+      "spaceComplexity": "O(1)",
+      "description": "Scan for empty cells. For each empty cell, try digits 1-9. Check validity against row, column, and 3x3 box. If valid, place and recurse. Backtrack on failure.",
+      "code": "class Solution {\n    public void solveSudoku(char[][] board) {\n        solve(board);\n    }\n\n    private boolean solve(char[][] board) {\n        for (int i = 0; i < 9; i++) {\n            for (int j = 0; j < 9; j++) {\n                if (board[i][j] != '.') continue;\n                for (char c = '1'; c <= '9'; c++) {\n                    if (isValid(board, i, j, c)) {\n                        board[i][j] = c;\n                        if (solve(board)) return true;\n                        board[i][j] = '.';\n                    }\n                }\n                return false;\n            }\n        }\n        return true;\n    }\n\n    private boolean isValid(char[][] board, int row, int col, char c) {\n        int boxRow = 3 * (row / 3), boxCol = 3 * (col / 3);\n        for (int i = 0; i < 9; i++) {\n            if (board[row][i] == c) return false;\n            if (board[i][col] == c) return false;\n            if (board[boxRow + i / 3][boxCol + i % 3] == c) return false;\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "board = [[\"5\",\"3\",\".\",\".\",\"7\",\".\",\".\",\".\",\".\"],[\"6\",\".\",\".\",\"1\",\"9\",\"5\",\".\",\".\",\".\"],[\".\",\"9\",\"8\",\".\",\".\",\".\",\".\",\"6\",\".\"],[\"8\",\".\",\".\",\".\",\"6\",\".\",\".\",\".\",\"3\"],[\"4\",\".\",\".\",\"8\",\".\",\"3\",\".\",\".\",\"1\"],[\"7\",\".\",\".\",\".\",\"2\",\".\",\".\",\".\",\"6\"],[\".\",\"6\",\".\",\".\",\".\",\".\",\"2\",\"8\",\".\"],[\".\",\".\",\".\",\"4\",\"1\",\"9\",\".\",\".\",\"5\"],[\".\",\".\",\".\",\".\",\"8\",\".\",\".\",\"7\",\"9\"]]",

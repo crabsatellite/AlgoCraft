@@ -10,6 +10,16 @@
     { "input": "rods = [1,2,3,4,5,6]", "output": "10" },
     { "input": "rods = [1,2]", "output": "0" }
   ],
+  "solutions": [
+    {
+      "name": "DP on Difference",
+      "timeComplexity": "O(n * S)",
+      "spaceComplexity": "O(S)",
+      "description": "dp[diff] = max taller support height when the difference between two supports is diff. For each rod, try adding it to the taller side, shorter side, or skipping it.",
+      "code": "class Solution {\n    public int tallestBillboard(int[] rods) {\n        java.util.Map<Integer, Integer> dp = new java.util.HashMap<>();\n        dp.put(0, 0);\n        for (int rod : rods) {\n            java.util.Map<Integer, Integer> cur = new java.util.HashMap<>(dp);\n            for (var e : cur.entrySet()) {\n                int diff = e.getKey(), tall = e.getValue();\n                dp.merge(diff + rod, tall + rod, Math::max);\n                dp.merge(diff - rod, tall, Math::max);\n            }\n        }\n        return dp.getOrDefault(0, 0);\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "rods = [1,2,3,6]", "output": "6" },
     { "input": "rods = [1,2,3,4,5,6]", "output": "10" },

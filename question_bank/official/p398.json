@@ -10,6 +10,16 @@
     { "input": "expression = \"|(f,f,f,t)\"", "output": "true" },
     { "input": "expression = \"!(&(f,t))\"", "output": "true" }
   ],
+  "solutions": [
+    {
+      "name": "Stack-Based Evaluation",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use a stack of characters. Push operators and operands. On closing paren, pop all operands until '(', then pop the operator and evaluate. Push the result back.",
+      "code": "class Solution {\n    public boolean parseBoolExpr(String expression) {\n        java.util.Deque<Character> stack = new java.util.ArrayDeque<>();\n        for (char c : expression.toCharArray()) {\n            if (c == ',') continue;\n            if (c != ')') { stack.push(c); continue; }\n            boolean hasTrue = false, hasFalse = false;\n            while (stack.peek() != '(') {\n                char val = stack.pop();\n                if (val == 't') hasTrue = true;\n                else hasFalse = true;\n            }\n            stack.pop();\n            char op = stack.pop();\n            if (op == '!') stack.push(hasTrue ? 'f' : 't');\n            else if (op == '&') stack.push(hasFalse ? 'f' : 't');\n            else stack.push(hasTrue ? 't' : 'f');\n        }\n        return stack.peek() == 't';\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "expression = \"&(|(f))\"", "output": "false" },
     { "input": "expression = \"|(f,f,f,t)\"", "output": "true" },

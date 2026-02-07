@@ -24,6 +24,16 @@
       "output": "[1,401,null,349,88,90]"
     }
   ],
+  "solutions": [
+    {
+      "name": "Stack-Based Iterative",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Parse the string character by character. Count dashes for depth, then parse the number. Use a stack to track ancestors. Pop until stack size equals depth, then attach as left or right child.",
+      "code": "class Solution {\n    public TreeNode recoverFromPreorder(String traversal) {\n        java.util.Deque<TreeNode> stack = new java.util.ArrayDeque<>();\n        int i = 0, n = traversal.length();\n        while (i < n) {\n            int depth = 0;\n            while (i < n && traversal.charAt(i) == '-') { depth++; i++; }\n            int val = 0;\n            while (i < n && traversal.charAt(i) != '-') { val = val * 10 + (traversal.charAt(i) - '0'); i++; }\n            TreeNode node = new TreeNode(val);\n            while (stack.size() > depth) stack.pop();\n            if (!stack.isEmpty()) {\n                if (stack.peek().left == null) stack.peek().left = node;\n                else stack.peek().right = node;\n            }\n            stack.push(node);\n        }\n        while (stack.size() > 1) stack.pop();\n        return stack.peek();\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "traversal = \"1-2--3--4-5--6--7\"",

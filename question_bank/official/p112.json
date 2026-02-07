@@ -18,6 +18,16 @@
       "output": "[null, null, null, 1.5, null, 2.0]"
     }
   ],
+  "solutions": [
+    {
+      "name": "Two Heaps",
+      "timeComplexity": "O(log n) addNum, O(1) findMedian",
+      "spaceComplexity": "O(n)",
+      "description": "Maintain a max-heap for the lower half and a min-heap for the upper half. Balance so that sizes differ by at most 1. Median is from the top of one or both heaps.",
+      "code": "import java.util.*;\n\nclass MedianFinder {\n    private PriorityQueue<Integer> maxHeap;\n    private PriorityQueue<Integer> minHeap;\n\n    public MedianFinder() {\n        maxHeap = new PriorityQueue<>(Collections.reverseOrder());\n        minHeap = new PriorityQueue<>();\n    }\n\n    public void addNum(int num) {\n        maxHeap.offer(num);\n        minHeap.offer(maxHeap.poll());\n        if (minHeap.size() > maxHeap.size()) {\n            maxHeap.offer(minHeap.poll());\n        }\n    }\n\n    public double findMedian() {\n        if (maxHeap.size() > minHeap.size()) {\n            return maxHeap.peek();\n        }\n        return (maxHeap.peek() + minHeap.peek()) / 2.0;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"MedianFinder\", \"addNum\", \"addNum\", \"findMedian\", \"addNum\", \"findMedian\"]\n[[], [1], [2], [], [3], []]",

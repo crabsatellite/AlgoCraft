@@ -9,6 +9,16 @@
     { "input": "nums = [3,6,9,1]", "output": "3" },
     { "input": "nums = [10]", "output": "0" }
   ],
+  "solutions": [
+    {
+      "name": "Bucket Sort",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "The max gap must be >= ceil((max-min)/(n-1)). Create buckets of this size. Only track min/max per bucket. The answer is the max gap between consecutive non-empty bucket boundaries.",
+      "code": "class Solution {\n    public int maximumGap(int[] nums) {\n        int n = nums.length;\n        if (n < 2) return 0;\n        int min = nums[0], max = nums[0];\n        for (int num : nums) { min = Math.min(min, num); max = Math.max(max, num); }\n        if (min == max) return 0;\n        int bucketSize = Math.max(1, (max - min) / (n - 1));\n        int bucketCount = (max - min) / bucketSize + 1;\n        int[] bucketMin = new int[bucketCount], bucketMax = new int[bucketCount];\n        java.util.Arrays.fill(bucketMin, Integer.MAX_VALUE);\n        java.util.Arrays.fill(bucketMax, Integer.MIN_VALUE);\n        for (int num : nums) {\n            int idx = (num - min) / bucketSize;\n            bucketMin[idx] = Math.min(bucketMin[idx], num);\n            bucketMax[idx] = Math.max(bucketMax[idx], num);\n        }\n        int maxGap = 0, prevMax = bucketMax[0];\n        for (int i = 1; i < bucketCount; i++) {\n            if (bucketMin[i] == Integer.MAX_VALUE) continue;\n            maxGap = Math.max(maxGap, bucketMin[i] - prevMax);\n            prevMax = bucketMax[i];\n        }\n        return maxGap;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "nums = [3,6,9,1]", "output": "3" },
     { "input": "nums = [10]", "output": "0" }

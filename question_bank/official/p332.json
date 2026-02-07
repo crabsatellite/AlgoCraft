@@ -9,6 +9,16 @@
     { "input": "points = [[1,1],[2,2],[3,3]]", "output": "3" },
     { "input": "points = [[1,1],[3,2],[5,3],[4,1],[2,3],[1,4]]", "output": "4" }
   ],
+  "solutions": [
+    {
+      "name": "Slope HashMap",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "For each point, compute the slope to every other point using reduced fraction (dx/gcd, dy/gcd) as the key. Track the max count of collinear points for each anchor.",
+      "code": "class Solution {\n    public int maxPoints(int[][] points) {\n        int n = points.length, max = 1;\n        for (int i = 0; i < n; i++) {\n            java.util.Map<String, Integer> map = new java.util.HashMap<>();\n            for (int j = i + 1; j < n; j++) {\n                int dx = points[j][0] - points[i][0];\n                int dy = points[j][1] - points[i][1];\n                int g = gcd(Math.abs(dx), Math.abs(dy));\n                if (g != 0) { dx /= g; dy /= g; }\n                if (dx < 0) { dx = -dx; dy = -dy; }\n                if (dx == 0) dy = Math.abs(dy);\n                String key = dx + \",\" + dy;\n                int count = map.merge(key, 2, (a, b) -> a + 1);\n                max = Math.max(max, count);\n            }\n        }\n        return max;\n    }\n    private int gcd(int a, int b) { return b == 0 ? a : gcd(b, a % b); }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "points = [[1,1],[2,2],[3,3]]", "output": "3" },
     { "input": "points = [[1,1],[3,2],[5,3],[4,1],[2,3],[1,4]]", "output": "4" }

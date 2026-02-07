@@ -20,6 +20,16 @@
       "output": "\"a a b c\""
     }
   ],
+  "solutions": [
+    {
+      "name": "Trie Prefix Search",
+      "timeComplexity": "O(D*L + S)",
+      "spaceComplexity": "O(D*L)",
+      "description": "Build a Trie from all dictionary roots. For each word in the sentence, traverse the Trie to find the shortest matching prefix root. Replace the word with the root if found.",
+      "code": "class Solution {\n    private int[][] trie = new int[100001][26];\n    private boolean[] end = new boolean[100001];\n    private int idx = 0;\n    \n    public String replaceWords(List<String> dictionary, String sentence) {\n        for (String root : dictionary) {\n            int node = 0;\n            for (char c : root.toCharArray()) {\n                int ci = c - 'a';\n                if (trie[node][ci] == 0) trie[node][ci] = ++idx;\n                node = trie[node][ci];\n            }\n            end[node] = true;\n        }\n        StringBuilder sb = new StringBuilder();\n        for (String word : sentence.split(\" \")) {\n            if (sb.length() > 0) sb.append(' ');\n            int node = 0;\n            boolean found = false;\n            for (int i = 0; i < word.length(); i++) {\n                int ci = word.charAt(i) - 'a';\n                if (trie[node][ci] == 0) break;\n                node = trie[node][ci];\n                if (end[node]) {\n                    sb.append(word, 0, i + 1);\n                    found = true;\n                    break;\n                }\n            }\n            if (!found) sb.append(word);\n        }\n        return sb.toString();\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "dictionary = [\"cat\",\"bat\",\"rat\"], sentence = \"the cattle was rattled by the battery\"",

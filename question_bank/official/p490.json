@@ -20,6 +20,16 @@
       "output": "[[\"\",\"\",\"\",\"1\",\"\",\"\",\"\"],[\"\",\"2\",\"\",\"\",\"\",\"3\",\"\"],[\"\",\"\",\"4\",\"\",\"\",\"\",\"\"]]"
     }
   ],
+  "solutions": [
+    {
+      "name": "DFS with Height Calculation",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h * 2^h)",
+      "description": "First compute the height of the tree. Create a matrix of (height+1) rows and (2^(height+1)-1) columns filled with empty strings. Then DFS to place each node value at the correct position using the formula from the problem.",
+      "code": "class Solution {\n    public List<List<String>> printTree(TreeNode root) {\n        int height = getHeight(root) - 1;\n        int rows = height + 1;\n        int cols = (1 << (height + 1)) - 1;\n        List<List<String>> res = new ArrayList<>();\n        for (int i = 0; i < rows; i++) {\n            List<String> row = new ArrayList<>();\n            for (int j = 0; j < cols; j++) row.add(\"\");\n            res.add(row);\n        }\n        fill(res, root, 0, (cols - 1) / 2, height);\n        return res;\n    }\n    \n    private int getHeight(TreeNode node) {\n        if (node == null) return 0;\n        return 1 + Math.max(getHeight(node.left), getHeight(node.right));\n    }\n    \n    private void fill(List<List<String>> res, TreeNode node, int r, int c, int height) {\n        if (node == null) return;\n        res.get(r).set(c, String.valueOf(node.val));\n        int offset = 1 << (height - r - 1);\n        fill(res, node.left, r + 1, c - offset, height);\n        fill(res, node.right, r + 1, c + offset, height);\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "root = [1,2]",

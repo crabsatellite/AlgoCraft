@@ -10,6 +10,16 @@
     { "input": "nums = [20,50,9,63]", "output": "2" },
     { "input": "nums = [2,3,6,7,4,12,21,39]", "output": "8" }
   ],
+  "solutions": [
+    {
+      "name": "Union Find with Prime Factorization",
+      "timeComplexity": "O(n * sqrt(max))",
+      "spaceComplexity": "O(max)",
+      "description": "For each number, find its prime factors and union the number with each factor. After processing all numbers, count the size of each component containing an original number.",
+      "code": "class Solution {\n    private int[] parent, rank;\n    public int largestComponentSize(int[] nums) {\n        int max = 0;\n        for (int n : nums) max = Math.max(max, n);\n        parent = new int[max + 1];\n        rank = new int[max + 1];\n        for (int i = 0; i <= max; i++) parent[i] = i;\n        for (int num : nums) {\n            for (int f = 2; f * f <= num; f++) {\n                if (num % f == 0) {\n                    union(num, f);\n                    union(num, num / f);\n                }\n            }\n        }\n        java.util.Map<Integer, Integer> count = new java.util.HashMap<>();\n        int result = 0;\n        for (int num : nums) {\n            int root = find(num);\n            count.put(root, count.getOrDefault(root, 0) + 1);\n            result = Math.max(result, count.get(root));\n        }\n        return result;\n    }\n    private int find(int x) {\n        if (parent[x] != x) parent[x] = find(parent[x]);\n        return parent[x];\n    }\n    private void union(int a, int b) {\n        int ra = find(a), rb = find(b);\n        if (ra == rb) return;\n        if (rank[ra] < rank[rb]) { int t = ra; ra = rb; rb = t; }\n        parent[rb] = ra;\n        if (rank[ra] == rank[rb]) rank[ra]++;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "nums = [4,6,15,35]", "output": "4" },
     { "input": "nums = [20,50,9,63]", "output": "2" },

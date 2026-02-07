@@ -20,6 +20,16 @@
       "output": "10"
     }
   ],
+  "solutions": [
+    {
+      "name": "BFS with Min-Heap from Borders",
+      "timeComplexity": "O(m * n * log(m * n))",
+      "spaceComplexity": "O(m * n)",
+      "description": "Add all border cells to a min-heap. Process cells in order of height. For each neighbor, if its height is lower than current water level, water is trapped. Update the water level and add the neighbor to the heap.",
+      "code": "class Solution {\n    public int trapRainWater(int[][] heightMap) {\n        int m = heightMap.length, n = heightMap[0].length;\n        if (m < 3 || n < 3) return 0;\n        java.util.PriorityQueue<int[]> pq = new java.util.PriorityQueue<>((a, b) -> a[2] - b[2]);\n        boolean[][] visited = new boolean[m][n];\n        for (int i = 0; i < m; i++) {\n            pq.offer(new int[]{i, 0, heightMap[i][0]}); visited[i][0] = true;\n            pq.offer(new int[]{i, n - 1, heightMap[i][n - 1]}); visited[i][n - 1] = true;\n        }\n        for (int j = 1; j < n - 1; j++) {\n            pq.offer(new int[]{0, j, heightMap[0][j]}); visited[0][j] = true;\n            pq.offer(new int[]{m - 1, j, heightMap[m - 1][j]}); visited[m - 1][j] = true;\n        }\n        int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n        int water = 0;\n        while (!pq.isEmpty()) {\n            int[] cell = pq.poll();\n            for (int[] d : dirs) {\n                int nr = cell[0] + d[0], nc = cell[1] + d[1];\n                if (nr >= 0 && nr < m && nc >= 0 && nc < n && !visited[nr][nc]) {\n                    visited[nr][nc] = true;\n                    water += Math.max(0, cell[2] - heightMap[nr][nc]);\n                    pq.offer(new int[]{nr, nc, Math.max(cell[2], heightMap[nr][nc])});\n                }\n            }\n        }\n        return water;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "heightMap = [[1,4,3,1,3,2],[3,2,1,3,2,4],[2,3,3,2,3,1]]",

@@ -9,6 +9,16 @@
     { "input": "nums = [7,2,5,10,8], k = 2", "output": "18" },
     { "input": "nums = [1,2,3,4,5], k = 2", "output": "9" }
   ],
+  "solutions": [
+    {
+      "name": "Binary Search on Answer",
+      "timeComplexity": "O(n log S)",
+      "spaceComplexity": "O(1)",
+      "description": "Binary search on the maximum subarray sum. For a given max sum, greedily check if we can split the array into at most k subarrays. Search range is [max(nums), sum(nums)].",
+      "code": "class Solution {\n    public int splitArray(int[] nums, int k) {\n        long lo = 0, hi = 0;\n        for (int num : nums) { lo = Math.max(lo, num); hi += num; }\n        while (lo < hi) {\n            long mid = lo + (hi - lo) / 2;\n            if (canSplit(nums, k, mid)) hi = mid;\n            else lo = mid + 1;\n        }\n        return (int) lo;\n    }\n    private boolean canSplit(int[] nums, int k, long maxSum) {\n        int count = 1;\n        long curSum = 0;\n        for (int num : nums) {\n            curSum += num;\n            if (curSum > maxSum) { count++; curSum = num; }\n        }\n        return count <= k;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "nums = [7,2,5,10,8], k = 2", "output": "18" },
     { "input": "nums = [1,2,3,4,5], k = 2", "output": "9" }

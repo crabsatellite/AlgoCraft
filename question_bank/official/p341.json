@@ -10,6 +10,16 @@
     { "input": "s = \"(a)())()\"", "output": "[\"(a())()\",\"(a)()()\"]" },
     { "input": "s = \")(\"", "output": "[\"\"]" }
   ],
+  "solutions": [
+    {
+      "name": "BFS Level-by-Level Removal",
+      "timeComplexity": "O(2^n)",
+      "spaceComplexity": "O(2^n)",
+      "description": "Use BFS removing one parenthesis at a time. At each level, try removing each parenthesis and check validity. If any valid string is found at this level, stop (minimum removals). Use a HashSet to avoid duplicates.",
+      "code": "class Solution {\n    public List<String> removeInvalidParentheses(String s) {\n        List<String> result = new java.util.ArrayList<>();\n        java.util.Set<String> visited = new java.util.HashSet<>();\n        java.util.Queue<String> queue = new java.util.LinkedList<>();\n        queue.offer(s);\n        visited.add(s);\n        boolean found = false;\n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            for (int i = 0; i < size; i++) {\n                String cur = queue.poll();\n                if (isValid(cur)) { result.add(cur); found = true; }\n                if (found) continue;\n                for (int j = 0; j < cur.length(); j++) {\n                    if (cur.charAt(j) != '(' && cur.charAt(j) != ')') continue;\n                    String next = cur.substring(0, j) + cur.substring(j + 1);\n                    if (visited.add(next)) queue.offer(next);\n                }\n            }\n            if (found) break;\n        }\n        return result;\n    }\n    private boolean isValid(String s) {\n        int count = 0;\n        for (char c : s.toCharArray()) {\n            if (c == '(') count++;\n            else if (c == ')') { if (--count < 0) return false; }\n        }\n        return count == 0;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "s = \"()())()\"", "output": "[\"(())()\",\"()()()\"]" },
     { "input": "s = \"(a)())()\"", "output": "[\"(a())()\",\"(a)()()\"]" },

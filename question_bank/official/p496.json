@@ -24,6 +24,16 @@
       "output": "2"
     }
   ],
+  "solutions": [
+    {
+      "name": "BFS with Index Tracking",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "BFS level by level, assigning each node a position index (left child = 2*i, right child = 2*i+1). Normalize indices per level by subtracting the first index to prevent overflow. Width = last - first + 1.",
+      "code": "class Solution {\n    public int widthOfBinaryTree(TreeNode root) {\n        if (root == null) return 0;\n        int maxWidth = 0;\n        Queue<int[]> queue = new LinkedList<>();\n        queue.offer(new int[]{0});\n        Queue<TreeNode> nodeQueue = new LinkedList<>();\n        nodeQueue.offer(root);\n        while (!nodeQueue.isEmpty()) {\n            int size = nodeQueue.size();\n            int first = 0, last = 0;\n            int offset = -1;\n            for (int i = 0; i < size; i++) {\n                TreeNode node = nodeQueue.poll();\n                int idx = queue.poll()[0];\n                if (offset == -1) offset = idx;\n                idx -= offset;\n                if (i == 0) first = idx;\n                if (i == size - 1) last = idx;\n                if (node.left != null) {\n                    nodeQueue.offer(node.left);\n                    queue.offer(new int[]{2 * idx});\n                }\n                if (node.right != null) {\n                    nodeQueue.offer(node.right);\n                    queue.offer(new int[]{2 * idx + 1});\n                }\n            }\n            maxWidth = Math.max(maxWidth, last - first + 1);\n        }\n        return maxWidth;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "root = [1,3,2,5,3,null,9]",

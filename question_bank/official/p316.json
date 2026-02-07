@@ -9,6 +9,16 @@
     { "input": "word1 = \"horse\", word2 = \"ros\"", "output": "3" },
     { "input": "word1 = \"intention\", word2 = \"execution\"", "output": "5" }
   ],
+  "solutions": [
+    {
+      "name": "Dynamic Programming",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "Classic DP where dp[i][j] = min operations to convert word1[0..i-1] to word2[0..j-1]. If chars match, dp[i][j] = dp[i-1][j-1]. Otherwise take min of insert, delete, replace + 1.",
+      "code": "class Solution {\n    public int minDistance(String word1, String word2) {\n        int m = word1.length(), n = word2.length();\n        int[][] dp = new int[m + 1][n + 1];\n        for (int i = 0; i <= m; i++) dp[i][0] = i;\n        for (int j = 0; j <= n; j++) dp[0][j] = j;\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                if (word1.charAt(i - 1) == word2.charAt(j - 1)) {\n                    dp[i][j] = dp[i - 1][j - 1];\n                } else {\n                    dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], Math.min(dp[i - 1][j], dp[i][j - 1]));\n                }\n            }\n        }\n        return dp[m][n];\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "word1 = \"horse\", word2 = \"ros\"", "output": "3" },
     { "input": "word1 = \"intention\", word2 = \"execution\"", "output": "5" }

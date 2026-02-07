@@ -10,6 +10,16 @@
     { "input": "s = \"e\"", "output": "false" },
     { "input": "s = \".\"", "output": "false" }
   ],
+  "solutions": [
+    {
+      "name": "Flag-based Parsing",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "Track flags for whether we've seen a digit, dot, or exponent. Validate each character against the current state and update flags accordingly.",
+      "code": "class Solution {\n    public boolean isNumber(String s) {\n        boolean seenDigit = false, seenDot = false, seenExp = false;\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (c >= '0' && c <= '9') {\n                seenDigit = true;\n            } else if (c == '.') {\n                if (seenDot || seenExp) return false;\n                seenDot = true;\n            } else if (c == 'e' || c == 'E') {\n                if (seenExp || !seenDigit) return false;\n                seenExp = true;\n                seenDigit = false;\n            } else if (c == '+' || c == '-') {\n                if (i > 0 && s.charAt(i - 1) != 'e' && s.charAt(i - 1) != 'E') return false;\n            } else {\n                return false;\n            }\n        }\n        return seenDigit;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "s = \"0\"", "output": "true" },
     { "input": "s = \"e\"", "output": "false" },

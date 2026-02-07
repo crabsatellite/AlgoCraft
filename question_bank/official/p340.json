@@ -15,6 +15,16 @@
       "output": "[]"
     }
   ],
+  "solutions": [
+    {
+      "name": "Trie + Backtracking",
+      "timeComplexity": "O(m * n * 4^L)",
+      "spaceComplexity": "O(W * L)",
+      "description": "Build a Trie from all words. DFS from each cell on the board, following Trie nodes. When a word is found, add to result and remove from Trie to avoid duplicates.",
+      "code": "class Solution {\n    private int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n    public List<String> findWords(char[][] board, String[] words) {\n        int[][] trie = new int[words.length * 11 + 1][26];\n        String[] endWord = new String[trie.length];\n        int size = 1;\n        for (String w : words) {\n            int node = 0;\n            for (char c : w.toCharArray()) {\n                int idx = c - 'a';\n                if (trie[node][idx] == 0) trie[node][idx] = size++;\n                node = trie[node][idx];\n            }\n            endWord[node] = w;\n        }\n        List<String> result = new java.util.ArrayList<>();\n        int m = board.length, n = board[0].length;\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++)\n                dfs(board, i, j, 0, trie, endWord, result);\n        return result;\n    }\n    private void dfs(char[][] board, int r, int c, int node, int[][] trie, String[] endWord, List<String> result) {\n        if (r < 0 || r >= board.length || c < 0 || c >= board[0].length || board[r][c] == '#') return;\n        int idx = board[r][c] - 'a';\n        if (trie[node][idx] == 0) return;\n        node = trie[node][idx];\n        if (endWord[node] != null) { result.add(endWord[node]); endWord[node] = null; }\n        char tmp = board[r][c];\n        board[r][c] = '#';\n        for (int[] d : dirs) dfs(board, r + d[0], c + d[1], node, trie, endWord, result);\n        board[r][c] = tmp;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "board = [[\"o\",\"a\",\"a\",\"n\"],[\"e\",\"t\",\"a\",\"e\"],[\"i\",\"h\",\"k\",\"r\"],[\"i\",\"f\",\"l\",\"v\"]], words = [\"oath\",\"pea\",\"eat\",\"rain\"]",

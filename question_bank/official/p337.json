@@ -10,6 +10,16 @@
     { "input": "s = \" 2-1 + 2 \"", "output": "3" },
     { "input": "s = \"(1+(4+5+2)-3)+(6+8)\"", "output": "23" }
   ],
+  "solutions": [
+    {
+      "name": "Stack with Sign",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use a stack to track the sign before each parenthesis group. Maintain running result and current sign. On '(' push result and sign, reset. On ')' combine with saved state.",
+      "code": "class Solution {\n    public int calculate(String s) {\n        java.util.Deque<Integer> stack = new java.util.ArrayDeque<>();\n        int result = 0, num = 0, sign = 1;\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (Character.isDigit(c)) {\n                num = num * 10 + (c - '0');\n            } else if (c == '+') {\n                result += sign * num;\n                num = 0;\n                sign = 1;\n            } else if (c == '-') {\n                result += sign * num;\n                num = 0;\n                sign = -1;\n            } else if (c == '(') {\n                stack.push(result);\n                stack.push(sign);\n                result = 0;\n                sign = 1;\n            } else if (c == ')') {\n                result += sign * num;\n                num = 0;\n                result *= stack.pop();\n                result += stack.pop();\n            }\n        }\n        return result + sign * num;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "s = \"1 + 1\"", "output": "2" },
     { "input": "s = \" 2-1 + 2 \"", "output": "3" },

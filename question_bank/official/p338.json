@@ -9,6 +9,16 @@
     { "input": "s = \"aacecaaa\"", "output": "\"aaacecaaa\"" },
     { "input": "s = \"abcd\"", "output": "\"dcbabcd\"" }
   ],
+  "solutions": [
+    {
+      "name": "KMP Failure Function",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Build string s + '#' + reverse(s). Compute KMP failure array. The last value tells the length of the longest palindrome prefix. Prepend the remaining suffix (reversed) to s.",
+      "code": "class Solution {\n    public String shortestPalindrome(String s) {\n        String rev = new StringBuilder(s).reverse().toString();\n        String combined = s + \"#\" + rev;\n        int[] fail = new int[combined.length()];\n        for (int i = 1; i < combined.length(); i++) {\n            int j = fail[i - 1];\n            while (j > 0 && combined.charAt(i) != combined.charAt(j)) j = fail[j - 1];\n            if (combined.charAt(i) == combined.charAt(j)) j++;\n            fail[i] = j;\n        }\n        int palLen = fail[combined.length() - 1];\n        return rev.substring(0, s.length() - palLen) + s;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "s = \"aacecaaa\"", "output": "\"aaacecaaa\"" },
     { "input": "s = \"abcd\"", "output": "\"dcbabcd\"" }

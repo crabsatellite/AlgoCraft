@@ -25,6 +25,16 @@
       "output": "[]"
     }
   ],
+  "solutions": [
+    {
+      "name": "Backtracking with Memoization",
+      "timeComplexity": "O(n * 2^n)",
+      "spaceComplexity": "O(n * 2^n)",
+      "description": "Use DFS with memoization. For each position, try all words that match the substring starting there. Cache results per start index to avoid redundant work.",
+      "code": "class Solution {\n    public List<String> wordBreak(String s, List<String> wordDict) {\n        java.util.Set<String> dict = new java.util.HashSet<>(wordDict);\n        java.util.Map<Integer, List<String>> memo = new java.util.HashMap<>();\n        return dfs(s, 0, dict, memo);\n    }\n    private List<String> dfs(String s, int start, java.util.Set<String> dict, java.util.Map<Integer, List<String>> memo) {\n        if (memo.containsKey(start)) return memo.get(start);\n        List<String> result = new java.util.ArrayList<>();\n        if (start == s.length()) { result.add(\"\"); return result; }\n        for (int end = start + 1; end <= s.length(); end++) {\n            String word = s.substring(start, end);\n            if (dict.contains(word)) {\n                List<String> rest = dfs(s, end, dict, memo);\n                for (String r : rest) {\n                    result.add(word + (r.isEmpty() ? \"\" : \" \" + r));\n                }\n            }\n        }\n        memo.put(start, result);\n        return result;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "s = \"catsanddog\", wordDict = [\"cat\",\"cats\",\"and\",\"sand\",\"dog\"]",

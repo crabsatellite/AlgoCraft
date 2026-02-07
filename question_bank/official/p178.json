@@ -9,6 +9,16 @@
     { "input": "hand = [1,2,3,6,2,3,4,7,8], groupSize = 3", "output": "true" },
     { "input": "hand = [1,2,3,4,5], groupSize = 4", "output": "false" }
   ],
+  "solutions": [
+    {
+      "name": "TreeMap Greedy",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use a TreeMap to count card frequencies. Always start a group from the smallest available card and try to form a consecutive sequence of groupSize.",
+      "code": "class Solution {\n    public boolean isNStraightHand(int[] hand, int groupSize) {\n        if (hand.length % groupSize != 0) return false;\n        java.util.TreeMap<Integer, Integer> map = new java.util.TreeMap<>();\n        for (int card : hand) map.merge(card, 1, Integer::sum);\n        while (!map.isEmpty()) {\n            int first = map.firstKey();\n            for (int i = first; i < first + groupSize; i++) {\n                if (!map.containsKey(i)) return false;\n                if (map.get(i) == 1) map.remove(i);\n                else map.merge(i, -1, Integer::sum);\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "hand = [1,2,3,6,2,3,4,7,8], groupSize = 3", "output": "true" },
     { "input": "hand = [1,2,3,4,5], groupSize = 4", "output": "false" },

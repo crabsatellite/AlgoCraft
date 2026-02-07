@@ -152,6 +152,11 @@ public class InputParser {
             return buildNode(val, type);
         }
 
+        // Array of ListNode (e.g., ListNode[] for mergeKLists)
+        if (type.isArray() && type.getComponentType().getSimpleName().equals("ListNode")) {
+            return buildListNodeArray(val, type.getComponentType());
+        }
+
         return null;
     }
 
@@ -236,7 +241,8 @@ public class InputParser {
 
     public static int[][] parse2DIntArray(String val) {
         val = val.trim();
-        if (val.equals("[]") || val.equals("[[]]")) return new int[0][];
+        if (val.equals("[]")) return new int[0][];
+        if (val.equals("[[]]")) return new int[][]{ new int[0] }; // single empty row
         // Remove outermost brackets
         if (val.startsWith("[")) val = val.substring(1);
         if (val.endsWith("]")) val = val.substring(0, val.length() - 1);
@@ -564,6 +570,65 @@ public class InputParser {
             }
         }
         return nodes.isEmpty() ? null : nodes.get(0);
+    }
+
+    // ─── ListNode[] building ──────────────────────────────────────────
+
+    /**
+     * Build an array of ListNode from nested array notation: [[1,4,5],[1,3,4],[2,6]]
+     */
+    public static Object buildListNodeArray(String val, Class<?> listNodeClass) {
+        val = val.trim();
+        if (val.equals("[]")) return java.lang.reflect.Array.newInstance(listNodeClass, 0);
+
+        // Remove outer brackets
+        String inner = val.substring(1, val.length() - 1);
+        List<String> parts = splitTopLevel(inner, ',');
+
+        // Filter for actual sub-arrays (skip non-bracket parts)
+        List<String> arrays = new ArrayList<>();
+        for (String p : parts) {
+            p = p.trim();
+            if (p.startsWith("[")) arrays.add(p);
+        }
+
+        Object arr = java.lang.reflect.Array.newInstance(listNodeClass, arrays.size());
+        for (int i = 0; i < arrays.size(); i++) {
+            java.lang.reflect.Array.set(arr, i, buildListNode(arrays.get(i), listNodeClass));
+        }
+        return arr;
+    }
+
+    // ─── Named parameter parsing ────────────────────────────────────
+
+    /**
+     * Parse all named parameters from input: "a = 1, b = [2,3]" → {a: "1", b: "[2,3]"}
+     */
+    public static Map<String, String> parseAllNamedParams(String input) {
+        Map<String, String> result = new LinkedHashMap<>();
+        Pattern pattern = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*");
+        Matcher matcher = pattern.matcher(input);
+
+        List<String> names = new ArrayList<>();
+        List<int[]> positions = new ArrayList<>();
+        while (matcher.find()) {
+            names.add(matcher.group(1));
+            positions.add(new int[]{matcher.start(), matcher.end()});
+        }
+
+        for (int i = 0; i < names.size(); i++) {
+            int valueStart = positions.get(i)[1];
+            int valueEnd;
+            if (i + 1 < positions.size()) {
+                valueEnd = findValueEnd(input, valueStart, positions.get(i + 1)[0]);
+            } else {
+                valueEnd = input.length();
+            }
+            String value = input.substring(valueStart, valueEnd).trim();
+            if (value.endsWith(",")) value = value.substring(0, value.length() - 1).trim();
+            result.put(names.get(i), value);
+        }
+        return result;
     }
 
     // ─── Utility: split at top-level delimiter ──────────────────────

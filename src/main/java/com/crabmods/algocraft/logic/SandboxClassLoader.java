@@ -76,7 +76,12 @@ public class SandboxClassLoader extends URLClassLoader {
         
         // Unsafe operations
         "sun.misc.Unsafe",
-        "jdk.internal.misc.Unsafe"
+        "jdk.internal.misc.Unsafe",
+
+        // Additional reflection bypass classes
+        "java.lang.invoke.MethodHandles$Lookup",
+        "java.lang.invoke.CallSite",
+        "java.lang.ProcessBuilder$Redirect"
     );
     
     /**
@@ -214,6 +219,12 @@ public class SandboxClassLoader extends URLClassLoader {
             return true;
         }
         
+        // Block dangerous sub-packages explicitly
+        if (packageName.startsWith("java.lang.invoke") ||
+            packageName.startsWith("java.lang.reflect")) {
+            return false;
+        }
+
         // java.lang package needs more careful filtering
         if (packageName.equals("java.lang")) {
             // In strict mode, only explicitly allowed java.lang classes
@@ -257,6 +268,8 @@ public class SandboxClassLoader extends URLClassLoader {
             packageName.startsWith("java.net") ||
             packageName.startsWith("java.nio") ||
             packageName.startsWith("java.security") ||
+            packageName.startsWith("java.lang.invoke") ||
+            packageName.startsWith("java.lang.reflect") ||
             packageName.startsWith("javax.") ||
             packageName.startsWith("sun.") ||
             packageName.startsWith("jdk.") ||

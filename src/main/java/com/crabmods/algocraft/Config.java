@@ -23,6 +23,9 @@ public class Config
     public static final ModConfigSpec.BooleanValue ENABLE_REWARDS;
     public static final ModConfigSpec.BooleanValue PROTECT_WHILE_SOLVING;
     
+    // Rate limiting
+    public static final ModConfigSpec.IntValue RATE_LIMIT_PER_MINUTE;
+
     // Security settings
     public static final ModConfigSpec.BooleanValue STRICT_SECURITY_MODE;
 
@@ -53,11 +56,16 @@ public class Config
                 .comment("Maximum HTTP request body size in bytes.",
                          "Prevents DoS attacks via large request bodies.")
                 .defineInRange("maxRequestSize", 100000, 10000, 1000000);
-        
+
+        RATE_LIMIT_PER_MINUTE = BUILDER
+                .comment("Maximum HTTP requests per IP address per minute.",
+                         "Prevents abuse of the web IDE API.")
+                .defineInRange("rateLimitPerMinute", 60, 10, 600);
+
         BUILDER.pop();
-        
+
         BUILDER.push("Gameplay Settings");
-        
+
         ENABLE_REWARDS = BUILDER
                 .comment("Enable item rewards for solving problems.",
                          "Players receive items based on problem difficulty.")
@@ -67,9 +75,9 @@ public class Config
                 .comment("Make player invulnerable and ignored by mobs while solving problems.",
                          "Prevents interruption during coding sessions.")
                 .define("protectWhileSolving", true);
-        
+
         BUILDER.pop();
-        
+
         BUILDER.push("Security Settings");
         
         STRICT_SECURITY_MODE = BUILDER

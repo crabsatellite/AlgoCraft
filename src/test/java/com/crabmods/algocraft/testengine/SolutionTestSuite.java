@@ -44,12 +44,25 @@ class SolutionTestSuite {
         if (stripped.contains("class Codec")) {
             return ProblemType.CODEC;
         }
+        // Also detect encode/decode or serialize/deserialize method pairs
+        // Use method declaration pattern to avoid false positives (e.g., "decode" in "Decode XORed Array")
+        if (hasMethodPair(stripped, "encode", "decode") || hasMethodPair(stripped, "serialize", "deserialize")) {
+            return ProblemType.CODEC;
+        }
 
         // Design class: class name is NOT "Solution"
         if (stripped.contains("class ") && !stripped.contains("class Solution")) {
             return ProblemType.DESIGN_CLASS;
         }
         return ProblemType.STANDARD;
+    }
+
+    /** Check if the code declares two methods forming a codec pair (e.g., encode/decode). */
+    private static boolean hasMethodPair(String code, String method1, String method2) {
+        // Look for method declaration patterns: "ReturnType methodName("
+        String pattern1 = "\\b" + method1 + "\\s*\\(";
+        String pattern2 = "\\b" + method2 + "\\s*\\(";
+        return code.matches("(?s).*" + pattern1 + ".*") && code.matches("(?s).*" + pattern2 + ".*");
     }
 
     /**

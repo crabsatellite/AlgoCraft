@@ -90,8 +90,8 @@ public class DesignClassAdapter {
                 return TestResult.pass();
             }
 
-            // Try element-by-element comparison for floating point tolerance
-            if (compareElementWise(actualResults, expectedResults)) {
+            // Try element-by-element comparison (with float tolerance and non-deterministic method handling)
+            if (compareElementWise(actualResults, expectedResults, methodNames)) {
                 return TestResult.pass();
             }
 
@@ -216,6 +216,12 @@ public class DesignClassAdapter {
             for (int i = 0; i < arr.size(); i++) result[i] = arr.get(i).getAsString();
             return result;
         }
+        if (targetType == long[].class && element.isJsonArray()) {
+            JsonArray arr = element.getAsJsonArray();
+            long[] result = new long[arr.size()];
+            for (int i = 0; i < arr.size(); i++) result[i] = arr.get(i).getAsLong();
+            return result;
+        }
         if (targetType == int[][].class && element.isJsonArray()) {
             JsonArray arr = element.getAsJsonArray();
             int[][] result = new int[arr.size()][];
@@ -261,11 +267,22 @@ public class DesignClassAdapter {
         return s.replaceAll("\\s+", "").replace("\"", "").toLowerCase();
     }
 
-    private static boolean compareElementWise(List<String> actual, JsonArray expected) {
+    /** Methods whose output is non-deterministic (e.g., getRandom). */
+    private static final Set<String> NON_DETERMINISTIC_METHODS = Set.of(
+            "getRandom", "pickIndex", "rand7", "shuffle"
+    );
+
+    private static boolean compareElementWise(List<String> actual, JsonArray expected, JsonArray methodNames) {
         if (actual.size() != expected.size()) return false;
         for (int i = 0; i < actual.size(); i++) {
             String a = actual.get(i).trim();
             JsonElement e = expected.get(i);
+
+            // Skip non-deterministic methods (getRandom, shuffle, etc.)
+            if (i < methodNames.size()) {
+                String methodName = methodNames.get(i).getAsString();
+                if (NON_DETERMINISTIC_METHODS.contains(methodName)) continue;
+            }
 
             if (a.equals("null") && e.isJsonNull()) continue;
             if (e.isJsonNull() && a.equals("null")) continue;

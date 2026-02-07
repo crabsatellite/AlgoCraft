@@ -52,6 +52,58 @@ public class CodeExecutor {
         new ThreadPoolExecutor.CallerRunsPolicy() // Fallback to caller thread if pool is full
     );
     
+    // ─── Execution metrics (thread-safe counters) ─────────────────────────
+    private static final java.util.concurrent.atomic.AtomicLong totalCompilations = new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong totalExecutions = new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong totalTimeouts = new java.util.concurrent.atomic.AtomicLong();
+    private static final java.util.concurrent.atomic.AtomicLong totalErrors = new java.util.concurrent.atomic.AtomicLong();
+
+    /**
+     * Return a snapshot of execution metrics.
+     */
+    public static Map<String, Long> getMetrics() {
+        Map<String, Long> m = new LinkedHashMap<>();
+        m.put("compilations", totalCompilations.get());
+        m.put("executions", totalExecutions.get());
+        m.put("timeouts", totalTimeouts.get());
+        m.put("errors", totalErrors.get());
+        return m;
+    }
+
+    // ─── Periodic stale temp-dir cleanup ────────────────────────────────
+    private static final ScheduledExecutorService CLEANUP_SCHEDULER =
+        Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "AlgoCraft-Cleanup");
+            t.setDaemon(true);
+            return t;
+        });
+
+    static {
+        // Every 30 minutes, delete algocraft_exec_ dirs older than 1 hour
+        CLEANUP_SCHEDULER.scheduleAtFixedRate(() -> {
+            try {
+                Path tmpRoot = Path.of(System.getProperty("java.io.tmpdir"));
+                File[] dirs = tmpRoot.toFile().listFiles(
+                    f -> f.isDirectory() && f.getName().startsWith("algocraft_exec_"));
+                if (dirs == null) return;
+                long cutoff = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1);
+                for (File dir : dirs) {
+                    if (dir.lastModified() < cutoff) {
+                        File[] files = dir.listFiles();
+                        if (files != null) {
+                            for (File f : files) f.delete();
+                        }
+                        if (!dir.delete()) {
+                            LOGGER.debug("Periodic cleanup: could not delete stale dir {}", dir);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.debug("Periodic temp cleanup error", e);
+            }
+        }, 30, 30, TimeUnit.MINUTES);
+    }
+
     // Default timeout in milliseconds (used if config not available)
     private static final int DEFAULT_TIMEOUT_MS = 2000;
     
@@ -130,7 +182,19 @@ public class CodeExecutor {
         
         // JNDI
         Pattern.compile("InitialContext", Pattern.CASE_INSENSITIVE),
-        Pattern.compile("javax\\s*\\.\\s*naming", Pattern.CASE_INSENSITIVE)
+        Pattern.compile("javax\\s*\\.\\s*naming", Pattern.CASE_INSENSITIVE),
+
+        // MethodHandle-based reflection (bypasses Class.forName block)
+        Pattern.compile("MethodHandles", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("MethodHandle", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("VarHandle", Pattern.CASE_INSENSITIVE),
+
+        // Instrumentation
+        Pattern.compile("java\\.lang\\.instrument", Pattern.CASE_INSENSITIVE),
+
+        // Compiler abuse (prevent user code from spawning its own compiler)
+        Pattern.compile("javax\\.tools\\.ToolProvider", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("javax\\.tools\\.JavaCompiler", Pattern.CASE_INSENSITIVE)
     );
     
     // Allowed imports whitelist for additional validation
@@ -328,6 +392,7 @@ public class CodeExecutor {
             }
 
             tempDir = Files.createTempDirectory("algocraft_exec_");
+            totalCompilations.incrementAndGet();
 
             // Prepare source: inject imports, write helper classes, detect class name
             code = injectImports(code);
@@ -398,6 +463,7 @@ public class CodeExecutor {
             final Object finalInstance = instance;
             
             // Execute with timeout
+            totalExecutions.incrementAndGet();
             Future<Object> future = EXECUTOR.submit(() -> {
                 finalMethod.setAccessible(true);
                 return finalMethod.invoke(finalInstance, args);
@@ -408,8 +474,10 @@ public class CodeExecutor {
                 invokeResult = future.get(timeoutMs, TimeUnit.MILLISECONDS);
             } catch (TimeoutException e) {
                 future.cancel(true);
+                totalTimeouts.incrementAndGet();
                 return "ERROR: Time Limit Exceeded (>" + timeoutMs + "ms)";
             } catch (ExecutionException e) {
+                totalErrors.incrementAndGet();
                 Throwable cause = e.getCause();
                 if (cause != null) {
                     // Unwrap InvocationTargetException
@@ -424,6 +492,7 @@ public class CodeExecutor {
                 }
                 return "ERROR: Execution failed";
             } catch (RejectedExecutionException e) {
+                totalErrors.incrementAndGet();
                 return "ERROR: Server busy, please try again later";
             }
             
@@ -556,6 +625,7 @@ public class CodeExecutor {
             }
 
             tempDir = Files.createTempDirectory("algocraft_exec_");
+            totalCompilations.incrementAndGet();
 
             // Prepare source: inject imports, write helper classes, detect class name
             code = injectImports(code);
@@ -665,6 +735,7 @@ public class CodeExecutor {
             final Object finalInstance = instance;
             final Method finalMethod = method;
 
+            totalExecutions.incrementAndGet();
             Future<Object> future = EXECUTOR.submit(() -> finalMethod.invoke(finalInstance, args));
 
             Object invokeResult;
@@ -672,8 +743,10 @@ public class CodeExecutor {
                 invokeResult = future.get(timeoutMs, TimeUnit.MILLISECONDS);
             } catch (TimeoutException e) {
                 future.cancel(true);
+                totalTimeouts.incrementAndGet();
                 return new TestResult(false, "ERROR: Time Limit Exceeded (>" + timeoutMs + "ms)", null);
             } catch (ExecutionException e) {
+                totalErrors.incrementAndGet();
                 Throwable cause = e.getCause();
                 if (cause != null) {
                     if (cause instanceof java.lang.reflect.InvocationTargetException) {
@@ -687,6 +760,7 @@ public class CodeExecutor {
                 }
                 return new TestResult(false, "ERROR: Execution failed", null);
             } catch (RejectedExecutionException e) {
+                totalErrors.incrementAndGet();
                 return new TestResult(false, "ERROR: Server busy, please try again later", null);
             }
 
@@ -912,6 +986,7 @@ public class CodeExecutor {
      */
     public static void shutdown() {
         EXECUTOR.shutdown();
+        CLEANUP_SCHEDULER.shutdown();
         try {
             if (!EXECUTOR.awaitTermination(5, TimeUnit.SECONDS)) {
                 EXECUTOR.shutdownNow();

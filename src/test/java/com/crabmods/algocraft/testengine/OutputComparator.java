@@ -248,8 +248,12 @@ public class OutputComparator {
             return compareListNode(aNorm, eNorm);
         }
 
-        // Node comparison
+        // Node comparison (with null/[] equivalence)
         if (returnType != null && returnType.getSimpleName().equals("Node")) {
+            if ((aNorm.equals("null") || aNorm.equals("[]")) &&
+                (eNorm.equals("null") || eNorm.equals("[]"))) {
+                return true;
+            }
             return aNorm.equals(eNorm);
         }
 
@@ -350,6 +354,18 @@ public class OutputComparator {
     private static boolean compareListNode(String aNorm, String eNorm) {
         if ((aNorm.equals("null") || aNorm.equals("[]")) && (eNorm.equals("null") || eNorm.equals("[]")))
             return true;
+        // Handle "Intersected at 'X'" format (P77-style)
+        if (eNorm.startsWith("intersectedat")) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\d+").matcher(eNorm);
+            if (m.find()) {
+                String expectedVal = m.group();
+                String firstVal = aNorm.replaceAll("[\\[\\]]", "").split(",")[0].trim();
+                return firstVal.equals(expectedVal);
+            }
+        }
+        if (eNorm.equals("nointersection")) {
+            return aNorm.equals("null") || aNorm.equals("[]");
+        }
         return aNorm.equals(eNorm);
     }
 

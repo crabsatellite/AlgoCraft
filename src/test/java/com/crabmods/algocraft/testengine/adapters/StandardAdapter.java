@@ -3,6 +3,7 @@ package com.crabmods.algocraft.testengine.adapters;
 import com.crabmods.algocraft.testengine.*;
 
 import java.lang.reflect.*;
+import java.util.*;
 
 /**
  * Test adapter for standard algorithm problems.
@@ -34,7 +35,20 @@ public class StandardAdapter {
             // Handle special parent class setup (e.g., VersionControl.setBadVersion)
             setupParentClass(instance, input);
 
-            Object[] args = InputParser.parseInput(input, method);
+            Object[] args;
+            Map<String, String> namedParams = InputParser.parseAllNamedParams(input);
+
+            // Special case: intersecting linked lists (P77 etc.)
+            if (namedParams.containsKey("intersectVal") && namedParams.containsKey("skipA")) {
+                args = buildIntersectingListArgs(namedParams, method);
+            } else {
+                args = InputParser.parseInput(input, method);
+                // Post-process: inject cycle for "pos" parameter (P71 etc.)
+                if (namedParams.containsKey("pos")) {
+                    injectCycleIfNeeded(args, namedParams);
+                }
+            }
+
             Object result = method.invoke(instance, args);
 
             // Handle void methods: return the modified first argument
@@ -100,6 +114,81 @@ public class StandardAdapter {
         } catch (Exception ignored) {
             // Not all classes have these methods
         }
+    }
+
+    // ─── Special data structure construction ───────────────────────
+
+    /**
+     * Inject a cycle into a ListNode argument if "pos" parameter is present and >= 0.
+     */
+    private static void injectCycleIfNeeded(Object[] args, Map<String, String> namedParams) {
+        try {
+            int pos = Integer.parseInt(namedParams.get("pos").trim());
+            if (pos < 0 || args.length == 0 || args[0] == null) return;
+
+            // Walk to find tail and target node
+            Field nextField = args[0].getClass().getField("next");
+            Object targetNode = args[0];
+            for (int i = 0; i < pos; i++) {
+                targetNode = nextField.get(targetNode);
+                if (targetNode == null) return;
+            }
+            Object tail = args[0];
+            while (nextField.get(tail) != null) {
+                tail = nextField.get(tail);
+            }
+            nextField.set(tail, targetNode); // create cycle
+        } catch (Exception ignored) {}
+    }
+
+    /**
+     * Build intersecting linked list arguments from named params (intersectVal, listA, listB, skipA, skipB).
+     */
+    private static Object[] buildIntersectingListArgs(Map<String, String> namedParams, Method method)
+            throws Exception {
+        int skipA = Integer.parseInt(namedParams.get("skipA").trim());
+        int skipB = Integer.parseInt(namedParams.get("skipB").trim());
+        int[] valsA = InputParser.parseIntArray(namedParams.getOrDefault("listA", "[]"));
+        int[] valsB = InputParser.parseIntArray(namedParams.getOrDefault("listB", "[]"));
+
+        // Determine the ListNode class from the method parameter type
+        Class<?> listNodeClass = method.getParameterTypes()[0];
+        Constructor<?> ctor = listNodeClass.getDeclaredConstructor(int.class);
+        ctor.setAccessible(true);
+        Field nextField = listNodeClass.getField("next");
+
+        // Build the shared suffix (from valsA[skipA:])
+        Object sharedHead = null;
+        Object sharedTail = null;
+        for (int i = skipA; i < valsA.length; i++) {
+            Object node = ctor.newInstance(valsA[i]);
+            if (sharedHead == null) { sharedHead = node; sharedTail = node; }
+            else { nextField.set(sharedTail, node); sharedTail = node; }
+        }
+
+        // Build headA prefix and link to shared
+        Object headA = sharedHead;
+        for (int i = skipA - 1; i >= 0; i--) {
+            Object node = ctor.newInstance(valsA[i]);
+            nextField.set(node, headA);
+            headA = node;
+        }
+
+        // Build headB prefix and link to shared
+        Object headB = sharedHead;
+        for (int i = skipB - 1; i >= 0; i--) {
+            Object node = ctor.newInstance(valsB[i]);
+            nextField.set(node, headB);
+            headB = node;
+        }
+
+        // Handle no-intersection case (intersectVal == 0 or skipA == valsA.length)
+        if (sharedHead == null) {
+            headA = InputParser.buildListNode(namedParams.getOrDefault("listA", "[]"), listNodeClass);
+            headB = InputParser.buildListNode(namedParams.getOrDefault("listB", "[]"), listNodeClass);
+        }
+
+        return new Object[]{ headA, headB };
     }
 
     private static boolean isObjectMethod(String name) {

@@ -1,5 +1,6 @@
 package com.crabmods.algocraft.web;
 
+import com.crabmods.algocraft.Config;
 import com.crabmods.algocraft.logic.CodeExecutor;
 import com.crabmods.algocraft.logic.Judge;
 import com.crabmods.algocraft.logic.Problem;
@@ -23,12 +24,44 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class AlgoCraftWebServer {
     private static HttpServer server;
     private static final int PORT = 3000;
     private static final Gson gson = new Gson();
+
+    // Rate limiting: per-IP request tracking
+    private static int getMaxRequestsPerMinute() {
+        try { return Config.RATE_LIMIT_PER_MINUTE.get(); }
+        catch (Exception e) { return 60; }
+    }
+    private static final Map<String, RateLimitEntry> rateLimitMap = new ConcurrentHashMap<>();
+
+    // Maximum request body size (from config, default 100KB)
+    private static int getMaxRequestBodySize() {
+        try { return Config.MAX_REQUEST_SIZE.get(); }
+        catch (Exception e) { return 100_000; }
+    }
+
+    private static class RateLimitEntry {
+        final AtomicInteger count = new AtomicInteger(0);
+        volatile long windowStart = System.currentTimeMillis();
+
+        boolean tryAcquire() {
+            long now = System.currentTimeMillis();
+            if (now - windowStart > 60_000) {
+                // Reset window
+                count.set(1);
+                windowStart = now;
+                return true;
+            }
+            return count.incrementAndGet() <= getMaxRequestsPerMinute();
+        }
+    }
 
     public static void start() {
         try {
@@ -75,6 +108,8 @@ public class AlgoCraftWebServer {
     static class RepositoriesHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            if (handleCorsPreflightIfNeeded(exchange)) return;
+            if (!checkRateLimit(exchange)) { sendRateLimited(exchange); return; }
             if ("GET".equals(exchange.getRequestMethod())) {
                 List<ProblemRepository> repos = ProblemManager.getRepositories();
                 com.google.gson.JsonArray jsonArray = new com.google.gson.JsonArray();
@@ -91,6 +126,8 @@ public class AlgoCraftWebServer {
     static class ProblemsHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            if (handleCorsPreflightIfNeeded(exchange)) return;
+            if (!checkRateLimit(exchange)) { sendRateLimited(exchange); return; }
             if ("GET".equals(exchange.getRequestMethod())) {
                 String query = exchange.getRequestURI().getQuery();
                 String repoName = null;
@@ -166,8 +203,12 @@ public class AlgoCraftWebServer {
     static class RunHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            if (handleCorsPreflightIfNeeded(exchange)) return;
+            if (!checkRateLimit(exchange)) { sendRateLimited(exchange); return; }
             if ("POST".equals(exchange.getRequestMethod())) {
-                JsonObject body = gson.fromJson(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8), JsonObject.class);
+                byte[] rawBody = readRequestBody(exchange);
+                if (rawBody == null) return;
+                JsonObject body = gson.fromJson(new String(rawBody, StandardCharsets.UTF_8), JsonObject.class);
                 String code = body.get("code").getAsString();
                 String problemId = body.get("problemId").getAsString();
                 
@@ -194,6 +235,8 @@ public class AlgoCraftWebServer {
     static class HistoryHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            if (handleCorsPreflightIfNeeded(exchange)) return;
+            if (!checkRateLimit(exchange)) { sendRateLimited(exchange); return; }
             if ("GET".equals(exchange.getRequestMethod())) {
                 List<SubmissionRecord> history = SubmissionHistoryManager.getHistory();
                 sendResponse(exchange, gson.toJson(history));
@@ -203,9 +246,11 @@ public class AlgoCraftWebServer {
 
     static class TranslationsHandler implements HttpHandler {
         private static final String[] SUPPORTED_LANGS = {"en_us", "zh_cn"};
-        
+
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            if (handleCorsPreflightIfNeeded(exchange)) return;
+            if (!checkRateLimit(exchange)) { sendRateLimited(exchange); return; }
             if (!"GET".equals(exchange.getRequestMethod())) {
                 exchange.sendResponseHeaders(405, -1);
                 return;
@@ -276,8 +321,12 @@ public class AlgoCraftWebServer {
     static class SubmitHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            if (handleCorsPreflightIfNeeded(exchange)) return;
+            if (!checkRateLimit(exchange)) { sendRateLimited(exchange); return; }
             if ("POST".equals(exchange.getRequestMethod())) {
-                JsonObject body = gson.fromJson(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8), JsonObject.class);
+                byte[] rawBody = readRequestBody(exchange);
+                if (rawBody == null) return;
+                JsonObject body = gson.fromJson(new String(rawBody, StandardCharsets.UTF_8), JsonObject.class);
                 String code = body.get("code").getAsString();
                 String problemId = body.get("problemId").getAsString();
 
@@ -312,14 +361,87 @@ public class AlgoCraftWebServer {
         }
     }
 
+    /**
+     * Check if the origin is an allowed localhost address.
+     */
+    private static boolean isAllowedOrigin(String origin) {
+        if (origin == null) return false;
+        return origin.matches("https?://localhost(:\\d+)?")
+            || origin.matches("https?://127\\.0\\.0\\.1(:\\d+)?");
+    }
+
+    /**
+     * Check rate limit for the given IP. Returns true if request is allowed.
+     */
+    private static boolean checkRateLimit(HttpExchange exchange) {
+        String clientIp = exchange.getRemoteAddress().getAddress().getHostAddress();
+        RateLimitEntry entry = rateLimitMap.computeIfAbsent(clientIp, k -> new RateLimitEntry());
+        return entry.tryAcquire();
+    }
+
+    /**
+     * Handle CORS preflight OPTIONS requests.
+     * Returns true if the request was an OPTIONS request and was handled.
+     */
+    private static boolean handleCorsPreflightIfNeeded(HttpExchange exchange) throws IOException {
+        if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
+            setCorsHeaders(exchange);
+            exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type");
+            exchange.getResponseHeaders().set("Access-Control-Max-Age", "3600");
+            exchange.sendResponseHeaders(204, -1);
+            exchange.close();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Set CORS headers, restricting origin to localhost only.
+     */
+    private static void setCorsHeaders(HttpExchange exchange) {
+        String origin = exchange.getRequestHeaders().getFirst("Origin");
+        if (isAllowedOrigin(origin)) {
+            exchange.getResponseHeaders().set("Access-Control-Allow-Origin", origin);
+        }
+    }
+
+    /**
+     * Read request body with size limit enforcement.
+     * Returns null and sends 413 if body exceeds limit.
+     */
+    private static byte[] readRequestBody(HttpExchange exchange) throws IOException {
+        byte[] body = exchange.getRequestBody().readAllBytes();
+        if (body.length > getMaxRequestBodySize()) {
+            byte[] err = "{\"error\":\"Request body too large\"}".getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(413, err.length);
+            exchange.getResponseBody().write(err);
+            exchange.close();
+            return null;
+        }
+        return body;
+    }
+
     private static void sendResponse(HttpExchange exchange, String response) throws IOException {
         byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().set("Content-Type", "application/json");
-        exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+        setCorsHeaders(exchange);
+        exchange.getResponseHeaders().set("X-Content-Type-Options", "nosniff");
+        exchange.getResponseHeaders().set("X-Frame-Options", "DENY");
         exchange.sendResponseHeaders(200, bytes.length);
         OutputStream os = exchange.getResponseBody();
         os.write(bytes);
         os.close();
+    }
+
+    private static void sendRateLimited(HttpExchange exchange) throws IOException {
+        byte[] bytes = "{\"error\":\"Too many requests\"}".getBytes(StandardCharsets.UTF_8);
+        exchange.getResponseHeaders().set("Content-Type", "application/json");
+        exchange.getResponseHeaders().set("Retry-After", "60");
+        exchange.sendResponseHeaders(429, bytes.length);
+        exchange.getResponseBody().write(bytes);
+        exchange.close();
     }
 
     private static String getFrontendHtml() {

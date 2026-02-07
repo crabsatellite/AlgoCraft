@@ -16,6 +16,16 @@
     },
     { "input": "s1 = \"\", s2 = \"\", s3 = \"\"", "output": "true" }
   ],
+  "solutions": [
+    {
+      "name": "Dynamic Programming",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "dp[i][j] = true if s3[0..i+j-1] can be formed by interleaving s1[0..i-1] and s2[0..j-1]. Transition: take from s1 or s2 if characters match.",
+      "code": "class Solution {\n    public boolean isInterleave(String s1, String s2, String s3) {\n        int m = s1.length(), n = s2.length();\n        if (m + n != s3.length()) return false;\n        boolean[][] dp = new boolean[m + 1][n + 1];\n        dp[0][0] = true;\n        for (int i = 1; i <= m; i++) dp[i][0] = dp[i - 1][0] && s1.charAt(i - 1) == s3.charAt(i - 1);\n        for (int j = 1; j <= n; j++) dp[0][j] = dp[0][j - 1] && s2.charAt(j - 1) == s3.charAt(j - 1);\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                dp[i][j] = (dp[i - 1][j] && s1.charAt(i - 1) == s3.charAt(i + j - 1)) ||\n                            (dp[i][j - 1] && s2.charAt(j - 1) == s3.charAt(i + j - 1));\n            }\n        }\n        return dp[m][n];\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "s1 = \"aabcc\", s2 = \"dbbca\", s3 = \"aadbbcbcac\"",

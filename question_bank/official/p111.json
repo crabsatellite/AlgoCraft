@@ -11,6 +11,16 @@
       "output": "[null, null, [5], null, null, [6, 5], null, [5]]"
     }
   ],
+  "solutions": [
+    {
+      "name": "HashMap + Min Heap",
+      "timeComplexity": "O(k log k) per getNewsFeed",
+      "spaceComplexity": "O(N) where N = total tweets + follows",
+      "description": "Use HashMap to store each user's tweet list with timestamps, and a follow set. For getNewsFeed, merge tweets from user and followees using a min-heap of size 10.",
+      "code": "import java.util.*;\n\nclass Twitter {\n    private Map<Integer, List<int[]>> tweets;\n    private Map<Integer, Set<Integer>> follows;\n    private int timestamp;\n\n    public Twitter() {\n        tweets = new HashMap<>();\n        follows = new HashMap<>();\n        timestamp = 0;\n    }\n\n    public void postTweet(int userId, int tweetId) {\n        tweets.computeIfAbsent(userId, k -> new ArrayList<>()).add(new int[]{timestamp++, tweetId});\n    }\n\n    public List<Integer> getNewsFeed(int userId) {\n        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> b[0] - a[0]);\n        List<int[]> own = tweets.getOrDefault(userId, Collections.emptyList());\n        for (int[] t : own) pq.offer(t);\n        Set<Integer> followees = follows.getOrDefault(userId, Collections.emptySet());\n        for (int fid : followees) {\n            List<int[]> fTweets = tweets.getOrDefault(fid, Collections.emptyList());\n            for (int[] t : fTweets) pq.offer(t);\n        }\n        List<Integer> result = new ArrayList<>();\n        while (!pq.isEmpty() && result.size() < 10) {\n            result.add(pq.poll()[1]);\n        }\n        return result;\n    }\n\n    public void follow(int followerId, int followeeId) {\n        if (followerId == followeeId) return;\n        follows.computeIfAbsent(followerId, k -> new HashSet<>()).add(followeeId);\n    }\n\n    public void unfollow(int followerId, int followeeId) {\n        Set<Integer> set = follows.get(followerId);\n        if (set != null) set.remove(followeeId);\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"Twitter\", \"postTweet\", \"getNewsFeed\", \"follow\", \"postTweet\", \"getNewsFeed\", \"unfollow\", \"getNewsFeed\"]\n[[], [1, 5], [1], [1, 2], [2, 6], [1], [1, 2], [1]]",

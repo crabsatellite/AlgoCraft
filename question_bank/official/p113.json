@@ -1,31 +1,56 @@
 {
   "id": "113",
-  "title": "Merge k Sorted Lists",
-  "description": "# Merge k Sorted Lists\n\nYou are given an array of `k` linked-lists `lists`, each linked-list is sorted in ascending order.\n\n*Merge all the linked-lists into one sorted linked-list and return it.*\n\n## Example 1:\n\n**Input:** lists = [[1,4,5],[1,3,4],[2,6]]\n**Output:** [1,1,2,3,4,4,5,6]\n**Explanation:** The linked-lists are:\n[\n  1->4->5,\n  1->3->4,\n  2->6\n]\nmerging them into one sorted list:\n1->1->2->3->4->4->5->6\n\n## Example 2:\n\n**Input:** lists = []\n**Output:** []\n\n## Example 3:\n\n**Input:** lists = [[]]\n**Output:** []\n\n## Constraints:\n\n*   `k == lists.length`\n*   `0 <= k <= 10^4`\n*   `0 <= lists[i].length <= 500`\n*   `-10^4 <= lists[i][j] <= 10^4`\n*   `lists[i]` is sorted in ascending order.\n*   The sum of `lists[i].length` will not exceed `10^4`.",
+  "title": "Smallest Range Covering Elements from K Lists",
+  "description": "# Smallest Range Covering Elements from K Lists\n\nYou have `k` lists of sorted integers in **non-decreasing order**. Find the **smallest** range that includes at least one number from each of the `k` lists.\n\nWe define the range `[a, b]` is smaller than range `[c, d]` if `b - a < d - c` or `a < c` if `b - a == d - c`.\n\n## Example 1:\n\n**Input:** nums = [[4,10,15,24,26],[0,9,12,20],[5,18,22,30]]\n**Output:** [20,24]\n**Explanation:**\nList 1: [4, 10, 15, 24, 26], 24 is in range [20,24].\nList 2: [0, 9, 12, 20], 20 is in range [20,24].\nList 3: [5, 18, 22, 30], 22 is in range [20,24].\n\n## Example 2:\n\n**Input:** nums = [[1,2,3],[1,2,3],[1,2,3]]\n**Output:** [1,1]\n\n## Constraints:\n\n*   `nums.length == k`\n*   `1 <= k <= 3500`\n*   `1 <= nums[i].length <= 50`\n*   `-10^5 <= nums[i][j] <= 10^5`\n*   `nums[i]` is sorted in **non-decreasing** order.",
   "difficulty": "HARD",
-  "initialCode": "/**\n * Definition for singly-linked list.\n * public class ListNode {\n *     int val;\n *     ListNode next;\n *     ListNode() {}\n *     ListNode(int val) { this.val = val; }\n *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n * }\n */\nclass Solution {\n    public ListNode mergeKLists(ListNode[] lists) {\n        // Write your code here\n        return null;\n    }\n}",
-  "tags": [
-    "Linked List",
-    "Divide and Conquer",
-    "Heap (Priority Queue)",
-    "Merge Sort"
-  ],
+  "initialCode": "import java.util.*;\n\nclass Solution {\n    public int[] smallestRange(List<List<Integer>> nums) {\n        // Write your code here\n        return new int[]{0, 0};\n    }\n}",
+  "tags": ["Array", "Hash Table", "Greedy", "Sliding Window", "Sorting", "Heap (Priority Queue)"],
   "examples": [
+    { "input": "nums = [[4,10,15,24,26],[0,9,12,20],[5,18,22,30]]", "output": "[20,24]" },
+    { "input": "nums = [[1,2,3],[1,2,3],[1,2,3]]", "output": "[1,1]" }
+  ],
+  "solutions": [
     {
-      "input": "lists = [[1,4,5],[1,3,4],[2,6]]",
-      "output": "[1,1,2,3,4,4,5,6]"
-    },
-    { "input": "lists = []", "output": "[]" },
-    { "input": "lists = [[]]", "output": "[]" }
+      "name": "Min Heap with Max Tracking",
+      "timeComplexity": "O(N log k) where N = total elements",
+      "spaceComplexity": "O(k)",
+      "description": "Put the first element of each list into a min-heap while tracking the current max. The range is [heapMin, currentMax]. Pop the min, advance that list's pointer, push the next element, update max. Track the smallest range seen.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] smallestRange(List<List<Integer>> nums) {\n        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] - b[0]);\n        int curMax = Integer.MIN_VALUE;\n        for (int i = 0; i < nums.size(); i++) {\n            int val = nums.get(i).get(0);\n            pq.offer(new int[]{val, i, 0});\n            curMax = Math.max(curMax, val);\n        }\n        int[] result = {pq.peek()[0], curMax};\n        while (true) {\n            int[] min = pq.poll();\n            int listIdx = min[1], elemIdx = min[2];\n            if (elemIdx + 1 >= nums.get(listIdx).size()) break;\n            int next = nums.get(listIdx).get(elemIdx + 1);\n            pq.offer(new int[]{next, listIdx, elemIdx + 1});\n            curMax = Math.max(curMax, next);\n            if (curMax - pq.peek()[0] < result[1] - result[0]) {\n                result[0] = pq.peek()[0];\n                result[1] = curMax;\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    }
   ],
   "tests": [
+    { "input": "nums = [[4,10,15,24,26],[0,9,12,20],[5,18,22,30]]", "output": "[20,24]" },
+    { "input": "nums = [[1,2,3],[1,2,3],[1,2,3]]", "output": "[1,1]" },
     {
-      "input": "lists = [[1,4,5],[1,3,4],[2,6]]",
-      "output": "[1,1,2,3,4,4,5,6]"
+      "input": "nums = [[1]]",
+      "output": "[1,1]",
+      "description": "Single list with single element"
     },
-    { "input": "lists = []", "output": "[]" },
-    { "input": "lists = [[]]", "output": "[]" },
-    { "input": "lists = [[1,2,3]]", "output": "[1,2,3]" },
-    { "input": "lists = [[1,3],[2,4]]", "output": "[1,2,3,4]" }
+    {
+      "input": "nums = [[1,2],[3,4]]",
+      "output": "[2,3]",
+      "description": "Two lists, range spans gap"
+    },
+    {
+      "input": "nums = [[-5,-3],[0,2],[4,6]]",
+      "output": "[-3,4]",
+      "description": "Negative numbers"
+    },
+    {
+      "input": "nums = [[10],[11],[12]]",
+      "output": "[10,12]",
+      "description": "Single element per list"
+    },
+    {
+      "input": "nums = [[1,5,9],[2,6,10],[3,7,11]]",
+      "output": "[1,3]",
+      "description": "Evenly spaced elements"
+    },
+    {
+      "input": "nums = [[1,1,1],[1,1,1]]",
+      "output": "[1,1]",
+      "description": "All identical elements"
+    }
   ]
 }

@@ -13,6 +13,24 @@
     { "input": "nums = [0,1]", "output": "[[0,1],[1,0]]" },
     { "input": "nums = [1]", "output": "[[1]]" }
   ],
+  "solutions": [
+    {
+      "name": "Backtracking with Swap",
+      "timeComplexity": "O(n * n!)",
+      "spaceComplexity": "O(n)",
+      "description": "Fix each position by swapping the current index with every index from current to end. Recurse for the next position. Swap back to restore state.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> permute(int[] nums) {\n        List<List<Integer>> result = new ArrayList<>();\n        backtrack(nums, 0, result);\n        return result;\n    }\n\n    private void backtrack(int[] nums, int start, List<List<Integer>> result) {\n        if (start == nums.length) {\n            List<Integer> perm = new ArrayList<>();\n            for (int n : nums) perm.add(n);\n            result.add(perm);\n            return;\n        }\n        for (int i = start; i < nums.length; i++) {\n            int temp = nums[start]; nums[start] = nums[i]; nums[i] = temp;\n            backtrack(nums, start + 1, result);\n            temp = nums[start]; nums[start] = nums[i]; nums[i] = temp;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Backtracking with Used Array",
+      "timeComplexity": "O(n * n!)",
+      "spaceComplexity": "O(n)",
+      "description": "Use a boolean used[] array. Try each unused element at the current position, mark as used, recurse, then unmark.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> permute(int[] nums) {\n        List<List<Integer>> result = new ArrayList<>();\n        boolean[] used = new boolean[nums.length];\n        backtrack(nums, used, new ArrayList<>(), result);\n        return result;\n    }\n\n    private void backtrack(int[] nums, boolean[] used, List<Integer> path, List<List<Integer>> result) {\n        if (path.size() == nums.length) {\n            result.add(new ArrayList<>(path));\n            return;\n        }\n        for (int i = 0; i < nums.length; i++) {\n            if (used[i]) continue;\n            used[i] = true;\n            path.add(nums[i]);\n            backtrack(nums, used, path, result);\n            path.remove(path.size() - 1);\n            used[i] = false;\n        }\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "nums = [1,2,3]",

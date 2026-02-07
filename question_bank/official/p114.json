@@ -23,6 +23,24 @@
       "output": "[\"the\",\"is\",\"sunny\",\"day\"]"
     }
   ],
+  "solutions": [
+    {
+      "name": "HashMap + Sort",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "Count frequencies with a HashMap. Sort unique words by frequency descending, then lexicographically. Return the first k.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> topKFrequent(String[] words, int k) {\n        Map<String, Integer> freq = new HashMap<>();\n        for (String w : words) freq.merge(w, 1, Integer::sum);\n        List<String> candidates = new ArrayList<>(freq.keySet());\n        candidates.sort((a, b) -> {\n            int cmp = freq.get(b) - freq.get(a);\n            return cmp != 0 ? cmp : a.compareTo(b);\n        });\n        return candidates.subList(0, k);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Min Heap of Size k",
+      "timeComplexity": "O(n log k)",
+      "spaceComplexity": "O(n)",
+      "description": "Count frequencies, then use a min-heap of size k with reverse comparator (low freq first, reverse lex for same freq). Pop from heap and reverse to get result.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> topKFrequent(String[] words, int k) {\n        Map<String, Integer> freq = new HashMap<>();\n        for (String w : words) freq.merge(w, 1, Integer::sum);\n        PriorityQueue<String> pq = new PriorityQueue<>((a, b) -> {\n            int cmp = freq.get(a) - freq.get(b);\n            return cmp != 0 ? cmp : b.compareTo(a);\n        });\n        for (String w : freq.keySet()) {\n            pq.offer(w);\n            if (pq.size() > k) pq.poll();\n        }\n        LinkedList<String> result = new LinkedList<>();\n        while (!pq.isEmpty()) result.addFirst(pq.poll());\n        return result;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "words = [\"i\",\"love\",\"leetcode\",\"i\",\"love\",\"coding\"], k = 2",

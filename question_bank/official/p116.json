@@ -13,6 +13,24 @@
     },
     { "input": "nums = [0]", "output": "[[],[0]]" }
   ],
+  "solutions": [
+    {
+      "name": "Backtracking",
+      "timeComplexity": "O(n * 2^n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use DFS backtracking. At each index, choose to include or not include the current element. Collect subsets at every node.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> subsets(int[] nums) {\n        List<List<Integer>> result = new ArrayList<>();\n        backtrack(nums, 0, new ArrayList<>(), result);\n        return result;\n    }\n\n    private void backtrack(int[] nums, int start, List<Integer> path, List<List<Integer>> result) {\n        result.add(new ArrayList<>(path));\n        for (int i = start; i < nums.length; i++) {\n            path.add(nums[i]);\n            backtrack(nums, i + 1, path, result);\n            path.remove(path.size() - 1);\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bit Manipulation",
+      "timeComplexity": "O(n * 2^n)",
+      "spaceComplexity": "O(1)",
+      "description": "There are 2^n subsets. Each subset corresponds to a bitmask from 0 to 2^n - 1. For each mask, include nums[i] if bit i is set.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> subsets(int[] nums) {\n        List<List<Integer>> result = new ArrayList<>();\n        int n = nums.length;\n        for (int mask = 0; mask < (1 << n); mask++) {\n            List<Integer> subset = new ArrayList<>();\n            for (int i = 0; i < n; i++) {\n                if ((mask & (1 << i)) != 0) {\n                    subset.add(nums[i]);\n                }\n            }\n            result.add(subset);\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "nums = [1,2,3]",

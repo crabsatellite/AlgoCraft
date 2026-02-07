@@ -140,6 +140,11 @@ public class SandboxClassLoader extends URLClassLoader {
         "java.lang.SuppressWarnings"
     );
     
+    /**
+     * No-package classes loaded from URLs (user code + helper classes like TreeNode, ListNode).
+     * Any class without a package is considered user code compiled in the temp directory.
+     */
+
     private final boolean strictMode;
     
     /**
@@ -163,8 +168,9 @@ public class SandboxClassLoader extends URLClassLoader {
     
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        // User's Solution class - load from URLs
-        if (name.equals("Solution") || name.startsWith("Solution$")) {
+        // User code classes (no package) - load from URLs in temp directory.
+        // Covers Solution, TreeNode, ListNode, Node, design classes (MinStack, etc.)
+        if (!name.contains(".")) {
             return super.loadClass(name, resolve);
         }
         

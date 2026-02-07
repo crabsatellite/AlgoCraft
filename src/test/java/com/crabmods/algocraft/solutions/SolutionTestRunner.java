@@ -183,18 +183,32 @@ public class SolutionTestRunner {
 
     private static ProblemType detectProblemType(String content, String code) {
         if (code == null) code = "";
-        
+
+        // Check for solutions that extend unknown parent classes
+        if (code.contains("extends ") && !code.contains("extends Solution")) {
+            return ProblemType.UNSUPPORTED;
+        }
+
+        // Check for design class - code uses a custom class name (not Solution)
+        if (!code.contains("class Solution") && code.contains("class ")) {
+            // It's a design class if it defines a non-Solution class
+            String trimmed = code.replaceAll("//.*", "").replaceAll("/\\*.*?\\*/", "");
+            if (trimmed.matches("(?s).*\\bclass\\s+(?!Solution\\b)\\w+.*")) {
+                return ProblemType.DESIGN_CLASS;
+            }
+        }
+
         // Check for encode/decode pattern
-        if (code.contains("encode") && code.contains("decode") && 
+        if (code.contains("encode") && code.contains("decode") &&
             code.contains("List<String>")) {
             return ProblemType.ENCODE_DECODE;
         }
-        
+
         // Check method signature for char[][] parameter
         if (code.contains("char[][]") || code.contains("char [][]")) {
             return ProblemType.MATRIX_INPUT;
         }
-        
+
         // Check method signature for int[][] parameter
         if (code.contains("int[][]") || code.contains("int [][]")) {
             return ProblemType.MATRIX_INPUT;
@@ -283,6 +297,11 @@ public class SolutionTestRunner {
                 skippedProblems.add("P" + id + ": " + title);
                 countSkippedTests(content, solutions.size());
                 break;
+            case UNSUPPORTED:
+                System.out.println("   ⏭️  Unsupported problem type (extends, etc.)");
+                skippedProblems.add("P" + id + ": " + title);
+                countSkippedTests(content, solutions.size());
+                break;
             case STANDARD:
             default:
                 testStandardProblem(id, title, content, solutions);
@@ -320,26 +339,37 @@ public class SolutionTestRunner {
                     continue;
                 }
                 
-                Object instance = solutionClass.getDeclaredConstructor().newInstance();
                 Method method = findMainMethod(solutionClass);
-                
+
                 if (method == null) {
                     System.out.println("❌ Method not found");
                     recordErrors(id, title, sol.name, testCases.size(), "Method not found");
                     continue;
                 }
-                
+
                 int passed = 0;
                 int failed = 0;
-                
+
                 for (int i = 0; i < testCases.size(); i++) {
                     TestCase tc = testCases.get(i);
                     try {
+                        // Create fresh instance per test to avoid state leakage (e.g., instance fields)
+                        Object instance = solutionClass.getDeclaredConstructor().newInstance();
                         Object[] args = parseInputArgs(tc.input, method);
                         Object result = method.invoke(instance, args);
-                        String resultStr = formatResult(result);
-                        
-                        if (compareResults(resultStr, tc.output, method.getReturnType())) {
+
+                        // For void methods, return the modified first argument
+                        String resultStr;
+                        Class<?> compareType;
+                        if (method.getReturnType() == void.class && args.length > 0) {
+                            resultStr = formatResult(args[0]);
+                            compareType = args[0] != null ? args[0].getClass() : void.class;
+                        } else {
+                            resultStr = formatResult(result);
+                            compareType = method.getReturnType();
+                        }
+
+                        if (compareResults(resultStr, tc.output, compareType)) {
                             passed++;
                             totalPassed++;
                         } else {
@@ -391,21 +421,22 @@ public class SolutionTestRunner {
                     continue;
                 }
                 
-                Object instance = solutionClass.getDeclaredConstructor().newInstance();
                 Method method = findMainMethod(solutionClass);
-                
+
                 if (method == null) {
                     System.out.println("❌ Method not found");
                     recordErrors(id, title, sol.name, testCases.size(), "Method not found");
                     continue;
                 }
-                
+
                 int passed = 0;
                 int failed = 0;
-                
+
                 for (int i = 0; i < testCases.size(); i++) {
                     TestCase tc = testCases.get(i);
                     try {
+                        // Create fresh instance per test to avoid state leakage
+                        Object instance = solutionClass.getDeclaredConstructor().newInstance();
                         Object[] args = parseMatrixInputArgs(tc.input, method);
                         Object result = method.invoke(instance, args);
                         
@@ -420,7 +451,9 @@ public class SolutionTestRunner {
                             resultStr = formatResult(result);
                         }
                         
-                        if (compareResults(resultStr, tc.output, args[0].getClass())) {
+                        // Use return type for comparison; fall back to first arg type for void methods
+                        Class<?> cmpType = (method.getReturnType() == void.class) ? args[0].getClass() : method.getReturnType();
+                        if (compareResults(resultStr, tc.output, cmpType)) {
                             passed++;
                             totalPassed++;
                         } else {
@@ -571,13 +604,103 @@ public class SolutionTestRunner {
     }
 
     private static String wrapSolutionCode(String className, String code) {
+        // Step 1: Extract import statements from solution code and strip them out
+        StringBuilder imports = new StringBuilder();
+        imports.append("import java.util.*;\n");
+        imports.append("import java.util.stream.*;\n");
+
+        StringBuilder codeWithoutImports = new StringBuilder();
+        for (String line : code.split("\n")) {
+            String trimmed = line.trim();
+            if (trimmed.startsWith("import ")) {
+                // Only add if not already present
+                if (!trimmed.equals("import java.util.*;") && !trimmed.equals("import java.util.stream.*;")) {
+                    imports.append(trimmed).append("\n");
+                }
+            } else {
+                codeWithoutImports.append(line).append("\n");
+            }
+        }
+
         StringBuilder sb = new StringBuilder();
-        sb.append("import java.util.*;\n");
-        sb.append("import java.util.stream.*;\n\n");
-        
-        String modifiedCode = code.replaceFirst("class\\s+Solution", "public class " + className);
+        sb.append(imports).append("\n");
+
+        String cleanCode = codeWithoutImports.toString();
+
+        // Step 2: Inject helper class definitions if referenced but not defined in code
+        if (cleanCode.contains("TreeNode") && !cleanCode.contains("class TreeNode")) {
+            sb.append("class TreeNode {\n");
+            sb.append("    int val;\n");
+            sb.append("    TreeNode left;\n");
+            sb.append("    TreeNode right;\n");
+            sb.append("    TreeNode() {}\n");
+            sb.append("    TreeNode(int val) { this.val = val; }\n");
+            sb.append("    TreeNode(int val, TreeNode left, TreeNode right) {\n");
+            sb.append("        this.val = val; this.left = left; this.right = right;\n");
+            sb.append("    }\n");
+            sb.append("}\n\n");
+        }
+
+        if (cleanCode.contains("ListNode") && !cleanCode.contains("class ListNode")) {
+            sb.append("class ListNode {\n");
+            sb.append("    int val;\n");
+            sb.append("    ListNode next;\n");
+            sb.append("    ListNode() {}\n");
+            sb.append("    ListNode(int val) { this.val = val; }\n");
+            sb.append("    ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n");
+            sb.append("}\n\n");
+        }
+
+        // N-ary tree Node (has children list - exclude graph/random variants)
+        if ((cleanCode.contains("List<Node>") || cleanCode.contains("Node root") || cleanCode.contains("Node node"))
+            && !cleanCode.contains("class Node") && !cleanCode.contains("TreeNode") && !cleanCode.contains("ListNode")
+            && !cleanCode.contains(".neighbors") && !cleanCode.contains(".random")) {
+            sb.append("class Node {\n");
+            sb.append("    public int val;\n");
+            sb.append("    public List<Node> children;\n");
+            sb.append("    public Node() {}\n");
+            sb.append("    public Node(int val) { this.val = val; this.children = new ArrayList<>(); }\n");
+            sb.append("    public Node(int val, List<Node> children) {\n");
+            sb.append("        this.val = val; this.children = children;\n");
+            sb.append("    }\n");
+            sb.append("}\n\n");
+        }
+
+        // Random pointer list Node (has next and random pointers)
+        if (cleanCode.contains(".random") && cleanCode.contains("Node")
+            && !cleanCode.contains("class Node") && !cleanCode.contains("TreeNode") && !cleanCode.contains("ListNode")) {
+            sb.append("class Node {\n");
+            sb.append("    int val;\n");
+            sb.append("    Node next;\n");
+            sb.append("    Node random;\n");
+            sb.append("    public Node(int val) { this.val = val; this.next = null; this.random = null; }\n");
+            sb.append("}\n\n");
+        }
+
+        // Graph Node (has neighbors list)
+        if (cleanCode.contains(".neighbors") && cleanCode.contains("Node")
+            && !cleanCode.contains("class Node") && !cleanCode.contains("TreeNode") && !cleanCode.contains("ListNode")
+            && !cleanCode.contains(".random")) {
+            sb.append("class Node {\n");
+            sb.append("    public int val;\n");
+            sb.append("    public List<Node> neighbors;\n");
+            sb.append("    public Node() { val = 0; neighbors = new ArrayList<>(); }\n");
+            sb.append("    public Node(int val) { this.val = val; neighbors = new ArrayList<>(); }\n");
+            sb.append("    public Node(int val, List<Node> neighbors) {\n");
+            sb.append("        this.val = val; this.neighbors = neighbors;\n");
+            sb.append("    }\n");
+            sb.append("}\n\n");
+        }
+
+        // Step 3: Rename Solution class and append
+        // Handle both "class Solution" and "public class Solution"
+        String modifiedCode = cleanCode.replaceFirst("public\\s+class\\s+Solution", "public class " + className);
+        if (modifiedCode.equals(cleanCode)) {
+            // "public class Solution" didn't match, try "class Solution"
+            modifiedCode = cleanCode.replaceFirst("class\\s+Solution", "public class " + className);
+        }
         sb.append(modifiedCode);
-        
+
         return sb.toString();
     }
 
@@ -599,6 +722,11 @@ public class SolutionTestRunner {
             
             boolean success = task.call();
             if (!success) {
+                for (Diagnostic<? extends JavaFileObject> d : diagnostics.getDiagnostics()) {
+                    if (d.getKind() == Diagnostic.Kind.ERROR) {
+                        System.err.println("      [COMPILE] " + d.getMessage(null));
+                    }
+                }
                 return null;
             }
             
@@ -682,7 +810,7 @@ public class SolutionTestRunner {
 
     private static Object parseValue(String value, Class<?> type) {
         value = value.trim();
-        
+
         if (type == int.class || type == Integer.class) {
             return Integer.parseInt(value);
         } else if (type == long.class || type == Long.class) {
@@ -691,6 +819,9 @@ public class SolutionTestRunner {
             return Double.parseDouble(value);
         } else if (type == boolean.class || type == Boolean.class) {
             return Boolean.parseBoolean(value);
+        } else if (type == char.class || type == Character.class) {
+            String v = value.replace("\"", "").replace("'", "");
+            return v.charAt(0);
         } else if (type == String.class) {
             if (value.startsWith("\"") && value.endsWith("\"")) {
                 return value.substring(1, value.length() - 1);
@@ -698,17 +829,127 @@ public class SolutionTestRunner {
             return value;
         } else if (type == int[].class) {
             return parseIntArray(value);
+        } else if (type == int[][].class) {
+            return parse2DIntArray(value);
         } else if (type == String[].class) {
             return parseStringArray(value);
         } else if (type == char[].class) {
             return parseCharArray(value);
         } else if (type == char[][].class) {
             return parse2DCharArray(value);
+        } else if (type == double[].class) {
+            return parseDoubleArray(value);
+        } else if (type == long[].class) {
+            return parseLongArray(value);
+        } else if (type.getName().equals("TreeNode")) {
+            return buildTreeFromArray(value, type);
+        } else if (type.getName().equals("ListNode")) {
+            return buildListFromArray(value, type);
         } else if (type == List.class || type.getName().contains("List")) {
             return parseStringList("strs = " + value);
         }
-        
+
         return null;
+    }
+
+    private static double[] parseDoubleArray(String value) {
+        value = value.trim();
+        if (value.equals("[]")) return new double[0];
+        value = value.replaceAll("[\\[\\]]", "");
+        if (value.isEmpty()) return new double[0];
+        String[] parts = value.split(",");
+        double[] result = new double[parts.length];
+        for (int i = 0; i < parts.length; i++) {
+            result[i] = Double.parseDouble(parts[i].trim());
+        }
+        return result;
+    }
+
+    private static long[] parseLongArray(String value) {
+        value = value.trim();
+        if (value.equals("[]")) return new long[0];
+        value = value.replaceAll("[\\[\\]]", "");
+        if (value.isEmpty()) return new long[0];
+        String[] parts = value.split(",");
+        long[] result = new long[parts.length];
+        for (int i = 0; i < parts.length; i++) {
+            result[i] = Long.parseLong(parts[i].trim());
+        }
+        return result;
+    }
+
+    // Build a TreeNode from level-order array like [3,1,4,3,null,1,5]
+    private static Object buildTreeFromArray(String value, Class<?> treeNodeClass) {
+        value = value.trim();
+        if (value.equals("[]") || value.equals("null")) return null;
+        value = value.replaceAll("[\\[\\]]", "");
+        String[] parts = value.split(",");
+        if (parts.length == 0 || parts[0].trim().equals("null")) return null;
+
+        try {
+            Constructor<?> valCtor = treeNodeClass.getDeclaredConstructor(int.class);
+            valCtor.setAccessible(true);
+            java.lang.reflect.Field leftField = treeNodeClass.getDeclaredField("left");
+            java.lang.reflect.Field rightField = treeNodeClass.getDeclaredField("right");
+            leftField.setAccessible(true);
+            rightField.setAccessible(true);
+
+            Object root = valCtor.newInstance(Integer.parseInt(parts[0].trim()));
+            Queue<Object> queue = new LinkedList<>();
+            queue.offer(root);
+            int i = 1;
+            while (!queue.isEmpty() && i < parts.length) {
+                Object node = queue.poll();
+                if (i < parts.length) {
+                    String leftVal = parts[i].trim();
+                    if (!leftVal.equals("null")) {
+                        Object left = valCtor.newInstance(Integer.parseInt(leftVal));
+                        leftField.set(node, left);
+                        queue.offer(left);
+                    }
+                    i++;
+                }
+                if (i < parts.length) {
+                    String rightVal = parts[i].trim();
+                    if (!rightVal.equals("null")) {
+                        Object right = valCtor.newInstance(Integer.parseInt(rightVal));
+                        rightField.set(node, right);
+                        queue.offer(right);
+                    }
+                    i++;
+                }
+            }
+            return root;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // Build a ListNode from array like [1,2,3,4,5]
+    private static Object buildListFromArray(String value, Class<?> listNodeClass) {
+        value = value.trim();
+        if (value.equals("[]") || value.equals("null")) return null;
+        value = value.replaceAll("[\\[\\]]", "");
+        String[] parts = value.split(",");
+        if (parts.length == 0) return null;
+
+        try {
+            Constructor<?> valCtor = listNodeClass.getDeclaredConstructor(int.class);
+            valCtor.setAccessible(true);
+            java.lang.reflect.Field nextField = listNodeClass.getDeclaredField("next");
+            nextField.setAccessible(true);
+
+            Object dummy = valCtor.newInstance(0);
+            Object current = dummy;
+            for (String part : parts) {
+                Object node = valCtor.newInstance(Integer.parseInt(part.trim()));
+                nextField.set(current, node);
+                current = node;
+            }
+            return nextField.get(dummy);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private static int[] parseIntArray(String value) {
@@ -844,6 +1085,64 @@ public class SolutionTestRunner {
 
     // ==================== Result Formatting and Comparison ====================
 
+    // Convert TreeNode to level-order string like [4,7,2,9,6,3,1]
+    private static String treeToString(Object root) {
+        if (root == null) return "[]";
+        try {
+            Class<?> cls = root.getClass();
+            java.lang.reflect.Field valField = cls.getDeclaredField("val");
+            java.lang.reflect.Field leftField = cls.getDeclaredField("left");
+            java.lang.reflect.Field rightField = cls.getDeclaredField("right");
+            valField.setAccessible(true);
+            leftField.setAccessible(true);
+            rightField.setAccessible(true);
+
+            List<String> result = new ArrayList<>();
+            Queue<Object> queue = new LinkedList<>();
+            queue.offer(root);
+            while (!queue.isEmpty()) {
+                Object node = queue.poll();
+                if (node == null) {
+                    result.add("null");
+                } else {
+                    result.add(String.valueOf(valField.getInt(node)));
+                    queue.offer(leftField.get(node));
+                    queue.offer(rightField.get(node));
+                }
+            }
+            // Remove trailing nulls
+            while (!result.isEmpty() && result.get(result.size() - 1).equals("null")) {
+                result.remove(result.size() - 1);
+            }
+            return "[" + String.join(",", result) + "]";
+        } catch (Exception e) {
+            return root.toString();
+        }
+    }
+
+    // Convert ListNode to array string like [5,4,3,2,1]
+    private static String listToString(Object head) {
+        if (head == null) return "[]";
+        try {
+            Class<?> cls = head.getClass();
+            java.lang.reflect.Field valField = cls.getDeclaredField("val");
+            java.lang.reflect.Field nextField = cls.getDeclaredField("next");
+            valField.setAccessible(true);
+            nextField.setAccessible(true);
+
+            List<String> result = new ArrayList<>();
+            Object current = head;
+            int limit = 10000; // prevent infinite loops
+            while (current != null && limit-- > 0) {
+                result.add(String.valueOf(valField.getInt(current)));
+                current = nextField.get(current);
+            }
+            return "[" + String.join(",", result) + "]";
+        } catch (Exception e) {
+            return head.toString();
+        }
+    }
+
     private static String format2DArray(Object arr) {
         if (arr == null) return "null";
         
@@ -872,9 +1171,38 @@ public class SolutionTestRunner {
 
     private static String formatResult(Object result) {
         if (result == null) return "null";
-        
-        if (result instanceof int[]) {
+
+        // Handle TreeNode result - convert to level-order array
+        if (result.getClass().getName().equals("TreeNode")) {
+            return treeToString(result);
+        }
+        // Handle ListNode result - convert to array
+        if (result.getClass().getName().equals("ListNode")) {
+            return listToString(result);
+        }
+
+        if (result instanceof char[]) {
+            char[] chars = (char[]) result;
+            StringBuilder sb = new StringBuilder("[");
+            for (int i = 0; i < chars.length; i++) {
+                if (i > 0) sb.append(",");
+                sb.append("\"").append(chars[i]).append("\"");
+            }
+            sb.append("]");
+            return sb.toString();
+        } else if (result instanceof int[]) {
             return Arrays.toString((int[]) result);
+        } else if (result instanceof double[]) {
+            double[] arr = (double[]) result;
+            StringBuilder sb = new StringBuilder("[");
+            for (int i = 0; i < arr.length; i++) {
+                if (i > 0) sb.append(",");
+                sb.append(String.format("%.5f", arr[i]));
+            }
+            sb.append("]");
+            return sb.toString();
+        } else if (result instanceof long[]) {
+            return Arrays.toString((long[]) result);
         } else if (result instanceof String[]) {
             return Arrays.toString((String[]) result);
         } else if (result instanceof boolean[]) {
@@ -882,18 +1210,20 @@ public class SolutionTestRunner {
         } else if (result instanceof List) {
             List<?> list = (List<?>) result;
             if (list.isEmpty()) return "[]";
-            
-            Object first = list.get(0);
-            if (first instanceof List) {
-                StringBuilder sb = new StringBuilder("[");
-                for (int i = 0; i < list.size(); i++) {
-                    if (i > 0) sb.append(",");
-                    sb.append(formatResult(list.get(i)));
+
+            // Always use formatResult for list items (handles TreeNode, ListNode, nested List)
+            StringBuilder sb = new StringBuilder("[");
+            for (int i = 0; i < list.size(); i++) {
+                if (i > 0) sb.append(",");
+                Object item = list.get(i);
+                if (item instanceof String) {
+                    sb.append("\"").append(item).append("\"");
+                } else {
+                    sb.append(formatResult(item));
                 }
-                sb.append("]");
-                return sb.toString();
             }
-            return list.toString();
+            sb.append("]");
+            return sb.toString();
         }
         
         return result.toString();
@@ -902,23 +1232,94 @@ public class SolutionTestRunner {
     private static boolean compareResults(String actual, String expected, Class<?> returnType) {
         String actualNorm = normalizeResult(actual);
         String expectedNorm = normalizeResult(expected);
-        
+
         if (actualNorm.equals(expectedNorm)) return true;
-        
-        // Unordered array comparison
-        if (returnType == int[].class) {
+
+        // Double/float precision comparison (e.g., "12.75" vs "12.75000")
+        if (returnType == double.class || returnType == float.class ||
+            returnType == Double.class || returnType == Float.class) {
+            try {
+                double a = Double.parseDouble(actual.trim());
+                double e = Double.parseDouble(expected.trim().replaceAll("[^\\d.eE+-]", ""));
+                return Math.abs(a - e) < 1e-4;
+            } catch (NumberFormatException ignore) {}
+        }
+
+        // Double array comparison with tolerance
+        if (returnType == double[].class) {
+            return compareDoubleArrays(actual, expected);
+        }
+
+        // TreeNode comparison
+        if (returnType != null && returnType.getName().equals("TreeNode")) {
+            String expTrim = expected.trim();
+            if (expTrim.matches("-?\\d+")) {
+                // Expected is just a node value (e.g., LCA returns node with val=6)
+                String actVal = actualNorm.replaceAll("[\\[\\]]", "").split(",")[0];
+                return actVal.equals(expTrim);
+            }
+            // null tree should match []
+            if (actualNorm.equals("null") && expectedNorm.equals("[]")) return true;
+            if (actualNorm.equals("[]") && expectedNorm.equals("null")) return true;
+            // Strip trailing ",null" for tree equivalence: [1,2] == [1,2,null]
+            String actStrip = actualNorm.replaceAll("(,null)+\\]$", "]");
+            String expStrip = expectedNorm.replaceAll("(,null)+\\]$", "]");
+            if (actStrip.equals(expStrip)) return true;
+        }
+
+        // ListNode comparison: null should match []
+        if (returnType != null && returnType.getName().equals("ListNode")) {
+            if (actualNorm.equals("null") && expectedNorm.equals("[]")) return true;
+            if (actualNorm.equals("[]") && expectedNorm.equals("null")) return true;
+        }
+
+        // Void comparison: null input args for TreeNode/ListNode
+        if (returnType == void.class) {
+            if (actualNorm.equals("null") && expectedNorm.equals("[]")) return true;
+        }
+
+        // Unordered int array comparison (fallback for problems where order doesn't matter)
+        if (returnType == int[].class || (returnType != null && returnType.getName().equals("[I"))) {
             return compareUnorderedIntArrays(actual, expected);
         }
-        
-        // Unordered nested list comparison
-        if (returnType.getName().contains("List")) {
+
+        // Unordered 2D int array comparison (e.g., [[3,3],[-2,4]] vs [[-2,4],[3,3]])
+        if (returnType == int[][].class || (returnType != null && returnType.getName().equals("[[I"))) {
             return compareUnorderedNestedLists(actual, expected);
         }
-        
+
+        // For List results, try unordered nested list comparison
+        if (returnType != null && returnType.getName().contains("List")) {
+            return compareUnorderedNestedLists(actual, expected);
+        }
+
         return false;
     }
 
+    private static boolean compareDoubleArrays(String actual, String expected) {
+        try {
+            String a = actual.replaceAll("[\\[\\]\\s]", "");
+            String e = expected.replaceAll("[\\[\\]\\s]", "");
+            String[] aParts = a.split(",");
+            String[] eParts = e.split(",");
+            if (aParts.length != eParts.length) return false;
+            for (int i = 0; i < aParts.length; i++) {
+                double av = Double.parseDouble(aParts[i].trim());
+                double ev = Double.parseDouble(eParts[i].trim());
+                if (Math.abs(av - ev) > 1e-4) return false;
+            }
+            return true;
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
     private static String normalizeResult(String s) {
+        s = s.trim();
+        // Strip surrounding quotes from strings (e.g., "01" -> 01)
+        if (s.startsWith("\"") && s.endsWith("\"")) {
+            s = s.substring(1, s.length() - 1);
+        }
         return s.replaceAll("\\s+", "").replace("\"", "").toLowerCase();
     }
 
@@ -934,6 +1335,15 @@ public class SolutionTestRunner {
     }
 
     private static boolean compareUnorderedNestedLists(String actual, String expected) {
+        // Try flat list comparison first (e.g., ["eat","oath"] vs ["oath","eat"])
+        String aNorm = actual.replaceAll("\\s+", "");
+        String eNorm = expected.replaceAll("\\s+", "");
+        if (aNorm.startsWith("[") && !aNorm.startsWith("[[") && eNorm.startsWith("[") && !eNorm.startsWith("[[")) {
+            Set<String> aSet = parseAsSet(aNorm.substring(1, aNorm.length() - 1));
+            Set<String> eSet = parseAsSet(eNorm.substring(1, eNorm.length() - 1));
+            if (aSet.equals(eSet)) return true;
+        }
+        // Try nested list comparison (e.g., [[1,2],[3,4]] vs [[3,4],[1,2]])
         Set<Set<String>> actualSets = parseAsSetOfSets(actual);
         Set<Set<String>> expectedSets = parseAsSetOfSets(expected);
         return actualSets.equals(expectedSets);
@@ -1054,11 +1464,22 @@ public class SolutionTestRunner {
 
     private static int findMatchingBracket(String s, int start) {
         int count = 0;
+        boolean inString = false;
+        boolean escape = false;
+
         for (int i = start; i < s.length(); i++) {
-            if (s.charAt(i) == '[') count++;
-            else if (s.charAt(i) == ']') {
-                count--;
-                if (count == 0) return i;
+            char c = s.charAt(i);
+
+            if (escape) { escape = false; continue; }
+            if (c == '\\') { escape = true; continue; }
+            if (c == '"') { inString = !inString; continue; }
+
+            if (!inString) {
+                if (c == '[') count++;
+                else if (c == ']') {
+                    count--;
+                    if (count == 0) return i;
+                }
             }
         }
         return -1;

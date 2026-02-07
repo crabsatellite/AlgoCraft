@@ -14,6 +14,16 @@
       "output": "[null, null, null, null, false, null, true, false, true, false]"
     }
   ],
+  "solutions": [
+    {
+      "name": "Multi-Level Linked List",
+      "timeComplexity": "O(log n) average",
+      "spaceComplexity": "O(n)",
+      "description": "Implement a skiplist with random level promotion. Each node has an array of forward pointers. Search by traversing from highest level down. Insert and erase update pointers at each level.",
+      "code": "class Skiplist {\n    private static final int MAX_LEVEL = 16;\n    private int[] headNext;\n    private int[][] nodeNext;\n    private int[] nodeVal;\n    private int cnt = 0;\n    private java.util.Random rand = new java.util.Random();\n    public Skiplist() {\n        headNext = new int[MAX_LEVEL];\n        java.util.Arrays.fill(headNext, -1);\n        nodeNext = new int[50001][MAX_LEVEL];\n        nodeVal = new int[50001];\n    }\n    private int randomLevel() {\n        int lvl = 1;\n        while (lvl < MAX_LEVEL && rand.nextDouble() < 0.5) lvl++;\n        return lvl;\n    }\n    public boolean search(int target) {\n        int[] cur = headNext;\n        for (int i = MAX_LEVEL - 1; i >= 0; i--) {\n            int idx = cur[i];\n            while (idx != -1 && nodeVal[idx] < target) { cur = nodeNext[idx]; idx = cur[i]; }\n            if (idx != -1 && nodeVal[idx] == target) return true;\n        }\n        return false;\n    }\n    public void add(int num) {\n        int[][] prevs = new int[MAX_LEVEL][];\n        int[] prevIdx = new int[MAX_LEVEL];\n        int[] cur = headNext;\n        for (int i = MAX_LEVEL - 1; i >= 0; i--) {\n            int idx = cur[i];\n            while (idx != -1 && nodeVal[idx] < num) { int[] nxt = nodeNext[idx]; prevs[i] = nxt; prevIdx[i] = i; cur = nxt; idx = cur[i]; }\n            prevs[i] = cur; prevIdx[i] = i;\n        }\n        int lvl = randomLevel(), id = cnt++;\n        nodeVal[id] = num;\n        for (int i = 0; i < MAX_LEVEL; i++) nodeNext[id][i] = -1;\n        for (int i = 0; i < lvl; i++) {\n            nodeNext[id][i] = prevs[i][i];\n            prevs[i][i] = id;\n        }\n    }\n    public boolean erase(int num) {\n        int[][] prevs = new int[MAX_LEVEL][];\n        int[] cur = headNext;\n        boolean found = false;\n        for (int i = MAX_LEVEL - 1; i >= 0; i--) {\n            int idx = cur[i];\n            while (idx != -1 && nodeVal[idx] < num) { cur = nodeNext[idx]; idx = cur[i]; }\n            prevs[i] = cur;\n            if (idx != -1 && nodeVal[idx] == num) found = true;\n        }\n        if (!found) return false;\n        int target = prevs[0][0];\n        for (int i = 0; i < MAX_LEVEL; i++)\n            if (prevs[i][i] == target) prevs[i][i] = nodeNext[target][i];\n        return true;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"Skiplist\", \"add\", \"add\", \"add\", \"search\", \"add\", \"search\", \"erase\", \"erase\", \"search\"]\n[[], [1], [2], [3], [0], [4], [1], [0], [1], [1]]",

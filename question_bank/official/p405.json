@@ -11,6 +11,16 @@
       "output": "[null,null,null,null,null,null,null,14.00000,11.00000,null,11.00000,null,12.00000]"
     }
   ],
+  "solutions": [
+    {
+      "name": "Two HashMaps",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(P + S^2)",
+      "description": "One HashMap maps passenger id to (station, time) at check-in. Another maps route (start->end) to (totalTime, count). On checkout, compute travel time and update the route stats.",
+      "code": "class UndergroundSystem {\n    private java.util.Map<Integer, String[]> checkIns = new java.util.HashMap<>();\n    private java.util.Map<String, long[]> routes = new java.util.HashMap<>();\n    public UndergroundSystem() {}\n    public void checkIn(int id, String stationName, int t) {\n        checkIns.put(id, new String[]{stationName, String.valueOf(t)});\n    }\n    public void checkOut(int id, String stationName, int t) {\n        String[] info = checkIns.remove(id);\n        String route = info[0] + \"->\" + stationName;\n        long time = t - Integer.parseInt(info[1]);\n        routes.computeIfAbsent(route, k -> new long[2]);\n        routes.get(route)[0] += time;\n        routes.get(route)[1]++;\n    }\n    public double getAverageTime(String startStation, String endStation) {\n        long[] data = routes.get(startStation + \"->\" + endStation);\n        return (double) data[0] / data[1];\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"UndergroundSystem\",\"checkIn\",\"checkIn\",\"checkIn\",\"checkOut\",\"checkOut\",\"checkOut\",\"getAverageTime\",\"getAverageTime\",\"checkIn\",\"getAverageTime\",\"checkOut\",\"getAverageTime\"]\n[[],[45,\"Leyton\",3],[32,\"Paradise\",8],[27,\"Leyton\",10],[45,\"Waterloo\",15],[27,\"Waterloo\",20],[32,\"Cambridge\",22],[\"Paradise\",\"Cambridge\"],[\"Leyton\",\"Waterloo\"],[10,\"Leyton\",24],[\"Leyton\",\"Waterloo\"],[10,\"Waterloo\",38],[\"Leyton\",\"Waterloo\"]]",

@@ -25,6 +25,16 @@
       "output": "4"
     }
   ],
+  "solutions": [
+    {
+      "name": "DFS Component Labeling",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "First DFS to label each island with a unique ID and record its area. Then for each 0 cell, check its 4 neighbors, collect unique island IDs, and sum their areas + 1. Track the maximum.",
+      "code": "class Solution {\n    private int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n    public int largestIsland(int[][] grid) {\n        int n = grid.length;\n        int[][] id = new int[n][n];\n        java.util.Map<Integer, Integer> area = new java.util.HashMap<>();\n        int label = 2, result = 0;\n        for (int i = 0; i < n; i++)\n            for (int j = 0; j < n; j++)\n                if (grid[i][j] == 1 && id[i][j] == 0) {\n                    int size = dfs(grid, id, i, j, label, n);\n                    area.put(label, size);\n                    result = Math.max(result, size);\n                    label++;\n                }\n        for (int i = 0; i < n; i++)\n            for (int j = 0; j < n; j++)\n                if (grid[i][j] == 0) {\n                    java.util.Set<Integer> seen = new java.util.HashSet<>();\n                    int total = 1;\n                    for (int[] d : dirs) {\n                        int ni = i + d[0], nj = j + d[1];\n                        if (ni >= 0 && ni < n && nj >= 0 && nj < n && id[ni][nj] > 0 && seen.add(id[ni][nj]))\n                            total += area.get(id[ni][nj]);\n                    }\n                    result = Math.max(result, total);\n                }\n        return result;\n    }\n    private int dfs(int[][] grid, int[][] id, int r, int c, int label, int n) {\n        if (r < 0 || r >= n || c < 0 || c >= n || grid[r][c] != 1 || id[r][c] != 0) return 0;\n        id[r][c] = label;\n        int size = 1;\n        for (int[] d : dirs) size += dfs(grid, id, r + d[0], c + d[1], label, n);\n        return size;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "grid = [[1,0],[0,1]]",

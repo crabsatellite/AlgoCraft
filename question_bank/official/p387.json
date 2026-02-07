@@ -24,6 +24,16 @@
       "output": "1"
     }
   ],
+  "solutions": [
+    {
+      "name": "BFS Simulation per Removal",
+      "timeComplexity": "O(n^3)",
+      "spaceComplexity": "O(n)",
+      "description": "For each initially infected node, simulate its complete removal (remove all edges). BFS from remaining infected nodes to count total infections. Pick the removal that minimizes infections; break ties by smallest index.",
+      "code": "class Solution {\n    public int minMalwareSpread(int[][] graph, int[] initial) {\n        int n = graph.length;\n        java.util.Arrays.sort(initial);\n        int bestNode = initial[0], minInfected = n + 1;\n        for (int remove : initial) {\n            boolean[] infected = new boolean[n];\n            java.util.Queue<Integer> queue = new java.util.LinkedList<>();\n            for (int node : initial) {\n                if (node != remove) { infected[node] = true; queue.offer(node); }\n            }\n            while (!queue.isEmpty()) {\n                int cur = queue.poll();\n                for (int j = 0; j < n; j++) {\n                    if (j != remove && graph[cur][j] == 1 && !infected[j]) {\n                        infected[j] = true;\n                        queue.offer(j);\n                    }\n                }\n            }\n            int count = 0;\n            for (boolean b : infected) if (b) count++;\n            if (count < minInfected) { minInfected = count; bestNode = remove; }\n        }\n        return bestNode;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "graph = [[1,1,0],[1,1,0],[0,0,1]], initial = [0,1]",

@@ -11,6 +11,16 @@
       "output": "[null, 0, 1, null, null, 0, \"456\", \"45\", null, null, [1, 1], 2]"
     }
   ],
+  "solutions": [
+    {
+      "name": "HashMap + PriorityQueue for ID Reuse",
+      "timeComplexity": "O(log n) per upload, O(1) per other ops",
+      "spaceComplexity": "O(n)",
+      "description": "Use a min-heap to track available IDs. HashMap stores video data (content, views, likes, dislikes). Upload pops from heap or uses nextId. Remove adds ID back to heap.",
+      "code": "class VideoSharingPlatform {\n    private java.util.Map<Integer, String> videos = new java.util.HashMap<>();\n    private java.util.Map<Integer, int[]> stats = new java.util.HashMap<>();\n    private java.util.PriorityQueue<Integer> available = new java.util.PriorityQueue<>();\n    private int nextId = 0;\n    public VideoSharingPlatform() {}\n    public int upload(String video) {\n        int id = available.isEmpty() ? nextId++ : available.poll();\n        videos.put(id, video); stats.put(id, new int[3]);\n        return id;\n    }\n    public void remove(int videoId) {\n        if (videos.containsKey(videoId)) { videos.remove(videoId); stats.remove(videoId); available.offer(videoId); }\n    }\n    public String watch(int videoId, int startMinute, int endMinute) {\n        if (!videos.containsKey(videoId)) return \"-1\";\n        stats.get(videoId)[0]++;\n        String v = videos.get(videoId);\n        return v.substring(startMinute, Math.min(endMinute + 1, v.length()));\n    }\n    public void like(int videoId) { if (stats.containsKey(videoId)) stats.get(videoId)[1]++; }\n    public void dislike(int videoId) { if (stats.containsKey(videoId)) stats.get(videoId)[2]++; }\n    public int[] getLikesAndDislikes(int videoId) {\n        if (!stats.containsKey(videoId)) return new int[]{-1};\n        return new int[]{stats.get(videoId)[1], stats.get(videoId)[2]};\n    }\n    public int getViews(int videoId) {\n        return stats.containsKey(videoId) ? stats.get(videoId)[0] : -1;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"VideoSharingPlatform\", \"upload\", \"upload\", \"remove\", \"remove\", \"upload\", \"watch\", \"watch\", \"like\", \"dislike\", \"getLikesAndDislikes\", \"getViews\"]\n[[], [\"123\"], [\"456\"], [4], [0], [\"789\"], [1, 0, 5], [1, 0, 1], [1], [1], [1], [1]]",

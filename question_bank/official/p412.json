@@ -17,6 +17,16 @@
       "output": "[null, [1, 0, 2], null, null, [[0, 1], [1, 2]], null, [0, 1]]"
     }
   ],
+  "solutions": [
+    {
+      "name": "TreeSet with HashMap",
+      "timeComplexity": "O(log n) per operation",
+      "spaceComplexity": "O(n)",
+      "description": "Use TreeSets sorted by (price, shop) for each movie's unrented copies. Use a global TreeSet for rented movies sorted by (price, shop, movie). HashMap stores prices for (shop, movie) pairs.",
+      "code": "class MovieRentingSystem {\n    private java.util.Map<Integer, java.util.TreeSet<int[]>> unrented = new java.util.HashMap<>();\n    private java.util.TreeSet<int[]> rented = new java.util.TreeSet<>((a, b) -> a[0] != b[0] ? a[0] - b[0] : a[1] != b[1] ? a[1] - b[1] : a[2] - b[2]);\n    private java.util.Map<Long, Integer> price = new java.util.HashMap<>();\n    public MovieRentingSystem(int n, int[][] entries) {\n        for (int[] e : entries) {\n            price.put((long) e[0] * 100001 + e[1], e[2]);\n            unrented.computeIfAbsent(e[1], k -> new java.util.TreeSet<>((a, b) -> a[0] != b[0] ? a[0] - b[0] : a[1] - b[1]));\n            unrented.get(e[1]).add(new int[]{e[2], e[0]});\n        }\n    }\n    public java.util.List<Integer> search(int movie) {\n        java.util.List<Integer> res = new java.util.ArrayList<>();\n        if (!unrented.containsKey(movie)) return res;\n        int cnt = 0;\n        for (int[] entry : unrented.get(movie)) {\n            res.add(entry[1]); if (++cnt == 5) break;\n        }\n        return res;\n    }\n    public void rent(int shop, int movie) {\n        int p = price.get((long) shop * 100001 + movie);\n        unrented.get(movie).remove(new int[]{p, shop});\n        rented.add(new int[]{p, shop, movie});\n    }\n    public void drop(int shop, int movie) {\n        int p = price.get((long) shop * 100001 + movie);\n        rented.remove(new int[]{p, shop, movie});\n        unrented.get(movie).add(new int[]{p, shop});\n    }\n    public java.util.List<java.util.List<Integer>> report() {\n        java.util.List<java.util.List<Integer>> res = new java.util.ArrayList<>();\n        int cnt = 0;\n        for (int[] entry : rented) {\n            res.add(java.util.Arrays.asList(entry[1], entry[2]));\n            if (++cnt == 5) break;\n        }\n        return res;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "[\"MovieRentingSystem\", \"search\", \"rent\", \"rent\", \"report\", \"drop\", \"search\"]\n[[3, [[0, 1, 5], [0, 2, 6], [0, 3, 7], [1, 1, 4], [1, 2, 7], [2, 1, 5]]], [1], [0, 1], [1, 2], [], [1, 2], [2]]",

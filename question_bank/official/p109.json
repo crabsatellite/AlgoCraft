@@ -21,5 +21,23 @@
     { "input": "nums = [1], k = 1", "output": "1" },
     { "input": "nums = [7,7,7,7,7], k = 3", "output": "7" },
     { "input": "nums = [1,2,3,4,5], k = 5", "output": "1" }
+  ],
+  "solutions": [
+    {
+      "name": "Min Heap of Size k",
+      "timeComplexity": "O(n log k)",
+      "spaceComplexity": "O(k)",
+      "description": "Maintain a min-heap of size k. After processing all elements, the heap root is the kth largest.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int findKthLargest(int[] nums, int k) {\n        PriorityQueue<Integer> minHeap = new PriorityQueue<>();\n        \n        for (int num : nums) {\n            minHeap.offer(num);\n            if (minHeap.size() > k) minHeap.poll();\n        }\n        \n        return minHeap.peek();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Quickselect",
+      "timeComplexity": "O(n) average, O(n^2) worst",
+      "spaceComplexity": "O(1)",
+      "description": "Partition the array like quicksort. After partitioning, the pivot is at its sorted position. If pivot index matches target, we found the answer; otherwise recurse on the correct half.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int findKthLargest(int[] nums, int k) {\n        int target = nums.length - k;\n        int left = 0, right = nums.length - 1;\n        \n        Random rand = new Random();\n        while (left < right) {\n            int pivotIdx = left + rand.nextInt(right - left + 1);\n            int pivot = nums[pivotIdx];\n            // Move pivot to end\n            int temp = nums[pivotIdx];\n            nums[pivotIdx] = nums[right];\n            nums[right] = temp;\n            \n            int store = left;\n            for (int i = left; i < right; i++) {\n                if (nums[i] < pivot) {\n                    temp = nums[i];\n                    nums[i] = nums[store];\n                    nums[store] = temp;\n                    store++;\n                }\n            }\n            temp = nums[store];\n            nums[store] = nums[right];\n            nums[right] = temp;\n            \n            if (store == target) return nums[store];\n            else if (store < target) left = store + 1;\n            else right = store - 1;\n        }\n        return nums[left];\n    }\n}",
+      "language": "java"
+    }
   ]
 }

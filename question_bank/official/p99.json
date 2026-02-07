@@ -31,5 +31,23 @@
       "input": "root = [1,-2,-3,1,3,-2,null,-1], targetSum = -1",
       "output": "4"
     }
+  ],
+  "solutions": [
+    {
+      "name": "Prefix Sum + HashMap",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "Use a prefix sum and a HashMap to count how many times each prefix sum has occurred. At each node, check if (currentSum - targetSum) exists in the map — that means there's a subpath summing to targetSum.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int pathSum(TreeNode root, int targetSum) {\n        Map<Long, Integer> prefixMap = new HashMap<>();\n        prefixMap.put(0L, 1);\n        return dfs(root, 0L, targetSum, prefixMap);\n    }\n    \n    private int dfs(TreeNode node, long currentSum, int target, Map<Long, Integer> prefixMap) {\n        if (node == null) return 0;\n        \n        currentSum += node.val;\n        int count = prefixMap.getOrDefault(currentSum - target, 0);\n        \n        prefixMap.merge(currentSum, 1, Integer::sum);\n        \n        count += dfs(node.left, currentSum, target, prefixMap);\n        count += dfs(node.right, currentSum, target, prefixMap);\n        \n        prefixMap.merge(currentSum, -1, Integer::sum);\n        \n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Brute Force DFS from Each Node",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(h)",
+      "description": "For each node, run a DFS counting paths starting from that node that sum to targetSum. Total paths = sum of counts from all starting nodes.",
+      "code": "class Solution {\n    public int pathSum(TreeNode root, int targetSum) {\n        if (root == null) return 0;\n        \n        return countFrom(root, targetSum)\n            + pathSum(root.left, targetSum)\n            + pathSum(root.right, targetSum);\n    }\n    \n    private int countFrom(TreeNode node, long remain) {\n        if (node == null) return 0;\n        \n        int count = (node.val == remain) ? 1 : 0;\n        count += countFrom(node.left, remain - node.val);\n        count += countFrom(node.right, remain - node.val);\n        \n        return count;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

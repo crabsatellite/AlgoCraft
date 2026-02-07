@@ -9,6 +9,16 @@
     { "input": "nums = [3,1,5,8]", "output": "167" },
     { "input": "nums = [1,5]", "output": "10" }
   ],
+  "solutions": [
+    {
+      "name": "Interval DP",
+      "timeComplexity": "O(n^3)",
+      "spaceComplexity": "O(n^2)",
+      "description": "Add boundary 1s. dp[i][j] = max coins from bursting all balloons between i and j (exclusive). For each k in (i,j), k is the LAST balloon burst in that range: dp[i][j] = max(dp[i][k] + dp[k][j] + nums[i]*nums[k]*nums[j]).",
+      "code": "class Solution {\n    public int maxCoins(int[] nums) {\n        int n = nums.length;\n        int[] val = new int[n + 2];\n        val[0] = val[n + 1] = 1;\n        for (int i = 0; i < n; i++) val[i + 1] = nums[i];\n        int[][] dp = new int[n + 2][n + 2];\n        for (int len = 2; len <= n + 1; len++) {\n            for (int i = 0; i + len <= n + 1; i++) {\n                int j = i + len;\n                for (int k = i + 1; k < j; k++) {\n                    dp[i][j] = Math.max(dp[i][j], dp[i][k] + dp[k][j] + val[i] * val[k] * val[j]);\n                }\n            }\n        }\n        return dp[0][n + 1];\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "nums = [3,1,5,8]", "output": "167" },
     { "input": "nums = [1,5]", "output": "10" }

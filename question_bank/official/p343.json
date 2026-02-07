@@ -18,6 +18,16 @@
     { "input": "nums = [-1]", "output": "[0]" },
     { "input": "nums = [-1,-1]", "output": "[0,0]" }
   ],
+  "solutions": [
+    {
+      "name": "Merge Sort with Index Tracking",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "Modified merge sort that counts how many elements from the right half are moved before elements from the left half during merge. Track original indices to accumulate counts correctly.",
+      "code": "class Solution {\n    private int[] counts;\n    public List<Integer> countSmaller(int[] nums) {\n        int n = nums.length;\n        counts = new int[n];\n        int[][] indexed = new int[n][2];\n        for (int i = 0; i < n; i++) indexed[i] = new int[]{nums[i], i};\n        mergeSort(indexed, 0, n - 1);\n        List<Integer> result = new java.util.ArrayList<>();\n        for (int c : counts) result.add(c);\n        return result;\n    }\n    private void mergeSort(int[][] arr, int lo, int hi) {\n        if (lo >= hi) return;\n        int mid = lo + (hi - lo) / 2;\n        mergeSort(arr, lo, mid);\n        mergeSort(arr, mid + 1, hi);\n        merge(arr, lo, mid, hi);\n    }\n    private void merge(int[][] arr, int lo, int mid, int hi) {\n        int[][] temp = new int[hi - lo + 1][2];\n        int i = lo, j = mid + 1, k = 0, rightCount = 0;\n        while (i <= mid && j <= hi) {\n            if (arr[j][0] < arr[i][0]) { rightCount++; temp[k++] = arr[j++]; }\n            else { counts[arr[i][1]] += rightCount; temp[k++] = arr[i++]; }\n        }\n        while (i <= mid) { counts[arr[i][1]] += rightCount; temp[k++] = arr[i++]; }\n        while (j <= hi) temp[k++] = arr[j++];\n        System.arraycopy(temp, 0, arr, lo, temp.length);\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "nums = [5,2,6,1]", "output": "[2,1,1,0]" },
     { "input": "nums = [-1]", "output": "[0]" },

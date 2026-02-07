@@ -21,6 +21,16 @@
       "output": "0"
     }
   ],
+  "solutions": [
+    {
+      "name": "Modified Dijkstra",
+      "timeComplexity": "O(m*n * log(m*n))",
+      "spaceComplexity": "O(m * n)",
+      "description": "Use min-heap with effort as priority. For each cell, track the minimum effort to reach it. Expand to neighbors where the new effort (max of path effort and edge diff) is less than recorded.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minimumEffortPath(int[][] heights) {\n        int m = heights.length, n = heights[0].length;\n        int[][] effort = new int[m][n];\n        for (int[] row : effort) Arrays.fill(row, Integer.MAX_VALUE);\n        effort[0][0] = 0;\n        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] - b[0]);\n        pq.offer(new int[]{0, 0, 0});\n        int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};\n        while (!pq.isEmpty()) {\n            int[] cur = pq.poll();\n            int e = cur[0], i = cur[1], j = cur[2];\n            if (i == m - 1 && j == n - 1) return e;\n            if (e > effort[i][j]) continue;\n            for (int[] d : dirs) {\n                int ni = i + d[0], nj = j + d[1];\n                if (ni >= 0 && ni < m && nj >= 0 && nj < n) {\n                    int newEffort = Math.max(e, Math.abs(heights[ni][nj] - heights[i][j]));\n                    if (newEffort < effort[ni][nj]) {\n                        effort[ni][nj] = newEffort;\n                        pq.offer(new int[]{newEffort, ni, nj});\n                    }\n                }\n            }\n        }\n        return 0;\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     { "input": "heights = [[1,2,2],[3,8,2],[5,3,5]]", "output": "2" },
     { "input": "heights = [[1,2,3],[3,8,4],[5,3,5]]", "output": "1" },

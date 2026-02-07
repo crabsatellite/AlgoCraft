@@ -15,6 +15,16 @@
       "output": "[]"
     }
   ],
+  "solutions": [
+    {
+      "name": "BFS + DFS Backtrack",
+      "timeComplexity": "O(n * 26^L) where L = word length",
+      "spaceComplexity": "O(n * L)",
+      "description": "BFS to build a parent map of shortest paths from beginWord. Then DFS backtrack from endWord using the parent map to reconstruct all shortest sequences.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> findLadders(String beginWord, String endWord, List<String> wordList) {\n        Set<String> wordSet = new HashSet<>(wordList);\n        List<List<String>> result = new ArrayList<>();\n        if (!wordSet.contains(endWord)) return result;\n        Map<String, List<String>> parents = new HashMap<>();\n        Set<String> visited = new HashSet<>();\n        Queue<String> queue = new LinkedList<>();\n        queue.offer(beginWord);\n        visited.add(beginWord);\n        boolean found = false;\n        while (!queue.isEmpty() && !found) {\n            Set<String> levelVisited = new HashSet<>();\n            int size = queue.size();\n            for (int i = 0; i < size; i++) {\n                String word = queue.poll();\n                char[] chars = word.toCharArray();\n                for (int j = 0; j < chars.length; j++) {\n                    char orig = chars[j];\n                    for (char c = 'a'; c <= 'z'; c++) {\n                        if (c == orig) continue;\n                        chars[j] = c;\n                        String next = new String(chars);\n                        if (wordSet.contains(next) && !visited.contains(next)) {\n                            if (next.equals(endWord)) found = true;\n                            levelVisited.add(next);\n                            parents.computeIfAbsent(next, k -> new ArrayList<>()).add(word);\n                            if (!queue.contains(next) && !visited.contains(next)) {\n                                // Only add to queue once per level\n                            }\n                        }\n                    }\n                    chars[j] = orig;\n                }\n            }\n            for (String w : levelVisited) {\n                queue.offer(w);\n                visited.add(w);\n            }\n        }\n        if (found) {\n            LinkedList<String> path = new LinkedList<>();\n            path.addFirst(endWord);\n            buildPaths(parents, beginWord, endWord, path, result);\n        }\n        return result;\n    }\n\n    private void buildPaths(Map<String, List<String>> parents, String beginWord, String word, LinkedList<String> path, List<List<String>> result) {\n        if (word.equals(beginWord)) {\n            result.add(new ArrayList<>(path));\n            return;\n        }\n        if (!parents.containsKey(word)) return;\n        for (String parent : parents.get(word)) {\n            path.addFirst(parent);\n            buildPaths(parents, beginWord, parent, path, result);\n            path.removeFirst();\n        }\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "beginWord = \"hit\", endWord = \"cog\", wordList = [\"hot\",\"dot\",\"dog\",\"lot\",\"log\",\"cog\"]",

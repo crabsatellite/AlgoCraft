@@ -15,6 +15,16 @@
       "output": "[\"JFK\",\"ATL\",\"JFK\",\"SFO\",\"ATL\",\"SFO\"]"
     }
   ],
+  "solutions": [
+    {
+      "name": "Hierholzer's Algorithm (Euler Path)",
+      "timeComplexity": "O(E log E)",
+      "spaceComplexity": "O(E)",
+      "description": "Build adjacency list with sorted destinations (PriorityQueue). DFS using Hierholzer's algorithm for Eulerian path. Post-order add to result and reverse at end.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private Map<String, PriorityQueue<String>> graph = new HashMap<>();\n    private LinkedList<String> result = new LinkedList<>();\n\n    public List<String> findItinerary(List<List<String>> tickets) {\n        for (List<String> ticket : tickets)\n            graph.computeIfAbsent(ticket.get(0), k -> new PriorityQueue<>()).offer(ticket.get(1));\n        dfs(\"JFK\");\n        return result;\n    }\n\n    private void dfs(String airport) {\n        PriorityQueue<String> dests = graph.get(airport);\n        while (dests != null && !dests.isEmpty())\n            dfs(dests.poll());\n        result.addFirst(airport);\n    }\n}",
+      "language": "java"
+    }
+  ],
   "tests": [
     {
       "input": "tickets = [[\"MUC\",\"LHR\"],[\"JFK\",\"MUC\"],[\"SFO\",\"SJC\"],[\"LHR\",\"SFO\"]]",

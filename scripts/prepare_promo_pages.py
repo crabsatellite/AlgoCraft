@@ -13,7 +13,7 @@ PREVIEW = ROOT / 'build' / 'promo' / 'pages'
 PREVIEW.mkdir(parents=True, exist_ok=True)
 RAW = 'https://raw.githubusercontent.com/crabsatellite/AlgoCraft/main/docs/media/'
 BLOB = 'https://github.com/crabsatellite/AlgoCraft/blob/main/'
-TRAILER = 'https://github.com/crabsatellite/AlgoCraft/raw/refs/heads/main/docs/media/algocraft-trailer-en-1080p.mp4'
+TRAILER = 'https://www.youtube.com/watch?v=DsKH72bj73o'
 STYLE = ('html{color-scheme:dark}body{margin:0;background:#0d1117;color:#e6edf3;font:16px/1.65 -apple-system,"Segoe UI",system-ui,"Microsoft YaHei",sans-serif}'
          'main{max-width:900px;margin:auto;padding:32px 24px 80px;overflow-wrap:anywhere}h1,h2{line-height:1.25}h2{margin-top:44px;padding-bottom:8px;border-bottom:1px solid #30363d}'
          'a{color:#58d6a8}img{display:block;max-width:100%;height:auto;border-radius:10px;margin:14px 0}table{border-collapse:collapse;display:block;max-width:100%;overflow:auto}'

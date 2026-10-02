@@ -83,7 +83,7 @@ def main():
         im = Image.open(os.path.join(SHOTS, name + '.png')).convert('RGB')
         im.resize((im.width * 2, im.height * 2), Image.NEAREST).save(os.path.join(PUB, 'game', name + '.png'))
     # Problem bank facts from the real capture receipt.
-    rc = json.load(open(os.path.join(PUB, 'cap', 'capture-receipt.json'), encoding='utf-8'))
+    rc = json.load(open(os.path.join(ROOT, 'build', 'promo', 'evidence', 'capture-receipt.json'), encoding='utf-8'))
     bank_dir = os.path.join(ROOT, 'question_bank', 'official')
     titles = []
     for i in range(1, 501):

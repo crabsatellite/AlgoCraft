@@ -15,3 +15,9 @@ test configuration. Bound only the test processes. Require the desktop-isolation
 and clean-exit receipts; compilation never substitutes for gameplay evidence.
 
 Never add `Co-Authored-By` lines to commits.
+
+Before committing or publishing, run `python scripts/check_public_tree.py`.
+Internal review, audit, handoff and acceptance reports belong in ignored build
+output or an external private evidence directory. Never commit test worlds,
+caches, logs, backups, temporary files or report artifacts. Public documentation
+covers players, contributors, schemas, licenses and release download links.

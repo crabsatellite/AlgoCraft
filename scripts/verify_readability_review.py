@@ -88,13 +88,13 @@ def verify():
 
 修正：245 道题的中英文题面（490 个版本）、38 道题的双语图注、37 张 PNG。例：p58 API 与 bad 参数说明，p72 重复值规则，p151 台阶终点，p159 含零连续范围，p379 多项式格式，p430 隐含根；p87 补全树，p105 补全 apple/app 路径，p139 正确输入图，p163 3×7 网格，p408 真实队列状态。
 
-测试结果与交接边界见 `docs/FIRST_READER_HANDOFF_2026-09-30.md`。编辑基线、阅读笔记、接触表和校验收据保留在 `build/review/readability-2026-09-30/`。
+编辑基线、阅读笔记、接触表和校验收据保留在 `build/review/readability-2026-09-30/`。
 
 | ID | 中文题名 | 题面阅读 | 图片复看 |
 | --- | --- | --- | --- |
 '''
     text += '\n'.join(f"| p{r['problem']} | {r['title_zh']} | {r['text_review']} | {r['image_review']} |" for r in rows) + '\n'
-    (ROOT / 'question_bank/FIRST_READER_REVIEW_2026-09-30.md').write_text(text, encoding='utf8')
+    (ROOT / 'build/review/readability-2026-09-30/FIRST_READER_REVIEW.md').write_text(text, encoding='utf8')
     print(json.dumps({k: v for k, v in receipt.items() if k not in ('documentsChanged', 'imagesChanged')}, ensure_ascii=False))
 
 

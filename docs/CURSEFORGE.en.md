@@ -105,7 +105,7 @@ Players can still **import their own problems** for private practice. Personal i
 
 ## Download
 
-[CurseForge](https://www.curseforge.com/minecraft/mc-mods/algocraft) · [Modrinth](https://modrinth.com/mod/algocraft) · [GitHub Releases](https://github.com/crabsatellite/AlgoCraft/releases/tag/v0.1.0-beta)
+[CurseForge](https://www.curseforge.com/minecraft/mc-mods/algocraft) · [Modrinth](https://modrinth.com/mod/algocraft) · [GitHub](https://github.com/crabsatellite/AlgoCraft)
 
 ## Install
 

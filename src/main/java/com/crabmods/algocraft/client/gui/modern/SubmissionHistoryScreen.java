@@ -19,28 +19,42 @@ public class SubmissionHistoryScreen extends Screen {
 
     @Override
     protected void init() {
-        this.historyList = new SubmissionHistoryList(this.minecraft, this.width, this.height, 40, 20);
+        this.historyList = new SubmissionHistoryList(this.minecraft, this.width, Math.max(1, this.height - 80), 40, 20);
         this.addRenderableWidget(this.historyList);
 
         for (SubmissionRecord record : SubmissionHistoryManager.getHistory()) {
             this.historyList.addRecord(record);
         }
 
-        this.addRenderableWidget(Button.builder(Component.translatable("algocraft.gui.back"), button -> {
+        this.addRenderableWidget(IdeButton.of(Component.translatable("algocraft.gui.back"), button -> {
             this.minecraft.setScreen(this.parent);
-        }).bounds(this.width / 2 - 100, this.height - 30, 200, 20).build());
+        }, this.width / 2 - 100, this.height - 30, 200, 20));
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
-        this.historyList.render(guiGraphics, mouseX, mouseY, partialTick);
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 15, 0xFFFFFFFF);
+        renderBackground(guiGraphics);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 12, IdeTheme.TEXT);
+        if (this.historyList != null) {
+            this.historyList.renderColumnHeaders(guiGraphics, 28);
+            if (this.historyList.children().isEmpty()) {
+                guiGraphics.drawCenteredString(this.font, Component.translatable("algocraft.gui.history.empty"), this.width / 2, 60, IdeTheme.TEXT_MUTED);
+            }
+        }
+    }
+
+    @Override
+    public void onClose() {
+        this.minecraft.setScreen(this.parent);
     }
     
     @Override
-    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-         guiGraphics.fill(0, 0, this.width, this.height, 0xFF1E1E1E);
+    public void renderBackground(GuiGraphics guiGraphics) {
+        guiGraphics.fill(0, 0, this.width, this.height, IdeTheme.BACKGROUND);
+        guiGraphics.fill(0, 0, this.width, 40, IdeTheme.PANEL_HEADER);
+        guiGraphics.fill(0, 40, this.width, 41, IdeTheme.BORDER);
+        guiGraphics.fill(0, this.height - 40, this.width, this.height, IdeTheme.PANEL_HEADER);
+        guiGraphics.fill(0, this.height - 40, this.width, this.height - 39, IdeTheme.BORDER);
     }
 }

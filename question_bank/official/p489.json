@@ -1,7 +1,7 @@
 {
   "id": "489",
   "title": "Maximum Binary Tree",
-  "description": "# Maximum Binary Tree\n\nYou are given an integer array `nums` with no duplicates. A **maximum binary tree** can be built recursively from `nums` using the following algorithm:\n\n1.  Create a root node whose value is the maximum value in `nums`.\n2.  Recursively build the left subtree on the subarray prefix to the **left** of the maximum value.\n3.  Recursively build the right subtree on the subarray suffix to the **right** of the maximum value.\n\nReturn *the **maximum binary tree** built from* `nums`.\n\n## Example 1:\n\n**Input:** nums = [3,2,1,6,0,5]\n**Output:** [6,3,5,null,2,0,null,null,1]\n**Explanation:** The recursive calls are as follow:\n- The largest value in [3,2,1,6,0,5] is 6. Left prefix is [3,2,1] and right suffix is [0,5].\n    - The largest value in [3,2,1] is 3. Left prefix is [] and right suffix is [2,1].\n        - Empty array, so no left child.\n        - The largest value in [2,1] is 2. Left prefix is [] and right suffix is [1].\n            - Empty array, so no left child.\n            - The largest value in [1] is 1. Left prefix is [] and right suffix is [].\n                - Empty array, so no left child.\n                - Empty array, so no right child.\n    - The largest value in [0,5] is 5. Left prefix is [0] and right suffix is [].\n        - The largest value in [0] is 0. Left prefix is [] and right suffix is [].\n            - Empty array, so no left child.\n            - Empty array, so no right child.\n        - Empty array, so no right child.\n\n## Example 2:\n\n**Input:** nums = [3,2,1]\n**Output:** [3,null,2,null,1]\n\n## Constraints:\n\n*   `1 <= nums.length <= 1000`\n*   `0 <= nums[i] <= 1000`\n*   All integers in `nums` are **unique**.",
+  "description": "# Maximum Binary Tree\n\nYou are given an integer array `nums` with no duplicate values. A **maximum binary tree** is built recursively as follows:\n\n1. The root is the maximum value in the current array range.\n2. The left subtree is built from the values to the left of that maximum value.\n3. The right subtree is built from the values to the right of that maximum value.\n4. An empty range produces no node.\n\nReturn the root of the maximum binary tree built from `nums`.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** nums = [3,2,1,6,0,5]\n**Output:** [6,3,5,null,2,0,null,null,1]\n**Explanation:** The maximum value `6` becomes the root. The prefix `[3,2,1]` builds the left subtree and the suffix `[0,5]` builds the right subtree.\n\n## Example 2:\n\n**Input:** nums = [3,2,1]\n**Output:** [3,null,2,null,1]\n**Explanation:** Each maximum is at the left edge of the current range, so the tree becomes a right chain.\n\n## Constraints:\n\n* `1 <= nums.length <= 1000`\n* `0 <= nums[i] <= 1000`\n* All integers in `nums` are unique.",
   "difficulty": "MEDIUM",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public TreeNode constructMaximumBinaryTree(int[] nums) {\n        \n    }\n}",
   "tags": [
@@ -24,19 +24,35 @@
   ],
   "solutions": [
     {
-      "name": "Recursive Divide and Conquer",
+      "name": "Recursive Maximum Split",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n)",
-      "description": "Find the maximum element in the current range and make it the root. Recursively build the left subtree from elements left of the max, and the right subtree from elements right of the max.",
-      "code": "class Solution {\n    public TreeNode constructMaximumBinaryTree(int[] nums) {\n        return build(nums, 0, nums.length - 1);\n    }\n    \n    private TreeNode build(int[] nums, int lo, int hi) {\n        if (lo > hi) return null;\n        int maxIdx = lo;\n        for (int i = lo + 1; i <= hi; i++) {\n            if (nums[i] > nums[maxIdx]) maxIdx = i;\n        }\n        TreeNode root = new TreeNode(nums[maxIdx]);\n        root.left = build(nums, lo, maxIdx - 1);\n        root.right = build(nums, maxIdx + 1, hi);\n        return root;\n    }\n}",
+      "description": "## Approach\n\nTranslate the definition directly. For a range `[left, right]`, scan the range to find the maximum value, create that node, then recursively build the left and right ranges around the maximum index.\n\n## Key Insight\n\nThe maximum value fixes the root before either child is known. Everything left of that index must remain in the left subtree, and everything right of that index must remain in the right subtree, so no rearrangement is allowed.\n\n## Complexity Analysis\n\nA sorted or reverse-sorted array can force a nearly full scan at every recursion level.\n\n- Time Complexity: O(n^2)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public TreeNode constructMaximumBinaryTree(int[] nums) {\n        return build(nums, 0, nums.length - 1);\n    }\n\n    private TreeNode build(int[] nums, int left, int right) {\n        if (left > right) {\n            return null;\n        }\n        int maxIndex = left;\n        for (int i = left + 1; i <= right; i++) {\n            if (nums[i] > nums[maxIndex]) {\n                maxIndex = i;\n            }\n        }\n\n        TreeNode root = new TreeNode(nums[maxIndex]);\n        root.left = build(nums, left, maxIndex - 1);\n        root.right = build(nums, maxIndex + 1, right);\n        return root;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Monotonic Stack",
+      "name": "Monotonic Stack Cartesian Tree",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use a decreasing monotonic stack. For each element, pop stack nodes smaller than it and make the last popped node its left child. The current stack top (if any) gets the new node as its right child. Push the new node onto the stack.",
-      "code": "class Solution {\n    public TreeNode constructMaximumBinaryTree(int[] nums) {\n        java.util.Deque<TreeNode> stack = new java.util.ArrayDeque<>();\n        for (int num : nums) {\n            TreeNode node = new TreeNode(num);\n            while (!stack.isEmpty() && stack.peek().val < num) {\n                node.left = stack.pop();\n            }\n            if (!stack.isEmpty()) {\n                stack.peek().right = node;\n            }\n            stack.push(node);\n        }\n        TreeNode root = null;\n        while (!stack.isEmpty()) {\n            root = stack.pop();\n        }\n        return root;\n    }\n}",
+      "description": "## Approach\n\nProcess values from left to right with a decreasing stack of tree nodes. When the new value is larger than the stack top, pop smaller nodes; the last popped node becomes the new node's left child. If a larger node remains on the stack, the new node becomes that larger node's right child.\n\n## Key Insight\n\nFor each value, its parent is the nearer greater value on either side. The decreasing stack discovers those nearest greater relationships once, which is exactly the Cartesian-tree structure behind a maximum binary tree.\n\n## Complexity Analysis\n\nEach node is pushed once and popped at most once.\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public TreeNode constructMaximumBinaryTree(int[] nums) {\n        java.util.Deque<TreeNode> stack = new java.util.ArrayDeque<>();\n\n        for (int value : nums) {\n            TreeNode node = new TreeNode(value);\n            while (!stack.isEmpty() && stack.peek().val < value) {\n                node.left = stack.pop();\n            }\n            if (!stack.isEmpty()) {\n                stack.peek().right = node;\n            }\n            stack.push(node);\n        }\n\n        TreeNode root = null;\n        while (!stack.isEmpty()) {\n            root = stack.pop();\n        }\n        return root;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Segment Tree Range Maximum",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nBuild a segment tree whose nodes store the index of the maximum value in each covered range. During recursive construction, query the maximum index for the current range, create that root, and recurse on the two remaining subranges.\n\n## Key Insight\n\nThis keeps the recursive definition but replaces repeated linear scans with range-maximum queries. It is useful for teaching the relationship between maximum binary trees and RMQ data structures.\n\n## Complexity Analysis\n\nThe segment tree is built in O(n), and each of the `n` tree nodes performs one O(log n) query.\n\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private int[] nums;\n    private int[] tree;\n\n    public TreeNode constructMaximumBinaryTree(int[] nums) {\n        this.nums = nums;\n        this.tree = new int[nums.length * 4];\n        buildIndexTree(1, 0, nums.length - 1);\n        return buildTree(0, nums.length - 1);\n    }\n\n    private void buildIndexTree(int node, int left, int right) {\n        if (left == right) {\n            tree[node] = left;\n            return;\n        }\n        int mid = (left + right) >>> 1;\n        buildIndexTree(node * 2, left, mid);\n        buildIndexTree(node * 2 + 1, mid + 1, right);\n        tree[node] = better(tree[node * 2], tree[node * 2 + 1]);\n    }\n\n    private TreeNode buildTree(int left, int right) {\n        if (left > right) {\n            return null;\n        }\n        int maxIndex = query(1, 0, nums.length - 1, left, right);\n        TreeNode root = new TreeNode(nums[maxIndex]);\n        root.left = buildTree(left, maxIndex - 1);\n        root.right = buildTree(maxIndex + 1, right);\n        return root;\n    }\n\n    private int query(int node, int left, int right, int queryLeft, int queryRight) {\n        if (queryLeft <= left && right <= queryRight) {\n            return tree[node];\n        }\n        int mid = (left + right) >>> 1;\n        if (queryRight <= mid) {\n            return query(node * 2, left, mid, queryLeft, queryRight);\n        }\n        if (queryLeft > mid) {\n            return query(node * 2 + 1, mid + 1, right, queryLeft, queryRight);\n        }\n        return better(\n                query(node * 2, left, mid, queryLeft, queryRight),\n                query(node * 2 + 1, mid + 1, right, queryLeft, queryRight));\n    }\n\n    private int better(int first, int second) {\n        return nums[first] >= nums[second] ? first : second;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sparse Table Range Maximum",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n log n)",
+      "description": "## Approach\n\nPrecompute a sparse table for range maximum index queries. A query over `[left, right]` combines the two overlapping power-of-two blocks that cover the range, then recursive construction uses that index as the root.\n\n## Key Insight\n\nThe maximum operation is idempotent, so overlapping blocks are safe. This gives O(1) maximum-index queries after preprocessing, which separates the RMQ idea from the tree-building recursion.\n\n## Complexity Analysis\n\nPreprocessing builds O(n log n) table entries; recursive construction visits each output node once.\n\n- Time Complexity: O(n log n)\n- Space Complexity: O(n log n)",
+      "code": "class Solution {\n    private int[] nums;\n    private int[] logs;\n    private int[][] table;\n\n    public TreeNode constructMaximumBinaryTree(int[] nums) {\n        this.nums = nums;\n        buildSparseTable(nums);\n        return build(0, nums.length - 1);\n    }\n\n    private void buildSparseTable(int[] nums) {\n        int n = nums.length;\n        logs = new int[n + 1];\n        for (int i = 2; i <= n; i++) {\n            logs[i] = logs[i / 2] + 1;\n        }\n\n        int levels = logs[n] + 1;\n        table = new int[levels][n];\n        for (int i = 0; i < n; i++) {\n            table[0][i] = i;\n        }\n        for (int level = 1; level < levels; level++) {\n            int half = 1 << (level - 1);\n            int length = 1 << level;\n            for (int start = 0; start + length <= n; start++) {\n                table[level][start] = better(table[level - 1][start], table[level - 1][start + half]);\n            }\n        }\n    }\n\n    private TreeNode build(int left, int right) {\n        if (left > right) {\n            return null;\n        }\n        int maxIndex = queryMaxIndex(left, right);\n        TreeNode root = new TreeNode(nums[maxIndex]);\n        root.left = build(left, maxIndex - 1);\n        root.right = build(maxIndex + 1, right);\n        return root;\n    }\n\n    private int queryMaxIndex(int left, int right) {\n        int length = right - left + 1;\n        int level = logs[length];\n        int span = 1 << level;\n        return better(table[level][left], table[level][right - span + 1]);\n    }\n\n    private int better(int first, int second) {\n        return nums[first] >= nums[second] ? first : second;\n    }\n}",
       "language": "java"
     }
   ],
@@ -48,13 +64,53 @@
     {
       "input": "nums = [3,2,1]",
       "output": "[3,null,2,null,1]"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "[1]"
+    },
+    {
+      "input": "nums = [1,2,3]",
+      "output": "[3,2,null,1]"
+    },
+    {
+      "input": "nums = [5,1,4,2,3]",
+      "output": "[5,null,4,1,3,null,null,2]"
+    },
+    {
+      "input": "nums = [2,4,1,3]",
+      "output": "[4,2,3,null,null,1]"
+    },
+    {
+      "input": "nums = [7,3,8,1,6,2,5]",
+      "output": "[8,7,6,null,3,1,5,null,null,null,null,2]"
+    },
+    {
+      "input": "nums = [0,1000,999]",
+      "output": "[1000,0,999]"
+    },
+    {
+      "input": "nums = [4,1,3,2]",
+      "output": "[4,null,3,1,2]"
+    },
+    {
+      "input": "nums = [2,1,4,0,3]",
+      "output": "[4,2,3,null,1,0]"
+    },
+    {
+      "input": "nums = [9,8,7,6]",
+      "output": "[9,null,8,null,7,null,6]"
+    },
+    {
+      "input": "nums = [6,1,5,0,4,2,3]",
+      "output": "[6,null,5,1,4,null,null,0,3,null,null,2]"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p489_example1.png",
-      "caption": "Example 1: Maximum Binary Tree [6,3,5,null,2,0,null,null,1]"
+      "caption": "Input array used to build the maximum binary tree"
     }
   ]
 }

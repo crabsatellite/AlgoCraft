@@ -1,34 +1,123 @@
 {
   "id": "485",
   "title": "Dota2 Senate",
-  "description": "# Dota2 Senate\n\nIn the world of Dota2, there are two parties: the Radiant and the Dire.\n\nThe Dota2 Senate consists of senators coming from two parties. Now the Senate wants to decide on a change in the Dota2 game. The voting for this change is a round-based procedure. In each round, each senator can exercise **one** of the two rights:\n\n1.  **Ban one senator's right**: A senator can make another senator lose all his rights in this and all the following rounds.\n2.  **Announce the victory**: If this senator found the senators who still have rights to vote are all from the same party, he can announce the victory and decide on the change in the game.\n\nGiven a string `senate` representing each senator's party belonging. The character `'R'` and `'D'` represent the Radiant party and the Dire party. Then if there are `n` senators, the size of the given string will be `n`.\n\nThe round-based procedure starts from the first senator to the last senator in the given order. This procedure will last until the end of voting. All the senators who have lost their rights will be skipped during the procedure.\n\nSuppose every senator is smart enough and will play the best strategy for his own party. Predict which party will finally announce the victory and change the Dota2 game. The output should be `\"Radiant\"` or `\"Dire\"`.\n\n## Example 1:\n\n**Input:** senate = \"RD\"\n**Output:** \"Radiant\"\n**Explanation:** \nThe first senator comes from Radiant and he can just ban the next senator's right in round 1. \nAnd the second senator can't exercise any rights anymore since his right has been banned. \nAnd in round 2, the first senator can just announce the victory since he is the only guy in the senate who can vote.\n\n## Example 2:\n\n**Input:** senate = \"RDD\"\n**Output:** \"Dire\"\n**Explanation:** \nThe first senator comes from Radiant and he can just ban the next senator's right in round 1. \nAnd the second senator can't exercise any rights anymore since his right has been banned. \nAnd the third senator comes from Dire and he can ban the first senator's right in round 1. \nAnd in round 2, the third senator can just announce the victory since he is the only guy in the senate who can vote.\n\n## Constraints:\n\n*   `n == senate.length`\n*   `1 <= n <= 10^4`\n*   `senate[i]` is either `'R'` or `'D'`.",
+  "description": "# Dota2 Senate\n\nTwo parties, Radiant and Dire, are voting in a circular senate. The input string `senate` gives the initial order of senators:\n\n* `R` means a Radiant senator.\n* `D` means a Dire senator.\n\nVoting proceeds from left to right. After the last senator in the current order, the next active senator is again the earliest surviving senator, so the process repeats in rounds.\n\nWhen an active senator gets a turn, they must choose one action:\n\n1. **Ban one opponent.** The chosen opponent loses the right to act in the current and all later rounds.\n2. **Announce victory.** This is allowed only when every senator who still has voting rights belongs to the same party.\n\nEvery senator plays optimally for their own party. Return `\"Radiant\"` if Radiant can force the final announcement, otherwise return `\"Dire\"`.\n\n## Key Clarification\n\nSenators who remain active act again in the next round, keeping their original relative order.\n\n## Example 1:\n\n**Input:** senate = \"RD\"\n**Output:** \"Radiant\"\n**Explanation:** The first Radiant senator acts before the Dire senator, bans that Dire senator, and is the only active senator in the next round.\n\n## Example 2:\n\n**Input:** senate = \"RDD\"\n**Output:** \"Dire\"\n**Explanation:** The first Radiant senator bans the next Dire senator. The remaining Dire senator still gets a turn in this round, bans the Radiant senator, and later announces victory.\n\n## Constraints:\n\n* `1 <= senate.length <= 10^4`\n* `senate[i]` is either `R` or `D`.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public String predictPartyVictory(String senate) {\n        \n    }\n}",
-  "tags": ["String", "Greedy", "Queue"],
+  "tags": [
+    "String",
+    "Greedy",
+    "Queue",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "senate = \"RD\"", "output": "\"Radiant\"" },
-    { "input": "senate = \"RDD\"", "output": "\"Dire\"" }
+    {
+      "input": "senate = \"RD\"",
+      "output": "\"Radiant\""
+    },
+    {
+      "input": "senate = \"RDD\"",
+      "output": "\"Dire\""
+    }
   ],
   "solutions": [
     {
       "name": "Two Queues Greedy",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use two queues storing indices of R and D senators. In each round, the senator with the smaller index bans the other and re-enters the queue with index + n (next round). Continue until one queue is empty.",
-      "code": "class Solution {\n    public String predictPartyVictory(String senate) {\n        Queue<Integer> rQueue = new LinkedList<>();\n        Queue<Integer> dQueue = new LinkedList<>();\n        int n = senate.length();\n        for (int i = 0; i < n; i++) {\n            if (senate.charAt(i) == 'R') rQueue.offer(i);\n            else dQueue.offer(i);\n        }\n        while (!rQueue.isEmpty() && !dQueue.isEmpty()) {\n            int r = rQueue.poll(), d = dQueue.poll();\n            if (r < d) rQueue.offer(r + n);\n            else dQueue.offer(d + n);\n        }\n        return rQueue.isEmpty() ? \"Dire\" : \"Radiant\";\n    }\n}",
+      "description": "## Approach\n\nStore the original indices of Radiant senators in one queue and Dire senators in another queue. The smaller front index acts first, bans the other front senator, and comes back in the next round by being reinserted with index `current + n`.\n\n## Key Insight\n\nComparing the two front indices is enough to know who acts first among the next Radiant and Dire senators. Reinserting the winner with `+ n` preserves the circular order without simulating every empty slot.\n\n## Complexity Analysis\n\nEach senator is removed at most once by a ban, so the total number of queue operations is linear.\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String predictPartyVictory(String senate) {\n        int n = senate.length();\n        java.util.Queue<Integer> radiant = new java.util.ArrayDeque<>();\n        java.util.Queue<Integer> dire = new java.util.ArrayDeque<>();\n\n        for (int i = 0; i < n; i++) {\n            if (senate.charAt(i) == 'R') {\n                radiant.offer(i);\n            } else {\n                dire.offer(i);\n            }\n        }\n\n        while (!radiant.isEmpty() && !dire.isEmpty()) {\n            int rIndex = radiant.poll();\n            int dIndex = dire.poll();\n            if (rIndex < dIndex) {\n                radiant.offer(rIndex + n);\n            } else {\n                dire.offer(dIndex + n);\n            }\n        }\n\n        return radiant.isEmpty() ? \"Dire\" : \"Radiant\";\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Boolean Array Simulation",
+      "name": "Single Queue Pending Bans",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nKeep one queue of active senators in turn order. When a senator survives their current turn, they add one pending ban against the opposite party and go to the back of the queue for a future round. When a senator is consumed by a pending ban, their party count decreases and they are not reinserted.\n\n## Key Insight\n\nA pending ban does not need to remember the exact target. Because everyone wants their party to win, the best use of a ban is always to remove the next active opponent before that opponent can act.\n\n## Complexity Analysis\n\nEvery queue poll either removes one senator permanently or lets one senator issue a ban that will remove an opponent later, so the process performs a linear number of effective events.\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String predictPartyVictory(String senate) {\n        java.util.Queue<Character> queue = new java.util.ArrayDeque<>();\n        int radiant = 0;\n        int dire = 0;\n\n        for (char senator : senate.toCharArray()) {\n            queue.offer(senator);\n            if (senator == 'R') {\n                radiant++;\n            } else {\n                dire++;\n            }\n        }\n\n        int banRadiant = 0;\n        int banDire = 0;\n        while (radiant > 0 && dire > 0) {\n            char senator = queue.poll();\n            if (senator == 'R') {\n                if (banRadiant > 0) {\n                    banRadiant--;\n                    radiant--;\n                } else {\n                    banDire++;\n                    queue.offer('R');\n                }\n            } else {\n                if (banDire > 0) {\n                    banDire--;\n                    dire--;\n                } else {\n                    banRadiant++;\n                    queue.offer('D');\n                }\n            }\n        }\n\n        return radiant > 0 ? \"Radiant\" : \"Dire\";\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Boolean Array Round Simulation",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n)",
-      "description": "Simulate the process directly. Track banned senators with a boolean array. In each round, each active senator bans the next active opponent. Repeat until only one party remains.",
-      "code": "class Solution {\n    public String predictPartyVictory(String senate) {\n        int n = senate.length();\n        boolean[] banned = new boolean[n];\n        int rCount = 0, dCount = 0;\n        for (char c : senate.toCharArray()) {\n            if (c == 'R') rCount++;\n            else dCount++;\n        }\n        int rBan = 0, dBan = 0;\n        while (rCount > 0 && dCount > 0) {\n            for (int i = 0; i < n; i++) {\n                if (banned[i]) continue;\n                if (senate.charAt(i) == 'R') {\n                    if (dBan > 0) {\n                        dBan--;\n                        banned[i] = true;\n                        rCount--;\n                    } else {\n                        rBan++;\n                    }\n                } else {\n                    if (rBan > 0) {\n                        rBan--;\n                        banned[i] = true;\n                        dCount--;\n                    } else {\n                        dBan++;\n                    }\n                }\n            }\n        }\n        return rCount > 0 ? \"Radiant\" : \"Dire\";\n    }\n}",
+      "description": "## Approach\n\nSimulate the senate order directly. A boolean array marks senators whose rights have already been removed. Pending bans are counted for both parties and are applied to the next active opponent encountered in later positions or later rounds.\n\n## Key Insight\n\nThis route mirrors the statement most closely: skipped senators stay skipped, and unused bans carry forward across the end of a round. It is slower than the queue greedy approach but useful for checking the process definition.\n\n## Complexity Analysis\n\nIn the worst case the scan may repeat many rounds before one party disappears.\n\n- Time Complexity: O(n^2)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String predictPartyVictory(String senate) {\n        int n = senate.length();\n        boolean[] removed = new boolean[n];\n        int radiantCount = 0;\n        int direCount = 0;\n        for (int i = 0; i < n; i++) {\n            if (senate.charAt(i) == 'R') {\n                radiantCount++;\n            } else {\n                direCount++;\n            }\n        }\n\n        int pendingRadiantBans = 0;\n        int pendingDireBans = 0;\n        while (radiantCount > 0 && direCount > 0) {\n            for (int i = 0; i < n; i++) {\n                if (removed[i]) {\n                    continue;\n                }\n                if (senate.charAt(i) == 'R') {\n                    if (pendingRadiantBans > 0) {\n                        pendingRadiantBans--;\n                        removed[i] = true;\n                        radiantCount--;\n                    } else {\n                        pendingDireBans++;\n                    }\n                } else {\n                    if (pendingDireBans > 0) {\n                        pendingDireBans--;\n                        removed[i] = true;\n                        direCount--;\n                    } else {\n                        pendingRadiantBans++;\n                    }\n                }\n            }\n        }\n\n        return radiantCount > 0 ? \"Radiant\" : \"Dire\";\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Round Buffer Simulation",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nBuild the next round as a new string. A senator who is banned is not copied to the next round. A senator who survives adds a pending ban against the opposite party and is copied forward.\n\n## Key Insight\n\nThe important detail is that pending bans can cross a round boundary. If a ban is created near the end of one scan, it may remove an opponent at the beginning of the next scan.\n\n## Complexity Analysis\n\nRepeatedly rebuilding the surviving order is direct and readable, but it can require many scans in adversarial orders.\n\n- Time Complexity: O(n^2)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String predictPartyVictory(String senate) {\n        int banRadiant = 0;\n        int banDire = 0;\n\n        while (true) {\n            int keptRadiant = 0;\n            int keptDire = 0;\n            StringBuilder nextRound = new StringBuilder();\n\n            for (int i = 0; i < senate.length(); i++) {\n                char senator = senate.charAt(i);\n                if (senator == 'R') {\n                    if (banRadiant > 0) {\n                        banRadiant--;\n                    } else {\n                        banDire++;\n                        nextRound.append('R');\n                        keptRadiant++;\n                    }\n                } else {\n                    if (banDire > 0) {\n                        banDire--;\n                    } else {\n                        banRadiant++;\n                        nextRound.append('D');\n                        keptDire++;\n                    }\n                }\n            }\n\n            if (keptRadiant == 0) {\n                return \"Dire\";\n            }\n            if (keptDire == 0) {\n                return \"Radiant\";\n            }\n            senate = nextRound.toString();\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "senate = \"RD\"", "output": "\"Radiant\"" },
-    { "input": "senate = \"RDD\"", "output": "\"Dire\"" }
+    {
+      "input": "senate = \"RD\"",
+      "output": "\"Radiant\""
+    },
+    {
+      "input": "senate = \"RDD\"",
+      "output": "\"Dire\""
+    },
+    {
+      "input": "senate = \"R\"",
+      "output": "\"Radiant\""
+    },
+    {
+      "input": "senate = \"D\"",
+      "output": "\"Dire\""
+    },
+    {
+      "input": "senate = \"DR\"",
+      "output": "\"Dire\""
+    },
+    {
+      "input": "senate = \"RRDDD\"",
+      "output": "\"Radiant\""
+    },
+    {
+      "input": "senate = \"DDRRR\"",
+      "output": "\"Dire\""
+    },
+    {
+      "input": "senate = \"RDRD\"",
+      "output": "\"Radiant\""
+    },
+    {
+      "input": "senate = \"DRDR\"",
+      "output": "\"Dire\""
+    },
+    {
+      "input": "senate = \"RRDD\"",
+      "output": "\"Radiant\""
+    },
+    {
+      "input": "senate = \"DDRR\"",
+      "output": "\"Dire\""
+    },
+    {
+      "input": "senate = \"RDDR\"",
+      "output": "\"Radiant\""
+    },
+    {
+      "input": "senate = \"DRRD\"",
+      "output": "\"Dire\""
+    },
+    {
+      "input": "senate = \"RDRDRD\"",
+      "output": "\"Radiant\""
+    },
+    {
+      "input": "senate = \"DRRDRDRDRDDRDRDR\"",
+      "output": "\"Radiant\""
+    },
+    {
+      "input": "senate = \"DDDRRRRDRD\"",
+      "output": "\"Dire\""
+    }
   ]
 }

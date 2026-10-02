@@ -1,58 +1,121 @@
 {
   "id": "326",
-  "title": "Binary Tree Maximum Path Sum",
-  "description": "# Binary Tree Maximum Path Sum\n\nA **path** in a binary tree is a sequence of nodes where each pair of adjacent nodes in the sequence has an edge connecting them. A node can only appear in the sequence **at most once**. Note that the path does not need to pass through the root.\n\nThe **path sum** of a path is the sum of the node's values in the path.\n\nGiven the `root` of a binary tree, return *the maximum **path sum** of any **non-empty** path*.\n\n## Example 1:\n\n**Input:** root = [1,2,3]\n**Output:** 6\n**Explanation:** The optimal path is 2 -> 1 -> 3 with a path sum of 2 + 1 + 3 = 6.\n\n## Example 2:\n\n**Input:** root = [-10,9,20,null,null,15,7]\n**Output:** 42\n**Explanation:** The optimal path is 15 -> 20 -> 7 with a path sum of 15 + 20 + 7 = 42.\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[1, 3 * 10^4]`.\n*   `-1000 <= Node.val <= 1000`",
-  "difficulty": "HARD",
-  "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public int maxPathSum(TreeNode root) {\n        \n    }\n}",
+  "title": "Word Pattern Bijection",
+  "description": "# Word Pattern Bijection\n\nGiven a pattern string `pattern` and a space-separated sentence `s`, determine whether the words in `s` follow the same pattern.\n\nFollowing the pattern means there is a one-to-one mapping between pattern characters and words:\n\n* each pattern character always maps to the same word;\n* no two different pattern characters map to the same word;\n* the number of pattern characters must equal the number of words.\n\nComparisons are case-sensitive, so `Dog` and `dog` are different words.\n\n## Example 1:\n\n**Input:** pattern = \"abba\", s = \"dog cat cat dog\"\n**Output:** true\n**Explanation:** `a` maps to `dog`, and `b` maps to `cat`.\n\n## Example 2:\n\n**Input:** pattern = \"abba\", s = \"dog cat cat fish\"\n**Output:** false\n**Explanation:** The character `a` would need to map to both `dog` and `fish`.\n\n## Example 3:\n\n**Input:** pattern = \"abba\", s = \"dog dog dog dog\"\n**Output:** false\n**Explanation:** The characters `a` and `b` would both map to `dog`, which violates the one-to-one rule.\n\n## Constraints:\n\n*   `1 <= pattern.length <= 300`\n*   `s` contains one or more words separated by single spaces.\n*   Words and pattern characters are compared case-sensitively.",
+  "difficulty": "MEDIUM",
+  "initialCode": "class Solution {\n    public boolean wordPattern(String pattern, String s) {\n        return false;\n    }\n}",
   "tags": [
-    "Tree",
-    "Depth-First Search",
-    "Dynamic Programming",
-    "Binary Tree"
+    "Hash Table",
+    "String"
   ],
   "examples": [
     {
-      "input": "root = [1,2,3]",
-      "output": "6"
+      "input": "pattern = \"abba\", s = \"dog cat cat dog\"",
+      "output": "true"
     },
     {
-      "input": "root = [-10,9,20,null,null,15,7]",
-      "output": "42"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "DFS with Global Max",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(h)",
-      "description": "For each node, compute the max single-path sum (going down one branch). Update global max considering the path through this node (left + node + right). Return single-path max to parent.",
-      "code": "class Solution {\n    private int maxSum = Integer.MIN_VALUE;\n    public int maxPathSum(TreeNode root) {\n        dfs(root);\n        return maxSum;\n    }\n    private int dfs(TreeNode node) {\n        if (node == null) return 0;\n        int left = Math.max(0, dfs(node.left));\n        int right = Math.max(0, dfs(node.right));\n        maxSum = Math.max(maxSum, left + right + node.val);\n        return Math.max(left, right) + node.val;\n    }\n}",
-      "language": "java"
+      "input": "pattern = \"abba\", s = \"dog cat cat fish\"",
+      "output": "false"
     },
     {
-      "name": "Iterative Postorder with Stack",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(h)",
-      "description": "Use an explicit stack for postorder traversal. Maintain a map from node to its max single-path sum. When both children are processed, compute the path-through sum and update the global maximum.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int maxPathSum(TreeNode root) {\n        int[] maxSum = {Integer.MIN_VALUE};\n        Map<TreeNode, Integer> gains = new HashMap<>();\n        gains.put(null, 0);\n        Deque<TreeNode> stack = new ArrayDeque<>();\n        TreeNode curr = root;\n        TreeNode lastVisited = null;\n        while (curr != null || !stack.isEmpty()) {\n            while (curr != null) {\n                stack.push(curr);\n                curr = curr.left;\n            }\n            TreeNode peek = stack.peek();\n            if (peek.right != null && peek.right != lastVisited) {\n                curr = peek.right;\n            } else {\n                stack.pop();\n                int leftGain = Math.max(0, gains.getOrDefault(peek.left, 0));\n                int rightGain = Math.max(0, gains.getOrDefault(peek.right, 0));\n                int pathSum = leftGain + rightGain + peek.val;\n                maxSum[0] = Math.max(maxSum[0], pathSum);\n                gains.put(peek, Math.max(leftGain, rightGain) + peek.val);\n                lastVisited = peek;\n            }\n        }\n        return maxSum[0];\n    }\n}",
-      "language": "java"
+      "input": "pattern = \"abba\", s = \"dog dog dog dog\"",
+      "output": "false"
     }
   ],
   "tests": [
     {
-      "input": "root = [1,2,3]",
-      "output": "6"
+      "input": "pattern = \"abba\", s = \"dog cat cat dog\"",
+      "output": "true",
+      "description": "sample with a valid two-way mapping"
     },
     {
-      "input": "root = [-10,9,20,null,null,15,7]",
-      "output": "42"
+      "input": "pattern = \"abba\", s = \"dog cat cat fish\"",
+      "output": "false",
+      "description": "same pattern letter maps to two different words"
+    },
+    {
+      "input": "pattern = \"aaaa\", s = \"dog cat cat dog\"",
+      "output": "false",
+      "description": "one pattern letter cannot map to multiple words"
+    },
+    {
+      "input": "pattern = \"abba\", s = \"dog dog dog dog\"",
+      "output": "false",
+      "description": "two pattern letters cannot map to the same word"
+    },
+    {
+      "input": "pattern = \"abc\", s = \"one two three\"",
+      "output": "true",
+      "description": "three distinct letters and words"
+    },
+    {
+      "input": "pattern = \"ab\", s = \"dog\"",
+      "output": "false",
+      "description": "pattern has more characters than words"
+    },
+    {
+      "input": "pattern = \"a\", s = \"dog cat\"",
+      "output": "false",
+      "description": "sentence has more words than pattern characters"
+    },
+    {
+      "input": "pattern = \"abcabc\", s = \"red blue green red blue green\"",
+      "output": "true",
+      "description": "mapping must stay consistent across repeated groups"
+    },
+    {
+      "input": "pattern = \"abba\", s = \"dog cat cat\"",
+      "output": "false",
+      "description": "missing final word breaks alignment"
+    },
+    {
+      "input": "pattern = \"abca\", s = \"Dog dog cat Dog\"",
+      "output": "true",
+      "description": "case-sensitive words remain distinct"
+    },
+    {
+      "input": "pattern = \"abca\", s = \"dog Dog cat dog\"",
+      "output": "true",
+      "description": "same pattern letter can consistently map to lowercase dog"
+    },
+    {
+      "input": "pattern = \"abca\", s = \"dog Dog cat Dog\"",
+      "output": "false",
+      "description": "final a cannot change from dog to Dog"
     }
   ],
-  "diagrams": [
+  "solutions": [
     {
-      "id": "example1",
-      "file": "p326_example1.png",
-      "caption": "Example 1: Tree [1,2,3]"
+      "name": "Two Directional Maps",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSplit the sentence into words, then maintain both a character-to-word map and a word-to-character map. Every new aligned pair must agree with any previous mapping on both sides.\n\n## Key Insight\n\nChecking only one direction misses the case where two different pattern characters map to the same word. The reverse map enforces the injective part of the bijection.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution { public boolean wordPattern(String pattern, String s) { String[] words = s.split(\" \"); if (words.length != pattern.length()) return false; java.util.Map<Character,String> charToWord = new java.util.HashMap<>(); java.util.Map<String,Character> wordToChar = new java.util.HashMap<>(); for (int i = 0; i < words.length; i++) { char ch = pattern.charAt(i); String word = words[i]; if (charToWord.containsKey(ch) && !charToWord.get(ch).equals(word)) return false; if (wordToChar.containsKey(word) && wordToChar.get(word) != ch) return false; charToWord.put(ch, word); wordToChar.put(word, ch); } return true; } }",
+      "language": "java"
+    },
+    {
+      "name": "Mapping with Used Word Set",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse one map from pattern character to word and a set of words that are already assigned. When a character is new, reject the pair if its word is already used by a different character.\n\n## Key Insight\n\nThe set carries the same information as a reverse map, but it separates the two responsibilities: the map checks consistency for repeated characters, and the set prevents two characters from sharing one word.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution { public boolean wordPattern(String pattern, String s) { String[] words = s.split(\" \"); if (words.length != pattern.length()) return false; java.util.Map<Character,String> mapping = new java.util.HashMap<>(); java.util.Set<String> usedWords = new java.util.HashSet<>(); for (int i = 0; i < pattern.length(); i++) { char ch = pattern.charAt(i); String word = words[i]; if (mapping.containsKey(ch)) { if (!mapping.get(ch).equals(word)) return false; } else { if (usedWords.contains(word)) return false; mapping.put(ch, word); usedWords.add(word); } } return true; } }",
+      "language": "java"
+    },
+    {
+      "name": "Encoded First Positions",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nEncode both aligned sequences by first occurrence index. At each position, the pattern character and word must have appeared first at the same earlier index, or both must be new.\n\n## Key Insight\n\nA bijection is exactly equality of first-occurrence signatures. For example, `abba` and `dog cat cat dog` both encode as `0,1,1,0`.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution { public boolean wordPattern(String pattern, String s) { String[] words = s.split(\" \"); if (words.length != pattern.length()) return false; java.util.Map<Object,Integer> first = new java.util.HashMap<>(); for (int i = 0; i < words.length; i++) { Integer patternFirst = first.putIfAbsent(pattern.charAt(i), i); Integer wordFirst = first.putIfAbsent(words[i], i); if (!java.util.Objects.equals(patternFirst, wordFirst)) return false; } return true; } }",
+      "language": "java"
+    },
+    {
+      "name": "Unique Pair Cardinality",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nAfter confirming that the lengths match, count unique pattern characters, unique words, and unique `(character, word)` pairs. The mapping is bijective only when all three counts are equal.\n\n## Key Insight\n\nIf one character maps to two words, the pair count grows beyond the character count. If two characters map to one word, the character count grows beyond the word count. Equal counts rule out both failure modes.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution { public boolean wordPattern(String pattern, String s) { String[] words = s.split(\" \"); if (words.length != pattern.length()) return false; java.util.Set<Character> chars = new java.util.HashSet<>(); java.util.Set<String> seenWords = new java.util.HashSet<>(); java.util.Set<String> pairs = new java.util.HashSet<>(); for (int i = 0; i < words.length; i++) { char ch = pattern.charAt(i); chars.add(ch); seenWords.add(words[i]); pairs.add(ch + \"\\u0001\" + words[i]); } return chars.size() == seenWords.size() && chars.size() == pairs.size(); } }",
+      "language": "java"
     }
   ]
 }

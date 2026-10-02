@@ -1,38 +1,116 @@
 {
   "id": "432",
-  "title": "Design HashMap",
-  "description": "# Design HashMap\n\nDesign a HashMap without using any built-in hash table libraries.\n\nImplement the `MyHashMap` class:\n\n*   `MyHashMap()` initializes the object with an empty map.\n*   `void put(int key, int value)` inserts a `(key, value)` pair into the HashMap. If the `key` already exists in the map, update the corresponding `value`.\n*   `int get(int key)` returns the `value` to which the specified `key` is mapped, or `-1` if this map contains no mapping for the `key`.\n*   `void remove(int key)` removes the `key` and its corresponding `value` if the map contains the mapping for the `key`.\n\n## Example 1:\n\n**Input**\n[\"MyHashMap\", \"put\", \"put\", \"get\", \"get\", \"put\", \"get\", \"remove\", \"get\"]\n[[], [1, 1], [2, 2], [1], [3], [2, 1], [2], [2], [2]]\n**Output**\n[null, null, null, 1, -1, null, 1, null, -1]\n**Explanation**\nMyHashMap myHashMap = new MyHashMap();\nmyHashMap.put(1, 1); // The map is now [[1,1]]\nmyHashMap.put(2, 2); // The map is now [[1,1], [2,2]]\nmyHashMap.get(1);    // return 1, The map is now [[1,1], [2,2]]\nmyHashMap.get(3);    // return -1 (i.e., not found), The map is now [[1,1], [2,2]]\nmyHashMap.put(2, 1); // The map is now [[1,1], [2,1]] (i.e., update the existing value)\nmyHashMap.get(2);    // return 1, The map is now [[1,1], [2,1]]\nmyHashMap.remove(2); // remove the mapping for 2, The map is now [[1,1]]\nmyHashMap.get(2);    // return -1 (i.e., not found), The map is now [[1,1]]\n\n## Constraints:\n\n*   `0 <= key, value <= 10^6`\n*   At most `10^4` calls will be made to `put`, `get`, and `remove`.",
-  "difficulty": "EASY",
-  "initialCode": "class MyHashMap {\n\n    public MyHashMap() {\n        \n    }\n    \n    public void put(int key, int value) {\n        \n    }\n    \n    public int get(int key) {\n        \n    }\n    \n    public void remove(int key) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Linked List", "Design", "Hash Function"],
+  "title": "Original Array From Doubled Values",
+  "description": "# Original Array From Doubled Values\n\nAn original array was transformed by appending twice each original value and then shuffling the result. Given the transformed array `changed`, reconstruct any valid original array.\n\nEvery occurrence matters. If an original value appears multiple times, each occurrence needs its own doubled partner. The value `0` is special only because its double is also `0`, so zeros must be paired two at a time.\n\nReturn an empty array if no valid original array exists.\n\n## Example 1:\n\n**Input:** changed = [1,3,4,2,6,8]\n**Output:** [1,3,4]\n**Explanation:** The original array could be `[1,3,4]`, whose doubled values are `[2,6,8]`.\n\n## Example 2:\n\n**Input:** changed = [6,3,0,1]\n**Output:** []\n**Explanation:** There is no value `3` whose double `6` can also leave a valid partner for `1`.\n\n## Constraints:\n\n*   `0 <= changed.length <= 10^5`\n*   `0 <= changed[i] <= 10^5`\n*   A valid transformed array always has even length.",
+  "difficulty": "MEDIUM",
+  "initialCode": "class Solution {\n    public int[] findOriginalArray(int[] changed) {\n        // Write your code here\n    }\n}",
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Greedy",
+    "Sorting",
+    "Counting"
+  ],
   "examples": [
     {
-      "input": "[\"MyHashMap\", \"put\", \"put\", \"get\", \"get\", \"put\", \"get\", \"remove\", \"get\"]\n[[], [1, 1], [2, 2], [1], [3], [2, 1], [2], [2], [2]]",
-      "output": "[null, null, null, 1, -1, null, 1, null, -1]"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "Direct Array",
-      "timeComplexity": "O(1)",
-      "spaceComplexity": "O(N)",
-      "description": "Since keys are bounded by 10^6, use an integer array for direct addressing. Use -1 as sentinel for missing keys.",
-      "code": "class MyHashMap {\n    private int[] map;\n\n    public MyHashMap() {\n        map = new int[1000001];\n        java.util.Arrays.fill(map, -1);\n    }\n\n    public void put(int key, int value) {\n        map[key] = value;\n    }\n\n    public int get(int key) {\n        return map[key];\n    }\n\n    public void remove(int key) {\n        map[key] = -1;\n    }\n}",
-      "language": "java"
+      "input": "changed = [1,3,4,2,6,8]",
+      "output": "[1,3,4]"
     },
     {
-      "name": "Hash Table with Chaining",
-      "timeComplexity": "O(n/k) per operation",
-      "spaceComplexity": "O(k + n)",
-      "description": "Use an array of linked list buckets with a prime-sized hash function. Each bucket stores key-value pairs in a list. Hash collisions are resolved by chaining.",
-      "code": "import java.util.*;\n\nclass MyHashMap {\n    private static final int SIZE = 769;\n    private List<int[]>[] buckets;\n    public MyHashMap() {\n        buckets = new ArrayList[SIZE];\n        for (int i = 0; i < SIZE; i++) {\n            buckets[i] = new ArrayList();\n        }\n    }\n    private int hash(int key) {\n        return key % SIZE;\n    }\n    public void put(int key, int value) {\n        int h = hash(key);\n        List<int[]> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i)[0] == key) {\n                bucket.get(i)[1] = value;\n                return;\n            }\n        }\n        bucket.add(new int[]{key, value});\n    }\n    public int get(int key) {\n        int h = hash(key);\n        List<int[]> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i)[0] == key) {\n                return bucket.get(i)[1];\n            }\n        }\n        return -1;\n    }\n    public void remove(int key) {\n        int h = hash(key);\n        List<int[]> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i)[0] == key) {\n                bucket.remove(i);\n                return;\n            }\n        }\n    }\n}",
-      "language": "java"
+      "input": "changed = [6,3,0,1]",
+      "output": "[]"
     }
   ],
   "tests": [
     {
-      "input": "[\"MyHashMap\", \"put\", \"put\", \"get\", \"get\", \"put\", \"get\", \"remove\", \"get\"]\n[[], [1, 1], [2, 2], [1], [3], [2, 1], [2], [2], [2]]",
-      "output": "[null, null, null, 1, -1, null, 1, null, -1]"
+      "input": "changed = [1,3,4,2,6,8]",
+      "output": "[1,3,4]"
+    },
+    {
+      "input": "changed = [6,3,0,1]",
+      "output": "[]"
+    },
+    {
+      "description": "Zeros must be paired with zeros.",
+      "input": "changed = [0,0,0,0]",
+      "output": "[0,0]"
+    },
+    {
+      "description": "Duplicate original values each need a separate doubled occurrence.",
+      "input": "changed = [2,1,2,4,2,4]",
+      "output": "[1,2,2]"
+    },
+    {
+      "description": "The empty transformed array corresponds to an empty original array.",
+      "input": "changed = []",
+      "output": "[]"
+    },
+    {
+      "description": "Odd length can never be a doubled array.",
+      "input": "changed = [1,2,3]",
+      "output": "[]"
+    },
+    {
+      "description": "Zeros can appear together with positive pairs.",
+      "input": "changed = [0,0,1,2]",
+      "output": "[0,1]"
+    },
+    {
+      "description": "A maximum value cannot be used as an original value when its double is outside the allowed values.",
+      "input": "changed = [100000,100000]",
+      "output": "[]"
+    },
+    {
+      "description": "A chain of values may contain both originals and doubled values.",
+      "input": "changed = [1,2,2,4,4,8]",
+      "output": "[1,2,4]"
+    },
+    {
+      "description": "Having many copies of a value is not enough if the next doubled value is missing.",
+      "input": "changed = [1,2,2,2]",
+      "output": "[]"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Sorted Count Map",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCount every value in a `HashMap`, then process a sorted copy of `changed` from small to large. When a remaining value `x` is chosen for the original array, consume one `x` and one `2*x`. If the doubled value is unavailable, reconstruction is impossible.\n\n## Key Insight\n\nBecause all values are nonnegative, smaller values must be matched before larger values. Otherwise a value that should be an original could be incorrectly consumed as someone else's double.\n\n## Complexity Analysis\n- Time Complexity: O(n log n) for sorting\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] findOriginalArray(int[] changed) {\n        if ((changed.length & 1) == 1) {\n            return new int[0];\n        }\n        Map<Integer, Integer> count = new HashMap<>();\n        for (int value : changed) {\n            count.put(value, count.getOrDefault(value, 0) + 1);\n        }\n\n        int[] values = changed.clone();\n        Arrays.sort(values);\n        int[] original = new int[changed.length / 2];\n        int size = 0;\n        for (int x : values) {\n            int remaining = count.getOrDefault(x, 0);\n            if (remaining == 0) {\n                continue;\n            }\n            count.put(x, remaining - 1);\n            int doubled = x * 2;\n            int doubledCount = count.getOrDefault(doubled, 0);\n            if (doubledCount == 0) {\n                return new int[0];\n            }\n            count.put(doubled, doubledCount - 1);\n            original[size++] = x;\n        }\n        return size == original.length ? original : new int[0];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Counting Array by Value Range",
+      "timeComplexity": "O(n + U)",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\n\nUse the bounded value range directly. Count all values in an array, pair zeros with zeros, then scan positive values from small to large. For each remaining copy of `x`, consume one `x` and one `2*x`.\n\n## Key Insight\n\nThe constraint `0 <= changed[i] <= 100000` makes a counting array simpler than a map. Scanning upward preserves the greedy invariant that smaller numbers must be resolved first.\n\n## Complexity Analysis\n- Time Complexity: O(n + U), where U is the maximum value seen\n- Space Complexity: O(U)",
+      "code": "class Solution {\n    public int[] findOriginalArray(int[] changed) {\n        if ((changed.length & 1) == 1) {\n            return new int[0];\n        }\n        int max = 0;\n        for (int value : changed) {\n            max = Math.max(max, value);\n        }\n        int[] count = new int[max + 1];\n        for (int value : changed) {\n            count[value]++;\n        }\n\n        int[] original = new int[changed.length / 2];\n        int size = 0;\n        if (count[0] % 2 == 1) {\n            return new int[0];\n        }\n        for (int i = 0; i < count[0] / 2; i++) {\n            original[size++] = 0;\n        }\n        count[0] = 0;\n\n        for (int x = 1; x <= max; x++) {\n            while (count[x] > 0) {\n                count[x]--;\n                int doubled = x * 2;\n                if (doubled > max || count[doubled] == 0) {\n                    return new int[0];\n                }\n                count[doubled]--;\n                original[size++] = x;\n            }\n        }\n        return size == original.length ? original : new int[0];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Demand Queue on Sorted Values",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort the values and scan left to right. Keep a queue of doubled values required by earlier originals. If the current value equals the queue front, it closes that pending pair. If the current value is larger than the queue front, a required double was missing. Otherwise the current value starts a new original element and pushes `2*x` as a future demand.\n\n## Key Insight\n\nFor nonnegative values, original candidates and their doubled demands appear in nondecreasing order. The queue makes the greedy matching state explicit.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] findOriginalArray(int[] changed) {\n        if ((changed.length & 1) == 1) {\n            return new int[0];\n        }\n        int[] values = changed.clone();\n        Arrays.sort(values);\n        ArrayDeque<Integer> neededDoubles = new ArrayDeque<>();\n        int[] original = new int[changed.length / 2];\n        int size = 0;\n\n        for (int value : values) {\n            if (!neededDoubles.isEmpty() && neededDoubles.peek() == value) {\n                neededDoubles.poll();\n            } else if (!neededDoubles.isEmpty() && neededDoubles.peek() < value) {\n                return new int[0];\n            } else {\n                if (size == original.length) {\n                    return new int[0];\n                }\n                original[size++] = value;\n                neededDoubles.offer(value * 2);\n            }\n        }\n        return neededDoubles.isEmpty() && size == original.length ? original : new int[0];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "TreeMap Frequency Greedy",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore value frequencies in a `TreeMap`. Repeatedly take the smallest remaining value. If it is zero, its frequency must be even. Otherwise, the frequency of `2*x` must be at least the frequency of `x`; consume that many doubled values and append `x` that many times to the answer.\n\n## Key Insight\n\nA `TreeMap` gives the same small-to-large greedy order without sorting the whole array separately. Processing all copies of the current smallest value together makes duplicate handling explicit.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] findOriginalArray(int[] changed) {\n        if ((changed.length & 1) == 1) {\n            return new int[0];\n        }\n        TreeMap<Integer, Integer> count = new TreeMap<>();\n        for (int value : changed) {\n            count.put(value, count.getOrDefault(value, 0) + 1);\n        }\n\n        int[] original = new int[changed.length / 2];\n        int size = 0;\n        while (!count.isEmpty()) {\n            int x = count.firstKey();\n            int occurrences = count.remove(x);\n            if (x == 0) {\n                if ((occurrences & 1) == 1) {\n                    return new int[0];\n                }\n                for (int i = 0; i < occurrences / 2; i++) {\n                    original[size++] = 0;\n                }\n                continue;\n            }\n\n            int doubled = x * 2;\n            int doubledCount = count.getOrDefault(doubled, 0);\n            if (doubledCount < occurrences) {\n                return new int[0];\n            }\n            for (int i = 0; i < occurrences; i++) {\n                original[size++] = x;\n            }\n            if (doubledCount == occurrences) {\n                count.remove(doubled);\n            } else {\n                count.put(doubled, doubledCount - occurrences);\n            }\n        }\n        return size == original.length ? original : new int[0];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Used-Index Baseline",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort the array and keep a boolean array marking which sorted positions are already used. For each unused position, treat it as the next original value and search to the right for an unused position equal to its double. If no such position exists, reconstruction fails.\n\n## Key Insight\n\nThis is a direct pairing baseline. It is not efficient enough for the largest input, but it makes the occurrence-level rule concrete: every chosen index must reserve a separate doubled index.\n\n## Complexity Analysis\n- Time Complexity: O(n^2) after sorting\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] findOriginalArray(int[] changed) {\n        if ((changed.length & 1) == 1) {\n            return new int[0];\n        }\n        int[] values = changed.clone();\n        Arrays.sort(values);\n        boolean[] used = new boolean[values.length];\n        int[] original = new int[changed.length / 2];\n        int size = 0;\n\n        for (int i = 0; i < values.length; i++) {\n            if (used[i]) {\n                continue;\n            }\n            used[i] = true;\n            int doubled = values[i] * 2;\n            int match = i + 1;\n            while (match < values.length && (used[match] || values[match] != doubled)) {\n                match++;\n            }\n            if (match == values.length) {\n                return new int[0];\n            }\n            used[match] = true;\n            original[size++] = values[i];\n        }\n        return size == original.length ? original : new int[0];\n    }\n}",
+      "language": "java"
     }
   ]
 }

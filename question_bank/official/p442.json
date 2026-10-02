@@ -1,38 +1,103 @@
 {
   "id": "442",
   "title": "Snapshot Array",
-  "description": "# Snapshot Array\n\nImplement a SnapshotArray that supports the following interface:\n\n*   `SnapshotArray(int length)` initializes an array-like data structure with the given length. **Initially, each element equals 0**.\n*   `void set(index, val)` sets the element at the given `index` to be equal to `val`.\n*   `int snap()` takes a snapshot of the array and returns the `snap_id`: the total number of times we called `snap()` minus 1.\n*   `int get(index, snap_id)` returns the value at the given `index`, at the time we took the snapshot with the given `snap_id`.\n\n## Example 1:\n\n**Input:**\n[\"SnapshotArray\",\"set\",\"snap\",\"set\",\"get\"]\n[[3],[0,5],[],[0,6],[0,0]]\n**Output:**\n[null,null,0,null,5]\n**Explanation:**\nSnapshotArray snapshotArr = new SnapshotArray(3); // set the length to be 3\nsnapshotArr.set(0,5);  // Set array[0] = 5\nsnapshotArr.snap();  // Take a snapshot, return snap_id = 0\nsnapshotArr.set(0,6);\nsnapshotArr.get(0,0);  // Get the value of array[0] with snap_id = 0, return 5\n\n## Constraints:\n\n*   `1 <= length <= 5 * 10^4`\n*   `0 <= index < length`\n*   `0 <= val <= 10^9`\n*   `0 <= snap_id < (the total number of times we call snap())`\n*   At most `5 * 10^4` calls will be made to `set`, `snap`, and `get`.",
+  "description": "# Snapshot Array\n\nImplement a `SnapshotArray` that behaves like an integer array with persistent snapshots. All elements are initially `0`.\n\nImplement the `SnapshotArray` class:\n\n*   `SnapshotArray(int length)` initializes an array-like data structure with the given `length`.\n*   `void set(int index, int val)` sets the element at `index` to `val` for the current working version.\n*   `int snap()` stores the current working version and returns its `snap_id`. The first call returns `0`, the second returns `1`, and so on.\n*   `int get(int index, int snap_id)` returns the value at `index` in the snapshot identified by `snap_id`.\n\nA value written after a snapshot must not change that older snapshot. Repeated `set` calls to the same index before the same `snap()` only need the final value for that snapshot.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1:\n\n**Input:**\n[\"SnapshotArray\",\"set\",\"snap\",\"set\",\"get\"]\n[[3],[0,5],[],[0,6],[0,0]]\n**Output:**\n[null,null,0,null,5]\n**Explanation:**\nSnapshotArray snapshotArr = new SnapshotArray(3); // length is 3\nsnapshotArr.set(0,5);  // working array[0] = 5\nsnapshotArr.snap();    // stores snapshot 0\nsnapshotArr.set(0,6);  // changes only the working version\nsnapshotArr.get(0,0);  // returns 5 from snapshot 0\n\n## Constraints:\n\n*   `1 <= length <= 5 * 10^4`\n*   `0 <= index < length`\n*   `0 <= val <= 10^9`\n*   `0 <= snap_id <` the number of times `snap()` has been called\n*   At most `5 * 10^4` calls will be made to `set`, `snap`, and `get`.",
   "difficulty": "MEDIUM",
   "initialCode": "class SnapshotArray {\n\n    public SnapshotArray(int length) {\n        \n    }\n    \n    public void set(int index, int val) {\n        \n    }\n    \n    public int snap() {\n        \n    }\n    \n    public int get(int index, int snap_id) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Binary Search", "Design"],
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Binary Search",
+    "Design"
+  ],
   "examples": [
     {
       "input": "[\"SnapshotArray\",\"set\",\"snap\",\"set\",\"get\"]\n[[3],[0,5],[],[0,6],[0,0]]",
       "output": "[null,null,0,null,5]"
     }
   ],
-  "solutions": [
-    {
-      "name": "TreeMap per Index with Binary Search",
-      "timeComplexity": "O(log S) per get, O(1) for set/snap",
-      "spaceComplexity": "O(n + S)",
-      "description": "Each index maintains a TreeMap mapping snap_id to value. Set records the value at the current snap_id. Get uses floorEntry to find the latest value at or before the given snap_id.",
-      "code": "class SnapshotArray {\n    private java.util.TreeMap<Integer, Integer>[] data;\n    private int snapId;\n\n    public SnapshotArray(int length) {\n        data = new java.util.TreeMap[length];\n        for (int i = 0; i < length; i++) {\n            data[i] = new java.util.TreeMap<>();\n            data[i].put(0, 0);\n        }\n        snapId = 0;\n    }\n\n    public void set(int index, int val) {\n        data[index].put(snapId, val);\n    }\n\n    public int snap() {\n        return snapId++;\n    }\n\n    public int get(int index, int snap_id) {\n        return data[index].floorEntry(snap_id).getValue();\n    }\n}",
-      "language": "java"
-    },
-    {
-      "name": "ArrayList of Changes with Binary Search",
-      "timeComplexity": "O(log S) per get, O(1) for set/snap",
-      "spaceComplexity": "O(n + S)",
-      "description": "Each index has an ArrayList of (snap_id, value) pairs. Set appends or updates the latest entry. Get uses binary search to find the value at or before the given snap_id.",
-      "code": "import java.util.*;\n\nclass SnapshotArray {\n    private List<int[]>[] history;\n    private int snapId;\n\n    public SnapshotArray(int length) {\n        history = new ArrayList[length];\n        for (int i = 0; i < length; i++) {\n            history[i] = new ArrayList();\n            history[i].add(new int[]{0, 0});\n        }\n        snapId = 0;\n    }\n\n    public void set(int index, int val) {\n        List<int[]> list = history[index];\n        int[] last = list.get(list.size() - 1);\n        if (last[0] == snapId) {\n            last[1] = val;\n        } else {\n            list.add(new int[]{snapId, val});\n        }\n    }\n\n    public int snap() {\n        return snapId++;\n    }\n\n    public int get(int index, int snap_id) {\n        List<int[]> list = history[index];\n        int lo = 0, hi = list.size() - 1;\n        int result = 0;\n        while (lo <= hi) {\n            int mid = (lo + hi) / 2;\n            if (list.get(mid)[0] <= snap_id) {\n                result = list.get(mid)[1];\n                lo = mid + 1;\n            } else {\n                hi = mid - 1;\n            }\n        }\n        return result;\n    }\n}",
-      "language": "java"
-    }
-  ],
   "tests": [
     {
       "input": "[\"SnapshotArray\",\"set\",\"snap\",\"set\",\"get\"]\n[[3],[0,5],[],[0,6],[0,0]]",
       "output": "[null,null,0,null,5]"
+    },
+    {
+      "input": "[\"SnapshotArray\", \"set\", \"set\", \"snap\", \"get\", \"get\", \"set\", \"snap\", \"get\", \"get\"]\n[[2], [0, 1], [0, 7], [], [0, 0], [1, 0], [1, 5], [], [1, 1], [0, 1]]",
+      "output": "[null, null, null, 0, 7, 0, null, 1, 5, 7]"
+    },
+    {
+      "input": "[\"SnapshotArray\",\"snap\",\"get\",\"set\",\"get\",\"snap\",\"get\"]\n[[1],[],[0,0],[0,9],[0,0],[],[0,1]]",
+      "output": "[null,0,0,null,0,1,9]"
+    },
+    {
+      "input": "[\"SnapshotArray\",\"set\",\"set\",\"snap\",\"set\",\"snap\",\"get\",\"get\",\"get\",\"get\"]\n[[3],[0,4],[2,6],[],[0,8],[],[0,0],[0,1],[2,0],[2,1]]",
+      "output": "[null,null,null,0,null,1,4,8,6,6]"
+    },
+    {
+      "input": "[\"SnapshotArray\",\"set\",\"snap\",\"snap\",\"get\",\"get\"]\n[[2],[1,7],[],[],[1,1],[0,1]]",
+      "output": "[null,null,0,1,7,0]"
+    },
+    {
+      "input": "[\"SnapshotArray\",\"snap\",\"set\",\"set\",\"get\",\"snap\",\"get\"]\n[[1],[],[0,1],[0,2],[0,0],[],[0,1]]",
+      "output": "[null,0,null,null,0,1,2]"
+    },
+    {
+      "input": "[\"SnapshotArray\",\"set\",\"snap\",\"set\",\"snap\",\"get\",\"get\"]\n[[1],[0,5],[],[0,0],[],[0,0],[0,1]]",
+      "output": "[null,null,0,null,1,5,0]"
+    },
+    {
+      "input": "[\"SnapshotArray\",\"set\",\"snap\",\"get\",\"get\"]\n[[50000],[49999,1000000000],[],[49999,0],[0,0]]",
+      "output": "[null,null,0,1000000000,0]"
+    },
+    {
+      "input": "[\"SnapshotArray\",\"set\",\"snap\",\"set\",\"set\",\"snap\",\"set\",\"get\",\"get\",\"get\",\"snap\",\"get\"]\n[[3],[1,10],[],[1,20],[2,30],[],[1,40],[1,0],[1,1],[2,1],[],[1,2]]",
+      "output": "[null,null,0,null,null,1,null,10,20,30,2,40]"
+    },
+    {
+      "input": "[\"SnapshotArray\",\"set\",\"set\",\"snap\",\"set\",\"set\",\"snap\",\"get\",\"get\"]\n[[2],[0,4],[0,4],[],[0,5],[0,4],[],[0,0],[0,1]]",
+      "output": "[null,null,null,0,null,null,1,4,4]"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "TreeMap per Index with Floor Entry",
+      "timeComplexity": "O(log S) per set and get, O(1) per snap",
+      "spaceComplexity": "O(n + S)",
+      "description": "## Approach\n\nKeep one `TreeMap<Integer, Integer>` for each array index. The map stores only values written at particular snapshot ids, seeded with `(0, 0)` for the default value. `set` writes the current `snapId`, `snap` returns and increments it, and `get` asks the map for the latest entry whose key is not greater than the requested `snap_id`.\n\n## Key Insight\n\nA snapshot value is the last assignment at or before that snapshot id. `floorEntry` is exactly that predecessor query, so old snapshots stay stable when later writes use larger ids.\n\n## Complexity Analysis\n- Time Complexity: O(log S) for `set` and `get`, O(1) for `snap`, where S is the number of writes at one index.\n- Space Complexity: O(n + S) over all stored changes.",
+      "code": "class SnapshotArray {\n    private final java.util.TreeMap<Integer, Integer>[] data;\n    private int snapId;\n\n    public SnapshotArray(int length) {\n        data = new java.util.TreeMap[length];\n        for (int i = 0; i < length; i++) {\n            data[i] = new java.util.TreeMap<>();\n            data[i].put(0, 0);\n        }\n    }\n\n    public void set(int index, int val) {\n        data[index].put(snapId, val);\n    }\n\n    public int snap() {\n        return snapId++;\n    }\n\n    public int get(int index, int snap_id) {\n        return data[index].floorEntry(snap_id).getValue();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "ArrayList Change Log with Binary Search",
+      "timeComplexity": "O(1) amortized per set, O(1) per snap, O(log S) per get",
+      "spaceComplexity": "O(n + S)",
+      "description": "## Approach\n\nFor each index, keep an ordered list of `(snap_id, value)` pairs. The first pair is `(0, 0)`. A `set` in the same working snapshot updates the last pair instead of appending another one; otherwise it appends a new pair. `get` binary-searches for the last pair whose `snap_id` is at most the requested id.\n\n## Key Insight\n\nRepeated writes before the same `snap()` collapse to the final value, but the list remains sorted by `snap_id`. That gives compact storage and logarithmic historical lookup.\n\n## Complexity Analysis\n- Time Complexity: O(1) amortized for `set`, O(1) for `snap`, and O(log S) for `get`.\n- Space Complexity: O(n + S).",
+      "code": "class SnapshotArray {\n    private final java.util.List<int[]>[] history;\n    private int snapId;\n\n    public SnapshotArray(int length) {\n        history = new java.util.ArrayList[length];\n        for (int i = 0; i < length; i++) {\n            history[i] = new java.util.ArrayList<>();\n            history[i].add(new int[]{0, 0});\n        }\n    }\n\n    public void set(int index, int val) {\n        java.util.List<int[]> list = history[index];\n        int[] last = list.get(list.size() - 1);\n        if (last[0] == snapId) {\n            last[1] = val;\n        } else {\n            list.add(new int[]{snapId, val});\n        }\n    }\n\n    public int snap() {\n        return snapId++;\n    }\n\n    public int get(int index, int snap_id) {\n        java.util.List<int[]> list = history[index];\n        int lo = 0;\n        int hi = list.size() - 1;\n        int answer = 0;\n        while (lo <= hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (list.get(mid)[0] <= snap_id) {\n                answer = mid;\n                lo = mid + 1;\n            } else {\n                hi = mid - 1;\n            }\n        }\n        return list.get(answer)[1];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sparse HashMap Histories",
+      "timeComplexity": "O(1) amortized per set, O(1) per snap, O(log S) per get",
+      "spaceComplexity": "O(S)",
+      "description": "## Approach\n\nStore histories only for indexes that have ever been written. A hash map maps an index to its ordered list of `(snap_id, value)` pairs. Untouched indexes return `0` immediately. Written indexes use the same same-snapshot overwrite rule and binary search as the dense per-index list.\n\n## Key Insight\n\nThe array can be large while the number of writes is limited. Allocating history lists lazily keeps untouched indexes at zero without building `length` lists up front.\n\n## Complexity Analysis\n- Time Complexity: O(1) amortized for `set`, O(1) for `snap`, and O(log S) for `get` on a touched index.\n- Space Complexity: O(S), where S is the number of stored changes.",
+      "code": "class SnapshotArray {\n    private final java.util.Map<Integer, java.util.ArrayList<int[]>> histories = new java.util.HashMap<>();\n    private int snapId;\n\n    public SnapshotArray(int length) {\n    }\n\n    public void set(int index, int val) {\n        java.util.ArrayList<int[]> list = histories.computeIfAbsent(index, key -> new java.util.ArrayList<>());\n        if (!list.isEmpty() && list.get(list.size() - 1)[0] == snapId) {\n            list.get(list.size() - 1)[1] = val;\n        } else {\n            list.add(new int[]{snapId, val});\n        }\n    }\n\n    public int snap() {\n        return snapId++;\n    }\n\n    public int get(int index, int snap_id) {\n        java.util.ArrayList<int[]> list = histories.get(index);\n        if (list == null) {\n            return 0;\n        }\n        int lo = 0;\n        int hi = list.size() - 1;\n        int answer = -1;\n        while (lo <= hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (list.get(mid)[0] <= snap_id) {\n                answer = mid;\n                lo = mid + 1;\n            } else {\n                hi = mid - 1;\n            }\n        }\n        return answer == -1 ? 0 : list.get(answer)[1];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Pending Writes Committed at Snap",
+      "timeComplexity": "O(1) per set, O(k) per snap, O(log S) per get",
+      "spaceComplexity": "O(n + S)",
+      "description": "## Approach\n\nKeep a pending map for writes made since the previous snapshot. `set` only updates this pending map, so repeated writes to the same index before `snap()` are naturally coalesced. During `snap`, commit each pending index's final value into that index history under the snapshot id being returned.\n\n## Key Insight\n\nThe committed history represents completed snapshots, while pending writes represent the current working version. This separation makes it explicit that `get` can only read already-taken snapshots.\n\n## Complexity Analysis\n- Time Complexity: O(1) for `set`, O(k) for `snap` over k changed indexes, and O(log S) for `get`.\n- Space Complexity: O(n + S).",
+      "code": "class SnapshotArray {\n    private final java.util.List<int[]>[] history;\n    private final java.util.Map<Integer, Integer> pending = new java.util.HashMap<>();\n    private int snapId;\n\n    public SnapshotArray(int length) {\n        history = new java.util.ArrayList[length];\n        for (int i = 0; i < length; i++) {\n            history[i] = new java.util.ArrayList<>();\n            history[i].add(new int[]{0, 0});\n        }\n    }\n\n    public void set(int index, int val) {\n        pending.put(index, val);\n    }\n\n    public int snap() {\n        for (java.util.Map.Entry<Integer, Integer> entry : pending.entrySet()) {\n            java.util.List<int[]> list = history[entry.getKey()];\n            int val = entry.getValue();\n            if (list.get(list.size() - 1)[0] == snapId) {\n                list.get(list.size() - 1)[1] = val;\n            } else if (list.get(list.size() - 1)[1] != val) {\n                list.add(new int[]{snapId, val});\n            }\n        }\n        pending.clear();\n        return snapId++;\n    }\n\n    public int get(int index, int snap_id) {\n        java.util.List<int[]> list = history[index];\n        int lo = 0;\n        int hi = list.size() - 1;\n        int answer = 0;\n        while (lo <= hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (list.get(mid)[0] <= snap_id) {\n                answer = mid;\n                lo = mid + 1;\n            } else {\n                hi = mid - 1;\n            }\n        }\n        return list.get(answer)[1];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Primitive Dynamic Arrays per Index",
+      "timeComplexity": "O(1) amortized per set, O(1) per snap, O(log S) per get",
+      "spaceComplexity": "O(n + S)",
+      "description": "## Approach\n\nReplace object lists with two dynamic primitive arrays per index: one array for snapshot ids and one for values. `set` overwrites the last cell when it belongs to the current snapshot, otherwise it appends and grows that index's arrays if needed. `get` binary-searches the primitive snapshot-id array.\n\n## Key Insight\n\nThe logical structure is the same sorted change log, but storing primitive arrays reduces object overhead and makes the binary-search state visible.\n\n## Complexity Analysis\n- Time Complexity: O(1) amortized for `set`, O(1) for `snap`, and O(log S) for `get`.\n- Space Complexity: O(n + S).",
+      "code": "class SnapshotArray {\n    private int[][] snapIds;\n    private int[][] values;\n    private int[] sizes;\n    private int snapId;\n\n    public SnapshotArray(int length) {\n        snapIds = new int[length][];\n        values = new int[length][];\n        sizes = new int[length];\n        for (int i = 0; i < length; i++) {\n            snapIds[i] = new int[1];\n            values[i] = new int[1];\n            snapIds[i][0] = 0;\n            values[i][0] = 0;\n            sizes[i] = 1;\n        }\n    }\n\n    public void set(int index, int val) {\n        int size = sizes[index];\n        if (snapIds[index][size - 1] == snapId) {\n            values[index][size - 1] = val;\n            return;\n        }\n        ensureCapacity(index);\n        snapIds[index][sizes[index]] = snapId;\n        values[index][sizes[index]] = val;\n        sizes[index]++;\n    }\n\n    public int snap() {\n        return snapId++;\n    }\n\n    public int get(int index, int snap_id) {\n        int lo = 0;\n        int hi = sizes[index] - 1;\n        int answer = 0;\n        while (lo <= hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (snapIds[index][mid] <= snap_id) {\n                answer = mid;\n                lo = mid + 1;\n            } else {\n                hi = mid - 1;\n            }\n        }\n        return values[index][answer];\n    }\n\n    private void ensureCapacity(int index) {\n        if (sizes[index] < snapIds[index].length) {\n            return;\n        }\n        int newLength = snapIds[index].length * 2;\n        snapIds[index] = java.util.Arrays.copyOf(snapIds[index], newLength);\n        values[index] = java.util.Arrays.copyOf(values[index], newLength);\n    }\n}",
+      "language": "java"
     }
   ]
 }

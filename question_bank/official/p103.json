@@ -1,7 +1,7 @@
 {
   "id": "103",
   "title": "Word Search II",
-  "description": "# Word Search II\n\nGiven an `m x n` `board` of characters and a list of strings `words`, return *all words on the board*.\n\nEach word must be constructed from letters of sequentially adjacent cells, where **adjacent cells** are horizontally or vertically neighboring. The same letter cell may not be used more than once in a word.\n\n## Example 1:\n\n**Input:** board = [[\"o\",\"a\",\"a\",\"n\"],[\"e\",\"t\",\"a\",\"e\"],[\"i\",\"h\",\"k\",\"r\"],[\"i\",\"f\",\"l\",\"v\"]], words = [\"oath\",\"pea\",\"eat\",\"rain\"]\n**Output:** [\"eat\",\"oath\"]\n\n## Example 2:\n\n**Input:** board = [[\"a\",\"b\"],[\"c\",\"d\"]], words = [\"abcb\"]\n**Output:** []\n\n## Constraints:\n\n*   `m == board.length`\n*   `n == board[i].length`\n*   `1 <= m, n <= 12`\n*   `board[i][j]` is a lowercase English letter.\n*   `1 <= words.length <= 3 * 10^4`\n*   `1 <= words[i].length <= 10`\n*   `words[i]` consists of lowercase English letters.\n*   All the strings of `words` are unique.",
+  "description": "# Word Search II\n\nGiven an `m x n` `board` of lowercase English letters and a list of unique strings `words`, return every word from `words` that can be formed on the board.\n\nA word is formed by choosing a path of cells whose letters appear in order. Consecutive cells in the path must be horizontally or vertically adjacent. Diagonal moves are not allowed, and the same cell may not be used more than once in the same word.\n\nReturn the words in any order. Return each word only once, even if several paths spell it.\n\n## Example 1:\n\n**Input:** board = [[\"o\",\"a\",\"a\",\"n\"],[\"e\",\"t\",\"a\",\"e\"],[\"i\",\"h\",\"k\",\"r\"],[\"i\",\"f\",\"l\",\"v\"]], words = [\"oath\",\"pea\",\"eat\",\"rain\"]\n**Output:** [\"eat\",\"oath\"]\n\n## Example 2:\n\n**Input:** board = [[\"a\",\"b\"],[\"c\",\"d\"]], words = [\"abcb\"]\n**Output:** []\n**Explanation:** The word would need to reuse the cell containing `b`, which is not allowed.\n\n## Constraints:\n\n*   `m == board.length`\n*   `n == board[i].length`\n*   `1 <= m, n <= 12`\n*   `board[i][j]` is a lowercase English letter.\n*   `1 <= words.length <= 3 * 10^4`\n*   `1 <= words[i].length <= 10`\n*   `words[i]` consists of lowercase English letters.\n*   All strings in `words` are unique.",
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public List<String> findWords(char[][] board, String[] words) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
   "tags": [
@@ -24,36 +24,96 @@
   "tests": [
     {
       "input": "board = [[\"o\",\"a\",\"a\",\"n\"],[\"e\",\"t\",\"a\",\"e\"],[\"i\",\"h\",\"k\",\"r\"],[\"i\",\"f\",\"l\",\"v\"]], words = [\"oath\",\"pea\",\"eat\",\"rain\"]",
-      "output": "[\"eat\",\"oath\"]"
+      "output": "[\"eat\",\"oath\"]",
+      "description": "Canonical 4x4 board where only words that can be traced by horizontal or vertical adjacency are returned."
     },
     {
       "input": "board = [[\"a\",\"b\"],[\"c\",\"d\"]], words = [\"abcb\"]",
-      "output": "[]"
+      "output": "[]",
+      "description": "Rejects a candidate that would need to reuse the same cell inside one word."
     },
     {
       "input": "board = [[\"a\"]], words = [\"a\",\"b\"]",
-      "output": "[\"a\"]"
+      "output": "[\"a\"]",
+      "description": "Single-cell board checks both the only present word and an absent word."
     },
     {
       "input": "board = [[\"a\",\"b\"],[\"c\",\"d\"]], words = [\"ab\",\"cd\",\"ac\",\"bd\"]",
-      "output": "[\"ab\",\"ac\",\"bd\",\"cd\"]"
+      "output": "[\"ab\",\"ac\",\"bd\",\"cd\"]",
+      "description": "Small board with horizontal and vertical two-letter words verifies multiple matches."
+    },
+    {
+      "input": "board = [[\"a\",\"b\"],[\"c\",\"d\"]], words = [\"ad\",\"abc\",\"acdb\"]",
+      "output": "[\"acdb\"]",
+      "description": "Diagonal movement is not allowed, while a longer orthogonal path should still be found."
+    },
+    {
+      "input": "board = [[\"a\",\"a\"],[\"a\",\"a\"]], words = [\"aa\",\"aaa\",\"aaaa\",\"aaaaa\"]",
+      "output": "[\"aa\",\"aaa\",\"aaaa\"]",
+      "description": "Repeated letters create many paths, but each dictionary word appears at most once and longer-than-cell words fail."
+    },
+    {
+      "input": "board = [[\"o\",\"a\",\"t\"],[\"h\",\"k\",\"h\"],[\"i\",\"f\",\"l\"]], words = [\"oath\",\"oak\",\"oat\",\"oatf\",\"oathi\"]",
+      "output": "[\"oak\",\"oat\",\"oath\"]",
+      "description": "Words sharing the same prefix require trie-style pruning without accepting impossible suffixes."
+    },
+    {
+      "input": "board = [[\"a\",\"b\",\"c\",\"d\"]], words = [\"ab\",\"abc\",\"abcd\",\"abd\",\"dcba\"]",
+      "output": "[\"ab\",\"abc\",\"abcd\",\"dcba\"]",
+      "description": "One-row boards allow left and right movement only, including paths traced in reverse."
+    },
+    {
+      "input": "board = [[\"a\"],[\"b\"],[\"c\"],[\"d\"]], words = [\"ab\",\"abc\",\"abcd\",\"ac\",\"dcba\"]",
+      "output": "[\"ab\",\"abc\",\"abcd\",\"dcba\"]",
+      "description": "One-column boards allow up and down movement only, including paths traced in reverse."
+    },
+    {
+      "input": "board = [[\"a\",\"b\"],[\"c\",\"d\"]], words = [\"abcdc\",\"abcda\",\"aaaa\",\"dcab\"]",
+      "output": "[\"dcab\"]",
+      "description": "Words longer than the number of cells and paths that require reuse must fail; a valid four-cell path still passes."
+    },
+    {
+      "input": "board = [[\"s\",\"e\",\"e\"],[\"r\",\"a\",\"t\"],[\"n\",\"o\",\"d\"]], words = [\"see\",\"seat\",\"sear\",\"seen\",\"rat\",\"road\",\"tone\"]",
+      "output": "[\"rat\",\"sear\",\"seat\",\"see\"]",
+      "description": "Branching prefixes and tempting diagonal suffixes distinguish valid board paths from near misses."
+    },
+    {
+      "input": "board = [[\"q\",\"w\"],[\"e\",\"r\"]], words = [\"qq\",\"weq\",\"rewq\"]",
+      "output": "[]",
+      "description": "A board with matching letters but no valid orthogonal paths should return an empty list."
     }
   ],
   "solutions": [
     {
-      "name": "Trie + Backtracking",
-      "timeComplexity": "O(m * n * 4^L)",
-      "spaceComplexity": "O(T + L)",
-      "description": "Build a Trie from the word list. DFS from each cell on the board, following trie paths. Prune branches when no trie child exists. Remove found words from trie to avoid duplicates.",
-      "code": "import java.util.*;\n\nclass Solution {\n    private int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n    \n    public List<String> findWords(char[][] board, String[] words) {\n        // Build Trie\n        int[][] trie = new int[200001][26];\n        String[] endWord = new String[200001];\n        int cnt = 1;\n        \n        for (String word : words) {\n            int node = 0;\n            for (char c : word.toCharArray()) {\n                int idx = c - 'a';\n                if (trie[node][idx] == 0) trie[node][idx] = cnt++;\n                node = trie[node][idx];\n            }\n            endWord[node] = word;\n        }\n        \n        List<String> result = new ArrayList<>();\n        int m = board.length, n = board[0].length;\n        \n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                dfs(board, i, j, 0, trie, endWord, result);\n            }\n        }\n        return result;\n    }\n    \n    private void dfs(char[][] board, int r, int c, int node, int[][] trie, String[] endWord, List<String> result) {\n        if (r < 0 || r >= board.length || c < 0 || c >= board[0].length) return;\n        char ch = board[r][c];\n        if (ch == '#' || trie[node][ch - 'a'] == 0) return;\n        \n        node = trie[node][ch - 'a'];\n        if (endWord[node] != null) {\n            result.add(endWord[node]);\n            endWord[node] = null;\n        }\n        \n        board[r][c] = '#';\n        for (int[] d : dirs) dfs(board, r + d[0], c + d[1], node, trie, endWord, result);\n        board[r][c] = ch;\n    }\n}",
+      "name": "Array Trie + Board Backtracking",
+      "timeComplexity": "O(W * L + m * n * 4^L)",
+      "spaceComplexity": "O(W * L + L)",
+      "description": "## Approach\n\nInsert every dictionary word into a trie whose children are stored in a fixed array of 26 slots. Then start DFS from every board cell. Each DFS step moves to the trie child for the current board letter; if that child is missing, the whole branch stops immediately. Mark the board cell with `#` while it is on the current path, then restore it when backtracking.\n\n## Key Insight\n\nThe trie turns many independent word searches into one shared prefix search. When a board path spells a prefix that no target word has, every longer path below it can be rejected without more work. Storing the complete word at terminal nodes also lets the DFS add a result as soon as the path reaches a word, and clearing that terminal word prevents duplicate output from different board paths.\n\n## Complexity Analysis\n\nBuilding the trie costs `O(W * L)`, where `W` is the number of words and `L` is the maximum word length. The board search is bounded by `O(m * n * 4^L)` in the worst case, but trie pruning usually cuts most branches early. The trie stores `O(W * L)` nodes and recursion uses `O(L)` stack space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static class TrieNode {\n        TrieNode[] children = new TrieNode[26];\n        String word;\n    }\n\n    private final int[][] dirs = new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public List<String> findWords(char[][] board, String[] words) {\n        TrieNode root = new TrieNode();\n        for (String word : words) {\n            insert(root, word);\n        }\n\n        List<String> result = new ArrayList<>();\n        for (int r = 0; r < board.length; r++) {\n            for (int c = 0; c < board[0].length; c++) {\n                dfs(board, r, c, root, result);\n            }\n        }\n        Collections.sort(result);\n        return result;\n    }\n\n    private void insert(TrieNode root, String word) {\n        TrieNode node = root;\n        for (char c : word.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) {\n                node.children[idx] = new TrieNode();\n            }\n            node = node.children[idx];\n        }\n        node.word = word;\n    }\n\n    private void dfs(char[][] board, int r, int c, TrieNode node, List<String> result) {\n        if (r < 0 || r >= board.length || c < 0 || c >= board[0].length) {\n            return;\n        }\n        char ch = board[r][c];\n        if (ch == '#') {\n            return;\n        }\n        TrieNode next = node.children[ch - 'a'];\n        if (next == null) {\n            return;\n        }\n\n        if (next.word != null) {\n            result.add(next.word);\n            next.word = null;\n        }\n\n        board[r][c] = '#';\n        for (int[] dir : dirs) {\n            dfs(board, r + dir[0], c + dir[1], next, result);\n        }\n        board[r][c] = ch;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "HashSet + Backtracking per Word",
+      "name": "Pruning Trie with Word Removal",
+      "timeComplexity": "O(W * L + m * n * 4^L)",
+      "spaceComplexity": "O(W * L + L)",
+      "description": "## Approach\n\nUse the same trie-and-board DFS idea, but track how many children each trie node still has. After a DFS branch has explored a child, remove that child from its parent if it no longer contains a word or any useful descendants. A found word is also cleared from its terminal node.\n\n## Key Insight\n\nOnce a word or prefix has been completely consumed by earlier board paths, keeping it in the trie can only make later searches repeat dead work. Pruning the trie while searching makes future starting cells skip branches that can no longer produce any new result. This teaches the production version of the trie solution: not just prefix pruning, but also dynamic deletion of exhausted prefixes.\n\n## Complexity Analysis\n\nThe asymptotic worst case is still `O(W * L + m * n * 4^L)`, with `O(W * L)` trie space and `O(L)` recursion depth. In practice, pruning reduces repeated work when many words share prefixes or when the same word can be traced by several board paths.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static class TrieNode {\n        TrieNode[] children = new TrieNode[26];\n        String word;\n        int childCount;\n    }\n\n    private final int[][] dirs = new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public List<String> findWords(char[][] board, String[] words) {\n        TrieNode root = new TrieNode();\n        for (String word : words) {\n            add(root, word);\n        }\n\n        List<String> result = new ArrayList<>();\n        for (int r = 0; r < board.length; r++) {\n            for (int c = 0; c < board[0].length; c++) {\n                dfs(board, r, c, root, result);\n            }\n        }\n        Collections.sort(result);\n        return result;\n    }\n\n    private void add(TrieNode root, String word) {\n        TrieNode node = root;\n        for (char c : word.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) {\n                node.children[idx] = new TrieNode();\n                node.childCount++;\n            }\n            node = node.children[idx];\n        }\n        node.word = word;\n    }\n\n    private void dfs(char[][] board, int r, int c, TrieNode parent, List<String> result) {\n        if (r < 0 || r >= board.length || c < 0 || c >= board[0].length) {\n            return;\n        }\n        char ch = board[r][c];\n        if (ch == '#') {\n            return;\n        }\n        int idx = ch - 'a';\n        TrieNode node = parent.children[idx];\n        if (node == null) {\n            return;\n        }\n\n        if (node.word != null) {\n            result.add(node.word);\n            node.word = null;\n        }\n\n        board[r][c] = '#';\n        for (int[] dir : dirs) {\n            dfs(board, r + dir[0], c + dir[1], node, result);\n        }\n        board[r][c] = ch;\n\n        if (node.word == null && node.childCount == 0) {\n            parent.children[idx] = null;\n            parent.childCount--;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Per-word DFS Baseline",
       "timeComplexity": "O(W * m * n * 4^L)",
-      "spaceComplexity": "O(W * L)",
-      "description": "For each word, search the board using DFS backtracking. Use a HashSet to collect found words and avoid duplicates. Simpler than the Trie approach but slower for large word lists.",
-      "code": "import java.util.*;\n\nclass Solution {\n    private int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n    \n    public List<String> findWords(char[][] board, String[] words) {\n        Set<String> found = new HashSet<>();\n        int m = board.length;\n        int n = board[0].length;\n        \n        for (String word : words) {\n            if (found.contains(word)) continue;\n            boolean wordFound = false;\n            for (int i = 0; i < m && !wordFound; i++) {\n                for (int j = 0; j < n && !wordFound; j++) {\n                    if (board[i][j] == word.charAt(0)) {\n                        if (dfs(board, i, j, word, 0)) {\n                            found.add(word);\n                            wordFound = true;\n                        }\n                    }\n                }\n            }\n        }\n        \n        List<String> result = new ArrayList<>(found);\n        Collections.sort(result);\n        return result;\n    }\n    \n    private boolean dfs(char[][] board, int r, int c, String word, int idx) {\n        if (idx == word.length()) return true;\n        if (r < 0 || r >= board.length || c < 0 || c >= board[0].length) return false;\n        if (board[r][c] != word.charAt(idx)) return false;\n        \n        char temp = board[r][c];\n        board[r][c] = '#';\n        for (int[] d : dirs) {\n            if (dfs(board, r + d[0], c + d[1], word, idx + 1)) {\n                board[r][c] = temp;\n                return true;\n            }\n        }\n        board[r][c] = temp;\n        return false;\n    }\n}",
+      "spaceComplexity": "O(m * n + L)",
+      "description": "## Approach\n\nTreat the problem as many independent Word Search I checks. For each word, scan the board for a matching first letter and run DFS with a `visited` matrix to verify whether the entire word can be traced without reusing a cell. Add the word to the answer only if one path succeeds.\n\n## Key Insight\n\nThis is not the intended high-performance solution for the large constraints, but it is the clearest correctness baseline. It exposes the exact board-walking rules: four directions only, no cell reuse, and a word is accepted only after every character is matched in order. Comparing this baseline to the trie solutions makes the value of shared prefixes concrete.\n\n## Complexity Analysis\n\nEach of `W` words can start from each board cell and branch up to four ways for at most `L` characters, so the worst-case time is `O(W * m * n * 4^L)`. The `visited` matrix uses `O(m * n)` space and recursion uses `O(L)` stack space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private final int[][] dirs = new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public List<String> findWords(char[][] board, String[] words) {\n        List<String> result = new ArrayList<>();\n        for (String word : words) {\n            if (exists(board, word)) {\n                result.add(word);\n            }\n        }\n        Collections.sort(result);\n        return result;\n    }\n\n    private boolean exists(char[][] board, String word) {\n        boolean[][] visited = new boolean[board.length][board[0].length];\n        for (int r = 0; r < board.length; r++) {\n            for (int c = 0; c < board[0].length; c++) {\n                if (dfs(board, word, 0, r, c, visited)) {\n                    return true;\n                }\n            }\n        }\n        return false;\n    }\n\n    private boolean dfs(char[][] board, String word, int index, int r, int c, boolean[][] visited) {\n        if (index == word.length()) {\n            return true;\n        }\n        if (r < 0 || r >= board.length || c < 0 || c >= board[0].length) {\n            return false;\n        }\n        if (visited[r][c] || board[r][c] != word.charAt(index)) {\n            return false;\n        }\n\n        visited[r][c] = true;\n        for (int[] dir : dirs) {\n            if (dfs(board, word, index + 1, r + dir[0], c + dir[1], visited)) {\n                visited[r][c] = false;\n                return true;\n            }\n        }\n        visited[r][c] = false;\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Prefix Set Backtracking",
+      "timeComplexity": "O(W * L^2 + m * n * 4^L)",
+      "spaceComplexity": "O(W * L^2 + m * n)",
+      "description": "## Approach\n\nBuild two hash sets: one containing the complete words and one containing every prefix of every word. Then backtrack over the board while maintaining the current path as a `StringBuilder`. If the current string is not a valid prefix, stop that branch immediately; if it is a full word, record it.\n\n## Key Insight\n\nThis route teaches prefix pruning without a trie. It has a heavier preprocessing and storage cost because every prefix is stored as a string, but it makes the optimization idea visible: once a board path is not a prefix of any target, no extension of that path can become a valid answer. It is a useful bridge between the naive per-word search and the trie implementation.\n\n## Complexity Analysis\n\nGenerating prefix strings costs up to `O(W * L^2)` because each substring can copy characters. The board DFS is bounded by `O(m * n * 4^L)` before pruning. The prefix and word sets use `O(W * L^2)` space, and the visited matrix plus recursion use `O(m * n + L)`.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private final int[][] dirs = new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n    private int rows;\n    private int cols;\n    private int maxLen;\n\n    public List<String> findWords(char[][] board, String[] words) {\n        Set<String> dictionary = new HashSet<>();\n        Set<String> prefixes = new HashSet<>();\n        maxLen = 0;\n        for (String word : words) {\n            dictionary.add(word);\n            maxLen = Math.max(maxLen, word.length());\n            for (int i = 1; i <= word.length(); i++) {\n                prefixes.add(word.substring(0, i));\n            }\n        }\n\n        rows = board.length;\n        cols = board[0].length;\n        boolean[][] visited = new boolean[rows][cols];\n        Set<String> found = new HashSet<>();\n        StringBuilder path = new StringBuilder();\n\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                dfs(board, r, c, visited, path, prefixes, dictionary, found);\n            }\n        }\n\n        List<String> result = new ArrayList<>(found);\n        Collections.sort(result);\n        return result;\n    }\n\n    private void dfs(char[][] board, int r, int c, boolean[][] visited, StringBuilder path,\n                     Set<String> prefixes, Set<String> dictionary, Set<String> found) {\n        if (r < 0 || r >= rows || c < 0 || c >= cols || visited[r][c]) {\n            return;\n        }\n\n        path.append(board[r][c]);\n        String current = path.toString();\n        if (!prefixes.contains(current)) {\n            path.deleteCharAt(path.length() - 1);\n            return;\n        }\n\n        if (dictionary.contains(current)) {\n            found.add(current);\n        }\n\n        if (current.length() < maxLen) {\n            visited[r][c] = true;\n            for (int[] dir : dirs) {\n                dfs(board, r + dir[0], c + dir[1], visited, path, prefixes, dictionary, found);\n            }\n            visited[r][c] = false;\n        }\n        path.deleteCharAt(path.length() - 1);\n    }\n}",
       "language": "java"
     }
   ],
@@ -61,7 +121,7 @@
     {
       "id": "board",
       "file": "p103_board.png",
-      "caption": "Example 1: 4x4 Character Board"
+      "caption": "Input board and candidate word list"
     }
   ]
 }

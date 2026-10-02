@@ -1,36 +1,131 @@
 {
   "id": "352",
   "title": "Zuma Game",
-  "description": "# Zuma Game\n\nYou are playing a variation of the game Zuma.\n\nIn this variation of Zuma, there is a **single row** of colored balls on a board, where each ball can be colored Red `'R'`, Yellow `'Y'`, Blue `'B'`, Green `'G'`, or White `'W'`. You also have several colored balls in your hand.\n\nYour goal is to **clear all** of the balls from the board. On each turn:\n\n*   Pick **any** ball from your hand and insert it in between two balls in the row or on either end of the row.\n*   If there is a group of **three or more** consecutive balls of the **same color**, remove the group and keep the remaining balls in place.\n*   If this removal causes more groups of three or more of the same color to form, then continue removing each group until there are none left.\n*   If there are no more balls on the board, you win.\n\nReturn *the **minimum** number of balls you have to insert to clear all the balls from the board. If you cannot clear all the balls, return* `-1`.\n\n## Example 1:\n\n**Input:** board = \"WRRBBW\", hand = \"RB\"\n**Output:** -1\n**Explanation:** It is impossible to clear all the balls. The best you can do is:\n- Insert 'R' so the board becomes WRRRBBW. WRRRBBW -> WBBW.\n- Insert 'B' so the board becomes WBBBW. WBBBW -> WW.\nThere are still balls remaining on the board, and you are out of balls to insert.\n\n## Example 2:\n\n**Input:** board = \"WWRRBBWW\", hand = \"WRBRW\"\n**Output:** 2\n**Explanation:** To make the board empty:\n- Insert 'R' so the board becomes WWRRRBBWW. WWRRRBBWW -> WWBBWW.\n- Insert 'B' so the board becomes WWBBBWW. WWBBBWW -> WWWW -> empty.\n2 balls from your hand were needed to clear the board.\n\n## Example 3:\n\n**Input:** board = \"G\", hand = \"GGGGG\"\n**Output:** 2\n**Explanation:** To make the board empty:\n- Insert 'G' so the board becomes GG.\n- Insert 'G' so the board becomes GGG. GGG -> empty.\n2 balls from your hand were needed to clear the board.\n\n## Constraints:\n\n*   `1 <= board.length <= 16`\n*   `1 <= hand.length <= 5`\n*   `board` and `hand` consist of the characters `'R'`, `'Y'`, `'B'`, `'G'`, and `'W'`.",
+  "description": "# Zuma Game\n\nYou are playing a variation of Zuma.\n\nThere is a single row of colored balls on the board. Each ball is one of Red `R`, Yellow `Y`, Blue `B`, Green `G`, or White `W`. You also have several balls in your hand.\n\nOn each move, choose one ball from your hand and insert it anywhere in the row, including either end. After the insertion, any group of three or more consecutive balls with the same color is removed. If that removal creates another group of three or more equal colors, keep removing groups until no such group remains.\n\nReturn the minimum number of inserted balls needed to clear the board. If it is impossible, return `-1`.\n\n## Example 1:\n\n**Input:** board = \"WRRBBW\", hand = \"RB\"\n**Output:** -1\n**Explanation:** No sequence using only `R` and `B` can remove every ball.\n\n## Example 2:\n\n**Input:** board = \"WWRRBBWW\", hand = \"WRBRW\"\n**Output:** 2\n**Explanation:** Insert `R` to remove the middle red group, then insert `B` to trigger a blue removal and a chained white removal.\n\n## Example 3:\n\n**Input:** board = \"G\", hand = \"GGGGG\"\n**Output:** 2\n**Explanation:** Two green balls are needed to make `GGG`, which is then removed.\n\n## Constraints:\n\n* `1 <= board.length <= 16`\n* `1 <= hand.length <= 5`\n* `board` and `hand` consist only of `R`, `Y`, `B`, `G`, and `W`.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int findMinStep(String board, String hand) {\n        \n    }\n}",
-  "tags": ["String", "Backtracking", "Breadth-First Search", "Memoization"],
+  "initialCode": "class Solution {\n    public int findMinStep(String board, String hand) {\n        return -1;\n    }\n}",
+  "tags": [
+    "String",
+    "Backtracking",
+    "Breadth-First Search",
+    "Memoization"
+  ],
   "examples": [
-    { "input": "board = \"WRRBBW\", hand = \"RB\"", "output": "-1" },
-    { "input": "board = \"WWRRBBWW\", hand = \"WRBRW\"", "output": "2" },
-    { "input": "board = \"G\", hand = \"GGGGG\"", "output": "2" }
+    {
+      "input": "board = \"WRRBBW\", hand = \"RB\"",
+      "output": "-1"
+    },
+    {
+      "input": "board = \"WWRRBBWW\", hand = \"WRBRW\"",
+      "output": "2"
+    },
+    {
+      "input": "board = \"G\", hand = \"GGGGG\"",
+      "output": "2"
+    }
   ],
   "solutions": [
     {
-      "name": "DFS with Pruning",
-      "timeComplexity": "O(n! * m)",
-      "spaceComplexity": "O(n * m)",
-      "description": "Try inserting each ball from hand into each position on the board. After insertion, remove consecutive groups of 3+. Use memoization on board state and hand state. Prune by only inserting where colors match.",
-      "code": "class Solution {\n    public int findMinStep(String board, String hand) {\n        int[] handCount = new int[26];\n        for (char c : hand.toCharArray()) handCount[c - 'A']++;\n        java.util.Map<String, Integer> memo = new java.util.HashMap<>();\n        int res = dfs(board, handCount, memo);\n        return res == Integer.MAX_VALUE ? -1 : res;\n    }\n    private int dfs(String board, int[] hand, java.util.Map<String, Integer> memo) {\n        if (board.isEmpty()) return 0;\n        String key = board + java.util.Arrays.toString(hand);\n        if (memo.containsKey(key)) return memo.get(key);\n        int res = Integer.MAX_VALUE;\n        int i = 0;\n        while (i < board.length()) {\n            int j = i;\n            while (j < board.length() && board.charAt(j) == board.charAt(i)) j++;\n            int need = 3 - (j - i);\n            int ci = board.charAt(i) - 'A';\n            if (hand[ci] >= need) {\n                hand[ci] -= need;\n                String newBoard = clean(board.substring(0, i) + board.substring(j));\n                int sub = dfs(newBoard, hand, memo);\n                if (sub != Integer.MAX_VALUE) res = Math.min(res, sub + need);\n                hand[ci] += need;\n            }\n            i = j;\n        }\n        memo.put(key, res);\n        return res;\n    }\n    private String clean(String s) {\n        int i = 0;\n        while (i < s.length()) {\n            int j = i;\n            while (j < s.length() && s.charAt(j) == s.charAt(i)) j++;\n            if (j - i >= 3) { s = s.substring(0, i) + s.substring(j); i = 0; }\n            else i = j;\n        }\n        return s;\n    }\n}",
+      "name": "Memoized DFS by Removing Runs",
+      "timeComplexity": "O(S * n)",
+      "spaceComplexity": "O(S)",
+      "description": "## Approach\n\nCompress the hand into color counts. Instead of inserting every possible ball position, choose a current same-color run on the board and spend exactly the number of balls needed to make that run reach length three. After removing the run, recursively solve the cleaned board and memoize by board plus hand counts.\n\n## Key Insight\n\nAn optimal move can be viewed as paying to remove some visible run. This run-focused search skips many insertions that do not immediately contribute to a removal, while the repeated cleanup step still captures chain reactions.\n\n## Complexity Analysis\n- Time Complexity: O(S * n), where S is the number of reachable board and hand-count states\n- Space Complexity: O(S)",
+      "code": "class Solution {\n    private static final int INF = 1_000_000;\n\n    public int findMinStep(String board, String hand) {\n        int[] handCount = new int[26];\n        for (char c : hand.toCharArray()) handCount[c - 'A']++;\n        java.util.Map<String, Integer> memo = new java.util.HashMap<>();\n        int answer = dfs(clean(board), handCount, memo);\n        return answer >= INF ? -1 : answer;\n    }\n\n    private int dfs(String board, int[] hand, java.util.Map<String, Integer> memo) {\n        board = clean(board);\n        if (board.isEmpty()) return 0;\n        String key = board + java.util.Arrays.toString(hand);\n        if (memo.containsKey(key)) return memo.get(key);\n\n        int best = INF;\n        for (int i = 0; i < board.length();) {\n            int j = i + 1;\n            while (j < board.length() && board.charAt(j) == board.charAt(i)) j++;\n            int need = 3 - (j - i);\n            int color = board.charAt(i) - 'A';\n            if (hand[color] >= need) {\n                hand[color] -= need;\n                String newBoard = clean(board.substring(0, i) + board.substring(j));\n                int rest = dfs(newBoard, hand, memo);\n                if (rest < INF) best = Math.min(best, need + rest);\n                hand[color] += need;\n            }\n            i = j;\n        }\n\n        memo.put(key, best);\n        return best;\n    }\n\n    private String clean(String board) {\n        boolean changed = true;\n        while (changed) {\n            changed = false;\n            StringBuilder next = new StringBuilder();\n            for (int i = 0; i < board.length();) {\n                int j = i + 1;\n                while (j < board.length() && board.charAt(j) == board.charAt(i)) j++;\n                if (j - i >= 3) changed = true;\n                else next.append(board, i, j);\n                i = j;\n            }\n            board = next.toString();\n        }\n        return board;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "BFS with State Compression",
-      "timeComplexity": "O(n! * m)",
-      "spaceComplexity": "O(n! * m)",
-      "description": "Use BFS where each state is (current board string, remaining hand as sorted string). For each state, try inserting each remaining hand ball at each valid position on the board, remove consecutive groups of 3+, and enqueue the new state. BFS guarantees minimum insertions.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int findMinStep(String board, String hand) {\n        char[] h = hand.toCharArray();\n        Arrays.sort(h);\n        String sortedHand = new String(h);\n        Set<String> visited = new HashSet<>();\n        Queue<String[]> queue = new LinkedList<>();\n        queue.offer(new String[]{board, sortedHand});\n        visited.add(board + \"#\" + sortedHand);\n        int steps = 0;\n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            for (int q = 0; q < size; q++) {\n                String[] cur = queue.poll();\n                String b = cur[0];\n                String hd = cur[1];\n                if (b.isEmpty()) return steps;\n                for (int i = 0; i < hd.length(); i++) {\n                    if (i > 0 && hd.charAt(i) == hd.charAt(i - 1)) continue;\n                    char ball = hd.charAt(i);\n                    String newHand = hd.substring(0, i) + hd.substring(i + 1);\n                    for (int j = 0; j <= b.length(); j++) {\n                        if (j < b.length() && b.charAt(j) != ball) continue;\n                        if (j > 0 && b.charAt(j - 1) == ball) continue;\n                        String newBoard = clean(b.substring(0, j) + ball + b.substring(j));\n                        String key = newBoard + \"#\" + newHand;\n                        if (!visited.contains(key)) {\n                            visited.add(key);\n                            queue.offer(new String[]{newBoard, newHand});\n                        }\n                    }\n                }\n            }\n            steps++;\n        }\n        return -1;\n    }\n    private String clean(String s) {\n        int i = 0;\n        while (i < s.length()) {\n            int j = i;\n            while (j < s.length() && s.charAt(j) == s.charAt(i)) j++;\n            if (j - i >= 3) { s = s.substring(0, i) + s.substring(j); i = 0; }\n            else i = j;\n        }\n        return s;\n    }\n}",
+      "name": "BFS with Sorted-Hand State Compression",
+      "timeComplexity": "O(S * n * m)",
+      "spaceComplexity": "O(S)",
+      "description": "## Approach\n\nUse breadth-first search where a state is the current board plus the remaining hand as a sorted string. From each state, insert one remaining ball into each non-duplicate position, clean chain reactions, and enqueue unseen states. The first empty board reached is the minimum number of insertions.\n\n## Key Insight\n\nBFS matches the optimization target because every edge costs one inserted ball. Sorting the hand turns equivalent permutations of remaining balls into the same state key.\n\n## Complexity Analysis\n- Time Complexity: O(S * n * m), where S is the number of reachable compressed states\n- Space Complexity: O(S)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int findMinStep(String board, String hand) {\n        char[] chars = hand.toCharArray();\n        Arrays.sort(chars);\n        String sortedHand = new String(chars);\n        Queue<String[]> queue = new ArrayDeque<>();\n        Set<String> visited = new HashSet<>();\n        queue.offer(new String[]{clean(board), sortedHand});\n        visited.add(clean(board) + \"#\" + sortedHand);\n\n        int steps = 0;\n        while (!queue.isEmpty()) {\n            for (int size = queue.size(); size > 0; size--) {\n                String[] state = queue.poll();\n                String currentBoard = state[0];\n                String currentHand = state[1];\n                if (currentBoard.isEmpty()) return steps;\n                for (int i = 0; i < currentHand.length(); i++) {\n                    if (i > 0 && currentHand.charAt(i) == currentHand.charAt(i - 1)) continue;\n                    char ball = currentHand.charAt(i);\n                    String nextHand = currentHand.substring(0, i) + currentHand.substring(i + 1);\n                    for (int pos = 0; pos <= currentBoard.length(); pos++) {\n                        if (pos > 0 && currentBoard.charAt(pos - 1) == ball) continue;\n                        String nextBoard = clean(currentBoard.substring(0, pos) + ball + currentBoard.substring(pos));\n                        String key = nextBoard + \"#\" + nextHand;\n                        if (visited.add(key)) queue.offer(new String[]{nextBoard, nextHand});\n                    }\n                }\n            }\n            steps++;\n        }\n        return -1;\n    }\n\n    private String clean(String board) {\n        for (int i = 0; i < board.length();) {\n            int j = i + 1;\n            while (j < board.length() && board.charAt(j) == board.charAt(i)) j++;\n            if (j - i >= 3) return clean(board.substring(0, i) + board.substring(j));\n            i = j;\n        }\n        return board;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative Deepening Run Removal",
+      "timeComplexity": "O(S * n)",
+      "spaceComplexity": "O(S)",
+      "description": "## Approach\n\nTry depth limits from `0` through `hand.length()`. For a fixed limit, recursively choose a visible run, spend the exact number of balls required to remove it, and continue only while the remaining depth is enough. The first successful limit is the answer.\n\n## Key Insight\n\nThe search depth is the number of inserted balls, so iterative deepening proves optimality without storing every BFS layer. This is especially useful when a very small number of insertions clears the board through long chain reactions.\n\n## Complexity Analysis\n- Time Complexity: O(S * n), with S bounded by the states reachable within the current depth limit\n- Space Complexity: O(S)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int findMinStep(String board, String hand) {\n        int[] count = new int[26];\n        for (char c : hand.toCharArray()) count[c - 'A']++;\n        for (int limit = 0; limit <= hand.length(); limit++) {\n            if (canClear(board, count, limit, new HashSet<>())) return limit;\n        }\n        return -1;\n    }\n\n    private boolean canClear(String board, int[] count, int remaining, Set<String> seen) {\n        board = shrink(board);\n        if (board.isEmpty()) return true;\n        if (remaining == 0) return false;\n        String key = board + \"#\" + remaining + \"#\" + Arrays.toString(count);\n        if (!seen.add(key)) return false;\n\n        for (int i = 0; i < board.length();) {\n            int j = i + 1;\n            while (j < board.length() && board.charAt(j) == board.charAt(i)) j++;\n            int need = 3 - (j - i);\n            int color = board.charAt(i) - 'A';\n            if (need <= remaining && count[color] >= need) {\n                count[color] -= need;\n                String next = board.substring(0, i) + board.substring(j);\n                if (canClear(next, count, remaining - need, seen)) {\n                    count[color] += need;\n                    return true;\n                }\n                count[color] += need;\n            }\n            i = j;\n        }\n        return false;\n    }\n\n    private String shrink(String board) {\n        boolean changed = true;\n        while (changed) {\n            changed = false;\n            StringBuilder next = new StringBuilder();\n            for (int i = 0; i < board.length();) {\n                int j = i + 1;\n                while (j < board.length() && board.charAt(j) == board.charAt(i)) j++;\n                if (j - i >= 3) changed = true;\n                else next.append(board, i, j);\n                i = j;\n            }\n            board = next.toString();\n        }\n        return board;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Position-Insertion DFS with Memoized Hand String",
+      "timeComplexity": "O(S * n * m)",
+      "spaceComplexity": "O(S)",
+      "description": "## Approach\n\nKeep the remaining hand as a sorted string and perform a top-down search over actual insertions. For every unique hand ball, insert it into each non-duplicate board position, clean the resulting board, and memoize the best answer for `(board, hand)`.\n\n## Key Insight\n\nThis route models the game rules directly instead of jumping straight to run removal. It is slower than the run-focused DFS, but it is valuable as a correctness-oriented reference because every legal insertion sequence is represented.\n\n## Complexity Analysis\n- Time Complexity: O(S * n * m), where S is the number of reachable `(board, hand)` states\n- Space Complexity: O(S)",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int INF = 1_000_000;\n\n    public int findMinStep(String board, String hand) {\n        char[] balls = hand.toCharArray();\n        Arrays.sort(balls);\n        int answer = dfs(clean(board), new String(balls), new HashMap<>());\n        return answer >= INF ? -1 : answer;\n    }\n\n    private int dfs(String board, String hand, Map<String, Integer> memo) {\n        board = clean(board);\n        if (board.isEmpty()) return 0;\n        if (hand.isEmpty()) return INF;\n        String key = board + \"#\" + hand;\n        if (memo.containsKey(key)) return memo.get(key);\n\n        int best = INF;\n        for (int i = 0; i < hand.length(); i++) {\n            if (i > 0 && hand.charAt(i) == hand.charAt(i - 1)) continue;\n            char ball = hand.charAt(i);\n            String nextHand = hand.substring(0, i) + hand.substring(i + 1);\n            for (int pos = 0; pos <= board.length(); pos++) {\n                if (pos > 0 && board.charAt(pos - 1) == ball) continue;\n                String nextBoard = clean(board.substring(0, pos) + ball + board.substring(pos));\n                int rest = dfs(nextBoard, nextHand, memo);\n                if (rest < INF) best = Math.min(best, 1 + rest);\n            }\n        }\n        memo.put(key, best);\n        return best;\n    }\n\n    private String clean(String board) {\n        for (int i = 0; i < board.length();) {\n            int j = i + 1;\n            while (j < board.length() && board.charAt(j) == board.charAt(i)) j++;\n            if (j - i >= 3) return clean(board.substring(0, i) + board.substring(j));\n            i = j;\n        }\n        return board;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Uniform-Cost Priority Search over Compressed States",
+      "timeComplexity": "O(S * n * m log S)",
+      "spaceComplexity": "O(S)",
+      "description": "## Approach\n\nUse a priority queue keyed by the number of inserted balls. Each state stores the cleaned board, sorted remaining hand, and cost so far. Generate legal insertions, clean chain reactions, and relax a state only when the new cost improves the best known cost for that `(board, hand)` key.\n\n## Key Insight\n\nAll moves cost one, so this priority-search version returns the same minimum as BFS, but the explicit best-cost map makes the shortest-path structure visible and prevents stale states from expanding.\n\n## Complexity Analysis\n- Time Complexity: O(S * n * m log S)\n- Space Complexity: O(S)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int findMinStep(String board, String hand) {\n        char[] balls = hand.toCharArray();\n        Arrays.sort(balls);\n        String sortedHand = new String(balls);\n        PriorityQueue<State> queue = new PriorityQueue<>(Comparator.comparingInt(state -> state.used));\n        Map<String, Integer> bestCost = new HashMap<>();\n        String startBoard = clean(board);\n        String startKey = startBoard + \"#\" + sortedHand;\n        queue.offer(new State(startBoard, sortedHand, 0));\n        bestCost.put(startKey, 0);\n\n        while (!queue.isEmpty()) {\n            State state = queue.poll();\n            String key = state.board + \"#\" + state.hand;\n            if (state.used != bestCost.getOrDefault(key, Integer.MAX_VALUE)) continue;\n            if (state.board.isEmpty()) return state.used;\n            for (int i = 0; i < state.hand.length(); i++) {\n                if (i > 0 && state.hand.charAt(i) == state.hand.charAt(i - 1)) continue;\n                char ball = state.hand.charAt(i);\n                String nextHand = state.hand.substring(0, i) + state.hand.substring(i + 1);\n                for (int pos = 0; pos <= state.board.length(); pos++) {\n                    if (pos > 0 && state.board.charAt(pos - 1) == ball) continue;\n                    String nextBoard = clean(state.board.substring(0, pos) + ball + state.board.substring(pos));\n                    int nextUsed = state.used + 1;\n                    String nextKey = nextBoard + \"#\" + nextHand;\n                    if (nextUsed < bestCost.getOrDefault(nextKey, Integer.MAX_VALUE)) {\n                        bestCost.put(nextKey, nextUsed);\n                        queue.offer(new State(nextBoard, nextHand, nextUsed));\n                    }\n                }\n            }\n        }\n        return -1;\n    }\n\n    private String clean(String board) {\n        for (int i = 0; i < board.length();) {\n            int j = i + 1;\n            while (j < board.length() && board.charAt(j) == board.charAt(i)) j++;\n            if (j - i >= 3) return clean(board.substring(0, i) + board.substring(j));\n            i = j;\n        }\n        return board;\n    }\n\n    private static class State {\n        final String board;\n        final String hand;\n        final int used;\n\n        State(String board, String hand, int used) {\n            this.board = board;\n            this.hand = hand;\n            this.used = used;\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "board = \"WRRBBW\", hand = \"RB\"", "output": "-1" },
-    { "input": "board = \"WWRRBBWW\", hand = \"WRBRW\"", "output": "2" },
-    { "input": "board = \"G\", hand = \"GGGGG\"", "output": "2" }
+    {
+      "input": "board = \"WRRBBW\", hand = \"RB\"",
+      "output": "-1",
+      "description": "sample impossible case"
+    },
+    {
+      "input": "board = \"WWRRBBWW\", hand = \"WRBRW\"",
+      "output": "2",
+      "description": "sample two-step chain removal"
+    },
+    {
+      "input": "board = \"G\", hand = \"GGGGG\"",
+      "output": "2",
+      "description": "single ball needs two matching inserts"
+    },
+    {
+      "input": "board = \"RBYYBBRRB\", hand = \"YRBGB\"",
+      "output": "3",
+      "description": "multi-color search with several branches"
+    },
+    {
+      "input": "board = \"R\", hand = \"RR\"",
+      "output": "2",
+      "description": "minimum clearing case for one visible ball"
+    },
+    {
+      "input": "board = \"RR\", hand = \"R\"",
+      "output": "1",
+      "description": "one insertion completes an existing pair"
+    },
+    {
+      "input": "board = \"YYRRYY\", hand = \"RR\"",
+      "output": "1",
+      "description": "one red insertion triggers a yellow merge and chained cleanup"
+    },
+    {
+      "input": "board = \"RRBBYY\", hand = \"RBY\"",
+      "output": "3",
+      "description": "three independent pairs must all be completed"
+    },
+    {
+      "input": "board = \"RRGGBB\", hand = \"RGB\"",
+      "output": "3",
+      "description": "three colors each need one matching ball"
+    },
+    {
+      "input": "board = \"RB\", hand = \"RB\"",
+      "output": "-1",
+      "description": "one extra of each color is still insufficient"
+    },
+    {
+      "input": "board = \"WWBBWBBWW\", hand = \"BB\"",
+      "output": "-1",
+      "description": "blue removals cannot finish the surrounding whites"
+    },
+    {
+      "input": "board = \"RRYGGYYRR\", hand = \"GGBBB\"",
+      "output": "1",
+      "description": "one green insertion starts a full cascading cleanup"
+    }
   ]
 }

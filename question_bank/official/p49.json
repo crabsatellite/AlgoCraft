@@ -1,7 +1,7 @@
 {
   "id": "49",
   "title": "Decode String",
-  "description": "# Decode String\n\nGiven an encoded string, return its decoded string.\n\nThe encoding rule is: `k[encoded_string]`, where the `encoded_string` inside the square brackets is being repeated exactly `k` times. Note that `k` is guaranteed to be a positive integer.\n\nYou may assume that the input string is always valid; there are no extra white spaces, square brackets are well-formed, etc. Furthermore, you may assume that the original data does not contain any digits and that digits are only for those repeat numbers, `k`. For example, there will not be input like `3a` or `2[4]`.\n\nThe test cases are generated so that the length of the output will never exceed `10^5`.\n\n## Example 1:\n\n**Input:** s = \"3[a]2[bc]\"\n**Output:** \"aaabcbc\"\n\n## Example 2:\n\n**Input:** s = \"3[a2[c]]\"\n**Output:** \"accaccacc\"\n\n## Example 3:\n\n**Input:** s = \"2[abc]3[cd]ef\"\n**Output:** \"abcabccdcdcdef\"\n\n## Constraints:\n\n*   `1 <= s.length <= 30`\n*   `s` consists of lowercase English letters, digits, and square brackets `'[]'`.\n*   `s` is guaranteed to be a valid input.\n*   All the integers in `s` are in the range `[1, 300]`.",
+  "description": "# Decode String\n\nGiven a valid encoded string `s`, return its decoded string.\n\nThe encoding rule is `k[encoded_string]`: the substring inside the brackets is repeated exactly `k` times. The repeat count `k` is a positive integer and may have multiple digits.\n\nThe original, unencoded text contains only lowercase English letters. Digits appear only as repeat counts immediately before a bracketed block, so inputs such as `3a` and `2[4]` do not occur. Brackets are always well formed and there are no spaces.\n\nThe generated tests guarantee that the decoded output length never exceeds `10^5`.\n\n## Example 1:\n\n**Input:** s = \"3[a]2[bc]\"\n**Output:** \"aaabcbc\"\n\n## Example 2:\n\n**Input:** s = \"3[a2[c]]\"\n**Output:** \"accaccacc\"\n\n## Example 3:\n\n**Input:** s = \"2[abc]3[cd]ef\"\n**Output:** \"abcabccdcdcdef\"\n\n## Constraints:\n\n* `1 <= s.length <= 30`\n* `s` consists of lowercase English letters, digits, and square brackets `[` and `]`.\n* `s` is a valid encoded string.\n* All repeat counts in `s` are in the range `[1, 300]`.\n* The decoded output length is at most `10^5`.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public String decodeString(String s) {\n        // Write your code here\n        return \"\";\n    }\n}",
   "tags": [
@@ -26,63 +26,110 @@
   "tests": [
     {
       "input": "s = \"3[a]2[bc]\"",
-      "output": "\"aaabcbc\""
+      "output": "\"aaabcbc\"",
+      "description": "Adjacent encoded groups"
     },
     {
       "input": "s = \"3[a2[c]]\"",
-      "output": "\"accaccacc\""
+      "output": "\"accaccacc\"",
+      "description": "Nested encoded group"
     },
     {
       "input": "s = \"2[abc]3[cd]ef\"",
-      "output": "\"abcabccdcdcdef\""
+      "output": "\"abcabccdcdcdef\"",
+      "description": "Encoded groups followed by plain suffix"
     },
     {
       "input": "s = \"10[a]\"",
-      "output": "\"aaaaaaaaaa\""
+      "output": "\"aaaaaaaaaa\"",
+      "description": "Multi-digit repeat count"
     },
     {
       "input": "s = \"2[2[b]]\"",
-      "output": "\"bbbb\""
+      "output": "\"bbbb\"",
+      "description": "Nested count-only block"
     },
     {
       "input": "s = \"abc\"",
       "output": "\"abc\"",
-      "description": "No encoding - plain string"
+      "description": "Plain string without encoding"
     },
     {
       "input": "s = \"2[a2[b2[c]]]\"",
       "output": "\"abccbccabccbcc\"",
       "description": "Deep nesting"
+    },
+    {
+      "input": "s = \"1[z]\"",
+      "output": "\"z\"",
+      "description": "Repeat count one"
+    },
+    {
+      "input": "s = \"2[ab3[c]]x\"",
+      "output": "\"abcccabcccx\"",
+      "description": "Nested block followed by plain suffix"
+    },
+    {
+      "input": "s = \"xy2[z]\"",
+      "output": "\"xyzz\"",
+      "description": "Plain prefix before an encoded block"
+    },
+    {
+      "input": "s = \"2[3[a]b]\"",
+      "output": "\"aaabaaab\"",
+      "description": "Repeated block with inner repeated prefix and plain suffix"
+    },
+    {
+      "input": "s = \"3[a2[c]]x2[y]\"",
+      "output": "\"accaccaccxyy\"",
+      "description": "Nested block, plain middle, and trailing encoded block"
+    },
+    {
+      "input": "s = \"2[ab]3[c2[d]]\"",
+      "output": "\"ababcddcddcdd\"",
+      "description": "Adjacent simple and nested groups"
+    },
+    {
+      "input": "s = \"2[a10[b]]\"",
+      "output": "\"abbbbbbbbbbabbbbbbbbbb\"",
+      "description": "Multi-digit repeat count inside a nested block"
     }
   ],
   "solutions": [
     {
-      "name": "双栈法",
-      "timeComplexity": "O(n × maxK)",
-      "spaceComplexity": "O(n)",
-      "description": "使用两个栈：一个存储重复次数，一个存储当前构建的字符串。遇到 '[' 时保存当前状态入栈，遇到 ']' 时弹出并重复拼接字符串。",
-      "code": "class Solution {\n    public String decodeString(String s) {\n        Deque<Integer> countStack = new ArrayDeque<>();\n        Deque<StringBuilder> stringStack = new ArrayDeque<>();\n        StringBuilder current = new StringBuilder();\n        int k = 0;\n        \n        for (char c : s.toCharArray()) {\n            if (Character.isDigit(c)) {\n                k = k * 10 + (c - '0');\n            } else if (c == '[') {\n                // 保存当前状态入栈\n                countStack.push(k);\n                stringStack.push(current);\n                // 重置\n                k = 0;\n                current = new StringBuilder();\n            } else if (c == ']') {\n                // 弹出并重复\n                int repeatCount = countStack.pop();\n                StringBuilder prev = stringStack.pop();\n                String repeated = current.toString().repeat(repeatCount);\n                current = prev.append(repeated);\n            } else {\n                current.append(c);\n            }\n        }\n        \n        return current.toString();\n    }\n}"
+      "name": "Count Stack and Builder Stack",
+      "timeComplexity": "O(n + decodedLength)",
+      "spaceComplexity": "O(depth + decodedLength)",
+      "description": "## Approach\n\nUse one stack for repeat counts and one stack for the `StringBuilder` that was being built before entering the current bracket. On `[`, save the current context and start a fresh builder. On `]`, repeat the inner builder and append it to the restored outer builder.\n\n## Key Insight\n\nA nested bracket temporarily suspends the outer string. The two stacks store exactly the suspended repeat count and suspended builder needed to resume that outer context.\n\n## Complexity Analysis\n- Time Complexity: O(n + decodedLength)\n- Space Complexity: O(depth + decodedLength)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String decodeString(String s) {\n        Deque<Integer> countStack = new ArrayDeque<>();\n        Deque<StringBuilder> builderStack = new ArrayDeque<>();\n        StringBuilder current = new StringBuilder();\n        int repeat = 0;\n\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (Character.isDigit(c)) {\n                repeat = repeat * 10 + (c - '0');\n            } else if (c == '[') {\n                countStack.push(repeat);\n                builderStack.push(current);\n                repeat = 0;\n                current = new StringBuilder();\n            } else if (c == ']') {\n                int times = countStack.pop();\n                StringBuilder previous = builderStack.pop();\n                appendRepeated(previous, current, times);\n                current = previous;\n            } else {\n                current.append(c);\n            }\n        }\n\n        return current.toString();\n    }\n\n    private void appendRepeated(StringBuilder target, StringBuilder segment, int times) {\n        for (int i = 0; i < times; i++) {\n            target.append(segment);\n        }\n    }\n}"
     },
     {
-      "name": "递归法",
-      "timeComplexity": "O(n × maxK)",
-      "spaceComplexity": "O(n)",
-      "description": "递归处理嵌套结构。遇到 '[' 递归处理内部，遇到 ']' 返回当前结果。使用全局索引跟踪解析位置。",
-      "code": "class Solution {\n    private int index = 0;\n    \n    public String decodeString(String s) {\n        StringBuilder result = new StringBuilder();\n        \n        while (index < s.length() && s.charAt(index) != ']') {\n            char c = s.charAt(index);\n            \n            if (Character.isDigit(c)) {\n                // 解析数字\n                int k = 0;\n                while (index < s.length() && Character.isDigit(s.charAt(index))) {\n                    k = k * 10 + (s.charAt(index) - '0');\n                    index++;\n                }\n                \n                index++; // 跳过 '['\n                String decoded = decodeString(s); // 递归解析\n                index++; // 跳过 ']'\n                \n                // 重复 k 次\n                for (int i = 0; i < k; i++) {\n                    result.append(decoded);\n                }\n            } else {\n                result.append(c);\n                index++;\n            }\n        }\n        \n        return result.toString();\n    }\n}"
+      "name": "Context Frame Stack",
+      "timeComplexity": "O(n + decodedLength)",
+      "spaceComplexity": "O(depth + decodedLength)",
+      "description": "## Approach\n\nStore the suspended context as a single `Frame` object containing the outer builder and the repeat count. Pushing and popping one object per bracket keeps the parser state grouped instead of split across parallel stacks.\n\n## Key Insight\n\nA bracket creates a call-frame-like context: previous output plus how many times the inner block should be appended. Making that context explicit reduces accidental mismatch between two separate stacks.\n\n## Complexity Analysis\n- Time Complexity: O(n + decodedLength)\n- Space Complexity: O(depth + decodedLength)",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static class Frame {\n        final StringBuilder previous;\n        final int repeat;\n\n        Frame(StringBuilder previous, int repeat) {\n            this.previous = previous;\n            this.repeat = repeat;\n        }\n    }\n\n    public String decodeString(String s) {\n        Deque<Frame> frames = new ArrayDeque<>();\n        StringBuilder current = new StringBuilder();\n        int repeat = 0;\n\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (Character.isDigit(c)) {\n                repeat = repeat * 10 + (c - '0');\n            } else if (c == '[') {\n                frames.push(new Frame(current, repeat));\n                current = new StringBuilder();\n                repeat = 0;\n            } else if (c == ']') {\n                Frame frame = frames.pop();\n                StringBuilder expanded = frame.previous;\n                for (int j = 0; j < frame.repeat; j++) {\n                    expanded.append(current);\n                }\n                current = expanded;\n            } else {\n                current.append(c);\n            }\n        }\n\n        return current.toString();\n    }\n}"
     },
     {
-      "name": "单栈法",
-      "timeComplexity": "O(n × maxK)",
-      "spaceComplexity": "O(n)",
-      "description": "使用单个栈存储字符和数字。遇到 ']' 时从栈中弹出字符直到 '['，再弹出数字进行重复。",
-      "code": "class Solution {\n    public String decodeString(String s) {\n        Deque<Object> stack = new ArrayDeque<>();\n        int k = 0;\n        \n        for (char c : s.toCharArray()) {\n            if (Character.isDigit(c)) {\n                k = k * 10 + (c - '0');\n            } else if (c == '[') {\n                stack.push(k);\n                k = 0;\n            } else if (c == ']') {\n                // 收集括号内的字符串\n                StringBuilder sb = new StringBuilder();\n                while (!stack.isEmpty() && stack.peek() instanceof String) {\n                    sb.insert(0, stack.pop());\n                }\n                \n                // 弹出重复次数\n                int repeatCount = (Integer) stack.pop();\n                String repeated = sb.toString().repeat(repeatCount);\n                stack.push(repeated);\n            } else {\n                stack.push(String.valueOf(c));\n            }\n        }\n        \n        // 收集结果\n        StringBuilder result = new StringBuilder();\n        while (!stack.isEmpty()) {\n            result.insert(0, stack.pop());\n        }\n        \n        return result.toString();\n    }\n}"
+      "name": "Recursive Descent Parser",
+      "timeComplexity": "O(n + decodedLength)",
+      "spaceComplexity": "O(depth + decodedLength)",
+      "description": "## Approach\n\nTreat each bracketed substring as a recursive segment. `parseSegment` reads plain letters into the current result, parses a repeat count when it sees digits, recursively decodes the content after `[`, and returns when it reaches `]`.\n\n## Key Insight\n\nThe grammar is naturally recursive: a segment is a sequence of letters or repeated nested segments. A shared index lets each recursive call consume exactly its own bracketed range.\n\n## Complexity Analysis\n- Time Complexity: O(n + decodedLength)\n- Space Complexity: O(depth + decodedLength)",
+      "code": "class Solution {\n    private int index;\n\n    public String decodeString(String s) {\n        index = 0;\n        return parseSegment(s);\n    }\n\n    private String parseSegment(String s) {\n        StringBuilder result = new StringBuilder();\n        while (index < s.length() && s.charAt(index) != ']') {\n            char c = s.charAt(index);\n            if (Character.isDigit(c)) {\n                int repeat = 0;\n                while (index < s.length() && Character.isDigit(s.charAt(index))) {\n                    repeat = repeat * 10 + (s.charAt(index) - '0');\n                    index++;\n                }\n                index++; // skip '['\n                String decoded = parseSegment(s);\n                index++; // skip ']'\n                appendRepeated(result, decoded, repeat);\n            } else {\n                result.append(c);\n                index++;\n            }\n        }\n        return result.toString();\n    }\n\n    private void appendRepeated(StringBuilder result, String decoded, int repeat) {\n        for (int i = 0; i < repeat; i++) {\n            result.append(decoded);\n        }\n    }\n}"
+    },
+    {
+      "name": "Single Token Stack Expansion",
+      "timeComplexity": "O(n + decodedLength)",
+      "spaceComplexity": "O(decodedLength)",
+      "description": "## Approach\n\nPush every character token until a closing bracket appears. Then pop the current segment back to `[`, pop the count digits before it, expand that segment, and push the expanded string as one token. After scanning, pop all tokens into the final answer.\n\n## Key Insight\n\nThis baseline keeps the whole parse state in one stack and reconstructs each closed bracket from the inside out. It is less direct than frame-based parsing, but it exposes exactly what a closing bracket resolves.\n\n## Complexity Analysis\n- Time Complexity: O(n + decodedLength)\n- Space Complexity: O(decodedLength)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String decodeString(String s) {\n        Deque<String> stack = new ArrayDeque<>();\n\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (c != ']') {\n                stack.push(String.valueOf(c));\n                continue;\n            }\n\n            StringBuilder segment = new StringBuilder();\n            while (!stack.peek().equals(\"[\")) {\n                segment.insert(0, stack.pop());\n            }\n            stack.pop();\n\n            StringBuilder countText = new StringBuilder();\n            while (!stack.isEmpty() && Character.isDigit(stack.peek().charAt(0))) {\n                countText.insert(0, stack.pop());\n            }\n            int repeat = Integer.parseInt(countText.toString());\n\n            StringBuilder expanded = new StringBuilder();\n            for (int j = 0; j < repeat; j++) {\n                expanded.append(segment);\n            }\n            stack.push(expanded.toString());\n        }\n\n        StringBuilder result = new StringBuilder();\n        while (!stack.isEmpty()) {\n            result.insert(0, stack.pop());\n        }\n        return result.toString();\n    }\n}"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p49_example1.png",
-      "caption": "Decode String: 3[a]2[bc] -> aaabcbc"
+      "caption": "Input token layout for a nested encoded string with counts and brackets"
     }
   ]
 }

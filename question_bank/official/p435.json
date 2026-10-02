@@ -1,48 +1,141 @@
 {
   "id": "435",
-  "title": "Design Linked List",
-  "description": "# Design Linked List\n\nDesign your implementation of the linked list. You can choose to use a singly or doubly linked list.\n\nA node in a singly linked list should have two attributes: `val` and `next`. `val` is the value of the current node, and `next` is a pointer/reference to the next node.\n\nIf you want to use the doubly linked list, you will need one more attribute `prev` to indicate the previous node in the linked list. Assume all nodes in the linked list are 0-indexed.\n\nImplement the `MyLinkedList` class:\n\n*   `MyLinkedList()` Initializes the `MyLinkedList` object.\n*   `int get(int index)` Get the value of the `index-th` node in the linked list. If the index is invalid, return `-1`.\n*   `void addAtHead(int val)` Add a node of value `val` before the first element of the linked list. After the insertion, the new node will be the first node of the linked list.\n*   `void addAtTail(int val)` Append a node of value `val` as the last element of the linked list.\n*   `void addAtIndex(int index, int val)` Add a node of value `val` before the `index-th` node in the linked list. If `index` equals the length of the linked list, the node will be appended to the end of the linked list. If `index` is greater than the length, the node **will not be inserted**.\n*   `void deleteAtIndex(int index)` Delete the `index-th` node in the linked list, if the index is valid.\n\n## Example 1:\n\n**Input**\n[\"MyLinkedList\", \"addAtHead\", \"addAtTail\", \"addAtIndex\", \"get\", \"deleteAtIndex\", \"get\"]\n[[], [1], [3], [1, 2], [1], [1], [1]]\n**Output**\n[null, null, null, null, 2, null, 3]\n**Explanation**\nMyLinkedList myLinkedList = new MyLinkedList();\nmyLinkedList.addAtHead(1);\nmyLinkedList.addAtTail(3);\nmyLinkedList.addAtIndex(1, 2);    // linked list becomes 1->2->3\nmyLinkedList.get(1);              // return 2\nmyLinkedList.deleteAtIndex(1);    // now the linked list is 1->3\nmyLinkedList.get(1);              // return 3\n\n## Constraints:\n\n*   `0 <= index, val <= 1000`\n*   Please do not use the built-in LinkedList library.\n*   At most `2000` calls will be made to `get`, `addAtHead`, `addAtTail`, `addAtIndex` and `deleteAtIndex`.",
+  "title": "Minimum Deletions to Make String Balanced",
+  "description": "# Minimum Deletions to Make String Balanced\n\nGiven a string `s` containing only `'a'` and `'b'`, delete the fewest characters so that the remaining string is **balanced**. A balanced string has no pair of indices `i < j` where `s[i] == 'b'` and `s[j] == 'a'`.\n\nEquivalently, after deletions, the remaining string must have the form `aaa...bbb...`: zero or more `'a'` characters followed by zero or more `'b'` characters. Return the minimum number of deletions.\n\n## Example 1:\n\n**Input:** s = \"aababbab\"\n**Output:** 2\n**Explanation:** One optimal result is `aaabbb`, obtained by deleting one `'b'` and one later `'a'`.\n\n## Example 2:\n\n**Input:** s = \"bbaaaaabb\"\n**Output:** 2\n**Explanation:** Delete the first two `'b'` characters so all remaining `'a'` characters come before all remaining `'b'` characters.\n\n## Constraints:\n\n*   `1 <= s.length <= 10^5`\n*   `s[i]` is either `'a'` or `'b'`.",
   "difficulty": "MEDIUM",
-  "initialCode": "class MyLinkedList {\n\n    public MyLinkedList() {\n        \n    }\n    \n    public int get(int index) {\n        \n    }\n    \n    public void addAtHead(int val) {\n        \n    }\n    \n    public void addAtTail(int val) {\n        \n    }\n    \n    public void addAtIndex(int index, int val) {\n        \n    }\n    \n    public void deleteAtIndex(int index) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int minimumDeletions(String s) {\n        // Write your code here\n    }\n}",
   "tags": [
-    "Linked List",
-    "Design"
+    "String",
+    "Dynamic Programming",
+    "Stack"
   ],
   "examples": [
     {
-      "input": "[\"MyLinkedList\", \"addAtHead\", \"addAtTail\", \"addAtIndex\", \"get\", \"deleteAtIndex\", \"get\"]\n[[], [1], [3], [1, 2], [1], [1], [1]]",
-      "output": "[null, null, null, null, 2, null, 3]"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "Singly Linked List with Sentinel",
-      "timeComplexity": "O(n) per operation",
-      "spaceComplexity": "O(n)",
-      "description": "Use a sentinel head node to simplify insertion and deletion at any index. Track size to validate index bounds.",
-      "code": "class MyLinkedList {\n    private int size;\n    private int[] val;\n    private int[] nxt;\n    private int head;\n    private int cnt;\n\n    public MyLinkedList() {\n        val = new int[2001];\n        nxt = new int[2001];\n        java.util.Arrays.fill(nxt, -1);\n        head = 0;\n        val[0] = -1;\n        cnt = 1;\n        size = 0;\n    }\n\n    public int get(int index) {\n        if (index < 0 || index >= size) return -1;\n        int cur = head;\n        for (int i = 0; i <= index; i++) cur = nxt[cur];\n        return val[cur];\n    }\n\n    public void addAtHead(int v) {\n        addAtIndex(0, v);\n    }\n\n    public void addAtTail(int v) {\n        addAtIndex(size, v);\n    }\n\n    public void addAtIndex(int index, int v) {\n        if (index > size) return;\n        if (index < 0) index = 0;\n        int prev = head;\n        for (int i = 0; i < index; i++) prev = nxt[prev];\n        int node = cnt++;\n        val[node] = v;\n        nxt[node] = nxt[prev];\n        nxt[prev] = node;\n        size++;\n    }\n\n    public void deleteAtIndex(int index) {\n        if (index < 0 || index >= size) return;\n        int prev = head;\n        for (int i = 0; i < index; i++) prev = nxt[prev];\n        nxt[prev] = nxt[nxt[prev]];\n        size--;\n    }\n}",
-      "language": "java"
+      "input": "s = \"aababbab\"",
+      "output": "2"
     },
     {
-      "name": "Doubly Linked List with Sentinel Nodes",
-      "timeComplexity": "O(n) per operation",
-      "spaceComplexity": "O(n)",
-      "description": "Use a doubly linked list with dummy head and tail sentinel nodes. Track size. Navigate from head for indices in the first half or from tail for indices in the second half for better average performance.",
-      "code": "class MyLinkedList {\n    private int[] vals, prevs, nexts;\n    private int headS, tailS, size, cnt;\n\n    public MyLinkedList() {\n        vals = new int[2003]; prevs = new int[2003]; nexts = new int[2003];\n        headS = 0; tailS = 1; cnt = 2; size = 0;\n        nexts[headS] = tailS; prevs[tailS] = headS;\n        nexts[tailS] = -1; prevs[headS] = -1;\n    }\n\n    public int get(int index) {\n        if (index < 0 || index >= size) return -1;\n        int cur = nexts[headS];\n        for (int i = 0; i < index; i++) cur = nexts[cur];\n        return vals[cur];\n    }\n\n    public void addAtHead(int val) { addAtIndex(0, val); }\n\n    public void addAtTail(int val) { addAtIndex(size, val); }\n\n    public void addAtIndex(int index, int val) {\n        if (index < 0 || index > size) return;\n        int prev = headS;\n        for (int i = 0; i < index; i++) prev = nexts[prev];\n        int next = nexts[prev];\n        int node = cnt++;\n        vals[node] = val;\n        nexts[prev] = node; prevs[node] = prev;\n        nexts[node] = next; prevs[next] = node;\n        size++;\n    }\n\n    public void deleteAtIndex(int index) {\n        if (index < 0 || index >= size) return;\n        int prev = headS;\n        for (int i = 0; i < index; i++) prev = nexts[prev];\n        int del = nexts[prev];\n        int next = nexts[del];\n        nexts[prev] = next; prevs[next] = prev;\n        size--;\n    }\n}",
-      "language": "java"
+      "input": "s = \"bbaaaaabb\"",
+      "output": "2"
     }
   ],
   "tests": [
     {
-      "input": "[\"MyLinkedList\", \"addAtHead\", \"addAtTail\", \"addAtIndex\", \"get\", \"deleteAtIndex\", \"get\"]\n[[], [1], [3], [1, 2], [1], [1], [1]]",
-      "output": "[null, null, null, null, 2, null, 3]"
+      "input": "s = \"aababbab\"",
+      "output": "2"
+    },
+    {
+      "input": "s = \"bbaaaaabb\"",
+      "output": "2"
+    },
+    {
+      "input": "s = \"aaaa\"",
+      "output": "0"
+    },
+    {
+      "input": "s = \"bbbb\"",
+      "output": "0"
+    },
+    {
+      "input": "s = \"ba\"",
+      "output": "1"
+    },
+    {
+      "description": "Alternating string requires deleting either early b's or later a's.",
+      "input": "s = \"abababab\"",
+      "output": "3"
+    },
+    {
+      "description": "Single a is already balanced.",
+      "input": "s = \"a\"",
+      "output": "0"
+    },
+    {
+      "description": "Single b is already balanced.",
+      "input": "s = \"b\"",
+      "output": "0"
+    },
+    {
+      "description": "Already balanced two-character boundary.",
+      "input": "s = \"ab\"",
+      "output": "0"
+    },
+    {
+      "description": "All b's before all a's forces deleting one whole side.",
+      "input": "s = \"bbbaaa\"",
+      "output": "3"
+    },
+    {
+      "description": "All a's before all b's remains unchanged.",
+      "input": "s = \"aaabbb\"",
+      "output": "0"
+    },
+    {
+      "description": "Odd alternating pattern checks the split decision.",
+      "input": "s = \"babab\"",
+      "output": "2"
+    },
+    {
+      "description": "One late a after a b-run should cost one deletion.",
+      "input": "s = \"abbab\"",
+      "output": "1"
+    },
+    {
+      "description": "A single trailing a after many b's is cheaper to delete than the b-run.",
+      "input": "s = \"aabbbbba\"",
+      "output": "1"
+    },
+    {
+      "description": "Large reversed blocks choose the smaller side.",
+      "input": "s = \"bbbbbaaaaaa\"",
+      "output": "5"
+    },
+    {
+      "description": "Mixed middle blocks require comparing several cut positions.",
+      "input": "s = \"aabaaabbab\"",
+      "output": "2"
     }
   ],
-  "diagrams": [
+  "solutions": [
     {
-      "id": "design",
-      "file": "p403_design.png",
-      "caption": "Doubly Linked List Structure"
+      "name": "One Pass DP Delete A Or Previous Bs",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan from left to right. Keep `seenB`, the number of `'b'` characters already seen, and `deletions`, the minimum deletions needed to make the scanned prefix balanced. When the current character is `'b'`, it can stay at the end of the prefix. When it is `'a'` after previous `'b'` characters, choose the cheaper option: delete this `'a'`, or delete every previous unmatched `'b'`.\n\n## Key Insight\n\nThe only new violation caused by reading an `'a'` is that it appears after earlier `'b'` characters. The optimal prefix answer is therefore updated by `min(delete this a, delete all previous b's)`.\n\n## Complexity Analysis\n\nThe string is scanned once and only two counters are stored. Time Complexity: O(n). Space Complexity: O(1).",
+      "code": "class Solution { public int minimumDeletions(String s) { int seenB = 0; int deletions = 0; for (char ch : s.toCharArray()) { if (ch == 'b') { seenB++; } else { deletions = Math.min(deletions + 1, seenB); } } return deletions; } }",
+      "language": "java"
+    },
+    {
+      "name": "Prefix Suffix Split Counts",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nTry every split position. Characters before the split should be kept as `'a'`, so every `'b'` on the left must be deleted. Characters after the split should be kept as `'b'`, so every `'a'` on the right must be deleted. Precompute prefix counts of left-side `'b'` characters and suffix counts of right-side `'a'` characters, then minimize their sum.\n\n## Key Insight\n\nEvery balanced remaining string has a boundary between its kept `'a'` part and kept `'b'` part. Enumerating that boundary turns the problem into a cut-cost calculation.\n\n## Complexity Analysis\n\nTwo auxiliary arrays store the left and right deletion costs for all cuts. Time Complexity: O(n). Space Complexity: O(n).",
+      "code": "class Solution { public int minimumDeletions(String s) { int n = s.length(); int[] leftB = new int[n + 1]; int[] rightA = new int[n + 1]; for (int i = 0; i < n; i++) { leftB[i + 1] = leftB[i] + (s.charAt(i) == 'b' ? 1 : 0); } for (int i = n - 1; i >= 0; i--) { rightA[i] = rightA[i + 1] + (s.charAt(i) == 'a' ? 1 : 0); } int best = n; for (int cut = 0; cut <= n; cut++) { best = Math.min(best, leftB[cut] + rightA[cut]); } return best; } }",
+      "language": "java"
+    },
+    {
+      "name": "Greedy Stack Of Unmatched B",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nThink of kept `'b'` characters as a stack of unmatched blockers. When a `'b'` appears, add one blocker. When an `'a'` appears while blockers exist, delete one previous blocker instead of keeping a bad `b...a` inversion. Count how many blockers are removed.\n\n## Key Insight\n\nDeleting a previous unmatched `'b'` is equivalent to popping it from a stack. This greedy view makes the local repair concrete: every conflicting `'a'` either deletes itself or cancels one earlier `'b'`, and canceling the earlier blocker never makes a later conflict worse.\n\n## Complexity Analysis\n\nOnly the count of unmatched blockers is needed; the actual stack contents are identical. Time Complexity: O(n). Space Complexity: O(1).",
+      "code": "class Solution { public int minimumDeletions(String s) { int unmatchedB = 0; int deletions = 0; for (int i = 0; i < s.length(); i++) { char ch = s.charAt(i); if (ch == 'b') { unmatchedB++; } else if (unmatchedB > 0) { unmatchedB--; deletions++; } } return deletions; } }",
+      "language": "java"
+    },
+    {
+      "name": "Longest Kept Balanced Subsequence",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nInstead of counting deletions directly, maximize how many characters can be kept. For a split position, the kept characters are all `'a'` characters before the split plus all `'b'` characters after it. Scan once while tracking `keptA` on the left, `remainingB` on the right, and the best kept length.\n\n## Key Insight\n\nMinimum deletions equals `n - maximum kept balanced subsequence length`. This is the same boundary idea as prefix/suffix counts, but expressed as a keep-maximization problem.\n\n## Complexity Analysis\n\nThe algorithm counts total `'b'` values once and then scans the string once more. Time Complexity: O(n). Space Complexity: O(1).",
+      "code": "class Solution { public int minimumDeletions(String s) { int totalB = 0; for (int i = 0; i < s.length(); i++) { if (s.charAt(i) == 'b') { totalB++; } } int keptA = 0; int remainingB = totalB; int best = totalB; for (int i = 0; i < s.length(); i++) { char ch = s.charAt(i); if (ch == 'a') { keptA++; } else { remainingB--; } best = Math.max(best, keptA + remainingB); } return s.length() - best; } }",
+      "language": "java"
+    },
+    {
+      "name": "Two-State Dynamic Programming",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nMaintain two DP states for the scanned prefix. `allA` is the minimum deletions needed to make the prefix contain only `'a'` characters. `balanced` is the minimum deletions needed to make the prefix balanced, allowing a final block of `'b'` characters. Update both states for each character.\n\n## Key Insight\n\nA balanced string has two phases: the all-`'a'` phase and the optional trailing-`'b'` phase. Once the DP has entered the trailing-`'b'` phase, a later `'a'` must be deleted unless we reinterpret the prefix as still being all `'a'`.\n\n## Complexity Analysis\n\nThe two states are updated once per character. Time Complexity: O(n). Space Complexity: O(1).",
+      "code": "class Solution { public int minimumDeletions(String s) { int allA = 0; int balanced = 0; for (int i = 0; i < s.length(); i++) { char ch = s.charAt(i); int nextAllA = allA + (ch == 'b' ? 1 : 0); int nextBalanced; if (ch == 'a') { nextBalanced = Math.min(allA, balanced + 1); } else { nextBalanced = Math.min(allA, balanced); } allA = nextAllA; balanced = nextBalanced; } return balanced; } }",
+      "language": "java"
     }
   ]
 }

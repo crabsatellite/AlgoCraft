@@ -1,0 +1,28 @@
+{
+  "title": "实现 Trie（前缀树）",
+  "description": "# 实现 Trie（前缀树）\n\nTrie，读作 \"try\"，也叫前缀树。它用一棵树存储字符串，使公共前缀只保存一次，常用于自动补全、字典查询和前缀搜索。\n\n实现 `Trie` 类：\n\n*   `Trie()` 初始化 Trie 对象。\n*   `void insert(String word)` 将 `word` 插入数据结构。\n*   `boolean search(String word)` 只有当完整字符串 `word` 之前被插入过时，才返回 `true`。\n*   `boolean startsWith(String prefix)` 如果至少存在一个已插入单词以 `prefix` 为前缀，返回 `true`。\n\n一个前缀本身不会自动成为可搜索的单词，除非这个完整字符串也被插入过。\n\n前缀是从字符串第一个字符开始连续取出的开头。例如，`\"ap\"`、`\"app\"` 都是 `\"apple\"` 的前缀，`\"pp\"` 不是。\n\n操作示例中，第一组数组是操作名，第二组是对应参数，按同一下标配对并从左到右执行。第一项创建对象，之后都操作同一个对象。输出数组也逐项对应：构造和没有返回值的方法写作 `null`；`[]` 作为参数表示无参数调用。\n\n## 示例 1：\n\n**输入**\n[\"Trie\", \"insert\", \"search\", \"search\", \"startsWith\", \"insert\", \"search\"]\n[[], [\"apple\"], [\"apple\"], [\"app\"], [\"app\"], [\"app\"], [\"app\"]]\n\n**输出**\n[null, null, true, false, true, null, true]\n\n**解释**\nTrie trie = new Trie();\ntrie.insert(\"apple\");\ntrie.search(\"apple\");   // 返回 true\ntrie.search(\"app\");     // 返回 false，因为 app 此时只是前缀\ntrie.startsWith(\"app\"); // 返回 true\ntrie.insert(\"app\");\ntrie.search(\"app\");     // 返回 true\n\n## 约束条件：\n\n*   `1 <= word.length, prefix.length <= 2000`\n*   `word` 和 `prefix` 只包含小写英文字母。\n*   `insert`、`search` 和 `startsWith` 的总调用次数最多为 `3 * 10^4`。",
+  "solutions": [
+    {
+      "name": "数组子节点 Trie",
+      "description": "## 思路\n\n每个节点保存长度为 26 的子节点数组和一个 `isEnd` 结束标记。插入时沿单词路径创建缺失节点；`search` 和 `startsWith` 复用同一个从根节点向下查找字符串的辅助函数。\n\n## 关键点\n\n遍历到的节点表示已经消费掉的前缀。`search` 还必须检查 `isEnd`，而 `startsWith` 只需要确认前缀路径存在。\n\n## 复杂度分析\n- 每次操作时间复杂度: O(L)\n- 空间复杂度: O(N * 26)，N 为创建出的 Trie 节点数"
+    },
+    {
+      "name": "哈希表子节点 Trie",
+      "description": "## 思路\n\n每个节点只用 `HashMap<Character, TrieNode>` 保存真实存在的出边。插入时用 `computeIfAbsent` 创建下一个节点，查找和前缀判断仍沿字符边逐步向下走。\n\n## 关键点\n\n它和数组版本保持相同的 Trie 不变量，但只为真实出现的字符分配空间。字符集较大或节点很稀疏时，这个版本更灵活。\n\n## 复杂度分析\n- 每次操作平均时间复杂度: O(L)\n- 空间复杂度: O(E)，E 为存储的字符边数量"
+    },
+    {
+      "name": "三向查找树",
+      "description": "## 思路\n\n每个字符节点有三条链接：`left` 指向更小字符，`mid` 指向单词中的下一个字符，`right` 指向更大字符。插入和查找时先比较当前字符，再决定横向分支或沿 `mid` 继续前进。\n\n## 关键点\n\n三向查找树是一种紧凑的 Trie 变体。`mid` 链保留前缀遍历语义，`left/right` 链避免每个节点都分配 26 个槽位。\n\n## 复杂度分析\n- 每次操作平均时间复杂度: O(L)，字符分支是否平衡会影响常数\n- 空间复杂度: O(N)，共享前缀后按字符节点存储"
+    },
+    {
+      "name": "单词集合 + 前缀集合基线",
+      "description": "## 思路\n\n维护一个 `HashSet` 保存完整单词，另一个 `HashSet` 保存插入过程中出现过的所有前缀。`search` 查完整单词集合，`startsWith` 查前缀集合。\n\n## 关键点\n\n这不是节点式 Trie，但它实现了相同的公开行为，并且直接展示了“完整单词”和“前缀”的区别。它适合作为理解 Trie 隐式存储内容的基线。\n\n## 复杂度分析\n- 插入时间复杂度: O(L)\n- 查询平均时间复杂度: O(1)\n- 空间复杂度: O(P)，P 为保存的所有前缀字符串总量"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "trie",
+      "caption": "示例 1 中插入 app 和 apple 后的前缀树；黄色表示完整单词的末尾"
+    }
+  ]
+}

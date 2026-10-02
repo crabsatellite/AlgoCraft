@@ -1,10 +1,15 @@
 {
   "id": "96",
   "title": "Symmetric Tree",
-  "description": "# Symmetric Tree\n\nGiven the `root` of a binary tree, *check whether it is a mirror of itself* (i.e., symmetric around its center).\n\n## Example 1:\n\n**Input:** root = [1,2,2,3,4,4,3]\n**Output:** true\n\n## Example 2:\n\n**Input:** root = [1,2,2,null,3,null,3]\n**Output:** false\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[1, 1000]`.\n*   `-100 <= Node.val <= 100`",
+  "description": "# Symmetric Tree\n\nGiven the `root` of a binary tree, determine whether the tree is symmetric around its center.\n\nA tree is symmetric when the left subtree and right subtree are mirror images of each other. That means corresponding mirror-position nodes must have the same value, and missing children must also appear in mirrored positions.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [1,2,2,3,4,4,3]\n**Output:** true\n**Explanation:** The left side `[2,3,4]` mirrors the right side `[2,4,3]`.\n\n## Example 2:\n\n**Input:** root = [1,2,2,null,3,null,3]\n**Output:** false\n**Explanation:** The value `3` appears as the right child of the left subtree and the right child of the right subtree, so the missing children are not mirrored.\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[1, 1000]`.\n*   `-100 <= Node.val <= 100`.",
   "difficulty": "EASY",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public boolean isSymmetric(TreeNode root) {\n        // Write your code here\n        return false;\n    }\n}",
-  "tags": ["Tree", "Depth-First Search", "Breadth-First Search", "Binary Tree"],
+  "tags": [
+    "Tree",
+    "Depth-First Search",
+    "Breadth-First Search",
+    "Binary Tree"
+  ],
   "examples": [
     {
       "input": "root = [1,2,2,3,4,4,3]",
@@ -18,49 +23,103 @@
   "tests": [
     {
       "input": "root = [1,2,2,3,4,4,3]",
-      "output": "true"
+      "output": "true",
+      "description": "Canonical symmetric tree with mirrored children."
     },
     {
       "input": "root = [1,2,2,null,3,null,3]",
-      "output": "false"
+      "output": "false",
+      "description": "Same top-level values but missing mirrored children make it asymmetric."
     },
     {
       "input": "root = [1]",
-      "output": "true"
+      "output": "true",
+      "description": "Single-node tree is symmetric."
     },
     {
       "input": "root = [1,2,2,2,null,2,null]",
       "output": "false",
-      "description": "Same values but structurally asymmetric"
+      "description": "Same values but structurally asymmetric."
     },
     {
       "input": "root = [-100,-50,-50,10,20,20,10]",
       "output": "true",
-      "description": "Symmetric tree with negative values"
+      "description": "Symmetric tree with negative values and boundary-style values."
+    },
+    {
+      "input": "root = [1,2,2,null,3,3,null]",
+      "output": "true",
+      "description": "Sparse symmetric tree with mirrored inner children."
+    },
+    {
+      "input": "root = [1,2,2,3,null,null,3]",
+      "output": "true",
+      "description": "Sparse symmetric tree with mirrored outer children."
+    },
+    {
+      "input": "root = [1,2,2,3,4,3,4]",
+      "output": "false",
+      "description": "Values are present on both sides but paired mirror positions do not match."
+    },
+    {
+      "input": "root = [1,2,2,2,3,3,2,4,null,null,5,5,null,null,4]",
+      "output": "true",
+      "description": "Deeper symmetric tree with nulls inside the lower level."
+    },
+    {
+      "input": "root = [1,2,2,2,3,3,2,4,null,null,5,5,null,null,6]",
+      "output": "false",
+      "description": "Deep tree that is structurally mirrored but has a mismatched outer leaf value."
+    },
+    {
+      "input": "root = [0,0,0,0,null,null,0]",
+      "output": "true",
+      "description": "Duplicate zero values still require mirrored null positions."
+    },
+    {
+      "input": "root = [1,2,2,null,3,3,4]",
+      "output": "false",
+      "description": "An extra unpaired right child breaks symmetry despite matching inner values."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p96_example1.png",
-      "caption": "Example 1"
+      "caption": "Example 1 input tree whose left and right sides mirror each other"
     }
   ],
   "solutions": [
     {
-      "name": "Recursive",
+      "name": "Recursive Mirror Comparison",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "A tree is symmetric if the left subtree is a mirror of the right subtree. Two subtrees are mirrors if their roots match and left.left mirrors right.right, left.right mirrors right.left.",
-      "code": "class Solution {\n    public boolean isSymmetric(TreeNode root) {\n        if (root == null) return true;\n        return isMirror(root.left, root.right);\n    }\n    \n    private boolean isMirror(TreeNode t1, TreeNode t2) {\n        if (t1 == null && t2 == null) return true;\n        if (t1 == null || t2 == null) return false;\n        return t1.val == t2.val\n            && isMirror(t1.left, t2.right)\n            && isMirror(t1.right, t2.left);\n    }\n}",
+      "description": "## Approach\n\nCompare the left and right subtrees as mirror pairs. Two nodes match if both are null, or both are non-null with equal values and their outer children match while their inner children match.\n\n## Key Insight\n\nThe comparison direction crosses: `left.left` must match `right.right`, and `left.right` must match `right.left`. Comparing same-side children would check equality, not mirror symmetry.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h)",
+      "code": "class Solution {\n    public boolean isSymmetric(TreeNode root) {\n        if (root == null) {\n            return true;\n        }\n        return isMirror(root.left, root.right);\n    }\n\n    private boolean isMirror(TreeNode left, TreeNode right) {\n        if (left == null && right == null) {\n            return true;\n        }\n        if (left == null || right == null) {\n            return false;\n        }\n        return left.val == right.val\n                && isMirror(left.left, right.right)\n                && isMirror(left.right, right.left);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Iterative BFS",
+      "name": "BFS Pair Queue",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Use a queue to compare pairs of mirror nodes iteratively.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isSymmetric(TreeNode root) {\n        if (root == null) return true;\n        Queue<TreeNode> queue = new LinkedList<>();\n        queue.offer(root.left);\n        queue.offer(root.right);\n        \n        while (!queue.isEmpty()) {\n            TreeNode t1 = queue.poll();\n            TreeNode t2 = queue.poll();\n            \n            if (t1 == null && t2 == null) continue;\n            if (t1 == null || t2 == null) return false;\n            if (t1.val != t2.val) return false;\n            \n            queue.offer(t1.left);\n            queue.offer(t2.right);\n            queue.offer(t1.right);\n            queue.offer(t2.left);\n        }\n        return true;\n    }\n}",
+      "spaceComplexity": "O(w)",
+      "description": "## Approach\n\nUse a queue of node pairs that should mirror each other. Start with the root's left and right children. For every pair, compare null state and values, then enqueue the outer pair and inner pair in mirror order.\n\n## Key Insight\n\nThe queue stores obligations rather than ordinary tree nodes. Each obligation says, \"these two positions must be mirrors,\" so null mismatches and value mismatches are caught immediately.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(w)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isSymmetric(TreeNode root) {\n        if (root == null) {\n            return true;\n        }\n\n        Queue<TreeNode> queue = new LinkedList<>();\n        queue.offer(root.left);\n        queue.offer(root.right);\n\n        while (!queue.isEmpty()) {\n            TreeNode left = queue.poll();\n            TreeNode right = queue.poll();\n\n            if (left == null && right == null) {\n                continue;\n            }\n            if (left == null || right == null || left.val != right.val) {\n                return false;\n            }\n\n            queue.offer(left.left);\n            queue.offer(right.right);\n            queue.offer(left.right);\n            queue.offer(right.left);\n        }\n\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "DFS Pair Stack",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nUse an explicit stack of mirror node pairs. Pop a pair, compare it, then push the outer children as one pair and the inner children as another pair. This emulates the recursive mirror check without using the call stack.\n\n## Key Insight\n\nThe stack and queue versions maintain the same invariant. The only difference is traversal order; the pair construction is still the source of correctness.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isSymmetric(TreeNode root) {\n        if (root == null) {\n            return true;\n        }\n\n        Deque<TreeNode[]> stack = new ArrayDeque<>();\n        stack.push(new TreeNode[] {root.left, root.right});\n\n        while (!stack.isEmpty()) {\n            TreeNode[] pair = stack.pop();\n            TreeNode left = pair[0];\n            TreeNode right = pair[1];\n\n            if (left == null && right == null) {\n                continue;\n            }\n            if (left == null || right == null || left.val != right.val) {\n                return false;\n            }\n\n            stack.push(new TreeNode[] {left.left, right.right});\n            stack.push(new TreeNode[] {left.right, right.left});\n        }\n\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Level Palindrome with Null Markers",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(w)",
+      "description": "## Approach\n\nProcess the tree level by level. For each level, record node values and explicit null markers in left-to-right order, then check whether that level list is a palindrome. Continue only while at least one real child exists on the next level.\n\n## Key Insight\n\nA symmetric tree has a palindromic sequence at every level only if null positions are included. Without null markers, structurally different trees can look symmetric by value sequence alone.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(w)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isSymmetric(TreeNode root) {\n        if (root == null) {\n            return true;\n        }\n\n        Queue<TreeNode> queue = new LinkedList<>();\n        queue.offer(root);\n\n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            List<Integer> level = new ArrayList<>();\n            boolean hasNext = false;\n\n            for (int i = 0; i < size; i++) {\n                TreeNode node = queue.poll();\n                if (node == null) {\n                    level.add(null);\n                    continue;\n                }\n\n                level.add(node.val);\n                if (node.left != null || node.right != null) {\n                    hasNext = true;\n                }\n                queue.offer(node.left);\n                queue.offer(node.right);\n            }\n\n            int left = 0;\n            int right = level.size() - 1;\n            while (left < right) {\n                if (!Objects.equals(level.get(left), level.get(right))) {\n                    return false;\n                }\n                left++;\n                right--;\n            }\n\n            if (!hasNext) {\n                break;\n            }\n        }\n\n        return true;\n    }\n}",
       "language": "java"
     }
   ]

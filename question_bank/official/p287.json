@@ -1,36 +1,116 @@
 {
   "id": "287",
   "title": "Rings and Rods",
-  "description": "# Rings and Rods\n\nThere are `n` rings and each ring is either red, green, or blue. The rings are distributed across ten rods labeled from `0` to `9`.\n\nYou are given a string `rings` of length `2n` that describes the `n` rings that are placed onto the rods. Every two characters in `rings` forms a **color-position pair** that is used to describe each ring:\n\n*   The first character of the `i`th pair denotes the `i`th ring's **color** (`'R'`, `'G'`, `'B'`).\n*   The second character of the `i`th pair denotes the **rod** that the `i`th ring is placed on (`'0'` to `'9'`).\n\nFor example, `\"R3G2B1\"` describes `n == 3` rings: a red ring placed onto the rod labeled 3, a green ring placed onto the rod labeled 2, and a blue ring placed onto the rod labeled 1.\n\nReturn *the number of rods that have **all three colors** of rings on them.*\n\n## Example 1:\n\n**Input:** rings = \"B0B6G0R6R0R6G9\"\n**Output:** 1\n**Explanation:** \n- The rod labeled 0 holds 3 rings with all colors: red, green, and blue.\n- The rod labeled 6 holds 3 rings, but it only has red and blue.\n- The rod labeled 9 holds only a green ring.\nThus, the number of rods with all three colors is 1.\n\n## Example 2:\n\n**Input:** rings = \"B0R0G0R9R0B0G0\"\n**Output:** 1\n**Explanation:** \n- The rod labeled 0 holds 6 rings with all colors: red, green, and blue.\n- The rod labeled 9 holds only a red ring.\nThus, the number of rods with all three colors is 1.\n\n## Example 3:\n\n**Input:** rings = \"G4\"\n**Output:** 0\n**Explanation:** \nOnly one ring is given. Thus, no rods have all three colors.\n\n## Constraints:\n\n*   `rings.length == 2 * n`\n*   `1 <= n <= 100`\n*   `rings[i]` where `i` is even is either `'R'`, `'G'`, or `'B'`.\n*   `rings[i]` where `i` is odd is a digit from `'0'` to `'9'`.",
+  "description": "# Rings and Rods\n\nThere are ten rods labeled from `0` to `9`. Rings can be placed on the rods, and every ring is one of three colors: red, green, or blue.\n\nYou are given a string `rings` of length `2 * n`. Read the string two characters at a time:\n\n* the first character in each pair is the ring color: `'R'`, `'G'`, or `'B'`;\n* the second character in each pair is the rod label: `'0'` through `'9'`.\n\nA rod is complete when at least one red ring, at least one green ring, and at least one blue ring have all appeared on that same rod. Extra rings or duplicate colors on a rod do not create extra complete rods.\n\nReturn the number of complete rods.\n\n## Example 1\n\n**Input**\nrings = \"B0B6G0R6R0R6G9\"\n\n**Output**\n1\n\n**Explanation**\nRod `0` has blue, green, and red rings, so it is complete. Rod `6` has blue and red but no green. Rod `9` has only green. Therefore the answer is `1`.\n\n## Example 2\n\n**Input**\nrings = \"B0R0G0R9R0B0G0\"\n\n**Output**\n1\n\n**Explanation**\nRod `0` has all three colors. Repeated red, blue, or green rings on rod `0` still count as one complete rod. Rod `9` has only red.\n\n## Example 3\n\n**Input**\nrings = \"G4\"\n\n**Output**\n0\n\n**Explanation**\nOnly one green ring is present, so no rod has all three colors.\n\n## Constraints\n\n* `rings.length == 2 * n`\n* `1 <= n <= 100`\n* Characters at even indices of `rings` are one of `'R'`, `'G'`, or `'B'`.\n* Characters at odd indices of `rings` are digits from `'0'` to `'9'`.",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public int countPoints(String rings) {\n        \n    }\n}",
-  "tags": ["Hash Table", "String"],
+  "initialCode": "class Solution {\n    public int countPoints(String rings) {\n        // Write your code here\n        return 0;\n    }\n}",
+  "tags": [
+    "Hash Table",
+    "String"
+  ],
   "examples": [
-    { "input": "rings = \"B0B6G0R6R0R6G9\"", "output": "1" },
-    { "input": "rings = \"B0R0G0R9R0B0G0\"", "output": "1" },
-    { "input": "rings = \"G4\"", "output": "0" }
+    {
+      "input": "rings = \"B0B6G0R6R0R6G9\"",
+      "output": "1"
+    },
+    {
+      "input": "rings = \"B0R0G0R9R0B0G0\"",
+      "output": "1"
+    },
+    {
+      "input": "rings = \"G4\"",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
       "name": "Bitmask Per Rod",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use a bitmask for each of the 10 rods. R=1, G=2, B=4. For each color-position pair, OR the corresponding bit. Count rods with bitmask == 7 (all three colors).",
-      "code": "class Solution {\n    public int countPoints(String rings) {\n        int[] rods = new int[10];\n        for (int i = 0; i < rings.length(); i += 2) {\n            char color = rings.charAt(i);\n            int rod = rings.charAt(i + 1) - '0';\n            if (color == 'R') rods[rod] |= 1;\n            else if (color == 'G') rods[rod] |= 2;\n            else rods[rod] |= 4;\n        }\n        int count = 0;\n        for (int mask : rods) {\n            if (mask == 7) count++;\n        }\n        return count;\n    }\n}",
+      "description": "## Approach\nStore a three-bit mask for each rod. Red sets bit `1`, green sets bit `2`, and blue sets bit `4`. After all pairs are processed, a rod is complete exactly when its mask is `7`.\n\n## Key Insight\nThe task only asks whether each color appears at least once on a rod, not how many rings of that color exist. Bitwise OR naturally ignores duplicate colors while preserving the information that a color has appeared.\n\n## Complexity Analysis\nThe loop reads each ring pair once, so the time complexity is O(n). The mask array always has length 10, so the extra space complexity is O(1).",
+      "code": "class Solution {\n    public int countPoints(String rings) {\n        int[] masks = new int[10];\n        for (int i = 0; i < rings.length(); i += 2) {\n            char color = rings.charAt(i);\n            int rod = rings.charAt(i + 1) - '0';\n            int bit = color == 'R' ? 1 : color == 'G' ? 2 : 4;\n            masks[rod] |= bit;\n        }\n\n        int complete = 0;\n        for (int mask : masks) {\n            if (mask == 7) {\n                complete++;\n            }\n        }\n        return complete;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "HashSet Per Rod",
+      "name": "Boolean Color Table",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use a boolean 2D array (10 rods x 3 colors). Parse each color-position pair and mark the corresponding rod/color. Count rods with all three colors set.",
-      "code": "class Solution {\n    public int countPoints(String rings) {\n        boolean[][] rods = new boolean[10][3];\n        for (int i = 0; i < rings.length(); i += 2) {\n            char color = rings.charAt(i);\n            int rod = rings.charAt(i + 1) - '0';\n            int colorIdx = color == 'R' ? 0 : (color == 'G' ? 1 : 2);\n            rods[rod][colorIdx] = true;\n        }\n        int count = 0;\n        for (int r = 0; r < 10; r++) {\n            if (rods[r][0] && rods[r][1] && rods[r][2]) count++;\n        }\n        return count;\n    }\n}",
+      "description": "## Approach\nCreate a `10 x 3` boolean table. Each row represents a rod and the three columns represent red, green, and blue. Mark the matching cell for every ring pair, then count rows whose three cells are all true.\n\n## Key Insight\nThis route keeps the same information as the bitmask solution but makes the state visible as a small table. It is a good baseline for students who are still building comfort with bit operations.\n\n## Complexity Analysis\nEach pair in `rings` is processed once, so the time complexity is O(n). The table size is fixed at `10 x 3`, so the extra space complexity is O(1).",
+      "code": "class Solution {\n    public int countPoints(String rings) {\n        boolean[][] seen = new boolean[10][3];\n        for (int i = 0; i < rings.length(); i += 2) {\n            int rod = rings.charAt(i + 1) - '0';\n            int color = colorIndex(rings.charAt(i));\n            seen[rod][color] = true;\n        }\n\n        int complete = 0;\n        for (int rod = 0; rod < 10; rod++) {\n            if (seen[rod][0] && seen[rod][1] && seen[rod][2]) {\n                complete++;\n            }\n        }\n        return complete;\n    }\n\n    private int colorIndex(char color) {\n        if (color == 'R') {\n            return 0;\n        }\n        if (color == 'G') {\n            return 1;\n        }\n        return 2;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Three Color Rod Sets",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nMaintain one set of rod labels for each color. When a pair is read, insert that rod into the corresponding color set. At the end, a rod is complete if it appears in all three sets.\n\n## Key Insight\nInstead of grouping colors by rod, this route groups rods by color and then intersects the three color views. It reinforces that the condition is local to a rod: red on one rod cannot combine with green or blue on another rod.\n\n## Complexity Analysis\nThe input scan takes O(n) time, and the final pass checks 10 rods. Each set can contain at most 10 labels, so the extra space complexity is O(1).",
+      "code": "import java.util.HashSet;\nimport java.util.Set;\n\nclass Solution {\n    public int countPoints(String rings) {\n        Set<Integer> redRods = new HashSet<>();\n        Set<Integer> greenRods = new HashSet<>();\n        Set<Integer> blueRods = new HashSet<>();\n\n        for (int i = 0; i < rings.length(); i += 2) {\n            char color = rings.charAt(i);\n            int rod = rings.charAt(i + 1) - '0';\n            if (color == 'R') {\n                redRods.add(rod);\n            } else if (color == 'G') {\n                greenRods.add(rod);\n            } else {\n                blueRods.add(rod);\n            }\n        }\n\n        int complete = 0;\n        for (int rod = 0; rod < 10; rod++) {\n            if (redRods.contains(rod) && greenRods.contains(rod) && blueRods.contains(rod)) {\n                complete++;\n            }\n        }\n        return complete;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Incremental Distinct Color Count",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nTrack whether each rod has already seen each color and also track how many distinct colors each rod has. When a new color appears on a rod for the first time, increase that rod's distinct count. If the count becomes `3`, the rod has just become complete.\n\n## Key Insight\nA rod should be counted once, at the moment it gains its third distinct color. Duplicate rings after that moment must not increase the answer, and the `seen` table prevents that overcount.\n\n## Complexity Analysis\nThe scan reads each pair once, giving O(n) time. The boolean table and distinct-count array both have fixed size for 10 rods and 3 colors, so the extra space complexity is O(1).",
+      "code": "class Solution {\n    public int countPoints(String rings) {\n        boolean[][] seen = new boolean[10][3];\n        int[] distinctColors = new int[10];\n        int complete = 0;\n\n        for (int i = 0; i < rings.length(); i += 2) {\n            int rod = rings.charAt(i + 1) - '0';\n            int color = colorIndex(rings.charAt(i));\n            if (!seen[rod][color]) {\n                seen[rod][color] = true;\n                distinctColors[rod]++;\n                if (distinctColors[rod] == 3) {\n                    complete++;\n                }\n            }\n        }\n        return complete;\n    }\n\n    private int colorIndex(char color) {\n        if (color == 'R') {\n            return 0;\n        }\n        if (color == 'G') {\n            return 1;\n        }\n        return 2;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "rings = \"B0B6G0R6R0R6G9\"", "output": "1" },
-    { "input": "rings = \"B0R0G0R9R0B0G0\"", "output": "1" },
-    { "input": "rings = \"G4\"", "output": "0" }
+    {
+      "input": "rings = \"B0B6G0R6R0R6G9\"",
+      "output": "1",
+      "description": "sample rod 0 has all three colors"
+    },
+    {
+      "input": "rings = \"B0R0G0R9R0B0G0\"",
+      "output": "1",
+      "description": "sample duplicate rings on rod 0 still count once"
+    },
+    {
+      "input": "rings = \"G4\"",
+      "output": "0",
+      "description": "one color on one rod is incomplete"
+    },
+    {
+      "input": "rings = \"R0G0B0\"",
+      "output": "1",
+      "description": "minimum complete rod using one ring of each color"
+    },
+    {
+      "input": "rings = \"R0G0B0R1G1B1\"",
+      "output": "2",
+      "description": "two different rods can both be complete"
+    },
+    {
+      "input": "rings = \"R2R2G2B2\"",
+      "output": "1",
+      "description": "duplicate same-color rings do not hurt completeness"
+    },
+    {
+      "input": "rings = \"R0G0B1\"",
+      "output": "0",
+      "description": "colors split across rods do not combine"
+    },
+    {
+      "input": "rings = \"R0G0B0R1G1B1R2G2B2R3G3B3R4G4B4R5G5B5R6G6B6R7G7B7R8G8B8R9G9B9\"",
+      "output": "10",
+      "description": "all ten rods can be complete"
+    },
+    {
+      "input": "rings = \"R0G0R1G1B2B3\"",
+      "output": "0",
+      "description": "all colors can appear globally without any complete rod"
+    },
+    {
+      "input": "rings = \"R5G5B5R5G5B5\"",
+      "output": "1",
+      "description": "a rod that becomes complete must still count only once after duplicates"
+    },
+    {
+      "input": "rings = \"B9R9G9R0G0B1\"",
+      "output": "1",
+      "description": "one complete high-numbered rod plus incomplete rods"
+    }
   ]
 }

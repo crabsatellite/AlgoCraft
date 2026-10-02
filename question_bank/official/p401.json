@@ -1,9 +1,9 @@
 {
   "id": "401",
   "title": "Design HashMap",
-  "description": "# Design HashMap\n\nDesign a HashMap without using any built-in hash table libraries.\n\nImplement the `MyHashMap` class:\n\n*   `MyHashMap()` initializes the object with an empty map.\n*   `void put(int key, int value)` inserts a `(key, value)` pair into the HashMap. If the `key` already exists in the map, update the corresponding `value`.\n*   `int get(int key)` returns the `value` to which the specified `key` is mapped, or `-1` if this map contains no mapping for the `key`.\n*   `void remove(int key)` removes the `key` and its corresponding `value` if the map contains the mapping for the `key`.\n\n## Example 1:\n\n**Input:**\n[\"MyHashMap\", \"put\", \"put\", \"get\", \"get\", \"put\", \"get\", \"remove\", \"get\"]\n[[], [1, 1], [2, 2], [1], [3], [2, 1], [2], [2], [2]]\n**Output:**\n[null, null, null, 1, -1, null, 1, null, -1]\n**Explanation:**\nMyHashMap myHashMap = new MyHashMap();\nmyHashMap.put(1, 1); // The map is now [[1,1]]\nmyHashMap.put(2, 2); // The map is now [[1,1], [2,2]]\nmyHashMap.get(1);    // return 1, The map is now [[1,1], [2,2]]\nmyHashMap.get(3);    // return -1 (i.e., not found), The map is now [[1,1], [2,2]]\nmyHashMap.put(2, 1); // The map is now [[1,1], [2,1]] (i.e., update the existing value)\nmyHashMap.get(2);    // return 1, The map is now [[1,1], [2,1]]\nmyHashMap.remove(2); // remove the mapping for 2, The map is now [[1,1]]\nmyHashMap.get(2);    // return -1 (i.e., not found), The map is now [[1,1]]\n\n## Constraints:\n\n*   `0 <= key, value <= 10^6`\n*   At most `10^4` calls will be made to `put`, `get`, and `remove`.",
+  "description": "# Design HashMap\n\nDesign a HashMap without using any built-in hash table libraries.\n\nImplement the `MyHashMap` class:\n\n* `MyHashMap()` initializes an empty map.\n* `void put(int key, int value)` inserts or updates the value mapped by `key`.\n* `int get(int key)` returns the mapped value, or `-1` when `key` is absent.\n* `void remove(int key)` removes `key` when it exists and does nothing otherwise.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1\n\n**Input:**\n[\"MyHashMap\", \"put\", \"put\", \"get\", \"get\", \"put\", \"get\", \"remove\", \"get\"]\n[[], [1, 1], [2, 2], [1], [3], [2, 1], [2], [2], [2]]\n\n**Output:**\n[null, null, null, 1, -1, null, 1, null, -1]\n\n**Explanation:** `put(2, 1)` updates the existing key `2`; after `remove(2)`, `get(2)` returns `-1`.\n\n## Notes\n\nA correct implementation must distinguish a missing key from a key whose stored value is `0`. For collision-based implementations, deleting one key must not make other colliding keys unreachable.\n\n## Constraints\n\n* `0 <= key, value <= 10^6`\n* At most `10^4` calls will be made to `put`, `get`, and `remove`.\n* Do not use built-in hash table libraries such as `HashMap`, `HashSet`, `Hashtable`, or `LinkedHashMap`.",
   "difficulty": "EASY",
-  "initialCode": "class MyHashMap {\n\n    public MyHashMap() {\n        \n    }\n    \n    public void put(int key, int value) {\n        \n    }\n    \n    public int get(int key) {\n        \n    }\n    \n    public void remove(int key) {\n        \n    }\n}",
+  "initialCode": "class MyHashMap {\n\n    public MyHashMap() {\n    }\n\n    public void put(int key, int value) {\n    }\n\n    public int get(int key) {\n        return -1;\n    }\n\n    public void remove(int key) {\n    }\n}",
   "tags": [
     "Array",
     "Hash Table",
@@ -14,38 +14,89 @@
   "examples": [
     {
       "input": "[\"MyHashMap\", \"put\", \"put\", \"get\", \"get\", \"put\", \"get\", \"remove\", \"get\"]\n[[], [1, 1], [2, 2], [1], [3], [2, 1], [2], [2], [2]]",
-      "output": "[null, null, null, 1, -1, null, 1, null, -1]"
+      "output": "[null, null, null, 1, -1, null, 1, null, -1]",
+      "explanation": "The second put on key 2 updates its value; removing key 2 makes later get(2) return -1."
     }
   ],
   "solutions": [
     {
-      "name": "Bucket Array with Chaining",
-      "timeComplexity": "O(n/k) per operation",
-      "spaceComplexity": "O(k + n)",
-      "description": "Use an array of linked list buckets. Hash key by modding with bucket count. Search, insert, or delete within the corresponding bucket's linked list.",
-      "code": "class MyHashMap {\n    private int[] data;\n    public MyHashMap() {\n        data = new int[1000001];\n        java.util.Arrays.fill(data, -1);\n    }\n    public void put(int key, int value) {\n        data[key] = value;\n    }\n    public int get(int key) {\n        return data[key];\n    }\n    public void remove(int key) {\n        data[key] = -1;\n    }\n}",
-      "language": "java"
+      "name": "Direct Address Array",
+      "description": "## Approach\n\nUse the key itself as an array index. Allocate one slot for every key from 0 through 1,000,000, fill it with `-1`, and store each value directly at `data[key]`.\n\n## Key Insight\n\nThe problem gives a small fixed key range, so a direct-address table is valid here. This is not a general HashMap, but it is the simplest way to make every operation O(1) under these constraints.\n\n## Complexity Analysis\n- Time Complexity: O(1) per operation after O(M) initialization.\n- Space Complexity: O(M), where M = 1,000,001.",
+      "code": "class MyHashMap {\n    private static final int MAX_KEY = 1_000_000;\n    private final int[] data;\n\n    public MyHashMap() {\n        data = new int[MAX_KEY + 1];\n        java.util.Arrays.fill(data, -1);\n    }\n\n    public void put(int key, int value) {\n        data[key] = value;\n    }\n\n    public int get(int key) {\n        return data[key];\n    }\n\n    public void remove(int key) {\n        data[key] = -1;\n    }\n}"
     },
     {
-      "name": "Hash Table with Chaining (Linked List Buckets)",
-      "timeComplexity": "O(n/k) per operation",
-      "spaceComplexity": "O(k + n)",
-      "description": "Use an array of linked list buckets with a hash function. Each bucket stores key-value pairs in a linked list. Hash collisions are resolved by chaining.",
-      "code": "import java.util.*;\n\nclass MyHashMap {\n    private static final int SIZE = 769;\n    private List<int[]>[] buckets;\n    public MyHashMap() {\n        buckets = new ArrayList[SIZE];\n        for (int i = 0; i < SIZE; i++) {\n            buckets[i] = new ArrayList();\n        }\n    }\n    private int hash(int key) {\n        return key % SIZE;\n    }\n    public void put(int key, int value) {\n        int h = hash(key);\n        List<int[]> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i)[0] == key) {\n                bucket.get(i)[1] = value;\n                return;\n            }\n        }\n        bucket.add(new int[]{key, value});\n    }\n    public int get(int key) {\n        int h = hash(key);\n        List<int[]> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i)[0] == key) {\n                return bucket.get(i)[1];\n            }\n        }\n        return -1;\n    }\n    public void remove(int key) {\n        int h = hash(key);\n        List<int[]> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i)[0] == key) {\n                bucket.remove(i);\n                return;\n            }\n        }\n    }\n}",
-      "language": "java"
+      "name": "Lazy Two-Level Direct Address Table",
+      "description": "## Approach\n\nSplit the fixed key range into pages. The top-level array is always present, but each page of value and presence arrays is allocated only when a key inside that page is first inserted.\n\n## Key Insight\n\nThis keeps the direct-address O(1) behavior while avoiding the up-front cost of initializing one million entries when the operation count is much smaller. A separate `present` table is required because value `0` is legal.\n\n## Complexity Analysis\n- Time Complexity: O(1) per operation.\n- Space Complexity: O(P + U), where P is the number of pages and U is the number of allocated page slots.",
+      "code": "class MyHashMap {\n    private static final int PAGE_SIZE = 1000;\n    private static final int PAGE_COUNT = 1001;\n    private final int[][] values;\n    private final boolean[][] present;\n\n    public MyHashMap() {\n        values = new int[PAGE_COUNT][];\n        present = new boolean[PAGE_COUNT][];\n    }\n\n    public void put(int key, int value) {\n        ensurePage(key);\n        int page = key / PAGE_SIZE;\n        int offset = key % PAGE_SIZE;\n        values[page][offset] = value;\n        present[page][offset] = true;\n    }\n\n    public int get(int key) {\n        int page = key / PAGE_SIZE;\n        int offset = key % PAGE_SIZE;\n        if (values[page] == null || !present[page][offset]) {\n            return -1;\n        }\n        return values[page][offset];\n    }\n\n    public void remove(int key) {\n        int page = key / PAGE_SIZE;\n        int offset = key % PAGE_SIZE;\n        if (values[page] != null) {\n            present[page][offset] = false;\n        }\n    }\n\n    private void ensurePage(int key) {\n        int page = key / PAGE_SIZE;\n        if (values[page] == null) {\n            values[page] = new int[PAGE_SIZE];\n            present[page] = new boolean[PAGE_SIZE];\n        }\n    }\n}"
+    },
+    {
+      "name": "Separate Chaining with Linked Nodes",
+      "description": "## Approach\n\nCreate a fixed array of buckets. Each bucket is a linked list of nodes holding `(key, value)`. Hash the key to one bucket, update an existing node when the key is already present, otherwise add a new node to that bucket.\n\n## Key Insight\n\nSeparate chaining is the standard way to keep colliding keys independent. Deletion only removes one node from one bucket, so other keys with the same hash must remain reachable.\n\n## Complexity Analysis\n- Time Complexity: O(1) average per operation, O(n) worst case if many keys share a bucket.\n- Space Complexity: O(B + n), where B is the bucket count and n is the number of stored keys.",
+      "code": "class MyHashMap {\n    private static final int BUCKET_COUNT = 769;\n    private final Node[] buckets;\n\n    public MyHashMap() {\n        buckets = new Node[BUCKET_COUNT];\n    }\n\n    public void put(int key, int value) {\n        int index = hash(key);\n        for (Node node = buckets[index]; node != null; node = node.next) {\n            if (node.key == key) {\n                node.value = value;\n                return;\n            }\n        }\n        buckets[index] = new Node(key, value, buckets[index]);\n    }\n\n    public int get(int key) {\n        int index = hash(key);\n        for (Node node = buckets[index]; node != null; node = node.next) {\n            if (node.key == key) {\n                return node.value;\n            }\n        }\n        return -1;\n    }\n\n    public void remove(int key) {\n        int index = hash(key);\n        Node previous = null;\n        Node node = buckets[index];\n        while (node != null) {\n            if (node.key == key) {\n                if (previous == null) {\n                    buckets[index] = node.next;\n                } else {\n                    previous.next = node.next;\n                }\n                return;\n            }\n            previous = node;\n            node = node.next;\n        }\n    }\n\n    private int hash(int key) {\n        return key % BUCKET_COUNT;\n    }\n\n    private static class Node {\n        final int key;\n        int value;\n        Node next;\n\n        Node(int key, int value, Node next) {\n            this.key = key;\n            this.value = value;\n            this.next = next;\n        }\n    }\n}"
+    },
+    {
+      "name": "Open Addressing with Linear Probing",
+      "description": "## Approach\n\nStore keys and values inside fixed arrays and keep a state array for empty, occupied, and deleted slots. A collision probes the next slot until it finds the key, an empty slot, or the first deleted slot that can be reused.\n\n## Key Insight\n\nOpen addressing stores entries directly inside the table. Deleted slots must become tombstones instead of empty slots, because marking them empty would break the probe chain for keys inserted after the deleted key.\n\n## Complexity Analysis\n- Time Complexity: O(1) average per operation, O(C) worst case for capacity C.\n- Space Complexity: O(C).",
+      "code": "class MyHashMap {\n    private static final int CAPACITY = 20011;\n    private final int[] keys;\n    private final int[] values;\n    private final byte[] state; // 0 = empty, 1 = occupied, 2 = deleted\n\n    public MyHashMap() {\n        keys = new int[CAPACITY];\n        values = new int[CAPACITY];\n        state = new byte[CAPACITY];\n    }\n\n    public void put(int key, int value) {\n        int slot = findSlotForInsert(key);\n        keys[slot] = key;\n        values[slot] = value;\n        state[slot] = 1;\n    }\n\n    public int get(int key) {\n        int slot = findExistingSlot(key);\n        return slot == -1 ? -1 : values[slot];\n    }\n\n    public void remove(int key) {\n        int slot = findExistingSlot(key);\n        if (slot != -1) {\n            state[slot] = 2;\n        }\n    }\n\n    private int findSlotForInsert(int key) {\n        int hash = key % CAPACITY;\n        int firstDeleted = -1;\n        for (int step = 0; step < CAPACITY; step++) {\n            int index = (hash + step) % CAPACITY;\n            if (state[index] == 1 && keys[index] == key) {\n                return index;\n            }\n            if (state[index] == 2 && firstDeleted == -1) {\n                firstDeleted = index;\n            }\n            if (state[index] == 0) {\n                return firstDeleted == -1 ? index : firstDeleted;\n            }\n        }\n        if (firstDeleted != -1) {\n            return firstDeleted;\n        }\n        throw new IllegalStateException(\"hash table is full\");\n    }\n\n    private int findExistingSlot(int key) {\n        int hash = key % CAPACITY;\n        for (int step = 0; step < CAPACITY; step++) {\n            int index = (hash + step) % CAPACITY;\n            if (state[index] == 0) {\n                return -1;\n            }\n            if (state[index] == 1 && keys[index] == key) {\n                return index;\n            }\n        }\n        return -1;\n    }\n}"
+    },
+    {
+      "name": "Open Addressing with Double Hashing",
+      "description": "## Approach\n\nUse the same key, value, and state arrays as open addressing, but compute a second hash as the probe step. Each collision jumps by that step instead of always moving one slot.\n\n## Key Insight\n\nDouble hashing reduces primary clustering compared with linear probing. The table capacity is prime and the second hash is non-zero, so the probe sequence can visit every slot before giving up. Tombstones are still required for correct deletion.\n\n## Complexity Analysis\n- Time Complexity: O(1) average per operation, O(C) worst case for capacity C.\n- Space Complexity: O(C).",
+      "code": "class MyHashMap {\n    private static final int CAPACITY = 20011;\n    private final int[] keys;\n    private final int[] values;\n    private final byte[] state; // 0 = empty, 1 = occupied, 2 = deleted\n\n    public MyHashMap() {\n        keys = new int[CAPACITY];\n        values = new int[CAPACITY];\n        state = new byte[CAPACITY];\n    }\n\n    public void put(int key, int value) {\n        int slot = findSlotForInsert(key);\n        keys[slot] = key;\n        values[slot] = value;\n        state[slot] = 1;\n    }\n\n    public int get(int key) {\n        int slot = findExistingSlot(key);\n        return slot == -1 ? -1 : values[slot];\n    }\n\n    public void remove(int key) {\n        int slot = findExistingSlot(key);\n        if (slot != -1) {\n            state[slot] = 2;\n        }\n    }\n\n    private int findSlotForInsert(int key) {\n        int firstDeleted = -1;\n        int hash = hash1(key);\n        int stepSize = hash2(key);\n        for (int step = 0; step < CAPACITY; step++) {\n            int index = (hash + step * stepSize) % CAPACITY;\n            if (state[index] == 1 && keys[index] == key) {\n                return index;\n            }\n            if (state[index] == 2 && firstDeleted == -1) {\n                firstDeleted = index;\n            }\n            if (state[index] == 0) {\n                return firstDeleted == -1 ? index : firstDeleted;\n            }\n        }\n        if (firstDeleted != -1) {\n            return firstDeleted;\n        }\n        throw new IllegalStateException(\"hash table is full\");\n    }\n\n    private int findExistingSlot(int key) {\n        int hash = hash1(key);\n        int stepSize = hash2(key);\n        for (int step = 0; step < CAPACITY; step++) {\n            int index = (hash + step * stepSize) % CAPACITY;\n            if (state[index] == 0) {\n                return -1;\n            }\n            if (state[index] == 1 && keys[index] == key) {\n                return index;\n            }\n        }\n        return -1;\n    }\n\n    private int hash1(int key) {\n        return key % CAPACITY;\n    }\n\n    private int hash2(int key) {\n        return 1 + key % (CAPACITY - 1);\n    }\n}"
     }
   ],
   "tests": [
     {
       "input": "[\"MyHashMap\", \"put\", \"put\", \"get\", \"get\", \"put\", \"get\", \"remove\", \"get\"]\n[[], [1, 1], [2, 2], [1], [3], [2, 1], [2], [2], [2]]",
-      "output": "[null, null, null, 1, -1, null, 1, null, -1]"
+      "output": "[null, null, null, 1, -1, null, 1, null, -1]",
+      "description": "canonical insert, missing get, update, and remove sequence"
+    },
+    {
+      "input": "[\"MyHashMap\",\"put\",\"put\",\"get\",\"put\",\"get\",\"remove\",\"get\",\"remove\",\"put\",\"get\"]\n[[],[0,5],[1000000,7],[0],[0,9],[0],[42],[1000000],[1000000],[1000000,8],[1000000]]",
+      "output": "[null,null,null,5,null,9,null,7,null,null,8]",
+      "description": "minimum and maximum keys, absent remove, update after remove"
+    },
+    {
+      "input": "[\"MyHashMap\",\"put\",\"put\",\"get\",\"get\",\"remove\",\"get\",\"get\"]\n[[],[1,10],[770,20],[1],[770],[1],[1],[770]]",
+      "output": "[null,null,null,10,20,null,-1,20]",
+      "description": "two keys colliding under the 769-bucket chaining fixture stay independent"
+    },
+    {
+      "input": "[\"MyHashMap\",\"put\",\"get\",\"put\",\"get\",\"remove\",\"get\",\"put\",\"get\"]\n[[],[5,0],[5],[5,11],[5],[5],[5],[5,0],[5]]",
+      "output": "[null,null,0,null,11,null,-1,null,0]",
+      "description": "value zero is a valid stored value and cannot be confused with absence"
+    },
+    {
+      "input": "[\"MyHashMap\",\"put\",\"put\",\"put\",\"get\",\"remove\",\"get\"]\n[[],[8,1],[8,2],[8,3],[8],[8],[8]]",
+      "output": "[null,null,null,null,3,null,-1]",
+      "description": "repeated put updates the existing key instead of leaving stale duplicates"
+    },
+    {
+      "input": "[\"MyHashMap\",\"put\",\"put\",\"put\",\"get\",\"get\",\"get\",\"remove\",\"get\",\"put\",\"get\",\"get\",\"get\"]\n[[],[1,10],[20012,20],[40023,30],[1],[20012],[40023],[20012],[40023],[60034,40],[60034],[1],[20012]]",
+      "output": "[null,null,null,null,10,20,30,null,30,null,40,10,-1]",
+      "description": "linear-probing collision chain survives a middle tombstone and reuses deleted slots"
+    },
+    {
+      "input": "[\"MyHashMap\",\"remove\",\"get\",\"put\",\"remove\",\"remove\",\"put\",\"get\"]\n[[],[123],[123],[123,4],[123],[123],[123,9],[123]]",
+      "output": "[null,null,-1,null,null,null,null,9]",
+      "description": "remove is idempotent and reinsertion after removal works"
+    },
+    {
+      "input": "[\"MyHashMap\",\"put\",\"put\",\"put\",\"put\",\"remove\",\"get\",\"get\",\"get\",\"get\",\"put\",\"get\"]\n[[],[2,1],[771,2],[1540,3],[2309,4],[1540],[2],[771],[1540],[2309],[1540,99],[1540]]",
+      "output": "[null,null,null,null,null,null,1,2,-1,4,null,99]",
+      "description": "multi-key bucket collision removes only the requested key"
+    },
+    {
+      "input": "[\"MyHashMap\",\"put\",\"put\",\"get\",\"get\",\"remove\",\"get\",\"get\"]\n[[],[999999,12],[1000,13],[999999],[1000],[999999],[999999],[1000]]",
+      "output": "[null,null,null,12,13,null,-1,13]",
+      "description": "sparse high keys and separate pages remain independent"
     }
   ],
   "diagrams": [
     {
       "id": "design",
       "file": "p401_design.png",
-      "caption": "HashMap: Bucket Array + Chaining"
+      "caption": "Example 1: put(1,1) and put(2,2) store two keys; put(2,1) replaces only the value for key 2"
     }
   ]
 }

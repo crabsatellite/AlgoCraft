@@ -1,10 +1,14 @@
 {
   "id": "277",
   "title": "Check if Two String Arrays are Equivalent",
-  "description": "# Check if Two String Arrays are Equivalent\n\nGiven two string arrays `word1` and `word2`, return `true` *if the two arrays represent the same string, and* `false` *otherwise.*\n\nA string is **represented** by an array if the array elements concatenated in order form the string.\n\n## Example 1:\n\n**Input:** word1 = [\"ab\", \"c\"], word2 = [\"a\", \"bc\"]\n**Output:** true\n**Explanation:**\nword1 represents string \"ab\" + \"c\" -> \"abc\"\nword2 represents string \"a\" + \"bc\" -> \"abc\"\nThe strings are the same, so return true.\n\n## Example 2:\n\n**Input:** word1 = [\"a\", \"cb\"], word2 = [\"ab\", \"c\"]\n**Output:** false\n\n## Example 3:\n\n**Input:** word1  = [\"abc\", \"d\", \"defg\"], word2 = [\"abcddefg\"]\n**Output:** true\n\n## Constraints:\n\n*   `1 <= word1.length, word2.length <= 1000`\n*   `1 <= word1[i].length, word2[i].length <= 1000`\n*   `1 <= sum(word1[i].length), sum(word2[i].length) <= 1000`\n*   `word1[i]` and `word2[i]` consist of lowercase letters.",
+  "description": "# Check if Two String Arrays are Equivalent\n\nGiven two string arrays `word1` and `word2`, return `true` if they represent the same final string, and return `false` otherwise.\n\nA string array represents a string by concatenating all of its elements from left to right. For example, `[\"ab\", \"c\"]` represents `\"abc\"`.\n\nThe split points inside the arrays do not matter. Only the final concatenated character sequence matters.\n\n## Example 1\n\n**Input**\nword1 = [\"ab\", \"c\"], word2 = [\"a\", \"bc\"]\n\n**Output**\ntrue\n\n**Explanation**\n`word1` represents `\"ab\" + \"c\" = \"abc\"`.\n`word2` represents `\"a\" + \"bc\" = \"abc\"`.\nBoth arrays represent the same string.\n\n## Example 2\n\n**Input**\nword1 = [\"a\", \"cb\"], word2 = [\"ab\", \"c\"]\n\n**Output**\nfalse\n\n**Explanation**\n`word1` represents `\"acb\"`, while `word2` represents `\"abc\"`.\n\n## Example 3\n\n**Input**\nword1 = [\"abc\", \"d\", \"defg\"], word2 = [\"abcddefg\"]\n\n**Output**\ntrue\n\n## Constraints\n\n* `1 <= word1.length, word2.length <= 1000`\n* `1 <= word1[i].length, word2[i].length <= 1000`\n* `1 <= sum(word1[i].length), sum(word2[i].length) <= 1000`\n* `word1[i]` and `word2[i]` consist of lowercase English letters.",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public boolean arrayStringsAreEqual(String[] word1, String[] word2) {\n        \n    }\n}",
-  "tags": ["Array", "String"],
+  "initialCode": "class Solution {\n    public boolean arrayStringsAreEqual(String[] word1, String[] word2) {\n        return false;\n    }\n}",
+  "tags": [
+    "Array",
+    "String",
+    "Two Pointers"
+  ],
   "examples": [
     {
       "input": "word1 = [\"ab\", \"c\"], word2 = [\"a\", \"bc\"]",
@@ -21,34 +25,88 @@
   ],
   "solutions": [
     {
-      "name": "Concatenate and Compare",
-      "timeComplexity": "O(n + m)",
-      "spaceComplexity": "O(n + m)",
-      "description": "Join all strings in each array and compare the results.",
-      "code": "class Solution {\n    public boolean arrayStringsAreEqual(String[] word1, String[] word2) {\n        return String.join(\"\", word1).equals(String.join(\"\", word2));\n    }\n}",
+      "name": "Concatenate And Compare",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nBuild the full string represented by each array, then compare the two final strings with `equals`.\n\n## Key Insight\nThis is the direct definition of equivalence: two arrays are equivalent exactly when their concatenations are identical. It is a good baseline because it is short and hard to get wrong.\n\n## Complexity Analysis\nLet `n` be the total number of characters across both arrays. Building the two strings and comparing them costs O(n) time. The two built strings store up to O(n) characters, so the extra space complexity is O(n).",
+      "code": "class Solution {\n    public boolean arrayStringsAreEqual(String[] word1, String[] word2) {\n        return join(word1).equals(join(word2));\n    }\n\n    private String join(String[] words) {\n        StringBuilder builder = new StringBuilder();\n        for (String word : words) {\n            builder.append(word);\n        }\n        return builder.toString();\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Two Pointer Character Compare",
-      "timeComplexity": "O(n + m)",
+      "name": "Two Pointers Across Chunks",
+      "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use two pairs of pointers (word index and character index) to compare character by character without creating concatenated strings.",
-      "code": "class Solution {\n    public boolean arrayStringsAreEqual(String[] word1, String[] word2) {\n        int w1 = 0, c1 = 0, w2 = 0, c2 = 0;\n        while (w1 < word1.length && w2 < word2.length) {\n            if (word1[w1].charAt(c1) != word2[w2].charAt(c2)) return false;\n            c1++;\n            c2++;\n            if (c1 == word1[w1].length()) { w1++; c1 = 0; }\n            if (c2 == word2[w2].length()) { w2++; c2 = 0; }\n        }\n        return w1 == word1.length && w2 == word2.length;\n    }\n}",
+      "description": "## Approach\nCompare the represented strings without building them. Keep a word index and a character index for each array, and advance each side one character at a time.\n\n## Key Insight\nThe arrays are different chunkings of a character stream. When a character index reaches the end of its current chunk, move to the next chunk and reset the character index to zero.\n\n## Complexity Analysis\nEvery character is read once, so the time complexity is O(n). The algorithm stores only four indices and a few temporaries, so the space complexity is O(1).",
+      "code": "class Solution {\n    public boolean arrayStringsAreEqual(String[] word1, String[] word2) {\n        int i = 0, j = 0;\n        int a = 0, b = 0;\n\n        while (i < word1.length && j < word2.length) {\n            if (word1[i].charAt(a) != word2[j].charAt(b)) {\n                return false;\n            }\n\n            a++;\n            b++;\n            if (a == word1[i].length()) {\n                i++;\n                a = 0;\n            }\n            if (b == word2[j].length()) {\n                j++;\n                b = 0;\n            }\n        }\n\n        return i == word1.length && j == word2.length;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Chunk Character Stream",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nWrap each string array in a small `CharStream` helper. The main method compares the next character from each stream until one stream ends or a mismatch appears.\n\n## Key Insight\nThe helper separates two concerns: the main algorithm asks whether two streams are equal, while `CharStream` owns the boundary logic for moving from one chunk to the next.\n\n## Complexity Analysis\nEach call to `next` consumes exactly one character, so the total time complexity is O(n). Each stream stores only two indices and a reference to the array, so the extra space complexity is O(1).",
+      "code": "class Solution {\n    public boolean arrayStringsAreEqual(String[] word1, String[] word2) {\n        CharStream left = new CharStream(word1);\n        CharStream right = new CharStream(word2);\n\n        while (left.hasNext() && right.hasNext()) {\n            if (left.next() != right.next()) {\n                return false;\n            }\n        }\n        return !left.hasNext() && !right.hasNext();\n    }\n\n    private static class CharStream {\n        private final String[] words;\n        private int wordIndex;\n        private int charIndex;\n\n        CharStream(String[] words) {\n            this.words = words;\n        }\n\n        boolean hasNext() {\n            return wordIndex < words.length;\n        }\n\n        char next() {\n            char current = words[wordIndex].charAt(charIndex);\n            charIndex++;\n            if (charIndex == words[wordIndex].length()) {\n                wordIndex++;\n                charIndex = 0;\n            }\n            return current;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Character Queues",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nExpand each array into a queue of characters, then remove characters from both queues in lockstep. If a removed pair differs, return `false`; otherwise both queues must become empty together.\n\n## Key Insight\nA queue makes the represented string order explicit while still teaching the idea of comparing two streams from the front. It is less memory efficient than the pointer solution, but it is a useful stepping stone for learners.\n\n## Complexity Analysis\nEach character is enqueued once and dequeued once, so the time complexity is O(n). The queues store the represented strings as characters, so the extra space complexity is O(n).",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\nclass Solution {\n    public boolean arrayStringsAreEqual(String[] word1, String[] word2) {\n        Deque<Character> left = toQueue(word1);\n        Deque<Character> right = toQueue(word2);\n\n        while (!left.isEmpty() && !right.isEmpty()) {\n            if (left.removeFirst() != right.removeFirst()) {\n                return false;\n            }\n        }\n        return left.isEmpty() && right.isEmpty();\n    }\n\n    private Deque<Character> toQueue(String[] words) {\n        Deque<Character> queue = new ArrayDeque<>();\n        for (String word : words) {\n            for (int i = 0; i < word.length(); i++) {\n                queue.addLast(word.charAt(i));\n            }\n        }\n        return queue;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
-      "input": "word1 = [\"ab\", \"c\"], word2 = [\"a\", \"bc\"]",
-      "output": "true"
+      "input": "word1 = [\"ab\",\"c\"], word2 = [\"a\",\"bc\"]",
+      "output": "true",
+      "description": "sample where different splits form the same string"
     },
     {
-      "input": "word1 = [\"a\", \"cb\"], word2 = [\"ab\", \"c\"]",
-      "output": "false"
+      "input": "word1 = [\"a\",\"cb\"], word2 = [\"ab\",\"c\"]",
+      "output": "false",
+      "description": "sample where the same first letter is followed by a different character"
     },
     {
-      "input": "word1 = [\"abc\", \"d\", \"defg\"], word2 = [\"abcddefg\"]",
-      "output": "true"
+      "input": "word1 = [\"abc\",\"d\",\"defg\"], word2 = [\"abcddefg\"]",
+      "output": "true",
+      "description": "sample with many chunks on one side and one chunk on the other"
+    },
+    {
+      "input": "word1 = [\"a\"], word2 = [\"a\"]",
+      "output": "true",
+      "description": "single chunk equality"
+    },
+    {
+      "input": "word1 = [\"a\",\"b\",\"c\"], word2 = [\"abc\"]",
+      "output": "true",
+      "description": "many one-character chunks equal one full string"
+    },
+    {
+      "input": "word1 = [\"ab\"], word2 = [\"a\",\"b\",\"c\"]",
+      "output": "false",
+      "description": "one side has an extra trailing character"
+    },
+    {
+      "input": "word1 = [\"abc\",\"d\"], word2 = [\"ab\",\"cd\"]",
+      "output": "true",
+      "description": "chunk boundaries can cut through words differently"
+    },
+    {
+      "input": "word1 = [\"x\",\"yz\"], word2 = [\"x\",\"ya\"]",
+      "output": "false",
+      "description": "late mismatch after a shared prefix"
+    },
+    {
+      "input": "word1 = [\"leetcode\"], word2 = [\"leet\",\"code\"]",
+      "output": "true",
+      "description": "longer word split across two chunks"
+    },
+    {
+      "input": "word1 = [\"same\",\"prefix\"], word2 = [\"same\",\"prefi\"]",
+      "output": "false",
+      "description": "same prefix but different total length"
     }
   ]
 }

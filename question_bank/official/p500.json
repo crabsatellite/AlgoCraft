@@ -1,7 +1,7 @@
 {
   "id": "500",
   "title": "Trim a Binary Search Tree",
-  "description": "# Trim a Binary Search Tree\n\nGiven the `root` of a binary search tree and the lowest and highest boundaries as `low` and `high`, trim the tree so that all its elements lies in `[low, high]`. Trimming the tree should **not** change the relative structure of the elements that will remain in the tree (i.e., any node's descendant should remain a descendant). It can be proven that there is a **unique answer**.\n\nReturn *the root of the trimmed binary search tree*. Note that the root may change depending on the given bounds.\n\n## Example 1:\n\n**Input:** root = [1,0,2], low = 1, high = 2\n**Output:** [1,null,2]\n\n## Example 2:\n\n**Input:** root = [3,0,4,null,2,null,null,1], low = 1, high = 3\n**Output:** [3,2,null,1]\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[1, 10^4]`.\n*   `0 <= Node.val <= 10^4`\n*   The value of each node in the tree is **unique**.\n*   `root` is guaranteed to be a valid binary search tree.\n*   `0 <= low <= high <= 10^4`",
+  "description": "# Trim a Binary Search Tree\n\nGiven the `root` of a binary search tree and two inclusive bounds `low` and `high`, trim the tree so every remaining node has a value in `[low, high]`.\n\nKeep every node whose value is in range and remove every node outside it. Preserve ancestor-descendant relationships among retained nodes, reconnecting retained subtrees as needed. The root may change; return `null` if no node remains.\n\nReturn the root of the trimmed binary search tree.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [1,0,2], low = 1, high = 2\n**Output:** [1,null,2]\n\n## Example 2:\n\n**Input:** root = [3,0,4,null,2,null,null,1], low = 1, high = 3\n**Output:** [3,2,null,1]\n\n## Constraints:\n\n* The number of nodes in the tree is in the range `[1, 10^4]`.\n* `0 <= Node.val <= 10^4`\n* The value of each node in the tree is unique.\n* `root` is guaranteed to be a valid binary search tree.\n* `0 <= low <= high <= 10^4`",
   "difficulty": "MEDIUM",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public TreeNode trimBST(TreeNode root, int low, int high) {\n        \n    }\n}",
   "tags": [
@@ -22,19 +22,35 @@
   ],
   "solutions": [
     {
-      "name": "Recursive DFS",
+      "name": "Recursive Range-Pruning DFS",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Recursively trim the BST. If node.val < low, the entire left subtree is out of range, so return trimmed right subtree. If node.val > high, return trimmed left subtree. Otherwise, trim both children.",
-      "code": "class Solution {\n    public TreeNode trimBST(TreeNode root, int low, int high) {\n        if (root == null) return null;\n        if (root.val < low) return trimBST(root.right, low, high);\n        if (root.val > high) return trimBST(root.left, low, high);\n        root.left = trimBST(root.left, low, high);\n        root.right = trimBST(root.right, low, high);\n        return root;\n    }\n}",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nRecursively trim from the current node. If `root.val < low`, the current node and its entire left subtree are too small, so the answer must come from the trimmed right subtree. If `root.val > high`, use the trimmed left subtree. Otherwise keep the node and recursively trim both children.\n\n## Key Insight\n\nThe BST ordering lets one comparison discard a whole side: every value in the left subtree is smaller than the node, and every value in the right subtree is larger. Once a node is inside the range, only its children need repair.\n\n## Complexity Analysis\n\nEach node is visited at most once, so the time complexity is O(n). The recursive call stack uses O(h) space, where `h` is the tree height.",
+      "code": "class Solution {\n    public TreeNode trimBST(TreeNode root, int low, int high) {\n        if (root == null) {\n            return null;\n        }\n        if (root.val < low) {\n            return trimBST(root.right, low, high);\n        }\n        if (root.val > high) {\n            return trimBST(root.left, low, high);\n        }\n\n        root.left = trimBST(root.left, low, high);\n        root.right = trimBST(root.right, low, high);\n        return root;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Iterative Trim",
+      "name": "Iterative Root and Side Relinking",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Iteratively find the new root that falls within [low, high]. Then iteratively trim the left and right subtrees by relinking nodes that fall outside the range.",
-      "code": "class Solution {\n    public TreeNode trimBST(TreeNode root, int low, int high) {\n        while (root != null && (root.val < low || root.val > high)) {\n            if (root.val < low) root = root.right;\n            else root = root.left;\n        }\n        TreeNode node = root;\n        while (node != null) {\n            while (node.left != null && node.left.val < low) {\n                node.left = node.left.right;\n            }\n            node = node.left;\n        }\n        node = root;\n        while (node != null) {\n            while (node.right != null && node.right.val > high) {\n                node.right = node.right.left;\n            }\n            node = node.right;\n        }\n        return root;\n    }\n}",
+      "description": "## Approach\n\nFirst walk down the BST until the root pointer itself is inside `[low, high]`. Then repair the left boundary by repeatedly bypassing left children that are too small, and repair the right boundary by bypassing right children that are too large.\n\n## Key Insight\n\nAfter the root is valid, a left child that is below `low` can only contribute values from its right subtree; its left subtree is even smaller and can be discarded. Symmetrically, an oversized right child can only contribute values from its left subtree.\n\n## Complexity Analysis\n\nThe relinking loops move down the tree and each bypass removes an invalid node from future consideration, so the total time is O(n). Only a few pointers are stored, giving O(1) extra space.",
+      "code": "class Solution {\n    public TreeNode trimBST(TreeNode root, int low, int high) {\n        while (root != null && (root.val < low || root.val > high)) {\n            root = root.val < low ? root.right : root.left;\n        }\n        if (root == null) {\n            return null;\n        }\n\n        TreeNode node = root;\n        while (node != null) {\n            while (node.left != null && node.left.val < low) {\n                node.left = node.left.right;\n            }\n            node = node.left;\n        }\n\n        node = root;\n        while (node != null) {\n            while (node.right != null && node.right.val > high) {\n                node.right = node.right.left;\n            }\n            node = node.right;\n        }\n        return root;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Stack-Based Rewire Traversal",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nMove the root into the valid range, then traverse the kept tree with an explicit stack. For each kept node, repeatedly rewire invalid left links to their right child and invalid right links to their left child before pushing the remaining children.\n\n## Key Insight\n\nThe stack version uses the same pruning rule as the iterative boundary method, but applies it while visiting every retained node. It is useful when you want to avoid recursion while still expressing the local repair rule at each node.\n\n## Complexity Analysis\n\nEach node is pushed or bypassed a bounded number of times, so the time complexity is O(n). The stack holds one traversal frontier, which is O(h) for the tree height and O(n) in the worst skewed case.",
+      "code": "class Solution {\n    public TreeNode trimBST(TreeNode root, int low, int high) {\n        while (root != null && (root.val < low || root.val > high)) {\n            root = root.val < low ? root.right : root.left;\n        }\n        if (root == null) {\n            return null;\n        }\n\n        java.util.Deque<TreeNode> stack = new java.util.ArrayDeque<>();\n        stack.push(root);\n        while (!stack.isEmpty()) {\n            TreeNode node = stack.pop();\n\n            while (node.left != null && node.left.val < low) {\n                node.left = node.left.right;\n            }\n            while (node.right != null && node.right.val > high) {\n                node.right = node.right.left;\n            }\n\n            if (node.left != null) {\n                stack.push(node.left);\n            }\n            if (node.right != null) {\n                stack.push(node.right);\n            }\n        }\n        return root;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Non-Mutating Cloned Trim",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse the recursive pruning decisions, but create new `TreeNode` objects for every value that remains inside the range. Out-of-range nodes still return the trimmed side that could contain valid values.\n\n## Key Insight\n\nThe problem does not require preserving object identity, only the relative tree structure and values. Cloning the kept nodes is a clean teaching route for persistent data structures or situations where the original tree should not be modified.\n\n## Complexity Analysis\n\nEvery original node is inspected once, so the time complexity is O(n). The returned tree may contain O(n) cloned nodes, and the recursion stack also contributes up to O(h) space.",
+      "code": "class Solution {\n    public TreeNode trimBST(TreeNode root, int low, int high) {\n        if (root == null) {\n            return null;\n        }\n        if (root.val < low) {\n            return trimBST(root.right, low, high);\n        }\n        if (root.val > high) {\n            return trimBST(root.left, low, high);\n        }\n\n        TreeNode kept = new TreeNode(root.val);\n        kept.left = trimBST(root.left, low, high);\n        kept.right = trimBST(root.right, low, high);\n        return kept;\n    }\n}",
       "language": "java"
     }
   ],
@@ -46,13 +62,69 @@
     {
       "input": "root = [3,0,4,null,2,null,null,1], low = 1, high = 3",
       "output": "[3,2,null,1]"
+    },
+    {
+      "input": "root = [1], low = 1, high = 1",
+      "output": "[1]"
+    },
+    {
+      "input": "root = [1], low = 2, high = 3",
+      "output": "[]"
+    },
+    {
+      "input": "root = [1,0,2], low = 2, high = 2",
+      "output": "[2]"
+    },
+    {
+      "input": "root = [3,1,4,null,2], low = 3, high = 4",
+      "output": "[3,null,4]"
+    },
+    {
+      "input": "root = [3,1,4,null,2], low = 1, high = 2",
+      "output": "[1,null,2]"
+    },
+    {
+      "input": "root = [5,3,8,2,4,6,9,1,null,null,null,null,7], low = 3, high = 8",
+      "output": "[5,3,8,null,4,6,null,null,null,null,7]"
+    },
+    {
+      "input": "root = [5,3,8,2,4,6,9], low = 0, high = 10",
+      "output": "[5,3,8,2,4,6,9]"
+    },
+    {
+      "input": "root = [5,3,8,2,4,6,9], low = 6, high = 9",
+      "output": "[8,6,9]"
+    },
+    {
+      "input": "root = [5,3,8,2,4,6,9], low = 2, high = 4",
+      "output": "[3,2,4]"
+    },
+    {
+      "input": "root = [10,5,15,3,7,12,18,1,4,6,8,11,13,17,20], low = 6, high = 17",
+      "output": "[10,7,15,6,8,12,17,null,null,null,null,11,13]"
+    },
+    {
+      "input": "root = [2,1,3], low = 3, high = 4",
+      "output": "[3]"
+    },
+    {
+      "input": "root = [2,1,3], low = 0, high = 1",
+      "output": "[1]"
+    },
+    {
+      "input": "root = [1,null,2,null,3,null,4,null,5], low = 3, high = 5",
+      "output": "[3,null,4,null,5]"
+    },
+    {
+      "input": "root = [5,4,null,3,null,2,null,1], low = 1, high = 3",
+      "output": "[3,2,null,1]"
     }
   ],
   "diagrams": [
     {
-      "id": "example1",
-      "file": "p500_example1.png",
-      "caption": "Example 1: BST [1,0,2] trim to [1,2] (red=removed)"
+      "id": "prompt",
+      "file": "p500_prompt.png",
+      "caption": "Input BST with trimming bounds"
     }
   ]
 }

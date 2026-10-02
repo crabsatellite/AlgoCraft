@@ -1,38 +1,111 @@
 {
   "id": "410",
   "title": "Design Ordered Stream",
-  "description": "# Design Ordered Stream\n\nThere is a stream of `n` `(idKey, value)` pairs arriving in an arbitrary order, where `idKey` is an integer between `1` and `n` and `value` is a string. No two pairs have the same `id`.\n\nDesign a stream that returns the values in increasing order of their IDs by returning a chunk (list) of values after each insertion. The concatenation of all the chunks should result in a list of the sorted values.\n\nImplement the `OrderedStream` class:\n\n*   `OrderedStream(int n)` Constructs the stream to take `n` values.\n*   `String[] insert(int idKey, String value)` Inserts the pair `(idKey, value)` into the stream, then returns the largest possible chunk of currently inserted values that appear next in the order.\n\n## Example 1:\n\n**Input:**\n[\"OrderedStream\", \"insert\", \"insert\", \"insert\", \"insert\", \"insert\"]\n[[5], [3, \"ccccc\"], [1, \"aaaaa\"], [2, \"bbbbb\"], [5, \"eeeee\"], [4, \"ddddd\"]]\n**Output:**\n[null, [], [\"aaaaa\"], [\"bbbbb\", \"ccccc\"], [], [\"ddddd\", \"eeeee\"]]\n**Explanation:**\n// Note that the values ordered by ID is [\"aaaaa\", \"bbbbb\", \"ccccc\", \"ddddd\", \"eeeee\"].\nOrderedStream os = new OrderedStream(5);\nos.insert(3, \"ccccc\"); // Inserts (3, \"ccccc\"), returns [].\nos.insert(1, \"aaaaa\"); // Inserts (1, \"aaaaa\"), returns [\"aaaaa\"].\nos.insert(2, \"bbbbb\"); // Inserts (2, \"bbbbb\"), returns [\"bbbbb\", \"ccccc\"].\nos.insert(5, \"eeeee\"); // Inserts (5, \"eeeee\"), returns [].\nos.insert(4, \"ddddd\"); // Inserts (4, \"ddddd\"), returns [\"ddddd\", \"eeeee\"].\n// Concatentating all the chunks returned:\n// [] + [\"aaaaa\"] + [\"bbbbb\", \"ccccc\"] + [] + [\"ddddd\", \"eeeee\"] = [\"aaaaa\", \"bbbbb\", \"ccccc\", \"ddddd\", \"eeeee\"]\n// The resulting order is the same as the order above.\n\n## Constraints:\n\n*   `1 <= n <= 1000`\n*   `1 <= id <= n`\n*   `value.length == 5`\n*   `value` consists only of lowercase letters.\n*   Each call to `insert` will have a unique `id`.\n*   Exactly `n` calls will be made to `insert`.",
+  "description": "# Design Ordered Stream\n\nA stream will receive exactly `n` pairs `(idKey, value)` in an arbitrary order. Each `idKey` is an integer from `1` to `n`, no two insertions use the same `idKey`, and each `value` is a lowercase string of length `5`.\n\nDesign `OrderedStream` so that after every insertion it returns the largest possible chunk of values that can now be emitted in increasing `idKey` order. If the current next id has not arrived yet, the returned chunk is empty even if larger ids are already buffered.\n\nImplement the `OrderedStream` class:\n\n* `OrderedStream(int n)` initializes the stream for ids `1` through `n`.\n* `List<String> insert(int idKey, String value)` stores `(idKey, value)` and returns the newly available consecutive chunk starting at the smallest id that has not yet been returned.\n\nThe concatenation of all returned chunks must be exactly the values sorted by id. The stream must never return a value early and must never return the same id twice.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1\n\n**Input:**\n[\"OrderedStream\", \"insert\", \"insert\", \"insert\", \"insert\", \"insert\"]\n[[5], [3, \"ccccc\"], [1, \"aaaaa\"], [2, \"bbbbb\"], [5, \"eeeee\"], [4, \"ddddd\"]]\n\n**Output:**\n[null, [], [\"aaaaa\"], [\"bbbbb\", \"ccccc\"], [], [\"ddddd\", \"eeeee\"]]\n\n**Explanation:**\nThe next id starts at `1`. Inserting id `3` cannot release anything because id `1` is still missing. Inserting id `1` releases `[\"aaaaa\"]`. Inserting id `2` then releases ids `2` and `3` together. Id `5` waits until id `4` arrives, after which ids `4` and `5` are released together.\n\n## Constraints\n\n* `1 <= n <= 1000`\n* `1 <= idKey <= n`\n* `value.length == 5`\n* `value` consists only of lowercase letters.\n* Each call to `insert` has a unique `idKey`.\n* Exactly `n` calls will be made to `insert`.\n",
   "difficulty": "EASY",
   "initialCode": "class OrderedStream {\n\n    public OrderedStream(int n) {\n        \n    }\n    \n    public List<String> insert(int idKey, String value) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Design", "Data Stream"],
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Design",
+    "Data Stream"
+  ],
   "examples": [
     {
       "input": "[\"OrderedStream\", \"insert\", \"insert\", \"insert\", \"insert\", \"insert\"]\n[[5], [3, \"ccccc\"], [1, \"aaaaa\"], [2, \"bbbbb\"], [5, \"eeeee\"], [4, \"ddddd\"]]",
-      "output": "[null, [], [\"aaaaa\"], [\"bbbbb\", \"ccccc\"], [], [\"ddddd\", \"eeeee\"]]"
+      "output": "[null, [], [\"aaaaa\"], [\"bbbbb\", \"ccccc\"], [], [\"ddddd\", \"eeeee\"]]",
+      "explanation": "Id 3 waits for id 1. Id 2 releases both ids 2 and 3. Id 5 waits until id 4 arrives."
     }
   ],
   "solutions": [
     {
-      "name": "Array with Pointer",
-      "timeComplexity": "O(n) total",
+      "name": "Array with Release Pointer",
+      "timeComplexity": "O(n) total over all insert calls",
       "spaceComplexity": "O(n)",
-      "description": "Store values in an array indexed by id. Maintain a pointer to the next expected id. On insert, if the pointer's slot is filled, advance and collect all consecutive filled slots.",
-      "code": "class OrderedStream {\n    private String[] data;\n    private int ptr;\n    public OrderedStream(int n) {\n        data = new String[n + 1];\n        ptr = 1;\n    }\n    public List<String> insert(int idKey, String value) {\n        data[idKey] = value;\n        List<String> res = new java.util.ArrayList<>();\n        while (ptr < data.length && data[ptr] != null) {\n            res.add(data[ptr]);\n            ptr++;\n        }\n        return res;\n    }\n}",
+      "description": "## Approach\nStore each value at `values[idKey]` and keep `ptr` as the smallest id that has not been emitted yet. After every insertion, scan forward from `ptr` while the next slot is already filled, appending those values to the returned chunk.\n\n## Key Insight\nThe pointer only moves to the right, so each id is inspected and emitted at most once across the whole stream. Out-of-order arrivals can wait in the array until the missing prefix id appears.\n\n## Complexity Analysis\n- Time Complexity: O(n) total over all insert calls, O(k) for a call that emits k values\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass OrderedStream {\n    private final String[] values;\n    private int ptr;\n\n    public OrderedStream(int n) {\n        values = new String[n + 1];\n        ptr = 1;\n    }\n\n    public List<String> insert(int idKey, String value) {\n        values[idKey] = value;\n        List<String> chunk = new ArrayList<>();\n        while (ptr < values.length && values[ptr] != null) {\n            chunk.add(values[ptr]);\n            ptr++;\n        }\n        return chunk;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "HashMap with Pointer",
-      "timeComplexity": "O(n) total",
+      "name": "HashMap Sparse Buffer with Pointer",
+      "timeComplexity": "O(n) total expected over all insert calls",
       "spaceComplexity": "O(n)",
-      "description": "Use a HashMap instead of an array to store values by id. Maintain a pointer to the next expected id and collect consecutive filled slots on each insert.",
-      "code": "import java.util.*;\n\nclass OrderedStream {\n    private Map<Integer, String> map;\n    private int ptr;\n    public OrderedStream(int n) {\n        map = new HashMap();\n        ptr = 1;\n    }\n    public List<String> insert(int idKey, String value) {\n        map.put(idKey, value);\n        List<String> res = new ArrayList();\n        while (map.containsKey(ptr)) {\n            res.add(map.get(ptr));\n            ptr++;\n        }\n        return res;\n    }\n}",
+      "description": "## Approach\nKeep a `HashMap` from id to value for arrived entries. The same `ptr` marks the next id that should be released; after inserting, repeatedly check whether the map contains `ptr`, remove it, and advance.\n\n## Key Insight\nThis route separates the ordering rule from the storage shape. The stream is correct because only `ptr` decides what can be emitted, while the map is just a sparse waiting room for out-of-order ids.\n\n## Complexity Analysis\n- Time Complexity: O(n) total expected over all insert calls\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass OrderedStream {\n    private final Map<Integer, String> pending;\n    private int ptr;\n\n    public OrderedStream(int n) {\n        pending = new HashMap<>();\n        ptr = 1;\n    }\n\n    public List<String> insert(int idKey, String value) {\n        pending.put(idKey, value);\n        List<String> chunk = new ArrayList<>();\n        while (pending.containsKey(ptr)) {\n            chunk.add(pending.remove(ptr));\n            ptr++;\n        }\n        return chunk;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "BitSet Readiness Table",
+      "timeComplexity": "O(n) total over all insert calls",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nStore values in an array and store arrival state separately in a `BitSet`. On insertion, write the value, mark the id as ready, then emit the consecutive ready interval beginning at `ptr`.\n\n## Key Insight\nA separate readiness table avoids relying on `null` as the only sentinel. That pattern is useful when stored values could have a special empty representation or when the value array should not be used as the presence flag.\n\n## Complexity Analysis\n- Time Complexity: O(n) total over all insert calls\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass OrderedStream {\n    private final String[] values;\n    private final BitSet ready;\n    private int ptr;\n\n    public OrderedStream(int n) {\n        values = new String[n + 1];\n        ready = new BitSet(n + 1);\n        ptr = 1;\n    }\n\n    public List<String> insert(int idKey, String value) {\n        values[idKey] = value;\n        ready.set(idKey);\n        List<String> chunk = new ArrayList<>();\n        while (ptr < values.length && ready.get(ptr)) {\n            chunk.add(values[ptr]);\n            ptr++;\n        }\n        return chunk;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "TreeMap Ordered Pending Entries",
+      "timeComplexity": "O(log n) per insert plus emitted chunk size",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nPut arrived but not-yet-emitted ids in a `TreeMap`. The map keeps buffered ids ordered, so after each insertion inspect `firstEntry()` and release only while the smallest pending id is exactly `ptr`.\n\n## Key Insight\nThe ordered map is useful because the smallest buffered id exposes the current blocking gap. If the smallest pending id is larger than `ptr`, no later id can be emitted; if it equals `ptr`, `pollFirstEntry()` releases the next value and advances the pointer.\n\n## Complexity Analysis\n- Time Complexity: O(log n) per inserted id and O(log n) per emitted id\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass OrderedStream {\n    private final TreeMap<Integer, String> pending;\n    private int ptr;\n\n    public OrderedStream(int n) {\n        pending = new TreeMap<>();\n        ptr = 1;\n    }\n\n    public List<String> insert(int idKey, String value) {\n        pending.put(idKey, value);\n        List<String> chunk = new ArrayList<>();\n        while (!pending.isEmpty()) {\n            Map.Entry<Integer, String> first = pending.firstEntry();\n            if (first.getKey() != ptr) {\n                break;\n            }\n            chunk.add(first.getValue());\n            pending.pollFirstEntry();\n            ptr++;\n        }\n        return chunk;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Min-Heap Buffered Ids",
+      "timeComplexity": "O(log n) per insert plus emitted chunk size",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nStore values by id in an array and push every arrived id into a min-heap. After each insertion, the heap top tells us the smallest buffered id; emit while that smallest id equals `ptr`.\n\n## Key Insight\nA min-heap is another way to express the same release rule. Larger ids may already be buffered, but the heap prevents them from hiding a missing smaller id because only the minimum ready id can be checked against `ptr`.\n\n## Complexity Analysis\n- Time Complexity: O(log n) per insert and O(log n) for each emitted id\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass OrderedStream {\n    private final String[] values;\n    private final PriorityQueue<Integer> readyIds;\n    private int ptr;\n\n    public OrderedStream(int n) {\n        values = new String[n + 1];\n        readyIds = new PriorityQueue<>();\n        ptr = 1;\n    }\n\n    public List<String> insert(int idKey, String value) {\n        values[idKey] = value;\n        readyIds.add(idKey);\n        List<String> chunk = new ArrayList<>();\n        while (!readyIds.isEmpty() && readyIds.peek() == ptr) {\n            readyIds.poll();\n            chunk.add(values[ptr]);\n            ptr++;\n        }\n        return chunk;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "[\"OrderedStream\", \"insert\", \"insert\", \"insert\", \"insert\", \"insert\"]\n[[5], [3, \"ccccc\"], [1, \"aaaaa\"], [2, \"bbbbb\"], [5, \"eeeee\"], [4, \"ddddd\"]]",
-      "output": "[null, [], [\"aaaaa\"], [\"bbbbb\", \"ccccc\"], [], [\"ddddd\", \"eeeee\"]]"
+      "output": "[null, [], [\"aaaaa\"], [\"bbbbb\", \"ccccc\"], [], [\"ddddd\", \"eeeee\"]]",
+      "description": "Canonical out-of-order stream releases chunks only when the current pointer is present."
+    },
+    {
+      "description": "Buffered higher ids are released only after the missing prefix id arrives.",
+      "input": "[\"OrderedStream\",\"insert\",\"insert\",\"insert\",\"insert\"]\n[[4],[2,\"bbbbb\"],[4,\"ddddd\"],[1,\"aaaaa\"],[3,\"ccccc\"]]",
+      "output": "[null,[],[],[\"aaaaa\",\"bbbbb\"],[\"ccccc\",\"ddddd\"]]"
+    },
+    {
+      "description": "Already ordered arrivals should return one value per insertion.",
+      "input": "[\"OrderedStream\",\"insert\",\"insert\",\"insert\"]\n[[3],[1,\"aaaaa\"],[2,\"bbbbb\"],[3,\"ccccc\"]]",
+      "output": "[null,[\"aaaaa\"],[\"bbbbb\"],[\"ccccc\"]]"
+    },
+    {
+      "description": "Reverse-order arrivals wait until id 1 arrives, then release the whole stream at once.",
+      "input": "[\"OrderedStream\",\"insert\",\"insert\",\"insert\",\"insert\",\"insert\"]\n[[5],[5,\"eeeee\"],[4,\"ddddd\"],[3,\"ccccc\"],[2,\"bbbbb\"],[1,\"aaaaa\"]]",
+      "output": "[null,[],[],[],[],[\"aaaaa\",\"bbbbb\",\"ccccc\",\"ddddd\",\"eeeee\"]]"
+    },
+    {
+      "description": "Single-entry streams release immediately and then finish.",
+      "input": "[\"OrderedStream\",\"insert\"]\n[[1],[1,\"zzzzz\"]]",
+      "output": "[null,[\"zzzzz\"]]"
+    },
+    {
+      "description": "A released prefix can be followed by later buffered suffix chunks.",
+      "input": "[\"OrderedStream\",\"insert\",\"insert\",\"insert\",\"insert\",\"insert\",\"insert\"]\n[[6],[1,\"aaaaa\"],[3,\"ccccc\"],[2,\"bbbbb\"],[6,\"fffff\"],[5,\"eeeee\"],[4,\"ddddd\"]]",
+      "output": "[null,[\"aaaaa\"],[],[\"bbbbb\",\"ccccc\"],[],[],[\"ddddd\",\"eeeee\",\"fffff\"]]"
+    },
+    {
+      "description": "Duplicate values must still be returned by id order, not by value identity.",
+      "input": "[\"OrderedStream\",\"insert\",\"insert\",\"insert\",\"insert\",\"insert\",\"insert\"]\n[[6],[2,\"apple\"],[1,\"apple\"],[4,\"berry\"],[6,\"cider\"],[3,\"berry\"],[5,\"cider\"]]",
+      "output": "[null,[],[\"apple\",\"apple\"],[],[],[\"berry\",\"berry\"],[\"cider\",\"cider\"]]"
+    },
+    {
+      "description": "Multiple gaps can close in stages while the pointer never moves backward.",
+      "input": "[\"OrderedStream\",\"insert\",\"insert\",\"insert\",\"insert\",\"insert\",\"insert\",\"insert\",\"insert\"]\n[[8],[3,\"three\"],[1,\"oneaa\"],[5,\"fivee\"],[2,\"twooo\"],[8,\"eight\"],[7,\"seven\"],[4,\"fourr\"],[6,\"sixxx\"]]",
+      "output": "[null,[],[\"oneaa\"],[],[\"twooo\",\"three\"],[],[],[\"fourr\",\"fivee\"],[\"sixxx\",\"seven\",\"eight\"]]"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "design",
+      "file": "p410_design.png",
+      "caption": "Ordered stream pointer and buffered ids"
     }
   ]
 }

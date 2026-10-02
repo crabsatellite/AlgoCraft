@@ -1,7 +1,7 @@
 {
   "id": "476",
   "title": "Merge Two Binary Trees",
-  "description": "# Merge Two Binary Trees\n\nYou are given two binary trees `root1` and `root2`.\n\nImagine that when you put one of them to cover the other, some nodes of the two trees are overlapped while the others are not. You need to merge the two trees into a new binary tree. The merge rule is that if two nodes overlap, then sum node values up as the new value of the merged node. Otherwise, the NOT null node will be used as the node of the new tree.\n\nReturn *the merged tree*.\n\nNote: The merging process must start from the root nodes of both trees.\n\n## Example 1:\n\n**Input:** root1 = [1,3,2,5], root2 = [2,1,3,null,4,null,7]\n**Output:** [3,4,5,5,4,null,7]\n**Explanation:**\nTree 1                     Tree 2                  \n          1                         2                             \n         / \\                       / \\                            \n        3   2                     1   3                        \n       /                           \\   \\                      \n      5                             4   7                  \nMerged Tree:\n         3\n        / \\\n       4   5\n      / \\   \\ \n     5   4   7\n\n## Example 2:\n\n**Input:** root1 = [1], root2 = [1,2]\n**Output:** [2,2]\n\n## Constraints:\n\n*   The number of nodes in both trees is in the range `[0, 2000]`.\n*   `-10^4 <= Node.val <= 10^4`",
+  "description": "# Merge Two Binary Trees\n\nYou are given the roots of two binary trees, `root1` and `root2`.\n\nCreate the tree formed by placing the two trees on top of each other from their roots. When both trees have a node at the same position, the merged node's value is the sum of the two node values. When exactly one tree has a node at a position, that existing node and its subtree appear unchanged in the merged tree.\n\nReturn the root of the merged tree. Your implementation may build a new tree or reuse nodes from the input trees, as long as the returned tree has the required values and structure.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n![Two input binary trees](images/p476_example1.png)\n\n**Input:** root1 = [1,3,2,5], root2 = [2,1,3,null,4,null,7]\n**Output:** [3,4,5,5,4,null,7]\n**Explanation:** The roots merge into `3`; the overlapping children merge into `4` and `5`; non-overlapping leaves `5`, `4`, and `7` remain in the result.\n\n## Example 2:\n\n**Input:** root1 = [1], root2 = [1,2]\n**Output:** [2,2]\n**Explanation:** The roots overlap and sum to `2`; the left child `2` exists only in `root2`.\n\n## Example 3:\n\n**Input:** root1 = [], root2 = [1,-2,3]\n**Output:** [1,-2,3]\n**Explanation:** If one tree is empty, the merged tree is the other tree.\n\n## Constraints:\n\n* The number of nodes in each input tree is in the range `[0, 2000]`.\n* `-10^4 <= Node.val <= 10^4`.",
   "difficulty": "EASY",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public TreeNode mergeTrees(TreeNode root1, TreeNode root2) {\n        \n    }\n}",
   "tags": [
@@ -18,23 +18,35 @@
     {
       "input": "root1 = [1], root2 = [1,2]",
       "output": "[2,2]"
+    },
+    {
+      "input": "root1 = [], root2 = [1,-2,3]",
+      "output": "[1,-2,3]"
     }
   ],
   "solutions": [
     {
-      "name": "Recursive Merge",
-      "timeComplexity": "O(min(n, m))",
-      "spaceComplexity": "O(min(h1, h2))",
-      "description": "Recursively merge two trees. If one is null, return the other. Otherwise create a new node with summed values and recursively merge left and right children.",
-      "code": "class Solution {\n    public TreeNode mergeTrees(TreeNode root1, TreeNode root2) {\n        if (root1 == null) return root2;\n        if (root2 == null) return root1;\n        TreeNode merged = new TreeNode(root1.val + root2.val);\n        merged.left = mergeTrees(root1.left, root2.left);\n        merged.right = mergeTrees(root1.right, root2.right);\n        return merged;\n    }\n}",
+      "name": "Recursive New Tree Merge",
+      "timeComplexity": "O(n + m)",
+      "spaceComplexity": "O(n + m)",
+      "description": "## Approach\n\nRecursively build a fresh result tree. If both nodes exist, create a node whose value is their sum and recursively merge the two left children and the two right children. If only one node exists, clone that remaining subtree so the returned tree is independent from both inputs.\n\n## Key Insight\n\nThe merge rule is local to one tree position: overlap means add values, and non-overlap means preserve the existing subtree. Treating a missing node as \"clone the other side\" keeps the recursive cases small and also teaches the difference between constructing a new result and mutating an input tree.\n\n## Complexity Analysis\n\nLet `n` and `m` be the numbers of nodes in the two trees. This version visits and copies every node that can appear in the output, so the time complexity is O(n + m). The result tree uses O(n + m) space, and the recursion stack is bounded by the combined tree height.",
+      "code": "class Solution {\n    public TreeNode mergeTrees(TreeNode root1, TreeNode root2) {\n        if (root1 == null) {\n            return cloneTree(root2);\n        }\n        if (root2 == null) {\n            return cloneTree(root1);\n        }\n\n        TreeNode merged = new TreeNode(root1.val + root2.val);\n        merged.left = mergeTrees(root1.left, root2.left);\n        merged.right = mergeTrees(root1.right, root2.right);\n        return merged;\n    }\n\n    private TreeNode cloneTree(TreeNode node) {\n        if (node == null) {\n            return null;\n        }\n        TreeNode copy = new TreeNode(node.val);\n        copy.left = cloneTree(node.left);\n        copy.right = cloneTree(node.right);\n        return copy;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Iterative BFS Merge",
-      "timeComplexity": "O(min(n, m))",
-      "spaceComplexity": "O(min(n, m))",
-      "description": "Use a queue-based BFS to merge both trees iteratively. Process nodes level by level, merging values and linking children appropriately.",
-      "code": "class Solution {\n    public TreeNode mergeTrees(TreeNode root1, TreeNode root2) {\n        if (root1 == null) return root2;\n        if (root2 == null) return root1;\n        java.util.Queue<TreeNode[]> queue = new java.util.LinkedList<>();\n        queue.offer(new TreeNode[]{root1, root2});\n        while (!queue.isEmpty()) {\n            TreeNode[] pair = queue.poll();\n            TreeNode t1 = pair[0], t2 = pair[1];\n            t1.val += t2.val;\n            if (t1.left != null && t2.left != null) {\n                queue.offer(new TreeNode[]{t1.left, t2.left});\n            } else if (t1.left == null) {\n                t1.left = t2.left;\n            }\n            if (t1.right != null && t2.right != null) {\n                queue.offer(new TreeNode[]{t1.right, t2.right});\n            } else if (t1.right == null) {\n                t1.right = t2.right;\n            }\n        }\n        return root1;\n    }\n}",
+      "name": "Recursive In-place DFS Merge",
+      "timeComplexity": "O(k)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nReuse `root1` as the result tree. If either current node is missing, return the other subtree. If both nodes exist, add `root2`'s value into `root1`, then recursively assign the merged left and right children back onto `root1`.\n\n## Key Insight\n\nOnce a subtree exists on only one side, no more value addition can happen inside that subtree, so it can be attached directly. The recursion only has real work while the two trees overlap, which is why this route is shorter and more memory-efficient than building a fully cloned result.\n\n## Complexity Analysis\n\nLet `k` be the number of positions where both trees contain a node. This implementation processes those `k` overlapping pairs and attaches non-overlapping subtrees without copying them, so the time complexity is O(k) and the recursion stack is O(h), where `h` is the maximum overlap recursion depth.",
+      "code": "class Solution {\n    public TreeNode mergeTrees(TreeNode root1, TreeNode root2) {\n        if (root1 == null) {\n            return root2;\n        }\n        if (root2 == null) {\n            return root1;\n        }\n\n        root1.val += root2.val;\n        root1.left = mergeTrees(root1.left, root2.left);\n        root1.right = mergeTrees(root1.right, root2.right);\n        return root1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative BFS In-place Merge",
+      "timeComplexity": "O(k)",
+      "spaceComplexity": "O(w)",
+      "description": "## Approach\n\nProcess overlapping node pairs with a queue. Start with `(root1, root2)`, add the second value into the first node, and then either enqueue child pairs that both exist or attach the child subtree that exists only on `root2`. The first tree becomes the result tree.\n\n## Key Insight\n\nThe queue stores only pairs of nodes that still need value addition. Whenever a child exists on just one side, the merge rule is already decided, so the algorithm links that subtree instead of traversing through it. This gives the same in-place behavior as DFS without using recursive calls.\n\n## Complexity Analysis\n\nLet `k` be the number of overlapping node pairs and `w` be the maximum number of overlapping pairs held in the queue at one time. The time complexity is O(k), and the auxiliary queue space is O(w). Non-overlapping subtrees are reused rather than copied.",
+      "code": "class Solution {\n    public TreeNode mergeTrees(TreeNode root1, TreeNode root2) {\n        if (root1 == null) {\n            return root2;\n        }\n        if (root2 == null) {\n            return root1;\n        }\n\n        java.util.Queue<TreeNode[]> queue = new java.util.ArrayDeque<>();\n        queue.offer(new TreeNode[]{root1, root2});\n\n        while (!queue.isEmpty()) {\n            TreeNode[] pair = queue.poll();\n            TreeNode first = pair[0];\n            TreeNode second = pair[1];\n            first.val += second.val;\n\n            if (first.left != null && second.left != null) {\n                queue.offer(new TreeNode[]{first.left, second.left});\n            } else if (first.left == null) {\n                first.left = second.left;\n            }\n\n            if (first.right != null && second.right != null) {\n                queue.offer(new TreeNode[]{first.right, second.right});\n            } else if (first.right == null) {\n                first.right = second.right;\n            }\n        }\n\n        return root1;\n    }\n}",
       "language": "java"
     }
   ],
@@ -46,18 +58,53 @@
     {
       "input": "root1 = [1], root2 = [1,2]",
       "output": "[2,2]"
+    },
+    {
+      "input": "root1 = [], root2 = []",
+      "output": "[]"
+    },
+    {
+      "input": "root1 = [], root2 = [1,-2,3]",
+      "output": "[1,-2,3]"
+    },
+    {
+      "input": "root1 = [5], root2 = []",
+      "output": "[5]"
+    },
+    {
+      "input": "root1 = [-1], root2 = [1]",
+      "output": "[0]"
+    },
+    {
+      "input": "root1 = [1,2,null,3], root2 = [4,null,5,6]",
+      "output": "[5,2,5,3,null,6]"
+    },
+    {
+      "input": "root1 = [1,2,3,4,5,6,7], root2 = [10,20,30,40,50,60,70]",
+      "output": "[11,22,33,44,55,66,77]"
+    },
+    {
+      "input": "root1 = [0,-1000,1000], root2 = [0,1000,-1000]",
+      "output": "[0,0,0]"
+    },
+    {
+      "input": "root1 = [1,2,null,3,null,4], root2 = [10,20,null,30,null,40]",
+      "output": "[11,22,null,33,null,44]"
+    },
+    {
+      "input": "root1 = [1,null,2,null,3], root2 = [4,5]",
+      "output": "[5,5,2,null,null,null,3]"
+    },
+    {
+      "input": "root1 = [2,1,3], root2 = [3,4,null,5]",
+      "output": "[5,5,3,5]"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p476_example1.png",
-      "caption": "Example 1"
-    },
-    {
-      "id": "example1_merged",
-      "file": "p476_example1_merged.png",
-      "caption": "Example 1 - After Merge"
+      "caption": "Two input binary trees"
     }
   ]
 }

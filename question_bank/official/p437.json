@@ -1,38 +1,126 @@
 {
   "id": "437",
-  "title": "Map Sum Pairs",
-  "description": "# Map Sum Pairs\n\nDesign a map that allows you to do the following:\n\n*   Maps a string key to a given value.\n*   Returns the sum of the values that have a key with a prefix equal to a given string.\n\nImplement the `MapSum` class:\n\n*   `MapSum()` Initializes the `MapSum` object.\n*   `void insert(String key, int val)` Inserts the `key-val` pair into the map. If the `key` already existed, the original `key-value` pair will be overridden to the new one.\n*   `int sum(String prefix)` Returns the sum of all the pairs' value whose `key` starts with the `prefix`.\n\n## Example 1:\n\n**Input**\n[\"MapSum\", \"insert\", \"sum\", \"insert\", \"sum\"]\n[[], [\"apple\", 3], [\"ap\"], [\"app\", 2], [\"ap\"]]\n**Output**\n[null, null, 3, null, 5]\n**Explanation**\nMapSum mapSum = new MapSum();\nmapSum.insert(\"apple\", 3);  \nmapSum.sum(\"ap\");           // return 3 (apple = 3)\nmapSum.insert(\"app\", 2);    \nmapSum.sum(\"ap\");           // return 5 (apple + app = 3 + 2 = 5)\n\n## Constraints:\n\n*   `1 <= key.length, prefix.length <= 50`\n*   `key` and `prefix` consist of only lowercase English letters.\n*   `1 <= val <= 1000`\n*   At most `50` calls will be made to `insert` and `sum`.",
-  "difficulty": "MEDIUM",
-  "initialCode": "class MapSum {\n\n    public MapSum() {\n        \n    }\n    \n    public void insert(String key, int val) {\n        \n    }\n    \n    public int sum(String prefix) {\n        \n    }\n}",
-  "tags": ["Hash Table", "String", "Design", "Trie"],
+  "title": "Minimum Window Subsequence",
+  "description": "# Minimum Window Subsequence\n\nGiven strings `s` and `t`, return the shortest contiguous substring of `s` such that `t` is a subsequence of that substring.\n\nA subsequence keeps character order but may skip characters. If several valid substrings have the same minimum length, return the one with the smallest start index. If no such substring exists, return the empty string. For this official bank, an empty `t` also returns the empty string.\n\n## Example 1:\n\n**Input:** s = \"abcdebdde\", t = \"bde\"\n**Output:** \"bcde\"\n**Explanation:** `bcde` contains `b`, then `d`, then `e` in order. The later window `bdde` has the same length, so the earlier window is returned.\n\n## Example 2:\n\n**Input:** s = \"abc\", t = \"ac\"\n**Output:** \"abc\"\n**Explanation:** `ac` is not contiguous in `s`, but it is a subsequence of the window `abc`.\n\n## Constraints:\n\n*   `0 <= s.length <= 2 * 10^4`\n*   `0 <= t.length <= 100`\n*   `s` and `t` contain ASCII characters supported by the official tests.",
+  "difficulty": "HARD",
+  "initialCode": "class Solution {\n    public String minWindow(String s, String t) {\n        // Write your code here\n    }\n}",
+  "tags": [
+    "String",
+    "Dynamic Programming",
+    "Two Pointers"
+  ],
   "examples": [
     {
-      "input": "[\"MapSum\", \"insert\", \"sum\", \"insert\", \"sum\"]\n[[], [\"apple\", 3], [\"ap\"], [\"app\", 2], [\"ap\"]]",
-      "output": "[null, null, 3, null, 5]"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "Trie with Prefix Sum",
-      "timeComplexity": "O(L) per operation",
-      "spaceComplexity": "O(N * L)",
-      "description": "Use a trie where each node stores a cumulative sum of all values passing through it. On insert, compute the delta (new val minus old val if key existed) and add delta to every node along the path. Sum query just traverses to the prefix node.",
-      "code": "class MapSum {\n    private int[][] children;\n    private int[] prefixSum;\n    private int cnt;\n    private java.util.HashMap<String, Integer> map;\n\n    public MapSum() {\n        children = new int[2501][26];\n        prefixSum = new int[2501];\n        cnt = 1;\n        map = new java.util.HashMap<>();\n    }\n\n    public void insert(String key, int val) {\n        int delta = val - map.getOrDefault(key, 0);\n        map.put(key, val);\n        int node = 0;\n        for (char c : key.toCharArray()) {\n            int idx = c - 'a';\n            if (children[node][idx] == 0) {\n                children[node][idx] = cnt++;\n            }\n            node = children[node][idx];\n            prefixSum[node] += delta;\n        }\n    }\n\n    public int sum(String prefix) {\n        int node = 0;\n        for (char c : prefix.toCharArray()) {\n            int idx = c - 'a';\n            if (children[node][idx] == 0) return 0;\n            node = children[node][idx];\n        }\n        return prefixSum[node];\n    }\n}",
-      "language": "java"
+      "input": "s = \"abcdebdde\", t = \"bde\"",
+      "output": "\"bcde\""
     },
     {
-      "name": "HashMap with Brute Force Prefix Scan",
-      "timeComplexity": "O(n * L) for sum, O(1) for insert",
-      "spaceComplexity": "O(n * L)",
-      "description": "Store all key-value pairs in a HashMap. For sum, iterate over all keys and check if each starts with the given prefix. Sum matching values.",
-      "code": "import java.util.*;\n\nclass MapSum {\n    private Map<String, Integer> map;\n\n    public MapSum() {\n        map = new HashMap();\n    }\n\n    public void insert(String key, int val) {\n        map.put(key, val);\n    }\n\n    public int sum(String prefix) {\n        int total = 0;\n        Iterator<Map.Entry<String, Integer>> it = map.entrySet().iterator();\n        while (it.hasNext()) {\n            Map.Entry<String, Integer> entry = it.next();\n            if (entry.getKey().startsWith(prefix)) {\n                total += entry.getValue().intValue();\n            }\n        }\n        return total;\n    }\n}",
-      "language": "java"
+      "input": "s = \"abc\", t = \"ac\"",
+      "output": "\"abc\""
     }
   ],
   "tests": [
     {
-      "input": "[\"MapSum\", \"insert\", \"sum\", \"insert\", \"sum\"]\n[[], [\"apple\", 3], [\"ap\"], [\"app\", 2], [\"ap\"]]",
-      "output": "[null, null, 3, null, 5]"
+      "input": "s = \"abcdebdde\", t = \"bde\"",
+      "output": "\"bcde\""
+    },
+    {
+      "input": "s = \"abc\", t = \"ac\"",
+      "output": "\"abc\""
+    },
+    {
+      "input": "s = \"abc\", t = \"d\"",
+      "output": "\"\""
+    },
+    {
+      "input": "s = \"abc\", t = \"\"",
+      "output": "\"\""
+    },
+    {
+      "input": "s = \"abdbde\", t = \"bde\"",
+      "output": "\"bde\""
+    },
+    {
+      "input": "s = \"fgrqsqsnodwmxzkzxwqegkndaa\", t = \"kzed\"",
+      "output": "\"kzxwqegknd\""
+    },
+    {
+      "input": "s = \"aaaaa\", t = \"aa\"",
+      "output": "\"aa\""
+    },
+    {
+      "input": "s = \"abcabc\", t = \"abc\"",
+      "output": "\"abc\""
+    },
+    {
+      "input": "s = \"abcabc\", t = \"cab\"",
+      "output": "\"cab\""
+    },
+    {
+      "input": "s = \"cnhczmccqouqadqtmjjzl\", t = \"mm\"",
+      "output": "\"mccqouqadqtm\""
+    },
+    {
+      "input": "s = \"abcde\", t = \"ace\"",
+      "output": "\"abcde\""
+    },
+    {
+      "input": "s = \"abcde\", t = \"aec\"",
+      "output": "\"\""
+    },
+    {
+      "input": "s = \"abcbdde\", t = \"bde\"",
+      "output": "\"bdde\""
+    },
+    {
+      "input": "s = \"babab\", t = \"bb\"",
+      "output": "\"bab\""
+    },
+    {
+      "input": "s = \"xaybzcydze\", t = \"azde\"",
+      "output": "\"aybzcydze\""
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Forward Backward Scan",
+      "timeComplexity": "O(n * m)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan forward through `s` until every character of `t` has been matched as a subsequence. Once a full match is found, scan backward from that end position to shrink the left edge as far as possible. Record the window, then restart just after the shrunken start.\n\n## Key Insight\n\nThe forward pass discovers a valid end, while the backward pass finds the tightest start for that end. Updating only on strictly shorter windows preserves the earliest answer when two windows have equal length.\n\n## Complexity Analysis\n- Time Complexity: O(n * m) in the worst case, where `n = s.length()` and `m = t.length()`.\n- Space Complexity: O(1).",
+      "code": "class Solution {\n    public String minWindow(String s, String t) {\n        if (t.length() == 0) {\n            return \"\";\n        }\n        int bestStart = -1;\n        int bestLength = Integer.MAX_VALUE;\n        int i = 0;\n        while (i < s.length()) {\n            int targetIndex = 0;\n            while (i < s.length()) {\n                if (s.charAt(i) == t.charAt(targetIndex)) {\n                    targetIndex++;\n                    if (targetIndex == t.length()) {\n                        break;\n                    }\n                }\n                i++;\n            }\n            if (i == s.length()) {\n                break;\n            }\n            int end = i + 1;\n            targetIndex = t.length() - 1;\n            while (i >= 0) {\n                if (s.charAt(i) == t.charAt(targetIndex)) {\n                    targetIndex--;\n                    if (targetIndex < 0) {\n                        break;\n                    }\n                }\n                i--;\n            }\n            int start = i;\n            int length = end - start;\n            if (length < bestLength) {\n                bestLength = length;\n                bestStart = start;\n            }\n            i = start + 1;\n        }\n        return bestStart == -1 ? \"\" : s.substring(bestStart, bestStart + bestLength);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Next Occurrence Table",
+      "timeComplexity": "O(128 * n + n * m)",
+      "spaceComplexity": "O(128 * n)",
+      "description": "## Approach\n\nBuild a table `next[i][c]` that tells the first position at or after `i` where character `c` appears. For each possible start that matches `t[0]`, jump through the characters of `t` using the table and form a candidate window if every jump succeeds.\n\n## Key Insight\n\nThe table turns subsequence matching from a character-by-character scan into deterministic jumps. Scanning starts from left to right and replacing the answer only when the candidate is shorter keeps the required earliest tie break.\n\n## Complexity Analysis\n- Time Complexity: O(128 * n + n * m).\n- Space Complexity: O(128 * n).",
+      "code": "class Solution {\n    public String minWindow(String s, String t) {\n        if (t.length() == 0) {\n            return \"\";\n        }\n        int n = s.length();\n        int alphabet = 128;\n        int[][] next = new int[n + 1][alphabet];\n        java.util.Arrays.fill(next[n], -1);\n        for (int i = n - 1; i >= 0; i--) {\n            next[i] = next[i + 1].clone();\n            int ch = s.charAt(i);\n            if (ch < alphabet) {\n                next[i][ch] = i;\n            }\n        }\n        int bestStart = -1;\n        int bestLength = Integer.MAX_VALUE;\n        for (int start = 0; start < n; start++) {\n            if (s.charAt(start) != t.charAt(0)) {\n                continue;\n            }\n            int pos = start;\n            boolean matched = true;\n            for (int j = 0; j < t.length(); j++) {\n                int ch = t.charAt(j);\n                if (ch >= alphabet || next[pos][ch] == -1) {\n                    matched = false;\n                    break;\n                }\n                pos = next[pos][ch] + 1;\n            }\n            if (matched && pos - start < bestLength) {\n                bestLength = pos - start;\n                bestStart = start;\n            }\n        }\n        return bestStart == -1 ? \"\" : s.substring(bestStart, bestStart + bestLength);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Position Lists Binary Search",
+      "timeComplexity": "O(n + k * m * log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore the sorted list of positions for every ASCII character in `s`. Iterate over each occurrence of `t[0]` as a candidate start, then use binary search in the next character's position list to find the first occurrence after the current matched position.\n\n## Key Insight\n\nA subsequence is an increasing sequence of source indices. Position lists make that invariant explicit, and `upperBound` chooses the earliest legal next index, which gives the shortest window for a fixed start.\n\n## Complexity Analysis\n- Time Complexity: O(n + k * m * log n), where `k` is the number of occurrences of `t[0]`.\n- Space Complexity: O(n).",
+      "code": "class Solution {\n    public String minWindow(String s, String t) {\n        if (t.length() == 0) {\n            return \"\";\n        }\n        int alphabet = 128;\n        java.util.List<Integer>[] positions = new java.util.ArrayList[alphabet];\n        for (int i = 0; i < s.length(); i++) {\n            int ch = s.charAt(i);\n            if (ch < alphabet) {\n                if (positions[ch] == null) {\n                    positions[ch] = new java.util.ArrayList<>();\n                }\n                positions[ch].add(i);\n            }\n        }\n        int first = t.charAt(0);\n        if (first >= alphabet || positions[first] == null) {\n            return \"\";\n        }\n        int bestStart = -1;\n        int bestLength = Integer.MAX_VALUE;\n        for (int start : positions[first]) {\n            int current = start;\n            boolean matched = true;\n            for (int j = 1; j < t.length(); j++) {\n                int ch = t.charAt(j);\n                if (ch >= alphabet || positions[ch] == null) {\n                    matched = false;\n                    break;\n                }\n                int index = upperBound(positions[ch], current);\n                if (index == positions[ch].size()) {\n                    matched = false;\n                    break;\n                }\n                current = positions[ch].get(index);\n            }\n            int length = current - start + 1;\n            if (matched && length < bestLength) {\n                bestLength = length;\n                bestStart = start;\n            }\n        }\n        return bestStart == -1 ? \"\" : s.substring(bestStart, bestStart + bestLength);\n    }\n\n    private int upperBound(java.util.List<Integer> positions, int value) {\n        int left = 0;\n        int right = positions.size();\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (positions.get(mid) <= value) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Forward Start Dynamic Programming",
+      "timeComplexity": "O(n * m)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nScan `s` from left to right. For every prefix length of `t`, store the start index of the best subsequence ending at the current scan position. Update the target indices from right to left so one source character cannot be reused twice.\n\n## Key Insight\n\nWhen the full target prefix has a stored start, the current index closes a valid window. Keeping the most recent start for each prefix tends to shorten future windows, while the final answer still updates only on strictly shorter windows for the earliest tie rule.\n\n## Complexity Analysis\n- Time Complexity: O(n * m).\n- Space Complexity: O(m).",
+      "code": "class Solution {\n    public String minWindow(String s, String t) {\n        if (t.length() == 0) {\n            return \"\";\n        }\n        int m = t.length();\n        int[] start = new int[m];\n        java.util.Arrays.fill(start, -1);\n        int bestStart = -1;\n        int bestLength = Integer.MAX_VALUE;\n        for (int i = 0; i < s.length(); i++) {\n            for (int j = m - 1; j >= 0; j--) {\n                if (s.charAt(i) != t.charAt(j)) {\n                    continue;\n                }\n                if (j == 0) {\n                    start[0] = i;\n                } else if (start[j - 1] != -1) {\n                    start[j] = start[j - 1];\n                }\n            }\n            if (start[m - 1] != -1) {\n                int length = i - start[m - 1] + 1;\n                if (length < bestLength) {\n                    bestLength = length;\n                    bestStart = start[m - 1];\n                }\n            }\n        }\n        return bestStart == -1 ? \"\" : s.substring(bestStart, bestStart + bestLength);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Backward End Dynamic Programming",
+      "timeComplexity": "O(n * m)",
+      "spaceComplexity": "O(n * m)",
+      "description": "## Approach\n\nBuild a suffix DP table where `end[i][j]` is the exclusive end index after matching `t[j:]` from source position `i`. If `s[i]` equals `t[j]`, the table consumes both characters; otherwise it skips `s[i]`. Every source index that equals `t[0]` can then read its window end directly.\n\n## Key Insight\n\nThis route fixes the start first and asks where the target would finish from that start. It is more memory-heavy than the one-row DP, but the table is a clear teaching model for how subsequence windows are formed from suffix states.\n\n## Complexity Analysis\n- Time Complexity: O(n * m).\n- Space Complexity: O(n * m).",
+      "code": "class Solution {\n    public String minWindow(String s, String t) {\n        if (t.length() == 0) {\n            return \"\";\n        }\n        int n = s.length();\n        int m = t.length();\n        int[][] end = new int[n + 1][m + 1];\n        for (int i = 0; i <= n; i++) {\n            end[i][m] = i;\n        }\n        for (int j = 0; j < m; j++) {\n            end[n][j] = -1;\n        }\n        for (int i = n - 1; i >= 0; i--) {\n            for (int j = m - 1; j >= 0; j--) {\n                if (s.charAt(i) == t.charAt(j)) {\n                    end[i][j] = end[i + 1][j + 1];\n                } else {\n                    end[i][j] = end[i + 1][j];\n                }\n            }\n        }\n        int bestStart = -1;\n        int bestLength = Integer.MAX_VALUE;\n        for (int start = 0; start < n; start++) {\n            if (s.charAt(start) != t.charAt(0)) {\n                continue;\n            }\n            int finish = end[start][0];\n            if (finish != -1 && finish - start < bestLength) {\n                bestLength = finish - start;\n                bestStart = start;\n            }\n        }\n        return bestStart == -1 ? \"\" : s.substring(bestStart, bestStart + bestLength);\n    }\n}",
+      "language": "java"
     }
   ]
 }

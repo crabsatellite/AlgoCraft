@@ -1,36 +1,128 @@
 {
   "id": "317",
-  "title": "Minimum Window Substring",
-  "description": "# Minimum Window Substring\n\nGiven two strings `s` and `t` of lengths `m` and `n` respectively, return *the **minimum window substring** of* `s` *such that every character in* `t` *(including duplicates) is included in the window. If there is no such substring, return the empty string* `\"\"`.\n\nThe testcases will be generated such that the answer is **unique**.\n\n## Example 1:\n\n**Input:** s = \"ADOBECODEBANC\", t = \"ABC\"\n**Output:** \"BANC\"\n**Explanation:** The minimum window substring \"BANC\" includes 'A', 'B', and 'C' from string t.\n\n## Example 2:\n\n**Input:** s = \"a\", t = \"a\"\n**Output:** \"a\"\n**Explanation:** The entire string s is the minimum window.\n\n## Example 3:\n\n**Input:** s = \"a\", t = \"aa\"\n**Output:** \"\"\n**Explanation:** Both 'a's from t must be included in the window.\nSince the largest window of s only has one 'a', return empty string.\n\n## Constraints:\n\n*   `m == s.length`\n*   `n == t.length`\n*   `1 <= m, n <= 10^5`\n*   `s` and `t` consist of uppercase and lowercase English letters.",
+  "title": "Count Subarrays With Fixed Bounds",
+  "description": "# Count Subarrays With Fixed Bounds\n\nGiven an integer array `nums` and two integers `minK` and `maxK`, count the number of contiguous subarrays whose minimum value is exactly `minK` and whose maximum value is exactly `maxK`.\n\nA subarray is one nonempty contiguous segment. Different start or end indices identify different subarrays, even when the value sequences match.\n\nReturn the number of valid subarrays as a `long`.\n\n## Example 1:\n\n**Input:** nums = [1,3,5,2,7,5], minK = 1, maxK = 5\n**Output:** 2\n\n**Explanation:** The valid subarrays are `[1,3,5]` and `[1,3,5,2]`. The value `7` is outside `[1,5]`, so no valid subarray can cross it.\n\n## Example 2:\n\n**Input:** nums = [1,1,1,1], minK = 1, maxK = 1\n**Output:** 10\n\n**Explanation:** Every non-empty subarray has minimum and maximum both equal to `1`.\n\n## Constraints:\n\n* `1 <= nums.length <= 10^5`\n* `-10^9 <= nums[i], minK, maxK <= 10^9`\n* `minK <= maxK`\n* The answer fits in a 64-bit signed integer.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public String minWindow(String s, String t) {\n        \n    }\n}",
-  "tags": ["Hash Table", "String", "Sliding Window"],
-  "examples": [
-    { "input": "s = \"ADOBECODEBANC\", t = \"ABC\"", "output": "\"BANC\"" },
-    { "input": "s = \"a\", t = \"a\"", "output": "\"a\"" },
-    { "input": "s = \"a\", t = \"aa\"", "output": "\"\"" }
+  "initialCode": "class Solution {\n    public long countSubarrays(int[] nums, int minK, int maxK) {\n        return 0L;\n    }\n}",
+  "tags": [
+    "Array",
+    "Sliding Window",
+    "Counting"
   ],
-  "solutions": [
+  "examples": [
     {
-      "name": "Sliding Window",
-      "timeComplexity": "O(m + n)",
-      "spaceComplexity": "O(1)",
-      "description": "Use two frequency arrays (size 128) for target and window. Expand right pointer to include chars, shrink left when all target chars are covered. Track minimum window.",
-      "code": "class Solution {\n    public String minWindow(String s, String t) {\n        int[] need = new int[128], have = new int[128];\n        for (char c : t.toCharArray()) need[c]++;\n        int required = 0;\n        for (int n : need) if (n > 0) required++;\n        int formed = 0, left = 0, minLen = Integer.MAX_VALUE, minStart = 0;\n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            have[c]++;\n            if (need[c] > 0 && have[c] == need[c]) formed++;\n            while (formed == required) {\n                if (right - left + 1 < minLen) {\n                    minLen = right - left + 1;\n                    minStart = left;\n                }\n                char lc = s.charAt(left);\n                have[lc]--;\n                if (need[lc] > 0 && have[lc] < need[lc]) formed--;\n                left++;\n            }\n        }\n        return minLen == Integer.MAX_VALUE ? \"\" : s.substring(minStart, minStart + minLen);\n    }\n}",
-      "language": "java"
+      "input": "nums = [1,3,5,2,7,5], minK = 1, maxK = 5",
+      "output": "2"
     },
     {
-      "name": "Sliding Window with HashMap",
-      "timeComplexity": "O(m + n)",
-      "spaceComplexity": "O(m + n)",
-      "description": "Use HashMaps for target and window character counts. Maintain a 'formed' counter tracking how many unique chars meet the required frequency. Expand right, shrink left when valid.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public String minWindow(String s, String t) {\n        Map<Character, Integer> need = new HashMap<>();\n        for (int i = 0; i < t.length(); i++) {\n            char c = t.charAt(i);\n            need.put(c, need.getOrDefault(c, 0) + 1);\n        }\n        Map<Character, Integer> window = new HashMap<>();\n        int required = need.size();\n        int formed = 0;\n        int left = 0;\n        int minLen = Integer.MAX_VALUE;\n        int minStart = 0;\n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            window.put(c, window.getOrDefault(c, 0) + 1);\n            if (need.containsKey(c) && window.get(c).intValue() == need.get(c).intValue()) {\n                formed++;\n            }\n            while (formed == required) {\n                if (right - left + 1 < minLen) {\n                    minLen = right - left + 1;\n                    minStart = left;\n                }\n                char lc = s.charAt(left);\n                window.put(lc, window.get(lc) - 1);\n                if (need.containsKey(lc) && window.get(lc).intValue() < need.get(lc).intValue()) {\n                    formed--;\n                }\n                left++;\n            }\n        }\n        return minLen == Integer.MAX_VALUE ? \"\" : s.substring(minStart, minStart + minLen);\n    }\n}",
-      "language": "java"
+      "input": "nums = [1,1,1,1], minK = 1, maxK = 1",
+      "output": "10"
     }
   ],
   "tests": [
-    { "input": "s = \"ADOBECODEBANC\", t = \"ABC\"", "output": "\"BANC\"" },
-    { "input": "s = \"a\", t = \"a\"", "output": "\"a\"" },
-    { "input": "s = \"a\", t = \"aa\"", "output": "\"\"" }
+    {
+      "input": "nums = [1,3,5,2,7,5], minK = 1, maxK = 5",
+      "output": "2",
+      "description": "sample where value 7 splits the valid window"
+    },
+    {
+      "input": "nums = [1,1,1,1], minK = 1, maxK = 1",
+      "output": "10",
+      "description": "when minK equals maxK every all-1 subarray is valid"
+    },
+    {
+      "input": "nums = [2,1,3,5,4], minK = 1, maxK = 5",
+      "output": "4",
+      "description": "valid subarrays may start before the first required bound once both bounds appear"
+    },
+    {
+      "input": "nums = [1,5,1,5], minK = 1, maxK = 5",
+      "output": "6",
+      "description": "alternating required bounds create many overlapping valid subarrays"
+    },
+    {
+      "input": "nums = [2,2,2], minK = 1, maxK = 2",
+      "output": "0",
+      "description": "missing minK means no valid subarray"
+    },
+    {
+      "input": "nums = [1,1,1], minK = 1, maxK = 2",
+      "output": "0",
+      "description": "missing maxK means no valid subarray"
+    },
+    {
+      "input": "nums = [1,2,3,1,2], minK = 1, maxK = 3",
+      "output": "7",
+      "description": "last seen min and max positions both matter"
+    },
+    {
+      "input": "nums = [1,5,2,5,1], minK = 1, maxK = 5",
+      "output": "7",
+      "description": "valid starts expand after both bounds have appeared"
+    },
+    {
+      "input": "nums = [1,2,1,2,1], minK = 1, maxK = 2",
+      "output": "10",
+      "description": "all subarrays of length at least two are valid"
+    },
+    {
+      "input": "nums = [3,3,3], minK = 3, maxK = 3",
+      "output": "6",
+      "description": "equal bounds count every subarray made only of that value"
+    },
+    {
+      "input": "nums = [-2,-1,-2,0,-1], minK = -2, maxK = -1",
+      "output": "3",
+      "description": "negative bounds and an out-of-range separator"
+    },
+    {
+      "input": "nums = [5,1,5,6,1,5], minK = 1, maxK = 5",
+      "output": "4",
+      "description": "out-of-range middle value splits two independent segments"
+    },
+    {
+      "input": "nums = [1,4,5,1,5], minK = 1, maxK = 5",
+      "output": "8",
+      "description": "interior values inside the fixed range are allowed"
+    },
+    {
+      "input": "nums = [3,2,3,3,4,3], minK = 3, maxK = 3",
+      "output": "5",
+      "description": "equal bounds with invalid neighbors count only all-bound runs"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Last Seen Bounds",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan from left to right. Track the most recent index whose value is outside `[minK, maxK]`, the most recent index equal to `minK`, and the most recent index equal to `maxK`. For each right endpoint, the valid starts are exactly the positions after the last invalid index and at or before the earlier of the two required-bound positions.\n\n## Key Insight\n\nA valid subarray ending at `right` must contain both required bounds and cannot cross an out-of-range value. Therefore the number of valid starts is `min(lastMin, lastMax) - lastInvalid` when both bounds have appeared after the last invalid position, otherwise zero.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public long countSubarrays(int[] nums, int minK, int maxK) {\n        long answer = 0L;\n        int lastInvalid = -1;\n        int lastMin = -1;\n        int lastMax = -1;\n\n        for (int right = 0; right < nums.length; right++) {\n            int value = nums[right];\n            if (value < minK || value > maxK) {\n                lastInvalid = right;\n                lastMin = -1;\n                lastMax = -1;\n                continue;\n            }\n            if (value == minK) {\n                lastMin = right;\n            }\n            if (value == maxK) {\n                lastMax = right;\n            }\n\n            int earliestRequired = Math.min(lastMin, lastMax);\n            if (earliestRequired > lastInvalid) {\n                answer += earliestRequired - lastInvalid;\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Shrinking Window Counts",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nKeep a valid segment that contains only values inside `[minK, maxK]`. Within that segment, maintain counts of `minK` and `maxK`. Whenever the current window contains both bounds, move `left` forward until removing one required bound would make the window invalid; the number of removed starts is the number of valid subarrays ending at the current right endpoint.\n\n## Key Insight\n\nAfter shrinking, every start before `left` inside the current segment still produced a window that had both bounds, and every start at or after `left` does not. This converts the count of valid starts into a normal sliding-window contribution.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public long countSubarrays(int[] nums, int minK, int maxK) {\n        long answer = 0L;\n        int segmentStart = 0;\n        int left = 0;\n        int countMin = 0;\n        int countMax = 0;\n\n        for (int right = 0; right < nums.length; right++) {\n            int value = nums[right];\n            if (value < minK || value > maxK) {\n                segmentStart = right + 1;\n                left = right + 1;\n                countMin = 0;\n                countMax = 0;\n                continue;\n            }\n            if (value == minK) {\n                countMin++;\n            }\n            if (value == maxK) {\n                countMax++;\n            }\n\n            while (countMin > 0 && countMax > 0) {\n                if (nums[left] == minK) {\n                    countMin--;\n                }\n                if (nums[left] == maxK) {\n                    countMax--;\n                }\n                left++;\n            }\n            answer += left - segmentStart;\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Segment Inclusion Exclusion",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCount subarrays whose values all lie in `[minK, maxK]`. From that, subtract the subarrays that avoid `minK`, subtract the subarrays that avoid `maxK`, and add back the subarrays that avoid both. Each term is just the sum of run lengths over a different allowed numeric range.\n\n## Key Insight\n\nA subarray has minimum exactly `minK` and maximum exactly `maxK` if it stays inside `[minK, maxK]`, is not entirely inside `(minK, maxK]`, and is not entirely inside `[minK, maxK)`. Inclusion-exclusion gives a concise way to count this without tracking positions of each bound.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public long countSubarrays(int[] nums, int minK, int maxK) {\n        long allInside = countRunsInRange(nums, minK, maxK);\n        long missingMin = countRunsInRange(nums, (long) minK + 1L, maxK);\n        long missingMax = countRunsInRange(nums, minK, (long) maxK - 1L);\n        long missingBoth = countRunsInRange(nums, (long) minK + 1L, (long) maxK - 1L);\n        return allInside - missingMin - missingMax + missingBoth;\n    }\n\n    private long countRunsInRange(int[] nums, long low, long high) {\n        if (low > high) {\n            return 0L;\n        }\n        long answer = 0L;\n        long runLength = 0L;\n        for (int value : nums) {\n            if (value >= low && value <= high) {\n                runLength++;\n                answer += runLength;\n            } else {\n                runLength = 0L;\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Enumerate Starts Baseline",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFor every left endpoint, extend the right endpoint one step at a time while maintaining the current minimum and maximum. Stop the inner loop as soon as the current subarray contains a value outside the allowed range. Count the extension whenever the current minimum is `minK` and the current maximum is `maxK`.\n\n## Key Insight\n\nThis baseline is too slow for the largest input, but it mirrors the definition exactly. It is useful for understanding why the optimized solutions only need to know where the latest invalid value and required bounds are.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public long countSubarrays(int[] nums, int minK, int maxK) {\n        long answer = 0L;\n        for (int left = 0; left < nums.length; left++) {\n            int minimum = Integer.MAX_VALUE;\n            int maximum = Integer.MIN_VALUE;\n            for (int right = left; right < nums.length; right++) {\n                int value = nums[right];\n                minimum = Math.min(minimum, value);\n                maximum = Math.max(maximum, value);\n                if (minimum < minK || maximum > maxK) {\n                    break;\n                }\n                if (minimum == minK && maximum == maxK) {\n                    answer++;\n                }\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

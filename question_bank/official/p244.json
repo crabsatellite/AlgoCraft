@@ -1,12 +1,17 @@
 {
   "id": "244",
   "title": "Defanging an IP Address",
-  "description": "# Defanging an IP Address\n\nGiven a valid (IPv4) IP `address`, return a defanged version of that IP address.\n\nA *defanged IP address* replaces every period `\".\"` with `\"[.]\"`.\n\n## Example 1:\n\n**Input:** address = \"1.1.1.1\"\n**Output:** \"1[.]1[.]1[.]1\"\n\n## Example 2:\n\n**Input:** address = \"255.100.50.0\"\n**Output:** \"255[.]100[.]50[.]0\"\n\n## Constraints:\n\n*   The given `address` is a valid IPv4 address.",
+  "description": "# Defanging an IP Address\n\nGiven a valid IPv4 address string `address`, return its defanged form.\n\nA defanged IP address replaces every period `.` with the three-character string `[.]`. All digits must stay in the same order.\n\nThe input is already a valid IPv4 address with four decimal parts and exactly three periods. You do not need to validate the address; only transform its separators.\n\n## Example 1:\n\n**Input:** address = \"1.1.1.1\"\n**Output:** \"1[.]1[.]1[.]1\"\n\n## Example 2:\n\n**Input:** address = \"255.100.50.0\"\n**Output:** \"255[.]100[.]50[.]0\"\n\n## Constraints:\n\n* `address` is a valid IPv4 address.\n* `address` contains exactly three periods.\n* Each IPv4 part contains only decimal digits.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public String defangIPaddr(String address) {\n        // Write your code here\n        return \"\";\n    }\n}",
-  "tags": ["String"],
+  "tags": [
+    "String"
+  ],
   "examples": [
-    { "input": "address = \"1.1.1.1\"", "output": "\"1[.]1[.]1[.]1\"" },
+    {
+      "input": "address = \"1.1.1.1\"",
+      "output": "\"1[.]1[.]1[.]1\""
+    },
     {
       "input": "address = \"255.100.50.0\"",
       "output": "\"255[.]100[.]50[.]0\""
@@ -14,27 +19,96 @@
   ],
   "solutions": [
     {
-      "name": "String Replace",
+      "name": "Literal String Replace",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Replace every '.' with '[.]' using StringBuilder.",
+      "description": "## Approach\n\nUse `String.replace` to replace every literal period with `[.]`.\n\n## Key Insight\n\nIn Java, `replace(CharSequence, CharSequence)` treats the first argument as ordinary text, not a regular expression. That makes `\".\"` mean the dot character itself.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because the input string is scanned to build the output.\n- Space Complexity: O(n), because the returned string has length `n + 6` for three replaced periods.",
       "code": "class Solution {\n    public String defangIPaddr(String address) {\n        return address.replace(\".\", \"[.]\");\n    }\n}",
       "language": "java"
     },
     {
-      "name": "StringBuilder Iteration",
+      "name": "Pre-Sized StringBuilder Scan",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Iterate through each character and build the result manually with a StringBuilder, replacing '.' with '[.]'.",
-      "code": "class Solution {\n    public String defangIPaddr(String address) {\n        StringBuilder sb = new StringBuilder();\n        for (int i = 0; i < address.length(); i++) {\n            char c = address.charAt(i);\n            if (c == '.') {\n                sb.append(\"[.]\");\n            } else {\n                sb.append(c);\n            }\n        }\n        return sb.toString();\n    }\n}",
+      "description": "## Approach\n\nCreate a `StringBuilder` with the final capacity, scan every character, append `[.]` for periods, and append digits unchanged.\n\n## Key Insight\n\nA valid IPv4 address has exactly three periods, so the defanged string is six characters longer than the input. Pre-sizing the builder avoids avoidable internal growth while keeping the transformation explicit.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), for one pass through the address.\n- Space Complexity: O(n), for the output builder.",
+      "code": "class Solution {\n    public String defangIPaddr(String address) {\n        StringBuilder result = new StringBuilder(address.length() + 6);\n        for (int i = 0; i < address.length(); i++) {\n            char c = address.charAt(i);\n            if (c == '.') {\n                result.append(\"[.]\");\n            } else {\n                result.append(c);\n            }\n        }\n        return result.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Manual Character Buffer",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nAllocate the final character array directly. Copy digits into it, and when a period is seen, write `[`, `.`, and `]` into consecutive output slots.\n\n## Key Insight\n\nThe output length is known in advance because there are exactly three periods. A manual buffer shows how string builders work internally and avoids repeated method calls while constructing the answer.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), for a single pass over the input.\n- Space Complexity: O(n), for the output character array.",
+      "code": "class Solution {\n    public String defangIPaddr(String address) {\n        char[] output = new char[address.length() + 6];\n        int write = 0;\n        for (int i = 0; i < address.length(); i++) {\n            char c = address.charAt(i);\n            if (c == '.') {\n                output[write++] = '[';\n                output[write++] = '.';\n                output[write++] = ']';\n            } else {\n                output[write++] = c;\n            }\n        }\n        return new String(output);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Split and Join Delimiter",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSplit the IPv4 address on literal periods to get the four parts, then join those parts with `[.]` as the new separator.\n\n## Key Insight\n\nDefanging can be viewed as changing the delimiter between the four IPv4 parts. The dot is special in regular expressions, so the split pattern must escape it as `\"\\\\.\"`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), to split and join all characters.\n- Space Complexity: O(n), for the part array and final string.",
+      "code": "class Solution {\n    public String defangIPaddr(String address) {\n        String[] parts = address.split(\"\\\\.\", -1);\n        return String.join(\"[.]\", parts);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Dot Index Substring Assembly",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFind the three dot positions with `indexOf`, then concatenate the four substrings with `[.]` between them.\n\n## Key Insight\n\nThe input format is fixed: a valid IPv4 address always has exactly three separators. Finding those separator indices turns the transformation into assembling four unchanged segments with a new delimiter.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because the searches and substring assembly inspect the address characters.\n- Space Complexity: O(n), for the returned string and substring data.",
+      "code": "class Solution {\n    public String defangIPaddr(String address) {\n        int first = address.indexOf('.');\n        int second = address.indexOf('.', first + 1);\n        int third = address.indexOf('.', second + 1);\n        return address.substring(0, first)\n                + \"[.]\" + address.substring(first + 1, second)\n                + \"[.]\" + address.substring(second + 1, third)\n                + \"[.]\" + address.substring(third + 1);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "address = \"1.1.1.1\"", "output": "\"1[.]1[.]1[.]1\"" },
+    {
+      "input": "address = \"1.1.1.1\"",
+      "output": "\"1[.]1[.]1[.]1\"",
+      "description": "All one-digit IPv4 parts."
+    },
     {
       "input": "address = \"255.100.50.0\"",
-      "output": "\"255[.]100[.]50[.]0\""
+      "output": "\"255[.]100[.]50[.]0\"",
+      "description": "Mixed part lengths including a trailing zero."
+    },
+    {
+      "input": "address = \"0.0.0.0\"",
+      "output": "\"0[.]0[.]0[.]0\"",
+      "description": "All zero parts still keep every digit."
+    },
+    {
+      "input": "address = \"192.168.0.1\"",
+      "output": "\"192[.]168[.]0[.]1\"",
+      "description": "Common private network address."
+    },
+    {
+      "input": "address = \"10.20.30.40\"",
+      "output": "\"10[.]20[.]30[.]40\"",
+      "description": "Two-digit parts preserve all digits."
+    },
+    {
+      "input": "address = \"127.0.0.1\"",
+      "output": "\"127[.]0[.]0[.]1\"",
+      "description": "Loopback style address with middle zero parts."
+    },
+    {
+      "input": "address = \"8.8.8.8\"",
+      "output": "\"8[.]8[.]8[.]8\"",
+      "description": "Repeated single-digit parts."
+    },
+    {
+      "input": "address = \"123.45.67.89\"",
+      "output": "\"123[.]45[.]67[.]89\"",
+      "description": "Different part widths in one address."
+    },
+    {
+      "input": "address = \"255.255.255.255\"",
+      "output": "\"255[.]255[.]255[.]255\"",
+      "description": "Upper IPv4 byte boundary repeated."
+    },
+    {
+      "input": "address = \"1.23.45.6\"",
+      "output": "\"1[.]23[.]45[.]6\"",
+      "description": "Alternating short and medium parts."
     }
   ]
 }

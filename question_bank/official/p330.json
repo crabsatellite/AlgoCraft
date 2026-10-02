@@ -1,34 +1,117 @@
 {
   "id": "330",
   "title": "Candy",
-  "description": "# Candy\n\nThere are `n` children standing in a line. Each child is assigned a rating value given in the integer array `ratings`.\n\nYou are giving candies to these children subjected to the following requirements:\n\n*   Each child must have at least one candy.\n*   Children with a higher rating get more candies than their neighbors.\n\nReturn *the minimum number of candies you need to have to distribute the candies to the children*.\n\n## Example 1:\n\n**Input:** ratings = [1,0,2]\n**Output:** 5\n**Explanation:** You can allocate to the first, second and third child with 2, 1, 2 candies respectively.\n\n## Example 2:\n\n**Input:** ratings = [1,2,2]\n**Output:** 4\n**Explanation:** You can allocate to the first, second and third child with 1, 2, 1 candies respectively.\nThe third child gets 1 candy because it satisfies the above two conditions.\n\n## Constraints:\n\n*   `n == ratings.length`\n*   `1 <= n <= 2 * 10^4`\n*   `0 <= ratings[i] <= 2 * 10^4`",
+  "description": "# Candy\n\nThere are `n` children standing in a line. The integer array `ratings` gives each child's rating.\n\nDistribute candies using the fewest total candies while satisfying both rules:\n\n*   Every child must receive at least one candy.\n*   If a child has a higher rating than an adjacent child, the higher-rated child must receive more candies than that neighbor.\n\nEqual ratings do not impose any ordering requirement.\n\n## Example 1:\n\n**Input:** ratings = [1,0,2]\n**Output:** 5\n**Explanation:** Give candies as `[2,1,2]`.\n\n## Example 2:\n\n**Input:** ratings = [1,2,2]\n**Output:** 4\n**Explanation:** Give candies as `[1,2,1]`. The last two children have equal ratings, so the third child does not need more candy than the second child.\n\n## Constraints:\n\n*   `n == ratings.length`\n*   `1 <= n <= 2 * 10^4`\n*   `0 <= ratings[i] <= 2 * 10^4`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int candy(int[] ratings) {\n        \n    }\n}",
-  "tags": ["Array", "Greedy"],
+  "initialCode": "class Solution {\n    public int candy(int[] ratings) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Greedy"
+  ],
   "examples": [
-    { "input": "ratings = [1,0,2]", "output": "5" },
-    { "input": "ratings = [1,2,2]", "output": "4" }
+    {
+      "input": "ratings = [1,0,2]",
+      "output": "5"
+    },
+    {
+      "input": "ratings = [1,2,2]",
+      "output": "4"
+    }
+  ],
+  "tests": [
+    {
+      "input": "ratings = [1,0,2]",
+      "output": "5",
+      "description": "sample valley needs 2,1,2 candies"
+    },
+    {
+      "input": "ratings = [1,2,2]",
+      "output": "4",
+      "description": "equal neighbors do not impose a greater-than rule"
+    },
+    {
+      "input": "ratings = [1]",
+      "output": "1",
+      "description": "single child gets one candy"
+    },
+    {
+      "input": "ratings = [1,3,4,5,2]",
+      "output": "11",
+      "description": "long rise followed by a drop needs a high peak"
+    },
+    {
+      "input": "ratings = [1,2,3,1,0]",
+      "output": "9",
+      "description": "descending suffix forces right-to-left correction"
+    },
+    {
+      "input": "ratings = [1,3,2,2,1]",
+      "output": "7",
+      "description": "plateau splits two constrained slopes"
+    },
+    {
+      "input": "ratings = [1,6,10,8,7,3,2]",
+      "output": "18",
+      "description": "long down-slope after a peak is the classic slope pitfall"
+    },
+    {
+      "input": "ratings = [1,2,3,4,5]",
+      "output": "15",
+      "description": "strictly increasing ratings form 1,2,3,4,5 candies"
+    },
+    {
+      "input": "ratings = [5,4,3,2,1]",
+      "output": "15",
+      "description": "strictly decreasing ratings require the reverse staircase"
+    },
+    {
+      "input": "ratings = [1,1,1,1]",
+      "output": "4",
+      "description": "all equal ratings only need one candy each"
+    },
+    {
+      "input": "ratings = [1,2,87,87,87,2,1]",
+      "output": "13",
+      "description": "equal high plateau must not be treated as one rising slope"
+    },
+    {
+      "input": "ratings = [0,1,2,5,3,2,7]",
+      "output": "15",
+      "description": "a later rise after a descent must restart cleanly"
+    }
   ],
   "solutions": [
     {
       "name": "Two Pass Greedy",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "First pass left to right: if rating increases, increment candy count. Second pass right to left: if rating increases, take max of current and neighbor+1. Sum all candies.",
-      "code": "class Solution {\n    public int candy(int[] ratings) {\n        int n = ratings.length;\n        int[] candies = new int[n];\n        java.util.Arrays.fill(candies, 1);\n        for (int i = 1; i < n; i++) {\n            if (ratings[i] > ratings[i - 1]) candies[i] = candies[i - 1] + 1;\n        }\n        for (int i = n - 2; i >= 0; i--) {\n            if (ratings[i] > ratings[i + 1]) candies[i] = Math.max(candies[i], candies[i + 1] + 1);\n        }\n        int sum = 0;\n        for (int c : candies) sum += c;\n        return sum;\n    }\n}",
+      "description": "## Approach\n\nGive every child one candy. A left-to-right pass enforces the rule against the left neighbor, and a right-to-left pass enforces the rule against the right neighbor while keeping the larger value from the first pass.\n\n## Key Insight\n\nThe two neighbor constraints are directional. Once each direction is satisfied separately, taking the maximum candy count at every position satisfies both without adding unnecessary candy.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), for two linear passes and one sum.\n- Space Complexity: O(n), for the candy array.",
+      "code": "class Solution { public int candy(int[] ratings) { int n = ratings.length; int[] candies = new int[n]; java.util.Arrays.fill(candies, 1); for (int i = 1; i < n; i++) { if (ratings[i] > ratings[i - 1]) candies[i] = candies[i - 1] + 1; } for (int i = n - 2; i >= 0; i--) { if (ratings[i] > ratings[i + 1]) candies[i] = Math.max(candies[i], candies[i + 1] + 1); } int total = 0; for (int candy : candies) total += candy; return total; } }",
       "language": "java"
     },
     {
-      "name": "Single Pass with Up/Down Counting",
+      "name": "Single Pass Slope Counting",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Track ascending and descending slopes. When direction changes, compute candies for the completed slope using arithmetic sum formula. Handle peaks by assigning max of up and down slopes.",
-      "code": "class Solution {\n    public int candy(int[] ratings) {\n        int n = ratings.length;\n        if (n <= 1) return n;\n        int candies = 0;\n        int up = 0, down = 0, peak = 0;\n        for (int i = 1; i < n; i++) {\n            if (ratings[i] > ratings[i - 1]) {\n                up++;\n                peak = up;\n                down = 0;\n                candies += 1 + up;\n            } else if (ratings[i] < ratings[i - 1]) {\n                up = 0;\n                down++;\n                candies += down + (down > peak ? 1 : 0);\n            } else {\n                peak = 0;\n                up = 0;\n                down = 0;\n                candies += 1;\n            }\n        }\n        return candies + 1;\n    }\n}",
+      "description": "## Approach\n\nRead rating changes as increasing slopes, decreasing slopes, and flat breaks. Add the arithmetic-series contribution of each slope while tracking whether the peak already has enough candy for the descending side.\n\n## Key Insight\n\nA mountain of ratings needs candies `1..up+1` on the left side and `down..1` on the right side. The peak is shared, so it only needs one extra candy when the descending side becomes longer than the previous ascending side.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), with one scan over the ratings.\n- Space Complexity: O(1), using only counters for current slopes.",
+      "code": "class Solution { public int candy(int[] ratings) { int n = ratings.length; if (n <= 1) return n; int total = 1; int up = 0; int down = 0; int peak = 0; for (int i = 1; i < n; i++) { if (ratings[i] > ratings[i - 1]) { up++; peak = up; down = 0; total += 1 + up; } else if (ratings[i] < ratings[i - 1]) { up = 0; down++; total += 1 + down - (down <= peak ? 1 : 0); } else { up = 0; down = 0; peak = 0; total += 1; } } return total; } }",
+      "language": "java"
+    },
+    {
+      "name": "Process Children by Rating",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort child indexes by rating from low to high. When processing a child, any lower-rated neighbor has already received its final candy count, so the current child can take one more than the maximum required by those lower neighbors.\n\n## Key Insight\n\nConstraints always point from lower rating to higher rating. Processing in rating order turns the local neighbor rules into a simple dynamic program over sorted indexes.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), dominated by sorting indexes.\n- Space Complexity: O(n), for the order and candy arrays.",
+      "code": "class Solution { public int candy(int[] ratings) { int n = ratings.length; Integer[] order = new Integer[n]; for (int i = 0; i < n; i++) order[i] = i; java.util.Arrays.sort(order, (a, b) -> Integer.compare(ratings[a], ratings[b])); int[] candies = new int[n]; java.util.Arrays.fill(candies, 1); for (int index : order) { if (index > 0 && ratings[index] > ratings[index - 1]) candies[index] = Math.max(candies[index], candies[index - 1] + 1); if (index + 1 < n && ratings[index] > ratings[index + 1]) candies[index] = Math.max(candies[index], candies[index + 1] + 1); } int total = 0; for (int candy : candies) total += candy; return total; } }",
+      "language": "java"
+    },
+    {
+      "name": "Lower Neighbor DFS Memoization",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nDefine `candiesFor(i)` as the minimum candies child `i` needs after satisfying any lower-rated adjacent children. Recursively ask lower-rated neighbors for their candy counts, memoize the result, and sum all memoized values.\n\n## Key Insight\n\nThe dependency graph is acyclic because every edge goes from a higher rating to a strictly lower rating. Equal ratings create no edge, so DFS with memoization computes each child's required candy count once.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each child checks at most two neighbors and is memoized once.\n- Space Complexity: O(n), for memoization and recursion stack.",
+      "code": "class Solution { public int candy(int[] ratings) { int[] memo = new int[ratings.length]; int total = 0; for (int i = 0; i < ratings.length; i++) total += candiesFor(i, ratings, memo); return total; } private int candiesFor(int index, int[] ratings, int[] memo) { if (memo[index] != 0) return memo[index]; int best = 1; if (index > 0 && ratings[index] > ratings[index - 1]) best = Math.max(best, candiesFor(index - 1, ratings, memo) + 1); if (index + 1 < ratings.length && ratings[index] > ratings[index + 1]) best = Math.max(best, candiesFor(index + 1, ratings, memo) + 1); memo[index] = best; return best; } }",
       "language": "java"
     }
-  ],
-  "tests": [
-    { "input": "ratings = [1,0,2]", "output": "5" },
-    { "input": "ratings = [1,2,2]", "output": "4" }
   ]
 }

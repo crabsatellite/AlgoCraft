@@ -1,36 +1,122 @@
 {
   "id": "308",
-  "title": "First Missing Positive",
-  "description": "# First Missing Positive\n\nGiven an unsorted integer array `nums`, return the smallest missing positive integer.\n\nYou must implement an algorithm that runs in `O(n)` time and uses `O(1)` auxiliary space.\n\n## Example 1:\n\n**Input:** nums = [1,2,0]\n**Output:** 3\n**Explanation:** The numbers in the range [1,2] are all in the array.\n\n## Example 2:\n\n**Input:** nums = [3,4,-1,1]\n**Output:** 2\n**Explanation:** 1 is in the array but 2 is missing.\n\n## Example 3:\n\n**Input:** nums = [7,8,9,11,12]\n**Output:** 1\n**Explanation:** The smallest positive integer 1 is missing.\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^5`\n*   `-2^31 <= nums[i] <= 2^31 - 1`",
+  "title": "Shortest Subarray Sum At Least Target",
+  "description": "# Shortest Subarray Sum At Least Target\n\nGiven an integer array `nums` that may contain negative numbers and an integer `k`, return the length of the shortest non-empty contiguous subarray whose sum is at least `k`. Return `-1` if no such subarray exists.\n\n## Example 1:\n\n**Input:** nums = [1], k = 1\n**Output:** 1\n\n## Example 2:\n\n**Input:** nums = [1,2], k = 4\n**Output:** -1\n\n## Example 3:\n\n**Input:** nums = [2,-1,2], k = 3\n**Output:** 3\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^5`\n*   `-10^5 <= nums[i] <= 10^5`\n*   `1 <= k <= 10^9`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int firstMissingPositive(int[] nums) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table"],
-  "examples": [
-    { "input": "nums = [1,2,0]", "output": "3" },
-    { "input": "nums = [3,4,-1,1]", "output": "2" },
-    { "input": "nums = [7,8,9,11,12]", "output": "1" }
+  "initialCode": "class Solution {\n    public int shortestSubarray(int[] nums, int k) {\n        return -1;\n    }\n}",
+  "tags": [
+    "Array",
+    "Prefix Sum",
+    "Monotonic Queue"
   ],
-  "solutions": [
+  "examples": [
     {
-      "name": "Cyclic Sort (Index Marking)",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(1)",
-      "description": "Place each number in its correct index position (nums[i] should be i+1). Then scan for the first index where nums[i] != i+1; that i+1 is the answer.",
-      "code": "class Solution {\n    public int firstMissingPositive(int[] nums) {\n        int n = nums.length;\n        for (int i = 0; i < n; i++) {\n            while (nums[i] > 0 && nums[i] <= n && nums[nums[i] - 1] != nums[i]) {\n                int temp = nums[nums[i] - 1];\n                nums[nums[i] - 1] = nums[i];\n                nums[i] = temp;\n            }\n        }\n        for (int i = 0; i < n; i++) {\n            if (nums[i] != i + 1) return i + 1;\n        }\n        return n + 1;\n    }\n}",
-      "language": "java"
+      "input": "nums = [1], k = 1",
+      "output": "1"
     },
     {
-      "name": "Negation Marking",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(1)",
-      "description": "First, replace all non-positive and out-of-range values with n+1. Then for each value v in range [1,n], negate nums[v-1] to mark it present. The first positive index+1 is the answer.",
-      "code": "class Solution {\n    public int firstMissingPositive(int[] nums) {\n        int n = nums.length;\n        for (int i = 0; i < n; i++) {\n            if (nums[i] <= 0 || nums[i] > n) {\n                nums[i] = n + 1;\n            }\n        }\n        for (int i = 0; i < n; i++) {\n            int val = Math.abs(nums[i]);\n            if (val <= n && nums[val - 1] > 0) {\n                nums[val - 1] = -nums[val - 1];\n            }\n        }\n        for (int i = 0; i < n; i++) {\n            if (nums[i] > 0) return i + 1;\n        }\n        return n + 1;\n    }\n}",
-      "language": "java"
+      "input": "nums = [1,2], k = 4",
+      "output": "-1"
+    },
+    {
+      "input": "nums = [2,-1,2], k = 3",
+      "output": "3"
     }
   ],
   "tests": [
-    { "input": "nums = [1,2,0]", "output": "3" },
-    { "input": "nums = [3,4,-1,1]", "output": "2" },
-    { "input": "nums = [7,8,9,11,12]", "output": "1" }
+    {
+      "input": "nums = [1], k = 1",
+      "output": "1",
+      "description": "single element reaches the target"
+    },
+    {
+      "input": "nums = [1,2], k = 4",
+      "output": "-1",
+      "description": "no subarray can reach k"
+    },
+    {
+      "input": "nums = [2,-1,2], k = 3",
+      "output": "3",
+      "description": "negative value prevents a shorter positive-only answer"
+    },
+    {
+      "input": "nums = [84,-37,32,40,95], k = 167",
+      "output": "3",
+      "description": "monotonic deque must discard weaker prefix sums"
+    },
+    {
+      "input": "nums = [17,85,93,-45,-21], k = 150",
+      "output": "2",
+      "description": "answer can occur before negative suffix values"
+    },
+    {
+      "input": "nums = [1,-1,5], k = 3",
+      "output": "1",
+      "description": "a single later element can be the shortest answer"
+    },
+    {
+      "input": "nums = [1,2,3,4], k = 6",
+      "output": "2",
+      "description": "positive-only case still needs minimum length, not first reach"
+    },
+    {
+      "input": "nums = [3,-2,5], k = 4",
+      "output": "1",
+      "description": "negative middle should not hide a one-element answer"
+    },
+    {
+      "input": "nums = [2,-1,2,-1,2], k = 3",
+      "output": "3",
+      "description": "several equal-length candidates with alternating signs"
+    },
+    {
+      "input": "nums = [-1,-2,-3], k = 1",
+      "output": "-1",
+      "description": "all values can be negative and still have no answer"
+    },
+    {
+      "input": "nums = [50000,50000,-99999,99999], k = 100000",
+      "output": "2",
+      "description": "large positive values require long prefix sums and the first two elements are optimal"
+    },
+    {
+      "input": "nums = [56,-21,56,35,-9], k = 61",
+      "output": "2",
+      "description": "best subarray starts after an earlier useful-looking prefix"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Prefix Sum Monotonic Deque",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nBuild prefix sums, where a subarray sum is `prefix[end] - prefix[start]`. Keep candidate start indices in a deque whose prefix sums are strictly increasing. For each end index, pop from the front while the sum reaches `k`, and pop from the back while the new prefix is smaller or equal.\n\n## Key Insight\n\nIf two candidate starts have `i < j` and `prefix[i] >= prefix[j]`, then `i` is never better: it gives a no-larger sum and a longer subarray for every future end. The deque keeps only starts that are not dominated.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\nclass Solution {\n    public int shortestSubarray(int[] nums, int k) {\n        int n = nums.length;\n        long[] prefix = new long[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n\n        Deque<Integer> deque = new ArrayDeque<>();\n        int best = n + 1;\n        for (int end = 0; end <= n; end++) {\n            while (!deque.isEmpty() && prefix[end] - prefix[deque.peekFirst()] >= k) {\n                best = Math.min(best, end - deque.pollFirst());\n            }\n            while (!deque.isEmpty() && prefix[end] <= prefix[deque.peekLast()]) {\n                deque.pollLast();\n            }\n            deque.addLast(end);\n        }\n        return best == n + 1 ? -1 : best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Binary Search Length with Prefix Minimum",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nBinary search the answer length. To check whether some subarray of length at most `limit` reaches `k`, scan each end position and maintain a monotonic deque of the smallest prefix sums among starts in the last `limit` positions.\n\n## Key Insight\n\nFor a fixed maximum length, the best start for each end is the valid start with the smallest prefix sum. That feasibility test is monotone in `limit`, so binary search can find the shortest valid length.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\nclass Solution {\n    public int shortestSubarray(int[] nums, int k) {\n        int n = nums.length;\n        long[] prefix = new long[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n\n        int answer = -1;\n        int left = 1;\n        int right = n;\n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            if (existsWithinLength(prefix, k, mid)) {\n                answer = mid;\n                right = mid - 1;\n            } else {\n                left = mid + 1;\n            }\n        }\n        return answer;\n    }\n\n    private boolean existsWithinLength(long[] prefix, int k, int limit) {\n        Deque<Integer> deque = new ArrayDeque<>();\n        for (int end = 1; end < prefix.length; end++) {\n            int start = end - 1;\n            while (!deque.isEmpty() && prefix[start] <= prefix[deque.peekLast()]) {\n                deque.pollLast();\n            }\n            deque.addLast(start);\n            while (!deque.isEmpty() && deque.peekFirst() < end - limit) {\n                deque.pollFirst();\n            }\n            if (!deque.isEmpty() && prefix[end] - prefix[deque.peekFirst()] >= k) {\n                return true;\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Compressed Prefix Fenwick Max Index",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFor each ending prefix sum, find the largest earlier index whose prefix sum is at most `prefix[end] - k`. Coordinate-compress all prefix sums and store the maximum index seen for every compressed prefix range in a Fenwick tree.\n\n## Key Insight\n\nAmong all valid starts for a fixed end, the largest start index gives the shortest subarray. The Fenwick tree answers exactly that range maximum query over prefix sums that are small enough.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int shortestSubarray(int[] nums, int k) {\n        int n = nums.length;\n        long[] prefix = new long[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n\n        long[] values = prefix.clone();\n        Arrays.sort(values);\n        int unique = 0;\n        for (long value : values) {\n            if (unique == 0 || values[unique - 1] != value) {\n                values[unique++] = value;\n            }\n        }\n        values = Arrays.copyOf(values, unique);\n\n        FenwickMax tree = new FenwickMax(unique);\n        tree.update(rank(values, prefix[0]), 0);\n        int best = n + 1;\n        for (int end = 1; end <= n; end++) {\n            int limit = upperBound(values, prefix[end] - k);\n            int start = tree.query(limit);\n            if (start != -1) {\n                best = Math.min(best, end - start);\n            }\n            tree.update(rank(values, prefix[end]), end);\n        }\n        return best == n + 1 ? -1 : best;\n    }\n\n    private int rank(long[] values, long target) {\n        int left = 0;\n        int right = values.length;\n        while (left < right) {\n            int mid = (left + right) >>> 1;\n            if (values[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left + 1;\n    }\n\n    private int upperBound(long[] values, long target) {\n        int left = 0;\n        int right = values.length;\n        while (left < right) {\n            int mid = (left + right) >>> 1;\n            if (values[mid] <= target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n\n    private static class FenwickMax {\n        private final int[] tree;\n\n        FenwickMax(int size) {\n            tree = new int[size + 1];\n            Arrays.fill(tree, -1);\n        }\n\n        void update(int index, int value) {\n            for (int i = index; i < tree.length; i += i & -i) {\n                tree[i] = Math.max(tree[i], value);\n            }\n        }\n\n        int query(int index) {\n            int best = -1;\n            for (int i = index; i > 0; i -= i & -i) {\n                best = Math.max(best, tree[i]);\n            }\n            return best;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Compressed Prefix Segment Tree",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCoordinate-compress prefix sums and use a segment tree where each leaf stores the largest index seen with that exact prefix value. For every end position, query the compressed range of prefix sums `<= prefix[end] - k`.\n\n## Key Insight\n\nThis is the same range-maximum formulation as the Fenwick solution, but the segment tree makes the interval query explicit: all starts with small enough prefix sums are feasible, and the rightmost feasible start minimizes the length.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int shortestSubarray(int[] nums, int k) {\n        int n = nums.length;\n        long[] prefix = new long[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n\n        long[] values = prefix.clone();\n        Arrays.sort(values);\n        int unique = 0;\n        for (long value : values) {\n            if (unique == 0 || values[unique - 1] != value) {\n                values[unique++] = value;\n            }\n        }\n        values = Arrays.copyOf(values, unique);\n\n        SegmentTree tree = new SegmentTree(unique);\n        tree.update(rank(values, prefix[0]), 0);\n        int best = n + 1;\n        for (int end = 1; end <= n; end++) {\n            int limit = upperBound(values, prefix[end] - k) - 1;\n            if (limit >= 0) {\n                int start = tree.query(0, limit);\n                if (start != -1) {\n                    best = Math.min(best, end - start);\n                }\n            }\n            tree.update(rank(values, prefix[end]), end);\n        }\n        return best == n + 1 ? -1 : best;\n    }\n\n    private int rank(long[] values, long target) {\n        int left = 0;\n        int right = values.length;\n        while (left < right) {\n            int mid = (left + right) >>> 1;\n            if (values[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n\n    private int upperBound(long[] values, long target) {\n        int left = 0;\n        int right = values.length;\n        while (left < right) {\n            int mid = (left + right) >>> 1;\n            if (values[mid] <= target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n\n    private static class SegmentTree {\n        private final int size;\n        private final int[] tree;\n\n        SegmentTree(int count) {\n            int n = 1;\n            while (n < count) {\n                n <<= 1;\n            }\n            size = n;\n            tree = new int[size << 1];\n            Arrays.fill(tree, -1);\n        }\n\n        void update(int index, int value) {\n            int node = index + size;\n            tree[node] = Math.max(tree[node], value);\n            for (node >>= 1; node > 0; node >>= 1) {\n                tree[node] = Math.max(tree[node << 1], tree[node << 1 | 1]);\n            }\n        }\n\n        int query(int left, int right) {\n            int best = -1;\n            int l = left + size;\n            int r = right + size;\n            while (l <= r) {\n                if ((l & 1) == 1) {\n                    best = Math.max(best, tree[l++]);\n                }\n                if ((r & 1) == 0) {\n                    best = Math.max(best, tree[r--]);\n                }\n                l >>= 1;\n                r >>= 1;\n            }\n            return best;\n        }\n    }\n}",
+      "language": "java"
+    }
   ]
 }

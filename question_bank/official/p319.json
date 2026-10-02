@@ -1,9 +1,9 @@
 {
   "id": "319",
   "title": "Maximal Rectangle",
-  "description": "# Maximal Rectangle\n\nGiven a `rows x cols` binary `matrix` filled with `0`'s and `1`'s, find the largest rectangle containing only `1`'s and return *its area*.\n\n## Example 1:\n\n**Input:** matrix = [[\"1\",\"0\",\"1\",\"0\",\"0\"],[\"1\",\"0\",\"1\",\"1\",\"1\"],[\"1\",\"1\",\"1\",\"1\",\"1\"],[\"1\",\"0\",\"0\",\"1\",\"0\"]]\n**Output:** 6\n**Explanation:** The maximal rectangle is shown in the above picture.\n\n## Example 2:\n\n**Input:** matrix = [[\"0\"]]\n**Output:** 0\n\n## Example 3:\n\n**Input:** matrix = [[\"1\"]]\n**Output:** 1\n\n## Constraints:\n\n*   `rows == matrix.length`\n*   `cols == matrix[i].length`\n*   `1 <= row, cols <= 200`\n*   `matrix[i][j]` is `'0'` or `'1'`.",
+  "description": "# Maximal Rectangle\n\nGiven a `rows x cols` binary matrix filled with characters `'0'` and `'1'`, find the area of the largest axis-aligned rectangle that contains only `'1'` cells.\n\nA rectangle must be contiguous in both rows and columns. It may use any height and width, but every cell inside the chosen rectangle must be `'1'`.\n\n## Example 1:\n\n**Input:** matrix = [[\"1\",\"0\",\"1\",\"0\",\"0\"],[\"1\",\"0\",\"1\",\"1\",\"1\"],[\"1\",\"1\",\"1\",\"1\",\"1\"],[\"1\",\"0\",\"0\",\"1\",\"0\"]]\n**Output:** 6\n\n**Explanation:** One maximum rectangle has height `2` and width `3`, covering the block of ones in rows 2..3 and columns 3..5 using 1-based positions.\n\n## Example 2:\n\n**Input:** matrix = [[\"0\"]]\n**Output:** 0\n\n## Example 3:\n\n**Input:** matrix = [[\"1\"]]\n**Output:** 1\n\n## Constraints:\n\n* `rows == matrix.length`\n* `cols == matrix[i].length`\n* `1 <= rows, cols <= 200`\n* `matrix[i][j]` is `'0'` or `'1'`.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int maximalRectangle(char[][] matrix) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int maximalRectangle(char[][] matrix) {\n        return 0;\n    }\n}",
   "tags": [
     "Array",
     "Dynamic Programming",
@@ -30,38 +30,117 @@
       "name": "Histogram per Row + Monotonic Stack",
       "timeComplexity": "O(rows * cols)",
       "spaceComplexity": "O(cols)",
-      "description": "Build histogram heights row by row. For each row, apply the largest rectangle in histogram algorithm using a monotonic stack.",
-      "code": "class Solution {\n    public int maximalRectangle(char[][] matrix) {\n        if (matrix.length == 0) return 0;\n        int cols = matrix[0].length;\n        int[] heights = new int[cols];\n        int maxArea = 0;\n        for (char[] row : matrix) {\n            for (int j = 0; j < cols; j++) {\n                heights[j] = row[j] == '1' ? heights[j] + 1 : 0;\n            }\n            maxArea = Math.max(maxArea, largestRectangle(heights));\n        }\n        return maxArea;\n    }\n    private int largestRectangle(int[] heights) {\n        java.util.Deque<Integer> stack = new java.util.ArrayDeque<>();\n        int max = 0, n = heights.length;\n        for (int i = 0; i <= n; i++) {\n            int h = (i == n) ? 0 : heights[i];\n            while (!stack.isEmpty() && h < heights[stack.peek()]) {\n                int height = heights[stack.pop()];\n                int width = stack.isEmpty() ? i : i - stack.peek() - 1;\n                max = Math.max(max, height * width);\n            }\n            stack.push(i);\n        }\n        return max;\n    }\n}",
+      "description": "## Approach\n\nTreat each row as the bottom of a histogram. For every column, maintain how many consecutive `'1'` cells end at the current row. After updating the heights for a row, solve the largest-rectangle-in-histogram problem with a monotonic stack.\n\n## Key Insight\n\nAny all-ones rectangle has a bottom row. When that bottom row is fixed, the rectangle becomes a histogram rectangle whose height is limited by the shortest column in the chosen span.\n\n## Complexity Analysis\n\n- Time Complexity: O(rows * cols)\n- Space Complexity: O(cols)",
+      "code": "class Solution {\n    public int maximalRectangle(char[][] matrix) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        int[] heights = new int[cols];\n        int best = 0;\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                heights[col] = matrix[row][col] == '1' ? heights[col] + 1 : 0;\n            }\n            best = Math.max(best, largestRectangleArea(heights));\n        }\n        return best;\n    }\n\n    private int largestRectangleArea(int[] heights) {\n        java.util.Deque<Integer> stack = new java.util.ArrayDeque<>();\n        int best = 0;\n        for (int index = 0; index <= heights.length; index++) {\n            int currentHeight = index == heights.length ? 0 : heights[index];\n            while (!stack.isEmpty() && currentHeight < heights[stack.peek()]) {\n                int height = heights[stack.pop()];\n                int leftBoundary = stack.isEmpty() ? -1 : stack.peek();\n                int width = index - leftBoundary - 1;\n                best = Math.max(best, height * width);\n            }\n            stack.push(index);\n        }\n        return best;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "DP with Height, Left, Right Arrays",
+      "name": "Height Left Right Boundary DP",
       "timeComplexity": "O(rows * cols)",
       "spaceComplexity": "O(cols)",
-      "description": "For each cell, maintain height (consecutive 1s above), left boundary (leftmost column extending the rectangle), and right boundary (rightmost column). Update row by row and compute area as height * (right - left).",
-      "code": "class Solution {\n    public int maximalRectangle(char[][] matrix) {\n        if (matrix.length == 0 || matrix[0].length == 0) return 0;\n        int cols = matrix[0].length;\n        int[] height = new int[cols];\n        int[] left = new int[cols];\n        int[] right = new int[cols];\n        java.util.Arrays.fill(right, cols);\n        int maxArea = 0;\n        for (char[] row : matrix) {\n            int curLeft = 0;\n            int curRight = cols;\n            for (int j = 0; j < cols; j++) {\n                if (row[j] == '1') {\n                    height[j]++;\n                    left[j] = Math.max(left[j], curLeft);\n                } else {\n                    height[j] = 0;\n                    left[j] = 0;\n                    curLeft = j + 1;\n                }\n            }\n            for (int j = cols - 1; j >= 0; j--) {\n                if (row[j] == '1') {\n                    right[j] = Math.min(right[j], curRight);\n                } else {\n                    right[j] = cols;\n                    curRight = j;\n                }\n            }\n            for (int j = 0; j < cols; j++) {\n                maxArea = Math.max(maxArea, height[j] * (right[j] - left[j]));\n            }\n        }\n        return maxArea;\n    }\n}",
+      "description": "## Approach\n\nScan row by row while maintaining three arrays for each column: `height` is the consecutive ones ending at this row, `left` is the leftmost allowed column for a rectangle using that height, and `right` is the exclusive right boundary. Each row tightens these boundaries around zeros.\n\n## Key Insight\n\nA zero cell blocks every rectangle crossing that column on the current row. The left-to-right pass resets or tightens left boundaries, and the right-to-left pass resets or tightens right boundaries.\n\n## Complexity Analysis\n\n- Time Complexity: O(rows * cols)\n- Space Complexity: O(cols)",
+      "code": "class Solution {\n    public int maximalRectangle(char[][] matrix) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        int[] height = new int[cols];\n        int[] left = new int[cols];\n        int[] right = new int[cols];\n        java.util.Arrays.fill(right, cols);\n        int best = 0;\n\n        for (int row = 0; row < rows; row++) {\n            int currentLeft = 0;\n            for (int col = 0; col < cols; col++) {\n                if (matrix[row][col] == '1') {\n                    height[col]++;\n                    left[col] = Math.max(left[col], currentLeft);\n                } else {\n                    height[col] = 0;\n                    left[col] = 0;\n                    right[col] = cols;\n                    currentLeft = col + 1;\n                }\n            }\n\n            int currentRight = cols;\n            for (int col = cols - 1; col >= 0; col--) {\n                if (matrix[row][col] == '1') {\n                    right[col] = Math.min(right[col], currentRight);\n                } else {\n                    right[col] = cols;\n                    currentRight = col;\n                }\n            }\n\n            for (int col = 0; col < cols; col++) {\n                best = Math.max(best, height[col] * (right[col] - left[col]));\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Width DP With Upward Scan",
+      "timeComplexity": "O(rows^2 * cols)",
+      "spaceComplexity": "O(rows * cols)",
+      "description": "## Approach\n\nFirst compute `width[row][col]`, the number of consecutive ones ending at `(row, col)` when scanning left to right. Then treat each cell as a bottom-right corner, walk upward, keep the minimum width seen so far, and update the best area.\n\n## Key Insight\n\nWhen the bottom-right corner is fixed, extending the rectangle upward only needs the narrowest row width among the rows included. This gives a definition-level dynamic program that is slower than the stack method but very direct.\n\n## Complexity Analysis\n\n- Time Complexity: O(rows^2 * cols)\n- Space Complexity: O(rows * cols)",
+      "code": "class Solution {\n    public int maximalRectangle(char[][] matrix) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        int[][] width = new int[rows][cols];\n        int best = 0;\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (matrix[row][col] == '1') {\n                    width[row][col] = (col == 0 ? 0 : width[row][col - 1]) + 1;\n                    int minWidth = width[row][col];\n                    for (int top = row; top >= 0 && width[top][col] > 0; top--) {\n                        minWidth = Math.min(minWidth, width[top][col]);\n                        int height = row - top + 1;\n                        best = Math.max(best, minWidth * height);\n                    }\n                }\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Column Pair Compression",
+      "timeComplexity": "O(cols^2 * rows)",
+      "spaceComplexity": "O(rows)",
+      "description": "## Approach\n\nEnumerate the left and right column boundaries of the rectangle. For the current column interval, maintain whether each row is all ones across that interval. Consecutive valid rows form a rectangle whose width is `right - left + 1`.\n\n## Key Insight\n\nFixing both column boundaries turns the 2D problem into finding the longest consecutive run of rows that remain valid. This is a useful compression view and works well when the column count is small.\n\n## Complexity Analysis\n\n- Time Complexity: O(cols^2 * rows)\n- Space Complexity: O(rows)",
+      "code": "class Solution {\n    public int maximalRectangle(char[][] matrix) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        int best = 0;\n\n        for (int left = 0; left < cols; left++) {\n            boolean[] rowAllOnes = new boolean[rows];\n            java.util.Arrays.fill(rowAllOnes, true);\n            for (int right = left; right < cols; right++) {\n                int consecutiveRows = 0;\n                for (int row = 0; row < rows; row++) {\n                    rowAllOnes[row] = rowAllOnes[row] && matrix[row][right] == '1';\n                    if (rowAllOnes[row]) {\n                        consecutiveRows++;\n                        best = Math.max(best, consecutiveRows * (right - left + 1));\n                    } else {\n                        consecutiveRows = 0;\n                    }\n                }\n            }\n        }\n        return best;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "matrix = [[\"1\",\"0\",\"1\",\"0\",\"0\"],[\"1\",\"0\",\"1\",\"1\",\"1\"],[\"1\",\"1\",\"1\",\"1\",\"1\"],[\"1\",\"0\",\"0\",\"1\",\"0\"]]",
-      "output": "6"
+      "output": "6",
+      "description": "sample rectangle spans rows and columns after histogram updates"
     },
     {
       "input": "matrix = [[\"0\"]]",
-      "output": "0"
+      "output": "0",
+      "description": "single zero cell"
     },
     {
       "input": "matrix = [[\"1\"]]",
-      "output": "1"
+      "output": "1",
+      "description": "single one cell"
+    },
+    {
+      "input": "matrix = [[\"1\",\"1\",\"1\"],[\"1\",\"1\",\"1\"]]",
+      "output": "6",
+      "description": "all-one matrix uses the whole area"
+    },
+    {
+      "input": "matrix = [[\"1\",\"0\",\"1\",\"1\",\"1\"]]",
+      "output": "3",
+      "description": "single-row case reduces to longest run of ones"
+    },
+    {
+      "input": "matrix = [[\"1\"],[\"1\"],[\"0\"],[\"1\"]]",
+      "output": "2",
+      "description": "single-column case counts vertical run length"
+    },
+    {
+      "input": "matrix = [[\"0\",\"0\"],[\"0\",\"0\"]]",
+      "output": "0",
+      "description": "all-zero matrix"
+    },
+    {
+      "input": "matrix = [[\"1\",\"1\",\"0\"],[\"1\",\"1\",\"0\"],[\"0\",\"1\",\"1\"]]",
+      "output": "4",
+      "description": "best rectangle is a 2x2 block before a diagonal shift"
+    },
+    {
+      "input": "matrix = [[\"1\",\"0\",\"1\"],[\"0\",\"1\",\"0\"],[\"1\",\"0\",\"1\"]]",
+      "output": "1",
+      "description": "checker pattern prevents width or height larger than one"
+    },
+    {
+      "input": "matrix = [[\"1\",\"1\"],[\"1\",\"0\"],[\"1\",\"1\"],[\"1\",\"1\"]]",
+      "output": "4",
+      "description": "a zero splits one column while another vertical run remains valid"
+    },
+    {
+      "input": "matrix = [[\"0\",\"1\",\"1\",\"1\",\"0\"],[\"1\",\"1\",\"1\",\"1\",\"1\"],[\"0\",\"1\",\"1\",\"1\",\"0\"]]",
+      "output": "9",
+      "description": "wide central rectangle beats the full middle row"
+    },
+    {
+      "input": "matrix = [[\"1\",\"1\",\"1\",\"1\"],[\"1\",\"0\",\"1\",\"1\"],[\"1\",\"1\",\"1\",\"1\"]]",
+      "output": "6",
+      "description": "interior zero forces boundary updates while columns 3 and 4 stay tall"
+    },
+    {
+      "input": "matrix = [[\"1\",\"0\",\"1\",\"1\"],[\"1\",\"1\",\"1\",\"1\"],[\"1\",\"1\",\"1\",\"0\"]]",
+      "output": "6",
+      "description": "stair-step shape where the best rectangle is neither first nor last row alone"
+    },
+    {
+      "input": "matrix = [[\"1\",\"1\",\"1\",\"0\",\"1\"],[\"1\",\"1\",\"1\",\"0\",\"1\"],[\"1\",\"1\",\"1\",\"1\",\"1\"]]",
+      "output": "9",
+      "description": "three-column block over all rows beats rectangles crossing the zero column"
+    },
+    {
+      "input": "matrix = [[\"0\",\"1\",\"1\"],[\"1\",\"1\",\"1\"],[\"1\",\"1\",\"0\"],[\"1\",\"1\",\"1\"]]",
+      "output": "6",
+      "description": "best rectangle uses two columns across three consecutive rows"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p319_example1.png",
-      "caption": "4x5 Binary Matrix"
+      "caption": "Input binary matrix for Example 1"
     }
   ]
 }

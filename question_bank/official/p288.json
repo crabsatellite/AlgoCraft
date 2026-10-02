@@ -1,34 +1,114 @@
 {
   "id": "288",
   "title": "Keep Multiplying Found Values by Two",
-  "description": "# Keep Multiplying Found Values by Two\n\nYou are given an array of integers `nums`. You are also given an integer `original` which is the first number that needs to be searched for in `nums`.\n\nYou then do the following steps:\n\n1.  If `original` is found in `nums`, multiply it by two (i.e., set `original = 2 * original`).\n2.  Otherwise, stop the process.\n3.  Repeat this process with the new number as long as you keep finding the number.\n\nReturn *the final value of* `original`.\n\n## Example 1:\n\n**Input:** nums = [5,3,6,1,12], original = 3\n**Output:** 24\n**Explanation:** \n- 3 is found in nums. 3 is multiplied by 2 to obtain 6.\n- 6 is found in nums. 6 is multiplied by 2 to obtain 12.\n- 12 is found in nums. 12 is multiplied by 2 to obtain 24.\n- 24 is not found in nums. Thus, 24 is returned.\n\n## Example 2:\n\n**Input:** nums = [2,7,9], original = 4\n**Output:** 4\n**Explanation:**\n- 4 is not found in nums. Thus, 4 is returned.\n\n## Constraints:\n\n*   `1 <= nums.length <= 1000`\n*   `1 <= nums[i], original <= 1000`",
+  "description": "# Keep Multiplying Found Values by Two\n\nYou are given an integer array `nums` and an integer `original`.\n\nRepeatedly apply this rule:\n\n1. If the current value of `original` appears anywhere in `nums`, replace `original` with `original * 2`.\n2. If the current value of `original` does not appear in `nums`, stop.\n\nThe same value in `nums` may appear more than once, but finding a value only tells you to double `original` once for that current value. After doubling, the next search is for the new value.\n\nReturn the final value of `original` after the process stops.\n\n## Example 1\n\n**Input**\nnums = [5,3,6,1,12], original = 3\n\n**Output**\n24\n\n**Explanation**\n`3` appears in `nums`, so `original` becomes `6`. Then `6` appears, so it becomes `12`. Then `12` appears, so it becomes `24`. Since `24` does not appear in `nums`, the process stops.\n\n## Example 2\n\n**Input**\nnums = [2,7,9], original = 4\n\n**Output**\n4\n\n**Explanation**\n`4` does not appear in `nums`, so the process stops immediately.\n\n## Constraints\n\n* `1 <= nums.length <= 1000`\n* `1 <= nums[i], original <= 1000`",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public int findFinalValue(int[] nums, int original) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Sorting", "Simulation"],
+  "initialCode": "class Solution {\n    public int findFinalValue(int[] nums, int original) {\n        // Write your code here\n        return original;\n    }\n}",
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Sorting",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "nums = [5,3,6,1,12], original = 3", "output": "24" },
-    { "input": "nums = [2,7,9], original = 4", "output": "4" }
+    {
+      "input": "nums = [5,3,6,1,12], original = 3",
+      "output": "24"
+    },
+    {
+      "input": "nums = [2,7,9], original = 4",
+      "output": "4"
+    }
   ],
   "solutions": [
     {
       "name": "HashSet Lookup",
-      "timeComplexity": "O(n)",
+      "timeComplexity": "O(n + k)",
       "spaceComplexity": "O(n)",
-      "description": "Store all numbers in a HashSet. Repeatedly check if the current value exists in the set; if so, double it. Stop when not found.",
-      "code": "class Solution {\n    public int findFinalValue(int[] nums, int original) {\n        java.util.Set<Integer> set = new java.util.HashSet<>();\n        for (int num : nums) set.add(num);\n        while (set.contains(original)) {\n            original *= 2;\n        }\n        return original;\n    }\n}",
+      "description": "## Approach\nInsert every value from `nums` into a `HashSet`. While the set contains the current `original`, double it and try again.\n\n## Key Insight\nThe process is a repeated membership query. Duplicates do not matter because a value being present once is enough to trigger exactly one doubling for that current value.\n\n## Complexity Analysis\nBuilding the set takes O(n) time. The loop runs `k` times, where `k` is the number of successful doublings, so the total time complexity is O(n + k). The set stores up to `n` distinct numbers, so the space complexity is O(n).",
+      "code": "import java.util.HashSet;\nimport java.util.Set;\n\nclass Solution {\n    public int findFinalValue(int[] nums, int original) {\n        Set<Integer> values = new HashSet<>();\n        for (int num : nums) {\n            values.add(num);\n        }\n        while (values.contains(original)) {\n            original *= 2;\n        }\n        return original;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Sort and Linear Scan",
+      "name": "Sort And Scan",
       "timeComplexity": "O(n log n)",
-      "spaceComplexity": "O(1)",
-      "description": "Sort the array. Scan through and whenever the current element equals original, double original. Return the final value.",
+      "spaceComplexity": "O(1) extra",
+      "description": "## Approach\nSort `nums` in nondecreasing order and scan once from left to right. Whenever the scanned value equals the current `original`, double `original`.\n\n## Key Insight\n`original` only increases, so after sorting, no earlier value can become useful later. A single left-to-right pass is enough to catch every value in the doubling chain, even if the input was originally unsorted.\n\n## Complexity Analysis\nSorting dominates the runtime at O(n log n), and the scan is O(n). Apart from the sorting implementation's internal storage, the algorithm uses O(1) extra space.",
       "code": "import java.util.Arrays;\n\nclass Solution {\n    public int findFinalValue(int[] nums, int original) {\n        Arrays.sort(nums);\n        for (int num : nums) {\n            if (num == original) {\n                original *= 2;\n            }\n        }\n        return original;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bounded Boolean Presence",
+      "timeComplexity": "O(n + k)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nUse the constraint `nums[i] <= 1000` to build a boolean presence table of size `1001`. Keep doubling while `original` is still at most `1000` and the table marks it as present.\n\n## Key Insight\nNo value greater than `1000` can appear in `nums`, so once `original` becomes larger than `1000`, the process must stop. The fixed table also handles duplicates automatically.\n\n## Complexity Analysis\nFilling the table takes O(n), and the doubling loop runs `k` successful steps. The table size is fixed by the problem constraint, so the extra space complexity is O(1).",
+      "code": "class Solution {\n    public int findFinalValue(int[] nums, int original) {\n        boolean[] present = new boolean[1001];\n        for (int num : nums) {\n            present[num] = true;\n        }\n        while (original <= 1000 && present[original]) {\n            original *= 2;\n        }\n        return original;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Binary Search Chain",
+      "timeComplexity": "O(n log n + k log n)",
+      "spaceComplexity": "O(1) extra",
+      "description": "## Approach\nSort the array, then repeatedly binary-search for the current `original`. If the search succeeds, double `original`; otherwise return it.\n\n## Key Insight\nThis route separates preprocessing from membership queries. It is less direct than a set for this small problem, but it demonstrates the common pattern of sorting once and answering many existence checks with binary search.\n\n## Complexity Analysis\nSorting costs O(n log n). Each of the `k` successful doublings and the final failed lookup costs O(log n), so the total time complexity is O(n log n + k log n). The extra space is O(1) aside from sorting internals.",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int findFinalValue(int[] nums, int original) {\n        Arrays.sort(nums);\n        while (Arrays.binarySearch(nums, original) >= 0) {\n            original *= 2;\n        }\n        return original;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [5,3,6,1,12], original = 3", "output": "24" },
-    { "input": "nums = [2,7,9], original = 4", "output": "4" }
+    {
+      "input": "nums = [5,3,6,1,12], original = 3",
+      "output": "24",
+      "description": "sample follows 3 -> 6 -> 12 -> 24"
+    },
+    {
+      "input": "nums = [2,7,9], original = 4",
+      "output": "4",
+      "description": "sample original is absent immediately"
+    },
+    {
+      "input": "nums = [2,4,8], original = 2",
+      "output": "16",
+      "description": "full doubling chain"
+    },
+    {
+      "input": "nums = [8,2,4], original = 2",
+      "output": "16",
+      "description": "chain works even when values are unsorted"
+    },
+    {
+      "input": "nums = [2,2,4], original = 2",
+      "output": "8",
+      "description": "duplicate original values should not multiply twice at the same value"
+    },
+    {
+      "input": "nums = [1,16,4,2,8], original = 1",
+      "output": "32",
+      "description": "long chain through several powers of two"
+    },
+    {
+      "input": "nums = [10], original = 5",
+      "output": "5",
+      "description": "single-element absent case"
+    },
+    {
+      "input": "nums = [1000], original = 1000",
+      "output": "2000",
+      "description": "the answer may exceed the maximum value allowed inside nums"
+    },
+    {
+      "input": "nums = [7,14,28,56,112,224,448,896], original = 7",
+      "output": "1792",
+      "description": "chain can continue until it doubles beyond 1000"
+    },
+    {
+      "input": "nums = [4,8,16], original = 2",
+      "output": "2",
+      "description": "later powers do not matter if the initial value is absent"
+    },
+    {
+      "input": "nums = [3,6,6,12,24], original = 3",
+      "output": "48",
+      "description": "duplicates inside the chain should not add extra doublings"
+    }
   ]
 }

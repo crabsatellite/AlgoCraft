@@ -1,34 +1,126 @@
 {
   "id": "370",
-  "title": "K-th Smallest in Lexicographical Order",
-  "description": "# K-th Smallest in Lexicographical Order\n\nGiven two integers `n` and `k`, return *the* `kth` *lexicographically smallest integer in the range* `[1, n]`.\n\n## Example 1:\n\n**Input:** n = 13, k = 2\n**Output:** 10\n**Explanation:** The lexicographical order is [1, 10, 11, 12, 13, 2, 3, 4, 5, 6, 7, 8, 9], so the second smallest number is 10.\n\n## Example 2:\n\n**Input:** n = 1, k = 1\n**Output:** 1\n\n## Constraints:\n\n*   `1 <= k <= n <= 10^9`",
-  "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int findKthNumber(int n, int k) {\n        \n    }\n}",
-  "tags": ["Trie", "Tree", "Depth-First Search"],
+  "title": "Minimum Operations to Make Array Alternating",
+  "description": "# Minimum Operations to Make Array Alternating\n\nYou are given an integer array `nums`. In one operation, you may change any one element to any positive integer.\n\nAn array is alternating when both conditions hold:\n\n* every pair of adjacent elements has different values;\n* every pair of elements with the same parity index has the same value. In other words, all even indices share one value and all odd indices share one value.\n\nReturn the minimum number of operations needed to make `nums` alternating.\n\n## Example 1:\n\n**Input:** nums = [3,1,3,2,4,3]\n**Output:** 3\n**Explanation:** Keep value `3` on even indices and value `1` on odd indices. Three positions must change.\n\n## Example 2:\n\n**Input:** nums = [1,2,2,2,2]\n**Output:** 2\n**Explanation:** Value `2` is most frequent on both parities, so one side must use its second-best choice or a new value.\n\n## Constraints:\n\n* `1 <= nums.length <= 10^5`\n* `1 <= nums[i] <= 10^5`",
+  "difficulty": "MEDIUM",
+  "initialCode": "class Solution {\n    public int minimumOperations(int[] nums) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Greedy"
+  ],
   "examples": [
-    { "input": "n = 13, k = 2", "output": "10" },
-    { "input": "n = 1, k = 1", "output": "1" }
+    {
+      "input": "nums = [3,1,3,2,4,3]",
+      "output": "3"
+    },
+    {
+      "input": "nums = [1,2,2,2,2]",
+      "output": "2"
+    }
   ],
   "solutions": [
     {
-      "name": "Trie-like Prefix Counting",
-      "timeComplexity": "O(log^2 n)",
-      "spaceComplexity": "O(1)",
-      "description": "Think of numbers 1..n in a virtual trie. Count nodes under each prefix to navigate: if count <= k, skip this subtree; otherwise go deeper. Count function calculates nodes between prefix and prefix+1 bounded by n.",
-      "code": "class Solution {\n    public int findKthNumber(int n, int k) {\n        long cur = 1;\n        k--;\n        while (k > 0) {\n            long steps = countSteps(n, cur, cur + 1);\n            if (steps <= k) { k -= steps; cur++; }\n            else { k--; cur *= 10; }\n        }\n        return (int) cur;\n    }\n    private long countSteps(int n, long cur, long next) {\n        long steps = 0;\n        while (cur <= n) {\n            steps += Math.min(n + 1, next) - cur;\n            cur *= 10;\n            next *= 10;\n        }\n        return steps;\n    }\n}",
+      "name": "HashMap Top Two by Parity",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCount value frequencies separately for even indices and odd indices using hash maps. Extract the top two values from each parity and try the four possible top-pair combinations, keeping only pairs whose values differ.\n\n## Key Insight\n\nFor each parity, only the two most frequent values can matter. If the best even value and best odd value differ, they are optimal. If they conflict, one side must give up its best value, so the answer is determined by pairing a best value with the other side's second-best value.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minimumOperations(int[] nums) {\n        if (nums.length <= 1) {\n            return 0;\n        }\n        Map<Integer, Integer> evenCounts = countParity(nums, 0);\n        Map<Integer, Integer> oddCounts = countParity(nums, 1);\n        int[][] topEven = topTwo(evenCounts);\n        int[][] topOdd = topTwo(oddCounts);\n        int bestKeep = 0;\n        for (int[] evenChoice : topEven) {\n            for (int[] oddChoice : topOdd) {\n                if (evenChoice[0] != oddChoice[0]) {\n                    bestKeep = Math.max(bestKeep, evenChoice[1] + oddChoice[1]);\n                }\n            }\n        }\n        return nums.length - bestKeep;\n    }\n\n    private Map<Integer, Integer> countParity(int[] nums, int start) {\n        Map<Integer, Integer> counts = new HashMap<>();\n        for (int i = start; i < nums.length; i += 2) {\n            counts.merge(nums[i], 1, Integer::sum);\n        }\n        return counts;\n    }\n\n    private int[][] topTwo(Map<Integer, Integer> counts) {\n        int[][] best = {{-1, 0}, {-2, 0}};\n        for (Map.Entry<Integer, Integer> entry : counts.entrySet()) {\n            if (entry.getValue() > best[0][1]) {\n                best[1] = best[0];\n                best[0] = new int[]{entry.getKey(), entry.getValue()};\n            } else if (entry.getValue() > best[1][1]) {\n                best[1] = new int[]{entry.getKey(), entry.getValue()};\n            }\n        }\n        return best;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Iterative Prefix Navigation",
-      "timeComplexity": "O(log^2 n)",
-      "spaceComplexity": "O(1)",
-      "description": "Navigate the virtual decimal trie iteratively. Start with current=1 and decrement k. At each step, count the subtree size. If k fits in subtree, go deeper (multiply by 10). Otherwise skip to next sibling and subtract count from k.",
-      "code": "class Solution {\n    public int findKthNumber(int n, int k) {\n        long cur = 1;\n        k--;\n        while (k > 0) {\n            long steps = getSteps(n, cur);\n            if (steps <= k) {\n                k -= (int) steps;\n                cur++;\n            } else {\n                k--;\n                cur *= 10;\n            }\n        }\n        return (int) cur;\n    }\n    private long getSteps(int n, long prefix) {\n        long steps = 0;\n        long first = prefix;\n        long last = prefix + 1;\n        while (first <= n) {\n            steps += Math.min((long) n + 1, last) - first;\n            first *= 10;\n            last *= 10;\n        }\n        return steps;\n    }\n}",
+      "name": "Counting Array Top Two",
+      "timeComplexity": "O(n + U)",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\n\nUse the constraint `nums[i] <= 100000` directly. Build two frequency arrays, one for even indices and one for odd indices, then extract the top two values from each array and choose the best non-conflicting pair.\n\n## Key Insight\n\nThe value domain is bounded, so a dense counting array can replace hash maps. The optimization target is still the same: maximize kept positions under the requirement that the even value and odd value are different.\n\n## Complexity Analysis\n- Time Complexity: O(n + U)\n- Space Complexity: O(U)",
+      "code": "class Solution {\n    public int minimumOperations(int[] nums) {\n        if (nums.length <= 1) {\n            return 0;\n        }\n        int[] even = new int[100001];\n        int[] odd = new int[100001];\n        for (int i = 0; i < nums.length; i++) {\n            if ((i & 1) == 0) {\n                even[nums[i]]++;\n            } else {\n                odd[nums[i]]++;\n            }\n        }\n        int[][] topEven = topTwo(even);\n        int[][] topOdd = topTwo(odd);\n        int bestKeep = 0;\n        for (int[] evenChoice : topEven) {\n            for (int[] oddChoice : topOdd) {\n                if (evenChoice[0] != oddChoice[0]) {\n                    bestKeep = Math.max(bestKeep, evenChoice[1] + oddChoice[1]);\n                }\n            }\n        }\n        return nums.length - bestKeep;\n    }\n\n    private int[][] topTwo(int[] count) {\n        int[][] best = {{-1, 0}, {-2, 0}};\n        for (int value = 1; value < count.length; value++) {\n            if (count[value] > best[0][1]) {\n                best[1] = best[0];\n                best[0] = new int[]{value, count[value]};\n            } else if (count[value] > best[1][1]) {\n                best[1] = new int[]{value, count[value]};\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Explicit Conflict Formula",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCompute the top two frequency choices for both parity groups. If the two best values are different, keep both. If they are the same, compare the two legal repairs: keep the best even value with the second-best odd value, or keep the second-best even value with the best odd value.\n\n## Key Insight\n\nThere is only one possible conflict: both parities want the same most frequent value. In that case, changing one parity away from its best value is unavoidable, and the better of the two second-choice repairs is globally optimal.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minimumOperations(int[] nums) {\n        int[][] topEven = topTwo(nums, 0);\n        int[][] topOdd = topTwo(nums, 1);\n        if (topEven[0][0] != topOdd[0][0]) {\n            return nums.length - topEven[0][1] - topOdd[0][1];\n        }\n        int keepIfOddChanges = topEven[0][1] + topOdd[1][1];\n        int keepIfEvenChanges = topEven[1][1] + topOdd[0][1];\n        return nums.length - Math.max(keepIfOddChanges, keepIfEvenChanges);\n    }\n\n    private int[][] topTwo(int[] nums, int start) {\n        Map<Integer, Integer> counts = new HashMap<>();\n        for (int i = start; i < nums.length; i += 2) {\n            counts.put(nums[i], counts.getOrDefault(nums[i], 0) + 1);\n        }\n        int[][] best = {{-1, 0}, {-2, 0}};\n        for (Map.Entry<Integer, Integer> entry : counts.entrySet()) {\n            if (entry.getValue() > best[0][1]) {\n                best[1] = best[0];\n                best[0] = new int[]{entry.getKey(), entry.getValue()};\n            } else if (entry.getValue() > best[1][1]) {\n                best[1] = new int[]{entry.getKey(), entry.getValue()};\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Frequency Candidate Lists",
+      "timeComplexity": "O(n + u log u)",
+      "spaceComplexity": "O(u)",
+      "description": "## Approach\n\nBuild frequency maps for both parities, turn each map into a list of candidates sorted by descending count, and scan for the best pair with different values. Sentinels with count zero represent changing an entire parity group to a new value when no existing value is legal.\n\n## Key Insight\n\nSorting makes the greedy search transparent: for a fixed even-side choice, the first odd candidate with a different value is the best possible odd partner. Once the best possible remaining pair cannot beat the current answer, the scan can stop.\n\n## Complexity Analysis\n- Time Complexity: O(n + u log u)\n- Space Complexity: O(u)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minimumOperations(int[] nums) {\n        if (nums.length <= 1) {\n            return 0;\n        }\n        List<int[]> evenCandidates = sortedCandidates(nums, 0, -1);\n        List<int[]> oddCandidates = sortedCandidates(nums, 1, -2);\n        int best = 0;\n        for (int[] evenChoice : evenCandidates) {\n            if (evenChoice[1] + oddCandidates.get(0)[1] <= best) {\n                break;\n            }\n            for (int[] oddChoice : oddCandidates) {\n                if (evenChoice[1] + oddChoice[1] <= best) {\n                    break;\n                }\n                if (evenChoice[0] != oddChoice[0]) {\n                    best = evenChoice[1] + oddChoice[1];\n                    break;\n                }\n            }\n        }\n        return nums.length - best;\n    }\n\n    private List<int[]> sortedCandidates(int[] nums, int start, int sentinel) {\n        Map<Integer, Integer> counts = new HashMap<>();\n        for (int i = start; i < nums.length; i += 2) {\n            counts.merge(nums[i], 1, Integer::sum);\n        }\n        List<int[]> candidates = new ArrayList<>();\n        for (Map.Entry<Integer, Integer> entry : counts.entrySet()) {\n            candidates.add(new int[]{entry.getKey(), entry.getValue()});\n        }\n        candidates.add(new int[]{sentinel, 0});\n        candidates.sort((a, b) -> Integer.compare(b[1], a[1]));\n        return candidates;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Asymmetric Best-Partner Enumeration",
+      "timeComplexity": "O(n + u)",
+      "spaceComplexity": "O(u)",
+      "description": "## Approach\n\nCompute frequency maps and the top two candidates for each parity. Enumerate every value that might be kept on one side, and pair it with the best candidate from the other side that does not use the same value. Do this from both directions to include cases where one parity keeps no existing value.\n\n## Key Insight\n\nThe expensive part is not choosing both values; it is knowing the best legal partner for a chosen value. The other parity's top two candidates are enough to answer that partner query in constant time.\n\n## Complexity Analysis\n- Time Complexity: O(n + u)\n- Space Complexity: O(u)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minimumOperations(int[] nums) {\n        Map<Integer, Integer> evenCounts = countParity(nums, 0);\n        Map<Integer, Integer> oddCounts = countParity(nums, 1);\n        int[][] topEven = topTwo(evenCounts);\n        int[][] topOdd = topTwo(oddCounts);\n        int best = 0;\n        for (Map.Entry<Integer, Integer> evenChoice : evenCounts.entrySet()) {\n            best = Math.max(best, evenChoice.getValue() + bestOddFor(evenChoice.getKey(), topOdd));\n        }\n        for (Map.Entry<Integer, Integer> oddChoice : oddCounts.entrySet()) {\n            best = Math.max(best, oddChoice.getValue() + bestEvenFor(oddChoice.getKey(), topEven));\n        }\n        best = Math.max(best, topEven[0][1]);\n        best = Math.max(best, topOdd[0][1]);\n        return nums.length - best;\n    }\n\n    private int bestOddFor(int evenValue, int[][] topOdd) {\n        return topOdd[0][0] != evenValue ? topOdd[0][1] : topOdd[1][1];\n    }\n\n    private int bestEvenFor(int oddValue, int[][] topEven) {\n        return topEven[0][0] != oddValue ? topEven[0][1] : topEven[1][1];\n    }\n\n    private Map<Integer, Integer> countParity(int[] nums, int start) {\n        Map<Integer, Integer> counts = new HashMap<>();\n        for (int i = start; i < nums.length; i += 2) {\n            counts.put(nums[i], counts.getOrDefault(nums[i], 0) + 1);\n        }\n        return counts;\n    }\n\n    private int[][] topTwo(Map<Integer, Integer> counts) {\n        int[][] best = {{-1, 0}, {-2, 0}};\n        for (Map.Entry<Integer, Integer> entry : counts.entrySet()) {\n            if (entry.getValue() > best[0][1]) {\n                best[1] = best[0];\n                best[0] = new int[]{entry.getKey(), entry.getValue()};\n            } else if (entry.getValue() > best[1][1]) {\n                best[1] = new int[]{entry.getKey(), entry.getValue()};\n            }\n        }\n        return best;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "n = 13, k = 2", "output": "10" },
-    { "input": "n = 1, k = 1", "output": "1" }
+    {
+      "input": "nums = [3,1,3,2,4,3]",
+      "output": "3",
+      "description": "canonical parity-frequency choice"
+    },
+    {
+      "input": "nums = [1,2,2,2,2]",
+      "output": "2",
+      "description": "same dominant value conflict"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "0",
+      "description": "single element is already alternating"
+    },
+    {
+      "input": "nums = [1,1]",
+      "output": "1",
+      "description": "two equal adjacent values need one change"
+    },
+    {
+      "input": "nums = [1,1,1,1]",
+      "output": "2",
+      "description": "all equal values require changing one parity group"
+    },
+    {
+      "input": "nums = [7,7,7]",
+      "output": "1",
+      "description": "odd-length all-equal array keeps the larger parity group"
+    },
+    {
+      "input": "nums = [1,2,1,2,1]",
+      "output": "0",
+      "description": "already alternating by parity"
+    },
+    {
+      "input": "nums = [1,2,3,2,1,2]",
+      "output": "1",
+      "description": "one even-index outlier must change"
+    },
+    {
+      "input": "nums = [1,2,2,1]",
+      "output": "2",
+      "description": "both parity groups have conflicting best choices"
+    },
+    {
+      "input": "nums = [1,1,2,2,3,3]",
+      "output": "4",
+      "description": "tie-heavy case with no repeated parity winner"
+    },
+    {
+      "input": "nums = [100000,1,100000,1,100000,2]",
+      "output": "1",
+      "description": "upper value bound with a single odd-index outlier"
+    },
+    {
+      "input": "nums = [2,2,2,3,3,3,3]",
+      "output": "3",
+      "description": "best values differ only after comparing second choices"
+    }
   ]
 }

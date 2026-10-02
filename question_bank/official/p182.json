@@ -1,7 +1,7 @@
 {
   "id": "182",
   "title": "Insert Interval",
-  "description": "# Insert Interval\n\nYou are given an array of non-overlapping intervals `intervals` where `intervals[i] = [starti, endi]` represent the start and the end of the `i`-th interval and `intervals` is sorted in ascending order by `starti`. You are also given an interval `newInterval = [start, end]` that represents the start and end of another interval.\n\nInsert `newInterval` into `intervals` such that `intervals` is still sorted in ascending order by `starti` and `intervals` still does not have any overlapping intervals (merge overlapping intervals if necessary).\n\nReturn `intervals` *after the insertion*.\n\n## Example 1:\n\n**Input:** intervals = [[1,3],[6,9]], newInterval = [2,5]\n**Output:** [[1,5],[6,9]]\n\n## Example 2:\n\n**Input:** intervals = [[1,2],[3,5],[6,7],[8,10],[12,16]], newInterval = [4,8]\n**Output:** [[1,2],[3,10],[12,16]]\n**Explanation:** Because the new interval [4,8] overlaps with [3,5],[6,7],[8,10].\n\n## Constraints:\n\n*   `0 <= intervals.length <= 10^4`\n*   `intervals[i].length == 2`\n*   `0 <= starti <= endi <= 10^5`\n*   `intervals` is sorted by `starti` in ascending order.\n*   `newInterval.length == 2`\n*   `0 <= start <= end <= 10^5`",
+  "description": "# Insert Interval\n\nYou are given an array of non-overlapping closed intervals `intervals`, where `intervals[i] = [starti, endi]`. The intervals are sorted in ascending order by `starti`. You are also given one closed interval `newInterval = [start, end]`.\n\nInsert `newInterval` into `intervals` and return the new sorted list of non-overlapping intervals. If the new interval overlaps one or more existing intervals, merge all of them into a single interval.\n\nTwo intervals overlap when they share at least one point. For example, `[1,5]` and `[5,7]` overlap and merge into `[1,7]`, but `[1,5]` and `[6,8]` remain separate.\n\nReturn the intervals after the insertion.\n\n## Example 1:\n\n**Input:** intervals = [[1,3],[6,9]], newInterval = [2,5]\n**Output:** [[1,5],[6,9]]\n**Explanation:** `[2,5]` overlaps `[1,3]`, so those two ranges become `[1,5]`. `[6,9]` stays separate.\n\n## Example 2:\n\n**Input:** intervals = [[1,2],[3,5],[6,7],[8,10],[12,16]], newInterval = [4,8]\n**Output:** [[1,2],[3,10],[12,16]]\n**Explanation:** The new interval overlaps `[3,5]`, `[6,7]`, and `[8,10]`, so those three ranges and the new interval merge into `[3,10]`.\n\n## Constraints:\n\n*   `0 <= intervals.length <= 10^4`\n*   `intervals[i].length == 2`\n*   `0 <= starti <= endi <= 10^5`\n*   `intervals` is sorted by `starti` in ascending order.\n*   `intervals` contains no overlapping intervals before insertion.\n*   `newInterval.length == 2`\n*   `0 <= start <= end <= 10^5`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int[][] insert(int[][] intervals, int[] newInterval) {\n        // Write your code here\n        return new int[0][0];\n    }\n}",
   "tags": [
@@ -19,62 +19,133 @@
   ],
   "solutions": [
     {
-      "name": "Linear Scan",
+      "name": "Three-Phase Linear Scan",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Add all intervals that end before newInterval starts. Merge all overlapping intervals. Add all intervals that start after newInterval ends.",
-      "code": "class Solution {\n    public int[][] insert(int[][] intervals, int[] newInterval) {\n        java.util.List<int[]> result = new java.util.ArrayList<>();\n        int i = 0, n = intervals.length;\n        while (i < n && intervals[i][1] < newInterval[0])\n            result.add(intervals[i++]);\n        while (i < n && intervals[i][0] <= newInterval[1]) {\n            newInterval[0] = Math.min(newInterval[0], intervals[i][0]);\n            newInterval[1] = Math.max(newInterval[1], intervals[i][1]);\n            i++;\n        }\n        result.add(newInterval);\n        while (i < n)\n            result.add(intervals[i++]);\n        return result.toArray(new int[0][]);\n    }\n}",
+      "description": "## Approach\n\nUse the sorted, disjoint input directly. First copy every interval that ends before the new interval starts. Then keep expanding a local `[start, end]` while intervals overlap it. Finally append the merged interval and copy every interval that starts after it.\n\n## Key Insight\n\nBecause the original intervals are already sorted and non-overlapping, all intervals affected by the insertion form one contiguous block. Once an interval starts after the current merged end, no later interval can overlap either.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each interval is inspected once.\n- Space Complexity: O(n), because the returned interval array may contain all original intervals plus the new one.",
+      "code": "class Solution {\n    public int[][] insert(int[][] intervals, int[] newInterval) {\n        java.util.List<int[]> result = new java.util.ArrayList<>();\n        int start = newInterval[0];\n        int end = newInterval[1];\n        int i = 0;\n        int n = intervals.length;\n\n        while (i < n && intervals[i][1] < start) {\n            result.add(new int[] {intervals[i][0], intervals[i][1]});\n            i++;\n        }\n\n        while (i < n && intervals[i][0] <= end) {\n            start = Math.min(start, intervals[i][0]);\n            end = Math.max(end, intervals[i][1]);\n            i++;\n        }\n        result.add(new int[] {start, end});\n\n        while (i < n) {\n            result.add(new int[] {intervals[i][0], intervals[i][1]});\n            i++;\n        }\n        return result.toArray(new int[result.size()][]);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Binary Search + Merge",
+      "name": "Binary Search First Affected Interval",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use binary search to find the position where newInterval starts overlapping. Then merge all overlapping intervals and build the result.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int[][] insert(int[][] intervals, int[] newInterval) {\n        List<int[]> result = new ArrayList<>();\n        int n = intervals.length;\n        int left = 0, right = n - 1;\n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            if (intervals[mid][1] < newInterval[0]) {\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        int mergeStart = left;\n        left = 0;\n        right = n - 1;\n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            if (intervals[mid][0] <= newInterval[1]) {\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        int mergeEnd = right;\n        for (int i = 0; i < mergeStart; i++) {\n            result.add(intervals[i]);\n        }\n        int[] merged = new int[]{newInterval[0], newInterval[1]};\n        for (int i = mergeStart; i <= mergeEnd; i++) {\n            merged[0] = Math.min(merged[0], intervals[i][0]);\n            merged[1] = Math.max(merged[1], intervals[i][1]);\n        }\n        result.add(merged);\n        for (int i = mergeEnd + 1; i < n; i++) {\n            result.add(intervals[i]);\n        }\n        return result.toArray(new int[0][]);\n    }\n}",
+      "description": "## Approach\n\nUse binary search on interval ends to find the first interval that could overlap `newInterval`, and binary search on interval starts to find the last interval that could overlap it. Copy the untouched prefix, merge only that candidate block, and copy the untouched suffix.\n\n## Key Insight\n\nThe sorted order lets us locate the overlap window by boundary comparisons: intervals with `end < start` are definitely left of the new interval, while intervals with `start > end` are definitely right of it.\n\n## Complexity Analysis\n\n- Time Complexity: O(n). The searches cost O(log n), but building the returned array is linear.\n- Space Complexity: O(n), because the answer array is newly allocated.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[][] insert(int[][] intervals, int[] newInterval) {\n        int n = intervals.length;\n        int start = newInterval[0];\n        int end = newInterval[1];\n\n        int left = 0;\n        int right = n - 1;\n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            if (intervals[mid][1] < start) {\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        int mergeStart = left;\n\n        left = 0;\n        right = n - 1;\n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            if (intervals[mid][0] <= end) {\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        int mergeEnd = right;\n\n        List<int[]> result = new ArrayList<>();\n        for (int i = 0; i < mergeStart; i++) {\n            result.add(new int[] {intervals[i][0], intervals[i][1]});\n        }\n        for (int i = mergeStart; i <= mergeEnd; i++) {\n            start = Math.min(start, intervals[i][0]);\n            end = Math.max(end, intervals[i][1]);\n        }\n        result.add(new int[] {start, end});\n        for (int i = mergeEnd + 1; i < n; i++) {\n            result.add(new int[] {intervals[i][0], intervals[i][1]});\n        }\n        return result.toArray(new int[result.size()][]);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Append Then Sort And Merge",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nIgnore the special insertion structure and solve the more general merge-intervals problem. Append the new interval, sort every interval by start, and run the standard merge pass over the sorted list.\n\n## Key Insight\n\nThis is slower than the linear solution, but it is a useful correctness baseline: if the sorted input guarantee were removed, this route would still be valid after sorting.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), dominated by sorting the `n + 1` intervals.\n- Space Complexity: O(n), because the combined list and result are stored.",
+      "code": "class Solution {\n    public int[][] insert(int[][] intervals, int[] newInterval) {\n        int[][] all = new int[intervals.length + 1][2];\n        for (int i = 0; i < intervals.length; i++) {\n            all[i] = new int[] {intervals[i][0], intervals[i][1]};\n        }\n        all[intervals.length] = new int[] {newInterval[0], newInterval[1]};\n        java.util.Arrays.sort(all, (a, b) -> Integer.compare(a[0], b[0]));\n\n        java.util.List<int[]> merged = new java.util.ArrayList<>();\n        for (int[] interval : all) {\n            if (merged.isEmpty() || merged.get(merged.size() - 1)[1] < interval[0]) {\n                merged.add(new int[] {interval[0], interval[1]});\n            } else {\n                int[] last = merged.get(merged.size() - 1);\n                last[1] = Math.max(last[1], interval[1]);\n            }\n        }\n        return merged.toArray(new int[merged.size()][]);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "TreeMap Ordered Merge",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nInsert all ranges into a `TreeMap` keyed by start, including the new interval. Iterate the ordered map and merge each entry into the current output tail when it overlaps that tail.\n\n## Key Insight\n\nAn ordered map is a data-structure version of the general merge idea. It makes the ordering operation explicit and is useful when intervals arrive through incremental insertions instead of a plain array.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), because each interval is inserted into the ordered map.\n- Space Complexity: O(n), because the map and output store the intervals.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[][] insert(int[][] intervals, int[] newInterval) {\n        TreeMap<Integer, Integer> byStart = new TreeMap<>();\n        for (int[] interval : intervals) {\n            byStart.put(interval[0], interval[1]);\n        }\n        byStart.put(newInterval[0], Math.max(byStart.getOrDefault(newInterval[0], newInterval[1]), newInterval[1]));\n\n        List<int[]> result = new ArrayList<>();\n        for (Map.Entry<Integer, Integer> entry : byStart.entrySet()) {\n            int mergeStart = entry.getKey();\n            int mergeEnd = entry.getValue();\n            if (result.isEmpty() || result.get(result.size() - 1)[1] < mergeStart) {\n                result.add(new int[] {mergeStart, mergeEnd});\n            } else {\n                int[] last = result.get(result.size() - 1);\n                last[1] = Math.max(last[1], mergeEnd);\n            }\n        }\n        return result.toArray(new int[result.size()][]);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Endpoint Event Sweep",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nConvert every interval into two endpoint events: one start event and one end event. Sweep coordinates in sorted order, increasing the active count for starts before decreasing it for ends at the same coordinate. Open an output interval when coverage rises from zero and close it when coverage falls back to zero.\n\n## Key Insight\n\nProcessing starts before ends at the same coordinate preserves closed-interval overlap: `[1,5]` and `[5,7]` stay connected. Separate coordinates with a real gap, such as `[1,5]` and `[6,8]`, close and reopen as different intervals.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), because the event coordinates are stored in a sorted map.\n- Space Complexity: O(n), because every interval contributes endpoint events.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[][] insert(int[][] intervals, int[] newInterval) {\n        TreeMap<Integer, int[]> events = new TreeMap<>();\n        addEvent(events, newInterval[0], 1, 0);\n        addEvent(events, newInterval[1], 0, 1);\n        for (int[] interval : intervals) {\n            addEvent(events, interval[0], 1, 0);\n            addEvent(events, interval[1], 0, 1);\n        }\n\n        List<int[]> result = new ArrayList<>();\n        int active = 0;\n        int currentStart = -1;\n        for (Map.Entry<Integer, int[]> entry : events.entrySet()) {\n            int coordinate = entry.getKey();\n            int starts = entry.getValue()[0];\n            int ends = entry.getValue()[1];\n            if (active == 0 && starts > 0) {\n                currentStart = coordinate;\n            }\n            active += starts;\n            active -= ends;\n            if (active == 0) {\n                result.add(new int[] {currentStart, coordinate});\n            }\n        }\n        return result.toArray(new int[result.size()][]);\n    }\n\n    private void addEvent(TreeMap<Integer, int[]> events, int coordinate, int starts, int ends) {\n        int[] counts = events.computeIfAbsent(coordinate, key -> new int[2]);\n        counts[0] += starts;\n        counts[1] += ends;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "intervals = [[1,3],[6,9]], newInterval = [2,5]",
-      "output": "[[1,5],[6,9]]"
+      "output": "[[1,5],[6,9]]",
+      "description": "New interval overlaps the first interval and must merge before the later gap."
     },
     {
       "input": "intervals = [[1,2],[3,5],[6,7],[8,10],[12,16]], newInterval = [4,8]",
-      "output": "[[1,2],[3,10],[12,16]]"
+      "output": "[[1,2],[3,10],[12,16]]",
+      "description": "New interval bridges several middle intervals into one merged range."
     },
     {
       "input": "intervals = [], newInterval = [5,7]",
-      "output": "[[5,7]]"
+      "output": "[[5,7]]",
+      "description": "Empty interval list should return the new interval as the only range."
     },
     {
       "input": "intervals = [[1,5]], newInterval = [2,3]",
-      "output": "[[1,5]]"
+      "output": "[[1,5]]",
+      "description": "New interval is fully contained inside an existing interval."
     },
     {
       "input": "intervals = [[1,5]], newInterval = [6,8]",
-      "output": "[[1,5],[6,8]]"
+      "output": "[[1,5],[6,8]]",
+      "description": "New interval belongs after the only existing interval without merging."
+    },
+    {
+      "input": "intervals = [[3,5]], newInterval = [1,2]",
+      "output": "[[1,2],[3,5]]",
+      "description": "New interval belongs before the only existing interval without merging."
+    },
+    {
+      "input": "intervals = [[1,5]], newInterval = [5,7]",
+      "output": "[[1,7]]",
+      "description": "Closed intervals sharing endpoint 5 overlap and must merge."
     },
     {
       "input": "intervals = [[1,5]], newInterval = [0,0]",
-      "output": "[[0,0],[1,5]]"
+      "output": "[[0,0],[1,5]]",
+      "description": "Zero-length interval before the list remains separate."
     },
     {
-      "input": "intervals = [[1,5],[6,8]], newInterval = [5,6]",
-      "output": "[[1,8]]"
+      "input": "intervals = [[1,5]], newInterval = [0,6]",
+      "output": "[[0,6]]",
+      "description": "New interval fully covers the existing interval."
+    },
+    {
+      "input": "intervals = [[1,2],[5,6]], newInterval = [3,4]",
+      "output": "[[1,2],[3,4],[5,6]]",
+      "description": "New interval lands in a middle gap without merging either neighbor."
+    },
+    {
+      "input": "intervals = [[1,2],[5,6]], newInterval = [2,5]",
+      "output": "[[1,6]]",
+      "description": "New interval touches both neighbors and connects them through closed endpoints."
+    },
+    {
+      "input": "intervals = [[1,3],[4,6]], newInterval = [2,5]",
+      "output": "[[1,6]]",
+      "description": "New interval overlaps two ranges that did not overlap each other before insertion."
+    },
+    {
+      "input": "intervals = [[1,3],[6,9]], newInterval = [10,11]",
+      "output": "[[1,3],[6,9],[10,11]]",
+      "description": "New interval appends after multiple existing ranges."
+    },
+    {
+      "input": "intervals = [[2,4],[7,9]], newInterval = [1,10]",
+      "output": "[[1,10]]",
+      "description": "New interval covers every existing interval and extends on both sides."
+    },
+    {
+      "input": "intervals = [[1,2],[3,4],[5,6]], newInterval = [7,8]",
+      "output": "[[1,2],[3,4],[5,6],[7,8]]",
+      "description": "Appending after several separated ranges should not merge across real gaps."
     },
     {
       "input": "intervals = [[1,2],[3,4],[5,6]], newInterval = [0,7]",
-      "output": "[[0,7]]"
+      "output": "[[0,7]]",
+      "description": "New interval covers a whole separated list."
     }
   ],
-  "diagram": "images/p182_insert_interval.png",
   "diagrams": [
     {
       "id": "example1",
       "file": "p182_example1.png",
-      "caption": "Insert Interval: [2,5] merges with [1,3]"
+      "caption": "Sorted disjoint intervals and a new interval before insertion and merge"
     }
   ]
 }

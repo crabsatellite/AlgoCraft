@@ -1,7 +1,7 @@
 {
   "id": "149",
   "title": "Path With Minimum Effort",
-  "description": "# Path With Minimum Effort\n\nYou are a hiker preparing for an upcoming hike. You are given `heights`, a 2D array of size `rows x columns`, where `heights[row][col]` represents the height of cell `(row, col)`.\n\nYou are situated in the top-left cell, `(0, 0)`, and you hope to travel to the bottom-right cell, `(rows-1, columns-1)` (i.e., **0-indexed**). You can move **up**, **down**, **left**, or **right**, and you wish to find a route that requires the minimum **effort**.\n\nA route's **effort** is the **maximum absolute difference** in heights between two consecutive cells of the route.\n\nReturn *the minimum **effort** required to travel from the top-left cell to the bottom-right cell*.\n\n## Example 1:\n\n**Input:** heights = [[1,2,2],[3,8,2],[5,3,5]]\n**Output:** 2\n**Explanation:** The route of [1,3,5,3,5] has a maximum absolute difference of 2 in consecutive cells.\nThis is better than the route of [1,2,2,2,5], where the maximum absolute difference is 3.\n\n## Example 2:\n\n**Input:** heights = [[1,2,3],[3,8,4],[5,3,5]]\n**Output:** 1\n**Explanation:** The route of [1,2,3,4,5] has a maximum absolute difference of 1 in consecutive cells, which is better than route [1,3,5,3,5].\n\n## Example 3:\n\n**Input:** heights = [[1,2,1,1,1],[1,2,1,2,1],[1,2,1,2,1],[1,2,1,2,1],[1,1,1,2,1]]\n**Output:** 0\n**Explanation:** This route does not require any effort.\n\n## Constraints:\n\n*   `rows == heights.length`\n*   `columns == heights[i].length`\n*   `1 <= rows, columns <= 100`\n*   `1 <= heights[i][j] <= 10^6`",
+  "description": "# Path With Minimum Effort\n\nYou are given a `rows x columns` integer matrix `heights`. The value `heights[r][c]` is the height of cell `(r, c)`.\n\nYou start at the top-left cell `(0, 0)` and want to reach the bottom-right cell `(rows - 1, columns - 1)`. From a cell, you may move up, down, left, or right, staying inside the matrix.\n\nThe effort of one step is the absolute height difference between the two adjacent cells. The effort of an entire route is the maximum step effort used anywhere on that route.\n\nReturn the minimum possible route effort.\n\n## Example 1\n\n**Input:** `heights = [[1,2,2],[3,8,2],[5,3,5]]`\n\n**Output:** `2`\n\n**Explanation:** The route with heights `[1,3,5,3,5]` has step differences `2,2,2,2`, so its effort is `2`. Any route using effort at most `1` cannot connect the start to the target.\n\n## Example 2\n\n**Input:** `heights = [[1,2,3],[3,8,4],[5,3,5]]`\n\n**Output:** `1`\n\n**Explanation:** A route with heights `[1,2,3,4,5]` has maximum adjacent difference `1`.\n\n## Example 3\n\n**Input:** `heights = [[1,2,1,1,1],[1,2,1,2,1],[1,2,1,2,1],[1,2,1,2,1],[1,1,1,2,1]]`\n\n**Output:** `0`\n\n**Explanation:** There is a path from start to target using only height `1` cells, so every step has difference `0`.\n\n## Constraints\n\n- `rows == heights.length`\n- `columns == heights[i].length`\n- `1 <= rows, columns <= 100`\n- `1 <= heights[i][j] <= 10^6`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int minimumEffortPath(int[][] heights) {\n        // Write your code here\n        return 0;\n    }\n}",
   "tags": [
@@ -10,7 +10,10 @@
     "Depth-First Search",
     "Breadth-First Search",
     "Union Find",
+    "Graph",
+    "Shortest Path",
     "Heap (Priority Queue)",
+    "Minimum Spanning Tree",
     "Matrix"
   ],
   "examples": [
@@ -29,45 +32,90 @@
   ],
   "solutions": [
     {
-      "name": "Modified Dijkstra",
-      "timeComplexity": "O(m*n * log(m*n))",
-      "spaceComplexity": "O(m * n)",
-      "description": "Use min-heap with effort as priority. For each cell, track the minimum effort to reach it. Expand to neighbors where the new effort (max of path effort and edge diff) is less than recorded.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int minimumEffortPath(int[][] heights) {\n        int m = heights.length, n = heights[0].length;\n        int[][] effort = new int[m][n];\n        for (int[] row : effort) Arrays.fill(row, Integer.MAX_VALUE);\n        effort[0][0] = 0;\n        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] - b[0]);\n        pq.offer(new int[]{0, 0, 0});\n        int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};\n        while (!pq.isEmpty()) {\n            int[] cur = pq.poll();\n            int e = cur[0], i = cur[1], j = cur[2];\n            if (i == m - 1 && j == n - 1) return e;\n            if (e > effort[i][j]) continue;\n            for (int[] d : dirs) {\n                int ni = i + d[0], nj = j + d[1];\n                if (ni >= 0 && ni < m && nj >= 0 && nj < n) {\n                    int newEffort = Math.max(e, Math.abs(heights[ni][nj] - heights[i][j]));\n                    if (newEffort < effort[ni][nj]) {\n                        effort[ni][nj] = newEffort;\n                        pq.offer(new int[]{newEffort, ni, nj});\n                    }\n                }\n            }\n        }\n        return 0;\n    }\n}",
+      "name": "Minimax Dijkstra with Min-Heap",
+      "timeComplexity": "O(rows * columns * log(rows * columns))",
+      "spaceComplexity": "O(rows * columns)",
+      "description": "## Approach\n\nTreat each cell as a graph node. The distance to a cell is the smallest possible maximum step effort on any route from the start to that cell. Use a min-heap ordered by this bottleneck distance. When moving to a neighbor, the candidate route effort is `max(currentEffort, abs(height difference))`.\n\n## Key Insight\n\nThis is Dijkstra with a minimax distance instead of a sum distance. Once a cell is popped from the heap with the smallest current effort, no later route can improve it, because every extension can only keep or increase the maximum edge effort.\n\n## Complexity Analysis\n\nThere are `rows * columns` cells and each checks at most four neighbors. Heap operations give `O(rows * columns * log(rows * columns))` time. The effort matrix and heap use `O(rows * columns)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public int minimumEffortPath(int[][] heights) {\n        int rows = heights.length;\n        int cols = heights[0].length;\n        int[][] best = new int[rows][cols];\n        for (int[] row : best) {\n            Arrays.fill(row, Integer.MAX_VALUE);\n        }\n\n        PriorityQueue<int[]> heap = new PriorityQueue<>(Comparator.comparingInt(cell -> cell[0]));\n        best[0][0] = 0;\n        heap.offer(new int[] {0, 0, 0});\n\n        while (!heap.isEmpty()) {\n            int[] cell = heap.poll();\n            int effort = cell[0];\n            int r = cell[1];\n            int c = cell[2];\n            if (effort != best[r][c]) {\n                continue;\n            }\n            if (r == rows - 1 && c == cols - 1) {\n                return effort;\n            }\n\n            for (int[] dir : DIRECTIONS) {\n                int nr = r + dir[0];\n                int nc = c + dir[1];\n                if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) {\n                    continue;\n                }\n                int edgeEffort = Math.abs(heights[nr][nc] - heights[r][c]);\n                int nextEffort = Math.max(effort, edgeEffort);\n                if (nextEffort < best[nr][nc]) {\n                    best[nr][nc] = nextEffort;\n                    heap.offer(new int[] {nextEffort, nr, nc});\n                }\n            }\n        }\n        return 0;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Binary Search + BFS",
-      "timeComplexity": "O(m*n * log(maxHeight))",
-      "spaceComplexity": "O(m * n)",
-      "description": "Binary search on the maximum effort allowed. For each candidate effort, use BFS to check if a path exists from (0,0) to (m-1,n-1) where all consecutive height differences are within the effort limit.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int minimumEffortPath(int[][] heights) {\n        int m = heights.length, n = heights[0].length;\n        int lo = 0, hi = 1000000;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (canReach(heights, m, n, mid)) hi = mid;\n            else lo = mid + 1;\n        }\n        return lo;\n    }\n\n    private boolean canReach(int[][] heights, int m, int n, int maxEffort) {\n        boolean[][] visited = new boolean[m][n];\n        Queue<int[]> queue = new LinkedList<>();\n        queue.offer(new int[]{0, 0});\n        visited[0][0] = true;\n        int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};\n        while (!queue.isEmpty()) {\n            int[] cur = queue.poll();\n            int i = cur[0], j = cur[1];\n            if (i == m - 1 && j == n - 1) return true;\n            for (int[] d : dirs) {\n                int ni = i + d[0], nj = j + d[1];\n                if (ni >= 0 && ni < m && nj >= 0 && nj < n && !visited[ni][nj]) {\n                    if (Math.abs(heights[ni][nj] - heights[i][j]) <= maxEffort) {\n                        visited[ni][nj] = true;\n                        queue.offer(new int[]{ni, nj});\n                    }\n                }\n            }\n        }\n        return false;\n    }\n}",
+      "name": "Binary Search on Effort with BFS",
+      "timeComplexity": "O(rows * columns * log H)",
+      "spaceComplexity": "O(rows * columns)",
+      "description": "## Approach\n\nBinary search the answer. For a candidate limit, run BFS from the start and only cross edges whose height difference is at most that limit. If the target is reachable, try a smaller limit; otherwise increase the lower bound.\n\n## Key Insight\n\nReachability is monotonic in the effort limit. If effort `x` can reach the target, every larger effort can also reach it, because it allows all edges from `x` plus possibly more.\n\n## Complexity Analysis\n\nEach BFS scans at most `rows * columns` cells. The search range is bounded by the maximum possible height difference `H`, so the time complexity is `O(rows * columns * log H)`. The visited matrix and queue use `O(rows * columns)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public int minimumEffortPath(int[][] heights) {\n        int low = 0;\n        int high = 1_000_000;\n        while (low < high) {\n            int mid = low + (high - low) / 2;\n            if (canReach(heights, mid)) {\n                high = mid;\n            } else {\n                low = mid + 1;\n            }\n        }\n        return low;\n    }\n\n    private boolean canReach(int[][] heights, int limit) {\n        int rows = heights.length;\n        int cols = heights[0].length;\n        boolean[][] visited = new boolean[rows][cols];\n        Queue<int[]> queue = new ArrayDeque<>();\n        queue.offer(new int[] {0, 0});\n        visited[0][0] = true;\n\n        while (!queue.isEmpty()) {\n            int[] cell = queue.poll();\n            int r = cell[0];\n            int c = cell[1];\n            if (r == rows - 1 && c == cols - 1) {\n                return true;\n            }\n            for (int[] dir : DIRECTIONS) {\n                int nr = r + dir[0];\n                int nc = c + dir[1];\n                if (nr < 0 || nr >= rows || nc < 0 || nc >= cols || visited[nr][nc]) {\n                    continue;\n                }\n                if (Math.abs(heights[nr][nc] - heights[r][c]) <= limit) {\n                    visited[nr][nc] = true;\n                    queue.offer(new int[] {nr, nc});\n                }\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Kruskal Union-Find over Sorted Edges",
+      "timeComplexity": "O(rows * columns * log(rows * columns))",
+      "spaceComplexity": "O(rows * columns)",
+      "description": "## Approach\n\nCreate an undirected edge between every pair of 4-directionally adjacent cells. The edge weight is the absolute height difference. Sort edges by weight and union their endpoints from smallest to largest until the start and target are connected.\n\n## Key Insight\n\nIn an undirected graph, the path between two nodes in a minimum spanning tree minimizes the largest edge on that path. Kruskal builds connectivity in increasing edge weight, so the first moment the endpoints become connected gives the minimum possible effort.\n\n## Complexity Analysis\n\nThe grid has `O(rows * columns)` adjacent edges. Sorting dominates with `O(rows * columns * log(rows * columns))` time. The edge list and union-find arrays use `O(rows * columns)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minimumEffortPath(int[][] heights) {\n        int rows = heights.length;\n        int cols = heights[0].length;\n        if (rows == 1 && cols == 1) {\n            return 0;\n        }\n\n        List<int[]> edges = new ArrayList<>();\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                int id = r * cols + c;\n                if (r + 1 < rows) {\n                    edges.add(new int[] {Math.abs(heights[r][c] - heights[r + 1][c]), id, (r + 1) * cols + c});\n                }\n                if (c + 1 < cols) {\n                    edges.add(new int[] {Math.abs(heights[r][c] - heights[r][c + 1]), id, r * cols + c + 1});\n                }\n            }\n        }\n        edges.sort(Comparator.comparingInt(edge -> edge[0]));\n\n        UnionFind uf = new UnionFind(rows * cols);\n        int target = rows * cols - 1;\n        for (int[] edge : edges) {\n            uf.union(edge[1], edge[2]);\n            if (uf.connected(0, target)) {\n                return edge[0];\n            }\n        }\n        return 0;\n    }\n\n    static class UnionFind {\n        private final int[] parent;\n        private final int[] size;\n\n        UnionFind(int n) {\n            parent = new int[n];\n            size = new int[n];\n            Arrays.fill(size, 1);\n            for (int i = 0; i < n; i++) {\n                parent[i] = i;\n            }\n        }\n\n        int find(int x) {\n            while (parent[x] != x) {\n                parent[x] = parent[parent[x]];\n                x = parent[x];\n            }\n            return x;\n        }\n\n        void union(int a, int b) {\n            int rootA = find(a);\n            int rootB = find(b);\n            if (rootA == rootB) {\n                return;\n            }\n            if (size[rootA] < size[rootB]) {\n                int tmp = rootA;\n                rootA = rootB;\n                rootB = tmp;\n            }\n            parent[rootB] = rootA;\n            size[rootA] += size[rootB];\n        }\n\n        boolean connected(int a, int b) {\n            return find(a) == find(b);\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Queue-Based Bottleneck Relaxation",
+      "timeComplexity": "O((rows * columns)^2)",
+      "spaceComplexity": "O(rows * columns)",
+      "description": "## Approach\n\nMaintain the best known effort for every cell, as in Dijkstra, but use a queue of cells whose neighbors might improve. Whenever a neighbor receives a smaller bottleneck effort, update it and place it back in the queue.\n\n## Key Insight\n\nThe relaxation rule `newEffort = max(currentEffort, edgeEffort)` is the heart of the problem. A heap makes it efficient, but even a queue-based relaxation eventually converges because every update strictly lowers a cell's best effort and values are bounded below by `0`.\n\n## Complexity Analysis\n\nThis baseline can revisit cells many times, so the worst-case time is `O((rows * columns)^2)`. It uses `O(rows * columns)` space for the best-effort matrix, queue, and in-queue flags.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public int minimumEffortPath(int[][] heights) {\n        int rows = heights.length;\n        int cols = heights[0].length;\n        int[][] best = new int[rows][cols];\n        for (int[] row : best) {\n            Arrays.fill(row, Integer.MAX_VALUE);\n        }\n\n        Deque<int[]> queue = new ArrayDeque<>();\n        boolean[][] inQueue = new boolean[rows][cols];\n        best[0][0] = 0;\n        queue.offer(new int[] {0, 0});\n        inQueue[0][0] = true;\n\n        while (!queue.isEmpty()) {\n            int[] cell = queue.poll();\n            int r = cell[0];\n            int c = cell[1];\n            inQueue[r][c] = false;\n\n            for (int[] dir : DIRECTIONS) {\n                int nr = r + dir[0];\n                int nc = c + dir[1];\n                if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) {\n                    continue;\n                }\n                int edgeEffort = Math.abs(heights[nr][nc] - heights[r][c]);\n                int nextEffort = Math.max(best[r][c], edgeEffort);\n                if (nextEffort < best[nr][nc]) {\n                    best[nr][nc] = nextEffort;\n                    if (!inQueue[nr][nc]) {\n                        queue.offer(new int[] {nr, nc});\n                        inQueue[nr][nc] = true;\n                    }\n                }\n            }\n        }\n        return best[rows - 1][cols - 1];\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "heights = [[1,2,2],[3,8,2],[5,3,5]]",
-      "output": "2"
+      "output": "2",
+      "description": "Canonical map where the optimal route avoids the steep center cell."
     },
     {
       "input": "heights = [[1,2,3],[3,8,4],[5,3,5]]",
-      "output": "1"
+      "output": "1",
+      "description": "A smooth route around the high center has maximum step effort one."
     },
     {
       "input": "heights = [[1,2,1,1,1],[1,2,1,2,1],[1,2,1,2,1],[1,2,1,2,1],[1,1,1,2,1]]",
-      "output": "0"
+      "output": "0",
+      "description": "A same-height winding path exists from start to finish."
     },
     {
       "input": "heights = [[1]]",
-      "output": "0"
+      "output": "0",
+      "description": "Single-cell height map has no step to pay for."
+    },
+    {
+      "input": "heights = [[1,10,6,7,9,10,4,9]]",
+      "output": "9",
+      "description": "Single-row matrix forces every horizontal edge to be used."
+    },
+    {
+      "input": "heights = [[1],[10],[6],[7],[9],[10],[4],[9]]",
+      "output": "9",
+      "description": "Single-column matrix forces every vertical edge to be used."
+    },
+    {
+      "input": "heights = [[1,100,1],[1,100,1],[1,1,1]]",
+      "output": "0",
+      "description": "A longer all-height-one detour beats the visually direct high barrier."
+    },
+    {
+      "input": "heights = [[1,1000],[1000,1]]",
+      "output": "999",
+      "description": "Every possible path has to cross a height difference of 999."
+    },
+    {
+      "input": "heights = [[1,2,3],[2,8,4],[3,4,5],[10,10,5]]",
+      "output": "1",
+      "description": "Rectangular grids are valid and can still have a smooth route."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p149_example1.png",
-      "caption": "Example 1: 3x3 Heights Grid"
+      "caption": "Height grid prompt for minimum-effort path"
     }
   ]
 }

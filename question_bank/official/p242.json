@@ -1,10 +1,17 @@
 {
   "id": "242",
   "title": "Matrix Cells in Distance Order",
-  "description": "# Matrix Cells in Distance Order\n\nYou are given four integers `row`, `cols`, `rCenter`, and `cCenter`. There is a `rows x cols` matrix and you are on the cell with the coordinates `(rCenter, cCenter)`.\n\nReturn *the coordinates of all cells in the matrix, sorted by their **distance** from* `(rCenter, cCenter)` *from the smallest distance to the largest distance*. You may return the answer in **any order** that satisfies this condition.\n\nThe **distance** between two cells `(r1, c1)` and `(r2, c2)` is `|r1 - r2| + |c1 - c2|`.\n\n## Example 1:\n\n**Input:** rows = 1, cols = 2, rCenter = 0, cCenter = 0\n**Output:** [[0,0],[0,1]]\n**Explanation:** The distances from (0, 0) to other cells are: [0, 1]\n\n## Example 2:\n\n**Input:** rows = 2, cols = 2, rCenter = 0, cCenter = 1\n**Output:** [[0,1],[0,0],[1,1],[1,0]]\n**Explanation:** The distances from (0, 1) to other cells are: [0, 1, 1, 2]\nThe answer [[0,1],[1,1],[0,0],[1,0]] would also be accepted as correct.\n\n## Example 3:\n\n**Input:** rows = 2, cols = 3, rCenter = 1, cCenter = 2\n**Output:** [[1,2],[0,2],[1,1],[0,1],[1,0],[0,0]]\n**Explanation:** The distances from (1, 2) to other cells are: [0, 1, 1, 2, 2, 3]\nThere are other answers that would also be accepted as correct, such as [[1,2],[1,1],[0,2],[1,0],[0,1],[0,0]].\n\n## Constraints:\n\n*   `1 <= rows, cols <= 100`\n*   `0 <= rCenter < rows`\n*   `0 <= cCenter < cols`",
+  "description": "# Matrix Cells in Distance Order\n\nYou are given four integers `rows`, `cols`, `rCenter`, and `cCenter`. They describe a `rows x cols` matrix and a center cell `(rCenter, cCenter)`.\n\nReturn the coordinates of every cell in the matrix sorted by nondecreasing Manhattan distance from `(rCenter, cCenter)`.\n\nThe Manhattan distance between `(r1, c1)` and `(r2, c2)` is `|r1 - r2| + |c1 - c2|`.\n\nCells with the same distance may appear in any order, but the returned array must contain every valid coordinate exactly once and distances must never decrease. The examples below use a stable row-major order inside each distance layer only to make the output readable.\n\n## Example 1:\n\n**Input:** rows = 1, cols = 2, rCenter = 0, cCenter = 0\n**Output:** [[0,0],[0,1]]\n**Explanation:** The distances are 0 and 1.\n\n## Example 2:\n\n**Input:** rows = 2, cols = 2, rCenter = 0, cCenter = 1\n**Output:** [[0,1],[0,0],[1,1],[1,0]]\n**Explanation:** Distances are [0, 1, 1, 2]. The two distance-1 cells could be swapped.\n\n## Example 3:\n\n**Input:** rows = 2, cols = 3, rCenter = 1, cCenter = 2\n**Output:** [[1,2],[0,2],[1,1],[0,1],[1,0],[0,0]]\n**Explanation:** Distances are [0, 1, 1, 2, 2, 3]. Other orders inside each equal-distance layer are also valid.\n\n## Constraints:\n\n* `1 <= rows, cols <= 100`\n* `0 <= rCenter < rows`\n* `0 <= cCenter < cols`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int[][] allCellsDistOrder(int rows, int cols, int rCenter, int cCenter) {\n        // Write your code here\n        return new int[][]{};\n    }\n}",
-  "tags": ["Array", "Math", "Geometry", "Sorting", "Matrix"],
+  "tags": [
+    "Array",
+    "Math",
+    "Geometry",
+    "Sorting",
+    "Matrix",
+    "Breadth-First Search"
+  ],
   "examples": [
     {
       "input": "rows = 1, cols = 2, rCenter = 0, cCenter = 0",
@@ -21,34 +28,106 @@
   ],
   "solutions": [
     {
-      "name": "Sort by Distance",
-      "timeComplexity": "O(n*m*log(n*m))",
-      "spaceComplexity": "O(n*m)",
-      "description": "Generate all cells, then sort by Manhattan distance from the center.",
-      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int[][] allCellsDistOrder(int rows, int cols, int rCenter, int cCenter) {\n        int[][] cells = new int[rows * cols][2];\n        int idx = 0;\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                cells[idx++] = new int[]{r, c};\n            }\n        }\n        Arrays.sort(cells, (a, b) ->\n            Math.abs(a[0] - rCenter) + Math.abs(a[1] - cCenter)\n            - Math.abs(b[0] - rCenter) - Math.abs(b[1] - cCenter));\n        return cells;\n    }\n}",
+      "name": "Stable Sort by Distance",
+      "timeComplexity": "O(rows*cols*log(rows*cols))",
+      "spaceComplexity": "O(rows*cols)",
+      "description": "## Approach\n\nGenerate every coordinate, then sort the coordinate array by Manhattan distance from the center. Use row and column as deterministic tie breakers so the examples are easy to compare.\n\n## Key Insight\n\nThe most direct way to satisfy the ordering contract is to compute the exact key for every cell. Sorting is not the most specialized method, but it is the clearest translation of the problem statement.\n\n## Complexity Analysis\n\n- Time Complexity: O(rows*cols*log(rows*cols)), because all cells are sorted.\n- Space Complexity: O(rows*cols), for the coordinate array.",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int[][] allCellsDistOrder(int rows, int cols, int rCenter, int cCenter) {\n        int[][] cells = new int[rows * cols][2];\n        int index = 0;\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                cells[index++] = new int[]{row, col};\n            }\n        }\n        Arrays.sort(cells, (a, b) -> {\n            int distanceA = distance(a[0], a[1], rCenter, cCenter);\n            int distanceB = distance(b[0], b[1], rCenter, cCenter);\n            if (distanceA != distanceB) {\n                return Integer.compare(distanceA, distanceB);\n            }\n            if (a[0] != b[0]) {\n                return Integer.compare(a[0], b[0]);\n            }\n            return Integer.compare(a[1], b[1]);\n        });\n        return cells;\n    }\n\n    private int distance(int row, int col, int rCenter, int cCenter) {\n        return Math.abs(row - rCenter) + Math.abs(col - cCenter);\n    }\n}",
       "language": "java"
     },
     {
       "name": "BFS from Center",
-      "timeComplexity": "O(rows * cols)",
-      "spaceComplexity": "O(rows * cols)",
-      "description": "Use BFS starting from the center cell. Explore cells level by level, naturally producing them in distance order.",
-      "code": "import java.util.LinkedList;\nimport java.util.Queue;\n\nclass Solution {\n    public int[][] allCellsDistOrder(int rows, int cols, int rCenter, int cCenter) {\n        boolean[][] visited = new boolean[rows][cols];\n        int[][] result = new int[rows * cols][2];\n        Queue<int[]> queue = new LinkedList<>();\n        queue.add(new int[]{rCenter, cCenter});\n        visited[rCenter][cCenter] = true;\n        int idx = 0;\n        int[] dr = {0, 0, 1, -1};\n        int[] dc = {1, -1, 0, 0};\n        while (!queue.isEmpty()) {\n            int[] cell = queue.poll();\n            result[idx++] = cell;\n            for (int d = 0; d < 4; d++) {\n                int nr = cell[0] + dr[d];\n                int nc = cell[1] + dc[d];\n                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && !visited[nr][nc]) {\n                    visited[nr][nc] = true;\n                    queue.add(new int[]{nr, nc});\n                }\n            }\n        }\n        return result;\n    }\n}",
+      "timeComplexity": "O(rows*cols)",
+      "spaceComplexity": "O(rows*cols)",
+      "description": "## Approach\n\nRun breadth-first search from the center cell using four-neighbor moves. Append each cell when it is removed from the queue, and use a `visited` grid so each coordinate enters the queue once.\n\n## Key Insight\n\nEvery grid edge has weight one, and moving one step changes Manhattan distance by exactly one. BFS therefore processes cells by nondecreasing distance layers from the center.\n\n## Complexity Analysis\n\n- Time Complexity: O(rows*cols), because each cell is visited once.\n- Space Complexity: O(rows*cols), for the queue, result, and visited grid.",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Queue;\n\nclass Solution {\n    public int[][] allCellsDistOrder(int rows, int cols, int rCenter, int cCenter) {\n        int[][] result = new int[rows * cols][2];\n        boolean[][] visited = new boolean[rows][cols];\n        Queue<int[]> queue = new ArrayDeque<>();\n        queue.offer(new int[]{rCenter, cCenter});\n        visited[rCenter][cCenter] = true;\n\n        int index = 0;\n        int[] rowDelta = {-1, 0, 0, 1};\n        int[] colDelta = {0, -1, 1, 0};\n        while (!queue.isEmpty()) {\n            int[] cell = queue.poll();\n            result[index++] = cell;\n            for (int direction = 0; direction < 4; direction++) {\n                int nextRow = cell[0] + rowDelta[direction];\n                int nextCol = cell[1] + colDelta[direction];\n                if (nextRow >= 0 && nextRow < rows && nextCol >= 0 && nextCol < cols\n                        && !visited[nextRow][nextCol]) {\n                    visited[nextRow][nextCol] = true;\n                    queue.offer(new int[]{nextRow, nextCol});\n                }\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Distance Buckets",
+      "timeComplexity": "O(rows*cols + rows + cols)",
+      "spaceComplexity": "O(rows*cols)",
+      "description": "## Approach\n\nCreate one bucket for each possible Manhattan distance. Put each coordinate into the bucket matching its distance, then read buckets from distance zero upward.\n\n## Key Insight\n\nThe maximum distance in the grid is at most `rows + cols - 2`, so distance is a small integer key. Bucket grouping avoids comparison sorting while preserving the distance-layer structure.\n\n## Complexity Analysis\n\n- Time Complexity: O(rows*cols + rows + cols), for filling cells and scanning all distance buckets.\n- Space Complexity: O(rows*cols), for bucket contents and the result.",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public int[][] allCellsDistOrder(int rows, int cols, int rCenter, int cCenter) {\n        int maxDistance = rows + cols - 2;\n        List<List<int[]>> buckets = new ArrayList<>();\n        for (int distance = 0; distance <= maxDistance; distance++) {\n            buckets.add(new ArrayList<>());\n        }\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                int distance = Math.abs(row - rCenter) + Math.abs(col - cCenter);\n                buckets.get(distance).add(new int[]{row, col});\n            }\n        }\n\n        int[][] result = new int[rows * cols][2];\n        int index = 0;\n        for (List<int[]> bucket : buckets) {\n            for (int[] cell : bucket) {\n                result[index++] = cell;\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Distance Counting Sort",
+      "timeComplexity": "O(rows*cols + rows + cols)",
+      "spaceComplexity": "O(rows*cols + rows + cols)",
+      "description": "## Approach\n\nFirst count how many cells belong to each distance. Convert those counts into starting offsets, then scan the matrix again and place each coordinate into its final distance block.\n\n## Key Insight\n\nThis is counting sort over Manhattan distance. It gives the same distance-layer guarantee as buckets but stores compact integer offsets instead of a list object for each layer.\n\n## Complexity Analysis\n\n- Time Complexity: O(rows*cols + rows + cols), because the grid is scanned twice and the distance range is linear in the grid dimensions.\n- Space Complexity: O(rows*cols + rows + cols), for the result and distance offset arrays.",
+      "code": "class Solution {\n    public int[][] allCellsDistOrder(int rows, int cols, int rCenter, int cCenter) {\n        int maxDistance = rows + cols - 2;\n        int[] counts = new int[maxDistance + 1];\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                int distance = Math.abs(row - rCenter) + Math.abs(col - cCenter);\n                counts[distance]++;\n            }\n        }\n\n        int[] start = new int[maxDistance + 1];\n        for (int distance = 1; distance <= maxDistance; distance++) {\n            start[distance] = start[distance - 1] + counts[distance - 1];\n        }\n        int[] next = start.clone();\n        int[][] result = new int[rows * cols][2];\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                int distance = Math.abs(row - rCenter) + Math.abs(col - cCenter);\n                result[next[distance]++] = new int[]{row, col};\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Manhattan Ring Enumeration",
+      "timeComplexity": "O((rows+cols)^2)",
+      "spaceComplexity": "O(rows*cols)",
+      "description": "## Approach\n\nEnumerate distance `0`, then distance `1`, and so on. For each distance, generate all coordinate offsets whose absolute row offset plus absolute column offset equals that distance, and keep only coordinates inside the matrix.\n\n## Key Insight\n\nCells at the same Manhattan distance form a diamond-shaped ring around the center. Emitting one ring at a time directly constructs a valid distance order without sorting or queues.\n\n## Complexity Analysis\n\n- Time Complexity: O((rows+cols)^2), because all possible ring offsets up to the maximum distance are considered.\n- Space Complexity: O(rows*cols), for the returned coordinate array.",
+      "code": "class Solution {\n    public int[][] allCellsDistOrder(int rows, int cols, int rCenter, int cCenter) {\n        int[][] result = new int[rows * cols][2];\n        int index = 0;\n        int maxDistance = rows + cols - 2;\n\n        for (int distance = 0; distance <= maxDistance; distance++) {\n            for (int rowOffset = -distance; rowOffset <= distance; rowOffset++) {\n                int row = rCenter + rowOffset;\n                if (row < 0 || row >= rows) {\n                    continue;\n                }\n                int colOffset = distance - Math.abs(rowOffset);\n                int leftCol = cCenter - colOffset;\n                int rightCol = cCenter + colOffset;\n                if (leftCol >= 0 && leftCol < cols) {\n                    result[index++] = new int[]{row, leftCol};\n                }\n                if (colOffset != 0 && rightCol >= 0 && rightCol < cols) {\n                    result[index++] = new int[]{row, rightCol};\n                }\n            }\n        }\n        return result;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "rows = 1, cols = 2, rCenter = 0, cCenter = 0",
-      "output": "[[0,0],[0,1]]"
+      "output": "[[0,0],[0,1]]",
+      "description": "One-dimensional row with center at an endpoint."
     },
     {
       "input": "rows = 2, cols = 2, rCenter = 0, cCenter = 1",
-      "output": "[[0,1],[0,0],[1,1],[1,0]]"
+      "output": "[[0,1],[0,0],[1,1],[1,0]]",
+      "description": "Small square with ties at distance one."
     },
     {
       "input": "rows = 2, cols = 3, rCenter = 1, cCenter = 2",
-      "output": "[[1,2],[0,2],[1,1],[0,1],[1,0],[0,0]]"
+      "output": "[[1,2],[0,2],[1,1],[0,1],[1,0],[0,0]]",
+      "description": "Rectangular grid with the center at a corner."
+    },
+    {
+      "input": "rows = 1, cols = 1, rCenter = 0, cCenter = 0",
+      "output": "[[0,0]]",
+      "description": "Single-cell grid."
+    },
+    {
+      "input": "rows = 3, cols = 1, rCenter = 1, cCenter = 0",
+      "output": "[[1,0],[0,0],[2,0]]",
+      "description": "Single-column grid with symmetric ties."
+    },
+    {
+      "input": "rows = 3, cols = 3, rCenter = 1, cCenter = 1",
+      "output": "[[1,1],[0,1],[1,0],[1,2],[2,1],[0,0],[0,2],[2,0],[2,2]]",
+      "description": "Center cell in a square grid produces diamond distance layers."
+    },
+    {
+      "input": "rows = 4, cols = 3, rCenter = 3, cCenter = 0",
+      "output": "[[3,0],[2,0],[3,1],[1,0],[2,1],[3,2],[0,0],[1,1],[2,2],[0,1],[1,2],[0,2]]",
+      "description": "Center at a corner of a taller rectangle."
+    },
+    {
+      "input": "rows = 2, cols = 1, rCenter = 0, cCenter = 0",
+      "output": "[[0,0],[1,0]]",
+      "description": "Two-cell single-column endpoint case."
+    },
+    {
+      "input": "rows = 1, cols = 4, rCenter = 0, cCenter = 2",
+      "output": "[[0,2],[0,1],[0,3],[0,0]]",
+      "description": "Single-row center away from both endpoints."
+    },
+    {
+      "input": "rows = 4, cols = 4, rCenter = 0, cCenter = 0",
+      "output": "[[0,0],[0,1],[1,0],[0,2],[1,1],[2,0],[0,3],[1,2],[2,1],[3,0],[1,3],[2,2],[3,1],[2,3],[3,2],[3,3]]",
+      "description": "Larger square with the center at the top-left corner."
+    },
+    {
+      "input": "rows = 5, cols = 2, rCenter = 2, cCenter = 1",
+      "output": "[[2,1],[1,1],[2,0],[3,1],[0,1],[1,0],[3,0],[4,1],[0,0],[4,0]]",
+      "description": "Tall narrow grid with the center in an interior row."
+    },
+    {
+      "input": "rows = 3, cols = 4, rCenter = 0, cCenter = 2",
+      "output": "[[0,2],[0,1],[0,3],[1,2],[0,0],[1,1],[1,3],[2,2],[1,0],[2,1],[2,3],[2,0]]",
+      "description": "Wide rectangle with the center on the top edge."
     }
   ]
 }

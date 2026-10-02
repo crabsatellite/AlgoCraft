@@ -1,38 +1,104 @@
 {
   "id": "439",
   "title": "Insert Delete GetRandom O(1)",
-  "description": "# Insert Delete GetRandom O(1)\n\nImplement the `RandomizedSet` class:\n\n*   `RandomizedSet()` Initializes the `RandomizedSet` object.\n*   `bool insert(int val)` Inserts an item `val` into the set if not present. Returns `true` if the item was not present, `false` otherwise.\n*   `bool remove(int val)` Removes an item `val` from the set if present. Returns `true` if the item was present, `false` otherwise.\n*   `int getRandom()` Returns a random element from the current set of elements (it's guaranteed that at least one element exists when this method is called). Each element must have the **same probability** of being returned.\n\nYou must implement the functions of the class such that each function works in **average** `O(1)` time complexity.\n\n## Example 1:\n\n**Input**\n[\"RandomizedSet\", \"insert\", \"remove\", \"insert\", \"getRandom\", \"remove\", \"insert\", \"getRandom\"]\n[[], [1], [2], [2], [], [1], [2], []]\n**Output**\n[null, true, false, true, 2, true, false, 2]\n**Explanation**\nRandomizedSet randomizedSet = new RandomizedSet();\nrandomizedSet.insert(1); // Inserts 1 to the set. Returns true as 1 was inserted successfully.\nrandomizedSet.remove(2); // Returns false as 2 does not exist in the set.\nrandomizedSet.insert(2); // Inserts 2 to the set, returns true. Set now contains [1,2].\nrandomizedSet.getRandom(); // getRandom() should return either 1 or 2 randomly.\nrandomizedSet.remove(1); // Removes 1 from the set, returns true. Set now contains [2].\nrandomizedSet.insert(2); // 2 was already in the set, so return false.\nrandomizedSet.getRandom(); // Since 2 is the only number in the set, getRandom() will always return 2.\n\n## Constraints:\n\n*   `-2^31 <= val <= 2^31 - 1`\n*   At most `2 * 10^5` calls will be made to `insert`, `remove`, and `getRandom`.\n*   There will be at least one element in the data structure when `getRandom` is called.",
+  "description": "# Insert Delete GetRandom O(1)\n\nImplement the `RandomizedSet` class:\n\n*   `RandomizedSet()` initializes an empty set.\n*   `boolean insert(int val)` inserts `val` only if it is not already present. Return `true` when the value was inserted, otherwise return `false`.\n*   `boolean remove(int val)` removes `val` only if it is present. Return `true` when the value was removed, otherwise return `false`.\n*   `int getRandom()` returns a uniformly random value from the current set. Every value currently in the set must have the same probability of being returned. The set is guaranteed to be nonempty when this method is called.\n\nEvery operation must run in average `O(1)` time.\n\nThe example random return is one possible outcome; calls need not reproduce that exact value.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1:\n\n**Input**\n[\"RandomizedSet\", \"insert\", \"remove\", \"insert\", \"getRandom\", \"remove\", \"insert\", \"getRandom\"]\n[[], [1], [2], [2], [], [1], [2], []]\n**Output**\n[null, true, false, true, 2, true, false, 2]\n\n**Explanation:** The first `getRandom` may return either `1` or `2` because both are present. After removing `1`, only `2` remains, so the final `getRandom` must return `2`.\n\n## Constraints:\n\n*   `-2^31 <= val <= 2^31 - 1`\n*   At most `2 * 10^5` calls will be made to `insert`, `remove`, and `getRandom`.\n*   There will be at least one element in the data structure when `getRandom` is called.",
   "difficulty": "MEDIUM",
   "initialCode": "class RandomizedSet {\n\n    public RandomizedSet() {\n        \n    }\n    \n    public boolean insert(int val) {\n        \n    }\n    \n    public boolean remove(int val) {\n        \n    }\n    \n    public int getRandom() {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Math", "Design", "Randomized"],
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Math",
+    "Design",
+    "Randomized"
+  ],
   "examples": [
     {
       "input": "[\"RandomizedSet\", \"insert\", \"remove\", \"insert\", \"getRandom\", \"remove\", \"insert\", \"getRandom\"]\n[[], [1], [2], [2], [], [1], [2], []]",
       "output": "[null, true, false, true, 2, true, false, 2]"
     }
   ],
-  "solutions": [
-    {
-      "name": "ArrayList + HashMap",
-      "timeComplexity": "O(1) average per operation",
-      "spaceComplexity": "O(n)",
-      "description": "Use an ArrayList to store elements and a HashMap mapping value to its index. Insert appends to the list. Remove swaps the target with the last element and removes the last. GetRandom picks a random index from the list.",
-      "code": "class RandomizedSet {\n    private java.util.ArrayList<Integer> list;\n    private java.util.HashMap<Integer, Integer> map;\n    private java.util.Random rand;\n\n    public RandomizedSet() {\n        list = new java.util.ArrayList<>();\n        map = new java.util.HashMap<>();\n        rand = new java.util.Random();\n    }\n\n    public boolean insert(int val) {\n        if (map.containsKey(val)) return false;\n        map.put(val, list.size());\n        list.add(val);\n        return true;\n    }\n\n    public boolean remove(int val) {\n        if (!map.containsKey(val)) return false;\n        int idx = map.get(val);\n        int last = list.get(list.size() - 1);\n        list.set(idx, last);\n        map.put(last, idx);\n        list.remove(list.size() - 1);\n        map.remove(val);\n        return true;\n    }\n\n    public int getRandom() {\n        return list.get(rand.nextInt(list.size()));\n    }\n}",
-      "language": "java"
-    },
-    {
-      "name": "Array + HashMap (Alternate Implementation)",
-      "timeComplexity": "O(1) average per operation",
-      "spaceComplexity": "O(n)",
-      "description": "Same approach using int array instead of ArrayList for the values. HashMap maps value to index. Remove swaps target with last element. GetRandom uses random index.",
-      "code": "import java.util.*;\n\nclass RandomizedSet {\n    private int[] vals;\n    private int size;\n    private Map<Integer, Integer> indexMap;\n    private Random rand;\n\n    public RandomizedSet() {\n        vals = new int[200001];\n        size = 0;\n        indexMap = new HashMap();\n        rand = new Random();\n    }\n\n    public boolean insert(int val) {\n        if (indexMap.containsKey(val)) return false;\n        vals[size] = val;\n        indexMap.put(val, size);\n        size++;\n        return true;\n    }\n\n    public boolean remove(int val) {\n        if (!indexMap.containsKey(val)) return false;\n        int idx = indexMap.get(val).intValue();\n        int lastVal = vals[size - 1];\n        vals[idx] = lastVal;\n        indexMap.put(lastVal, idx);\n        indexMap.remove(val);\n        size--;\n        return true;\n    }\n\n    public int getRandom() {\n        return vals[rand.nextInt(size)];\n    }\n}",
-      "language": "java"
-    }
-  ],
   "tests": [
     {
       "input": "[\"RandomizedSet\", \"insert\", \"remove\", \"insert\", \"getRandom\", \"remove\", \"insert\", \"getRandom\"]\n[[], [1], [2], [2], [], [1], [2], []]",
       "output": "[null, true, false, true, 2, true, false, 2]"
+    },
+    {
+      "input": "[\"RandomizedSet\",\"insert\",\"insert\",\"insert\",\"remove\",\"insert\",\"remove\",\"remove\",\"insert\",\"remove\"]\n[[],[10],[20],[30],[20],[40],[10],[10],[20],[20]]",
+      "output": "[null,true,true,true,true,true,true,false,true,true]"
+    },
+    {
+      "input": "[\"RandomizedSet\",\"insert\",\"insert\",\"remove\",\"remove\",\"insert\"]\n[[],[-1],[-1],[-2],[-1],[-1]]",
+      "output": "[null,true,false,false,true,true]"
+    },
+    {
+      "input": "[\"RandomizedSet\",\"insert\",\"insert\",\"insert\",\"remove\",\"remove\",\"getRandom\"]\n[[],[10],[20],[30],[20],[10],[]]",
+      "output": "[null,true,true,true,true,true,30]"
+    },
+    {
+      "input": "[\"RandomizedSet\",\"insert\",\"insert\",\"remove\",\"getRandom\"]\n[[],[5],[6],[6],[]]",
+      "output": "[null,true,true,true,5]"
+    },
+    {
+      "input": "[\"RandomizedSet\",\"insert\",\"remove\",\"insert\",\"getRandom\"]\n[[],[7],[7],[7],[]]",
+      "output": "[null,true,true,true,7]"
+    },
+    {
+      "input": "[\"RandomizedSet\",\"insert\",\"insert\",\"remove\",\"getRandom\",\"remove\",\"insert\",\"getRandom\"]\n[[],[-2147483648],[2147483647],[-2147483648],[],[2147483647],[-2147483648],[]]",
+      "output": "[null,true,true,true,2147483647,true,true,-2147483648]"
+    },
+    {
+      "input": "[\"RandomizedSet\",\"insert\",\"remove\",\"insert\",\"insert\",\"getRandom\"]\n[[],[1],[1],[1],[1],[]]",
+      "output": "[null,true,true,true,false,1]"
+    },
+    {
+      "input": "[\"RandomizedSet\",\"insert\",\"insert\",\"getRandom\",\"remove\",\"getRandom\"]\n[[],[1],[2],[],[1],[]]",
+      "output": "[null,true,true,1,true,2]"
+    },
+    {
+      "input": "[\"RandomizedSet\",\"insert\",\"insert\",\"remove\",\"insert\",\"remove\",\"getRandom\",\"remove\",\"insert\",\"getRandom\"]\n[[],[3],[4],[3],[5],[4],[],[5],[6],[]]",
+      "output": "[null,true,true,true,true,true,5,true,true,6]"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "ArrayList Index Map",
+      "timeComplexity": "O(1) average per operation",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore all current values in an `ArrayList<Integer>` and map each value to its current list index. Insert appends to the end. Remove finds the index, moves the last list value into that index, updates the moved value's index, and removes the tail. `getRandom` chooses a random dense index.\n\n## Key Insight\n\nUniform random selection is easy only while the active values occupy a dense index range. Swap-remove preserves that dense range in O(1) average time while the map keeps removals from needing a scan.\n\n## Complexity Analysis\n- Time Complexity: O(1) average per operation.\n- Space Complexity: O(n).",
+      "code": "class RandomizedSet {\n    private final java.util.ArrayList<Integer> values = new java.util.ArrayList<>();\n    private final java.util.Map<Integer, Integer> indexes = new java.util.HashMap<>();\n    private final java.util.Random random = new java.util.Random();\n\n    public RandomizedSet() {\n    }\n\n    public boolean insert(int val) {\n        if (indexes.containsKey(val)) {\n            return false;\n        }\n        indexes.put(val, values.size());\n        values.add(val);\n        return true;\n    }\n\n    public boolean remove(int val) {\n        Integer index = indexes.get(val);\n        if (index == null) {\n            return false;\n        }\n        int lastIndex = values.size() - 1;\n        int lastValue = values.get(lastIndex);\n        values.set(index, lastValue);\n        indexes.put(lastValue, index);\n        values.remove(lastIndex);\n        indexes.remove(val);\n        return true;\n    }\n\n    public int getRandom() {\n        return values.get(random.nextInt(values.size()));\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Dynamic Int Array Index Map",
+      "timeComplexity": "O(1) average per operation",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse a manually growing `int[]` for the dense values and a `HashMap<Integer, Integer>` for value-to-index lookup. The removal rule is the same swap-with-tail rule, but the dense storage avoids boxed list entries.\n\n## Key Insight\n\nThis is the same invariant as the canonical route with a lower-level array implementation. It makes clear that the algorithm needs dense indexes, not a specific `ArrayList` API.\n\n## Complexity Analysis\n- Time Complexity: O(1) average per operation; array growth is amortized.\n- Space Complexity: O(n).",
+      "code": "class RandomizedSet {\n    private int[] values = new int[4];\n    private int size;\n    private final java.util.Map<Integer, Integer> indexes = new java.util.HashMap<>();\n    private final java.util.Random random = new java.util.Random();\n\n    public RandomizedSet() {\n    }\n\n    public boolean insert(int val) {\n        if (indexes.containsKey(val)) {\n            return false;\n        }\n        ensureCapacity();\n        values[size] = val;\n        indexes.put(val, size);\n        size++;\n        return true;\n    }\n\n    public boolean remove(int val) {\n        Integer index = indexes.get(val);\n        if (index == null) {\n            return false;\n        }\n        int lastValue = values[size - 1];\n        values[index] = lastValue;\n        indexes.put(lastValue, index);\n        size--;\n        indexes.remove(val);\n        return true;\n    }\n\n    public int getRandom() {\n        return values[random.nextInt(size)];\n    }\n\n    private void ensureCapacity() {\n        if (size == values.length) {\n            values = java.util.Arrays.copyOf(values, values.length * 2);\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Dense Slot HashMaps",
+      "timeComplexity": "O(1) average per operation",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nEmulate the dense array with two hash maps: `indexToValue` stores the value at each dense index, and `valueToIndex` stores the current index for each value. Removal swaps the last dense slot into the removed slot and updates both maps.\n\n## Key Insight\n\nThe dense-index invariant can be maintained even without a physical array or list. This route is useful for explaining the two-way mapping needed by swap-remove.\n\n## Complexity Analysis\n- Time Complexity: O(1) average per operation.\n- Space Complexity: O(n).",
+      "code": "class RandomizedSet {\n    private final java.util.Map<Integer, Integer> indexToValue = new java.util.HashMap<>();\n    private final java.util.Map<Integer, Integer> valueToIndex = new java.util.HashMap<>();\n    private final java.util.Random random = new java.util.Random();\n    private int size;\n\n    public RandomizedSet() {\n    }\n\n    public boolean insert(int val) {\n        if (valueToIndex.containsKey(val)) {\n            return false;\n        }\n        indexToValue.put(size, val);\n        valueToIndex.put(val, size);\n        size++;\n        return true;\n    }\n\n    public boolean remove(int val) {\n        Integer index = valueToIndex.get(val);\n        if (index == null) {\n            return false;\n        }\n        int lastIndex = size - 1;\n        int lastValue = indexToValue.get(lastIndex);\n        if (index != lastIndex) {\n            indexToValue.put(index, lastValue);\n            valueToIndex.put(lastValue, index);\n        }\n        indexToValue.remove(lastIndex);\n        valueToIndex.remove(val);\n        size--;\n        return true;\n    }\n\n    public int getRandom() {\n        return indexToValue.get(random.nextInt(size));\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Entry Object Dense Array",
+      "timeComplexity": "O(1) average per operation",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore `Entry` objects in a dense `ArrayList`, and map each value to its `Entry`. Each entry stores its own current dense index. Removing an entry removes the tail entry and, when needed, writes that tail entry into the removed index while updating its stored index.\n\n## Key Insight\n\nInstead of updating a value-to-index integer directly, the moved object owns its index. This is a common design variant when the stored record has more fields than just the value.\n\n## Complexity Analysis\n- Time Complexity: O(1) average per operation.\n- Space Complexity: O(n).",
+      "code": "class RandomizedSet {\n    private static class Entry {\n        int value;\n        int index;\n\n        Entry(int value, int index) {\n            this.value = value;\n            this.index = index;\n        }\n    }\n\n    private final java.util.ArrayList<Entry> dense = new java.util.ArrayList<>();\n    private final java.util.Map<Integer, Entry> entries = new java.util.HashMap<>();\n    private final java.util.Random random = new java.util.Random();\n\n    public RandomizedSet() {\n    }\n\n    public boolean insert(int val) {\n        if (entries.containsKey(val)) {\n            return false;\n        }\n        Entry entry = new Entry(val, dense.size());\n        dense.add(entry);\n        entries.put(val, entry);\n        return true;\n    }\n\n    public boolean remove(int val) {\n        Entry entry = entries.remove(val);\n        if (entry == null) {\n            return false;\n        }\n        int index = entry.index;\n        Entry last = dense.remove(dense.size() - 1);\n        if (entry != last) {\n            dense.set(index, last);\n            last.index = index;\n        }\n        return true;\n    }\n\n    public int getRandom() {\n        return dense.get(random.nextInt(dense.size())).value;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Primitive Open Addressing Index Map",
+      "timeComplexity": "O(1) average per operation",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse a dense `int[]` for current values and implement the value-to-index map with primitive open addressing arrays. Map states distinguish empty, occupied, and deleted slots. Removal marks the removed map slot as deleted and updates the moved tail value's stored index.\n\n## Key Insight\n\nThe algorithmic invariant is still dense values plus value-to-index lookup. This route shows how the same idea can be implemented without Java's boxed `HashMap`, which matters when teaching the constant factors behind the O(1) claim.\n\n## Complexity Analysis\n- Time Complexity: O(1) average per operation under the official call bound.\n- Space Complexity: O(n).",
+      "code": "class RandomizedSet {\n    private static final int TABLE_SIZE = 1 << 20;\n    private int[] values = new int[4];\n    private int size;\n    private final int[] keys = new int[TABLE_SIZE];\n    private final int[] indexes = new int[TABLE_SIZE];\n    private final byte[] states = new byte[TABLE_SIZE];\n    private final java.util.Random random = new java.util.Random();\n\n    public RandomizedSet() {\n    }\n\n    public boolean insert(int val) {\n        if (findKey(val) != -1) {\n            return false;\n        }\n        ensureCapacity();\n        int slot = findInsertSlot(val);\n        keys[slot] = val;\n        indexes[slot] = size;\n        states[slot] = 1;\n        values[size] = val;\n        size++;\n        return true;\n    }\n\n    public boolean remove(int val) {\n        int slot = findKey(val);\n        if (slot == -1) {\n            return false;\n        }\n        int index = indexes[slot];\n        int lastValue = values[size - 1];\n        values[index] = lastValue;\n        size--;\n        states[slot] = 2;\n        if (index < size) {\n            int lastSlot = findKey(lastValue);\n            indexes[lastSlot] = index;\n        }\n        return true;\n    }\n\n    public int getRandom() {\n        return values[random.nextInt(size)];\n    }\n\n    private int findKey(int key) {\n        int slot = hash(key);\n        while (states[slot] != 0) {\n            if (states[slot] == 1 && keys[slot] == key) {\n                return slot;\n            }\n            slot = (slot + 1) & (TABLE_SIZE - 1);\n        }\n        return -1;\n    }\n\n    private int findInsertSlot(int key) {\n        int slot = hash(key);\n        int firstDeleted = -1;\n        while (states[slot] != 0) {\n            if (states[slot] == 2 && firstDeleted == -1) {\n                firstDeleted = slot;\n            }\n            slot = (slot + 1) & (TABLE_SIZE - 1);\n        }\n        return firstDeleted == -1 ? slot : firstDeleted;\n    }\n\n    private int hash(int key) {\n        int h = key ^ (key >>> 16);\n        return h & (TABLE_SIZE - 1);\n    }\n\n    private void ensureCapacity() {\n        if (size == values.length) {\n            values = java.util.Arrays.copyOf(values, values.length * 2);\n        }\n    }\n}",
+      "language": "java"
     }
   ]
 }

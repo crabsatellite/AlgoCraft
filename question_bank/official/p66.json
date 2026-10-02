@@ -1,10 +1,14 @@
 {
   "id": "66",
   "title": "Merge Two Sorted Lists",
-  "description": "# Merge Two Sorted Lists\n\nYou are given the heads of two sorted linked lists `list1` and `list2`.\n\nMerge the two lists into one **sorted** list. The list should be made by splicing together the nodes of the first two lists.\n\nReturn *the head of the merged linked list*.\n\n## Example 1:\n\n**Input:** list1 = [1,2,4], list2 = [1,3,4]\n**Output:** [1,1,2,3,4,4]\n\n## Example 2:\n\n**Input:** list1 = [], list2 = []\n**Output:** []\n\n## Example 3:\n\n**Input:** list1 = [], list2 = [0]\n**Output:** [0]\n\n## Constraints:\n\n*   The number of nodes in both lists is in the range `[0, 50]`.\n*   `-100 <= Node.val <= 100`\n*   Both `list1` and `list2` are sorted in **non-decreasing** order.",
+  "description": "# Merge Two Sorted Lists\n\nYou are given the heads of two sorted linked lists `list1` and `list2`.\n\nMerge the two lists into one **sorted** linked list by rewiring the existing nodes from the two input lists. Do not create a new node for every value; the returned list should be built by splicing together the original nodes.\n\nReturn the head of the merged linked list. The output arrays below describe the final node order, not a separate array data structure.\n\nExample arrays display values in `next` order; `[]` denotes an empty list (`null`). A node stores its value in `val` and its next node in `next`. Use node objects for list parameters and results as shown in the initial code.\n\n## Example 1:\n\n**Input:** list1 = [1,2,4], list2 = [1,3,4]\n**Output:** [1,1,2,3,4,4]\n\n## Example 2:\n\n**Input:** list1 = [], list2 = []\n**Output:** []\n\n## Example 3:\n\n**Input:** list1 = [], list2 = [0]\n**Output:** [0]\n\n## Constraints:\n\n*   The number of nodes in both lists is in the range `[0, 50]`.\n*   `-100 <= Node.val <= 100`\n*   Both `list1` and `list2` are sorted in **non-decreasing** order.",
   "difficulty": "EASY",
   "initialCode": "/**\n * Definition for singly-linked list.\n * public class ListNode {\n *     int val;\n *     ListNode next;\n *     ListNode() {}\n *     ListNode(int val) { this.val = val; }\n *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n * }\n */\nclass Solution {\n    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {\n        // Write your code here\n        return null;\n    }\n}",
-  "tags": ["Linked List", "Recursion"],
+  "tags": [
+    "Linked List",
+    "Recursion",
+    "Heap (Priority Queue)"
+  ],
   "examples": [
     {
       "input": "list1 = [1,2,4], list2 = [1,3,4]",
@@ -22,58 +26,103 @@
   "tests": [
     {
       "input": "list1 = [1,2,4], list2 = [1,3,4]",
-      "output": "[1,1,2,3,4,4]"
+      "output": "[1,1,2,3,4,4]",
+      "description": "Canonical merge with interleaved values"
     },
     {
       "input": "list1 = [], list2 = []",
-      "output": "[]"
+      "output": "[]",
+      "description": "Both lists are empty"
     },
     {
       "input": "list1 = [], list2 = [0]",
-      "output": "[0]"
+      "output": "[0]",
+      "description": "Only the second list has one node"
+    },
+    {
+      "input": "list1 = [0], list2 = []",
+      "output": "[0]",
+      "description": "Only the first list has one node"
     },
     {
       "input": "list1 = [2], list2 = [1]",
-      "output": "[1,2]"
+      "output": "[1,2]",
+      "description": "Two single-node lists in reverse order"
     },
     {
       "input": "list1 = [1,2,3,4,5], list2 = [1]",
       "output": "[1,1,2,3,4,5]",
-      "note": "不等长链表"
+      "description": "Unequal lengths with shared minimum value"
     },
     {
       "input": "list1 = [5], list2 = [1,2,3,4]",
       "output": "[1,2,3,4,5]",
-      "note": "第一个链表只有一个大元素"
+      "description": "First list has one large value after all second-list nodes"
+    },
+    {
+      "input": "list1 = [-10,-3,0], list2 = [-4,1,8]",
+      "output": "[-10,-4,-3,0,1,8]",
+      "description": "Negative and positive values interleave"
+    },
+    {
+      "input": "list1 = [1,1,2], list2 = [1,2,2]",
+      "output": "[1,1,1,2,2,2]",
+      "description": "Duplicate values appear in both lists"
+    },
+    {
+      "input": "list1 = [1,2,3], list2 = [4,5]",
+      "output": "[1,2,3,4,5]",
+      "description": "All first-list nodes come before all second-list nodes"
+    },
+    {
+      "input": "list1 = [10,11], list2 = [1,2,3]",
+      "output": "[1,2,3,10,11]",
+      "description": "All second-list nodes come before all first-list nodes"
+    },
+    {
+      "input": "list1 = [-100,-100,100], list2 = [-100,0,100]",
+      "output": "[-100,-100,-100,0,100,100]",
+      "description": "Boundary values with repeated extremes"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p66_example1.png",
-      "caption": "Example 1"
-    },
-    {
-      "id": "example1_merged",
-      "file": "p66_example1_merged.png",
-      "caption": "Example 1 - After Merge"
+      "caption": "Two sorted input lists before any nodes are spliced"
     }
   ],
   "solutions": [
     {
-      "name": "Iterative with Dummy Node",
+      "name": "Iterative Dummy-Tail Splicing",
       "timeComplexity": "O(m + n)",
       "spaceComplexity": "O(1)",
-      "description": "Use a dummy head node and a tail pointer. Compare the current nodes of both lists and append the smaller one to the merged list.",
-      "code": "class Solution {\n    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {\n        ListNode dummy = new ListNode(0);\n        ListNode tail = dummy;\n        \n        while (list1 != null && list2 != null) {\n            if (list1.val <= list2.val) {\n                tail.next = list1;\n                list1 = list1.next;\n            } else {\n                tail.next = list2;\n                list2 = list2.next;\n            }\n            tail = tail.next;\n        }\n        \n        tail.next = (list1 != null) ? list1 : list2;\n        \n        return dummy.next;\n    }\n}",
+      "description": "## Approach\n\nCreate a dummy head and keep a `tail` pointer at the end of the merged prefix. At each step, compare the current heads of `list1` and `list2`, attach the smaller node to `tail.next`, and advance the list that supplied the node. After one list is exhausted, attach the remaining suffix in one operation.\n\n## Key Insight\n\nThe dummy node removes the special case for choosing the first output node, so every iteration only needs to decide which existing node becomes the next tail.\n\n## Complexity Analysis\n- Time Complexity: O(m + n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {\n        ListNode dummy = new ListNode(0);\n        ListNode tail = dummy;\n\n        while (list1 != null && list2 != null) {\n            if (list1.val <= list2.val) {\n                tail.next = list1;\n                list1 = list1.next;\n            } else {\n                tail.next = list2;\n                list2 = list2.next;\n            }\n            tail = tail.next;\n        }\n\n        tail.next = (list1 != null) ? list1 : list2;\n        return dummy.next;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Recursive",
+      "name": "Recursive Head Selection",
       "timeComplexity": "O(m + n)",
       "spaceComplexity": "O(m + n)",
-      "description": "Recursively merge: pick the smaller head, then set its next to the recursive merge of the remaining lists.",
-      "code": "class Solution {\n    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {\n        if (list1 == null) return list2;\n        if (list2 == null) return list1;\n        \n        if (list1.val <= list2.val) {\n            list1.next = mergeTwoLists(list1.next, list2);\n            return list1;\n        } else {\n            list2.next = mergeTwoLists(list1, list2.next);\n            return list2;\n        }\n    }\n}",
+      "description": "## Approach\n\nUse the smaller current head as the head of the answer. Its `next` pointer should become the merge of the remaining nodes and the other list. If either input list is empty, return the other list directly.\n\n## Key Insight\n\nThe first node of the sorted merge is always one of the two current heads. Recursion expresses that local choice and lets the call stack finish the suffix.\n\n## Complexity Analysis\n- Time Complexity: O(m + n)\n- Space Complexity: O(m + n)",
+      "code": "class Solution {\n    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {\n        if (list1 == null) {\n            return list2;\n        }\n        if (list2 == null) {\n            return list1;\n        }\n\n        if (list1.val <= list2.val) {\n            list1.next = mergeTwoLists(list1.next, list2);\n            return list1;\n        }\n        list2.next = mergeTwoLists(list1, list2.next);\n        return list2;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "In-Place Head/Tail Without Dummy",
+      "timeComplexity": "O(m + n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nHandle the empty-list cases first, then choose the first merged node manually as `head`. Keep `tail` at the end of the merged prefix and continue comparing the two current nodes exactly as in the dummy-node version.\n\n## Key Insight\n\nThis version exposes the one job the dummy node normally hides: picking the first output node. After `head` is chosen, the loop is the same tail-splicing invariant.\n\n## Complexity Analysis\n- Time Complexity: O(m + n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {\n        if (list1 == null) {\n            return list2;\n        }\n        if (list2 == null) {\n            return list1;\n        }\n\n        ListNode head;\n        if (list1.val <= list2.val) {\n            head = list1;\n            list1 = list1.next;\n        } else {\n            head = list2;\n            list2 = list2.next;\n        }\n\n        ListNode tail = head;\n        while (list1 != null && list2 != null) {\n            if (list1.val <= list2.val) {\n                tail.next = list1;\n                list1 = list1.next;\n            } else {\n                tail.next = list2;\n                list2 = list2.next;\n            }\n            tail = tail.next;\n        }\n\n        tail.next = (list1 != null) ? list1 : list2;\n        return head;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Priority Queue Generalization",
+      "timeComplexity": "O((m + n) log 2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nPut the current head of each non-empty list into a min-heap. Repeatedly poll the smallest node, append that existing node to the merged tail, and push its successor if it has one.\n\n## Key Insight\n\nFor two lists, a heap is more machinery than the direct two-pointer merge. It is still useful teaching material because the exact same frontier idea becomes the standard pattern for merging k sorted linked lists.\n\n## Complexity Analysis\n- Time Complexity: O((m + n) log 2)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {\n        PriorityQueue<ListNode> pq = new PriorityQueue<>((a, b) -> Integer.compare(a.val, b.val));\n        if (list1 != null) {\n            pq.offer(list1);\n        }\n        if (list2 != null) {\n            pq.offer(list2);\n        }\n\n        ListNode dummy = new ListNode(0);\n        ListNode tail = dummy;\n        while (!pq.isEmpty()) {\n            ListNode node = pq.poll();\n            if (node.next != null) {\n                pq.offer(node.next);\n            }\n            tail.next = node;\n            tail = tail.next;\n        }\n        tail.next = null;\n        return dummy.next;\n    }\n}",
       "language": "java"
     }
   ]

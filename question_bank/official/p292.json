@@ -1,36 +1,121 @@
 {
   "id": "292",
   "title": "Strong Password Checker II",
-  "description": "# Strong Password Checker II\n\nA password is said to be **strong** if it satisfies all the following criteria:\n\n1.  It has at least `8` characters.\n2.  It contains at least one lowercase letter.\n3.  It contains at least one uppercase letter.\n4.  It contains at least one digit.\n5.  It contains at least one special character. The special characters are the characters in the following string: `\"!@#$%^&*()-+\"`.\n6.  It does not contain `2` of the same character in adjacent positions (i.e., `\"aab\"` violates this condition, but `\"aba\"` does not).\n\nGiven a string `password`, return `true` *if it is a **strong** password*. Otherwise, return `false`.\n\n## Example 1:\n\n**Input:** password = \"IloveLe3tcode!\"\n**Output:** true\n**Explanation:** The password meets all the requirements: \n- It has at least 8 characters.\n- It contains at least one lowercase letter.\n- It contains at least one uppercase letter.\n- It contains at least one digit.\n- It contains at least one special character.\n- It does not contain 2 of the same character in adjacent positions.\n\n## Example 2:\n\n**Input:** password = \"Me+You--IsMyDream\"\n**Output:** false\n**Explanation:** The password does not contain a digit and also contains 2 of the same character in adjacent positions.\n\n## Example 3:\n\n**Input:** password = \"1aB!\"\n**Output:** false\n**Explanation:** The password \"1aB!\" is 4 characters long, so it is not strong.\n\n## Constraints:\n\n*   `1 <= password.length <= 100`\n*   `password` consists of letters, digits, and special characters: `\"!@#$%^&*()-+\"`. ",
+  "description": "# Strong Password Checker II\n\nA password is **strong** only when it satisfies every rule below:\n\n1. It has at least `8` characters.\n2. It contains at least one lowercase English letter.\n3. It contains at least one uppercase English letter.\n4. It contains at least one digit.\n5. It contains at least one special character from the exact string `\"!@#$%^&*()-+\"`.\n6. It has no two equal adjacent characters. For example, `\"aab\"` fails because the first two characters are both `a`, while `\"aba\"` passes this rule.\n\nGiven a string `password`, return `true` if it is strong. Otherwise, return `false`.\n\n## Example 1\n\n**Input:** password = \"IloveLe3tcode!\"\n**Output:** true\n**Explanation:** The password has length at least 8, contains all four required character categories, and has no equal adjacent characters.\n\n## Example 2\n\n**Input:** password = \"Me+You--IsMyDream\"\n**Output:** false\n**Explanation:** The password has no digit, and it also contains two adjacent `-` characters.\n\n## Example 3\n\n**Input:** password = \"1aB!\"\n**Output:** false\n**Explanation:** The password has all four character categories, but its length is only 4.\n\n## Constraints\n\n* `1 <= password.length <= 100`\n* `password` consists only of English letters, digits, and the special characters in `\"!@#$%^&*()-+\"`.",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public boolean strongPasswordCheckerII(String password) {\n        \n    }\n}",
-  "tags": ["String"],
+  "initialCode": "class Solution {\n    public boolean strongPasswordCheckerII(String password) {\n        // Write your code here\n        return false;\n    }\n}",
+  "tags": [
+    "String",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "password = \"IloveLe3tcode!\"", "output": "true" },
-    { "input": "password = \"Me+You--IsMyDream\"", "output": "false" },
-    { "input": "password = \"1aB!\"", "output": "false" }
+    {
+      "input": "password = \"IloveLe3tcode!\"",
+      "output": "true"
+    },
+    {
+      "input": "password = \"Me+You--IsMyDream\"",
+      "output": "false"
+    },
+    {
+      "input": "password = \"1aB!\"",
+      "output": "false"
+    }
   ],
   "solutions": [
     {
-      "name": "Single Pass Check",
+      "name": "Single Pass Flags",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Check length >= 8, then iterate once tracking flags for lowercase, uppercase, digit, special character, and adjacent duplicates.",
-      "code": "class Solution {\n    public boolean strongPasswordCheckerII(String password) {\n        if (password.length() < 8) return false;\n        boolean hasLower = false, hasUpper = false, hasDigit = false, hasSpecial = false;\n        String special = \"!@#$%^&*()-+\";\n        for (int i = 0; i < password.length(); i++) {\n            char c = password.charAt(i);\n            if (i > 0 && c == password.charAt(i - 1)) return false;\n            if (Character.isLowerCase(c)) hasLower = true;\n            else if (Character.isUpperCase(c)) hasUpper = true;\n            else if (Character.isDigit(c)) hasDigit = true;\n            if (special.indexOf(c) >= 0) hasSpecial = true;\n        }\n        return hasLower && hasUpper && hasDigit && hasSpecial;\n    }\n}",
+      "description": "## Approach\n\nScan the password once. Keep four boolean flags for lowercase, uppercase, digit, and special characters, and reject immediately when the current character equals the previous character.\n\n## Key Insight\n\nEvery rule is independent except adjacency, so one left-to-right pass can both collect the category evidence and stop as soon as a repeated neighbor appears.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean strongPasswordCheckerII(String password) {\n        if (password.length() < 8) {\n            return false;\n        }\n        boolean lower = false;\n        boolean upper = false;\n        boolean digit = false;\n        boolean special = false;\n        String specials = \"!@#$%^&*()-+\";\n\n        for (int i = 0; i < password.length(); i++) {\n            char c = password.charAt(i);\n            if (i > 0 && c == password.charAt(i - 1)) {\n                return false;\n            }\n            if (Character.isLowerCase(c)) {\n                lower = true;\n            } else if (Character.isUpperCase(c)) {\n                upper = true;\n            } else if (Character.isDigit(c)) {\n                digit = true;\n            } else if (specials.indexOf(c) >= 0) {\n                special = true;\n            }\n        }\n\n        return lower && upper && digit && special;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Multi-Pass Validation",
+      "name": "Separate Rule Helpers",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Check each condition in separate passes. First check length, then scan for lowercase, uppercase, digit, special, and adjacent duplicates in separate loops.",
-      "code": "class Solution {\n    public boolean strongPasswordCheckerII(String password) {\n        if (password.length() < 8) return false;\n        String special = \"!@#$%^&*()-+\";\n        boolean hasLower = false, hasUpper = false, hasDigit = false, hasSpecial = false;\n        for (int i = 0; i < password.length(); i++) {\n            char c = password.charAt(i);\n            if (c >= 'a' && c <= 'z') hasLower = true;\n            if (c >= 'A' && c <= 'Z') hasUpper = true;\n            if (c >= '0' && c <= '9') hasDigit = true;\n            if (special.indexOf(c) >= 0) hasSpecial = true;\n        }\n        if (!hasLower || !hasUpper || !hasDigit || !hasSpecial) return false;\n        for (int i = 1; i < password.length(); i++) {\n            if (password.charAt(i) == password.charAt(i - 1)) return false;\n        }\n        return true;\n    }\n}",
+      "description": "## Approach\n\nWrite one small predicate for each rule: length, adjacent duplicates, lowercase, uppercase, digit, and special character. The main method combines those predicates with logical `&&`.\n\n## Key Insight\n\nThis route favors auditability. When a password fails, each helper corresponds to exactly one requirement from the prompt, which makes the implementation easy to inspect in an educational setting.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean strongPasswordCheckerII(String password) {\n        return password.length() >= 8\n                && !hasAdjacentDuplicate(password)\n                && hasLower(password)\n                && hasUpper(password)\n                && hasDigit(password)\n                && hasSpecial(password);\n    }\n\n    private boolean hasAdjacentDuplicate(String password) {\n        for (int i = 1; i < password.length(); i++) {\n            if (password.charAt(i) == password.charAt(i - 1)) {\n                return true;\n            }\n        }\n        return false;\n    }\n\n    private boolean hasLower(String s) {\n        for (char c : s.toCharArray()) {\n            if (Character.isLowerCase(c)) {\n                return true;\n            }\n        }\n        return false;\n    }\n\n    private boolean hasUpper(String s) {\n        for (char c : s.toCharArray()) {\n            if (Character.isUpperCase(c)) {\n                return true;\n            }\n        }\n        return false;\n    }\n\n    private boolean hasDigit(String s) {\n        for (char c : s.toCharArray()) {\n            if (Character.isDigit(c)) {\n                return true;\n            }\n        }\n        return false;\n    }\n\n    private boolean hasSpecial(String s) {\n        String specials = \"!@#$%^&*()-+\";\n        for (char c : s.toCharArray()) {\n            if (specials.indexOf(c) >= 0) {\n                return true;\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Category Bitmask",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nRepresent the four required character categories as four bits. While scanning, reject adjacent duplicates and OR the current character's category bit into the mask.\n\n## Key Insight\n\nAt the end, the mask must be `1111` in binary. This compresses four boolean flags into one integer while keeping the adjacency check explicit.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    private static final String SPECIALS = \"!@#$%^&*()-+\";\n\n    public boolean strongPasswordCheckerII(String password) {\n        if (password.length() < 8) {\n            return false;\n        }\n        int mask = 0;\n        for (int i = 0; i < password.length(); i++) {\n            char c = password.charAt(i);\n            if (i > 0 && c == password.charAt(i - 1)) {\n                return false;\n            }\n            mask |= categoryBit(c);\n        }\n        return mask == 0b1111;\n    }\n\n    private int categoryBit(char c) {\n        if ('a' <= c && c <= 'z') {\n            return 1;\n        }\n        if ('A' <= c && c <= 'Z') {\n            return 2;\n        }\n        if ('0' <= c && c <= '9') {\n            return 4;\n        }\n        if (SPECIALS.indexOf(c) >= 0) {\n            return 8;\n        }\n        return 0;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Regex Categories With Adjacency Scan",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse regular expressions to check the four character categories, then run a short loop for the adjacent-duplicate rule because that condition depends on neighboring positions.\n\n## Key Insight\n\nRegex is concise for existence checks such as \"contains a digit\", but adjacency is clearer and safer as an explicit scan. Mixing the two keeps each tool on the rule it expresses best.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    private static final String LOWER_PATTERN = \".*[a-z].*\";\n    private static final String UPPER_PATTERN = \".*[A-Z].*\";\n    private static final String DIGIT_PATTERN = \".*[0-9].*\";\n    private static final String SPECIAL_PATTERN = \".*[!@#$%^&*()\\\\-+].*\";\n\n    public boolean strongPasswordCheckerII(String password) {\n        return password.length() >= 8\n                && password.matches(LOWER_PATTERN)\n                && password.matches(UPPER_PATTERN)\n                && password.matches(DIGIT_PATTERN)\n                && password.matches(SPECIAL_PATTERN)\n                && !hasAdjacentDuplicate(password);\n    }\n\n    private boolean hasAdjacentDuplicate(String password) {\n        for (int i = 1; i < password.length(); i++) {\n            if (password.charAt(i) == password.charAt(i - 1)) {\n                return true;\n            }\n        }\n        return false;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "password = \"IloveLe3tcode!\"", "output": "true" },
-    { "input": "password = \"Me+You--IsMyDream\"", "output": "false" },
-    { "input": "password = \"1aB!\"", "output": "false" }
+    {
+      "input": "password = \"IloveLe3tcode!\"",
+      "output": "true",
+      "description": "sample satisfies all six rules"
+    },
+    {
+      "input": "password = \"Me+You--IsMyDream\"",
+      "output": "false",
+      "description": "sample fails because it is missing a digit and has adjacent hyphens"
+    },
+    {
+      "input": "password = \"1aB!\"",
+      "output": "false",
+      "description": "too short even though all four categories appear"
+    },
+    {
+      "input": "password = \"Aa1!bcde\"",
+      "output": "true",
+      "description": "exactly length 8 with all categories and no equal neighbors"
+    },
+    {
+      "input": "password = \"Aa1+bcde\"",
+      "output": "true",
+      "description": "uses a valid non-exclamation special character"
+    },
+    {
+      "input": "password = \"abcdefg1!\"",
+      "output": "false",
+      "description": "missing uppercase letter"
+    },
+    {
+      "input": "password = \"ABCDEFG1!\"",
+      "output": "false",
+      "description": "missing lowercase letter"
+    },
+    {
+      "input": "password = \"Abcdefgh!\"",
+      "output": "false",
+      "description": "missing digit"
+    },
+    {
+      "input": "password = \"Abcdefg1\"",
+      "output": "false",
+      "description": "missing special character"
+    },
+    {
+      "input": "password = \"Aa1!aaab\"",
+      "output": "false",
+      "description": "adjacent equal lowercase characters invalidate the password"
+    },
+    {
+      "input": "password = \"Aa11!bcd\"",
+      "output": "false",
+      "description": "adjacent equal digits invalidate the password"
+    },
+    {
+      "input": "password = \"Aa1!!bcd\"",
+      "output": "false",
+      "description": "adjacent equal special characters invalidate the password"
+    }
   ]
 }

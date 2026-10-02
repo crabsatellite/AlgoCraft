@@ -1,46 +1,128 @@
 {
   "id": "48",
   "title": "Basic Calculator II",
-  "description": "# Basic Calculator II\n\nGiven a string `s` which represents an expression, evaluate this expression and return its value.\n\nThe integer division should truncate toward zero.\n\nYou may assume that the given expression is always valid. All intermediate results will be in the range of `[-2^31, 2^31 - 1]`.\n\n**Note:** You are not allowed to use any built-in function which evaluates strings as mathematical expressions, such as `eval()`.\n\n## Example 1:\n\n**Input:** s = \"3+2*2\"\n**Output:** 7\n\n## Example 2:\n\n**Input:** s = \" 3/2 \"\n**Output:** 1\n\n## Example 3:\n\n**Input:** s = \" 3+5 / 2 \"\n**Output:** 5\n\n## Constraints:\n\n*   `1 <= s.length <= 3 * 10^5`\n*   `s` consists of integers and operators `('+', '-', '*', '/')` separated by some number of spaces.\n*   `s` represents a valid expression.\n*   All the integers in the expression are non-negative integers in the range `[0, 2^31 - 1]`.\n*   The answer is guaranteed to fit in a **32-bit integer**.",
+  "description": "# Basic Calculator II\n\nGiven a string `s` representing a valid arithmetic expression, evaluate the expression and return its integer value.\n\nThe expression contains non-negative integers, spaces, and the binary operators `+`, `-`, `*`, and `/`. There are no parentheses and no unary signs in this problem. Multiplication and division must be evaluated before addition and subtraction.\n\nInteger division truncates toward zero. For example, `3/2` evaluates to `1`, and `1-5/2` evaluates to `-1`.\n\nYou may not use a built-in expression evaluator such as `eval()` or a scripting engine.\n\n## Example 1:\n\n**Input:** s = \"3+2*2\"\n**Output:** 7\n**Explanation:** `2*2` is evaluated before addition.\n\n## Example 2:\n\n**Input:** s = \" 3/2 \"\n**Output:** 1\n**Explanation:** Integer division truncates toward zero.\n\n## Example 3:\n\n**Input:** s = \" 3+5 / 2 \"\n**Output:** 5\n\n## Constraints:\n\n* `1 <= s.length <= 3 * 10^5`\n* `s` consists of digits, spaces, and the operators `+`, `-`, `*`, and `/`.\n* `s` is a valid expression made from non-negative integers and binary operators.\n* Every integer in the expression is in the range `[0, 2^31 - 1]`.\n* Every division operation has a non-zero right operand.\n* The final answer and all intermediate results fit in a signed 32-bit integer.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int calculate(String s) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Math", "String", "Stack"],
+  "tags": [
+    "Math",
+    "String",
+    "Stack"
+  ],
   "examples": [
-    { "input": "s = \"3+2*2\"", "output": "7" },
-    { "input": "s = \" 3/2 \"", "output": "1" },
-    { "input": "s = \" 3+5 / 2 \"", "output": "5" }
+    {
+      "input": "s = \"3+2*2\"",
+      "output": "7"
+    },
+    {
+      "input": "s = \" 3/2 \"",
+      "output": "1"
+    },
+    {
+      "input": "s = \" 3+5 / 2 \"",
+      "output": "5"
+    }
   ],
   "tests": [
-    { "input": "s = \"3+2*2\"", "output": "7" },
-    { "input": "s = \" 3/2 \"", "output": "1" },
-    { "input": "s = \" 3+5 / 2 \"", "output": "5" },
-    { "input": "s = \"1-1+1\"", "output": "1" },
-    { "input": "s = \"0-2147483647\"", "output": "-2147483647" },
+    {
+      "input": "s = \"3+2*2\"",
+      "output": "7",
+      "description": "Multiplication has priority over addition"
+    },
+    {
+      "input": "s = \" 3/2 \"",
+      "output": "1",
+      "description": "Division truncates toward zero"
+    },
+    {
+      "input": "s = \" 3+5 / 2 \"",
+      "output": "5",
+      "description": "Spaces around operators do not change precedence"
+    },
+    {
+      "input": "s = \"1-1+1\"",
+      "output": "1",
+      "description": "Addition and subtraction are evaluated left to right"
+    },
+    {
+      "input": "s = \"0-2147483647\"",
+      "output": "-2147483647",
+      "description": "Large integer after subtraction still fits the answer range"
+    },
     {
       "input": "s = \"42\"",
       "output": "42",
-      "description": "Single number"
+      "description": "Single number expression"
     },
     {
       "input": "s = \"2*3*4\"",
       "output": "24",
-      "description": "Pure multiplication"
+      "description": "Pure multiplication chain"
+    },
+    {
+      "input": "s = \"14-3/2\"",
+      "output": "13",
+      "description": "Division happens before subtraction"
+    },
+    {
+      "input": "s = \"1-5/2\"",
+      "output": "-1",
+      "description": "A subtractive division term still truncates toward zero"
+    },
+    {
+      "input": "s = \"100000000/3/3\"",
+      "output": "11111111",
+      "description": "Consecutive division is evaluated left to right"
+    },
+    {
+      "input": "s = \"2*3+4*5-6/4\"",
+      "output": "25",
+      "description": "Multiple high-precedence terms are combined with addition and subtraction"
+    },
+    {
+      "input": "s = \" 12 + 34 * 2 - 6 / 4 + 5 * 0 \"",
+      "output": "79",
+      "description": "Multi-digit numbers, spaces, zero factor, and all operators together"
+    },
+    {
+      "input": "s = \"0*7+9/4\"",
+      "output": "2",
+      "description": "Zero multiplication and truncating division in the same expression"
+    },
+    {
+      "input": "s = \"2147483647/1\"",
+      "output": "2147483647",
+      "description": "Upper integer boundary remains valid when divided by one"
     }
   ],
   "solutions": [
     {
-      "name": "栈处理运算符优先级",
+      "name": "Stack of Signed Terms",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "使用栈存储待加减的数字。遇到 +/- 时将数字压栈（- 压入负数），遇到 *// 时立即与栈顶计算。最后将栈中所有数字相加得到结果。",
-      "code": "class Solution {\n    public int calculate(String s) {\n        Deque<Integer> stack = new ArrayDeque<>();\n        int num = 0;\n        char prevOp = '+';\n        \n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            \n            if (Character.isDigit(c)) {\n                num = num * 10 + (c - '0');\n            }\n            \n            // 遇到运算符或到达末尾时，处理之前的数字\n            if ((!Character.isDigit(c) && c != ' ') || i == s.length() - 1) {\n                switch (prevOp) {\n                    case '+' -> stack.push(num);\n                    case '-' -> stack.push(-num);\n                    case '*' -> stack.push(stack.pop() * num);\n                    case '/' -> stack.push(stack.pop() / num);\n                }\n                prevOp = c;\n                num = 0;\n            }\n        }\n        \n        int result = 0;\n        while (!stack.isEmpty()) {\n            result += stack.pop();\n        }\n        \n        return result;\n    }\n}"
+      "description": "## Approach\n\nScan the string once and keep a stack of terms that will eventually be added together. When the previous operator is `+` or `-`, push the current number as a positive or negative term. When the previous operator is `*` or `/`, immediately combine the current number with the top stack term.\n\n## Key Insight\n\nAfter a `+` or `-`, the previous term can no longer be affected by later multiplication or division. Only the most recent term is still open, so multiplication and division can be resolved directly against the stack top.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int calculate(String s) {\n        Deque<Integer> terms = new ArrayDeque<>();\n        int number = 0;\n        char operator = '+';\n\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (Character.isDigit(c)) {\n                number = number * 10 + (c - '0');\n            }\n\n            if ((!Character.isDigit(c) && c != ' ') || i == s.length() - 1) {\n                apply(terms, operator, number);\n                operator = c;\n                number = 0;\n            }\n        }\n\n        int result = 0;\n        for (int term : terms) {\n            result += term;\n        }\n        return result;\n    }\n\n    private void apply(Deque<Integer> terms, char operator, int number) {\n        if (operator == '+') {\n            terms.push(number);\n        } else if (operator == '-') {\n            terms.push(-number);\n        } else if (operator == '*') {\n            terms.push(terms.pop() * number);\n        } else if (operator == '/') {\n            terms.push(terms.pop() / number);\n        }\n    }\n}"
     },
     {
-      "name": "O(1) 空间优化",
+      "name": "Constant-Space Last-Term Tracking",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "不使用栈，用变量 lastNum 记录上一个待处理的数字。遇到 +/- 时将 lastNum 加入结果并更新 lastNum，遇到 *// 时直接更新 lastNum。",
-      "code": "class Solution {\n    public int calculate(String s) {\n        int result = 0;\n        int lastNum = 0;\n        int num = 0;\n        char prevOp = '+';\n        \n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            \n            if (Character.isDigit(c)) {\n                num = num * 10 + (c - '0');\n            }\n            \n            if ((!Character.isDigit(c) && c != ' ') || i == s.length() - 1) {\n                if (prevOp == '+') {\n                    result += lastNum;\n                    lastNum = num;\n                } else if (prevOp == '-') {\n                    result += lastNum;\n                    lastNum = -num;\n                } else if (prevOp == '*') {\n                    lastNum = lastNum * num;\n                } else if (prevOp == '/') {\n                    lastNum = lastNum / num;\n                }\n                prevOp = c;\n                num = 0;\n            }\n        }\n        \n        return result + lastNum;\n    }\n}"
+      "description": "## Approach\n\nReplace the term stack with two integers: `result` for fully committed terms and `lastTerm` for the one term that can still be changed by multiplication or division. Addition and subtraction commit the previous `lastTerm`; multiplication and division update it in place.\n\n## Key Insight\n\nThe stack solution only ever revisits the top term. Compressing that top into `lastTerm` keeps the same precedence behavior while reducing auxiliary space from O(n) to O(1).\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int calculate(String s) {\n        int result = 0;\n        int lastTerm = 0;\n        int number = 0;\n        char operator = '+';\n\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (Character.isDigit(c)) {\n                number = number * 10 + (c - '0');\n            }\n\n            if ((!Character.isDigit(c) && c != ' ') || i == s.length() - 1) {\n                if (operator == '+') {\n                    result += lastTerm;\n                    lastTerm = number;\n                } else if (operator == '-') {\n                    result += lastTerm;\n                    lastTerm = -number;\n                } else if (operator == '*') {\n                    lastTerm = lastTerm * number;\n                } else if (operator == '/') {\n                    lastTerm = lastTerm / number;\n                }\n                operator = c;\n                number = 0;\n            }\n        }\n\n        return result + lastTerm;\n    }\n}"
+    },
+    {
+      "name": "Two Stacks with Explicit Precedence",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nParse numbers into a value stack and operators into an operator stack. Before pushing a new operator, repeatedly apply operators already on the stack whose precedence is greater than or equal to the new operator. At the end, apply the remaining operators.\n\n## Key Insight\n\nThis is the small, no-parentheses version of the general infix-expression parser. The precedence comparison makes the evaluation order visible and prepares students for shunting-yard style parsing.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int calculate(String s) {\n        Deque<Integer> values = new ArrayDeque<>();\n        Deque<Character> operators = new ArrayDeque<>();\n\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (c == ' ') {\n                continue;\n            }\n            if (Character.isDigit(c)) {\n                int number = 0;\n                while (i < s.length() && Character.isDigit(s.charAt(i))) {\n                    number = number * 10 + (s.charAt(i) - '0');\n                    i++;\n                }\n                values.push(number);\n                i--;\n            } else {\n                while (!operators.isEmpty() && precedence(operators.peek()) >= precedence(c)) {\n                    applyTop(values, operators);\n                }\n                operators.push(c);\n            }\n        }\n\n        while (!operators.isEmpty()) {\n            applyTop(values, operators);\n        }\n        return values.pop();\n    }\n\n    private int precedence(char operator) {\n        return (operator == '+' || operator == '-') ? 1 : 2;\n    }\n\n    private void applyTop(Deque<Integer> values, Deque<Character> operators) {\n        int right = values.pop();\n        int left = values.pop();\n        char operator = operators.pop();\n        if (operator == '+') {\n            values.push(left + right);\n        } else if (operator == '-') {\n            values.push(left - right);\n        } else if (operator == '*') {\n            values.push(left * right);\n        } else {\n            values.push(left / right);\n        }\n    }\n}"
+    },
+    {
+      "name": "Recursive Descent by Precedence",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse two grammar levels. `parseExpression` handles addition and subtraction, while `parseTerm` handles multiplication and division. `parseNumber` skips spaces and consumes consecutive digits. The parser never backtracks because the grammar is a simple precedence chain.\n\n## Key Insight\n\nOperator precedence can be represented as code structure instead of stack operations: higher-precedence parsing happens in the deeper function. This route is the cleanest bridge from this problem to full expression parsers.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    private String expression;\n    private int index;\n\n    public int calculate(String s) {\n        expression = s;\n        index = 0;\n        return parseExpression();\n    }\n\n    private int parseExpression() {\n        int value = parseTerm();\n        while (true) {\n            skipSpaces();\n            if (index >= expression.length()) {\n                return value;\n            }\n            char operator = expression.charAt(index);\n            if (operator != '+' && operator != '-') {\n                return value;\n            }\n            index++;\n            int term = parseTerm();\n            value = operator == '+' ? value + term : value - term;\n        }\n    }\n\n    private int parseTerm() {\n        int value = parseNumber();\n        while (true) {\n            skipSpaces();\n            if (index >= expression.length()) {\n                return value;\n            }\n            char operator = expression.charAt(index);\n            if (operator != '*' && operator != '/') {\n                return value;\n            }\n            index++;\n            int next = parseNumber();\n            value = operator == '*' ? value * next : value / next;\n        }\n    }\n\n    private int parseNumber() {\n        skipSpaces();\n        int value = 0;\n        while (index < expression.length() && Character.isDigit(expression.charAt(index))) {\n            value = value * 10 + (expression.charAt(index) - '0');\n            index++;\n        }\n        return value;\n    }\n\n    private void skipSpaces() {\n        while (index < expression.length() && expression.charAt(index) == ' ') {\n            index++;\n        }\n    }\n}"
     }
   ]
 }

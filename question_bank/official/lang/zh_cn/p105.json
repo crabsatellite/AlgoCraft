@@ -1,0 +1,28 @@
+{
+  "title": "键值映射求和",
+  "description": "# 键值映射求和\n\n设计一个 `MapSum` 类，用来存储字符串 key 和整数 value，并能返回所有以某个前缀开头的 key 的 value 之和。\n\n实现 `MapSum` 类：\n\n*   `MapSum()` 初始化对象。\n*   `void insert(String key, int val)` 插入键值对。如果 `key` 已经存在，旧值会被 `val` 替换。\n*   `int sum(String prefix)` 返回所有以 `prefix` 开头的 key 的 value 总和。如果没有 key 拥有这个前缀，返回 `0`。\n\n一个 key 本身也可以是其他 key 的前缀。在这种情况下，`sum(key)` 既包含这个 key 自身的值，也包含它下面更长 key 的值。\n\n前缀是字符串的连续开头。例如 `\"ap\"` 是 `\"apple\"` 和 `\"app\"` 的前缀，`\"pp\"` 不是。\n\n操作示例中，第一组数组是操作名，第二组是对应参数，按同一下标配对并从左到右执行。第一项创建对象，之后都操作同一个对象。输出数组也逐项对应：构造和没有返回值的方法写作 `null`；`[]` 作为参数表示无参数调用。\n\n## 示例：\n\n**输入**\n[\"MapSum\", \"insert\", \"sum\", \"insert\", \"sum\"]\n[[], [\"apple\", 3], [\"ap\"], [\"app\", 2], [\"ap\"]]\n\n**输出**\n[null, null, 3, null, 5]\n\n**解释**\nMapSum mapSum = new MapSum();\nmapSum.insert(\"apple\", 3);\nmapSum.sum(\"ap\"); // 返回 3\nmapSum.insert(\"app\", 2);\nmapSum.sum(\"ap\"); // 返回 5，因为 \"apple\" 和 \"app\" 都以 \"ap\" 开头\n\n## 约束条件：\n\n*   `1 <= key.length, prefix.length <= 50`\n*   `key` 和 `prefix` 只包含小写英文字母。\n*   `1 <= val <= 1000`\n*   `insert` 和 `sum` 的调用次数最多为 `50`。",
+  "solutions": [
+    {
+      "name": "Trie + 差值前缀和",
+      "description": "## 思路\n\n把所有 key 存入 Trie。每个 Trie 节点保存经过该前缀的所有 key 的 value 总和。另用一个 HashMap 记录每个完整 key 当前的值。执行 `insert(key, val)` 时，先计算 `delta = val - oldValue`，再把这个差值加到 key 路径上的每个 Trie 节点。\n\n## 关键点\n\n插入已有 key 是替换旧值，不是额外新增一次。差值更新是保证前缀和正确的关键：如果同一个 key 改小、改大，或者重复插入相同值，路径上的前缀和都只改变应改变的那一部分。\n\n## 复杂度分析\n\n设 key 长度为 `L`、prefix 长度为 `P`。插入为 `O(L)`，求和为 `O(P)`。Trie 最多为每个不同 key 字符创建一个节点，空间为 `O(K * L)`，另有 key 到 value 的映射。"
+    },
+    {
+      "name": "前缀和 HashMap",
+      "description": "## 思路\n\n维护两个 HashMap：一个记录完整 key 当前的 value，另一个记录每个前缀当前的总和。插入时先算出替换差值 `delta`，然后枚举 key 的所有前缀，把 `delta` 加到对应前缀的总和上。\n\n## 关键点\n\n这个方法把 Trie 中的前缀节点直接变成字符串前缀。`sum(prefix)` 只需要一次哈希查询。它同样依赖差值更新来处理覆盖旧值的问题，因此能很好地说明本题最容易错的语义。\n\n## 复杂度分析\n\n插入会访问 key 的 `L` 个前缀，时间为 `O(L)` 次哈希操作；`sum` 期望时间为 `O(1)`。前缀表最多保存 `O(K * L)` 个不同前缀。"
+    },
+    {
+      "name": "HashMap 暴力扫描基线",
+      "description": "## 思路\n\n只用一个 HashMap 保存每个完整 key 的当前 value。插入时直接覆盖旧值。求和时遍历所有 key，凡是以 prefix 开头的 key，就把它的 value 加入答案。\n\n## 关键点\n\n这是最清楚的正确性基线。因为 HashMap 中每个 key 只保留最新值，所以覆盖旧值天然正确。它在调用次数多时会慢，但很适合先确认题目语义。\n\n## 复杂度分析\n\n插入期望为 `O(1)`。求和需要扫描 `K` 个 key，每次 `startsWith` 最多比较 `P` 个字符，所以为 `O(K * P)`。空间为 `O(K)`。"
+    },
+    {
+      "name": "TreeMap 前缀区间",
+      "description": "## 思路\n\n用 `TreeMap` 按字典序保存 key 到 value 的映射。所有以 `prefix` 开头的小写 key 都位于区间 `[prefix, prefix + \"{\")` 中，因为 ASCII 中 `{` 紧跟在 `z` 后面。求和时遍历这个子区间的 value。\n\n## 关键点\n\n这个方法不使用 Trie，但利用了字符串排序结构。前缀对应一个连续的字典序区间。上界必须谨慎选择；在只包含小写英文字母的条件下，`prefix + \"{\"` 能正确包含以 `z` 结尾的 key。\n\n## 复杂度分析\n\n插入为 `O(log K)`。求和为 `O(log K + R)`，其中 `R` 是落在前缀区间内的 key 数量。空间为 `O(K)`。"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "trie",
+      "caption": "示例 1 中插入 apple:3 和 app:2 后的完整字符路径；黄色末尾节点分别保存键值"
+    }
+  ]
+}

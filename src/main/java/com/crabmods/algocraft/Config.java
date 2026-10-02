@@ -1,6 +1,6 @@
 package com.crabmods.algocraft;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 /**
  * Configuration options for the AlgoCraft mod.
@@ -8,26 +8,26 @@ import net.neoforged.neoforge.common.ModConfigSpec;
  */
 public class Config
 {
-    public static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
-    public static final ModConfigSpec SPEC;
+    public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+    public static final ForgeConfigSpec SPEC;
 
     // Execution settings
-    public static final ModConfigSpec.IntValue MAX_EXECUTION_TIME;
-    public static final ModConfigSpec.IntValue MAX_CODE_LENGTH;
+    public static final ForgeConfigSpec.IntValue MAX_EXECUTION_TIME;
+    public static final ForgeConfigSpec.IntValue MAX_CODE_LENGTH;
     
     // Web server settings
-    public static final ModConfigSpec.IntValue WEB_SERVER_PORT;
-    public static final ModConfigSpec.IntValue MAX_REQUEST_SIZE;
+    public static final ForgeConfigSpec.IntValue WEB_SERVER_PORT;
+    public static final ForgeConfigSpec.IntValue MAX_REQUEST_SIZE;
     
     // Gameplay settings
-    public static final ModConfigSpec.BooleanValue ENABLE_REWARDS;
-    public static final ModConfigSpec.BooleanValue PROTECT_WHILE_SOLVING;
+    public static final ForgeConfigSpec.BooleanValue ENABLE_REWARDS;
+    public static final ForgeConfigSpec.BooleanValue PROTECT_WHILE_SOLVING;
     
     // Rate limiting
-    public static final ModConfigSpec.IntValue RATE_LIMIT_PER_MINUTE;
+    public static final ForgeConfigSpec.IntValue RATE_LIMIT_PER_MINUTE;
 
     // Security settings
-    public static final ModConfigSpec.BooleanValue STRICT_SECURITY_MODE;
+    public static final ForgeConfigSpec.BooleanValue STRICT_SECURITY_MODE;
 
     static {
         BUILDER.push("Execution Settings");
@@ -35,8 +35,8 @@ public class Config
         MAX_EXECUTION_TIME = BUILDER
                 .comment("Maximum execution time for user code in milliseconds.",
                          "Higher values allow more complex solutions but increase server load.",
-                         "Recommended: 1000-5000ms")
-                .defineInRange("maxExecutionTime", 2000, 500, 30000);
+                         "Recommended: 2000-5000ms")
+                .defineInRange("maxExecutionTime", 2000, 2000, 30000);
         
         MAX_CODE_LENGTH = BUILDER
                 .comment("Maximum allowed code length in characters.",

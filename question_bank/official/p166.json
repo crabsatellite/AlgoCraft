@@ -1,42 +1,141 @@
 {
   "id": "166",
   "title": "Coin Change II",
-  "description": "# Coin Change II\n\nYou are given an integer array `coins` representing coins of different denominations and an integer `amount` representing a total amount of money.\n\nReturn *the number of combinations that make up that amount*. If that amount of money cannot be made up by any combination of the coins, return `0`.\n\nYou may assume that you have an infinite number of each kind of coin.\n\nThe answer is **guaranteed** to fit into a signed **32-bit** integer.\n\n## Example 1:\n\n**Input:** amount = 5, coins = [1,2,5]\n**Output:** 4\n**Explanation:** there are four ways to make up the amount:\n5=5\n5=2+2+1\n5=2+1+1+1\n5=1+1+1+1+1\n\n## Example 2:\n\n**Input:** amount = 3, coins = [2]\n**Output:** 0\n**Explanation:** the amount of 3 cannot be made up just with coins of 2.\n\n## Example 3:\n\n**Input:** amount = 10, coins = [10]\n**Output:** 1\n\n## Constraints:\n\n*   `1 <= coins.length <= 300`\n*   `1 <= coins[i] <= 5000`\n*   All the values of `coins` are **unique**.\n*   `0 <= amount <= 5000`",
+  "description": "# Coin Change II\n\nYou are given an integer `amount` and an integer array `coins`, where each value in `coins` is a distinct coin denomination.\n\nReturn the number of **combinations** that can make up exactly `amount`. You have an infinite number of coins of each denomination. If the amount cannot be made, return `0`.\n\nA combination is identified by how many coins of each denomination are used. Different orders of the same coins are not different combinations.\n\nThe answer is guaranteed to fit in a signed 32-bit integer.\n\n## Example 1:\n\n**Input:** amount = 5, coins = [1,2,5]\n**Output:** 4\n**Explanation:** The four combinations are `[5]`, `[2,2,1]`, `[2,1,1,1]`, and `[1,1,1,1,1]`.\n\n## Example 2:\n\n**Input:** amount = 3, coins = [2]\n**Output:** 0\n**Explanation:** No number of 2-value coins can make amount 3.\n\n## Example 3:\n\n**Input:** amount = 10, coins = [10]\n**Output:** 1\n**Explanation:** One 10-value coin makes the amount.\n\n## Constraints:\n\n* `1 <= coins.length <= 300`\n* `1 <= coins[i] <= 5000`\n* All values in `coins` are unique.\n* `0 <= amount <= 5000`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int change(int amount, int[] coins) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Dynamic Programming"],
+  "tags": [
+    "Array",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "amount = 5, coins = [1,2,5]", "output": "4" },
-    { "input": "amount = 3, coins = [2]", "output": "0" },
-    { "input": "amount = 10, coins = [10]", "output": "1" }
+    {
+      "input": "amount = 5, coins = [1,2,5]",
+      "output": "4"
+    },
+    {
+      "input": "amount = 3, coins = [2]",
+      "output": "0"
+    },
+    {
+      "input": "amount = 10, coins = [10]",
+      "output": "1"
+    }
   ],
   "solutions": [
     {
-      "name": "Unbounded Knapsack DP",
+      "name": "One-Dimensional Combination DP",
       "timeComplexity": "O(n * amount)",
       "spaceComplexity": "O(amount)",
-      "description": "For each coin, iterate forward through amounts to count combinations. Iterating coins in outer loop ensures each combination is counted once (not permutations).",
-      "code": "class Solution {\n    public int change(int amount, int[] coins) {\n        int[] dp = new int[amount + 1];\n        dp[0] = 1;\n        for (int coin : coins) {\n            for (int j = coin; j <= amount; j++) {\n                dp[j] += dp[j - coin];\n            }\n        }\n        return dp[amount];\n    }\n}",
+      "description": "## Approach\nLet `dp[total]` be the number of combinations that form `total` using the coin types already processed. Start with `dp[0] = 1`, then process each coin in the outer loop and update totals from `coin` upward so the current coin can be used more than once.\n\n## Key Insight\nThe coin loop fixes an ordering over coin types, so each multiset of coins is counted exactly once. If the loops are reversed, the algorithm counts sequences instead of combinations and overcounts reordered versions of the same coins.\n\n## Complexity Analysis\nFor each of the n coin types, the algorithm scans amounts up to `amount`, so the time complexity is O(n * amount). The one-dimensional table has `amount + 1` entries, so the space complexity is O(amount).",
+      "code": "class Solution {\n    public int change(int amount, int[] coins) {\n        int[] dp = new int[amount + 1];\n        dp[0] = 1;\n\n        for (int coin : coins) {\n            for (int total = coin; total <= amount; total++) {\n                dp[total] += dp[total - coin];\n            }\n        }\n        return dp[amount];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "1D DP Optimized",
+      "name": "Two-Dimensional Coin-Type Table",
+      "timeComplexity": "O(n * amount)",
+      "spaceComplexity": "O(n * amount)",
+      "description": "## Approach\nBuild `dp[i][total]` as the number of ways to form `total` using only the first `i` coin types. For the i-th coin, either skip it with `dp[i - 1][total]`, or use one more copy with `dp[i][total - coin]`.\n\n## Key Insight\nThe two-dimensional table makes the combination boundary explicit: rows decide which coin types are allowed, while columns decide the amount. Staying on the same row when using a coin models unlimited copies of that coin.\n\n## Complexity Analysis\nThere are `(n + 1) * (amount + 1)` states and each state is constant time, so the time complexity is O(n * amount). The full table uses O(n * amount) space.",
+      "code": "class Solution {\n    public int change(int amount, int[] coins) {\n        int n = coins.length;\n        int[][] dp = new int[n + 1][amount + 1];\n        for (int i = 0; i <= n; i++) {\n            dp[i][0] = 1;\n        }\n\n        for (int i = 1; i <= n; i++) {\n            int coin = coins[i - 1];\n            for (int total = 1; total <= amount; total++) {\n                dp[i][total] = dp[i - 1][total];\n                if (total >= coin) {\n                    dp[i][total] += dp[i][total - coin];\n                }\n            }\n        }\n        return dp[n][amount];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Take-or-Skip Memoization",
+      "timeComplexity": "O(n * amount)",
+      "spaceComplexity": "O(n * amount)",
+      "description": "## Approach\nDefine `count(index, remaining)` as the number of combinations that can form `remaining` using coin types from `index` onward. At each state, either skip the current coin and move to the next index, or take one current coin and stay at the same index because coins are reusable.\n\n## Key Insight\nKeeping the coin index in the state prevents permutation overcounting. The take branch does not advance the index, which represents unlimited copies of the current denomination while still preserving a fixed coin-type order.\n\n## Complexity Analysis\nThere are at most `n * amount` non-terminal states and each state does constant work after memoization, so the time complexity is O(n * amount). The memo table and recursion stack use O(n * amount) space in the worst case.",
+      "code": "class Solution {\n    public int change(int amount, int[] coins) {\n        Integer[][] memo = new Integer[coins.length][amount + 1];\n        return count(coins, 0, amount, memo);\n    }\n\n    private int count(int[] coins, int index, int remaining, Integer[][] memo) {\n        if (remaining == 0) {\n            return 1;\n        }\n        if (index == coins.length) {\n            return 0;\n        }\n        if (memo[index][remaining] != null) {\n            return memo[index][remaining];\n        }\n\n        int skip = count(coins, index + 1, remaining, memo);\n        int take = remaining >= coins[index]\n                ? count(coins, index, remaining - coins[index], memo)\n                : 0;\n        memo[index][remaining] = skip + take;\n        return memo[index][remaining];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Coin Count Enumeration Memoization",
+      "timeComplexity": "O(n * amount * maxUses)",
+      "spaceComplexity": "O(n * amount)",
+      "description": "## Approach\nFor each state `(index, remaining)`, enumerate how many copies of the current coin are used: zero, one, two, and so on while the total stays within `remaining`. Then recurse to the next coin type for the leftover amount and memoize the state.\n\n## Key Insight\nThis route mirrors the definition of a combination as a count vector over denominations. It is slower than the take-or-skip recurrence, but it is useful for teaching why order is irrelevant and why each coin type should be decided once.\n\n## Complexity Analysis\nThere are O(n * amount) memoized states, and each state may enumerate up to `remaining / coin` counts. A simple upper bound is O(n * amount * maxUses) time. The memo table uses O(n * amount) space.",
+      "code": "class Solution {\n    public int change(int amount, int[] coins) {\n        Integer[][] memo = new Integer[coins.length][amount + 1];\n        return enumerate(coins, 0, amount, memo);\n    }\n\n    private int enumerate(int[] coins, int index, int remaining, Integer[][] memo) {\n        if (remaining == 0) {\n            return 1;\n        }\n        if (index == coins.length) {\n            return 0;\n        }\n        if (memo[index][remaining] != null) {\n            return memo[index][remaining];\n        }\n\n        int ways = 0;\n        int coin = coins[index];\n        for (int used = 0; used * coin <= remaining; used++) {\n            ways += enumerate(coins, index + 1, remaining - used * coin, memo);\n        }\n        memo[index][remaining] = ways;\n        return ways;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Generating Function Buffered DP",
       "timeComplexity": "O(n * amount)",
       "spaceComplexity": "O(amount)",
-      "description": "Use a 1D DP array where dp[j] counts the number of combinations to make amount j. Iterate coins in the outer loop to avoid counting permutations.",
-      "code": "class Solution {\n    public int change(int amount, int[] coins) {\n        int[] dp = new int[amount + 1];\n        dp[0] = 1;\n        for (int coin : coins) {\n            for (int j = coin; j <= amount; j++) {\n                dp[j] += dp[j - coin];\n            }\n        }\n        return dp[amount];\n    }\n}",
+      "description": "## Approach\nTreat each coin as contributing the series `1 + x^coin + x^(2*coin) + ...`. Keep the current coefficients in `ways`, then build a buffered `next` array for the product after adding the current coin type. The coefficient of `x^amount` is the answer.\n\n## Key Insight\nCoin Change II is a coefficient-counting problem. Updating the buffered array with `next[total] += next[total - coin]` incorporates any number of the current coin without mixing in later coin types or counting different orders.\n\n## Complexity Analysis\nEach coin updates amounts up to `amount`, so the time complexity is O(n * amount). The current and buffered coefficient arrays use O(amount) space.",
+      "code": "class Solution {\n    public int change(int amount, int[] coins) {\n        int[] ways = new int[amount + 1];\n        ways[0] = 1;\n\n        for (int coin : coins) {\n            int[] next = java.util.Arrays.copyOf(ways, ways.length);\n            for (int total = coin; total <= amount; total++) {\n                next[total] += next[total - coin];\n            }\n            ways = next;\n        }\n        return ways[amount];\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "amount = 5, coins = [1,2,5]", "output": "4" },
-    { "input": "amount = 3, coins = [2]", "output": "0" },
-    { "input": "amount = 10, coins = [10]", "output": "1" },
-    { "input": "amount = 0, coins = [1,2]", "output": "1" },
-    { "input": "amount = 1, coins = [1]", "output": "1" },
-    { "input": "amount = 100, coins = [1,5,10,25]", "output": "242" },
-    { "input": "amount = 7, coins = [2,3,6,7]", "output": "2" },
-    { "input": "amount = 500, coins = [1,2,5]", "output": "12701" }
+    {
+      "input": "amount = 5, coins = [1,2,5]",
+      "output": "4",
+      "description": "Canonical coin set forms amount five in four unordered combinations."
+    },
+    {
+      "input": "amount = 3, coins = [2]",
+      "output": "0",
+      "description": "Single even coin cannot form odd amount three."
+    },
+    {
+      "input": "amount = 10, coins = [10]",
+      "output": "1",
+      "description": "Amount equal to the only coin has exactly one combination."
+    },
+    {
+      "input": "amount = 0, coins = [1,2,5]",
+      "output": "1",
+      "description": "Amount zero has one empty combination."
+    },
+    {
+      "input": "amount = 1, coins = [2,5]",
+      "output": "0",
+      "description": "Coins larger than the amount cannot form it."
+    },
+    {
+      "input": "amount = 2, coins = [1,2]",
+      "output": "2",
+      "description": "Two combinations exist: one 2-coin or two 1-coins."
+    },
+    {
+      "input": "amount = 4, coins = [1,2,3]",
+      "output": "4",
+      "description": "Permutation overcounting would count more than the four true combinations."
+    },
+    {
+      "input": "amount = 5, coins = [2,3,5]",
+      "output": "2",
+      "description": "Without a 1-coin, only 5 and 2+3 form the amount."
+    },
+    {
+      "input": "amount = 10, coins = [1,2,5]",
+      "output": "10",
+      "description": "Medium amount exercises repeated use of several denominations."
+    },
+    {
+      "input": "amount = 12, coins = [2,4,6]",
+      "output": "7",
+      "description": "All-even denominations form several combinations and skip odd totals."
+    },
+    {
+      "input": "amount = 7, coins = [3,5]",
+      "output": "0",
+      "description": "Multiple denominations can still fail to form the target."
+    },
+    {
+      "input": "amount = 100, coins = [1,5,10,25]",
+      "output": "242",
+      "description": "US-style denominations produce many combinations and test larger DP counts."
+    },
+    {
+      "input": "amount = 500, coins = [1,2,5]",
+      "output": "12701",
+      "description": "Large amount checks that the DP counts combinations without permutation overcounting."
+    }
   ],
-  "diagram": "images/p166_coin_change2.png"
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p166_coin_change2.png",
+      "caption": "Coin denominations and target amount for order-insensitive combination counting"
+    }
+  ]
 }

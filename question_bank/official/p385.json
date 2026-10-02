@@ -1,9 +1,9 @@
 {
   "id": "385",
   "title": "Cat and Mouse",
-  "description": "# Cat and Mouse\n\nA game on an undirected graph is played by two players, Mouse and Cat, who alternate turns.\n\nThe graph is given as follows: `graph[a]` is a list of all nodes `b` such that `ab` is an edge of the graph.\n\nMouse starts at node 1 and goes first, Cat starts at node 2 and goes second, and there is a Hole at node 0.\n\nDuring each player's turn, they **must** travel along one edge of the graph that meets where they are.  For example, if the Mouse is at node `1`, it must travel to any node in `graph[1]`.\n\nAdditionally, it is not allowed for the Cat to travel to the Hole (node 0).\n\nThen, the game can end in 3 ways:\n\n*   If ever the Cat occupies the same node as the Mouse, the Cat wins.\n*   If ever the Mouse reaches the Hole, the Mouse wins.\n*   If ever a position is repeated (i.e. the players are in the same position as a previous turn, and it is the same player's turn to move), the game is a draw.\n\nGiven a `graph`, and assuming both players play optimally, return:\n\n*   `1` if the mouse wins the game,\n*   `2` if the cat wins the game, or\n*   `0` if the game is a draw.\n\n## Example 1:\n\n**Input:** graph = [[2,5],[3],[0,4,5],[1,4,5],[2,3],[0,2,3]]\n**Output:** 0\n\n## Example 2:\n\n**Input:** graph = [[1,3],[0],[3],[0,2]]\n**Output:** 1\n\n## Constraints:\n\n*   `3 <= graph.length <= 50`\n*   `1 <= graph[i].length < graph.length`\n*   `0 <= graph[i][j] < graph.length`\n*   `graph[i][j] != i`\n*   `graph[i]` is unique.\n*   The mouse and the cat can always move.",
+  "description": "# Cat and Mouse\n\nA game is played on an undirected graph by two players: Mouse and Cat. The graph is given as an adjacency list where `graph[a]` contains every node adjacent to node `a`.\n\nMouse starts at node `1` and moves first. Cat starts at node `2` and moves second. Node `0` is the Hole.\n\nOn each turn, the player to move must travel along exactly one graph edge from its current node. Cat is not allowed to move into the Hole at node `0`; all other listed edges are legal for the player located there.\n\nThe game ends in one of three ways:\n\n* If Mouse reaches node `0`, Mouse wins.\n* If Cat and Mouse occupy the same node, Cat wins.\n* If a state repeats with the same Mouse position, Cat position, and player to move, the game is a draw.\n\nAssuming both players play optimally, return:\n\n* `1` if Mouse wins,\n* `2` if Cat wins, or\n* `0` if the game is a draw.\n\n## Example 1\n\n**Input:** graph = [[2,5],[3],[0,4,5],[1,4,5],[2,3],[0,2,3]]\n\n**Output:** 0\n\n**Explanation:** With optimal play neither player can force a terminal win before the same game state repeats, so the result is a draw.\n\n## Example 2\n\n**Input:** graph = [[1,3],[0],[3],[0,2]]\n\n**Output:** 1\n\n**Explanation:** Mouse can force a path to the Hole. Cat may not move into node `0`, so some apparent cat responses are illegal.\n\n## Constraints\n\n* `3 <= graph.length <= 50`\n* `1 <= graph[i].length < graph.length`\n* `0 <= graph[i][j] < graph.length`\n* `graph[i][j] != i`\n* All values in `graph[i]` are unique.\n* The graph is undirected.\n* Mouse and Cat always have at least one legal move when the game has not ended.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int catMouseGame(int[][] graph) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int catMouseGame(int[][] graph) {\n        return 0;\n    }\n}",
   "tags": [
     "Math",
     "Dynamic Programming",
@@ -24,37 +24,113 @@
   ],
   "solutions": [
     {
-      "name": "Minimax BFS (Bottom-Up)",
+      "name": "Retrograde BFS with Degree Counts",
       "timeComplexity": "O(n^3)",
       "spaceComplexity": "O(n^2)",
-      "description": "State: (mouse_pos, cat_pos, turn). Start from known terminal states (mouse at hole = mouse wins, cat == mouse = cat wins). BFS backwards to determine all states. A state is determined if all children lead to opponent winning.",
-      "code": "class Solution {\n    public int catMouseGame(int[][] graph) {\n        int n = graph.length;\n        int[][][] result = new int[n][n][2];\n        int[][][] degree = new int[n][n][2];\n        for (int m = 0; m < n; m++)\n            for (int c = 0; c < n; c++) {\n                degree[m][c][0] = graph[m].length;\n                degree[m][c][1] = graph[c].length;\n                for (int next : graph[c]) if (next == 0) { degree[m][c][1]--; break; }\n            }\n        java.util.Queue<int[]> queue = new java.util.LinkedList<>();\n        for (int c = 1; c < n; c++) for (int t = 0; t < 2; t++) {\n            result[0][c][t] = 1; queue.offer(new int[]{0, c, t});\n            result[c][c][t] = 2; queue.offer(new int[]{c, c, t});\n        }\n        while (!queue.isEmpty()) {\n            int[] state = queue.poll();\n            int m = state[0], c = state[1], t = state[2], r = result[m][c][t];\n            int pt = 1 - t;\n            if (pt == 0) {\n                for (int pm : graph[m]) {\n                    if (result[pm][c][pt] != 0) continue;\n                    if (r == 1) { result[pm][c][pt] = 1; queue.offer(new int[]{pm, c, pt}); }\n                    else if (--degree[pm][c][pt] == 0) { result[pm][c][pt] = 2; queue.offer(new int[]{pm, c, pt}); }\n                }\n            } else {\n                for (int pc : graph[c]) {\n                    if (pc == 0 || result[m][pc][pt] != 0) continue;\n                    if (r == 2) { result[m][pc][pt] = 2; queue.offer(new int[]{m, pc, pt}); }\n                    else if (--degree[m][pc][pt] == 0) { result[m][pc][pt] = 1; queue.offer(new int[]{m, pc, pt}); }\n                }\n            }\n        }\n        return result[1][2][0];\n    }\n}",
+      "description": "## Approach\n\nTreat every game position as `(mouse, cat, turn)`. Mark terminal states first: mouse at node `0` is a mouse win, and `mouse == cat` is a cat win. Then run BFS backward through parent states, using a degree counter to know when all moves from a state have become losing moves for the player to move.\n\n## Key Insight\n\nA player wins a state immediately if it has at least one child already known to be winning for that same player. A state becomes losing only after every legal child is known to be winning for the opponent; unresolved states at the end are draws.\n\n## Complexity Analysis\n- Time Complexity: O(n^3), because there are O(n^2) states and each propagation scans graph neighbors.\n- Space Complexity: O(n^2), for result and degree tables across both turns.",
+      "code": "class Solution {\n    private static final int DRAW = 0;\n    private static final int MOUSE = 1;\n    private static final int CAT = 2;\n    private static final int MOUSE_TURN = 0;\n    private static final int CAT_TURN = 1;\n\n    public int catMouseGame(int[][] graph) {\n        int n = graph.length;\n        int[][][] result = new int[n][n][2];\n        int[][][] degree = new int[n][n][2];\n        for (int mouse = 0; mouse < n; mouse++) {\n            for (int cat = 0; cat < n; cat++) {\n                degree[mouse][cat][MOUSE_TURN] = graph[mouse].length;\n                for (int nextCat : graph[cat]) {\n                    if (nextCat != 0) {\n                        degree[mouse][cat][CAT_TURN]++;\n                    }\n                }\n            }\n        }\n\n        java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();\n        for (int cat = 1; cat < n; cat++) {\n            for (int turn = 0; turn < 2; turn++) {\n                result[0][cat][turn] = MOUSE;\n                queue.offer(new int[]{0, cat, turn, MOUSE});\n                result[cat][cat][turn] = CAT;\n                queue.offer(new int[]{cat, cat, turn, CAT});\n            }\n        }\n\n        while (!queue.isEmpty()) {\n            int[] state = queue.poll();\n            int mouse = state[0];\n            int cat = state[1];\n            int turn = state[2];\n            int winner = state[3];\n            int parentTurn = 1 - turn;\n\n            if (parentTurn == MOUSE_TURN) {\n                for (int prevMouse : graph[mouse]) {\n                    if (result[prevMouse][cat][parentTurn] != DRAW) {\n                        continue;\n                    }\n                    if (winner == MOUSE) {\n                        result[prevMouse][cat][parentTurn] = MOUSE;\n                        queue.offer(new int[]{prevMouse, cat, parentTurn, MOUSE});\n                    } else if (--degree[prevMouse][cat][parentTurn] == 0) {\n                        result[prevMouse][cat][parentTurn] = CAT;\n                        queue.offer(new int[]{prevMouse, cat, parentTurn, CAT});\n                    }\n                }\n            } else {\n                for (int prevCat : graph[cat]) {\n                    if (prevCat == 0 || result[mouse][prevCat][parentTurn] != DRAW) {\n                        continue;\n                    }\n                    if (winner == CAT) {\n                        result[mouse][prevCat][parentTurn] = CAT;\n                        queue.offer(new int[]{mouse, prevCat, parentTurn, CAT});\n                    } else if (--degree[mouse][prevCat][parentTurn] == 0) {\n                        result[mouse][prevCat][parentTurn] = MOUSE;\n                        queue.offer(new int[]{mouse, prevCat, parentTurn, MOUSE});\n                    }\n                }\n            }\n        }\n        return result[1][2][MOUSE_TURN];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Top-Down DFS with Memoization",
+      "name": "Top-Down DFS with Turn Limit",
+      "timeComplexity": "O(n^3)",
+      "spaceComplexity": "O(n^3)",
+      "description": "## Approach\n\nUse minimax recursion on `(mouse, cat, turnNumber)`. Mouse chooses a child in the order mouse win, draw, cat win. Cat chooses a child in the order cat win, draw, mouse win, skipping node `0` because the cat may not enter the hole.\n\n## Key Insight\n\nA repeated position with the same player to move is a draw. With `n` mouse positions, `n` cat positions, and two turns, a horizon of `2 * n * n` moves is enough to force a repeated state if no terminal result has appeared.\n\n## Complexity Analysis\n- Time Complexity: O(n^3), because each memoized state scans one adjacency list.\n- Space Complexity: O(n^3), for the turn-indexed memo table and recursion stack.",
+      "code": "class Solution {\n    private int[][][] memo;\n    private int n;\n\n    public int catMouseGame(int[][] graph) {\n        n = graph.length;\n        memo = new int[n][n][2 * n * n + 1];\n        for (int[][] table : memo) {\n            for (int[] row : table) {\n                java.util.Arrays.fill(row, -1);\n            }\n        }\n        return solve(graph, 1, 2, 0);\n    }\n\n    private int solve(int[][] graph, int mouse, int cat, int turnNumber) {\n        if (mouse == 0) {\n            return 1;\n        }\n        if (mouse == cat) {\n            return 2;\n        }\n        if (turnNumber >= 2 * n * n) {\n            return 0;\n        }\n        if (memo[mouse][cat][turnNumber] != -1) {\n            return memo[mouse][cat][turnNumber];\n        }\n\n        boolean mouseTurn = turnNumber % 2 == 0;\n        int best = mouseTurn ? 2 : 1;\n        if (mouseTurn) {\n            for (int nextMouse : graph[mouse]) {\n                int child = solve(graph, nextMouse, cat, turnNumber + 1);\n                if (child == 1) {\n                    return memo[mouse][cat][turnNumber] = 1;\n                }\n                if (child == 0) {\n                    best = 0;\n                }\n            }\n        } else {\n            for (int nextCat : graph[cat]) {\n                if (nextCat == 0) {\n                    continue;\n                }\n                int child = solve(graph, mouse, nextCat, turnNumber + 1);\n                if (child == 2) {\n                    return memo[mouse][cat][turnNumber] = 2;\n                }\n                if (child == 0) {\n                    best = 0;\n                }\n            }\n        }\n        return memo[mouse][cat][turnNumber] = best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bounded Turn Dynamic Programming",
+      "timeComplexity": "O(n^4)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nStart from the draw horizon `2 * n * n`, where every non-terminal state is treated as a draw. Move the horizon backward one turn at a time. For each `(mouse, cat)` pair, choose the best child result for the player whose turn it is.\n\n## Key Insight\n\nThis is the iterative form of the minimax recurrence. The horizon works because a longer non-terminal play must repeat one `(mouse, cat, turn)` state, which is exactly the draw rule.\n\n## Complexity Analysis\n- Time Complexity: O(n^4), because O(n^2) layers each evaluate O(n^2) states and scan neighbors.\n- Space Complexity: O(n^2), because only the next layer is needed.",
+      "code": "class Solution {\n    private static final int DRAW = 0;\n    private static final int MOUSE = 1;\n    private static final int CAT = 2;\n\n    public int catMouseGame(int[][] graph) {\n        int n = graph.length;\n        int limit = 2 * n * n;\n        int[][] next = terminalLayer(n);\n\n        for (int turn = limit - 1; turn >= 0; turn--) {\n            int[][] current = new int[n][n];\n            boolean mouseTurn = turn % 2 == 0;\n            for (int mouse = 0; mouse < n; mouse++) {\n                for (int cat = 0; cat < n; cat++) {\n                    if (mouse == 0) {\n                        current[mouse][cat] = MOUSE;\n                    } else if (mouse == cat) {\n                        current[mouse][cat] = CAT;\n                    } else if (mouseTurn) {\n                        current[mouse][cat] = chooseMouseMove(graph, next, mouse, cat);\n                    } else {\n                        current[mouse][cat] = chooseCatMove(graph, next, mouse, cat);\n                    }\n                }\n            }\n            next = current;\n        }\n        return next[1][2];\n    }\n\n    private int[][] terminalLayer(int n) {\n        int[][] layer = new int[n][n];\n        for (int mouse = 0; mouse < n; mouse++) {\n            for (int cat = 0; cat < n; cat++) {\n                if (mouse == 0) {\n                    layer[mouse][cat] = MOUSE;\n                } else if (mouse == cat) {\n                    layer[mouse][cat] = CAT;\n                }\n            }\n        }\n        return layer;\n    }\n\n    private int chooseMouseMove(int[][] graph, int[][] next, int mouse, int cat) {\n        int result = CAT;\n        for (int nextMouse : graph[mouse]) {\n            int child = next[nextMouse][cat];\n            if (child == MOUSE) {\n                return MOUSE;\n            }\n            if (child == DRAW) {\n                result = DRAW;\n            }\n        }\n        return result;\n    }\n\n    private int chooseCatMove(int[][] graph, int[][] next, int mouse, int cat) {\n        int result = MOUSE;\n        for (int nextCat : graph[cat]) {\n            if (nextCat == 0) {\n                continue;\n            }\n            int child = next[mouse][nextCat];\n            if (child == CAT) {\n                return CAT;\n            }\n            if (child == DRAW) {\n                result = DRAW;\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Kahn Retrograde with Explicit Parents",
+      "timeComplexity": "O(n^3)",
+      "spaceComplexity": "O(n^3)",
+      "description": "## Approach\n\nPrecompute the parent states for every `(mouse, cat, turn)` state, then run the same terminal-state queue as a Kahn-style graph process. This makes the reverse edges explicit instead of recomputing them while popping the queue.\n\n## Key Insight\n\nThe game graph of states is a directed graph. Terminal winning states are sources of information; Kahn propagation repeatedly proves predecessor wins or exhausts all predecessor choices into losses.\n\n## Complexity Analysis\n- Time Complexity: O(n^3), for building and traversing state edges.\n- Space Complexity: O(n^3), for storing parent lists in addition to outcome tables.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int DRAW = 0;\n    private static final int MOUSE = 1;\n    private static final int CAT = 2;\n    private static final int MOUSE_TURN = 0;\n    private static final int CAT_TURN = 1;\n\n    @SuppressWarnings(\"unchecked\")\n    public int catMouseGame(int[][] graph) {\n        int n = graph.length;\n        int[][][] color = new int[n][n][2];\n        int[][][] degree = new int[n][n][2];\n        List<int[]>[][][] parents = new ArrayList[n][n][2];\n        for (int mouse = 0; mouse < n; mouse++) {\n            for (int cat = 0; cat < n; cat++) {\n                for (int turn = 0; turn < 2; turn++) {\n                    parents[mouse][cat][turn] = new ArrayList<>();\n                }\n            }\n        }\n\n        for (int mouse = 0; mouse < n; mouse++) {\n            for (int cat = 1; cat < n; cat++) {\n                degree[mouse][cat][MOUSE_TURN] = graph[mouse].length;\n                for (int nextMouse : graph[mouse]) {\n                    parents[nextMouse][cat][CAT_TURN].add(new int[]{mouse, cat, MOUSE_TURN});\n                }\n                for (int nextCat : graph[cat]) {\n                    if (nextCat == 0) {\n                        continue;\n                    }\n                    degree[mouse][cat][CAT_TURN]++;\n                    parents[mouse][nextCat][MOUSE_TURN].add(new int[]{mouse, cat, CAT_TURN});\n                }\n            }\n        }\n\n        ArrayDeque<int[]> queue = new ArrayDeque<>();\n        for (int cat = 1; cat < n; cat++) {\n            for (int turn = 0; turn < 2; turn++) {\n                color[0][cat][turn] = MOUSE;\n                queue.offer(new int[]{0, cat, turn, MOUSE});\n                color[cat][cat][turn] = CAT;\n                queue.offer(new int[]{cat, cat, turn, CAT});\n            }\n        }\n\n        while (!queue.isEmpty()) {\n            int[] state = queue.poll();\n            int mouse = state[0];\n            int cat = state[1];\n            int turn = state[2];\n            int winner = state[3];\n            for (int[] parent : parents[mouse][cat][turn]) {\n                int prevMouse = parent[0];\n                int prevCat = parent[1];\n                int prevTurn = parent[2];\n                if (color[prevMouse][prevCat][prevTurn] != DRAW) {\n                    continue;\n                }\n                if ((prevTurn == MOUSE_TURN && winner == MOUSE)\n                        || (prevTurn == CAT_TURN && winner == CAT)) {\n                    color[prevMouse][prevCat][prevTurn] = winner;\n                    queue.offer(new int[]{prevMouse, prevCat, prevTurn, winner});\n                } else if (--degree[prevMouse][prevCat][prevTurn] == 0) {\n                    int losingWinner = prevTurn == MOUSE_TURN ? CAT : MOUSE;\n                    color[prevMouse][prevCat][prevTurn] = losingWinner;\n                    queue.offer(new int[]{prevMouse, prevCat, prevTurn, losingWinner});\n                }\n            }\n        }\n        return color[1][2][MOUSE_TURN];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Fixed-Point Attractor Iteration",
       "timeComplexity": "O(n^3)",
       "spaceComplexity": "O(n^2)",
-      "description": "State: (mouse_pos, cat_pos, turn). Use memoization with a 3D array. Mouse tries to maximize (reach hole), cat tries to minimize (catch mouse). Use a depth limit of 2*n*n to detect draws (cycles).",
-      "code": "class Solution {\n    private int[][][] memo;\n    private int n;\n    public int catMouseGame(int[][] graph) {\n        n = graph.length;\n        memo = new int[n][n][2 * n * n + 1];\n        for (int[][] a : memo) for (int[] b : a) java.util.Arrays.fill(b, -1);\n        return solve(graph, 1, 2, 0);\n    }\n    private int solve(int[][] graph, int mouse, int cat, int turns) {\n        if (turns >= 2 * n * n) return 0;\n        if (mouse == 0) return 1;\n        if (mouse == cat) return 2;\n        if (memo[mouse][cat][turns] != -1) return memo[mouse][cat][turns];\n        int turn = turns % 2;\n        int result;\n        if (turn == 0) {\n            result = 2;\n            for (int next : graph[mouse]) {\n                int sub = solve(graph, next, cat, turns + 1);\n                if (sub == 1) { result = 1; break; }\n                if (sub == 0) result = 0;\n            }\n        } else {\n            result = 1;\n            for (int next : graph[cat]) {\n                if (next == 0) continue;\n                int sub = solve(graph, mouse, next, turns + 1);\n                if (sub == 2) { result = 2; break; }\n                if (sub == 0) result = 0;\n            }\n        }\n        memo[mouse][cat][turns] = result;\n        return result;\n    }\n}",
+      "description": "## Approach\n\nMaintain the best-known outcome for every state and repeatedly scan unresolved states. A mouse-turn state becomes a mouse win when any child is a mouse win, and becomes a cat win only when every child is a cat win. Cat-turn states use the symmetric rule while skipping hole moves.\n\n## Key Insight\n\nThis computes the attractor sets for the two winning regions. States that cannot be proven winning for either side after the fixed point remain draws, matching the repeated-position rule.\n\n## Complexity Analysis\n- Time Complexity: O(n^3), because at most O(n^2) states are resolved and each full scan checks adjacency lists.\n- Space Complexity: O(n^2), for the two-turn outcome table.",
+      "code": "class Solution {\n    private static final int DRAW = 0;\n    private static final int MOUSE = 1;\n    private static final int CAT = 2;\n    private static final int MOUSE_TURN = 0;\n    private static final int CAT_TURN = 1;\n\n    public int catMouseGame(int[][] graph) {\n        int n = graph.length;\n        int[][][] outcome = new int[n][n][2];\n        for (int cat = 1; cat < n; cat++) {\n            for (int turn = 0; turn < 2; turn++) {\n                outcome[0][cat][turn] = MOUSE;\n                outcome[cat][cat][turn] = CAT;\n            }\n        }\n\n        boolean changed = true;\n        while (changed) {\n            changed = false;\n            for (int mouse = 1; mouse < n; mouse++) {\n                for (int cat = 1; cat < n; cat++) {\n                    if (mouse == cat) {\n                        continue;\n                    }\n                    if (outcome[mouse][cat][MOUSE_TURN] == DRAW) {\n                        int resolved = mouseOutcome(graph, outcome, mouse, cat);\n                        if (resolved != DRAW) {\n                            outcome[mouse][cat][MOUSE_TURN] = resolved;\n                            changed = true;\n                        }\n                    }\n                    if (outcome[mouse][cat][CAT_TURN] == DRAW) {\n                        int resolved = catOutcome(graph, outcome, mouse, cat);\n                        if (resolved != DRAW) {\n                            outcome[mouse][cat][CAT_TURN] = resolved;\n                            changed = true;\n                        }\n                    }\n                }\n            }\n        }\n        return outcome[1][2][MOUSE_TURN];\n    }\n\n    private int mouseOutcome(int[][] graph, int[][][] outcome, int mouse, int cat) {\n        boolean allCatWins = true;\n        for (int nextMouse : graph[mouse]) {\n            int child = outcome[nextMouse][cat][CAT_TURN];\n            if (child == MOUSE) {\n                return MOUSE;\n            }\n            if (child != CAT) {\n                allCatWins = false;\n            }\n        }\n        return allCatWins ? CAT : DRAW;\n    }\n\n    private int catOutcome(int[][] graph, int[][][] outcome, int mouse, int cat) {\n        boolean allMouseWins = true;\n        for (int nextCat : graph[cat]) {\n            if (nextCat == 0) {\n                continue;\n            }\n            int child = outcome[mouse][nextCat][MOUSE_TURN];\n            if (child == CAT) {\n                return CAT;\n            }\n            if (child != MOUSE) {\n                allMouseWins = false;\n            }\n        }\n        return allMouseWins ? MOUSE : DRAW;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "graph = [[2,5],[3],[0,4,5],[1,4,5],[2,3],[0,2,3]]",
-      "output": "0"
+      "output": "0",
+      "description": "canonical draw where optimal play repeats a state"
     },
     {
       "input": "graph = [[1,3],[0],[3],[0,2]]",
-      "output": "1"
+      "output": "1",
+      "description": "mouse can force the hole before the cat can catch it"
+    },
+    {
+      "input": "graph = [[1],[0,2],[1]]",
+      "output": "1",
+      "description": "mouse moves directly to the hole on the first turn"
+    },
+    {
+      "input": "graph = [[2],[2],[0,1]]",
+      "output": "2",
+      "description": "mouse's only move lands on the cat"
+    },
+    {
+      "input": "graph = [[1,2],[0,2],[0,1]]",
+      "output": "1",
+      "description": "mouse chooses the direct edge to the hole instead of meeting the cat"
+    },
+    {
+      "input": "graph = [[2],[2,3],[0,1],[1]]",
+      "output": "2",
+      "description": "cat covers the mouse's escape after the mouse avoids the immediate losing move"
+    },
+    {
+      "input": "graph = [[2],[2,4],[0,1,3],[2,4],[1,3]]",
+      "output": "0",
+      "description": "small graph with a forced draw cycle and legal cat moves"
+    },
+    {
+      "input": "graph = [[2,3],[2,4],[0,1,3],[0,2],[1]]",
+      "output": "2",
+      "description": "cat can force a win even though it must ignore the edge to the hole"
+    },
+    {
+      "input": "graph = [[2,3],[2,4],[0,1,3],[0,2,4],[1,3]]",
+      "output": "0",
+      "description": "draw cycle with multiple legal cat choices"
+    },
+    {
+      "input": "graph = [[3],[3],[3],[0,1,2]]",
+      "output": "2",
+      "description": "both players are pulled through one hub and the cat wins"
+    },
+    {
+      "input": "graph = [[1,2,3],[0,2,3],[0,1,3],[0,1,2]]",
+      "output": "1",
+      "description": "dense graph where the mouse has an immediate hole move"
+    },
+    {
+      "input": "graph = [[2,3,4],[2,3],[0,1,4],[0,1,4],[0,2,3]]",
+      "output": "1",
+      "description": "mouse wins by choosing the branch that reaches the hole before capture"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p385_example1.png",
-      "caption": "Example 1: Cat and Mouse game graph"
+      "caption": "Example 1 graph: node 0 is the hole, Mouse starts at node 1, and Cat starts at node 2."
     }
   ]
 }

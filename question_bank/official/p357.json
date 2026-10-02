@@ -1,36 +1,143 @@
 {
   "id": "357",
   "title": "Student Attendance Record II",
-  "description": "# Student Attendance Record II\n\nAn attendance record for a student can be represented as a string where each character signifies whether the student was absent, late, or present on that day. The record only contains the following three characters:\n\n*   `'A'`: Absent.\n*   `'L'`: Late.\n*   `'P'`: Present.\n\nAny student is eligible for an attendance award if they meet both of the following criteria:\n\n*   The student was absent (`'A'`) for **strictly** fewer than 2 days total.\n*   The student was **never** late (`'L'`) for 3 or more consecutive days.\n\nGiven an integer `n`, return *the number of possible attendance records of length* `n` *that make a student eligible for an attendance award*. The answer may be very large, so return it **modulo** `10^9 + 7`.\n\n## Example 1:\n\n**Input:** n = 2\n**Output:** 8\n**Explanation:** There are 8 records with length 2 that are eligible for an award:\n\"PP\", \"AP\", \"PA\", \"LP\", \"PL\", \"LL\", \"AL\", \"LA\"\n\n## Example 2:\n\n**Input:** n = 1\n**Output:** 3\n\n## Example 3:\n\n**Input:** n = 10101\n**Output:** 183236316\n\n## Constraints:\n\n*   `1 <= n <= 10^5`",
+  "description": "# Student Attendance Record II\n\nAn attendance record is a string of length `n` where each character is one of:\n\n* `'A'`: Absent.\n* `'L'`: Late.\n* `'P'`: Present.\n\nA record is eligible for an attendance award if both conditions hold:\n\n* The record contains strictly fewer than 2 absences (`'A'`).\n* The record never contains 3 or more consecutive lates (`'L'`).\n\nGiven `n`, return the number of eligible attendance records of length `n`. Because the answer can be large, return it modulo `10^9 + 7`.\n\n## Example 1:\n\n**Input:** n = 2\n**Output:** 8\n**Explanation:** The eligible records are `\"PP\"`, `\"AP\"`, `\"PA\"`, `\"LP\"`, `\"PL\"`, `\"LL\"`, `\"AL\"`, and `\"LA\"`.\n\n## Example 2:\n\n**Input:** n = 1\n**Output:** 3\n\n## Example 3:\n\n**Input:** n = 10101\n**Output:** 183236316\n\n## Constraints:\n\n* `1 <= n <= 10^5`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int checkRecord(int n) {\n        \n    }\n}",
-  "tags": ["Dynamic Programming"],
+  "initialCode": "class Solution {\n    public int checkRecord(int n) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "n = 2", "output": "8" },
-    { "input": "n = 1", "output": "3" },
-    { "input": "n = 10101", "output": "183236316" }
+    {
+      "input": "n = 2",
+      "output": "8"
+    },
+    {
+      "input": "n = 1",
+      "output": "3"
+    },
+    {
+      "input": "n = 10101",
+      "output": "183236316"
+    }
   ],
   "solutions": [
     {
-      "name": "DP with 6 States",
+      "name": "Full State Table DP",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(1)",
-      "description": "Track 6 states: (0 or 1 absences) x (0, 1, or 2 consecutive lates). For each day, transition by appending P, L, or A. Use rolling variables for O(1) space.",
-      "code": "class Solution {\n    public int checkRecord(int n) {\n        long MOD = 1000000007;\n        long a0l0 = 1, a0l1 = 0, a0l2 = 0;\n        long a1l0 = 0, a1l1 = 0, a1l2 = 0;\n        for (int i = 0; i < n; i++) {\n            long na0l0 = (a0l0 + a0l1 + a0l2) % MOD;\n            long na0l1 = a0l0;\n            long na0l2 = a0l1;\n            long na1l0 = (a0l0 + a0l1 + a0l2 + a1l0 + a1l1 + a1l2) % MOD;\n            long na1l1 = a1l0;\n            long na1l2 = a1l1;\n            a0l0 = na0l0; a0l1 = na0l1; a0l2 = na0l2;\n            a1l0 = na1l0; a1l1 = na1l1; a1l2 = na1l2;\n        }\n        return (int) ((a0l0 + a0l1 + a0l2 + a1l0 + a1l1 + a1l2) % MOD);\n    }\n}",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nLet `dp[day][absences][lateStreak]` be the number of valid prefixes after `day` days, with `absences` equal to 0 or 1 and `lateStreak` equal to 0, 1, or 2. From every valid state, append `P`, `A`, or `L` when the resulting state still satisfies the award rules.\n\n## Key Insight\n\nThe future only depends on two pieces of history: whether an absence has already been used, and how many lates are currently consecutive at the end. That turns the whole string-counting problem into a six-state automaton.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private static final long MOD = 1_000_000_007L;\n\n    public int checkRecord(int n) {\n        long[][][] dp = new long[n + 1][2][3];\n        dp[0][0][0] = 1;\n        for (int day = 0; day < n; day++) {\n            for (int absences = 0; absences <= 1; absences++) {\n                for (int lateStreak = 0; lateStreak <= 2; lateStreak++) {\n                    long ways = dp[day][absences][lateStreak];\n                    if (ways == 0) continue;\n                    dp[day + 1][absences][0] = (dp[day + 1][absences][0] + ways) % MOD;\n                    if (absences == 0) {\n                        dp[day + 1][1][0] = (dp[day + 1][1][0] + ways) % MOD;\n                    }\n                    if (lateStreak < 2) {\n                        dp[day + 1][absences][lateStreak + 1] =\n                                (dp[day + 1][absences][lateStreak + 1] + ways) % MOD;\n                    }\n                }\n            }\n        }\n\n        long answer = 0;\n        for (int absences = 0; absences <= 1; absences++) {\n            for (int lateStreak = 0; lateStreak <= 2; lateStreak++) {\n                answer = (answer + dp[n][absences][lateStreak]) % MOD;\n            }\n        }\n        return (int) answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Matrix Exponentiation",
+      "name": "Rolling Six-State DP",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nKeep the same six states as named variables: `(0 or 1 absences) x (0, 1, or 2 trailing lates)`. Each loop step builds the next day's six values by appending `P`, `A`, or `L`, then replaces the old state.\n\n## Key Insight\n\nOnly the previous day is needed to compute the next day, so the full DP table can be compressed to six counters without changing the recurrence.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int checkRecord(int n) {\n        long mod = 1_000_000_007L;\n        long a0l0 = 1, a0l1 = 0, a0l2 = 0;\n        long a1l0 = 0, a1l1 = 0, a1l2 = 0;\n        for (int day = 0; day < n; day++) {\n            long na0l0 = (a0l0 + a0l1 + a0l2) % mod;\n            long na0l1 = a0l0;\n            long na0l2 = a0l1;\n            long na1l0 = (a0l0 + a0l1 + a0l2 + a1l0 + a1l1 + a1l2) % mod;\n            long na1l1 = a1l0;\n            long na1l2 = a1l1;\n            a0l0 = na0l0;\n            a0l1 = na0l1;\n            a0l2 = na0l2;\n            a1l0 = na1l0;\n            a1l1 = na1l1;\n            a1l2 = na1l2;\n        }\n        return (int) ((a0l0 + a0l1 + a0l2 + a1l0 + a1l1 + a1l2) % mod);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "No-A Tribonacci Split",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFirst count `noAbsent[len]`, the number of strings of length `len` over only `P` and `L` with no `LLL`. It follows a tribonacci recurrence. The final answer is all no-absence strings plus every way to place the single `A` and choose valid no-absence strings on its left and right.\n\n## Key Insight\n\nThe absence rule allows only 0 or 1 `A`. Once the single `A` position is fixed, the late constraint is independent on both sides, so the answer becomes a convolution of the no-absence counts.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private static final long MOD = 1_000_000_007L;\n\n    public int checkRecord(int n) {\n        long[] noAbsent = new long[Math.max(3, n + 1)];\n        noAbsent[0] = 1;\n        noAbsent[1] = 2;\n        noAbsent[2] = 4;\n        for (int len = 3; len <= n; len++) {\n            noAbsent[len] = (noAbsent[len - 1] + noAbsent[len - 2] + noAbsent[len - 3]) % MOD;\n        }\n\n        long answer = noAbsent[n];\n        for (int left = 0; left < n; left++) {\n            answer = (answer + noAbsent[left] * noAbsent[n - 1 - left]) % MOD;\n        }\n        return (int) answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Six-State Matrix Exponentiation",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(1)",
-      "description": "Model the 6 states as a vector and transitions as a 6x6 matrix. Use matrix exponentiation to compute the result in O(log n) time. The transition matrix encodes P/L/A choices and their effects on state.",
-      "code": "class Solution {\n    private static final long MOD = 1000000007;\n    public int checkRecord(int n) {\n        long[][] mat = {\n            {1, 1, 1, 0, 0, 0},\n            {1, 0, 0, 0, 0, 0},\n            {0, 1, 0, 0, 0, 0},\n            {1, 1, 1, 1, 1, 1},\n            {0, 0, 0, 1, 0, 0},\n            {0, 0, 0, 0, 1, 0}\n        };\n        long[][] result = matPow(mat, n);\n        long ans = 0;\n        for (int j = 0; j < 6; j++) {\n            ans = (ans + result[j][0]) % MOD;\n        }\n        return (int) ans;\n    }\n    private long[][] matMul(long[][] a, long[][] b) {\n        int n = a.length;\n        long[][] c = new long[n][n];\n        for (int i = 0; i < n; i++)\n            for (int k = 0; k < n; k++)\n                if (a[i][k] != 0)\n                    for (int j = 0; j < n; j++)\n                        c[i][j] = (c[i][j] + a[i][k] * b[k][j]) % MOD;\n        return c;\n    }\n    private long[][] matPow(long[][] m, int p) {\n        int n = m.length;\n        long[][] result = new long[n][n];\n        for (int i = 0; i < n; i++) result[i][i] = 1;\n        while (p > 0) {\n            if ((p & 1) == 1) result = matMul(result, m);\n            m = matMul(m, m);\n            p >>= 1;\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nWrite the six-state transition as a fixed `6 x 6` matrix. Starting from the empty-record vector, raise the transition matrix to the `n`th power with binary exponentiation and sum the six resulting states.\n\n## Key Insight\n\nThe DP transition is linear and the matrix never changes with `day`. Matrix exponentiation computes the same recurrence for very large `n` in logarithmic time.\n\n## Complexity Analysis\n- Time Complexity: O(log n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    private static final long MOD = 1_000_000_007L;\n\n    public int checkRecord(int n) {\n        long[][] transition = {\n                {1, 1, 1, 0, 0, 0},\n                {1, 0, 0, 0, 0, 0},\n                {0, 1, 0, 0, 0, 0},\n                {1, 1, 1, 1, 1, 1},\n                {0, 0, 0, 1, 0, 0},\n                {0, 0, 0, 0, 1, 0}\n        };\n        long[][] powered = power(transition, n);\n        long answer = 0;\n        for (int state = 0; state < 6; state++) {\n            answer = (answer + powered[state][0]) % MOD;\n        }\n        return (int) answer;\n    }\n\n    private long[][] power(long[][] matrix, int exponent) {\n        int size = matrix.length;\n        long[][] result = new long[size][size];\n        for (int i = 0; i < size; i++) {\n            result[i][i] = 1;\n        }\n        while (exponent > 0) {\n            if ((exponent & 1) == 1) {\n                result = multiply(result, matrix);\n            }\n            matrix = multiply(matrix, matrix);\n            exponent >>= 1;\n        }\n        return result;\n    }\n\n    private long[][] multiply(long[][] left, long[][] right) {\n        int size = left.length;\n        long[][] product = new long[size][size];\n        for (int i = 0; i < size; i++) {\n            for (int k = 0; k < size; k++) {\n                if (left[i][k] == 0) continue;\n                for (int j = 0; j < size; j++) {\n                    product[i][j] = (product[i][j] + left[i][k] * right[k][j]) % MOD;\n                }\n            }\n        }\n        return product;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Order-Six Linear Recurrence",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nThe no-absence sequence has characteristic polynomial `x^3 - x^2 - x - 1`. Adding one possible `A` creates a convolution, so the total sequence follows the squared characteristic polynomial. Use the resulting order-six recurrence after the first six exact values.\n\n## Key Insight\n\nThis is the same counting problem compressed from six automaton states into one scalar recurrence. It is less direct than state DP, but it is useful for recognizing how finite-state counting can become a linear recurrence.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    private static final long MOD = 1_000_000_007L;\n\n    public int checkRecord(int n) {\n        long[] base = {1, 3, 8, 19, 43, 94};\n        if (n < base.length) {\n            return (int) base[n];\n        }\n        long h0 = base[0], h1 = base[1], h2 = base[2];\n        long h3 = base[3], h4 = base[4], h5 = base[5];\n        for (int len = 6; len <= n; len++) {\n            long next = (2 * h5 + h4 + 6 * MOD - 3 * h2 - 2 * h1 - h0) % MOD;\n            h0 = h1;\n            h1 = h2;\n            h2 = h3;\n            h3 = h4;\n            h4 = h5;\n            h5 = next;\n        }\n        return (int) h5;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "n = 2", "output": "8" },
-    { "input": "n = 1", "output": "3" },
-    { "input": "n = 10101", "output": "183236316" }
+    {
+      "input": "n = 1",
+      "output": "3",
+      "description": "single-day records are P, L, or A"
+    },
+    {
+      "input": "n = 2",
+      "output": "8",
+      "description": "all length-two records except AA"
+    },
+    {
+      "input": "n = 3",
+      "output": "19",
+      "description": "first length where LLL is excluded"
+    },
+    {
+      "input": "n = 4",
+      "output": "43",
+      "description": "small state-transition check"
+    },
+    {
+      "input": "n = 5",
+      "output": "94",
+      "description": "small exact count across all six states"
+    },
+    {
+      "input": "n = 6",
+      "output": "200",
+      "description": "first value covered by the order-six recurrence"
+    },
+    {
+      "input": "n = 7",
+      "output": "418",
+      "description": "checks repeated recurrence transitions"
+    },
+    {
+      "input": "n = 8",
+      "output": "861",
+      "description": "late-streak and absence interactions"
+    },
+    {
+      "input": "n = 10",
+      "output": "3536",
+      "description": "medium exact count"
+    },
+    {
+      "input": "n = 20",
+      "output": "2947811",
+      "description": "larger count before modulo wrap dominates"
+    },
+    {
+      "input": "n = 50",
+      "output": "100469819",
+      "description": "large count with modulo"
+    },
+    {
+      "input": "n = 100",
+      "output": "985598218",
+      "description": "validates long-running O(n) transitions"
+    },
+    {
+      "input": "n = 1000",
+      "output": "250434094",
+      "description": "stress case for modulo arithmetic"
+    },
+    {
+      "input": "n = 10101",
+      "output": "183236316",
+      "description": "published large sample"
+    },
+    {
+      "input": "n = 100000",
+      "output": "749184020",
+      "description": "maximum constraint"
+    }
   ]
 }

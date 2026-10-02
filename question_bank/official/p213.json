@@ -1,36 +1,125 @@
 {
   "id": "213",
   "title": "Sqrt(x)",
-  "description": "# Sqrt(x)\n\nGiven a non-negative integer `x`, return *the square root of* `x` *rounded down to the nearest integer*. The returned integer should be **non-negative** as well.\n\nYou **must not use** any built-in exponent function or operator.\n\n*   For example, do not use `pow(x, 0.5)` in c++ or `x ** 0.5` in python.\n\n## Example 1:\n\n**Input:** x = 4\n**Output:** 2\n**Explanation:** The square root of 4 is 2, so we return 2.\n\n## Example 2:\n\n**Input:** x = 8\n**Output:** 2\n**Explanation:** The square root of 8 is 2.82842..., and since we round it down to the nearest integer, 2 is returned.\n\n## Constraints:\n\n*   `0 <= x <= 2^31 - 1`",
+  "description": "# Sqrt(x)\n\nGiven a non-negative integer `x`, return the integer square root of `x`. In other words, return the largest integer `r` such that `r * r <= x`.\n\nBecause the answer is rounded down, inputs that are not perfect squares should return the floor of the real square root.\n\nDo not use any built-in square-root, exponent, or floating-point shortcut such as `Math.sqrt`, `pow`, or `x ** 0.5`.\n\n## Example 1:\n\n**Input:** x = 4\n**Output:** 2\n**Explanation:** 2 * 2 = 4, so the exact square root is 2.\n\n## Example 2:\n\n**Input:** x = 8\n**Output:** 2\n**Explanation:** 2 * 2 <= 8, but 3 * 3 > 8, so the integer square root is 2.\n\n## Constraints:\n\n*   `0 <= x <= 2^31 - 1`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int mySqrt(int x) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Math", "Binary Search"],
+  "tags": [
+    "Math",
+    "Binary Search"
+  ],
   "examples": [
-    { "input": "x = 4", "output": "2" },
-    { "input": "x = 8", "output": "2" }
+    {
+      "input": "x = 4",
+      "output": "2"
+    },
+    {
+      "input": "x = 8",
+      "output": "2"
+    }
   ],
   "solutions": [
     {
-      "name": "Binary Search",
+      "name": "Binary Search with Long Square",
       "timeComplexity": "O(log x)",
       "spaceComplexity": "O(1)",
-      "description": "Binary search for the largest integer whose square is <= x. Use long to avoid overflow when squaring mid.",
-      "code": "class Solution {\n    public int mySqrt(int x) {\n        if (x < 2) return x;\n        int lo = 1, hi = x / 2;\n        while (lo <= hi) {\n            int mid = lo + (hi - lo) / 2;\n            long sq = (long) mid * mid;\n            if (sq == x) return mid;\n            else if (sq < x) lo = mid + 1;\n            else hi = mid - 1;\n        }\n        return hi;\n    }\n}",
+      "description": "## Approach\n\nBinary search the possible integer roots and keep the largest midpoint whose square does not exceed `x`. If `mid * mid <= x`, record `mid` and search to the right; otherwise search to the left.\n\n## Key Insight\n\nThe predicate `r * r <= x` is monotonic: once it becomes false, every larger root is also false. Cast `mid` to `long` before multiplying so inputs near `Integer.MAX_VALUE` cannot overflow the square comparison.\n\n## Complexity Analysis\n\nTime Complexity: O(log x). Space Complexity: O(1).",
+      "code": "class Solution {\n    public int mySqrt(int x) {\n        if (x < 2) {\n            return x;\n        }\n\n        int lo = 1;\n        int hi = 46340;\n        int answer = 1;\n        while (lo <= hi) {\n            int mid = lo + (hi - lo) / 2;\n            long square = (long) mid * mid;\n            if (square <= x) {\n                answer = mid;\n                lo = mid + 1;\n            } else {\n                hi = mid - 1;\n            }\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Newton's Method",
+      "name": "Binary Search with Division Guard",
       "timeComplexity": "O(log x)",
       "spaceComplexity": "O(1)",
-      "description": "Use Newton's iterative method to approximate the square root. Start with x and repeatedly refine: r = (r + x/r) / 2 until convergence.",
-      "code": "class Solution {\n    public int mySqrt(int x) {\n        if (x < 2) return x;\n        long r = x;\n        while (r * r > x) {\n            r = (r + x / r) / 2;\n        }\n        return (int) r;\n    }\n}",
+      "description": "## Approach\n\nBinary search the root range, but test whether `mid` is feasible with `mid <= x / mid` instead of multiplying `mid * mid`. Store the latest feasible midpoint as the answer.\n\n## Key Insight\n\nFor positive `mid`, `mid <= x / mid` is the integer-safe form of `mid * mid <= x`. This avoids overflow even without a wider multiplication type, and it is a reusable trick for many integer binary-search problems.\n\n## Complexity Analysis\n\nTime Complexity: O(log x). Space Complexity: O(1).",
+      "code": "class Solution {\n    public int mySqrt(int x) {\n        if (x < 2) {\n            return x;\n        }\n\n        int lo = 1;\n        int hi = x / 2;\n        int answer = 1;\n        while (lo <= hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (mid <= x / mid) {\n                answer = mid;\n                lo = mid + 1;\n            } else {\n                hi = mid - 1;\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Newton's Method Safe Descent",
+      "timeComplexity": "O(log x)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nStart from the overestimate `r = x` and repeatedly apply the integer Newton update `r = (r + x / r) / 2`. Stop once the estimate is no longer larger than `x / r`, then return `r`.\n\n## Key Insight\n\nNewton's method quickly pulls an overestimate down toward the real square root. The condition `r > x / r` is the overflow-safe way to ask whether `r * r > x`, so the method remains correct at the 32-bit boundary.\n\n## Complexity Analysis\n\nTime Complexity: O(log x). Space Complexity: O(1).",
+      "code": "class Solution {\n    public int mySqrt(int x) {\n        if (x < 2) {\n            return x;\n        }\n\n        long r = x;\n        while (r > x / r) {\n            r = (r + x / r) / 2;\n        }\n        return (int) r;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bit-by-Bit Restoring Square Root",
+      "timeComplexity": "O(log x)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nBuild the answer from high bits to low bits with the restoring square-root algorithm. Start from the largest relevant power-of-four bit, decide whether that bit can fit in the remaining value, update the partial root, and move two bits lower.\n\n## Key Insight\n\nInteger square roots can be constructed digit by digit, similar to longhand square-root extraction. Because the algorithm only uses addition, subtraction, and shifts, it avoids both floating point and square-overflow concerns.\n\n## Complexity Analysis\n\nTime Complexity: O(log x). Space Complexity: O(1).",
+      "code": "class Solution {\n    public int mySqrt(int x) {\n        long remaining = x;\n        long root = 0;\n        long bit = 1L << 30;\n\n        while (bit > remaining) {\n            bit >>= 2;\n        }\n\n        while (bit != 0) {\n            if (remaining >= root + bit) {\n                remaining -= root + bit;\n                root = (root >> 1) + bit;\n            } else {\n                root >>= 1;\n            }\n            bit >>= 2;\n        }\n        return (int) root;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Subtract Consecutive Odd Numbers",
+      "timeComplexity": "O(sqrt(x))",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nRepeatedly subtract consecutive positive odd numbers: 1, 3, 5, 7, and so on. Count how many subtractions succeed before the remaining value is too small for the next odd number.\n\n## Key Insight\n\nThe sum of the first `k` positive odd numbers is exactly `k^2`. Therefore the number of odd terms that fit inside `x` is the largest `k` with `k^2 <= x`, which is the required integer square root.\n\n## Complexity Analysis\n\nTime Complexity: O(sqrt(x)). Space Complexity: O(1).",
+      "code": "class Solution {\n    public int mySqrt(int x) {\n        long remaining = x;\n        long odd = 1;\n        int root = 0;\n        while (remaining >= odd) {\n            remaining -= odd;\n            odd += 2;\n            root++;\n        }\n        return root;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "x = 4", "output": "2" },
-    { "input": "x = 8", "output": "2" },
-    { "input": "x = 0", "output": "0" },
-    { "input": "x = 1", "output": "1" }
+    {
+      "input": "x = 0",
+      "output": "0",
+      "description": "Zero is its own square root."
+    },
+    {
+      "input": "x = 1",
+      "output": "1",
+      "description": "One is its own square root."
+    },
+    {
+      "input": "x = 2",
+      "output": "1",
+      "description": "Small non-square above one rounds down."
+    },
+    {
+      "input": "x = 3",
+      "output": "1",
+      "description": "Value just below four still floors to one."
+    },
+    {
+      "input": "x = 4",
+      "output": "2",
+      "description": "Small perfect square returns its exact root."
+    },
+    {
+      "input": "x = 8",
+      "output": "2",
+      "description": "LeetCode-style non-square sample rounds down."
+    },
+    {
+      "input": "x = 15",
+      "output": "3",
+      "description": "Value just below 16 keeps the previous root."
+    },
+    {
+      "input": "x = 16",
+      "output": "4",
+      "description": "Perfect square after a boundary returns exactly."
+    },
+    {
+      "input": "x = 24",
+      "output": "4",
+      "description": "Middle non-square verifies floor behavior away from samples."
+    },
+    {
+      "input": "x = 2147395599",
+      "output": "46339",
+      "description": "Large value just below 46340 squared checks overflow-safe comparisons."
+    },
+    {
+      "input": "x = 2147395600",
+      "output": "46340",
+      "description": "46340 squared is the largest perfect square inside signed int range."
+    },
+    {
+      "input": "x = 2147483647",
+      "output": "46340",
+      "description": "Maximum int input must still return the largest possible integer root."
+    }
   ]
 }

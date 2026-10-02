@@ -1,7 +1,7 @@
 {
   "id": "419",
   "title": "Range Sum Query 2D - Immutable",
-  "description": "# Range Sum Query 2D - Immutable\n\nGiven a 2D matrix `matrix`, handle multiple queries of the following type:\n\n1.  Calculate the **sum** of the elements of `matrix` inside the rectangle defined by its **upper left corner** `(row1, col1)` and **lower right corner** `(row2, col2)`.\n\nImplement the `NumMatrix` class:\n\n*   `NumMatrix(int[][] matrix)` Initializes the object with the integer matrix `matrix`.\n*   `int sumRegion(int row1, int col1, int row2, int col2)` Returns the sum of the elements of `matrix` inside the rectangle defined by its upper left corner `(row1, col1)` and lower right corner `(row2, col2)`.\n\n## Example 1:\n\n**Input:**\n[\"NumMatrix\", \"sumRegion\", \"sumRegion\", \"sumRegion\"]\n[[[[3, 0, 1, 4, 2], [5, 6, 3, 2, 1], [1, 2, 0, 1, 5], [4, 1, 0, 1, 7], [1, 0, 3, 0, 5]]], [2, 1, 4, 3], [1, 1, 2, 2], [1, 2, 2, 4]]\n**Output:**\n[null, 8, 11, 12]\n**Explanation:**\nNumMatrix numMatrix = new NumMatrix([[3, 0, 1, 4, 2], [5, 6, 3, 2, 1], [1, 2, 0, 1, 5], [4, 1, 0, 1, 7], [1, 0, 3, 0, 5]]);\nnumMatrix.sumRegion(2, 1, 4, 3); // return 8 (i.e sum of the red rectangle)\nnumMatrix.sumRegion(1, 1, 2, 2); // return 11 (i.e sum of the green rectangle)\nnumMatrix.sumRegion(1, 2, 2, 4); // return 12 (i.e sum of the blue rectangle)\n\n## Constraints:\n\n*   `m == matrix.length`\n*   `n == matrix[i].length`\n*   `1 <= m, n <= 200`\n*   `-10^5 <= matrix[i][j] <= 10^5`\n*   `0 <= row1 <= row2 < m`\n*   `0 <= col1 <= col2 < n`\n*   At most `10^4` calls will be made to `sumRegion`.",
+  "description": "# Range Sum Query 2D - Immutable\n\nGiven an integer matrix `matrix`, handle repeated rectangle-sum queries on the same matrix.\n\nImplement the `NumMatrix` class:\n\n* `NumMatrix(int[][] matrix)` initializes the object with the matrix `matrix`.\n* `int sumRegion(int row1, int col1, int row2, int col2)` returns the sum of every cell inside the rectangle whose upper-left corner is `(row1, col1)` and lower-right corner is `(row2, col2)`.\n\nThe rectangle is inclusive on all four sides: rows `row1` through `row2` and columns `col1` through `col2` are included. The matrix is immutable after construction, and every query is guaranteed to use valid coordinates.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1:\n\n**Input:**\n[\"NumMatrix\", \"sumRegion\", \"sumRegion\", \"sumRegion\"]\n[[[[3, 0, 1, 4, 2], [5, 6, 3, 2, 1], [1, 2, 0, 1, 5], [4, 1, 0, 1, 7], [1, 0, 3, 0, 5]]], [2, 1, 4, 3], [1, 1, 2, 2], [1, 2, 2, 4]]\n\n**Output:**\n[null, 8, 11, 12]\n\n**Explanation:**\n`sumRegion(2, 1, 4, 3)` returns the sum of rows `2..4` and columns `1..3`.\n`sumRegion(1, 1, 2, 2)` returns the sum of rows `1..2` and columns `1..2`.\n`sumRegion(1, 2, 2, 4)` returns the sum of rows `1..2` and columns `2..4`.\n\n## Constraints:\n\n* `m == matrix.length`\n* `n == matrix[i].length`\n* `1 <= m, n <= 200`\n* `-10^5 <= matrix[i][j] <= 10^5`\n* `0 <= row1 <= row2 < m`\n* `0 <= col1 <= col2 < n`\n* At most `10^4` calls will be made to `sumRegion`.\n",
   "difficulty": "MEDIUM",
   "initialCode": "class NumMatrix {\n\n    public NumMatrix(int[][] matrix) {\n        \n    }\n    \n    public int sumRegion(int row1, int col1, int row2, int col2) {\n        \n    }\n}",
   "tags": [
@@ -9,6 +9,13 @@
     "Design",
     "Matrix",
     "Prefix Sum"
+  ],
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p419_example1.png",
+      "caption": "Matrix indices and the queried inclusive rectangle"
+    }
   ],
   "examples": [
     {
@@ -19,18 +26,42 @@
   "solutions": [
     {
       "name": "2D Prefix Sum",
-      "timeComplexity": "O(m*n) init, O(1) query",
-      "spaceComplexity": "O(m*n)",
-      "description": "Build a 2D prefix sum where prefix[i][j] = sum of elements in rectangle (0,0) to (i-1,j-1). Use inclusion-exclusion to answer region queries in O(1).",
-      "code": "class NumMatrix {\n    private int[][] prefix;\n    public NumMatrix(int[][] matrix) {\n        int m = matrix.length, n = matrix[0].length;\n        prefix = new int[m + 1][n + 1];\n        for (int i = 1; i <= m; i++)\n            for (int j = 1; j <= n; j++)\n                prefix[i][j] = matrix[i-1][j-1] + prefix[i-1][j] + prefix[i][j-1] - prefix[i-1][j-1];\n    }\n    public int sumRegion(int row1, int col1, int row2, int col2) {\n        return prefix[row2+1][col2+1] - prefix[row1][col2+1] - prefix[row2+1][col1] + prefix[row1][col1];\n    }\n}",
+      "timeComplexity": "O(m * n) init, O(1) query",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nBuild a prefix matrix with one extra row and one extra column. `prefix[row][col]` stores the sum of the rectangle from `(0, 0)` to `(row - 1, col - 1)`. A query is answered with inclusion-exclusion over four prefix corners.\n\n## Key Insight\n\nThe queried rectangle can be obtained by taking the prefix up to its lower-right corner, subtracting the area above it and the area to its left, then adding back the top-left overlap that was subtracted twice.\n\n## Complexity Analysis\n\nInitialization takes O(m * n) time. Each query takes O(1) time. The prefix matrix uses O(m * n) extra space.",
+      "code": "class NumMatrix {\n    private int[][] prefix;\n\n    public NumMatrix(int[][] matrix) {\n        int m = matrix.length;\n        int n = matrix[0].length;\n        prefix = new int[m + 1][n + 1];\n        for (int row = 1; row <= m; row++) {\n            for (int col = 1; col <= n; col++) {\n                prefix[row][col] = matrix[row - 1][col - 1]\n                        + prefix[row - 1][col]\n                        + prefix[row][col - 1]\n                        - prefix[row - 1][col - 1];\n            }\n        }\n    }\n\n    public int sumRegion(int row1, int col1, int row2, int col2) {\n        return prefix[row2 + 1][col2 + 1]\n                - prefix[row1][col2 + 1]\n                - prefix[row2 + 1][col1]\n                + prefix[row1][col1];\n    }\n}",
       "language": "java"
     },
     {
       "name": "Row-wise Prefix Sum",
-      "timeComplexity": "O(m*n) init, O(m) query",
-      "spaceComplexity": "O(m*n)",
-      "description": "Build prefix sums for each row. For a region query, iterate over each row from row1 to row2 and use the row prefix sum to compute the row contribution in O(1).",
-      "code": "class NumMatrix {\n    private int[][] rowPrefix;\n    public NumMatrix(int[][] matrix) {\n        int m = matrix.length;\n        int n = matrix[0].length;\n        rowPrefix = new int[m][n + 1];\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                rowPrefix[i][j + 1] = rowPrefix[i][j] + matrix[i][j];\n            }\n        }\n    }\n    public int sumRegion(int row1, int col1, int row2, int col2) {\n        int sum = 0;\n        for (int i = row1; i <= row2; i++) {\n            sum += rowPrefix[i][col2 + 1] - rowPrefix[i][col1];\n        }\n        return sum;\n    }\n}",
+      "timeComplexity": "O(m * n) init, O(height) query",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nBuild a one-dimensional prefix sum for each row. To answer a rectangle query, walk through rows `row1..row2` and add the row contribution between `col1` and `col2`.\n\n## Key Insight\n\nThis route reduces the two-dimensional problem to many one-dimensional range sums. It is simpler than full inclusion-exclusion and is efficient when queried rectangles are short in height.\n\n## Complexity Analysis\n\nInitialization takes O(m * n) time. Each query takes O(row2 - row1 + 1) time. The row prefix table uses O(m * n) space.",
+      "code": "class NumMatrix {\n    private int[][] rowPrefix;\n\n    public NumMatrix(int[][] matrix) {\n        int m = matrix.length;\n        int n = matrix[0].length;\n        rowPrefix = new int[m][n + 1];\n        for (int row = 0; row < m; row++) {\n            for (int col = 0; col < n; col++) {\n                rowPrefix[row][col + 1] = rowPrefix[row][col] + matrix[row][col];\n            }\n        }\n    }\n\n    public int sumRegion(int row1, int col1, int row2, int col2) {\n        int sum = 0;\n        for (int row = row1; row <= row2; row++) {\n            sum += rowPrefix[row][col2 + 1] - rowPrefix[row][col1];\n        }\n        return sum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Column-wise Prefix Sum",
+      "timeComplexity": "O(m * n) init, O(width) query",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nBuild a prefix sum down each column. To answer a rectangle query, walk through columns `col1..col2` and add the column contribution between `row1` and `row2`.\n\n## Key Insight\n\nThis is the transpose of the row-wise route. It is a useful teaching contrast because it is better for narrow rectangles and worse for wide ones, while using the same one-dimensional prefix idea.\n\n## Complexity Analysis\n\nInitialization takes O(m * n) time. Each query takes O(col2 - col1 + 1) time. The column prefix table uses O(m * n) space.",
+      "code": "class NumMatrix {\n    private int[][] colPrefix;\n\n    public NumMatrix(int[][] matrix) {\n        int m = matrix.length;\n        int n = matrix[0].length;\n        colPrefix = new int[m + 1][n];\n        for (int row = 0; row < m; row++) {\n            for (int col = 0; col < n; col++) {\n                colPrefix[row + 1][col] = colPrefix[row][col] + matrix[row][col];\n            }\n        }\n    }\n\n    public int sumRegion(int row1, int col1, int row2, int col2) {\n        int sum = 0;\n        for (int col = col1; col <= col2; col++) {\n            sum += colPrefix[row2 + 1][col] - colPrefix[row1][col];\n        }\n        return sum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Static 2D Fenwick Tree",
+      "timeComplexity": "O(m * n * log m * log n) init, O(log m * log n) query",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nInsert every matrix cell into a two-dimensional Binary Indexed Tree during construction. `sumRegion` reads four Fenwick prefix sums and combines them with the same inclusion-exclusion pattern used by the 2D prefix matrix.\n\n## Key Insight\n\nA Fenwick tree is more general than this immutable problem requires, but it teaches how two-dimensional range sums can be decomposed into low-bit buckets. This prepares the learner for the mutable version of the problem.\n\n## Complexity Analysis\n\nBuilding by point additions takes O(m * n * log m * log n) time. Each query takes O(log m * log n) time. The tree uses O(m * n) space.",
+      "code": "class NumMatrix {\n    private int rows;\n    private int cols;\n    private int[][] bit;\n\n    public NumMatrix(int[][] matrix) {\n        rows = matrix.length;\n        cols = matrix[0].length;\n        bit = new int[rows + 1][cols + 1];\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                add(row + 1, col + 1, matrix[row][col]);\n            }\n        }\n    }\n\n    public int sumRegion(int row1, int col1, int row2, int col2) {\n        return prefix(row2 + 1, col2 + 1)\n                - prefix(row1, col2 + 1)\n                - prefix(row2 + 1, col1)\n                + prefix(row1, col1);\n    }\n\n    private void add(int row, int col, int delta) {\n        for (int r = row; r <= rows; r += r & -r) {\n            for (int c = col; c <= cols; c += c & -c) {\n                bit[r][c] += delta;\n            }\n        }\n    }\n\n    private int prefix(int row, int col) {\n        int sum = 0;\n        for (int r = row; r > 0; r -= r & -r) {\n            for (int c = col; c > 0; c -= c & -c) {\n                sum += bit[r][c];\n            }\n        }\n        return sum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Direct Region Scan Baseline",
+      "timeComplexity": "O(area) query",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nCopy the input matrix. For every query, visit each cell inside rows `row1..row2` and columns `col1..col2`, adding the values directly.\n\n## Key Insight\n\nThis baseline is intentionally slower, but it makes the inclusive rectangle boundaries completely explicit. It is useful for checking that faster methods are using the same cell set.\n\n## Complexity Analysis\n\nConstruction copies all cells in O(m * n) time. Each query takes O((row2 - row1 + 1) * (col2 - col1 + 1)) time. The copied matrix uses O(m * n) space.",
+      "code": "class NumMatrix {\n    private int[][] matrix;\n\n    public NumMatrix(int[][] matrix) {\n        this.matrix = new int[matrix.length][matrix[0].length];\n        for (int row = 0; row < matrix.length; row++) {\n            this.matrix[row] = matrix[row].clone();\n        }\n    }\n\n    public int sumRegion(int row1, int col1, int row2, int col2) {\n        int sum = 0;\n        for (int row = row1; row <= row2; row++) {\n            for (int col = col1; col <= col2; col++) {\n                sum += matrix[row][col];\n            }\n        }\n        return sum;\n    }\n}",
       "language": "java"
     }
   ],
@@ -38,13 +69,34 @@
     {
       "input": "[\"NumMatrix\", \"sumRegion\", \"sumRegion\", \"sumRegion\"]\n[[[[3, 0, 1, 4, 2], [5, 6, 3, 2, 1], [1, 2, 0, 1, 5], [4, 1, 0, 1, 7], [1, 0, 3, 0, 5]]], [2, 1, 4, 3], [1, 1, 2, 2], [1, 2, 2, 4]]",
       "output": "[null, 8, 11, 12]"
-    }
-  ],
-  "diagrams": [
+    },
     {
-      "id": "example1",
-      "file": "p419_example1.png",
-      "caption": "5x5 Matrix for 2D Range Sum"
+      "input": "[\"NumMatrix\",\"sumRegion\",\"sumRegion\",\"sumRegion\"]\n[[[[1,2],[3,4]]],[0,0,1,1],[1,0,1,1],[0,0,0,0]]",
+      "output": "[null,10,7,1]"
+    },
+    {
+      "input": "[\"NumMatrix\",\"sumRegion\",\"sumRegion\",\"sumRegion\"]\n[[[[-1,2,3]]],[0,1,0,2],[0,0,0,0],[0,0,0,2]]",
+      "output": "[null,5,-1,4]"
+    },
+    {
+      "input": "[\"NumMatrix\",\"sumRegion\",\"sumRegion\",\"sumRegion\"]\n[[[[5],[-2],[7],[-3]]],[0,0,3,0],[1,0,2,0],[3,0,3,0]]",
+      "output": "[null,7,5,-3]"
+    },
+    {
+      "input": "[\"NumMatrix\",\"sumRegion\",\"sumRegion\",\"sumRegion\"]\n[[[[-5,-4,-3],[-2,-1,-6]]],[0,0,1,2],[0,1,1,2],[1,1,1,1]]",
+      "output": "[null,-21,-14,-1]"
+    },
+    {
+      "input": "[\"NumMatrix\",\"sumRegion\",\"sumRegion\",\"sumRegion\"]\n[[[[0,0,0],[0,0,0],[0,0,0]]],[0,0,2,2],[1,1,1,1],[0,2,2,2]]",
+      "output": "[null,0,0,0]"
+    },
+    {
+      "input": "[\"NumMatrix\",\"sumRegion\",\"sumRegion\",\"sumRegion\"]\n[[[[100000,100000,100000],[100000,-100000,100000],[100000,100000,100000]]],[0,0,2,2],[1,1,1,1],[0,0,0,2]]",
+      "output": "[null,700000,-100000,300000]"
+    },
+    {
+      "input": "[\"NumMatrix\",\"sumRegion\",\"sumRegion\",\"sumRegion\",\"sumRegion\"]\n[[[[2,-1,4,0],[-3,5,6,-2],[7,1,-4,8]]],[0,0,2,3],[1,1,2,2],[0,3,2,3],[2,0,2,3]]",
+      "output": "[null,23,8,6,12]"
     }
   ]
 }

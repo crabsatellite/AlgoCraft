@@ -1,36 +1,117 @@
 {
   "id": "386",
   "title": "Number of Music Playlists",
-  "description": "# Number of Music Playlists\n\nYour music player contains `n` different songs. You want to listen to `goal` songs (not necessarily different) during your trip. To avoid boredom, you will create a playlist so that:\n\n*   Every song is played at least once.\n*   A song can only be played again only if `k` other songs have been played.\n\nGiven `n`, `goal`, and `k`, return the number of possible playlists that you can create. Since the answer can be very large, return it modulo `10^9 + 7`.\n\n## Example 1:\n\n**Input:** n = 3, goal = 3, k = 1\n**Output:** 6\n**Explanation:** There are 6 possible playlists. [1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2], [3, 2, 1].\n\n## Example 2:\n\n**Input:** n = 2, goal = 3, k = 0\n**Output:** 6\n**Explanation:** There are 6 possible playlists. [1, 1, 2], [1, 2, 1], [2, 1, 1], [2, 2, 1], [2, 1, 2], [1, 2, 2]\n\n## Example 3:\n\n**Input:** n = 2, goal = 3, k = 1\n**Output:** 2\n**Explanation:** There are 2 possible playlists. [1, 2, 1], [2, 1, 2]\n\n## Constraints:\n\n*   `0 <= k < n <= goal <= 100`",
+  "description": "# Number of Music Playlists\n\nYour music player contains `n` different songs. You want to build a playlist with exactly `goal` song slots. Songs may repeat, but the playlist must satisfy both rules:\n\n* Every one of the `n` songs is played at least once.\n* A song can be played again only after at least `k` other songs have been played since its previous play.\n\nReturn the number of valid playlists modulo `10^9 + 7`.\n\nThe songs are distinguishable. For example, with songs 1, 2, and 3, the playlists `[1,2,3]` and `[1,3,2]` are different.\n\n## Example 1\n\n**Input:** n = 3, goal = 3, k = 1\n**Output:** 6\n**Explanation:** The playlist has length 3 and must use all 3 songs, so every permutation of the songs is valid.\n\n## Example 2\n\n**Input:** n = 2, goal = 3, k = 0\n**Output:** 6\n**Explanation:** Repeating immediately is allowed because k = 0, but both songs must appear at least once.\n\n## Example 3\n\n**Input:** n = 2, goal = 3, k = 1\n**Output:** 2\n**Explanation:** The only valid playlists are [1,2,1] and [2,1,2].\n\n## Constraints\n\n* `0 <= k < n <= goal <= 100`\n* Return the answer modulo `1_000_000_007`.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int numMusicPlaylists(int n, int goal, int k) {\n        \n    }\n}",
-  "tags": ["Math", "Dynamic Programming", "Combinatorics"],
+  "initialCode": "class Solution {\n    public int numMusicPlaylists(int n, int goal, int k) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Math",
+    "Dynamic Programming",
+    "Combinatorics"
+  ],
   "examples": [
-    { "input": "n = 3, goal = 3, k = 1", "output": "6" },
-    { "input": "n = 2, goal = 3, k = 0", "output": "6" },
-    { "input": "n = 2, goal = 3, k = 1", "output": "2" }
+    {
+      "input": "n = 3, goal = 3, k = 1",
+      "output": "6"
+    },
+    {
+      "input": "n = 2, goal = 3, k = 0",
+      "output": "6"
+    },
+    {
+      "input": "n = 2, goal = 3, k = 1",
+      "output": "2"
+    }
   ],
   "solutions": [
     {
-      "name": "DP - Playlist Length x Unique Songs",
+      "name": "Bottom-Up DP by Length and Unique Songs",
       "timeComplexity": "O(goal * n)",
       "spaceComplexity": "O(goal * n)",
-      "description": "dp[i][j] = number of playlists of length i that contain exactly j unique songs. Transition: add a new song (n-j+1 choices) or replay an old song (max(j-k, 0) choices).",
-      "code": "class Solution {\n    public int numMusicPlaylists(int n, int goal, int k) {\n        long MOD = 1000000007;\n        long[][] dp = new long[goal + 1][n + 1];\n        dp[0][0] = 1;\n        for (int i = 1; i <= goal; i++) {\n            for (int j = 1; j <= n; j++) {\n                dp[i][j] = (dp[i - 1][j - 1] * (n - j + 1)) % MOD;\n                dp[i][j] = (dp[i][j] + dp[i - 1][j] * Math.max(j - k, 0)) % MOD;\n            }\n        }\n        return (int) dp[goal][n];\n    }\n}",
-      "language": "java"
+      "description": "## Approach\nTrack `dp[length][used]`, the number of playlists of the current length that have used exactly `used` different songs. The next slot either introduces a new song or replays an already used song that is not blocked by the last `k` distinct songs.\n\n## Key Insight\nWhen a playlist has already used `used` distinct songs, there are `n - used + 1` choices for the newly introduced song in the transition from `used - 1` to `used`. There are `max(used - k, 0)` choices for a replay because the most recent `k` distinct songs cannot be repeated.\n\n## Complexity Analysis\nThe table has `goal * n` states and each transition is constant time. The memory can be read directly as a teaching table, which makes this the clearest baseline solution.",
+      "code": "class Solution {\n    public int numMusicPlaylists(int n, int goal, int k) {\n        long mod = 1_000_000_007L;\n        long[][] dp = new long[goal + 1][n + 1];\n        dp[0][0] = 1;\n        for (int length = 1; length <= goal; length++) {\n            for (int used = 1; used <= n; used++) {\n                long addNewSong = dp[length - 1][used - 1] * (n - used + 1);\n                long replayOldSong = dp[length - 1][used] * Math.max(used - k, 0);\n                dp[length][used] = (addNewSong + replayOldSong) % mod;\n            }\n        }\n        return (int) dp[goal][n];\n    }\n}"
     },
     {
-      "name": "DP with Space Optimization (1D)",
+      "name": "Top-Down Memoized State Recursion",
+      "timeComplexity": "O(goal * n)",
+      "spaceComplexity": "O(goal * n)",
+      "description": "## Approach\nUse recursion on `position` and `used`: after filling `position` slots, count how many completions are possible when `used` different songs have appeared. Memoization makes each state run once.\n\n## Key Insight\nThe recursive choices are the same two choices as the bottom-up DP. A new song has `n - used` choices, while a replay has `used - k` choices only after enough distinct songs are already in circulation.\n\n## Complexity Analysis\nThere are at most `(goal + 1) * (n + 1)` states, and each state performs constant arithmetic. The recursion is useful for teaching the state definition before converting it into an iterative table.",
+      "code": "class Solution {\n    private static final long MOD = 1_000_000_007L;\n    private long[][] memo;\n    private int n;\n    private int goal;\n    private int k;\n\n    public int numMusicPlaylists(int n, int goal, int k) {\n        this.n = n;\n        this.goal = goal;\n        this.k = k;\n        memo = new long[goal + 1][n + 1];\n        for (int i = 0; i <= goal; i++) {\n            for (int j = 0; j <= n; j++) {\n                memo[i][j] = -1;\n            }\n        }\n        return (int) dfs(0, 0);\n    }\n\n    private long dfs(int position, int used) {\n        if (position == goal) {\n            return used == n ? 1 : 0;\n        }\n        if (memo[position][used] != -1) {\n            return memo[position][used];\n        }\n\n        long ways = 0;\n        if (used < n) {\n            ways += (long) (n - used) * dfs(position + 1, used + 1);\n        }\n        if (used > k) {\n            ways += (long) (used - k) * dfs(position + 1, used);\n        }\n        memo[position][used] = ways % MOD;\n        return memo[position][used];\n    }\n}"
+    },
+    {
+      "name": "Rolling One-Dimensional DP",
       "timeComplexity": "O(goal * n)",
       "spaceComplexity": "O(n)",
-      "description": "Optimize space by using a 1D DP array. dp[j] = number of playlists using exactly j unique songs. Update row by row for each playlist length from 1 to goal.",
-      "code": "class Solution {\n    public int numMusicPlaylists(int n, int goal, int k) {\n        long MOD = 1000000007;\n        long[] dp = new long[n + 1];\n        dp[0] = 1;\n        for (int i = 1; i <= goal; i++) {\n            long[] ndp = new long[n + 1];\n            for (int j = 1; j <= n; j++) {\n                ndp[j] = (dp[j - 1] * (n - j + 1)) % MOD;\n                ndp[j] = (ndp[j] + dp[j] * Math.max(j - k, 0)) % MOD;\n            }\n            dp = ndp;\n        }\n        return (int) dp[n];\n    }\n}",
-      "language": "java"
+      "description": "## Approach\nKeep only the previous length layer of the DP table. For each new playlist slot, build a fresh array `next[used]` from the previous array.\n\n## Key Insight\nThe transition for `used` songs only depends on the previous row: `previous[used - 1]` for introducing a new song and `previous[used]` for replaying an eligible old song. No older rows are needed.\n\n## Complexity Analysis\nThe time stays `O(goal * n)`, while the memory drops to `O(n)`. This is the production-friendly version of the baseline DP once the learner understands the table.",
+      "code": "class Solution {\n    public int numMusicPlaylists(int n, int goal, int k) {\n        long mod = 1_000_000_007L;\n        long[] previous = new long[n + 1];\n        previous[0] = 1;\n        for (int length = 1; length <= goal; length++) {\n            long[] next = new long[n + 1];\n            for (int used = 1; used <= n; used++) {\n                long addNewSong = previous[used - 1] * (n - used + 1);\n                long replayOldSong = previous[used] * Math.max(used - k, 0);\n                next[used] = (addNewSong + replayOldSong) % mod;\n            }\n            previous = next;\n        }\n        return (int) previous[n];\n    }\n}"
+    },
+    {
+      "name": "Inclusion-Exclusion over Missing Songs",
+      "timeComplexity": "O(n^2 + n * goal)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\nFirst count playlists built from any chosen subset of songs, without requiring every chosen song to appear. Then use inclusion-exclusion over the songs that are missing to force all `n` songs to appear at least once.\n\n## Key Insight\nIf only `songs` labels are available, the number of choices at position `position` is `songs - min(k, position)`: before `k` slots there are fewer blocked songs, and after that exactly `k` recent distinct songs are blocked. Inclusion-exclusion subtracts playlists missing at least one song and adds back overlaps.\n\n## Complexity Analysis\nCombination values cost `O(n^2)`, and evaluating all missing-song counts costs `O(n * goal)`. This route is valuable because it connects the DP recurrence to a direct counting proof.",
+      "code": "class Solution {\n    private static final long MOD = 1_000_000_007L;\n\n    public int numMusicPlaylists(int n, int goal, int k) {\n        long[][] comb = new long[n + 1][n + 1];\n        for (int i = 0; i <= n; i++) {\n            comb[i][0] = 1;\n            comb[i][i] = 1;\n            for (int j = 1; j < i; j++) {\n                comb[i][j] = (comb[i - 1][j - 1] + comb[i - 1][j]) % MOD;\n            }\n        }\n\n        long answer = 0;\n        for (int missing = 0; missing <= n; missing++) {\n            int availableSongs = n - missing;\n            long term = comb[n][missing] * countWithAtMostTheseSongs(availableSongs, goal, k) % MOD;\n            if ((missing & 1) == 0) {\n                answer = (answer + term) % MOD;\n            } else {\n                answer = (answer - term + MOD) % MOD;\n            }\n        }\n        return (int) answer;\n    }\n\n    private long countWithAtMostTheseSongs(int songs, int goal, int k) {\n        long ways = 1;\n        for (int position = 0; position < goal; position++) {\n            int choices = songs - Math.min(k, position);\n            if (choices <= 0) {\n                return 0;\n            }\n            ways = ways * choices % MOD;\n        }\n        return ways;\n    }\n}"
+    },
+    {
+      "name": "Transition Matrix Exponentiation",
+      "timeComplexity": "O(n^3 log goal)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\nView the DP layer update as multiplying a state vector by a transition matrix. The vector index is the number of unique songs used, and raising the matrix to `goal` steps gives the final count directly.\n\n## Key Insight\nThe same two DP transitions become matrix entries: from `used` to `used + 1` with `n - used` choices, and from `used` to `used` with `max(used - k, 0)` replay choices. Starting from state 0, the answer is the coefficient of state `n` after `goal` multiplications.\n\n## Complexity Analysis\nMatrix multiplication is heavier than DP for these constraints, but it teaches that linear DP transitions can be represented algebraically. The implementation runs in `O(n^3 log goal)` time and `O(n^2)` memory.",
+      "code": "class Solution {\n    private static final long MOD = 1_000_000_007L;\n\n    public int numMusicPlaylists(int n, int goal, int k) {\n        int size = n + 1;\n        long[][] transition = new long[size][size];\n        for (int used = 0; used <= n; used++) {\n            if (used < n) {\n                transition[used + 1][used] = n - used;\n            }\n            transition[used][used] = Math.max(used - k, 0);\n        }\n        long[][] powered = matrixPower(transition, goal);\n        return (int) powered[n][0];\n    }\n\n    private long[][] matrixPower(long[][] matrix, int exponent) {\n        int size = matrix.length;\n        long[][] result = new long[size][size];\n        for (int i = 0; i < size; i++) {\n            result[i][i] = 1;\n        }\n        while (exponent > 0) {\n            if ((exponent & 1) == 1) {\n                result = multiply(matrix, result);\n            }\n            matrix = multiply(matrix, matrix);\n            exponent >>= 1;\n        }\n        return result;\n    }\n\n    private long[][] multiply(long[][] left, long[][] right) {\n        int size = left.length;\n        long[][] product = new long[size][size];\n        for (int row = 0; row < size; row++) {\n            for (int mid = 0; mid < size; mid++) {\n                if (left[row][mid] == 0) {\n                    continue;\n                }\n                for (int col = 0; col < size; col++) {\n                    product[row][col] = (product[row][col] + left[row][mid] * right[mid][col]) % MOD;\n                }\n            }\n        }\n        return product;\n    }\n}"
     }
   ],
   "tests": [
-    { "input": "n = 3, goal = 3, k = 1", "output": "6" },
-    { "input": "n = 2, goal = 3, k = 0", "output": "6" },
-    { "input": "n = 2, goal = 3, k = 1", "output": "2" }
+    {
+      "input": "n = 3, goal = 3, k = 1",
+      "output": "6"
+    },
+    {
+      "input": "n = 2, goal = 3, k = 0",
+      "output": "6"
+    },
+    {
+      "input": "n = 2, goal = 3, k = 1",
+      "output": "2"
+    },
+    {
+      "input": "n = 1, goal = 1, k = 0",
+      "output": "1"
+    },
+    {
+      "input": "n = 2, goal = 2, k = 0",
+      "output": "2"
+    },
+    {
+      "input": "n = 3, goal = 4, k = 1",
+      "output": "18"
+    },
+    {
+      "input": "n = 3, goal = 5, k = 1",
+      "output": "42"
+    },
+    {
+      "input": "n = 3, goal = 5, k = 2",
+      "output": "6"
+    },
+    {
+      "input": "n = 4, goal = 5, k = 1",
+      "output": "144"
+    },
+    {
+      "input": "n = 4, goal = 6, k = 2",
+      "output": "168"
+    },
+    {
+      "input": "n = 5, goal = 7, k = 2",
+      "output": "3000"
+    },
+    {
+      "input": "n = 10, goal = 12, k = 3",
+      "output": "676505593"
+    },
+    {
+      "input": "n = 100, goal = 100, k = 0",
+      "output": "437918130"
+    }
   ]
 }

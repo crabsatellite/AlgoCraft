@@ -1,10 +1,15 @@
 {
   "id": "195",
   "title": "Detect Squares",
-  "description": "# Detect Squares\n\nYou are given a stream of points on the X-Y plane. Design an algorithm that:\n\n*   **Adds** new points from the stream into a data structure. Duplicate points are allowed and should be treated as different points.\n*   Given a query point, **counts** the number of ways to choose three points from the data structure such that the three points and the query point form an axis-aligned square with positive area.\n\nAn **axis-aligned square** is a square where all edges are either parallel to the x-axis or parallel to the y-axis.\n\nImplement the `DetectSquares` class:\n\n*   `DetectSquares()` Initializes the object with an empty data structure.\n*   `void add(int[] point)` Adds a new point `point = [x, y]` to the data structure.\n*   `int count(int[] point)` Counts the number of ways to form axis-aligned squares with point `point = [x, y]` as described above.\n\n## Example 1:\n\n**Input**\n[\"DetectSquares\", \"add\", \"add\", \"add\", \"count\", \"count\", \"add\", \"count\"]\n[[], [[3, 10]], [[11, 2]], [[3, 2]], [[11, 10]], [[14, 8]], [[11, 2]], [[11, 10]]]\n**Output**\n[null, null, null, null, 1, 0, null, 2]\n\n**Explanation**\nDetectSquares detectSquares = new DetectSquares();\ndetectSquares.add([3, 10]);\ndetectSquares.add([11, 2]);\ndetectSquares.add([3, 2]);\ndetectSquares.count([11, 10]); // return 1. You can choose:\n                               //   - The first, second, and third points\ndetectSquares.count([14, 8]);  // return 0. The query point cannot form a square with any points in the data structure.\ndetectSquares.add([11, 2]);    // Adding duplicate points is allowed.\ndetectSquares.count([11, 10]); // return 2. You can choose:\n                               //   - The first, second, and third points\n                               //   - The first, third, and fourth points\n\n## Constraints:\n\n*   `point.length == 2`\n*   `0 <= x, y <= 1000`\n*   At most `3000` calls in total will be made to `add` and `count`.",
+  "description": "# Detect Squares\n\nYou are given a stream of points on the X-Y plane. Design an algorithm that supports two operations:\n\n* `add(point)` inserts one point from the stream. Duplicate points are allowed, and each inserted copy is counted separately.\n* `count(point)` returns how many ways there are to choose three previously added points so that those three points plus the query point form an axis-aligned square with positive area.\n\nAn axis-aligned square has four equal-length sides, and every side is parallel to either the x-axis or the y-axis. The query point is not inserted by `count`; it is only one corner of the square being counted.\n\nImplement the `DetectSquares` class:\n\n* `DetectSquares()` initializes an empty data structure.\n* `void add(int[] point)` adds `point = [x, y]` to the data structure.\n* `int count(int[] point)` counts all valid axis-aligned squares that use `point = [x, y]` as one corner.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1:\n\n**Input**\n[\"DetectSquares\", \"add\", \"add\", \"add\", \"count\", \"count\", \"add\", \"count\"]\n[[], [[3, 10]], [[11, 2]], [[3, 2]], [[11, 10]], [[14, 8]], [[11, 2]], [[11, 10]]]\n\n**Output**\n[null, null, null, null, 1, 0, null, 2]\n\n**Explanation**\nAfter adding `[3, 10]`, `[11, 2]`, and `[3, 2]`, the query `[11, 10]` completes one square.\nThe query `[14, 8]` completes no square.\nAdding `[11, 2]` again creates a duplicate copy of one supporting corner, so the same query `[11, 10]` can now be counted in two ways.\n\n## Constraints:\n\n* `point.length == 2`\n* `0 <= x, y <= 1000`\n* At most `3000` total calls will be made to `add` and `count`.",
   "difficulty": "MEDIUM",
   "initialCode": "class DetectSquares {\n\n    public DetectSquares() {\n        \n    }\n    \n    public void add(int[] point) {\n        \n    }\n    \n    public int count(int[] point) {\n        return 0;\n    }\n}",
-  "tags": ["Array", "Hash Table", "Design", "Counting"],
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Design",
+    "Counting"
+  ],
   "examples": [
     {
       "input": "[\"DetectSquares\", \"add\", \"add\", \"add\", \"count\", \"count\", \"add\", \"count\"]\n[[], [[3, 10]], [[11, 2]], [[3, 2]], [[11, 10]], [[14, 8]], [[11, 2]], [[11, 10]]]",
@@ -13,43 +18,98 @@
   ],
   "solutions": [
     {
-      "name": "HashMap Count",
-      "timeComplexity": "O(n) per count",
-      "spaceComplexity": "O(n)",
-      "description": "Store point counts in a HashMap. For a query point, iterate all points with the same x-coordinate as a diagonal candidate, compute the side length, and check if the other two corners exist.",
-      "code": "class DetectSquares {\n    private java.util.Map<String, Integer> counts;\n    private java.util.List<int[]> points;\n    \n    public DetectSquares() {\n        counts = new java.util.HashMap<>();\n        points = new java.util.ArrayList<>();\n    }\n    \n    public void add(int[] point) {\n        String key = point[0] + \",\" + point[1];\n        counts.merge(key, 1, Integer::sum);\n        points.add(point);\n    }\n    \n    public int count(int[] point) {\n        int px = point[0], py = point[1], result = 0;\n        for (int[] p : points) {\n            int x = p[0], y = p[1];\n            if (Math.abs(px - x) != Math.abs(py - y) || px == x && py == y) continue;\n            result += counts.getOrDefault(px + \",\" + y, 0)\n                    * counts.getOrDefault(x + \",\" + py, 0);\n        }\n        return result;\n    }\n}",
+      "name": "Opposite Corner Hash Map",
+      "timeComplexity": "O(P) per count",
+      "spaceComplexity": "O(P)",
+      "description": "## Approach\nStore a count for every coordinate and also keep the full list of inserted points. During `count`, treat each inserted point as the possible opposite corner of the query square. If the horizontal and vertical distances are equal and non-zero, the other two corners are forced.\n\n## Key Insight\nOnce the query corner and opposite corner are known, there is no freedom left: the missing corners must be `(queryX, oppositeY)` and `(oppositeX, queryY)`. Duplicate opposite corners are handled by iterating the inserted list, while duplicates of the other two corners multiply through their stored counts.\n\n## Complexity Analysis\nTime Complexity: O(P) per `count`, where P is the number of inserted points. Space Complexity: O(P) for the count map and insertion list.",
+      "code": "import java.util.*;\n\nclass DetectSquares {\n    private final Map<Long, Integer> counts = new HashMap<>();\n    private final List<int[]> points = new ArrayList<>();\n\n    public DetectSquares() {\n    }\n\n    public void add(int[] point) {\n        counts.merge(key(point[0], point[1]), 1, Integer::sum);\n        points.add(new int[] {point[0], point[1]});\n    }\n\n    public int count(int[] point) {\n        int px = point[0];\n        int py = point[1];\n        int answer = 0;\n        for (int[] opposite : points) {\n            int x = opposite[0];\n            int y = opposite[1];\n            if (Math.abs(px - x) != Math.abs(py - y) || px == x || py == y) {\n                continue;\n            }\n            answer += counts.getOrDefault(key(px, y), 0) * counts.getOrDefault(key(x, py), 0);\n        }\n        return answer;\n    }\n\n    private long key(int x, int y) {\n        return ((long) x << 32) | (y & 0xffffffffL);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "2D Array Count",
-      "timeComplexity": "O(n) per count",
-      "spaceComplexity": "O(1001^2)",
-      "description": "Use a 2D array for O(1) point count lookups. For count, iterate over all possible side lengths by checking points with the same x-coordinate as the query point.",
-      "code": "import java.util.*;\n\nclass DetectSquares {\n    private int[][] grid;\n    private List<int[]> pointsList;\n\n    public DetectSquares() {\n        grid = new int[1001][1001];\n        pointsList = new ArrayList<>();\n    }\n\n    public void add(int[] point) {\n        grid[point[0]][point[1]]++;\n        pointsList.add(point);\n    }\n\n    public int count(int[] point) {\n        int px = point[0], py = point[1];\n        int result = 0;\n        for (int[] p : pointsList) {\n            int x = p[0], y = p[1];\n            int side = Math.abs(py - y);\n            if (side == 0 || Math.abs(px - x) != side) continue;\n            result += grid[px][y] * grid[x][py];\n        }\n        return result;\n    }\n}",
+      "name": "Fixed Coordinate Grid",
+      "timeComplexity": "O(P) per count",
+      "spaceComplexity": "O(C^2 + P)",
+      "description": "## Approach\nUse the coordinate bound `0 <= x, y <= 1000` directly. A `1001 x 1001` grid stores how many times each coordinate has appeared, while a list keeps every inserted point available for opposite-corner enumeration.\n\n## Key Insight\nThe grid turns the two missing-corner lookups into direct array reads. This is a useful tradeoff when the coordinate range is small and fixed: memory increases, but lookup code becomes simpler and avoids hashing.\n\n## Complexity Analysis\nTime Complexity: O(P) per `count`. Space Complexity: O(C^2 + P), where C is the coordinate limit plus one.",
+      "code": "import java.util.*;\n\nclass DetectSquares {\n    private final int[][] grid = new int[1001][1001];\n    private final List<int[]> points = new ArrayList<>();\n\n    public DetectSquares() {\n    }\n\n    public void add(int[] point) {\n        grid[point[0]][point[1]]++;\n        points.add(new int[] {point[0], point[1]});\n    }\n\n    public int count(int[] point) {\n        int px = point[0];\n        int py = point[1];\n        int answer = 0;\n        for (int[] opposite : points) {\n            int x = opposite[0];\n            int y = opposite[1];\n            if (Math.abs(px - x) != Math.abs(py - y) || px == x || py == y) {\n                continue;\n            }\n            answer += grid[px][y] * grid[x][py];\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Column Map Enumeration",
+      "timeComplexity": "O(Kx) per count",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\nGroup counts by x-coordinate. For a query `(x, y)`, enumerate points already stored in the same column. Each different `otherY` defines a vertical side length, and the algorithm checks the two possible squares on the left and right.\n\n## Key Insight\nYou do not need to scan every inserted point if you can enumerate only points that share the query column. The vertical side determines both horizontal directions, and duplicate points multiply by the count at the vertical endpoint and the two side corners.\n\n## Complexity Analysis\nTime Complexity: O(Kx) per `count`, where Kx is the number of distinct y-values in the query column. Space Complexity: O(U), where U is the number of distinct coordinates.",
+      "code": "import java.util.*;\n\nclass DetectSquares {\n    private final Map<Integer, Map<Integer, Integer>> columns = new HashMap<>();\n\n    public DetectSquares() {\n    }\n\n    public void add(int[] point) {\n        columns.computeIfAbsent(point[0], key -> new HashMap<>())\n                .merge(point[1], 1, Integer::sum);\n    }\n\n    public int count(int[] point) {\n        int x = point[0];\n        int y = point[1];\n        Map<Integer, Integer> sameColumn = columns.get(x);\n        if (sameColumn == null) {\n            return 0;\n        }\n\n        int answer = 0;\n        for (Map.Entry<Integer, Integer> entry : sameColumn.entrySet()) {\n            int otherY = entry.getKey();\n            int verticalCount = entry.getValue();\n            int side = otherY - y;\n            if (side == 0) {\n                continue;\n            }\n            answer += verticalCount * countAt(x + side, y) * countAt(x + side, otherY);\n            answer += verticalCount * countAt(x - side, y) * countAt(x - side, otherY);\n        }\n        return answer;\n    }\n\n    private int countAt(int x, int y) {\n        Map<Integer, Integer> column = columns.get(x);\n        return column == null ? 0 : column.getOrDefault(y, 0);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Row Map Enumeration",
+      "timeComplexity": "O(Ky) per count",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\nStore counts grouped by y-coordinate instead of x-coordinate. For a query `(x, y)`, enumerate points in the same row to define a horizontal side, then check the possible matching corners above and below that side.\n\n## Key Insight\nThis is the row-symmetric form of column enumeration. Seeing both versions is useful because many design problems become faster when the data is indexed by the dimension that the query naturally fixes.\n\n## Complexity Analysis\nTime Complexity: O(Ky) per `count`, where Ky is the number of distinct x-values in the query row. Space Complexity: O(U), where U is the number of distinct coordinates.",
+      "code": "import java.util.*;\n\nclass DetectSquares {\n    private final Map<Integer, Map<Integer, Integer>> rows = new HashMap<>();\n\n    public DetectSquares() {\n    }\n\n    public void add(int[] point) {\n        rows.computeIfAbsent(point[1], key -> new HashMap<>())\n                .merge(point[0], 1, Integer::sum);\n    }\n\n    public int count(int[] point) {\n        int x = point[0];\n        int y = point[1];\n        Map<Integer, Integer> sameRow = rows.get(y);\n        if (sameRow == null) {\n            return 0;\n        }\n\n        int answer = 0;\n        for (Map.Entry<Integer, Integer> entry : sameRow.entrySet()) {\n            int otherX = entry.getKey();\n            int horizontalCount = entry.getValue();\n            int side = otherX - x;\n            if (side == 0) {\n                continue;\n            }\n            answer += horizontalCount * countAt(x, y + side) * countAt(otherX, y + side);\n            answer += horizontalCount * countAt(x, y - side) * countAt(otherX, y - side);\n        }\n        return answer;\n    }\n\n    private int countAt(int x, int y) {\n        Map<Integer, Integer> row = rows.get(y);\n        return row == null ? 0 : row.getOrDefault(x, 0);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Unique Opposite-Corner Enumeration",
+      "timeComplexity": "O(U) per count",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\nKeep counts for every coordinate, but enumerate only distinct coordinates as possible opposite corners. When a distinct opposite corner works, multiply by that coordinate's count and by the counts of the two remaining corners.\n\n## Key Insight\nThe insertion-list approach counts duplicate opposite corners by visiting them repeatedly. This version counts the same multiplicity explicitly with `diagonalCount`, which can be much cheaper when the stream contains many repeated points.\n\n## Complexity Analysis\nTime Complexity: O(U) per `count`, where U is the number of distinct coordinates. Space Complexity: O(U) for the count map and unique-coordinate set.",
+      "code": "import java.util.*;\n\nclass DetectSquares {\n    private final Map<Long, Integer> counts = new HashMap<>();\n    private final Set<Long> uniquePoints = new HashSet<>();\n\n    public DetectSquares() {\n    }\n\n    public void add(int[] point) {\n        long encoded = key(point[0], point[1]);\n        counts.merge(encoded, 1, Integer::sum);\n        uniquePoints.add(encoded);\n    }\n\n    public int count(int[] point) {\n        int px = point[0];\n        int py = point[1];\n        int answer = 0;\n        for (long encoded : uniquePoints) {\n            int x = (int) (encoded >> 32);\n            int y = (int) (encoded & 0xffffffffL);\n            if (Math.abs(px - x) != Math.abs(py - y) || px == x || py == y) {\n                continue;\n            }\n            int diagonalCount = counts.get(encoded);\n            answer += diagonalCount\n                    * counts.getOrDefault(key(px, y), 0)\n                    * counts.getOrDefault(key(x, py), 0);\n        }\n        return answer;\n    }\n\n    private long key(int x, int y) {\n        return ((long) x << 32) | (y & 0xffffffffL);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "[\"DetectSquares\", \"add\", \"add\", \"add\", \"count\", \"count\", \"add\", \"count\"]\n[[], [[3, 10]], [[11, 2]], [[3, 2]], [[11, 10]], [[14, 8]], [[11, 2]], [[11, 10]]]",
-      "output": "[null, null, null, null, 1, 0, null, 2]"
+      "output": "[null, null, null, null, 1, 0, null, 2]",
+      "description": "Canonical stream counts one square, then a duplicate supporting corner doubles the answer."
     },
     {
       "input": "[\"DetectSquares\", \"add\", \"add\", \"add\", \"add\", \"count\"]\n[[], [[0, 0]], [[1, 0]], [[0, 1]], [[1, 1]], [[0, 0]]]",
-      "output": "[null, null, null, null, null, 1]"
+      "output": "[null, null, null, null, null, 1]",
+      "description": "Four corners around the query form exactly one unit square."
     },
     {
       "input": "[\"DetectSquares\", \"add\", \"add\", \"add\", \"add\", \"add\", \"add\", \"add\", \"add\", \"count\"]\n[[], [[0, 0]], [[2, 0]], [[0, 2]], [[2, 2]], [[0, 0]], [[2, 0]], [[0, 2]], [[2, 2]], [[0, 0]]]",
-      "output": "[null, null, null, null, null, null, null, null, null, 8]"
+      "output": "[null, null, null, null, null, null, null, null, null, 8]",
+      "description": "Duplicate copies of all three supporting corners multiply the count."
     },
     {
       "input": "[\"DetectSquares\", \"count\"]\n[[], [[0, 0]]]",
-      "output": "[null, 0]"
+      "output": "[null, 0]",
+      "description": "Counting before any points have been added returns zero."
     },
     {
       "input": "[\"DetectSquares\", \"add\", \"add\", \"add\", \"count\", \"add\", \"count\"]\n[[], [[5, 5]], [[5, 10]], [[10, 5]], [[10, 10]], [[10, 10]], [[10, 10]]]",
-      "output": "[null, null, null, null, 1, null, 1]"
+      "output": "[null, null, null, null, 1, null, 1]",
+      "description": "Adding the query-corner point itself does not create extra squares."
+    },
+    {
+      "input": "[\"DetectSquares\", \"add\", \"add\", \"add\", \"add\", \"add\", \"add\", \"count\"]\n[[], [[5, 7]], [[3, 5]], [[3, 7]], [[7, 5]], [[7, 7]], [[5, 5]], [[5, 5]]]",
+      "output": "[null, null, null, null, null, null, null, 2]",
+      "description": "The same query can complete one square on the left and one square on the right."
+    },
+    {
+      "input": "[\"DetectSquares\", \"add\", \"add\", \"add\", \"count\"]\n[[], [[0, 0]], [[0, 1000]], [[1000, 0]], [[1000, 1000]]]",
+      "output": "[null, null, null, null, 1]",
+      "description": "Boundary coordinates at 0 and 1000 still form a valid square."
+    },
+    {
+      "input": "[\"DetectSquares\", \"add\", \"add\", \"add\", \"add\", \"count\"]\n[[], [[1, 1]], [[1, 1]], [[1, 3]], [[3, 1]], [[3, 3]]]",
+      "output": "[null, null, null, null, null, 2]",
+      "description": "Duplicate opposite corners multiply the answer even when the side corners are unique."
+    },
+    {
+      "input": "[\"DetectSquares\", \"add\", \"add\", \"add\", \"add\", \"count\"]\n[[], [[0, 0]], [[0, 2]], [[3, 0]], [[3, 2]], [[3, 2]]]",
+      "output": "[null, null, null, null, null, 0]",
+      "description": "A rectangle with unequal width and height must not be counted as a square."
     }
   ],
-  "diagrams": ["p195_example1"]
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p195_example1.png",
+      "caption": "Before the first count in Example 1: three blue stored points have one copy each; yellow [11,10] is only the query point"
+    }
+  ]
 }

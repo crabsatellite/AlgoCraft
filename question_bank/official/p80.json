@@ -1,7 +1,7 @@
 {
   "id": "80",
   "title": "Rotate List",
-  "description": "# Rotate List\n\nGiven the `head` of a linked list, rotate the list to the right by `k` places.\n\n## Example 1:\n\n**Input:** head = [1,2,3,4,5], k = 2\n**Output:** [4,5,1,2,3]\n\n## Example 2:\n\n**Input:** head = [0,1,2], k = 4\n**Output:** [2,0,1]\n\n## Constraints:\n\n*   The number of nodes in the list is in the range `[0, 500]`.\n*   `-100 <= Node.val <= 100`\n*   `0 <= k <= 2 * 10^9`",
+  "description": "# Rotate List\n\nGiven a singly linked list head `head` and a nonnegative integer `k`, rotate the list right `k` times and return its new head.\n\nOne right rotation moves the last node to the front, preserving the order of the other nodes. For example, `1 -> 2 -> 3` becomes `3 -> 1 -> 2`. Preserve the original nodes and do not create a cycle. Return `null` for an empty list.\n\nExample arrays display values in `next` order; `[]` denotes an empty list (`null`). A node stores its value in `val` and its next node in `next`. Use node objects for list parameters and results as shown in the initial code.\n\n## Example 1:\n\n**Input:** head = [1,2,3,4,5], k = 2\n**Output:** [4,5,1,2,3]\n\n## Example 2:\n\n**Input:** head = [0,1,2], k = 4\n**Output:** [2,0,1]\n\nSince the length is `3`, rotating by `4` is the same as rotating by `1`.\n\n## Constraints:\n\n*   The number of nodes in the list is in the range `[0, 500]`.\n*   `-100 <= Node.val <= 100`.\n*   `0 <= k <= 2 * 10^9`.",
   "difficulty": "MEDIUM",
   "initialCode": "/**\n * Definition for singly-linked list.\n * public class ListNode {\n *     int val;\n *     ListNode next;\n *     ListNode() {}\n *     ListNode(int val) { this.val = val; }\n *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n * }\n */\nclass Solution {\n    public ListNode rotateRight(ListNode head, int k) {\n        // Write your code here\n        return null;\n    }\n}",
   "tags": [
@@ -21,34 +21,68 @@
   "tests": [
     {
       "input": "head = [1,2,3,4,5], k = 2",
-      "output": "[4,5,1,2,3]"
+      "output": "[4,5,1,2,3]",
+      "description": "Canonical five-node list rotated by two"
     },
     {
       "input": "head = [0,1,2], k = 4",
-      "output": "[2,0,1]"
+      "output": "[2,0,1]",
+      "description": "k larger than length uses modulo"
     },
     {
       "input": "head = [], k = 1",
-      "output": "[]"
+      "output": "[]",
+      "description": "Empty list"
     },
     {
-      "input": "head = [1], k = 1",
-      "output": "[1]"
+      "input": "head = [1], k = 2000000000",
+      "output": "[1]",
+      "description": "Single node with maximum k"
     },
     {
       "input": "head = [1,2,3], k = 0",
       "output": "[1,2,3]",
-      "note": "k=0不旋转"
+      "description": "Zero rotations"
     },
     {
       "input": "head = [1,2,3], k = 3",
       "output": "[1,2,3]",
-      "note": "k=长度，等于不旋转"
+      "description": "k equals the list length"
+    },
+    {
+      "input": "head = [1,2], k = 1",
+      "output": "[2,1]",
+      "description": "Two nodes with odd rotation"
     },
     {
       "input": "head = [1,2], k = 2000000000",
       "output": "[1,2]",
-      "note": "k远大于长度"
+      "description": "Two nodes with very large even rotation"
+    },
+    {
+      "input": "head = [-1,-2,-3,-4], k = 1",
+      "output": "[-4,-1,-2,-3]",
+      "description": "Negative values with one-step rotation"
+    },
+    {
+      "input": "head = [-100,0,100], k = 2",
+      "output": "[0,100,-100]",
+      "description": "Lower and upper node value boundaries"
+    },
+    {
+      "input": "head = [1,2,3,4], k = 6",
+      "output": "[3,4,1,2]",
+      "description": "Even-length list with k greater than length"
+    },
+    {
+      "input": "head = [7,8,9,10,11,12], k = 5",
+      "output": "[8,9,10,11,12,7]",
+      "description": "Rotation by length minus one"
+    },
+    {
+      "input": "head = [5,5,5,5], k = 9",
+      "output": "[5,5,5,5]",
+      "description": "Duplicate values should not hide pointer mistakes"
     }
   ],
   "solutions": [
@@ -56,16 +90,32 @@
       "name": "Form Circle then Break",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Count the length, connect tail to head forming a circle. Then find the new tail at position (length - k % length - 1) from the old head, and break the circle there.",
-      "code": "class Solution {\n    public ListNode rotateRight(ListNode head, int k) {\n        if (head == null || head.next == null || k == 0) return head;\n        \n        // Count length and find tail\n        int length = 1;\n        ListNode tail = head;\n        while (tail.next != null) {\n            length++;\n            tail = tail.next;\n        }\n        \n        k = k % length;\n        if (k == 0) return head;\n        \n        // Form circle\n        tail.next = head;\n        \n        // Find new tail (length - k - 1 steps from head)\n        ListNode newTail = head;\n        for (int i = 0; i < length - k - 1; i++) {\n            newTail = newTail.next;\n        }\n        \n        ListNode newHead = newTail.next;\n        newTail.next = null;\n        \n        return newHead;\n    }\n}",
+      "description": "## Approach\n\nCount the length while finding the tail. Reduce `k` with modulo, connect the old tail to the old head to form a circle, walk to the new tail at `length - k - 1` steps from the old head, and break the circle there.\n\n## Key Insight\n\nRotation is just choosing a new head on a circular version of the same list. The final `newTail.next = null` is essential; otherwise the returned structure is cyclic.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode rotateRight(ListNode head, int k) {\n        if (head == null || head.next == null || k == 0) return head;\n\n        int length = 1;\n        ListNode tail = head;\n        while (tail.next != null) {\n            length++;\n            tail = tail.next;\n        }\n\n        k %= length;\n        if (k == 0) return head;\n\n        tail.next = head;\n        ListNode newTail = head;\n        for (int i = 0; i < length - k - 1; i++) {\n            newTail = newTail.next;\n        }\n        ListNode newHead = newTail.next;\n        newTail.next = null;\n        return newHead;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Two Pointers with Length",
+      "name": "Gap Two Pointers",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Count the list length and compute effective rotation k % length. Use two pointers: advance the fast pointer k steps ahead, then move both until fast reaches the last node. The slow pointer is at the new tail. Relink: fast.next = head, new head = slow.next, slow.next = null.",
-      "code": "class Solution {\n    public ListNode rotateRight(ListNode head, int k) {\n        if (head == null || head.next == null || k == 0) return head;\n        \n        // Count length\n        int length = 0;\n        ListNode curr = head;\n        while (curr != null) {\n            length++;\n            curr = curr.next;\n        }\n        \n        k = k % length;\n        if (k == 0) return head;\n        \n        // Fast pointer advances k steps\n        ListNode fast = head;\n        for (int i = 0; i < k; i++) {\n            fast = fast.next;\n        }\n        \n        // Move both until fast is at the last node\n        ListNode slow = head;\n        while (fast.next != null) {\n            slow = slow.next;\n            fast = fast.next;\n        }\n        \n        // Relink\n        ListNode newHead = slow.next;\n        slow.next = null;\n        fast.next = head;\n        \n        return newHead;\n    }\n}",
+      "description": "## Approach\n\nCount the length, reduce `k`, then advance `fast` by the effective rotation distance. Move `slow` and `fast` together until `fast` reaches the old tail. Then `slow` is the new tail.\n\n## Key Insight\n\nKeeping a gap of `k` nodes means the suffix that must move to the front starts at `slow.next`. Relinking in the right order preserves all nodes and avoids losing the new head.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode rotateRight(ListNode head, int k) {\n        if (head == null || head.next == null || k == 0) return head;\n\n        int length = 0;\n        ListNode curr = head;\n        while (curr != null) {\n            length++;\n            curr = curr.next;\n        }\n\n        k %= length;\n        if (k == 0) return head;\n\n        ListNode fast = head;\n        for (int i = 0; i < k; i++) {\n            fast = fast.next;\n        }\n\n        ListNode slow = head;\n        while (fast.next != null) {\n            slow = slow.next;\n            fast = fast.next;\n        }\n\n        ListNode newHead = slow.next;\n        slow.next = null;\n        fast.next = head;\n        return newHead;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Triple Reversal",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCompute the effective rotation, reverse the whole list, split after the first `k` nodes, reverse that prefix and the remaining suffix separately, then connect the two reversed parts.\n\n## Key Insight\n\nAfter reversing the whole list, the nodes that should move to the front are already grouped at the beginning but in reverse order. Reversing the two groups separately restores each group's internal order.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode rotateRight(ListNode head, int k) {\n        if (head == null || head.next == null || k == 0) return head;\n\n        int length = 0;\n        ListNode curr = head;\n        while (curr != null) {\n            length++;\n            curr = curr.next;\n        }\n\n        k %= length;\n        if (k == 0) return head;\n\n        head = reverse(head);\n        ListNode firstTail = head;\n        for (int i = 1; i < k; i++) {\n            firstTail = firstTail.next;\n        }\n        ListNode secondHead = firstTail.next;\n        firstTail.next = null;\n\n        ListNode newHead = reverse(head);\n        head.next = reverse(secondHead);\n        return newHead;\n    }\n\n    private ListNode reverse(ListNode node) {\n        ListNode prev = null;\n        while (node != null) {\n            ListNode next = node.next;\n            node.next = prev;\n            prev = node;\n            node = next;\n        }\n        return prev;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Array Index Reconnect",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nDetach all nodes into an array. Compute the start index of the rotated order as `n - (k % n)`, then reconnect nodes by reading the array cyclically from that index.\n\n## Key Insight\n\nThe array makes the index arithmetic explicit and avoids pointer-gap reasoning. Detaching nodes before reconnecting prevents old `next` links from creating a stale suffix or a cycle.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public ListNode rotateRight(ListNode head, int k) {\n        if (head == null || head.next == null || k == 0) return head;\n\n        List<ListNode> nodes = new ArrayList<>();\n        ListNode curr = head;\n        while (curr != null) {\n            ListNode next = curr.next;\n            curr.next = null;\n            nodes.add(curr);\n            curr = next;\n        }\n\n        int n = nodes.size();\n        int rotation = k % n;\n        int start = n - rotation;\n\n        ListNode dummy = new ListNode(0);\n        ListNode tail = dummy;\n        for (int i = 0; i < n; i++) {\n            ListNode node = nodes.get((start + i) % n);\n            tail.next = node;\n            tail = tail.next;\n        }\n        tail.next = null;\n        return dummy.next;\n    }\n}",
       "language": "java"
     }
   ],
@@ -73,7 +123,7 @@
     {
       "id": "example1",
       "file": "p80_example1.png",
-      "caption": "Example 1: List [1,2,3,4,5], rotate by k=2"
+      "caption": "Input linked list and rotation amount"
     }
   ]
 }

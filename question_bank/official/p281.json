@@ -1,34 +1,99 @@
 {
   "id": "281",
   "title": "Count of Matches in Tournament",
-  "description": "# Count of Matches in Tournament\n\nYou are given an integer `n`, the number of teams in a tournament that has strange rules:\n\n*   If the current number of teams is **even**, each team gets paired with another team. A total of `n / 2` matches are played, and `n / 2` teams advance to the next round.\n*   If the current number of teams is **odd**, one team randomly advances in the tournament, and the rest gets paired. A total of `(n - 1) / 2` matches are played, and `(n - 1) / 2 + 1` teams advance to the next round.\n\nReturn *the number of matches played in the tournament until a winner is decided.*\n\n## Example 1:\n\n**Input:** n = 7\n**Output:** 6\n**Explanation:** Details of the tournament:\n- 1st Round: Teams = 7, Matches = 3, and 4 teams advance.\n- 2nd Round: Teams = 4, Matches = 2, and 2 teams advance.\n- 3rd Round: Teams = 2, Matches = 1, and 1 team is declared the winner.\nTotal number of matches = 3 + 2 + 1 = 6.\n\n## Example 2:\n\n**Input:** n = 14\n**Output:** 13\n**Explanation:** Details of the tournament:\n- 1st Round: Teams = 14, Matches = 7, and 7 teams advance.\n- 2nd Round: Teams = 7, Matches = 3, and 4 teams advance.\n- 3rd Round: Teams = 4, Matches = 2, and 2 teams advance.\n- 4th Round: Teams = 2, Matches = 1, and 1 team is declared the winner.\nTotal number of matches = 7 + 3 + 2 + 1 = 13.\n\n## Constraints:\n\n*   `1 <= n <= 200`",
+  "description": "# Count of Matches in Tournament\n\nYou are given an integer `n`, the number of teams in a single-elimination tournament.\n\nThe tournament follows these rules each round:\n\n* If the current number of teams is even, every team is paired. There are `n / 2` matches, and `n / 2` teams advance.\n* If the current number of teams is odd, one team advances automatically, and the remaining teams are paired. There are `(n - 1) / 2` matches, and `(n - 1) / 2 + 1` teams advance.\n\nReturn the total number of matches played until exactly one champion remains.\n\n## Example 1\n\n**Input**\nn = 7\n\n**Output**\n6\n\n**Explanation**\nRound 1: 7 teams play 3 matches, and 4 teams advance.\nRound 2: 4 teams play 2 matches, and 2 teams advance.\nRound 3: 2 teams play 1 match, and 1 champion remains.\nThe total is `3 + 2 + 1 = 6`.\n\n## Example 2\n\n**Input**\nn = 14\n\n**Output**\n13\n\n**Explanation**\nRound totals are `7 + 3 + 2 + 1 = 13` matches.\n\n## Constraints\n\n* `1 <= n <= 200`",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public int numberOfMatches(int n) {\n        \n    }\n}",
-  "tags": ["Math", "Simulation"],
+  "initialCode": "class Solution {\n    public int numberOfMatches(int n) {\n        // Write your code here\n        return 0;\n    }\n}",
+  "tags": [
+    "Math",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "n = 7", "output": "6" },
-    { "input": "n = 14", "output": "13" }
+    {
+      "input": "n = 7",
+      "output": "6"
+    },
+    {
+      "input": "n = 14",
+      "output": "13"
+    }
+  ],
+  "tests": [
+    {
+      "input": "n = 7",
+      "output": "6",
+      "description": "sample odd-team tournament with a bye round"
+    },
+    {
+      "input": "n = 14",
+      "output": "13",
+      "description": "sample even start followed by odd and even rounds"
+    },
+    {
+      "input": "n = 1",
+      "output": "0",
+      "description": "one team is already the winner, so no match is played"
+    },
+    {
+      "input": "n = 2",
+      "output": "1",
+      "description": "two teams need exactly one final match"
+    },
+    {
+      "input": "n = 3",
+      "output": "2",
+      "description": "smallest odd tournament with one automatic advance"
+    },
+    {
+      "input": "n = 4",
+      "output": "3",
+      "description": "small even tournament with two full rounds"
+    },
+    {
+      "input": "n = 8",
+      "output": "7",
+      "description": "power of two tournament eliminates one team per match"
+    },
+    {
+      "input": "n = 15",
+      "output": "14",
+      "description": "large odd tournament still eliminates exactly n - 1 teams"
+    },
+    {
+      "input": "n = 199",
+      "output": "198",
+      "description": "near-upper odd boundary"
+    },
+    {
+      "input": "n = 200",
+      "output": "199",
+      "description": "upper boundary checks the direct formula"
+    }
   ],
   "solutions": [
     {
-      "name": "Math (n-1)",
+      "name": "Elimination Formula",
       "timeComplexity": "O(1)",
       "spaceComplexity": "O(1)",
-      "description": "Every match eliminates exactly one team. To go from n teams to 1 winner, we need n-1 eliminations, so the answer is always n-1.",
+      "description": "## Approach\nReturn `n - 1` directly. A single-elimination tournament starts with `n` teams and finishes with exactly one champion.\n\n## Key Insight\nEvery played match eliminates exactly one team. To reduce the field from `n` teams to one champion, exactly `n - 1` teams must be eliminated, so exactly `n - 1` matches must be played.\n\n## Complexity Analysis\nThe answer is computed with one subtraction, so the time complexity is O(1). No additional data structure is used, so the space complexity is O(1).",
       "code": "class Solution {\n    public int numberOfMatches(int n) {\n        return n - 1;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Simulation",
+      "name": "Round Simulation",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(1)",
-      "description": "Simulate each round: if even, n/2 matches and n/2 advance; if odd, (n-1)/2 matches and (n-1)/2+1 advance. Sum all matches.",
+      "description": "## Approach\nSimulate the tournament round by round. Each round plays `n / 2` matches, and the next round has `(n + 1) / 2` teams because an odd team count includes one automatic advance.\n\n## Key Insight\nInteger division already gives the number of pairs in the current round. The expression `(n + 1) / 2` is the number of advancing teams for both even and odd team counts.\n\n## Complexity Analysis\nThe number of teams is roughly halved each round, so the time complexity is O(log n). The simulation stores only counters, so the space complexity is O(1).",
       "code": "class Solution {\n    public int numberOfMatches(int n) {\n        int matches = 0;\n        while (n > 1) {\n            matches += n / 2;\n            n = (n + 1) / 2;\n        }\n        return matches;\n    }\n}",
       "language": "java"
+    },
+    {
+      "name": "Recursive Tournament Reduction",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(log n)",
+      "description": "## Approach\nWrite the same round reduction recursively. The current call contributes `n / 2` matches, then recurses on the number of teams that advance to the next round.\n\n## Key Insight\nThe base case is `n == 1`, when the champion is already known and no more matches are needed. Each recursive call represents one tournament round.\n\n## Complexity Analysis\nThe team count is reduced by about half per call, so the time complexity is O(log n). The recursion stack stores one frame per round, so the space complexity is O(log n).",
+      "code": "class Solution {\n    public int numberOfMatches(int n) {\n        if (n == 1) {\n            return 0;\n        }\n        int matchesThisRound = n / 2;\n        int teamsNextRound = (n + 1) / 2;\n        return matchesThisRound + numberOfMatches(teamsNextRound);\n    }\n}",
+      "language": "java"
     }
-  ],
-  "tests": [
-    { "input": "n = 7", "output": "6" },
-    { "input": "n = 14", "output": "13" }
   ]
 }

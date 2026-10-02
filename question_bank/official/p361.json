@@ -1,36 +1,154 @@
 {
   "id": "361",
   "title": "Patching Array",
-  "description": "# Patching Array\n\nGiven a sorted integer array `nums` and an integer `n`, add/patch elements to the array such that any number in the range `[1, n]` inclusive can be formed by the sum of some elements in the array.\n\nReturn *the minimum number of patches required*.\n\n## Example 1:\n\n**Input:** nums = [1,3], n = 6\n**Output:** 1\n**Explanation:**\nCombinations of nums are [1], [3], [1,3], which form possible sums of: 1, 3, 4.\nNow if we add/patch 2 to nums, the combinations are: [1], [2], [3], [1,3], [2,3], [1,2,3].\nPossible sums are 1, 2, 3, 4, 5, 6, which now covers the range [1, 6].\nSo we only need 1 patch.\n\n## Example 2:\n\n**Input:** nums = [1,5,10], n = 20\n**Output:** 2\n**Explanation:** The two patches can be [2, 4].\n\n## Example 3:\n\n**Input:** nums = [1,2,2], n = 5\n**Output:** 0\n\n## Constraints:\n\n*   `1 <= nums.length <= 1000`\n*   `1 <= nums[i] <= 10^4`\n*   `nums` is sorted in **ascending order**.\n*   `1 <= n <= 2^31 - 1`",
+  "description": "# Patching Array\n\nGiven a sorted positive integer array `nums` and an integer `n`, add as few positive integers as possible so that every value in `[1, n]` can be represented as the sum of some elements from the final array.\n\nReturn the minimum number of added elements, also called patches.\n\nUse each occurrence at most once within a sum. Different target values may use different subsets: `[1,2]` represents `1`, `2`, and `3`.\n\n## Example 1:\n\n**Input:** nums = [1,3], n = 6\n**Output:** 1\n**Explanation:** Before patching, the covered sums are `1`, `3`, and `4`. Adding `2` makes every value from `1` through `6` representable.\n\n## Example 2:\n\n**Input:** nums = [1,5,10], n = 20\n**Output:** 2\n**Explanation:** Patching `2` and `4` is enough to cover all values from `1` through `20`.\n\n## Example 3:\n\n**Input:** nums = [1,2,2], n = 5\n**Output:** 0\n**Explanation:** The existing values already cover the full range `[1, 5]`.\n\n## Constraints:\n\n* `1 <= nums.length <= 1000`\n* `1 <= nums[i] <= 10^4`\n* `nums` is sorted in nondecreasing order.\n* `1 <= n <= 2^31 - 1`.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int minPatches(int[] nums, int n) {\n        \n    }\n}",
-  "tags": ["Array", "Greedy"],
+  "initialCode": "class Solution {\n    public int minPatches(int[] nums, int n) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Greedy"
+  ],
   "examples": [
-    { "input": "nums = [1,3], n = 6", "output": "1" },
-    { "input": "nums = [1,5,10], n = 20", "output": "2" },
-    { "input": "nums = [1,2,2], n = 5", "output": "0" }
+    {
+      "input": "nums = [1,3], n = 6",
+      "output": "1"
+    },
+    {
+      "input": "nums = [1,5,10], n = 20",
+      "output": "2"
+    },
+    {
+      "input": "nums = [1,2,2], n = 5",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
-      "name": "Greedy Coverage Extension",
+      "name": "Smallest Missing Greedy",
       "timeComplexity": "O(m + log n)",
       "spaceComplexity": "O(1)",
-      "description": "Track 'miss' = the smallest number we can't form yet. If nums[i] <= miss, extend coverage to miss + nums[i]. Otherwise, patch by adding miss itself (doubles coverage). Continue until miss > n.",
-      "code": "class Solution {\n    public int minPatches(int[] nums, int n) {\n        long miss = 1;\n        int patches = 0, i = 0;\n        while (miss <= n) {\n            if (i < nums.length && nums[i] <= miss) {\n                miss += nums[i++];\n            } else {\n                miss += miss;\n                patches++;\n            }\n        }\n        return patches;\n    }\n}",
+      "description": "## Approach\n\nMaintain `miss`, the smallest positive value that cannot yet be represented. At any moment, all values in `[1, miss - 1]` are covered. If the next array value is at most `miss`, we can consume it and extend coverage. Otherwise, we must patch `miss` itself, which expands coverage as far as possible.\n\n## Key Insight\n\nWhen `miss` is not covered and the next unused number is larger than `miss`, no existing element can help create `miss`. Patching any value larger than `miss` still leaves `miss` missing, and patching any smaller value expands coverage less than patching exactly `miss`.\n\n## Complexity Analysis\n\n- Time Complexity: O(m + log n), where `m = nums.length`\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int minPatches(int[] nums, int n) {\n        long miss = 1;\n        int patches = 0;\n        int index = 0;\n        while (miss <= n) {\n            if (index < nums.length && nums[index] <= miss) {\n                miss += nums[index];\n                index++;\n            } else {\n                miss += miss;\n                patches++;\n            }\n        }\n        return patches;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Greedy with Explicit Tracking",
+      "name": "Reach Interval Greedy",
       "timeComplexity": "O(m + log n)",
       "spaceComplexity": "O(1)",
-      "description": "Same greedy principle but explicitly track the reachable range [1, reach]. Iterate through nums: if current num fits within reach+1, extend reach. Otherwise, patch by adding reach+1 which doubles the reachable range.",
-      "code": "class Solution {\n    public int minPatches(int[] nums, int n) {\n        long reach = 0;\n        int patches = 0;\n        int i = 0;\n        while (reach < n) {\n            if (i < nums.length && nums[i] <= reach + 1) {\n                reach += nums[i];\n                i++;\n            } else {\n                reach += reach + 1;\n                patches++;\n            }\n        }\n        return patches;\n    }\n}",
+      "description": "## Approach\n\nTrack the covered interval as `[1, reach]`. The next value we need to cover is `reach + 1`. If `nums[index] <= reach + 1`, consuming it extends the interval to `reach + nums[index]`. If not, patch `reach + 1` and the interval becomes `[1, 2 * reach + 1]`.\n\n## Key Insight\n\nThis is the same invariant as the `miss` version, written in inclusive interval form. The formula makes it clear why the chosen patch doubles the reachable prefix plus one, which is the maximum safe expansion without leaving a gap.\n\n## Complexity Analysis\n\n- Time Complexity: O(m + log n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int minPatches(int[] nums, int n) {\n        long reach = 0;\n        int patches = 0;\n        int index = 0;\n        while (reach < n) {\n            if (index < nums.length && nums[index] <= reach + 1) {\n                reach += nums[index];\n                index++;\n            } else {\n                reach += reach + 1;\n                patches++;\n            }\n        }\n        return patches;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Consume Before Patching",
+      "timeComplexity": "O(m + log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nKeep `coverage`, meaning all sums up to `coverage` are representable. Before adding a patch, consume every unused `nums[index]` that is no larger than `coverage + 1`. Only when no existing value can extend the range do we patch `coverage + 1`.\n\n## Key Insight\n\nThe greedy choice should use free existing values before spending a patch. Once all usable values are consumed, the first missing value is exactly `coverage + 1`, and adding that value is the unique optimal patch for the current gap.\n\n## Complexity Analysis\n\n- Time Complexity: O(m + log n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int minPatches(int[] nums, int n) {\n        long coverage = 0;\n        int index = 0;\n        int patches = 0;\n        while (coverage < n) {\n            while (index < nums.length && nums[index] <= coverage + 1) {\n                coverage += nums[index];\n                index++;\n                if (coverage >= n) return patches;\n            }\n            coverage += coverage + 1;\n            patches++;\n        }\n        return patches;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Gap-Bounded Patch Filling",
+      "timeComplexity": "O(m + log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nProcess existing values as milestones. If the next array value is usable, consume it. If it is too large, repeatedly patch the current first missing value until the covered range reaches either `n` or the value just before the next array element.\n\n## Key Insight\n\nThis version groups patches by the next real number in `nums`. It explains the greedy algorithm as filling the gap before each unusable array value, while still using the same optimal patch `coverage + 1` inside the gap.\n\n## Complexity Analysis\n\n- Time Complexity: O(m + log n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int minPatches(int[] nums, int n) {\n        long coverage = 0;\n        int index = 0;\n        int patches = 0;\n        while (coverage < n) {\n            long nextValue = index < nums.length ? nums[index] : Long.MAX_VALUE;\n            if (nextValue <= coverage + 1) {\n                coverage += nextValue;\n                index++;\n                continue;\n            }\n            long limit = Math.min((long) n, nextValue - 1);\n            while (coverage < limit) {\n                long patch = coverage + 1;\n                coverage += patch;\n                patches++;\n            }\n        }\n        return patches;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Coverage Selection",
+      "timeComplexity": "O(m + log n)",
+      "spaceComplexity": "O(m + log n)",
+      "description": "## Approach\n\nWrite the same greedy invariant recursively. The recursive state is `(index, miss)`: the next unused array position and the first missing value. If `miss > n`, no more patches are needed. If the next number can cover `miss`, consume it; otherwise, patch `miss` and recurse with doubled coverage.\n\n## Key Insight\n\nThe recursion makes the proof state explicit. Each call has one responsibility: either accept a usable original value or insert the smallest currently missing value. That mirrors the exchange argument without hiding it inside loop mechanics.\n\n## Complexity Analysis\n\n- Time Complexity: O(m + log n)\n- Space Complexity: O(m + log n)",
+      "code": "class Solution {\n    public int minPatches(int[] nums, int n) {\n        return solve(nums, n, 0, 1L);\n    }\n\n    private int solve(int[] nums, int n, int index, long miss) {\n        if (miss > n) return 0;\n        if (index < nums.length && nums[index] <= miss) {\n            return solve(nums, n, index + 1, miss + nums[index]);\n        }\n        return 1 + solve(nums, n, index, miss + miss);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [1,3], n = 6", "output": "1" },
-    { "input": "nums = [1,5,10], n = 20", "output": "2" },
-    { "input": "nums = [1,2,2], n = 5", "output": "0" }
+    {
+      "input": "nums = [1,3], n = 6",
+      "output": "1",
+      "description": "canonical missing value 2"
+    },
+    {
+      "input": "nums = [1,5,10], n = 20",
+      "output": "2",
+      "description": "two patches fill early gaps"
+    },
+    {
+      "input": "nums = [1,2,2], n = 5",
+      "output": "0",
+      "description": "already covers the sample range"
+    },
+    {
+      "input": "nums = [2,3], n = 7",
+      "output": "2",
+      "description": "must patch 1 before existing numbers help"
+    },
+    {
+      "input": "nums = [1,2,3], n = 6",
+      "output": "0",
+      "description": "exact prefix coverage reaches n"
+    },
+    {
+      "input": "nums = [1,2,31,33], n = 2147483647",
+      "output": "28",
+      "description": "large n requires long coverage arithmetic"
+    },
+    {
+      "input": "nums = [1], n = 1",
+      "output": "0",
+      "description": "single usable value covers the target"
+    },
+    {
+      "input": "nums = [1], n = 2",
+      "output": "1",
+      "description": "one patch after consuming 1"
+    },
+    {
+      "input": "nums = [2], n = 1",
+      "output": "1",
+      "description": "array value above n cannot cover 1"
+    },
+    {
+      "input": "nums = [2], n = 5",
+      "output": "2",
+      "description": "patch 1, consume 2, then patch 4"
+    },
+    {
+      "input": "nums = [1,2,4,8,16], n = 31",
+      "output": "0",
+      "description": "powers of two exactly cover every prefix sum"
+    },
+    {
+      "input": "nums = [1,2,4,8,16], n = 32",
+      "output": "1",
+      "description": "one more value is needed past exact coverage"
+    },
+    {
+      "input": "nums = [1,1,1], n = 10",
+      "output": "2",
+      "description": "repeated ones do not double coverage efficiently"
+    },
+    {
+      "input": "nums = [1,2,2,2], n = 10",
+      "output": "1",
+      "description": "duplicates can be consumed before one patch"
+    },
+    {
+      "input": "nums = [1,5,10], n = 50",
+      "output": "4",
+      "description": "sample array with a larger target"
+    },
+    {
+      "input": "nums = [1,10000], n = 100000",
+      "output": "15",
+      "description": "large gap before a high existing value"
+    },
+    {
+      "input": "nums = [1,2,2,1000], n = 1000000",
+      "output": "17",
+      "description": "large tail target after consuming small duplicates"
+    }
   ]
 }

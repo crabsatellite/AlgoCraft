@@ -1,34 +1,138 @@
 {
   "id": "346",
   "title": "Frog Jump",
-  "description": "# Frog Jump\n\nA frog is crossing a river. The river is divided into some number of units, and at each unit, there may or may not be a stone. The frog can jump on a stone, but it must not jump into the water.\n\nGiven a list of `stones`' positions (in units) in sorted ascending order, determine if the frog can cross the river by landing on the last stone. Initially, the frog is on the first stone and assumes the first jump must be `1` unit.\n\nIf the frog's last jump was `k` units, its next jump must be either `k - 1`, `k`, or `k + 1` units. The frog can only jump in the forward direction.\n\n## Example 1:\n\n**Input:** stones = [0,1,3,5,6,8,12,17]\n**Output:** true\n**Explanation:** The frog can jump to the last stone by jumping 1 unit to the 2nd stone, then 2 units to the 3rd stone, then 2 units to the 4th stone, then 3 units to the 6th stone, 4 units to the 7th stone, and 5 units to the 8th stone.\n\n## Example 2:\n\n**Input:** stones = [0,1,2,3,4,8,9,11]\n**Output:** false\n**Explanation:** There is no way to jump to the last stone as the gap between the 5th and 6th stone is too large.\n\n## Constraints:\n\n*   `2 <= stones.length <= 2000`\n*   `0 <= stones[i] <= 2^31 - 1`\n*   `stones[0] == 0`\n*   `stones` is sorted in a strictly increasing order.",
+  "description": "# Frog Jump\n\nA frog wants to cross a river by landing only on stones. The stones are given as a strictly increasing array `stones`, where `stones[i]` is the position of the `i`th stone.\n\nThe frog starts on `stones[0]`, which is always position `0`. Its first jump must be exactly `1` unit. After the frog makes a jump of length `k`, its next jump may have length `k - 1`, `k`, or `k + 1`.\n\nThe frog may only jump forward, and it may land only on positions that contain stones. Return `true` if the frog can land on the last stone, otherwise return `false`.\n\n## Example 1:\n\n**Input:** stones = [0,1,3,5,6,8,12,17]\n\n**Output:** true\n\n**Explanation:** One valid route uses jump lengths 1, 2, 2, 3, 4, and 5.\n\n## Example 2:\n\n**Input:** stones = [0,1,2,3,4,8,9,11]\n\n**Output:** false\n\n**Explanation:** After the early stones, the gap to position 8 is too large for any valid previous jump length.\n\n## Constraints:\n\n* `2 <= stones.length <= 2000`\n* `0 <= stones[i] <= 2^31 - 1`\n* `stones[0] == 0`\n* `stones` is sorted in strictly increasing order.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public boolean canCross(int[] stones) {\n        \n    }\n}",
-  "tags": ["Array", "Dynamic Programming"],
+  "initialCode": "class Solution {\n    public boolean canCross(int[] stones) {\n        return false;\n    }\n}",
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Dynamic Programming",
+    "Depth-First Search",
+    "Breadth-First Search"
+  ],
   "examples": [
-    { "input": "stones = [0,1,3,5,6,8,12,17]", "output": "true" },
-    { "input": "stones = [0,1,2,3,4,8,9,11]", "output": "false" }
+    {
+      "input": "stones = [0,1,3,5,6,8,12,17]",
+      "output": "true"
+    },
+    {
+      "input": "stones = [0,1,2,3,4,8,9,11]",
+      "output": "false"
+    }
   ],
   "solutions": [
     {
-      "name": "HashMap with Jump Sizes",
+      "name": "Position-to-Jump Set DP",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n^2)",
-      "description": "Use a HashMap mapping each stone position to a set of possible jump sizes that can reach it. For each stone, try jumping k-1, k, k+1 to the next stones. If the last stone is reachable, return true.",
-      "code": "class Solution {\n    public boolean canCross(int[] stones) {\n        java.util.Map<Integer, java.util.Set<Integer>> map = new java.util.HashMap<>();\n        for (int s : stones) map.put(s, new java.util.HashSet<>());\n        map.get(0).add(0);\n        for (int s : stones) {\n            for (int k : map.get(s)) {\n                for (int step = k - 1; step <= k + 1; step++) {\n                    if (step > 0 && map.containsKey(s + step)) {\n                        map.get(s + step).add(step);\n                    }\n                }\n            }\n        }\n        return !map.get(stones[stones.length - 1]).isEmpty();\n    }\n}",
+      "description": "## Approach\n\nCreate a map from each stone position to the set of jump lengths that can land on that stone. Start with jump length `0` at position `0`, then propagate `k - 1`, `k`, and `k + 1` to later stones when those positions exist.\n\n## Key Insight\n\nThe complete state is not just the stone position. The last jump length controls the next legal moves, so each stone must remember every last jump size that can reach it.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(n^2)",
+      "code": "class Solution {\n    public boolean canCross(int[] stones) {\n        java.util.Map<Integer, java.util.Set<Integer>> jumpsByPosition = new java.util.HashMap<>();\n        for (int stone : stones) {\n            jumpsByPosition.put(stone, new java.util.HashSet<>());\n        }\n        jumpsByPosition.get(0).add(0);\n        int target = stones[stones.length - 1];\n        for (int stone : stones) {\n            for (int lastJump : jumpsByPosition.get(stone)) {\n                for (int nextJump = lastJump - 1; nextJump <= lastJump + 1; nextJump++) {\n                    if (nextJump <= 0) {\n                        continue;\n                    }\n                    int nextPosition = stone + nextJump;\n                    java.util.Set<Integer> nextJumps = jumpsByPosition.get(nextPosition);\n                    if (nextJumps == null) {\n                        continue;\n                    }\n                    if (nextPosition == target) {\n                        return true;\n                    }\n                    nextJumps.add(nextJump);\n                }\n            }\n        }\n        return false;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "2D DP Array",
+      "name": "Stone-Pair Dynamic Programming",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n^2)",
-      "description": "Use a 2D boolean array dp[i][k] where i is the stone index and k is the last jump size. Map stone positions to indices for fast lookup. For each stone, try all valid previous jumps.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean canCross(int[] stones) {\n        int n = stones.length;\n        Map<Integer, Integer> posToIdx = new HashMap<>();\n        for (int i = 0; i < n; i++) posToIdx.put(stones[i], i);\n        boolean[][] dp = new boolean[n][n + 1];\n        dp[0][0] = true;\n        for (int i = 0; i < n; i++) {\n            for (int k = 0; k <= i; k++) {\n                if (!dp[i][k]) continue;\n                for (int jump = k - 1; jump <= k + 1; jump++) {\n                    if (jump <= 0) continue;\n                    int nextPos = stones[i] + jump;\n                    if (posToIdx.containsKey(nextPos)) {\n                        int nextIdx = posToIdx.get(nextPos);\n                        if (jump < dp[0].length) {\n                            dp[nextIdx][jump] = true;\n                        }\n                    }\n                }\n            }\n        }\n        for (int k = 0; k <= n; k++) {\n            if (dp[n - 1][k]) return true;\n        }\n        return false;\n    }\n}",
+      "description": "## Approach\n\nLet `dp[i][k]` mean that the frog can land on stone `i` with a last jump of length `k`. For each pair of stones `j < i`, compute `jump = stones[i] - stones[j]` and check whether stone `j` was reachable with `jump - 1`, `jump`, or `jump + 1`.\n\n## Key Insight\n\nInstead of pushing states forward, this route asks whether the last jump into the current stone could have come from each earlier stone. It makes the recurrence behind the state graph explicit.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(n^2)",
+      "code": "class Solution {\n    public boolean canCross(int[] stones) {\n        int n = stones.length;\n        boolean[][] dp = new boolean[n][n + 1];\n        dp[0][0] = true;\n        for (int i = 1; i < n; i++) {\n            for (int j = 0; j < i; j++) {\n                int jump = stones[i] - stones[j];\n                if (jump > n) {\n                    continue;\n                }\n                boolean reachable = dp[j][jump];\n                if (jump > 0) {\n                    reachable = reachable || dp[j][jump - 1];\n                }\n                if (jump + 1 <= n) {\n                    reachable = reachable || dp[j][jump + 1];\n                }\n                if (reachable) {\n                    dp[i][jump] = true;\n                    if (i == n - 1) {\n                        return true;\n                    }\n                }\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "DFS Memo on Stone and Jump",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nUse recursive search on `(stoneIndex, lastJump)`. A hash map converts a target position into its stone index, and a memo table stores whether each state can eventually reach the final stone.\n\n## Key Insight\n\nThe same stone and last jump may be reached through several routes. Once that state is solved, the answer is independent of the path used to get there, so memoization removes the exponential branching.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(n^2)",
+      "code": "class Solution {\n    private int[] stones;\n    private java.util.Map<Integer, Integer> indexByPosition;\n    private Boolean[][] memo;\n\n    public boolean canCross(int[] stones) {\n        this.stones = stones;\n        int n = stones.length;\n        indexByPosition = new java.util.HashMap<>();\n        for (int i = 0; i < n; i++) {\n            indexByPosition.put(stones[i], i);\n        }\n        memo = new Boolean[n][n + 1];\n        return dfs(0, 0);\n    }\n\n    private boolean dfs(int index, int lastJump) {\n        if (index == stones.length - 1) {\n            return true;\n        }\n        if (lastJump <= stones.length && memo[index][lastJump] != null) {\n            return memo[index][lastJump];\n        }\n        for (int nextJump = lastJump - 1; nextJump <= lastJump + 1; nextJump++) {\n            if (nextJump <= 0) {\n                continue;\n            }\n            Integer nextIndex = indexByPosition.get(stones[index] + nextJump);\n            if (nextIndex != null && dfs(nextIndex, nextJump)) {\n                if (lastJump <= stones.length) {\n                    memo[index][lastJump] = true;\n                }\n                return true;\n            }\n        }\n        if (lastJump <= stones.length) {\n            memo[index][lastJump] = false;\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "BFS over Reachable States",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nTreat every `(stoneIndex, lastJump)` pair as a node in a graph. Start from `(0, 0)`, use a queue to explore valid next jumps, and mark visited states so the same pair is not processed twice.\n\n## Key Insight\n\nThis is the same state space as DFS memoization, but breadth-first traversal makes it clear that the task is reachability in a finite directed graph of legal frog states.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(n^2)",
+      "code": "class Solution {\n    public boolean canCross(int[] stones) {\n        int n = stones.length;\n        java.util.Map<Integer, Integer> indexByPosition = new java.util.HashMap<>();\n        for (int i = 0; i < n; i++) {\n            indexByPosition.put(stones[i], i);\n        }\n        boolean[][] visited = new boolean[n][n + 1];\n        java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();\n        queue.add(new int[] {0, 0});\n        visited[0][0] = true;\n        while (!queue.isEmpty()) {\n            int[] state = queue.removeFirst();\n            int index = state[0];\n            int lastJump = state[1];\n            for (int nextJump = lastJump - 1; nextJump <= lastJump + 1; nextJump++) {\n                if (nextJump <= 0 || nextJump > n) {\n                    continue;\n                }\n                Integer nextIndex = indexByPosition.get(stones[index] + nextJump);\n                if (nextIndex == null || visited[nextIndex][nextJump]) {\n                    continue;\n                }\n                if (nextIndex == n - 1) {\n                    return true;\n                }\n                visited[nextIndex][nextJump] = true;\n                queue.addLast(new int[] {nextIndex, nextJump});\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "BitSet Jump Sets",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nUse one `BitSet` per stone. Bit `k` in `reachable[i]` means that stone `i` can be reached with a last jump length of `k`. Iterate over the set bits and propagate the next legal jump lengths to later stones.\n\n## Key Insight\n\nThe set-DP idea can be stored more compactly when jump lengths are bounded by the number of stones. A `BitSet` keeps the same states while avoiding many small hash-set allocations.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(n^2)",
+      "code": "class Solution {\n    public boolean canCross(int[] stones) {\n        int n = stones.length;\n        java.util.Map<Integer, Integer> indexByPosition = new java.util.HashMap<>();\n        for (int i = 0; i < n; i++) {\n            indexByPosition.put(stones[i], i);\n        }\n        java.util.BitSet[] reachable = new java.util.BitSet[n];\n        for (int i = 0; i < n; i++) {\n            reachable[i] = new java.util.BitSet(n + 1);\n        }\n        reachable[0].set(0);\n        for (int i = 0; i < n; i++) {\n            for (int lastJump = reachable[i].nextSetBit(0); lastJump >= 0; lastJump = reachable[i].nextSetBit(lastJump + 1)) {\n                for (int nextJump = lastJump - 1; nextJump <= lastJump + 1; nextJump++) {\n                    if (nextJump <= 0 || nextJump > n) {\n                        continue;\n                    }\n                    Integer nextIndex = indexByPosition.get(stones[i] + nextJump);\n                    if (nextIndex == null) {\n                        continue;\n                    }\n                    if (nextIndex == n - 1) {\n                        return true;\n                    }\n                    reachable[nextIndex].set(nextJump);\n                }\n            }\n        }\n        return false;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "stones = [0,1,3,5,6,8,12,17]", "output": "true" },
-    { "input": "stones = [0,1,2,3,4,8,9,11]", "output": "false" }
+    {
+      "input": "stones = [0,1,3,5,6,8,12,17]",
+      "output": "true",
+      "description": "canonical reachable river"
+    },
+    {
+      "input": "stones = [0,1,2,3,4,8,9,11]",
+      "output": "false",
+      "description": "gap after early small jumps is too large"
+    },
+    {
+      "input": "stones = [0,1]",
+      "output": "true",
+      "description": "single required first jump"
+    },
+    {
+      "input": "stones = [0,2]",
+      "output": "false",
+      "description": "first jump must be exactly one unit"
+    },
+    {
+      "input": "stones = [0,1,2,3,4,5]",
+      "output": "true",
+      "description": "can keep jumping one unit"
+    },
+    {
+      "input": "stones = [0,1,3,6,10,15,16,21]",
+      "output": "true",
+      "description": "reachable despite a distracting stone at position 16"
+    },
+    {
+      "input": "stones = [0,1,3,6,10,13,15,18]",
+      "output": "true",
+      "description": "route must decrease jump length before increasing again"
+    },
+    {
+      "input": "stones = [0,1,3,6,10,15,22]",
+      "output": "false",
+      "description": "final gap is just beyond the maximum next jump"
+    },
+    {
+      "input": "stones = [0,1,3,4,5,7,9,10,12]",
+      "output": "true",
+      "description": "several small choices before the successful route"
+    },
+    {
+      "input": "stones = [0,1,2,4,7,11,16]",
+      "output": "true",
+      "description": "jump lengths grow by one after an early repeated jump"
+    },
+    {
+      "input": "stones = [0,1,2,4,8,9,11]",
+      "output": "false",
+      "description": "early reachable stones still cannot bridge a later gap"
+    },
+    {
+      "input": "stones = [0,1,3,6,7]",
+      "output": "false",
+      "description": "a nearby last stone is unreachable after a large previous jump"
+    },
+    {
+      "input": "stones = [0,1,3,6,10,14,19,25,32]",
+      "output": "true",
+      "description": "longer path with a plateau before increasing jumps"
+    },
+    {
+      "input": "stones = [0,1,3,6,10,14,18,23,29,36]",
+      "output": "true",
+      "description": "extended reachable route with multiple equal jumps"
+    }
   ]
 }

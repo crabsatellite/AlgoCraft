@@ -1,34 +1,116 @@
 {
   "id": "263",
   "title": "Convert the Temperature",
-  "description": "# Convert the Temperature\n\nYou are given a non-negative floating point number rounded to two decimal places `celsius`, that denotes the **temperature in Celsius**.\n\nYou should convert Celsius into **Kelvin** and **Fahrenheit** and return it as an array `ans = [kelvin, fahrenheit]`.\n\nReturn *the array `ans`*. Answers within `10^-5` of the actual answer will be accepted.\n\n**Note that:**\n\n*   `Kelvin = Celsius + 273.15`\n*   `Fahrenheit = Celsius * 1.80 + 32.00`\n\n## Example 1:\n\n**Input:** celsius = 36.50\n**Output:** [309.65000,97.70000]\n**Explanation:** Temperature at 36.50 Celsius converted in Kelvin is 309.65 and converted in Fahrenheit is 97.70.\n\n## Example 2:\n\n**Input:** celsius = 122.11\n**Output:** [395.26000,251.79800]\n**Explanation:** Temperature at 122.11 Celsius converted in Kelvin is 395.26 and converted in Fahrenheit is 251.798.\n\n## Constraints:\n\n*   `0 <= celsius <= 1000`",
+  "description": "# Convert the Temperature\n\nYou are given a non-negative floating point number `celsius`, rounded to two decimal places, representing a temperature in Celsius.\n\nConvert it to Kelvin and Fahrenheit, and return the values in this exact order:\n\n`[kelvin, fahrenheit]`\n\nUse these formulas:\n\n*   `Kelvin = Celsius + 273.15`\n*   `Fahrenheit = Celsius * 1.80 + 32.00`\n\nAnswers within `10^-5` of the expected values are accepted.\n\n## Example 1:\n\n**Input:** celsius = 36.50\n**Output:** [309.65000,97.70000]\n**Explanation:** 36.50 Celsius is 309.65 Kelvin and 97.70 Fahrenheit.\n\n## Example 2:\n\n**Input:** celsius = 122.11\n**Output:** [395.26000,251.79800]\n**Explanation:** 122.11 Celsius is 395.26 Kelvin and 251.798 Fahrenheit.\n\n## Constraints:\n\n*   `0 <= celsius <= 1000`\n*   `celsius` is rounded to two decimal places",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public double[] convertTemperature(double celsius) {\n        // Write your code here\n        return new double[]{};\n    }\n}",
-  "tags": ["Math"],
+  "tags": [
+    "Math"
+  ],
   "examples": [
-    { "input": "celsius = 36.50", "output": "[309.65000,97.70000]" },
-    { "input": "celsius = 122.11", "output": "[395.26000,251.79800]" }
+    {
+      "input": "celsius = 36.50",
+      "output": "[309.65000,97.70000]"
+    },
+    {
+      "input": "celsius = 122.11",
+      "output": "[395.26000,251.79800]"
+    }
   ],
   "solutions": [
     {
       "name": "Direct Formula",
       "timeComplexity": "O(1)",
       "spaceComplexity": "O(1)",
-      "description": "Apply the conversion formulas directly.",
+      "description": "## Approach\n\nApply both conversion formulas directly in the return statement, placing Kelvin first and Fahrenheit second.\n\n## Key Insight\n\nThe problem is a fixed arithmetic transformation, so the main correctness risk is returning the two values in the required order.\n\n## Complexity Analysis\n- Time Complexity: O(1)\n- Space Complexity: O(1)",
       "code": "class Solution {\n    public double[] convertTemperature(double celsius) {\n        return new double[]{celsius + 273.15, celsius * 1.80 + 32.00};\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Explicit Variables",
+      "name": "Named Intermediate Values",
       "timeComplexity": "O(1)",
       "spaceComplexity": "O(1)",
-      "description": "Compute Kelvin and Fahrenheit in separate variables for clarity, then return as array.",
-      "code": "class Solution {\n    public double[] convertTemperature(double celsius) {\n        double kelvin = celsius + 273.15;\n        double fahrenheit = celsius * 1.80 + 32.00;\n        double[] result = new double[2];\n        result[0] = kelvin;\n        result[1] = fahrenheit;\n        return result;\n    }\n}",
+      "description": "## Approach\n\nStore the Kelvin and Fahrenheit results in separate variables before returning them.\n\n## Key Insight\n\nNaming the two converted values makes the output order explicit and reduces the chance of swapping Kelvin and Fahrenheit.\n\n## Complexity Analysis\n- Time Complexity: O(1)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public double[] convertTemperature(double celsius) {\n        double kelvin = celsius + 273.15;\n        double fahrenheit = celsius * 1.80 + 32.00;\n        return new double[]{kelvin, fahrenheit};\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Affine Conversion Table",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nRepresent each conversion as `scale * celsius + offset`, then apply the same formula to the Kelvin and Fahrenheit table entries.\n\n## Key Insight\n\nBoth conversions are affine transformations, so a shared table-driven loop can express the common structure without changing the result.\n\n## Complexity Analysis\n- Time Complexity: O(1)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public double[] convertTemperature(double celsius) {\n        double[] scales = {1.0, 1.80};\n        double[] offsets = {273.15, 32.00};\n        double[] answer = new double[2];\n        for (int i = 0; i < 2; i++) {\n            answer[i] = scales[i] * celsius + offsets[i];\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Named Constants And Helpers",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nMove the numeric constants into named fields and use helper methods for the two conversions.\n\n## Key Insight\n\nFor formula-heavy code, named constants document why each number appears, and helper methods keep the return statement focused on output order.\n\n## Complexity Analysis\n- Time Complexity: O(1)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    private static final double KELVIN_OFFSET = 273.15;\n    private static final double FAHRENHEIT_SCALE = 1.80;\n    private static final double FAHRENHEIT_OFFSET = 32.00;\n\n    public double[] convertTemperature(double celsius) {\n        return new double[]{toKelvin(celsius), toFahrenheit(celsius)};\n    }\n\n    private double toKelvin(double celsius) {\n        return celsius + KELVIN_OFFSET;\n    }\n\n    private double toFahrenheit(double celsius) {\n        return celsius * FAHRENHEIT_SCALE + FAHRENHEIT_OFFSET;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "celsius = 36.50", "output": "[309.65000,97.70000]" },
-    { "input": "celsius = 122.11", "output": "[395.26000,251.79800]" }
+    {
+      "input": "celsius = 36.50",
+      "output": "[309.65000,97.70000]",
+      "description": "sample with two decimal input"
+    },
+    {
+      "input": "celsius = 122.11",
+      "output": "[395.26000,251.79800]",
+      "description": "sample where Fahrenheit has three decimal places"
+    },
+    {
+      "input": "celsius = 0.00",
+      "output": "[273.15000,32.00000]",
+      "description": "minimum allowed value"
+    },
+    {
+      "input": "celsius = 1.00",
+      "output": "[274.15000,33.80000]",
+      "description": "small positive integer Celsius value"
+    },
+    {
+      "input": "celsius = 12.34",
+      "output": "[285.49000,54.21200]",
+      "description": "two-decimal input checks multiplication precision"
+    },
+    {
+      "input": "celsius = 25.00",
+      "output": "[298.15000,77.00000]",
+      "description": "common room-temperature sanity check"
+    },
+    {
+      "input": "celsius = 37.00",
+      "output": "[310.15000,98.60000]",
+      "description": "common body-temperature sanity check"
+    },
+    {
+      "input": "celsius = 100.00",
+      "output": "[373.15000,212.00000]",
+      "description": "boiling point sanity check"
+    },
+    {
+      "input": "celsius = 273.15",
+      "output": "[546.30000,523.67000]",
+      "description": "nontrivial decimal result in both outputs"
+    },
+    {
+      "input": "celsius = 500.55",
+      "output": "[773.70000,932.99000]",
+      "description": "mid-range two-decimal input"
+    },
+    {
+      "input": "celsius = 999.99",
+      "output": "[1273.14000,1831.98200]",
+      "description": "upper-end decimal value checks precision"
+    },
+    {
+      "input": "celsius = 1000.00",
+      "output": "[1273.15000,1832.00000]",
+      "description": "maximum allowed value"
+    }
   ]
 }

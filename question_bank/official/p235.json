@@ -4,17 +4,26 @@
   "description": "# Robot Return to Origin\n\nThere is a robot starting at the position `(0, 0)`, the origin, on a 2D plane. Given a sequence of its moves, judge if this robot **ends up at** `(0, 0)` after it completes its moves.\n\nYou are given a string `moves` that represents the move sequence of the robot where `moves[i]` represents its `i-th` move. Valid moves are `'R'` (right), `'L'` (left), `'U'` (up), and `'D'` (down).\n\nReturn `true` *if the robot returns to the origin after it finishes all of its moves, or* `false` *otherwise*.\n\n**Note**: The way that the robot is \"facing\" is irrelevant. `'R'` will always make the robot move to the right once, `'L'` will always make it move left, etc. Also, assume that the magnitude of the robot's movement is the same for each move.\n\n## Example 1:\n\n**Input:** moves = \"UD\"\n**Output:** true\n**Explanation:** The robot moves up once, and then down once. All moves have the same magnitude, so it ended up at the origin where it started. Therefore, we return true.\n\n## Example 2:\n\n**Input:** moves = \"LL\"\n**Output:** false\n**Explanation:** The robot moves left twice. It ends up two \"moves\" to the left of the origin. We return false because it is not at the origin at the end of its moves.\n\n## Constraints:\n\n*   `1 <= moves.length <= 2 * 10^4`\n*   `moves` only contains the characters `'U'`, `'D'`, `'L'` and `'R'`.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public boolean judgeCircle(String moves) {\n        // Write your code here\n        return false;\n    }\n}",
-  "tags": ["String", "Simulation"],
+  "tags": [
+    "String",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "moves = \"UD\"", "output": "true" },
-    { "input": "moves = \"LL\"", "output": "false" }
+    {
+      "input": "moves = \"UD\"",
+      "output": "true"
+    },
+    {
+      "input": "moves = \"LL\"",
+      "output": "false"
+    }
   ],
   "solutions": [
     {
       "name": "Count Moves",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Track x and y coordinates. U/D affect y, L/R affect x. Return true if both are zero at the end.",
+      "description": "## Approach\n\nTrack the robot's current position with `x` and `y` coordinates. `R` and `L` change `x`, while `U` and `D` change `y`. After all moves, return whether both coordinates are zero.\n\n## Key Insight\n\nThe path shape and facing direction do not matter. The robot returns to the origin exactly when the net horizontal displacement and the net vertical displacement are both zero.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
       "code": "class Solution {\n    public boolean judgeCircle(String moves) {\n        int x = 0, y = 0;\n        for (char c : moves.toCharArray()) {\n            if (c == 'U') y++;\n            else if (c == 'D') y--;\n            else if (c == 'L') x--;\n            else if (c == 'R') x++;\n        }\n        return x == 0 && y == 0;\n    }\n}",
       "language": "java"
     },
@@ -22,15 +31,95 @@
       "name": "Character Counting",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Count occurrences of each direction character. Return true if U count equals D count and L count equals R count.",
+      "description": "## Approach\n\nCount how many times each direction appears, then compare opposite directions. The horizontal axis balances when `R` and `L` have equal counts; the vertical axis balances when `U` and `D` have equal counts.\n\n## Key Insight\n\nEvery right move cancels exactly one left move, and every up move cancels exactly one down move. Because all moves have equal length, counts are enough to determine the final position.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
       "code": "class Solution {\n    public boolean judgeCircle(String moves) {\n        int[] counts = new int[128];\n        for (char c : moves.toCharArray()) {\n            counts[c]++;\n        }\n        return counts['U'] == counts['D'] && counts['L'] == counts['R'];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Axis Decomposition Two Pass",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCompute the horizontal balance in one pass by treating `R` as `+1` and `L` as `-1`. If it is not zero, return `false`; otherwise compute the vertical balance from `U` and `D` in the same way.\n\n## Key Insight\n\nThe two axes are independent. Splitting the check by axis makes it explicit that a path can have the right length or many canceling moves but still fail if either axis has nonzero net displacement.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean judgeCircle(String moves) {\n        if (axisBalance(moves, 'R', 'L') != 0) {\n            return false;\n        }\n        return axisBalance(moves, 'U', 'D') == 0;\n    }\n\n    private int axisBalance(String moves, char positive, char negative) {\n        int balance = 0;\n        for (int i = 0; i < moves.length(); i++) {\n            char move = moves.charAt(i);\n            if (move == positive) {\n                balance++;\n            } else if (move == negative) {\n                balance--;\n            }\n        }\n        return balance;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Direction Delta Lookup Table",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCreate two small ASCII lookup tables: one for `dx` and one for `dy`. Store each direction's coordinate delta in the tables, then sum the deltas for every move.\n\n## Key Insight\n\nA table-driven version removes the branch chain from the main loop. It also makes the movement model explicit: each character maps to a fixed vector, and returning to the origin means the sum of vectors is `(0, 0)`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean judgeCircle(String moves) {\n        int[] dx = new int[128];\n        int[] dy = new int[128];\n        dx['R'] = 1;\n        dx['L'] = -1;\n        dy['U'] = 1;\n        dy['D'] = -1;\n\n        int x = 0;\n        int y = 0;\n        for (int i = 0; i < moves.length(); i++) {\n            char move = moves.charAt(i);\n            x += dx[move];\n            y += dy[move];\n        }\n        return x == 0 && y == 0;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "One-Dimensional Displacement Encoding",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nEncode horizontal moves as plus or minus a base larger than the maximum possible vertical displacement, and encode vertical moves as plus or minus one. The final encoded displacement is zero only when both axes balance.\n\n## Key Insight\n\nChoosing `base = moves.length() + 1` prevents a horizontal imbalance from being hidden by vertical moves. This teaches how a two-dimensional invariant can be packed into one integer without collisions.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean judgeCircle(String moves) {\n        int base = moves.length() + 1;\n        int displacement = 0;\n        for (int i = 0; i < moves.length(); i++) {\n            char c = moves.charAt(i);\n            if (c == 'R') displacement += base;\n            else if (c == 'L') displacement -= base;\n            else if (c == 'U') displacement++;\n            else displacement--;\n        }\n        return displacement == 0;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "moves = \"UD\"", "output": "true" },
-    { "input": "moves = \"LL\"", "output": "false" },
-    { "input": "moves = \"RRDD\"", "output": "false" },
-    { "input": "moves = \"LDRRLRUULR\"", "output": "false" }
+    {
+      "input": "moves = \"UD\"",
+      "output": "true",
+      "description": "One up move and one down move cancel on the vertical axis."
+    },
+    {
+      "input": "moves = \"LL\"",
+      "output": "false",
+      "description": "Two left moves do not return to the origin."
+    },
+    {
+      "input": "moves = \"RRDD\"",
+      "output": "false",
+      "description": "Balanced length is not enough; axes must both cancel."
+    },
+    {
+      "input": "moves = \"LDRRLRUULR\"",
+      "output": "false",
+      "description": "A longer mixed sequence can still end away from the origin."
+    },
+    {
+      "input": "moves = \"UDLR\"",
+      "output": "true",
+      "description": "Both axes cancel once."
+    },
+    {
+      "input": "moves = \"UUDDLLRR\"",
+      "output": "true",
+      "description": "Repeated moves on both axes cancel in aggregate."
+    },
+    {
+      "input": "moves = \"RDLUULDR\"",
+      "output": "true",
+      "description": "The path shape is irrelevant; only the final displacement matters."
+    },
+    {
+      "input": "moves = \"U\"",
+      "output": "false",
+      "description": "A single vertical move cannot return to the origin."
+    },
+    {
+      "input": "moves = \"R\"",
+      "output": "false",
+      "description": "A single horizontal move cannot return to the origin."
+    },
+    {
+      "input": "moves = \"LRLRUDUD\"",
+      "output": "true",
+      "description": "Repeated cancellations on both axes still end at the origin."
+    },
+    {
+      "input": "moves = \"UDLRR\"",
+      "output": "false",
+      "description": "The vertical axis cancels but the horizontal axis has one extra right move."
+    },
+    {
+      "input": "moves = \"UUUDDDLLRR\"",
+      "output": "true",
+      "description": "Multiple moves in each direction can cancel in aggregate."
+    }
   ]
 }

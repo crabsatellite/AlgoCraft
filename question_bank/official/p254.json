@@ -1,34 +1,117 @@
 {
   "id": "254",
   "title": "Decode XORed Array",
-  "description": "# Decode XORed Array\n\nThere is a **hidden** integer array `arr` that consists of `n` non-negative integers.\n\nIt was encoded into another integer array `encoded` of length `n - 1`, such that `encoded[i] = arr[i] XOR arr[i + 1]`. For example, if `arr = [1,0,2,1]`, then `encoded = [1,2,3]`.\n\nYou are given the `encoded` array. You are also given an integer `first`, that is the first element of `arr`, i.e. `arr[0]`.\n\nReturn *the original array* `arr`. It can be proved that the answer exists and is unique.\n\n## Example 1:\n\n**Input:** encoded = [1,2,3], first = 1\n**Output:** [1,0,2,1]\n**Explanation:** If arr = [1,0,2,1], then first = 1 and encoded = [1 XOR 0, 0 XOR 2, 2 XOR 1] = [1,2,3]\n\n## Example 2:\n\n**Input:** encoded = [6,2,7,3], first = 4\n**Output:** [4,2,0,7,4]\n\n## Constraints:\n\n*   `2 <= n <= 10^4`\n*   `encoded.length == n - 1`\n*   `0 <= encoded[i] <= 10^5`\n*   `0 <= first <= 10^5`",
+  "description": "# Decode XORed Array\n\nThere is a hidden integer array `arr` of length `n`. It was encoded into an array `encoded` of length `n - 1` with this rule:\n\n`encoded[i] = arr[i] ^ arr[i + 1]`\n\nThe operator `^` is bitwise XOR. You are given `encoded` and the first original value `first = arr[0]`. Return the original array `arr`.\n\nBitwise XOR compares corresponding binary bits: equal bits produce `0`, different bits produce `1`. For example, `3 ^ 5` is `011 ^ 101 = 110`, or `6`.\n\n## Example 1:\n\n**Input:** encoded = [1,2,3], first = 1\n**Output:** [1,0,2,1]\n**Explanation:** Starting with `arr[0] = 1`, the next values are `1 ^ 1 = 0`, `0 ^ 2 = 2`, and `2 ^ 3 = 1`.\n\n## Example 2:\n\n**Input:** encoded = [6,2,7,3], first = 4\n**Output:** [4,2,0,7,4]\n**Explanation:** Each next value is recovered from the previous decoded value and the next encoded value.\n\n## Constraints:\n\n*   `2 <= n <= 10^4`\n*   `encoded.length == n - 1`\n*   `0 <= encoded[i] <= 10^5`\n*   `0 <= first <= 10^5`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int[] decode(int[] encoded, int first) {\n        // Write your code here\n        return new int[]{};\n    }\n}",
-  "tags": ["Bit Manipulation", "Array"],
+  "tags": [
+    "Bit Manipulation",
+    "Array"
+  ],
   "examples": [
-    { "input": "encoded = [1,2,3], first = 1", "output": "[1,0,2,1]" },
-    { "input": "encoded = [6,2,7,3], first = 4", "output": "[4,2,0,7,4]" }
+    {
+      "input": "encoded = [1,2,3], first = 1",
+      "output": "[1,0,2,1]"
+    },
+    {
+      "input": "encoded = [6,2,7,3], first = 4",
+      "output": "[4,2,0,7,4]"
+    }
   ],
   "solutions": [
     {
-      "name": "XOR Chain",
+      "name": "Previous Value Recurrence",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Reconstruct the original array by XORing each encoded value with the previous decoded value.",
+      "description": "## Approach\n\nCreate the output array, place `first` at index 0, and restore each following value from the previous restored value.\n\n## Key Insight\n\nBecause `encoded[i] = arr[i] ^ arr[i + 1]`, XORing both sides with `arr[i]` gives `arr[i + 1] = arr[i] ^ encoded[i]`. One known starting value is enough to walk across the whole array.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
       "code": "class Solution {\n    public int[] decode(int[] encoded, int first) {\n        int[] arr = new int[encoded.length + 1];\n        arr[0] = first;\n        for (int i = 0; i < encoded.length; i++) {\n            arr[i + 1] = arr[i] ^ encoded[i];\n        }\n        return arr;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Running XOR with Prefix",
+      "name": "Rolling Prefix XOR Formula",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use a running variable to track the current decoded value. XOR it with each encoded element to produce the next value, storing results in the output array.",
-      "code": "class Solution {\n    public int[] decode(int[] encoded, int first) {\n        int n = encoded.length + 1;\n        int[] arr = new int[n];\n        arr[0] = first;\n        int current = first;\n        for (int i = 0; i < encoded.length; i++) {\n            current = current ^ encoded[i];\n            arr[i + 1] = current;\n        }\n        return arr;\n    }\n}",
+      "description": "## Approach\n\nKeep a rolling XOR of all encoded values before the current position. The decoded value at position `i` is `first ^ prefixXor`.\n\n## Key Insight\n\nExpanding the recurrence shows `arr[i] = first ^ encoded[0] ^ encoded[1] ^ ... ^ encoded[i - 1]`. This route teaches the prefix-XOR view without storing a separate prefix array.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int[] decode(int[] encoded, int first) {\n        int[] arr = new int[encoded.length + 1];\n        int prefixXor = 0;\n        for (int i = 0; i < arr.length; i++) {\n            arr[i] = first ^ prefixXor;\n            if (i < encoded.length) {\n                prefixXor ^= encoded[i];\n            }\n        }\n        return arr;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Explicit Prefix XOR Array",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nBuild a `prefix` array where `prefix[i]` stores the XOR of `encoded[0]` through `encoded[i - 1]`. Then convert every prefix value into the decoded value by XORing it with `first`.\n\n## Key Insight\n\nThe prefix array makes the algebra visible: `prefix[0]` is zero, and each later prefix tells how far the current value has moved away from `first`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int[] decode(int[] encoded, int first) {\n        int n = encoded.length + 1;\n        int[] prefix = new int[n];\n        for (int i = 0; i < encoded.length; i++) {\n            prefix[i + 1] = prefix[i] ^ encoded[i];\n        }\n\n        int[] arr = new int[n];\n        for (int i = 0; i < n; i++) {\n            arr[i] = first ^ prefix[i];\n        }\n        return arr;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Derive Last Then Walk Backward",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFirst XOR `first` with every encoded value to derive the last original value. Put that value at the end of the output array, then use `arr[i] = encoded[i] ^ arr[i + 1]` to fill the array from right to left.\n\n## Key Insight\n\nThe same equation works in both directions. Once the final value is known, each previous value is recovered from its right neighbor and the encoded edge between them.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int[] decode(int[] encoded, int first) {\n        int last = first;\n        for (int value : encoded) {\n            last ^= value;\n        }\n\n        int[] arr = new int[encoded.length + 1];\n        arr[arr.length - 1] = last;\n        for (int i = encoded.length - 1; i >= 0; i--) {\n            arr[i] = encoded[i] ^ arr[i + 1];\n        }\n        return arr;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "encoded = [1,2,3], first = 1", "output": "[1,0,2,1]" },
-    { "input": "encoded = [6,2,7,3], first = 4", "output": "[4,2,0,7,4]" }
+    {
+      "input": "encoded = [1,2,3], first = 1",
+      "output": "[1,0,2,1]",
+      "description": "canonical recurrence example"
+    },
+    {
+      "input": "encoded = [6,2,7,3], first = 4",
+      "output": "[4,2,0,7,4]",
+      "description": "mixed XOR values"
+    },
+    {
+      "input": "encoded = [0], first = 7",
+      "output": "[7,7]",
+      "description": "zero encoded value repeats the previous value"
+    },
+    {
+      "input": "encoded = [5,5,5], first = 0",
+      "output": "[0,5,0,5]",
+      "description": "repeated encoded value alternates decoded values"
+    },
+    {
+      "input": "encoded = [100000], first = 100000",
+      "output": "[100000,0]",
+      "description": "upper input value boundary"
+    },
+    {
+      "input": "encoded = [1,0,1,0], first = 3",
+      "output": "[3,2,2,3,3]",
+      "description": "zero entries preserve the current decoded value"
+    },
+    {
+      "input": "encoded = [0,0,0], first = 0",
+      "output": "[0,0,0,0]",
+      "description": "all-zero chain"
+    },
+    {
+      "input": "encoded = [7,7,7,7], first = 7",
+      "output": "[7,0,7,0,7]",
+      "description": "repeated nonzero chain returns to earlier values"
+    },
+    {
+      "input": "encoded = [4,1,2,7], first = 9",
+      "output": "[9,13,12,14,9]",
+      "description": "decoded values can return to the first value later"
+    },
+    {
+      "input": "encoded = [15,0,15,8,8], first = 10",
+      "output": "[10,5,5,10,2,10]",
+      "description": "mixes zero edges and repeated high-bit edges"
+    },
+    {
+      "input": "encoded = [1024,2048,4096], first = 8192",
+      "output": "[8192,9216,11264,15360]",
+      "description": "power-of-two bit positions"
+    },
+    {
+      "input": "encoded = [2,4,8,16,32], first = 64",
+      "output": "[64,66,70,78,94,126]",
+      "description": "longer prefix accumulation"
+    }
   ]
 }

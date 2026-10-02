@@ -1,44 +1,113 @@
 {
   "id": "27",
   "title": "Remove Element",
-  "description": "# Remove Element\n\nGiven an integer array `nums` and an integer `val`, remove all occurrences of `val` in `nums` **in-place**. The order of the elements may be changed. Then return *the number of elements in* `nums` *which are not equal to* `val`.\n\nConsider the number of elements in `nums` which are not equal to `val` to be `k`, to get accepted, you need to do the following things:\n\n*   Change the array `nums` such that the first `k` elements of `nums` contain the elements which are not equal to `val`. The remaining elements of `nums` are not important as well as the size of `nums`.\n*   Return `k`.\n\n## Example 1:\n\n**Input:** nums = [3,2,2,3], val = 3\n**Output:** 2, nums = [2,2,_,_]\n**Explanation:** Your function should return k = 2, with the first two elements of nums being 2.\nIt does not matter what you leave beyond the returned k (hence they are underscores).\n\n## Example 2:\n\n**Input:** nums = [0,1,2,2,3,0,4,2], val = 2\n**Output:** 5, nums = [0,1,4,0,3,_,_,_]\n**Explanation:** Your function should return k = 5, with the first five elements of nums containing 0, 0, 1, 3, and 4.\nNote that the five elements can be returned in any order.\nIt does not matter what you leave beyond the returned k (hence they are underscores).\n\n## Constraints:\n\n*   `0 <= nums.length <= 100`\n*   `0 <= nums[i] <= 50`\n*   `0 <= val <= 100`",
+  "description": "# Remove Element\n\nYou are given an integer array `nums` and an integer `val`. Remove every occurrence of `val` from `nums` **in-place** and return the number of remaining elements, called `k`.\n\nThe first `k` positions of `nums` must contain exactly the elements from the original array that are not equal to `val`. Their order may change. Values after index `k - 1` do not matter.\n\nThe judge checks two things:\n\n*   The returned value is `k`.\n*   The first `k` elements of `nums` contain the remaining values with the correct multiplicities.\n\n## Example 1:\n\n**Input:** nums = [3,2,2,3], val = 3\n**Output:** 2, nums = [2,2,_,_]\n**Explanation:** The two values not equal to `3` are both `2`, so the method must return `2` and put two `2` values in the prefix.\n\n## Example 2:\n\n**Input:** nums = [0,1,2,2,3,0,4,2], val = 2\n**Output:** 5, nums = [0,1,4,0,3,_,_,_]\n**Explanation:** The five remaining values are `0`, `1`, `3`, `0`, and `4`. They may appear in any order in the first five positions.\n\n## Constraints:\n\n*   `0 <= nums.length <= 100`\n*   `0 <= nums[i] <= 50`\n*   `0 <= val <= 100`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int removeElement(int[] nums, int val) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Two Pointers"],
+  "tags": [
+    "Array",
+    "Two Pointers"
+  ],
   "examples": [
-    { "input": "nums = [3,2,2,3], val = 3", "output": "2" },
-    { "input": "nums = [0,1,2,2,3,0,4,2], val = 2", "output": "5" }
+    {
+      "input": "nums = [3,2,2,3], val = 3",
+      "output": "2"
+    },
+    {
+      "input": "nums = [0,1,2,2,3,0,4,2], val = 2",
+      "output": "5"
+    }
   ],
   "tests": [
-    { "input": "nums = [3,2,2,3], val = 3", "output": "2" },
-    { "input": "nums = [0,1,2,2,3,0,4,2], val = 2", "output": "5" },
-    { "input": "nums = [], val = 0", "output": "0" },
-    { "input": "nums = [1], val = 1", "output": "0" },
+    {
+      "input": "nums = [3,2,2,3], val = 3",
+      "output": "2",
+      "description": "Canonical duplicate removal"
+    },
+    {
+      "input": "nums = [0,1,2,2,3,0,4,2], val = 2",
+      "output": "5",
+      "description": "Canonical unordered-prefix example"
+    },
+    {
+      "input": "nums = [], val = 0",
+      "output": "0",
+      "description": "Empty input"
+    },
+    {
+      "input": "nums = [1], val = 1",
+      "output": "0",
+      "description": "Single element removed"
+    },
     {
       "input": "nums = [1,2,3,4], val = 5",
       "output": "4",
-      "description": "Value not in array"
+      "description": "Value not present"
     },
     {
       "input": "nums = [2,2,2,2], val = 2",
       "output": "0",
-      "description": "All elements are val"
+      "description": "All elements removed"
+    },
+    {
+      "input": "nums = [4], val = 5",
+      "output": "1",
+      "description": "Single element kept"
+    },
+    {
+      "input": "nums = [0,0,1,0,2,0], val = 0",
+      "output": "2",
+      "description": "Remove lower-bound value with repeated runs"
+    },
+    {
+      "input": "nums = [50,1,50,2,50,3], val = 50",
+      "output": "3",
+      "description": "Remove upper-bound value"
+    },
+    {
+      "input": "nums = [1,2,3,2,4,2,5], val = 2",
+      "output": "4",
+      "description": "Alternating kept and removed values"
+    },
+    {
+      "input": "nums = [0,1,2,3], val = 100",
+      "output": "4",
+      "description": "val may be outside the nums[i] range"
+    },
+    {
+      "input": "nums = [0,50,0,50,25], val = 25",
+      "output": "4",
+      "description": "Both value boundaries remain after removing an interior value"
     }
   ],
   "solutions": [
     {
-      "name": "Two Pointers - Fast & Slow",
+      "name": "Stable Write Pointer",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Slow pointer tracks position to place valid elements. Fast pointer scans array. Copy elements that don't equal val to slow position.",
-      "code": "class Solution {\n    public int removeElement(int[] nums, int val) {\n        int slow = 0; // Position to insert next valid element\n        \n        for (int fast = 0; fast < nums.length; fast++) {\n            if (nums[fast] != val) {\n                nums[slow] = nums[fast];\n                slow++;\n            }\n        }\n        \n        return slow;\n    }\n}"
+      "description": "## Approach\n\nKeep `write` as the next position for a value that should remain. Scan from left to right. Whenever `nums[read]` is not equal to `val`, copy it into `nums[write]` and advance `write`.\n\n## Key Insight\n\nThe prefix before `write` is always exactly the kept values seen so far. This route preserves relative order even though the prompt does not require it, making it the clearest baseline for in-place filtering.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int removeElement(int[] nums, int val) {\n        int write = 0;\n\n        for (int read = 0; read < nums.length; read++) {\n            if (nums[read] != val) {\n                nums[write] = nums[read];\n                write++;\n            }\n        }\n\n        return write;\n    }\n}"
     },
     {
-      "name": "Two Pointers - Swap with End",
+      "name": "Swap Removed Values with Tail",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "When val is found, swap with element at the end. This minimizes unnecessary writes when val elements are rare.",
-      "code": "class Solution {\n    public int removeElement(int[] nums, int val) {\n        int left = 0;\n        int right = nums.length;\n        \n        while (left < right) {\n            if (nums[left] == val) {\n                // Swap with last element\n                nums[left] = nums[right - 1];\n                right--;\n                // Don't increment left - need to check swapped element\n            } else {\n                left++;\n            }\n        }\n        \n        return left;\n    }\n}"
+      "description": "## Approach\n\nTreat `length` as the active array size. If `nums[index]` equals `val`, overwrite it with `nums[length - 1]` and shrink `length`. Otherwise advance `index`.\n\n## Key Insight\n\nBecause the remaining order may change, a removed value can be replaced by an unchecked tail value. The same index must be checked again because the swapped-in value might also equal `val`.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int removeElement(int[] nums, int val) {\n        int index = 0;\n        int length = nums.length;\n\n        while (index < length) {\n            if (nums[index] == val) {\n                nums[index] = nums[length - 1];\n                length--;\n            } else {\n                index++;\n            }\n        }\n\n        return length;\n    }\n}"
+    },
+    {
+      "name": "Two-End Partition",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nMove `left` forward until it finds a value to remove, and move `right` backward until it finds a value to keep. Swap those two values, then continue until the pointers cross.\n\n## Key Insight\n\nThis is the partition view of the problem: all kept values belong before all removed values. It teaches the same permission to change order as the tail-swap route, but with explicit left and right regions.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int removeElement(int[] nums, int val) {\n        int left = 0;\n        int right = nums.length - 1;\n\n        while (left <= right) {\n            while (left <= right && nums[left] != val) {\n                left++;\n            }\n            while (left <= right && nums[right] == val) {\n                right--;\n            }\n            if (left < right) {\n                int temp = nums[left];\n                nums[left] = nums[right];\n                nums[right] = temp;\n                left++;\n                right--;\n            }\n        }\n\n        return right + 1;\n    }\n}"
+    },
+    {
+      "name": "Bounded Value Counting",
+      "timeComplexity": "O(n + U)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse the constraint `0 <= nums[i] <= 50` to count every value except `val`, then rewrite the prefix from those counts. The order changes to increasing value order.\n\n## Key Insight\n\nThe prompt allows the kept order to change, and the value range is fixed. A fixed-size counting table is constant space relative to `nums.length`, so this route shows how constraints can unlock a different in-place rewrite strategy.\n\n## Complexity Analysis\n- Time Complexity: O(n + U), where `U = 51`\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int removeElement(int[] nums, int val) {\n        int[] count = new int[51];\n        int kept = 0;\n\n        for (int number : nums) {\n            if (number != val) {\n                count[number]++;\n                kept++;\n            }\n        }\n\n        int write = 0;\n        for (int number = 0; number <= 50; number++) {\n            while (count[number] > 0) {\n                nums[write] = number;\n                write++;\n                count[number]--;\n            }\n        }\n\n        return kept;\n    }\n}"
     }
   ]
 }

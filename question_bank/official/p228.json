@@ -1,36 +1,126 @@
 {
   "id": "228",
   "title": "Find All Duplicates in an Array",
-  "description": "# Find All Duplicates in an Array\n\nGiven an integer array `nums` of length `n` where all the integers of `nums` are in the range `[1, n]` and each integer appears **once** or **twice**, return *an array of all the integers that appears **twice***.\n\nYou must write an algorithm that runs in `O(n)` time and uses only constant extra space.\n\n## Example 1:\n\n**Input:** nums = [4,3,2,7,8,2,3,1]\n**Output:** [2,3]\n\n## Example 2:\n\n**Input:** nums = [1,1,2]\n**Output:** [1]\n\n## Example 3:\n\n**Input:** nums = [1]\n**Output:** []\n\n## Constraints:\n\n*   `n == nums.length`\n*   `1 <= n <= 10^5`\n*   `1 <= nums[i] <= n`\n*   Each element in `nums` appears **once** or **twice**.",
+  "description": "# Find All Duplicates in an Array\n\nGiven an integer array `nums` of length `n`, where every value is in the range `[1, n]` and each value appears either once or twice, return all values that appear twice.\n\nYou must run in `O(n)` time and use only constant extra space, excluding the returned list.\n\nThe array may be modified during the algorithm.\n\n## Example 1:\n\n**Input:** nums = [4,3,2,7,8,2,3,1]\n**Output:** [2,3]\n**Explanation:** Values `2` and `3` each appear twice.\n\n## Example 2:\n\n**Input:** nums = [1,1,2]\n**Output:** [1]\n**Explanation:** Only `1` is duplicated.\n\n## Example 3:\n\n**Input:** nums = [1]\n**Output:** []\n**Explanation:** A single value cannot have a duplicate.\n\n## Constraints:\n\n* `n == nums.length`\n* `1 <= n <= 10^5`\n* `1 <= nums[i] <= n`\n* Each element in `nums` appears once or twice.",
   "difficulty": "MEDIUM",
-  "initialCode": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> findDuplicates(int[] nums) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["Array", "HashTable"],
+  "initialCode": "import java.util.*;\n\nclass Solution {\n    public List<Integer> findDuplicates(int[] nums) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
+  "tags": [
+    "Array",
+    "HashTable"
+  ],
   "examples": [
-    { "input": "nums = [4,3,2,7,8,2,3,1]", "output": "[2,3]" },
-    { "input": "nums = [1,1,2]", "output": "[1]" },
-    { "input": "nums = [1]", "output": "[]" }
+    {
+      "input": "nums = [4,3,2,7,8,2,3,1]",
+      "output": "[2,3]"
+    },
+    {
+      "input": "nums = [1,1,2]",
+      "output": "[1]"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "[]"
+    }
   ],
   "solutions": [
     {
-      "name": "Negate Marking",
+      "name": "Negative Index Marking",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use the array itself as a hash map by negating values at index |nums[i]|-1. If a value at that index is already negative, the number is a duplicate.",
-      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> findDuplicates(int[] nums) {\n        List<Integer> res = new ArrayList<>();\n        for (int i = 0; i < nums.length; i++) {\n            int idx = Math.abs(nums[i]) - 1;\n            if (nums[idx] < 0) {\n                res.add(idx + 1);\n            } else {\n                nums[idx] = -nums[idx];\n            }\n        }\n        return res;\n    }\n}",
+      "description": "## Approach\n\nUse each value as an index into the same array. For a value `x`, inspect index `abs(x) - 1`. If that slot is still positive, negate it to mark that `x` has been seen. If it is already negative, this is the second visit to `x`, so append `x` to the answer.\n\n## Key Insight\n\nThe values are guaranteed to be in `1..n`, which is exactly the valid index range after subtracting one. The sign bit of `nums[x - 1]` can store the seen/not-seen state without an extra table.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1) excluding the returned list",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public List<Integer> findDuplicates(int[] nums) {\n        List<Integer> duplicates = new ArrayList<>();\n        for (int value : nums) {\n            int index = Math.abs(value) - 1;\n            if (nums[index] < 0) {\n                duplicates.add(index + 1);\n            } else {\n                nums[index] = -nums[index];\n            }\n        }\n        return duplicates;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Cyclic Sort",
+      "name": "Cyclic Placement then Mismatch Scan",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Place each number at its correct index (nums[i] at index nums[i]-1). After sorting, any index where nums[i] != i+1 indicates a duplicate.",
-      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> findDuplicates(int[] nums) {\n        for (int i = 0; i < nums.length; i++) {\n            while (nums[i] != nums[nums[i] - 1]) {\n                int tmp = nums[nums[i] - 1];\n                nums[nums[i] - 1] = nums[i];\n                nums[i] = tmp;\n            }\n        }\n        List<Integer> res = new ArrayList<>();\n        for (int i = 0; i < nums.length; i++) {\n            if (nums[i] != i + 1) res.add(nums[i]);\n        }\n        return res;\n    }\n}",
+      "description": "## Approach\n\nRearrange the array so every value `x` is placed at index `x - 1` whenever possible. If a target index already holds the same value, the scan moves on. After placement, any index `i` whose value is not `i + 1` holds a duplicated value.\n\n## Key Insight\n\nIn an ideal array without duplicates, every value would sit at its home index. Duplicates prevent one missing value from occupying its home index, so mismatches after cyclic placement reveal the duplicate copies.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1) excluding the returned list",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public List<Integer> findDuplicates(int[] nums) {\n        int i = 0;\n        while (i < nums.length) {\n            int target = nums[i] - 1;\n            if (nums[i] != nums[target]) {\n                swap(nums, i, target);\n            } else {\n                i++;\n            }\n        }\n\n        List<Integer> duplicates = new ArrayList<>();\n        for (i = 0; i < nums.length; i++) {\n            if (nums[i] != i + 1) {\n                duplicates.add(nums[i]);\n            }\n        }\n        return duplicates;\n    }\n\n    private void swap(int[] nums, int i, int j) {\n        int temp = nums[i];\n        nums[i] = nums[j];\n        nums[j] = temp;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Add-N In-Place Counting",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nLet `n` be the array length. For every current value, recover its original value with modulo `n`, map it to an index, and add `n` to that bucket. After the pass, the quotient `(nums[i] - 1) / n` is the number of visits to value `i + 1`.\n\n## Key Insight\n\nAdding multiples of `n` stores a small counter while preserving the original value modulo `n`. Because each value appears once or twice, a quotient of `2` identifies duplicates exactly.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1) excluding the returned list",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public List<Integer> findDuplicates(int[] nums) {\n        int n = nums.length;\n        for (int i = 0; i < n; i++) {\n            int index = (nums[i] - 1) % n;\n            nums[index] += n;\n        }\n\n        List<Integer> duplicates = new ArrayList<>();\n        for (int i = 0; i < n; i++) {\n            if ((nums[i] - 1) / n == 2) {\n                duplicates.add(i + 1);\n            }\n        }\n        return duplicates;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Placement Collision with Zero Sentinel",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nTry to move each value to its home index `value - 1`. If the home index already contains the same value, the current copy is the duplicate; append it and replace the current position with `0` as a sentinel for an already-handled duplicate copy.\n\n## Key Insight\n\nThis is a collision-detection version of cyclic placement. Since valid input values are `1..n`, the sentinel `0` cannot be confused with a real value, and each duplicate is reported at the moment its second copy collides with the first.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1) excluding the returned list",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public List<Integer> findDuplicates(int[] nums) {\n        List<Integer> duplicates = new ArrayList<>();\n        int i = 0;\n        while (i < nums.length) {\n            int value = nums[i];\n            if (value == 0 || value == i + 1) {\n                i++;\n                continue;\n            }\n\n            int target = value - 1;\n            if (nums[target] == value) {\n                duplicates.add(value);\n                nums[i] = 0;\n                i++;\n            } else {\n                swap(nums, i, target);\n            }\n        }\n        return duplicates;\n    }\n\n    private void swap(int[] nums, int i, int j) {\n        int temp = nums[i];\n        nums[i] = nums[j];\n        nums[j] = temp;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [4,3,2,7,8,2,3,1]", "output": "[2,3]" },
-    { "input": "nums = [1,1,2]", "output": "[1]" },
-    { "input": "nums = [1]", "output": "[]" }
+    {
+      "input": "nums = [4,3,2,7,8,2,3,1]",
+      "output": "[2,3]",
+      "description": "Canonical example with two duplicates in a mixed order."
+    },
+    {
+      "input": "nums = [1,1,2]",
+      "output": "[1]",
+      "description": "Duplicate at the smallest value."
+    },
+    {
+      "input": "nums = [1]",
+      "output": "[]",
+      "description": "Single-element array has no duplicate."
+    },
+    {
+      "input": "nums = [2,2]",
+      "output": "[2]",
+      "description": "Duplicate at the largest value for n = 2."
+    },
+    {
+      "input": "nums = [1,2,3,4,5]",
+      "output": "[]",
+      "description": "Already perfect permutation with no duplicates."
+    },
+    {
+      "input": "nums = [5,4,6,7,9,3,10,9,5,6]",
+      "output": "[5,6,9]",
+      "description": "Multiple duplicates in a larger array with missing values."
+    },
+    {
+      "input": "nums = [3,1,2,3]",
+      "output": "[3]",
+      "description": "Duplicate value is also the first element."
+    },
+    {
+      "input": "nums = [1,1]",
+      "output": "[1]",
+      "description": "Smallest duplicate-only array."
+    },
+    {
+      "input": "nums = [2,1,2]",
+      "output": "[2]",
+      "description": "Duplicate appears after its home position is already occupied."
+    },
+    {
+      "input": "nums = [1,2,2,3,3]",
+      "output": "[2,3]",
+      "description": "Adjacent duplicated values should both be reported."
+    },
+    {
+      "input": "nums = [4,4,3,2,1]",
+      "output": "[4]",
+      "description": "Duplicate at a high value with reversed surrounding values."
+    },
+    {
+      "input": "nums = [6,5,4,3,2,1,6]",
+      "output": "[6]",
+      "description": "Duplicate maximum value in a descending arrangement."
+    },
+    {
+      "input": "nums = [1,2,3,1,2,3]",
+      "output": "[1,2,3]",
+      "description": "Several values each appear exactly twice."
+    }
   ]
 }

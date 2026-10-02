@@ -1,10 +1,17 @@
 {
   "id": "132",
   "title": "Rotting Oranges",
-  "description": "# Rotting Oranges\n\nYou are given an `m x n` grid where each cell can have one of three values:\n\n*   `0` representing an empty cell,\n*   `1` representing a fresh orange, or\n*   `2` representing a rotten orange.\n\nEvery minute, any fresh orange that is **4-directionally adjacent** to a rotten orange becomes rotten.\n\nReturn *the minimum number of minutes that must elapse until no cell has a fresh orange*. If this is impossible, return `-1`.\n\n## Example 1:\n\n**Input:** grid = [[2,1,1],[1,1,0],[0,1,1]]\n**Output:** 4\n\n## Example 2:\n\n**Input:** grid = [[2,1,1],[0,1,1],[1,0,1]]\n**Output:** -1\n**Explanation:** The orange in the bottom left corner (row 2, column 0) is never rotten, because rotting only happens 4-directionally.\n\n## Example 3:\n\n**Input:** grid = [[0,2]]\n**Output:** 0\n**Explanation:** Since there are already no fresh oranges at minute 0, the answer is just 0.\n\n## Constraints:\n\n*   `m == grid.length`\n*   `n == grid[i].length`\n*   `1 <= m, n <= 10`\n*   `grid[i][j]` is `0`, `1`, or `2`.",
+  "description": "# Rotting Oranges\n\nYou are given an `m x n` grid `grid`. Each cell contains one of three values:\n\n* `0`: an empty cell.\n* `1`: a fresh orange.\n* `2`: a rotten orange.\n\nEvery minute, all fresh oranges that are 4-directionally adjacent to at least one rotten orange become rotten at the same time. Movement or spreading is allowed only up, down, left, and right; diagonal contact does not count.\n\nReturn the minimum number of minutes that must pass until no fresh orange remains. If some fresh orange can never become rotten, return `-1`.\n\nIf there are no fresh oranges initially, the required time is `0`.\n\n## Example 1\n\n**Input:** `grid = [[2,1,1],[1,1,0],[0,1,1]]`\n\n**Output:** `4`\n\n**Explanation:** The rotting wave starts from the upper-left orange and needs four minute-layers to reach the farthest fresh orange.\n\n## Example 2\n\n**Input:** `grid = [[2,1,1],[0,1,1],[1,0,1]]`\n\n**Output:** `-1`\n\n**Explanation:** The fresh orange in the lower-left corner is separated from every rotten orange by empty cells, so it never rots.\n\n## Example 3\n\n**Input:** `grid = [[0,2]]`\n\n**Output:** `0`\n\n**Explanation:** There are no fresh oranges at minute `0`.\n\n## Constraints\n\n* `m == grid.length`.\n* `n == grid[i].length`.\n* `1 <= m, n <= 10`.\n* `grid[i][j]` is `0`, `1`, or `2`.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int orangesRotting(int[][] grid) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Breadth-First Search", "Matrix"],
+  "tags": [
+    "Array",
+    "Breadth-First Search",
+    "Shortest Path",
+    "Heap (Priority Queue)",
+    "Matrix",
+    "Simulation"
+  ],
   "examples": [
     {
       "input": "grid = [[2,1,1],[1,1,0],[0,1,1]]",
@@ -21,47 +28,85 @@
   ],
   "solutions": [
     {
-      "name": "Multi-Source BFS",
+      "name": "Layered Multi-Source BFS",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "Add all rotten oranges to queue and count fresh oranges. BFS level by level; each level represents one minute. Decrement fresh count as oranges rot. If fresh remains, return -1.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int orangesRotting(int[][] grid) {\n        int m = grid.length, n = grid[0].length, fresh = 0, minutes = 0;\n        Queue<int[]> queue = new LinkedList<>();\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++) {\n                if (grid[i][j] == 2) queue.offer(new int[]{i, j});\n                else if (grid[i][j] == 1) fresh++;\n            }\n        int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};\n        while (!queue.isEmpty() && fresh > 0) {\n            int size = queue.size();\n            for (int k = 0; k < size; k++) {\n                int[] cell = queue.poll();\n                for (int[] d : dirs) {\n                    int ni = cell[0] + d[0], nj = cell[1] + d[1];\n                    if (ni >= 0 && ni < m && nj >= 0 && nj < n && grid[ni][nj] == 1) {\n                        grid[ni][nj] = 2;\n                        fresh--;\n                        queue.offer(new int[]{ni, nj});\n                    }\n                }\n            }\n            minutes++;\n        }\n        return fresh == 0 ? minutes : -1;\n    }\n}",
+      "description": "## Approach\nPut every initially rotten orange into a queue and count the fresh oranges. Process the queue one level at a time; each completed level is one minute. Whenever a fresh neighbor rots, decrement the fresh count and enqueue it for the next minute.\n\n## Key Insight\nAll rotten oranges spread simultaneously, so they must all be BFS sources at minute zero. Level-order BFS exactly matches the minute-by-minute infection model, and the fresh counter tells us whether any unreachable orange remains.\n\n## Complexity Analysis\nEach cell is enqueued at most once and checks four neighbors. The time complexity is `O(m * n)`, and the queue can hold `O(m * n)` cells.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public int orangesRotting(int[][] grid) {\n        int rows = grid.length;\n        int cols = grid[0].length;\n        int fresh = 0;\n        Queue<int[]> queue = new ArrayDeque<>();\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (grid[row][col] == 2) {\n                    queue.offer(new int[]{row, col});\n                } else if (grid[row][col] == 1) {\n                    fresh++;\n                }\n            }\n        }\n\n        int minutes = 0;\n        while (!queue.isEmpty() && fresh > 0) {\n            int size = queue.size();\n            for (int i = 0; i < size; i++) {\n                int[] cell = queue.poll();\n                for (int[] direction : DIRECTIONS) {\n                    int nextRow = cell[0] + direction[0];\n                    int nextCol = cell[1] + direction[1];\n                    if (nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols) {\n                        continue;\n                    }\n                    if (grid[nextRow][nextCol] != 1) {\n                        continue;\n                    }\n                    grid[nextRow][nextCol] = 2;\n                    fresh--;\n                    queue.offer(new int[]{nextRow, nextCol});\n                }\n            }\n            minutes++;\n        }\n\n        return fresh == 0 ? minutes : -1;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "In-place Timestamp BFS",
+      "name": "In-Place Timestamp BFS",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "Instead of tracking minutes with level-by-level BFS, store the timestamp directly in the grid. When a fresh orange is rotted, store the minute it becomes rotten (previous cell value + 1 if > 2, else 3). The answer is max value minus 2.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int orangesRotting(int[][] grid) {\n        int m = grid.length, n = grid[0].length;\n        Queue<int[]> queue = new LinkedList<>();\n        int fresh = 0;\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (grid[i][j] == 2) queue.offer(new int[]{i, j});\n                else if (grid[i][j] == 1) fresh++;\n            }\n        }\n        if (fresh == 0) return 0;\n        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        int minutes = 0;\n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            boolean rotted = false;\n            for (int q = 0; q < size; q++) {\n                int[] cell = queue.poll();\n                for (int[] d : dirs) {\n                    int ni = cell[0] + d[0], nj = cell[1] + d[1];\n                    if (ni >= 0 && ni < m && nj >= 0 && nj < n && grid[ni][nj] == 1) {\n                        grid[ni][nj] = 2;\n                        fresh--;\n                        rotted = true;\n                        queue.offer(new int[]{ni, nj});\n                    }\n                }\n            }\n            if (rotted) minutes++;\n        }\n        return fresh == 0 ? minutes : -1;\n    }\n}",
+      "description": "## Approach\nUse the grid itself to store the minute when each orange becomes rotten. Initially rotten oranges keep value `2`, and a fresh orange reached from a cell with timestamp `t` is written as `t + 1`. The answer is the largest timestamp minus `2`.\n\n## Key Insight\nThe grid value can represent both state and time because fresh oranges start at `1` and rotten-time values are `2` or greater. BFS order ensures the first timestamp written to a fresh orange is its earliest rotting minute.\n\n## Complexity Analysis\nEach cell is processed at most once. The time complexity is `O(m * n)`, and the queue uses `O(m * n)` space while the timestamp data is stored in place.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public int orangesRotting(int[][] grid) {\n        int rows = grid.length;\n        int cols = grid[0].length;\n        int fresh = 0;\n        int latestTime = 2;\n        Queue<int[]> queue = new ArrayDeque<>();\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (grid[row][col] == 2) {\n                    queue.offer(new int[]{row, col});\n                } else if (grid[row][col] == 1) {\n                    fresh++;\n                }\n            }\n        }\n\n        while (!queue.isEmpty()) {\n            int[] cell = queue.poll();\n            int row = cell[0];\n            int col = cell[1];\n            int time = grid[row][col];\n            latestTime = Math.max(latestTime, time);\n            for (int[] direction : DIRECTIONS) {\n                int nextRow = row + direction[0];\n                int nextCol = col + direction[1];\n                if (nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols) {\n                    continue;\n                }\n                if (grid[nextRow][nextCol] != 1) {\n                    continue;\n                }\n                grid[nextRow][nextCol] = time + 1;\n                fresh--;\n                queue.offer(new int[]{nextRow, nextCol});\n            }\n        }\n\n        return fresh == 0 ? latestTime - 2 : -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Multi-Source Dijkstra",
+      "timeComplexity": "O(m * n * log(m * n))",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\nTreat every rotten orange as a zero-minute source in a priority queue. Pop the smallest minute, rot neighboring fresh oranges at `minute + 1`, and keep the maximum minute that was assigned.\n\n## Key Insight\nAll edges have the same cost, so BFS is the simpler optimal solution. Dijkstra is still a correct shortest-time model and helps connect this problem to weighted spreading problems where different moves might take different amounts of time.\n\n## Complexity Analysis\nEach orange can be inserted into the heap once, and each heap operation costs `O(log(m * n))`. The time complexity is `O(m * n * log(m * n))`, with `O(m * n)` heap space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public int orangesRotting(int[][] grid) {\n        int rows = grid.length;\n        int cols = grid[0].length;\n        int fresh = 0;\n        int minutes = 0;\n        PriorityQueue<int[]> heap = new PriorityQueue<>(Comparator.comparingInt(cell -> cell[2]));\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (grid[row][col] == 2) {\n                    heap.offer(new int[]{row, col, 0});\n                } else if (grid[row][col] == 1) {\n                    fresh++;\n                }\n            }\n        }\n\n        while (!heap.isEmpty()) {\n            int[] cell = heap.poll();\n            int row = cell[0];\n            int col = cell[1];\n            int time = cell[2];\n            minutes = Math.max(minutes, time);\n            for (int[] direction : DIRECTIONS) {\n                int nextRow = row + direction[0];\n                int nextCol = col + direction[1];\n                if (nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols) {\n                    continue;\n                }\n                if (grid[nextRow][nextCol] != 1) {\n                    continue;\n                }\n                int nextTime = time + 1;\n                grid[nextRow][nextCol] = 2;\n                fresh--;\n                heap.offer(new int[]{nextRow, nextCol, nextTime});\n            }\n        }\n\n        return fresh == 0 ? minutes : -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Minute-by-Minute Simulation",
+      "timeComplexity": "O(m * n * T), where T is the elapsed minutes",
+      "spaceComplexity": "O(1) extra space",
+      "description": "## Approach\nRepeatedly scan the whole grid for one simulated minute. Existing rotten oranges mark adjacent fresh oranges with a temporary value, and only after the full scan ends do those temporary cells become rotten.\n\n## Key Insight\nTemporary marking prevents a newly rotten orange from spreading again during the same minute. This slower baseline makes the simultaneous-spread rule explicit and is useful for understanding why level-order BFS works.\n\n## Complexity Analysis\nEach minute costs a full `O(m * n)` scan, and there can be `T` useful minutes. The extra space is `O(1)` beyond the grid.",
+      "code": "class Solution {\n    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public int orangesRotting(int[][] grid) {\n        int rows = grid.length;\n        int cols = grid[0].length;\n        int fresh = 0;\n        for (int[] row : grid) {\n            for (int cell : row) {\n                if (cell == 1) {\n                    fresh++;\n                }\n            }\n        }\n\n        int minutes = 0;\n        while (fresh > 0) {\n            boolean changed = false;\n            for (int row = 0; row < rows; row++) {\n                for (int col = 0; col < cols; col++) {\n                    if (grid[row][col] != 2) {\n                        continue;\n                    }\n                    for (int[] direction : DIRECTIONS) {\n                        int nextRow = row + direction[0];\n                        int nextCol = col + direction[1];\n                        if (nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols) {\n                            continue;\n                        }\n                        if (grid[nextRow][nextCol] != 1) {\n                            continue;\n                        }\n                        grid[nextRow][nextCol] = 3;\n                        fresh--;\n                        changed = true;\n                    }\n                }\n            }\n            if (!changed) {\n                return -1;\n            }\n            for (int row = 0; row < rows; row++) {\n                for (int col = 0; col < cols; col++) {\n                    if (grid[row][col] == 3) {\n                        grid[row][col] = 2;\n                    }\n                }\n            }\n            minutes++;\n        }\n\n        return minutes;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "grid = [[2,1,1],[1,1,0],[0,1,1]]",
-      "output": "4"
+      "output": "4",
+      "description": "Canonical grid where the rotting wave needs four minutes."
     },
     {
       "input": "grid = [[2,1,1],[0,1,1],[1,0,1]]",
-      "output": "-1"
+      "output": "-1",
+      "description": "A fresh orange is unreachable because empty cells break the four-directional path."
     },
     {
       "input": "grid = [[0,2]]",
-      "output": "0"
+      "output": "0",
+      "description": "No fresh oranges are present at minute zero."
     },
-    { "input": "grid = [[2,2],[2,2]]", "output": "0" }
+    {
+      "input": "grid = [[2,2],[2,2]]",
+      "output": "0",
+      "description": "All oranges are already rotten."
+    },
+    {
+      "input": "grid = [[0,0],[0,0]]",
+      "output": "0",
+      "description": "An all-empty grid also has no fresh oranges."
+    },
+    {
+      "input": "grid = [[1,1],[1,1]]",
+      "output": "-1",
+      "description": "Fresh oranges with no rotten source can never start rotting."
+    },
+    {
+      "input": "grid = [[1]]",
+      "output": "-1",
+      "description": "The smallest grid can still be impossible."
+    },
+    {
+      "input": "grid = [[2,1,1],[1,1,1],[1,1,2]]",
+      "output": "2",
+      "description": "Two rotten sources spread at the same time, so the farthest fresh orange rots in two minutes."
+    }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p132_example1.png",
-      "caption": "Example 1"
-    },
-    {
-      "id": "example1_result",
-      "file": "p132_example1_result.png",
-      "caption": "Example 1 - Result"
+      "caption": "Initial oranges grid before rotting spreads"
     }
   ]
 }

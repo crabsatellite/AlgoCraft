@@ -2,8 +2,6 @@ package com.crabmods.algocraft.logic;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.world.item.ItemStack;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -52,77 +50,77 @@ public class AchievementRegistry {
     public static final String COMPLETIONIST = "completionist";
     
     // Achievement Registrations
-    private static final Achievement ACH_FIRST_SOLVE = register(FIRST_SOLVE, 
-        AchievementType.MILESTONE, Rarity.COMMON, "trophy_bronze");
+    private static final Achievement ACH_FIRST_SOLVE = register(FIRST_SOLVE,
+        AchievementType.MILESTONE, Rarity.COMMON, "bronze_trophy", 101);
     
-    private static final Achievement ACH_APPRENTICE = register(APPRENTICE, 
-        AchievementType.MILESTONE, Rarity.COMMON, "trophy_bronze");  // 10 problems
+    private static final Achievement ACH_APPRENTICE = register(APPRENTICE,
+        AchievementType.MILESTONE, Rarity.COMMON, "bronze_trophy", 102);  // 10 problems
     
-    private static final Achievement ACH_JOURNEYMAN = register(JOURNEYMAN, 
-        AchievementType.MILESTONE, Rarity.UNCOMMON, "trophy_silver");  // 25 problems
+    private static final Achievement ACH_JOURNEYMAN = register(JOURNEYMAN,
+        AchievementType.MILESTONE, Rarity.UNCOMMON, "silver_trophy", 103);  // 25 problems
     
-    private static final Achievement ACH_EXPERT = register(EXPERT, 
-        AchievementType.MILESTONE, Rarity.RARE, "trophy_silver");  // 50 problems
+    private static final Achievement ACH_EXPERT = register(EXPERT,
+        AchievementType.MILESTONE, Rarity.RARE, "silver_trophy", 104);  // 50 problems
     
-    private static final Achievement ACH_MASTER = register(MASTER, 
-        AchievementType.MILESTONE, Rarity.EPIC, "trophy_gold");  // 100 problems
+    private static final Achievement ACH_MASTER = register(MASTER,
+        AchievementType.MILESTONE, Rarity.EPIC, "gold_trophy", 105);  // 100 problems
     
-    private static final Achievement ACH_GRANDMASTER = register(GRANDMASTER, 
-        AchievementType.MILESTONE, Rarity.LEGENDARY, "trophy_gold");  // 250 problems
+    private static final Achievement ACH_GRANDMASTER = register(GRANDMASTER,
+        AchievementType.MILESTONE, Rarity.LEGENDARY, "gold_trophy", 106);  // 250 problems
     
-    private static final Achievement ACH_LEGEND = register(LEGEND, 
-        AchievementType.MILESTONE, Rarity.MYTHIC, "trophy_diamond");  // 500 problems
+    private static final Achievement ACH_LEGEND = register(LEGEND,
+        AchievementType.MILESTONE, Rarity.MYTHIC, "diamond_trophy", 107);  // 500 problems
     
     // Streak Achievements
-    private static final Achievement ACH_STREAK_3 = register(STREAK_3, 
-        AchievementType.STREAK, Rarity.COMMON, "trophy_bronze");  // 3 day streak
+    private static final Achievement ACH_STREAK_3 = register(STREAK_3,
+        AchievementType.STREAK, Rarity.COMMON, "bronze_trophy", 201);  // 3 day streak
     
-    private static final Achievement ACH_STREAK_7 = register(STREAK_7, 
-        AchievementType.STREAK, Rarity.UNCOMMON, "trophy_bronze");  // 7 day streak
+    private static final Achievement ACH_STREAK_7 = register(STREAK_7,
+        AchievementType.STREAK, Rarity.UNCOMMON, "bronze_trophy", 202);  // 7 day streak
     
-    private static final Achievement ACH_STREAK_14 = register(STREAK_14, 
-        AchievementType.STREAK, Rarity.RARE, "trophy_silver");  // 14 day streak
+    private static final Achievement ACH_STREAK_14 = register(STREAK_14,
+        AchievementType.STREAK, Rarity.RARE, "silver_trophy", 203);  // 14 day streak
     
-    private static final Achievement ACH_STREAK_30 = register(STREAK_30, 
-        AchievementType.STREAK, Rarity.EPIC, "trophy_gold");  // 30 day streak
+    private static final Achievement ACH_STREAK_30 = register(STREAK_30,
+        AchievementType.STREAK, Rarity.EPIC, "gold_trophy", 204);  // 30 day streak
     
-    private static final Achievement ACH_STREAK_100 = register(STREAK_100, 
-        AchievementType.STREAK, Rarity.LEGENDARY, "trophy_diamond");  // 100 day streak
+    private static final Achievement ACH_STREAK_100 = register(STREAK_100,
+        AchievementType.STREAK, Rarity.LEGENDARY, "diamond_trophy", 205);  // 100 day streak
     
     // Difficulty Achievements
-    private static final Achievement ACH_FIRST_EASY = register(FIRST_EASY, 
-        AchievementType.DIFFICULTY, Rarity.COMMON, "trophy_bronze");
+    private static final Achievement ACH_FIRST_EASY = register(FIRST_EASY,
+        AchievementType.DIFFICULTY, Rarity.COMMON, "bronze_trophy", 301);
     
-    private static final Achievement ACH_FIRST_MEDIUM = register(FIRST_MEDIUM, 
-        AchievementType.DIFFICULTY, Rarity.UNCOMMON, "trophy_bronze");
+    private static final Achievement ACH_FIRST_MEDIUM = register(FIRST_MEDIUM,
+        AchievementType.DIFFICULTY, Rarity.UNCOMMON, "bronze_trophy", 302);
     
-    private static final Achievement ACH_FIRST_HARD = register(FIRST_HARD, 
-        AchievementType.DIFFICULTY, Rarity.RARE, "trophy_silver");
+    private static final Achievement ACH_FIRST_HARD = register(FIRST_HARD,
+        AchievementType.DIFFICULTY, Rarity.RARE, "silver_trophy", 303);
     
-    private static final Achievement ACH_EASY_MASTER = register(EASY_MASTER, 
-        AchievementType.DIFFICULTY, Rarity.RARE, "trophy_silver");  // 100 easy
+    private static final Achievement ACH_EASY_MASTER = register(EASY_MASTER,
+        AchievementType.DIFFICULTY, Rarity.RARE, "silver_trophy", 304);  // 100 easy
     
-    private static final Achievement ACH_MEDIUM_MASTER = register(MEDIUM_MASTER, 
-        AchievementType.DIFFICULTY, Rarity.EPIC, "trophy_gold");  // 50 medium
+    private static final Achievement ACH_MEDIUM_MASTER = register(MEDIUM_MASTER,
+        AchievementType.DIFFICULTY, Rarity.EPIC, "gold_trophy", 305);  // 50 medium
     
-    private static final Achievement ACH_HARD_MASTER = register(HARD_MASTER, 
-        AchievementType.DIFFICULTY, Rarity.LEGENDARY, "trophy_diamond");  // 25 hard
+    private static final Achievement ACH_HARD_MASTER = register(HARD_MASTER,
+        AchievementType.DIFFICULTY, Rarity.LEGENDARY, "diamond_trophy", 306);  // 25 hard
     
-    private static final Achievement ACH_BALANCED = register(BALANCED, 
-        AchievementType.DIFFICULTY, Rarity.RARE, "trophy_gold");  // 10+ of each
+    private static final Achievement ACH_BALANCED = register(BALANCED,
+        AchievementType.DIFFICULTY, Rarity.RARE, "gold_trophy", 307);  // 10+ of each
     
     // Special Achievements
-    private static final Achievement ACH_SPEED_DEMON = register(SPEED_DEMON, 
-        AchievementType.SPECIAL, Rarity.RARE, "trophy_silver");  // Solve in < 1 min
+    private static final Achievement ACH_SPEED_DEMON = register(SPEED_DEMON,
+        AchievementType.SPECIAL, Rarity.RARE, "silver_trophy", 401);  // Solve in < 1 min
     
-    private static final Achievement ACH_PERFECTIONIST = register(PERFECTIONIST, 
-        AchievementType.SPECIAL, Rarity.EPIC, "trophy_gold");  // 10 consecutive correct
+    private static final Achievement ACH_PERFECTIONIST = register(PERFECTIONIST,
+        AchievementType.SPECIAL, Rarity.EPIC, "gold_trophy", 402);  // 10 consecutive correct
     
-    private static final Achievement ACH_NIGHT_OWL = register(NIGHT_OWL, 
-        AchievementType.SPECIAL, Rarity.UNCOMMON, "trophy_bronze");  // Solve at midnight
+    private static final Achievement ACH_NIGHT_OWL = register(NIGHT_OWL,
+        AchievementType.SPECIAL, Rarity.UNCOMMON, "bronze_trophy", 403);  // Solve at midnight
     
-    private static final Achievement ACH_COMPLETIONIST = register(COMPLETIONIST, 
-        AchievementType.SPECIAL, Rarity.MYTHIC, "trophy_netherite");  // All problems solved
+    private static final Achievement ACH_COMPLETIONIST = register(COMPLETIONIST,
+        AchievementType.SPECIAL, Rarity.MYTHIC, "netherite_trophy", 404);  // All problems solved
     
     // ==================== Achievement Class ====================
     
@@ -130,13 +128,15 @@ public class AchievementRegistry {
         private final String id;
         private final AchievementType type;
         private final Rarity rarity;
-        private final String trophyModel;
+        private final String trophyItemId;
+        private final int trophyModelData;
         
-        public Achievement(String id, AchievementType type, Rarity rarity, String trophyModel) {
+        public Achievement(String id, AchievementType type, Rarity rarity, String trophyItemId, int trophyModelData) {
             this.id = id;
             this.type = type;
             this.rarity = rarity;
-            this.trophyModel = trophyModel;
+            this.trophyItemId = trophyItemId;
+            this.trophyModelData = trophyModelData;
         }
         
         public String getId() {
@@ -151,8 +151,12 @@ public class AchievementRegistry {
             return rarity;
         }
         
-        public String getTrophyModel() {
-            return trophyModel;
+        public String getTrophyItemId() {
+            return trophyItemId;
+        }
+
+        public int getTrophyModelData() {
+            return trophyModelData;
         }
         
         /**
@@ -205,7 +209,7 @@ public class AchievementRegistry {
             
             // Date achieved
             String dateStr = formatTimestamp(timestamp);
-            tooltip.add(Component.translatable("algocraft.trophy.date", dateStr)
+            tooltip.add(Component.translatable("algocraft.trophy.awarded_on", dateStr)
                 .withStyle(ChatFormatting.GRAY));
             
             return tooltip;
@@ -264,8 +268,8 @@ public class AchievementRegistry {
     
     // ==================== Registry Methods ====================
     
-    private static Achievement register(String id, AchievementType type, Rarity rarity, String trophyModel) {
-        Achievement achievement = new Achievement(id, type, rarity, trophyModel);
+    private static Achievement register(String id, AchievementType type, Rarity rarity, String trophyItemId, int trophyModelData) {
+        Achievement achievement = new Achievement(id, type, rarity, trophyItemId, trophyModelData);
         ACHIEVEMENTS.put(id, achievement);
         return achievement;
     }

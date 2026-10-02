@@ -1,7 +1,7 @@
 {
   "id": "95",
   "title": "Serialize and Deserialize Binary Tree",
-  "description": "# Serialize and Deserialize Binary Tree\n\nSerialization is the process of converting a data structure or object into a sequence of bits so that it can be stored in a file or memory buffer, or transmitted across a network connection link to be reconstructed later in the same or another computer environment.\n\nDesign an algorithm to serialize and deserialize a binary tree. There is no restriction on how your serialization/deserialization algorithm should work. You just need to ensure that a binary tree can be serialized to a string and this string can be deserialized to the original tree structure.\n\n**Clarification:** The input/output format is the same as how LeetCode serializes a binary tree. You do not necessarily need to follow this format, so please be creative and come up with different approaches yourself.\n\n## Example 1:\n\n**Input:** root = [1,2,3,null,null,4,5]\n**Output:** [1,2,3,null,null,4,5]\n\n## Example 2:\n\n**Input:** root = []\n**Output:** []\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[0, 10^4]`.\n*   `-1000 <= Node.val <= 1000`",
+  "description": "# Serialize and Deserialize Binary Tree\n\nSerialization converts a data structure into a string or byte sequence so it can be stored, transmitted, and later reconstructed.\n\nDesign a `Codec` class that can serialize a binary tree to a string and deserialize that string back to a tree with the exact same structure and node values.\n\nYour encoded string does **not** need to match LeetCode's level-order display format. The judge will call `deserialize(serialize(root))` and compare the reconstructed tree with the original tree. Your format only needs to be deterministic and unambiguous.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [1,2,3,null,null,4,5]\n**Output:** [1,2,3,null,null,4,5]\n**Explanation:** After serializing and deserializing, the tree structure and values must be unchanged.\n\n## Example 2:\n\n**Input:** root = []\n**Output:** []\n**Explanation:** The empty tree must also round-trip correctly.\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[0, 10^4]`.\n*   `-1000 <= Node.val <= 1000`.",
   "difficulty": "HARD",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode(int x) { val = x; }\n * }\n */\npublic class Codec {\n\n    // Encodes a tree to a single string.\n    public String serialize(TreeNode root) {\n        return \"\";\n    }\n\n    // Decodes your encoded data to tree.\n    public TreeNode deserialize(String data) {\n        return null;\n    }\n}",
   "tags": [
@@ -25,53 +25,103 @@
   "tests": [
     {
       "input": "root = [1,2,3,null,null,4,5]",
-      "output": "[1,2,3,null,null,4,5]"
+      "output": "[1,2,3,null,null,4,5]",
+      "description": "Canonical tree with missing children and two deeper leaves."
     },
     {
       "input": "root = []",
-      "output": "[]"
+      "output": "[]",
+      "description": "Empty tree round trip."
     },
     {
       "input": "root = [1]",
-      "output": "[1]"
+      "output": "[1]",
+      "description": "Single-node tree round trip."
     },
     {
       "input": "root = [1,2]",
-      "output": "[1,2]"
+      "output": "[1,2]",
+      "description": "One left child checks that missing right children are preserved."
+    },
+    {
+      "input": "root = [1,null,2]",
+      "output": "[1,null,2]",
+      "description": "One right child distinguishes left-null from left-child cases."
     },
     {
       "input": "root = [-1000,500,-500,null,null,250,750]",
       "output": "[-1000,500,-500,null,null,250,750]",
-      "description": "Tree with negative values and boundary values"
+      "description": "Negative values and boundary-style values."
     },
     {
       "input": "root = [1,2,3,4,5,6,7]",
       "output": "[1,2,3,4,5,6,7]",
-      "description": "Complete binary tree"
+      "description": "Complete tree with no internal null gaps."
+    },
+    {
+      "input": "root = [1,2,null,3,null,4,null,5]",
+      "output": "[1,2,null,3,null,4,null,5]",
+      "description": "Deep left-skewed chain stresses recursive and iterative null handling."
+    },
+    {
+      "input": "root = [1,null,2,null,3,null,4]",
+      "output": "[1,null,2,null,3,null,4]",
+      "description": "Deep right-skewed chain must not collapse into the left-skewed shape."
+    },
+    {
+      "input": "root = [0,-1,1,-2,null,null,2]",
+      "output": "[0,-1,1,-2,null,null,2]",
+      "description": "Mixed negative, zero, and positive values with sparse leaves."
+    },
+    {
+      "input": "root = [1,2,3,null,4,null,5,6]",
+      "output": "[1,2,3,null,4,null,5,6]",
+      "description": "Asymmetric sparse tree with a deeper grandchild after an internal null."
+    },
+    {
+      "input": "root = [1,1,1,null,1,1,null]",
+      "output": "[1,1,1,null,1,1]",
+      "description": "Duplicate values require structural markers; values alone are not enough."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p95_example1.png",
-      "caption": "Example 1"
+      "caption": "Example 1 input tree that must survive a serialize-deserialize round trip"
     }
   ],
   "solutions": [
     {
-      "name": "Preorder DFS with Markers",
+      "name": "Preorder DFS with Null Markers",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Serialize using preorder DFS, marking null nodes with a sentinel (e.g., '#'). Deserialize by reading tokens in order, recursively building left then right subtrees.",
-      "code": "import java.util.*;\n\npublic class Codec {\n    public String serialize(TreeNode root) {\n        StringBuilder sb = new StringBuilder();\n        serializeHelper(root, sb);\n        return sb.toString();\n    }\n    \n    private void serializeHelper(TreeNode node, StringBuilder sb) {\n        if (node == null) {\n            sb.append(\"#,\");\n            return;\n        }\n        sb.append(node.val).append(\",\");\n        serializeHelper(node.left, sb);\n        serializeHelper(node.right, sb);\n    }\n    \n    public TreeNode deserialize(String data) {\n        Queue<String> queue = new LinkedList<>(Arrays.asList(data.split(\",\")));\n        return deserializeHelper(queue);\n    }\n    \n    private TreeNode deserializeHelper(Queue<String> queue) {\n        String val = queue.poll();\n        if (\"#\".equals(val)) return null;\n        \n        TreeNode node = new TreeNode(Integer.parseInt(val));\n        node.left = deserializeHelper(queue);\n        node.right = deserializeHelper(queue);\n        return node;\n    }\n}",
+      "description": "## Approach\n\nSerialize with preorder traversal: write the current node value, then recursively write the left and right subtrees. For every missing child, write an explicit null marker. Deserialization consumes tokens in the same preorder order and rebuilds root, left subtree, then right subtree.\n\n## Key Insight\n\nPreorder alone is not enough because different shapes can have the same value order. Null markers make the traversal a complete structural description, so every token sequence maps to exactly one tree.\n\n## Complexity Analysis\n- Time Complexity: O(n) for serialize and O(n) for deserialize\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\npublic class Codec {\n    public String serialize(TreeNode root) {\n        StringBuilder sb = new StringBuilder();\n        serializeHelper(root, sb);\n        return sb.toString();\n    }\n\n    private void serializeHelper(TreeNode node, StringBuilder sb) {\n        if (node == null) {\n            sb.append(\"#,\");\n            return;\n        }\n        sb.append(node.val).append(\",\");\n        serializeHelper(node.left, sb);\n        serializeHelper(node.right, sb);\n    }\n\n    public TreeNode deserialize(String data) {\n        Queue<String> queue = new LinkedList<>(Arrays.asList(data.split(\",\")));\n        return deserializeHelper(queue);\n    }\n\n    private TreeNode deserializeHelper(Queue<String> queue) {\n        String val = queue.poll();\n        if (\"#\".equals(val)) {\n            return null;\n        }\n        TreeNode node = new TreeNode(Integer.parseInt(val));\n        node.left = deserializeHelper(queue);\n        node.right = deserializeHelper(queue);\n        return node;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "BFS Level-Order",
+      "name": "BFS Level-Order with Null Markers",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Serialize using BFS level-order traversal, including null markers. Deserialize by processing tokens level by level with a queue.",
-      "code": "import java.util.*;\n\npublic class Codec {\n    public String serialize(TreeNode root) {\n        if (root == null) return \"\";\n        StringBuilder sb = new StringBuilder();\n        Queue<TreeNode> queue = new LinkedList<>();\n        queue.offer(root);\n        \n        while (!queue.isEmpty()) {\n            TreeNode node = queue.poll();\n            if (node == null) {\n                sb.append(\"#,\");\n            } else {\n                sb.append(node.val).append(\",\");\n                queue.offer(node.left);\n                queue.offer(node.right);\n            }\n        }\n        return sb.toString();\n    }\n    \n    public TreeNode deserialize(String data) {\n        if (data.isEmpty()) return null;\n        String[] tokens = data.split(\",\");\n        TreeNode root = new TreeNode(Integer.parseInt(tokens[0]));\n        Queue<TreeNode> queue = new LinkedList<>();\n        queue.offer(root);\n        int i = 1;\n        \n        while (!queue.isEmpty()) {\n            TreeNode node = queue.poll();\n            if (!\"#\".equals(tokens[i])) {\n                node.left = new TreeNode(Integer.parseInt(tokens[i]));\n                queue.offer(node.left);\n            }\n            i++;\n            if (!\"#\".equals(tokens[i])) {\n                node.right = new TreeNode(Integer.parseInt(tokens[i]));\n                queue.offer(node.right);\n            }\n            i++;\n        }\n        return root;\n    }\n}",
+      "description": "## Approach\n\nSerialize with breadth-first traversal. Write each visited node value, and write null markers for missing children so that the level-order parent-child positions stay recoverable. During deserialization, use a queue of parents and consume two tokens for each parent's left and right children.\n\n## Key Insight\n\nLevel-order encoding mirrors the array display format used by many judges. It is easy to inspect, but it must still keep internal nulls; otherwise left-child and right-child shapes become ambiguous.\n\n## Complexity Analysis\n- Time Complexity: O(n) for serialize and O(n) for deserialize\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\npublic class Codec {\n    public String serialize(TreeNode root) {\n        if (root == null) {\n            return \"\";\n        }\n        StringBuilder sb = new StringBuilder();\n        Queue<TreeNode> queue = new LinkedList<>();\n        queue.offer(root);\n\n        while (!queue.isEmpty()) {\n            TreeNode node = queue.poll();\n            if (node == null) {\n                sb.append(\"#,\");\n            } else {\n                sb.append(node.val).append(\",\");\n                queue.offer(node.left);\n                queue.offer(node.right);\n            }\n        }\n        return sb.toString();\n    }\n\n    public TreeNode deserialize(String data) {\n        if (data.isEmpty()) {\n            return null;\n        }\n        String[] tokens = data.split(\",\");\n        TreeNode root = new TreeNode(Integer.parseInt(tokens[0]));\n        Queue<TreeNode> queue = new LinkedList<>();\n        queue.offer(root);\n        int i = 1;\n\n        while (!queue.isEmpty()) {\n            TreeNode node = queue.poll();\n            if (!\"#\".equals(tokens[i])) {\n                node.left = new TreeNode(Integer.parseInt(tokens[i]));\n                queue.offer(node.left);\n            }\n            i++;\n            if (!\"#\".equals(tokens[i])) {\n                node.right = new TreeNode(Integer.parseInt(tokens[i]));\n                queue.offer(node.right);\n            }\n            i++;\n        }\n        return root;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Postorder DFS with Null Markers",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSerialize with postorder traversal: left subtree, right subtree, then node value, again with explicit null markers. To deserialize, read the token array from the end. The reversed order is root, right subtree, then left subtree, so the builder must reconstruct the right child before the left child.\n\n## Key Insight\n\nPostorder is just as unambiguous as preorder once null markers are present. The only trick is reversing both the read direction and the child reconstruction order.\n\n## Complexity Analysis\n- Time Complexity: O(n) for serialize and O(n) for deserialize\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\npublic class Codec {\n    public String serialize(TreeNode root) {\n        List<String> tokens = new ArrayList<>();\n        postorder(root, tokens);\n        return String.join(\",\", tokens);\n    }\n\n    private void postorder(TreeNode node, List<String> tokens) {\n        if (node == null) {\n            tokens.add(\"#\");\n            return;\n        }\n        postorder(node.left, tokens);\n        postorder(node.right, tokens);\n        tokens.add(String.valueOf(node.val));\n    }\n\n    public TreeNode deserialize(String data) {\n        if (data == null || data.isEmpty()) {\n            return null;\n        }\n        String[] tokens = data.split(\",\");\n        int[] index = new int[] {tokens.length - 1};\n        return build(tokens, index);\n    }\n\n    private TreeNode build(String[] tokens, int[] index) {\n        String token = tokens[index[0]--];\n        if (token.equals(\"#\")) {\n            return null;\n        }\n        TreeNode node = new TreeNode(Integer.parseInt(token));\n        node.right = build(tokens, index);\n        node.left = build(tokens, index);\n        return node;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bracketed Recursive Encoding",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nEncode null as a single marker. Encode a real node as an opening bracket, the integer value, the encoded left subtree, the encoded right subtree, and a closing bracket. The parser reads the same grammar recursively, including signs and multi-digit numbers.\n\n## Key Insight\n\nInstead of separating tokens with commas, the string itself carries a small grammar. The brackets mark subtree boundaries, while the null marker still handles missing children.\n\n## Complexity Analysis\n- Time Complexity: O(n) for serialize and O(n) for deserialize\n- Space Complexity: O(n)",
+      "code": "public class Codec {\n    public String serialize(TreeNode root) {\n        StringBuilder sb = new StringBuilder();\n        write(root, sb);\n        return sb.toString();\n    }\n\n    private void write(TreeNode node, StringBuilder sb) {\n        if (node == null) {\n            sb.append('N');\n            return;\n        }\n        sb.append('(').append(node.val).append(' ');\n        write(node.left, sb);\n        sb.append(' ');\n        write(node.right, sb);\n        sb.append(')');\n    }\n\n    public TreeNode deserialize(String data) {\n        int[] index = new int[] {0};\n        return read(data, index);\n    }\n\n    private TreeNode read(String data, int[] index) {\n        if (data.charAt(index[0]) == 'N') {\n            index[0]++;\n            return null;\n        }\n\n        index[0]++;\n        int sign = 1;\n        if (data.charAt(index[0]) == '-') {\n            sign = -1;\n            index[0]++;\n        }\n        int value = 0;\n        while (index[0] < data.length() && Character.isDigit(data.charAt(index[0]))) {\n            value = value * 10 + data.charAt(index[0]) - '0';\n            index[0]++;\n        }\n\n        TreeNode node = new TreeNode(sign * value);\n        index[0]++;\n        node.left = read(data, index);\n        index[0]++;\n        node.right = read(data, index);\n        index[0]++;\n        return node;\n    }\n}",
       "language": "java"
     }
   ]

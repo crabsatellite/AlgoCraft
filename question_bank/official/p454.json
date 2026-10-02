@@ -1,35 +1,102 @@
 {
   "id": "454",
   "title": "Sum of Digits of String After Convert",
-  "description": "# Sum of Digits of String After Convert\n\nYou are given a string `s` consisting of lowercase English letters, and an integer `k`.\n\nFirst, **convert** `s` into an integer by replacing each letter with its position in the alphabet (i.e., replace `'a'` with `1`, `'b'` with `2`, ..., `'z'` with `26`). Then, **transform** the integer by replacing it with the **sum of its digits**. Repeat the **transform** operation `k` times in total.\n\nFor example, if `s = \"zbax\"` and `k = 2`, then the resulting integer would be `8` by the following operations:\n\n*   **Convert**: `\"zbax\" ➝ \"(26)(2)(1)(24)\" ➝ \"262124\" ➝ 262124`\n*   **Transform #1**: `262124 ➝ 2 + 6 + 2 + 1 + 2 + 4 ➝ 17`\n*   **Transform #2**: `17 ➝ 1 + 7 ➝ 8`\n\nReturn the resulting integer after performing the operations described above.\n\n## Example 1:\n\n**Input:** s = \"iiii\", k = 1\n**Output:** 36\n**Explanation:** The operations are as follows:\n- Convert: \"iiii\" ➝ \"(9)(9)(9)(9)\" ➝ \"9999\" ➝ 9999\n- Transform #1: 9999 ➝ 9 + 9 + 9 + 9 ➝ 36\nThus the resulting integer is 36.\n\n## Example 2:\n\n**Input:** s = \"leetcode\", k = 2\n**Output:** 6\n**Explanation:** The operations are as follows:\n- Convert: \"leetcode\" ➝ \"(12)(5)(5)(20)(3)(15)(4)(5)\" ➝ \"12552031545\" ➝ 12552031545\n- Transform #1: 12552031545 ➝ 1 + 2 + 5 + 5 + 2 + 0 + 3 + 1 + 5 + 4 + 5 ➝ 33\n- Transform #2: 33 ➝ 3 + 3 ➝ 6\nThus the resulting integer is 6.\n\n## Example 3:\n\n**Input:** s = \"zbax\", k = 2\n**Output:** 8\n\n## Constraints:\n\n*   `1 <= s.length <= 100`\n*   `1 <= k <= 10`\n*   `s` consists of lowercase English letters.",
+  "description": "# Sum of Digits of String After Convert\n\nYou are given a string `s` consisting only of lowercase English letters, and an integer `k`.\n\nFirst, convert `s` into a numeric string by replacing each letter with its 1-indexed alphabet position: `a` becomes `1`, `b` becomes `2`, ..., and `z` becomes `26`.\n\nThen perform the following transform exactly `k` times: replace the current decimal string or integer with the sum of its decimal digits.\n\nReturn the integer produced after the `k` transforms.\n\nThe first transform is applied to the converted numeric string. Every later transform is applied to the integer result from the previous transform.\n\n## Example 1:\n\n**Input:** s = \"iiii\", k = 1\n**Output:** 36\n**Explanation:** `iiii` becomes `9999`; one transform gives `9 + 9 + 9 + 9 = 36`.\n\n## Example 2:\n\n**Input:** s = \"leetcode\", k = 2\n**Output:** 6\n**Explanation:** `leetcode` becomes `12552031545`. The first transform gives `33`, and the second transform gives `6`.\n\n## Example 3:\n\n**Input:** s = \"zbax\", k = 2\n**Output:** 8\n**Explanation:** `zbax` becomes `262124`. The first transform gives `17`, and the second transform gives `8`.\n\n## Constraints:\n\n*   `1 <= s.length <= 100`\n*   `1 <= k <= 10`\n*   `s` consists only of lowercase English letters.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int getLucky(String s, int k) {\n        \n    }\n}",
-  "tags": ["String", "Simulation"],
+  "tags": [
+    "String",
+    "Simulation",
+    "Math"
+  ],
   "examples": [
-    { "input": "s = \"iiii\", k = 1", "output": "36" },
-    { "input": "s = \"leetcode\", k = 2", "output": "6" }
+    {
+      "input": "s = \"iiii\", k = 1",
+      "output": "36"
+    },
+    {
+      "input": "s = \"leetcode\", k = 2",
+      "output": "6"
+    },
+    {
+      "input": "s = \"zbax\", k = 2",
+      "output": "8"
+    }
   ],
   "solutions": [
     {
-      "name": "Simulation",
-      "timeComplexity": "O(n + k)",
+      "name": "Literal Numeric String Simulation",
+      "timeComplexity": "O(n + k * d)",
       "spaceComplexity": "O(n)",
-      "description": "Convert the string to a numeric string by replacing each letter with its position number. Then repeatedly sum the digits k times.",
-      "code": "class Solution {\n    public int getLucky(String s, int k) {\n        StringBuilder sb = new StringBuilder();\n        for (char c : s.toCharArray()) {\n            sb.append(c - 'a' + 1);\n        }\n        String numStr = sb.toString();\n        int result = 0;\n        for (int i = 0; i < k; i++) {\n            result = 0;\n            for (char c : numStr.toCharArray()) {\n                result += c - '0';\n            }\n            numStr = String.valueOf(result);\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nBuild the converted numeric string exactly as the statement describes. For each of the `k` rounds, scan the current decimal representation, add its digits, and replace the representation with the sum.\n\n## Key Insight\n\nThis route is the clearest baseline because it keeps the first converted string visible. It prevents a common mistake where `z` is treated as one digit instead of the two digits `2` and `6`.\n\n## Complexity Analysis\n\nLet `d` be the number of decimal digits in the current value after conversion. The converted string has at most `2n` digits, so the running time is `O(n + k * d)` and the extra space is `O(n)` for the numeric string.",
+      "code": "class Solution {\n    public int getLucky(String s, int k) {\n        StringBuilder numeric = new StringBuilder();\n        for (int i = 0; i < s.length(); i++) {\n            numeric.append(s.charAt(i) - 'a' + 1);\n        }\n\n        String current = numeric.toString();\n        int answer = 0;\n        for (int round = 0; round < k; round++) {\n            answer = 0;\n            for (int i = 0; i < current.length(); i++) {\n                answer += current.charAt(i) - '0';\n            }\n            current = String.valueOf(answer);\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Direct Digit Sum",
-      "timeComplexity": "O(n + k)",
+      "name": "Direct First Digit Sum",
+      "timeComplexity": "O(n + k * log n)",
       "spaceComplexity": "O(1)",
-      "description": "Instead of building a string, compute the initial digit sum directly by summing the digits of each character's position value. Then repeatedly sum the digits of the resulting number for the remaining k-1 transforms.",
-      "code": "class Solution {\n    public int getLucky(String s, int k) {\n        int sum = 0;\n        for (char c : s.toCharArray()) {\n            int val = c - 'a' + 1;\n            sum += val / 10 + val % 10;\n        }\n        for (int i = 1; i < k; i++) {\n            int newSum = 0;\n            while (sum > 0) {\n                newSum += sum % 10;\n                sum /= 10;\n            }\n            sum = newSum;\n        }\n        return sum;\n    }\n}",
+      "description": "## Approach\n\nSkip the intermediate numeric string. For each letter, compute its alphabet position and immediately add the decimal digits of that position. This gives the result of the first transform. Then apply integer digit sums for the remaining `k - 1` transforms.\n\n## Key Insight\n\nOnly digit sums matter after conversion. The first transform can therefore be merged with the character scan, while the later transforms operate on a small integer.\n\n## Complexity Analysis\n\nThe string is scanned once. Each later transform touches only the digits of the accumulated integer, so the running time is `O(n + k * log n)` and the extra space is `O(1)`.",
+      "code": "class Solution {\n    public int getLucky(String s, int k) {\n        int value = 0;\n        for (int i = 0; i < s.length(); i++) {\n            int position = s.charAt(i) - 'a' + 1;\n            value += position / 10 + position % 10;\n        }\n\n        for (int round = 1; round < k; round++) {\n            value = digitSum(value);\n        }\n        return value;\n    }\n\n    private int digitSum(int value) {\n        int total = 0;\n        while (value > 0) {\n            total += value % 10;\n            value /= 10;\n        }\n        return total;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Transform Decomposition",
+      "timeComplexity": "O(n + k * log n)",
+      "spaceComplexity": "O(n + k)",
+      "description": "## Approach\n\nSeparate the problem into two recursive pieces: one helper computes the first digit sum contributed by the letters, and another helper applies the remaining digit-sum transforms to the integer result.\n\n## Key Insight\n\nThe operation has two different input shapes: the original letters, then an integer. Naming those two phases makes the exact meaning of `k` explicit and is useful for teaching recursive decomposition.\n\n## Complexity Analysis\n\nThe first recursion visits each character once, and at most `k - 1` small integer transforms follow. The running time is `O(n + k * log n)`, and the recursion stack uses `O(n + k)` space.",
+      "code": "class Solution {\n    public int getLucky(String s, int k) {\n        int first = firstDigitSum(s, 0);\n        return transform(first, k - 1);\n    }\n\n    private int firstDigitSum(String s, int index) {\n        if (index == s.length()) {\n            return 0;\n        }\n        int position = s.charAt(index) - 'a' + 1;\n        return position / 10 + position % 10 + firstDigitSum(s, index + 1);\n    }\n\n    private int transform(int value, int remaining) {\n        if (remaining == 0) {\n            return value;\n        }\n        return transform(digitSum(value), remaining - 1);\n    }\n\n    private int digitSum(int value) {\n        int total = 0;\n        while (value > 0) {\n            total += value % 10;\n            value /= 10;\n        }\n        return total;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bounded Digital Root Finish",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCompute the first transform directly from the letters. If `k` is one, return it. Otherwise perform one ordinary digit sum. After that, the constraints guarantee the value is small enough that any remaining transforms equal its digital root.\n\n## Key Insight\n\nThe first digit sum is at most `1000` because each of the 100 letters contributes at most `10`. After one more digit sum, the value is at most `27`, so every further transform is captured by the digital-root formula.\n\n## Complexity Analysis\n\nThe algorithm scans `s` once and then performs constant extra work. The running time is `O(n)` and the extra space is `O(1)`.",
+      "code": "class Solution {\n    public int getLucky(String s, int k) {\n        int value = 0;\n        for (int i = 0; i < s.length(); i++) {\n            int position = s.charAt(i) - 'a' + 1;\n            value += position / 10 + position % 10;\n        }\n\n        if (k == 1) {\n            return value;\n        }\n        value = digitSum(value);\n        if (k == 2) {\n            return value;\n        }\n        return 1 + (value - 1) % 9;\n    }\n\n    private int digitSum(int value) {\n        int total = 0;\n        while (value > 0) {\n            total += value % 10;\n            value /= 10;\n        }\n        return total;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"iiii\", k = 1", "output": "36" },
-    { "input": "s = \"leetcode\", k = 2", "output": "6" },
-    { "input": "s = \"zbax\", k = 2", "output": "8" }
+    {
+      "input": "s = \"iiii\", k = 1",
+      "output": "36"
+    },
+    {
+      "input": "s = \"leetcode\", k = 2",
+      "output": "6"
+    },
+    {
+      "input": "s = \"zbax\", k = 2",
+      "output": "8"
+    },
+    {
+      "input": "s = \"a\", k = 3",
+      "output": "1"
+    },
+    {
+      "input": "s = \"zz\", k = 2",
+      "output": "7"
+    },
+    {
+      "input": "s = \"az\", k = 1",
+      "output": "9"
+    },
+    {
+      "input": "s = \"ssssssssss\", k = 1",
+      "output": "100"
+    },
+    {
+      "input": "s = \"ssssssssss\", k = 2",
+      "output": "1"
+    },
+    {
+      "input": "s = \"abcdefghijklmnopqrstuvwxyz\", k = 1",
+      "output": "135"
+    },
+    {
+      "input": "s = \"abcdefghijklmnopqrstuvwxyz\", k = 10",
+      "output": "9"
+    }
   ]
 }

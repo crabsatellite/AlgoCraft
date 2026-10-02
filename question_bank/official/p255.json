@@ -1,10 +1,13 @@
 {
   "id": "255",
   "title": "Count Items Matching a Rule",
-  "description": "# Count Items Matching a Rule\n\nYou are given an array `items`, where each `items[i] = [type_i, color_i, name_i]` describes the type, color, and name of the `i-th` item. You are also given a rule represented by two strings, `ruleKey` and `ruleValue`.\n\nThe `i-th` item is said to match the rule if **one** of the following is true:\n\n*   `ruleKey == \"type\"` and `ruleValue == type_i`.\n*   `ruleKey == \"color\"` and `ruleValue == color_i`.\n*   `ruleKey == \"name\"` and `ruleValue == name_i`.\n\nReturn *the number of items that match the given rule*.\n\n## Example 1:\n\n**Input:** items = [[\"phone\",\"blue\",\"pixel\"],[\"computer\",\"silver\",\"lenovo\"],[\"phone\",\"gold\",\"iphone\"]], ruleKey = \"color\", ruleValue = \"silver\"\n**Output:** 1\n**Explanation:** There is only one item matching the given rule, which is [\"computer\",\"silver\",\"lenovo\"].\n\n## Example 2:\n\n**Input:** items = [[\"phone\",\"blue\",\"pixel\"],[\"computer\",\"silver\",\"phone\"],[\"phone\",\"gold\",\"iphone\"]], ruleKey = \"type\", ruleValue = \"phone\"\n**Output:** 2\n**Explanation:** There are only two items matching the given rule, which are [\"phone\",\"blue\",\"pixel\"] and [\"phone\",\"gold\",\"iphone\"]. Note that the item [\"computer\",\"silver\",\"phone\"] does not match.\n\n## Constraints:\n\n*   `1 <= items.length <= 10^4`\n*   `1 <= type_i.length, color_i.length, name_i.length, ruleValue.length <= 10`\n*   `ruleKey` is equal to either `\"type\"`, `\"color\"`, or `\"name\"`.\n*   All strings consist only of lowercase letters.",
+  "description": "# Count Items Matching a Rule\n\nYou are given a list `items`. Each item has exactly three strings in this order:\n\n`[type, color, name]`\n\nYou are also given `ruleKey` and `ruleValue`. Count how many items have `ruleValue` in the field selected by `ruleKey`.\n\nOnly the selected field matters. For example, if `ruleKey` is `\"type\"`, then a value appearing in the color or name field must not be counted.\n\n## Example 1:\n\n**Input:** items = [[\"phone\",\"blue\",\"pixel\"],[\"computer\",\"silver\",\"lenovo\"],[\"phone\",\"gold\",\"iphone\"]], ruleKey = \"color\", ruleValue = \"silver\"\n**Output:** 1\n**Explanation:** Only [\"computer\",\"silver\",\"lenovo\"] has color \"silver\".\n\n## Example 2:\n\n**Input:** items = [[\"phone\",\"blue\",\"pixel\"],[\"computer\",\"silver\",\"phone\"],[\"phone\",\"gold\",\"iphone\"]], ruleKey = \"type\", ruleValue = \"phone\"\n**Output:** 2\n**Explanation:** The first and third items have type \"phone\". The second item has name \"phone\", but its type is \"computer\", so it does not match.\n\n## Constraints:\n\n*   `1 <= items.length <= 10^4`\n*   `items[i].length == 3`\n*   `1 <= type_i.length, color_i.length, name_i.length, ruleValue.length <= 10`\n*   `ruleKey` is `\"type\"`, `\"color\"`, or `\"name\"`\n*   All strings consist only of lowercase letters.",
   "difficulty": "EASY",
   "initialCode": "import java.util.List;\n\nclass Solution {\n    public int countMatches(List<List<String>> items, String ruleKey, String ruleValue) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "String"],
+  "tags": [
+    "Array",
+    "String"
+  ],
   "examples": [
     {
       "input": "items = [[\"phone\",\"blue\",\"pixel\"],[\"computer\",\"silver\",\"lenovo\"],[\"phone\",\"gold\",\"iphone\"]], ruleKey = \"color\", ruleValue = \"silver\"",
@@ -17,30 +20,98 @@
   ],
   "solutions": [
     {
-      "name": "Linear Scan",
+      "name": "Fixed Field Index Scan",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Map ruleKey to an index (type=0, color=1, name=2) and count items matching at that index.",
-      "code": "import java.util.List;\n\nclass Solution {\n    public int countMatches(List<List<String>> items, String ruleKey, String ruleValue) {\n        int idx = ruleKey.equals(\"type\") ? 0 : ruleKey.equals(\"color\") ? 1 : 2;\n        int count = 0;\n        for (List<String> item : items) {\n            if (item.get(idx).equals(ruleValue)) count++;\n        }\n        return count;\n    }\n}",
+      "description": "## Approach\n\nConvert `ruleKey` into the fixed column index used by every item: type is 0, color is 1, and name is 2. Then scan all rows and count rows whose selected column equals `ruleValue`.\n\n## Key Insight\n\nThe item schema never changes. Once the selected column is known, the problem is a simple linear count over that one column.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "import java.util.List;\n\nclass Solution {\n    public int countMatches(List<List<String>> items, String ruleKey, String ruleValue) {\n        int index = ruleKey.equals(\"type\") ? 0 : ruleKey.equals(\"color\") ? 1 : 2;\n        int count = 0;\n        for (List<String> item : items) {\n            if (item.get(index).equals(ruleValue)) {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "HashMap Index Lookup",
+      "name": "Switch Field Selection",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use a HashMap to map ruleKey strings to their corresponding list index, then iterate and count matches at the determined index.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int countMatches(List<List<String>> items, String ruleKey, String ruleValue) {\n        Map<String, Integer> keyToIndex = new HashMap<>();\n        keyToIndex.put(\"type\", 0);\n        keyToIndex.put(\"color\", 1);\n        keyToIndex.put(\"name\", 2);\n        int idx = keyToIndex.get(ruleKey);\n        int count = 0;\n        for (int i = 0; i < items.size(); i++) {\n            if (items.get(i).get(idx).equals(ruleValue)) {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
+      "description": "## Approach\n\nUse a `switch` on `ruleKey` to choose the target index explicitly. After that, scan the list exactly once.\n\n## Key Insight\n\nThere are only three legal keys. A switch keeps the contract visible and avoids building extra lookup structures for a tiny fixed schema.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "import java.util.List;\n\nclass Solution {\n    public int countMatches(List<List<String>> items, String ruleKey, String ruleValue) {\n        int index;\n        switch (ruleKey) {\n            case \"type\":\n                index = 0;\n                break;\n            case \"color\":\n                index = 1;\n                break;\n            default:\n                index = 2;\n                break;\n        }\n\n        int count = 0;\n        for (List<String> item : items) {\n            if (item.get(index).equals(ruleValue)) {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "HashMap Key Lookup",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nStore the mapping from field names to indexes in a `HashMap`, look up the selected index, and then scan all items.\n\n## Key Insight\n\nThe map separates schema lookup from row traversal. It is more code for three keys, but it demonstrates a scalable pattern for table-like data with named columns.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "import java.util.HashMap;\nimport java.util.List;\nimport java.util.Map;\n\nclass Solution {\n    public int countMatches(List<List<String>> items, String ruleKey, String ruleValue) {\n        Map<String, Integer> keyToIndex = new HashMap<>();\n        keyToIndex.put(\"type\", 0);\n        keyToIndex.put(\"color\", 1);\n        keyToIndex.put(\"name\", 2);\n\n        int index = keyToIndex.get(ruleKey);\n        int count = 0;\n        for (List<String> item : items) {\n            if (item.get(index).equals(ruleValue)) {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Direct Rule Predicate Helper",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nMove the field-specific comparison into a helper method. The main loop only counts items for which the helper returns true.\n\n## Key Insight\n\nA helper makes the rule semantics hard to confuse with a whole-row search. Each branch compares exactly one selected field against `ruleValue`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "import java.util.List;\n\nclass Solution {\n    public int countMatches(List<List<String>> items, String ruleKey, String ruleValue) {\n        int count = 0;\n        for (List<String> item : items) {\n            if (matches(item, ruleKey, ruleValue)) {\n                count++;\n            }\n        }\n        return count;\n    }\n\n    private boolean matches(List<String> item, String ruleKey, String ruleValue) {\n        if (ruleKey.equals(\"type\")) {\n            return item.get(0).equals(ruleValue);\n        }\n        if (ruleKey.equals(\"color\")) {\n            return item.get(1).equals(ruleValue);\n        }\n        return item.get(2).equals(ruleValue);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "items = [[\"phone\",\"blue\",\"pixel\"],[\"computer\",\"silver\",\"lenovo\"],[\"phone\",\"gold\",\"iphone\"]], ruleKey = \"color\", ruleValue = \"silver\"",
-      "output": "1"
+      "output": "1",
+      "description": "match by color field"
     },
     {
       "input": "items = [[\"phone\",\"blue\",\"pixel\"],[\"computer\",\"silver\",\"phone\"],[\"phone\",\"gold\",\"iphone\"]], ruleKey = \"type\", ruleValue = \"phone\"",
-      "output": "2"
+      "output": "2",
+      "description": "match by type and ignore the same word in name field"
+    },
+    {
+      "input": "items = [[\"phone\",\"blue\",\"pixel\"]], ruleKey = \"name\", ruleValue = \"pixel\"",
+      "output": "1",
+      "description": "single item name match"
+    },
+    {
+      "input": "items = [[\"a\",\"b\",\"c\"],[\"a\",\"d\",\"e\"]], ruleKey = \"color\", ruleValue = \"z\"",
+      "output": "0",
+      "description": "no item matches the selected field value"
+    },
+    {
+      "input": "items = [[\"phone\",\"blue\",\"pixel\"],[\"phone\",\"blue\",\"pixel\"]], ruleKey = \"name\", ruleValue = \"pixel\"",
+      "output": "2",
+      "description": "duplicate matching items are counted separately"
+    },
+    {
+      "input": "items = [[\"type\",\"color\",\"name\"],[\"name\",\"type\",\"color\"]], ruleKey = \"type\", ruleValue = \"name\"",
+      "output": "1",
+      "description": "ruleKey selects a field, not a literal search across all fields"
+    },
+    {
+      "input": "items = [[\"phone\",\"blue\",\"pixel\"],[\"tablet\",\"blue\",\"ipad\"],[\"watch\",\"black\",\"fit\"]], ruleKey = \"color\", ruleValue = \"blue\"",
+      "output": "2",
+      "description": "multiple color matches"
+    },
+    {
+      "input": "items = [[\"phone\",\"pixel\",\"case\"],[\"pixel\",\"blue\",\"cover\"],[\"tablet\",\"gray\",\"pixel\"]], ruleKey = \"name\", ruleValue = \"pixel\"",
+      "output": "1",
+      "description": "name match ignores type and color fields with the same value"
+    },
+    {
+      "input": "items = [[\"book\",\"red\",\"math\"],[\"book\",\"blue\",\"code\"],[\"book\",\"green\",\"algo\"]], ruleKey = \"type\", ruleValue = \"book\"",
+      "output": "3",
+      "description": "all items match by type"
+    },
+    {
+      "input": "items = [[\"aa\",\"red\",\"red\"],[\"bb\",\"blue\",\"red\"],[\"cc\",\"red\",\"blue\"]], ruleKey = \"color\", ruleValue = \"red\"",
+      "output": "2",
+      "description": "color match is independent from name values"
+    },
+    {
+      "input": "items = [[\"gold\",\"phone\",\"silver\"],[\"silver\",\"gold\",\"phone\"]], ruleKey = \"name\", ruleValue = \"gold\"",
+      "output": "0",
+      "description": "value appears in other fields but not in selected name field"
+    },
+    {
+      "input": "items = [[\"a\",\"b\",\"c\"],[\"d\",\"e\",\"f\"],[\"g\",\"h\",\"i\"],[\"a\",\"e\",\"i\"]], ruleKey = \"type\", ruleValue = \"a\"",
+      "output": "2",
+      "description": "larger mixed table with two selected-field matches"
     }
   ]
 }

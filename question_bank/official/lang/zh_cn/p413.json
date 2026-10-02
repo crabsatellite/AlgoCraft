@@ -1,0 +1,32 @@
+{
+  "title": "设计 Bitset",
+  "description": "# 设计 Bitset\n\nBitset 是一个固定长度的位集合，下标从 `0` 到 `size - 1`。初始时每一位都是 `0`。\n\n请实现 `Bitset` 类：\n\n* `Bitset(int size)` 初始化一个长度为 `size`、全为 `0` 的位集合。\n* `void fix(int idx)` 将下标 `idx` 的位设为 `1`。如果它已经是 `1`，状态不变。\n* `void unfix(int idx)` 将下标 `idx` 的位设为 `0`。如果它已经是 `0`，状态不变。\n* `void flip()` 将所有 `0` 变成 `1`，所有 `1` 变成 `0`。\n* `boolean all()` 返回当前是否所有位都是 `1`。\n* `boolean one()` 返回当前是否至少有一位是 `1`。\n* `int count()` 返回当前为 `1` 的位数。\n* `String toString()` 返回当前位集合的字符串表示，字符串下标 `i` 的字符就是第 `i` 位的当前值。\n\n操作示例中，第一组数组是操作名，第二组是对应参数，按同一下标配对并从左到右执行。第一项创建对象，之后都操作同一个对象。输出数组也逐项对应：构造和没有返回值的方法写作 `null`；`[]` 作为参数表示无参数调用。\n\n## 示例 1：\n\n**输入：**\n[\"Bitset\", \"fix\", \"fix\", \"flip\", \"all\", \"unfix\", \"flip\", \"one\", \"unfix\", \"count\", \"toString\"]\n[[5], [3], [1], [], [], [0], [], [], [0], [], []]\n\n**输出：**\n[null, null, null, null, false, null, null, true, null, 2, \"01010\"]\n\n**解释：**\n`Bitset bs = new Bitset(5)` 初始为 `\"00000\"`。\n`fix(3)` 后为 `\"00010\"`，再执行 `fix(1)` 后为 `\"01010\"`。\n`flip()` 后为 `\"10101\"`，所以 `all()` 返回 `false`。\n`unfix(0)` 后为 `\"00101\"`；再次 `flip()` 后为 `\"11010\"`。\n`one()` 返回 `true`。执行 `unfix(0)` 后，位集合为 `\"01010\"`，因此 `count()` 为 `2`，`toString()` 返回 `\"01010\"`。\n\n## 约束：\n\n* `1 <= size <= 10^5`\n* `0 <= idx < size`\n* 对 `fix`、`unfix`、`flip`、`all`、`one`、`count` 和 `toString` 的调用总数最多为 `10^5`。\n* `toString` 最多调用 `5` 次。\n* `all` 最多调用 `5` 次。\n",
+  "solutions": [
+    {
+      "name": "双字符视图加翻转标记",
+      "description": "## 思路\n\n维护两个字符数组：一个表示正常视图，另一个表示翻转后的视图。布尔标记决定当前可见的是哪一个数组。单点更新时同时更新两个数组的同一下标，保证两个视图始终可用。\n\n## 关键洞察\n\n`flip()` 只需要切换当前视图，并把 `ones` 更新为 `size - ones`，因此是 O(1)。代价是多存一份字符串视图，使 `toString()` 可以直接返回当前视图。\n\n## 复杂度分析\n\n- 时间复杂度：`fix`、`unfix`、`flip`、`all`、`one`、`count` 为 O(1)，`toString` 为 O(n)。\n- 空间复杂度：O(n)。"
+    },
+    {
+      "name": "原始布尔数组加 XOR 标记",
+      "description": "## 思路\n\n保存原始布尔数组和全局 `flipped` 标记。下标 `i` 的逻辑值等于 `raw[i] ^ flipped`。要设置逻辑上的 `1` 或 `0`，需要写入在当前翻转标记下能得到正确逻辑值的原始位。\n\n## 关键洞察\n\n翻转后，底层存储值和用户看到的逻辑值不同。`fix` 应写入 `raw[idx] = !flipped`，`unfix` 应写入 `raw[idx] = flipped`，否则重复翻转和单点更新会破坏计数。\n\n## 复杂度分析\n\n- 时间复杂度：单点更新和聚合查询为 O(1)，`toString` 为 O(n)。\n- 空间复杂度：O(n)。"
+    },
+    {
+      "name": "Java BitSet 加全局翻转标记",
+      "description": "## 思路\n\n使用 Java 的 `BitSet` 作为更紧凑的原始位存储，同时保留全局翻转标记和 `ones` 计数。`fix` 与 `unfix` 都写入当前逻辑值所需的原始位。\n\n## 关键洞察\n\n`BitSet` 能减少布尔数组的空间开销，但不能替代逻辑翻转层。`count`、`all` 和 `one` 仍然需要手动维护计数，才能保持 O(1)。\n\n## 复杂度分析\n\n- 时间复杂度：单点更新和聚合查询为 O(1)，`toString` 为 O(n)。\n- 空间复杂度：O(n) 位加对象开销。"
+    },
+    {
+      "name": "互补 ones/zeros 集合",
+      "description": "## 思路\n\n维护两个集合：当前为 `1` 的下标集合 `ones`，以及当前为 `0` 的下标集合 `zeros`。`fix` 把下标从 `zeros` 移到 `ones`，`unfix` 反向移动，`flip` 直接交换两个集合引用。\n\n## 关键洞察\n\n这条路线把位集合看成两个互补分区。整体翻转就是交换两个分区，因此单点更新不需要额外的 raw/logical 转换。\n\n## 复杂度分析\n\n- 时间复杂度：`fix`、`unfix`、`flip`、`all`、`one`、`count` 平均为 O(1)，`toString` 为 O(n)。\n- 空间复杂度：O(n)。"
+    },
+    {
+      "name": "懒翻转线段树",
+      "description": "## 思路\n\n把 `flip()` 看成整个区间的范围翻转，把 `fix` 和 `unfix` 看成单点赋值。线段树的每个节点保存区间内 `1` 的数量，并用懒标记记录尚未下推的翻转。\n\n## 关键洞察\n\n这比专门的全局翻转标记更通用，适合作为教材中的懒传播模型。翻转一个区间时，`1` 的数量会变成 `区间长度 - 原来的 1 的数量`，懒标记表示子节点以后也要应用同样的反转。\n\n## 复杂度分析\n\n- 时间复杂度：`fix` 和 `unfix` 为 O(log n)，`flip`、`all`、`one`、`count` 为 O(1)，`toString` 为 O(n)。\n- 空间复杂度：O(n)。"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "design",
+      "caption": "示例 1：fix(3)、fix(1) 后为 01010，再 flip 后为 10101，每一位都反转"
+    }
+  ]
+}

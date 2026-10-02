@@ -1,7 +1,7 @@
 {
   "id": "41",
   "title": "Valid Parentheses",
-  "description": "# Valid Parentheses\n\nGiven a string `s` containing just the characters `'('`, `')'`, `'{'`, `'}'`, `'['` and `']'`, determine if the input string is valid.\n\nAn input string is valid if:\n\n1.  Open brackets must be closed by the same type of brackets.\n2.  Open brackets must be closed in the correct order.\n3.  Every close bracket has a corresponding open bracket of the same type.\n\n## Example 1:\n\n**Input:** s = \"()\"\n**Output:** true\n\n## Example 2:\n\n**Input:** s = \"()[]{}\"\n**Output:** true\n\n## Example 3:\n\n**Input:** s = \"(]\"\n**Output:** false\n\n## Constraints:\n\n*   `1 <= s.length <= 10^4`\n*   `s` consists of parentheses only `'()[]{}'`.",
+  "description": "# Valid Parentheses\n\nGiven a string `s` containing only the characters `'('`, `')'`, `'{'`, `'}'`, `'['`, and `']'`, determine whether `s` is a valid bracket string.\n\nA bracket string is valid when all of these rules hold:\n\n1. Every opening bracket is closed by the same bracket type.\n2. Brackets close in the reverse order in which they were opened.\n3. A closing bracket cannot appear unless it closes the most recent unmatched opening bracket.\n\nThe input contains no letters, digits, or spaces, so every character must participate in the bracket-matching rules.\n\n## Example 1\n\n**Input:** s = \"()\"\n**Output:** true\n\n## Example 2\n\n**Input:** s = \"()[]{}\"\n**Output:** true\n\n## Example 3\n\n**Input:** s = \"(]\"\n**Output:** false\n**Explanation:** The opening parenthesis cannot be closed by a square bracket.\n\n## Example 4\n\n**Input:** s = \"([)]\"\n**Output:** false\n**Explanation:** The square bracket opens after the parenthesis, so it must close before the parenthesis can close.\n\n## Constraints\n\n* `1 <= s.length <= 10^4`\n* `s` consists only of the bracket characters `'()[]{}'`.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public boolean isValid(String s) {\n        // Write your code here\n        return false;\n    }\n}",
   "tags": [
@@ -20,59 +20,121 @@
     {
       "input": "s = \"(]\"",
       "output": "false"
+    },
+    {
+      "input": "s = \"([)]\"",
+      "output": "false"
     }
   ],
   "tests": [
     {
       "input": "s = \"()\"",
-      "output": "true"
+      "output": "true",
+      "description": "Single matched pair"
     },
     {
       "input": "s = \"()[]{}\"",
-      "output": "true"
+      "output": "true",
+      "description": "Independent bracket groups in sequence"
     },
     {
       "input": "s = \"(]\"",
-      "output": "false"
+      "output": "false",
+      "description": "Closing bracket type does not match the opener"
     },
     {
       "input": "s = \"([)]\"",
-      "output": "false"
+      "output": "false",
+      "description": "Crossed nesting is invalid even though counts match"
     },
     {
       "input": "s = \"{[]}\"",
-      "output": "true"
+      "output": "true",
+      "description": "Nested square brackets inside braces"
     },
     {
       "input": "s = \"[\"",
-      "output": "false"
+      "output": "false",
+      "description": "A lone opener remains unmatched"
     },
     {
       "input": "s = \"]\"",
-      "output": "false"
+      "output": "false",
+      "description": "A closer cannot appear before any opener"
+    },
+    {
+      "input": "s = \"(([]){})\"",
+      "output": "true",
+      "description": "Deep mixed nesting with adjacent groups"
+    },
+    {
+      "input": "s = \"(()\"",
+      "output": "false",
+      "description": "Valid prefix followed by an unmatched opener"
+    },
+    {
+      "input": "s = \"())\"",
+      "output": "false",
+      "description": "Valid prefix followed by an extra closer"
+    },
+    {
+      "input": "s = \"([{}])\"",
+      "output": "true",
+      "description": "All three bracket types close in reverse order"
+    },
+    {
+      "input": "s = \"([)\"",
+      "output": "false",
+      "description": "Odd length and wrong closing order"
     }
   ],
   "solutions": [
     {
-      "name": "Stack with HashMap",
+      "name": "Stack with Bracket Map",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use stack to store opening brackets. When closing bracket encountered, check if it matches the top of stack. Use HashMap for bracket pairs.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isValid(String s) {\n        Deque<Character> stack = new ArrayDeque<>();\n        Map<Character, Character> pairs = new HashMap<>();\n        pairs.put(')', '(');\n        pairs.put(']', '[');\n        pairs.put('}', '{');\n        \n        for (char c : s.toCharArray()) {\n            if (pairs.containsKey(c)) {\n                // Closing bracket\n                if (stack.isEmpty() || stack.pop() != pairs.get(c)) {\n                    return false;\n                }\n            } else {\n                // Opening bracket\n                stack.push(c);\n            }\n        }\n        \n        return stack.isEmpty();\n    }\n}"
+      "description": "## Approach\n\nScan the string from left to right. Push opening brackets onto a stack. Store a map from each closing bracket to the opening bracket it requires, and when a closer appears, pop the stack and compare it with that required opener.\n\n## Key Insight\n\nThe next valid closing bracket must close the most recent unmatched opener. A stack stores exactly that last-opened, first-closed order, while the map keeps type matching explicit.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isValid(String s) {\n        Deque<Character> stack = new ArrayDeque<>();\n        Map<Character, Character> pairs = new HashMap<>();\n        pairs.put(')', '(');\n        pairs.put(']', '[');\n        pairs.put('}', '{');\n\n        for (char c : s.toCharArray()) {\n            if (pairs.containsKey(c)) {\n                if (stack.isEmpty() || stack.pop() != pairs.get(c)) {\n                    return false;\n                }\n            } else {\n                stack.push(c);\n            }\n        }\n\n        return stack.isEmpty();\n    }\n}",
+      "language": "java"
     },
     {
-      "name": "Stack with Direct Comparison",
+      "name": "Stack of Expected Closers",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Push expected closing bracket when seeing opening bracket. Simpler comparison logic.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isValid(String s) {\n        Deque<Character> stack = new ArrayDeque<>();\n        \n        for (char c : s.toCharArray()) {\n            if (c == '(') {\n                stack.push(')');\n            } else if (c == '[') {\n                stack.push(']');\n            } else if (c == '{') {\n                stack.push('}');\n            } else {\n                // Closing bracket - must match top\n                if (stack.isEmpty() || stack.pop() != c) {\n                    return false;\n                }\n            }\n        }\n        \n        return stack.isEmpty();\n    }\n}"
+      "description": "## Approach\n\nInstead of pushing the opening bracket, push the exact closing bracket that would be valid later. When a closing bracket is read, it must equal the value popped from the stack.\n\n## Key Insight\n\nThis turns matching into a direct equality check. The stack no longer says what was opened; it says what the parser is waiting to see next, in the only order that can be valid.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isValid(String s) {\n        Deque<Character> stack = new ArrayDeque<>();\n\n        for (char c : s.toCharArray()) {\n            if (c == '(') {\n                stack.push(')');\n            } else if (c == '[') {\n                stack.push(']');\n            } else if (c == '{') {\n                stack.push('}');\n            } else if (stack.isEmpty() || stack.pop() != c) {\n                return false;\n            }\n        }\n\n        return stack.isEmpty();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Manual Array Stack",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse a character array and a top pointer as the stack. Opening brackets are written into the array. A closing bracket pops one character and checks the exact matching type.\n\n## Key Insight\n\nThis makes the stack abstraction concrete: a stack is just a buffer plus an index. It is useful for teaching what the library collection is doing internally.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public boolean isValid(String s) {\n        char[] stack = new char[s.length()];\n        int top = -1;\n\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (c == '(' || c == '[' || c == '{') {\n                stack[++top] = c;\n            } else {\n                if (top < 0) {\n                    return false;\n                }\n                char open = stack[top--];\n                if ((c == ')' && open != '(') ||\n                    (c == ']' && open != '[') ||\n                    (c == '}' && open != '{')) {\n                    return false;\n                }\n            }\n        }\n\n        return top == -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Grammar Parser",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nParse the string as a sequence of balanced bracket groups. When an opener appears, recursively parse everything until its matching closer. A closer is accepted only if it is exactly the closer expected by the current recursive frame.\n\n## Key Insight\n\nValid bracket strings are a small grammar: a sequence can contain nested sequences, and each nested sequence has one required ending token. Recursion uses the call stack to represent those pending endings.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private String s;\n    private int index;\n\n    public boolean isValid(String s) {\n        this.s = s;\n        this.index = 0;\n        return parseUntil('\\0') && index == s.length();\n    }\n\n    private boolean parseUntil(char expected) {\n        while (index < s.length()) {\n            char c = s.charAt(index);\n            if (c == ')' || c == ']' || c == '}') {\n                if (expected != '\\0' && c == expected) {\n                    index++;\n                    return true;\n                }\n                return false;\n            }\n\n            char close = matchingClose(c);\n            if (close == '\\0') {\n                return false;\n            }\n            index++;\n            if (!parseUntil(close)) {\n                return false;\n            }\n        }\n\n        return expected == '\\0';\n    }\n\n    private char matchingClose(char c) {\n        if (c == '(') {\n            return ')';\n        }\n        if (c == '[') {\n            return ']';\n        }\n        if (c == '{') {\n            return '}';\n        }\n        return '\\0';\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "String Reduction Baseline",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nRepeatedly remove every adjacent valid pair: `()`, `[]`, and `{}`. If the string eventually becomes empty, every bracket was part of a properly nested pair; if no replacement changes the string, the remaining characters prove invalid structure.\n\n## Key Insight\n\nIn a valid bracket string, the innermost pair is always adjacent. Removing all adjacent pairs preserves validity of the outer structure, so this baseline is a direct reduction proof even though it is slower.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public boolean isValid(String s) {\n        int previousLength;\n        do {\n            previousLength = s.length();\n            s = s.replace(\"()\", \"\").replace(\"[]\", \"\").replace(\"{}\", \"\");\n        } while (s.length() != previousLength);\n\n        return s.isEmpty();\n    }\n}",
+      "language": "java"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p41_example1.png",
-      "caption": "Parentheses matching with stack"
+      "caption": "Bracket input scan"
     }
   ]
 }

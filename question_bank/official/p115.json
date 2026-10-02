@@ -1,10 +1,15 @@
 {
   "id": "115",
   "title": "Find K Pairs with Smallest Sums",
-  "description": "# Find K Pairs with Smallest Sums\n\nYou are given two integer arrays `nums1` and `nums2` sorted in **non-decreasing order** and an integer `k`.\n\nDefine a pair `(u, v)` which consists of one element from the first array and one element from the second array.\n\nReturn *the* `k` *pairs* `(u1, v1), (u2, v2), ..., (uk, vk)` *with the smallest sums*.\n\n## Example 1:\n\n**Input:** nums1 = [1,7,11], nums2 = [2,4,6], k = 3\n**Output:** [[1,2],[1,4],[1,6]]\n**Explanation:** The first 3 pairs are returned from the sequence: [1,2], [1,4], [1,6], [7,2], [7,4], [11,2], [7,6], [11,4], [11,6]\n\n## Example 2:\n\n**Input:** nums1 = [1,1,2], nums2 = [1,2,3], k = 2\n**Output:** [[1,1],[1,1]]\n**Explanation:** The first 2 pairs are returned from the sequence: [1,1], [1,1], [1,2], [2,1], [1,2], [2,2], [1,3], [1,3], [2,3]\n\n## Example 3:\n\n**Input:** nums1 = [1,2], nums2 = [3], k = 3\n**Output:** [[1,3],[2,3]]\n**Explanation:** All possible pairs are returned from the sequence: [1,3], [2,3]\n\n## Constraints:\n\n*   `1 <= nums1.length, nums2.length <= 10^5`\n*   `-10^9 <= nums1[i], nums2[i] <= 10^9`\n*   `nums1` and `nums2` both are sorted in **non-decreasing order**.\n*   `1 <= k <= 10^4`\n*   `k <= nums1.length * nums2.length`",
+  "description": "# Find K Pairs with Smallest Sums\n\nYou are given two integer arrays `nums1` and `nums2`, both sorted in **non-decreasing order**, and an integer `k`.\n\nA pair `(u, v)` consists of one element from `nums1` and one element from `nums2`. The same value pair may appear more than once if it comes from different index positions.\n\nReturn up to `k` pairs with the smallest sums. If there are fewer than `k` possible pairs, return all possible pairs.\n\nThe returned list must be deterministic: order pairs by ascending `u + v`; when sums tie, the pair with the smaller `u` comes first; if `u` also ties, the pair with the smaller `v` comes first.\n\n## Example 1\n\n**Input**\nnums1 = [1,7,11], nums2 = [2,4,6], k = 3\n\n**Output**\n[[1,2],[1,4],[1,6]]\n\n**Explanation**\nThe three smallest sums are `1 + 2`, `1 + 4`, and `1 + 6`.\n\n## Example 2\n\n**Input**\nnums1 = [1,1,2], nums2 = [1,2,3], k = 2\n\n**Output**\n[[1,1],[1,1]]\n\n**Explanation**\nThe two `1` values in `nums1` produce two distinct index pairs with the same value pair.\n\n## Example 3\n\n**Input**\nnums1 = [1,2], nums2 = [3], k = 3\n\n**Output**\n[[1,3],[2,3]]\n\n**Explanation**\nOnly two pairs exist, so both are returned.\n\n## Constraints\n\n* `1 <= nums1.length, nums2.length <= 10^5`\n* `-10^9 <= nums1[i], nums2[i] <= 10^9`\n* `nums1` and `nums2` are sorted in **non-decreasing order**.\n* `1 <= k <= 10^4`\n\n## Follow-up\n\nCan you avoid generating the full `nums1.length * nums2.length` Cartesian product?",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["Array", "Heap (Priority Queue)"],
+  "initialCode": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {\n        return new ArrayList<>();\n    }\n}",
+  "tags": [
+    "Array",
+    "Heap (Priority Queue)",
+    "Binary Search",
+    "Sorting"
+  ],
   "examples": [
     {
       "input": "nums1 = [1,7,11], nums2 = [2,4,6], k = 3",
@@ -14,39 +19,105 @@
       "input": "nums1 = [1,1,2], nums2 = [1,2,3], k = 2",
       "output": "[[1,1],[1,1]]"
     },
-    { "input": "nums1 = [1,2], nums2 = [3], k = 3", "output": "[[1,3],[2,3]]" }
+    {
+      "input": "nums1 = [1,2], nums2 = [3], k = 3",
+      "output": "[[1,3],[2,3]]"
+    }
   ],
   "solutions": [
     {
-      "name": "Min Heap - BFS-like Expansion",
-      "timeComplexity": "O(k log k)",
-      "spaceComplexity": "O(k)",
-      "description": "Start by pushing (nums1[0]+nums2[0], 0, 0). Each time pop the smallest sum pair (i,j), add (i+1,j) and if j==0 also add (i,j+1) to avoid duplicates. Repeat k times.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {\n        List<List<Integer>> result = new ArrayList<>();\n        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> \n            (nums1[a[0]] + nums2[a[1]]) - (nums1[b[0]] + nums2[b[1]])\n        );\n        int m = nums1.length, n = nums2.length;\n        for (int i = 0; i < Math.min(m, k); i++) {\n            pq.offer(new int[]{i, 0});\n        }\n        while (!pq.isEmpty() && result.size() < k) {\n            int[] cur = pq.poll();\n            result.add(Arrays.asList(nums1[cur[0]], nums2[cur[1]]));\n            if (cur[1] + 1 < n) {\n                pq.offer(new int[]{cur[0], cur[1] + 1});\n            }\n        }\n        return result;\n    }\n}",
+      "name": "Row Frontier Min Heap",
+      "timeComplexity": "O(min(m, k) + k log min(m, k))",
+      "spaceComplexity": "O(min(m, k))",
+      "description": "## Approach\n\nSeed a min heap with the first pair from each of the first `min(nums1.length, k)` rows: `(i, 0)`. Each heap entry represents the next unseen pair in one row of the sorted pair grid. When `(i, j)` is removed, append that value pair and push `(i, j + 1)` if the row still has another candidate.\n\n## Key Insight\n\nFor a fixed `nums1[i]`, sums only increase as `j` moves right. Keeping one frontier per row is enough to merge those sorted rows without generating the whole Cartesian product. The comparator uses `long` sums and then the required value tie-breakers, so edge values near `10^9` cannot overflow the ordering.\n\n## Complexity Analysis\n\n- Time Complexity: O(min(m, k) + r log min(m, k)), where `r` is the number of returned pairs.\n- Space Complexity: O(min(m, k)).",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {\n        List<List<Integer>> result = new ArrayList<>();\n        if (nums1.length == 0 || nums2.length == 0 || k <= 0) {\n            return result;\n        }\n\n        PriorityQueue<int[]> heap = new PriorityQueue<>((a, b) -> compare(a, b, nums1, nums2));\n        int rows = Math.min(nums1.length, k);\n        for (int i = 0; i < rows; i++) {\n            heap.offer(new int[]{i, 0});\n        }\n\n        while (!heap.isEmpty() && result.size() < k) {\n            int[] cell = heap.poll();\n            int i = cell[0];\n            int j = cell[1];\n            result.add(Arrays.asList(nums1[i], nums2[j]));\n            if (j + 1 < nums2.length) {\n                heap.offer(new int[]{i, j + 1});\n            }\n        }\n        return result;\n    }\n\n    private int compare(int[] a, int[] b, int[] nums1, int[] nums2) {\n        long sumA = (long) nums1[a[0]] + nums2[a[1]];\n        long sumB = (long) nums1[b[0]] + nums2[b[1]];\n        int bySum = Long.compare(sumA, sumB);\n        if (bySum != 0) {\n            return bySum;\n        }\n        int byFirst = Integer.compare(nums1[a[0]], nums1[b[0]]);\n        if (byFirst != 0) {\n            return byFirst;\n        }\n        int bySecond = Integer.compare(nums2[a[1]], nums2[b[1]]);\n        if (bySecond != 0) {\n            return bySecond;\n        }\n        int byRow = Integer.compare(a[0], b[0]);\n        if (byRow != 0) {\n            return byRow;\n        }\n        return Integer.compare(a[1], b[1]);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Brute Force with Sort",
-      "timeComplexity": "O(m * n * log(m * n))",
-      "spaceComplexity": "O(m * n)",
-      "description": "Generate all possible pairs up to a bounded number (we can limit to k * k since only k results are needed). Store them in a list, sort by sum, and return the first k pairs.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {\n        List<int[]> pairs = new ArrayList<>();\n        int m = Math.min(nums1.length, k);\n        int n = Math.min(nums2.length, k);\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                pairs.add(new int[]{nums1[i], nums2[j]});\n            }\n        }\n        Collections.sort(pairs, (a, b) -> (a[0] + a[1]) - (b[0] + b[1]));\n        List<List<Integer>> result = new ArrayList<>();\n        for (int i = 0; i < Math.min(k, pairs.size()); i++) {\n            result.add(Arrays.asList(pairs.get(i)[0], pairs.get(i)[1]));\n        }\n        return result;\n    }\n}",
+      "name": "Best-First Grid Expansion",
+      "timeComplexity": "O(k log k)",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nView pair indices as a monotone grid. Start from `(0, 0)`, repeatedly remove the smallest reachable cell, and add its down and right neighbors if they have not been inserted before. A visited set prevents the same cell from being reached through two paths.\n\n## Key Insight\n\nMoving down or right never decreases the pair sum because both input arrays are sorted. This makes the grid behave like a shortest-path frontier: once a cell is popped, no unseen path can produce that exact cell with a smaller sum. It is a useful teaching route because it generalizes to other sorted-matrix best-first problems.\n\n## Complexity Analysis\n\n- Time Complexity: O(r log r), where `r` is the number of returned pairs.\n- Space Complexity: O(r) for the heap and visited set.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {\n        List<List<Integer>> result = new ArrayList<>();\n        if (nums1.length == 0 || nums2.length == 0 || k <= 0) {\n            return result;\n        }\n\n        PriorityQueue<int[]> heap = new PriorityQueue<>((a, b) -> compare(a, b, nums1, nums2));\n        Set<Long> seen = new HashSet<>();\n        offer(heap, seen, 0, 0, nums1.length, nums2.length);\n\n        while (!heap.isEmpty() && result.size() < k) {\n            int[] cell = heap.poll();\n            int i = cell[0];\n            int j = cell[1];\n            result.add(Arrays.asList(nums1[i], nums2[j]));\n            offer(heap, seen, i + 1, j, nums1.length, nums2.length);\n            offer(heap, seen, i, j + 1, nums1.length, nums2.length);\n        }\n        return result;\n    }\n\n    private void offer(PriorityQueue<int[]> heap, Set<Long> seen, int i, int j, int m, int n) {\n        if (i >= m || j >= n) {\n            return;\n        }\n        long key = (((long) i) << 32) ^ (j & 0xffffffffL);\n        if (seen.add(key)) {\n            heap.offer(new int[]{i, j});\n        }\n    }\n\n    private int compare(int[] a, int[] b, int[] nums1, int[] nums2) {\n        long sumA = (long) nums1[a[0]] + nums2[a[1]];\n        long sumB = (long) nums1[b[0]] + nums2[b[1]];\n        int bySum = Long.compare(sumA, sumB);\n        if (bySum != 0) {\n            return bySum;\n        }\n        int byFirst = Integer.compare(nums1[a[0]], nums1[b[0]]);\n        if (byFirst != 0) {\n            return byFirst;\n        }\n        int bySecond = Integer.compare(nums2[a[1]], nums2[b[1]]);\n        if (bySecond != 0) {\n            return bySecond;\n        }\n        int byRow = Integer.compare(a[0], b[0]);\n        if (byRow != 0) {\n            return byRow;\n        }\n        return Integer.compare(a[1], b[1]);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bounded Candidate Sort Baseline",
+      "timeComplexity": "O(min(m, k) * min(n, k) * log(min(m, k) * min(n, k)))",
+      "spaceComplexity": "O(min(m, k) * min(n, k))",
+      "description": "## Approach\n\nOnly the first `k` elements of either sorted array can participate in the first `k` returned pairs. Generate that bounded rectangle of candidate index pairs, sort it by the required output order, and take the first `k` or all candidates if fewer exist.\n\n## Key Insight\n\nThis is intentionally more direct than the heap routes. It gives learners a clear correctness baseline and uses the sorted-array boundary to avoid the fully unbounded Cartesian product, while still showing why a heap is needed for large `k`.\n\n## Complexity Analysis\n\n- Time Complexity: O(a * b * log(a * b)), where `a = min(m, k)` and `b = min(n, k)`.\n- Space Complexity: O(a * b).",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {\n        List<int[]> candidates = new ArrayList<>();\n        int limit1 = Math.min(nums1.length, k);\n        int limit2 = Math.min(nums2.length, k);\n        for (int i = 0; i < limit1; i++) {\n            for (int j = 0; j < limit2; j++) {\n                candidates.add(new int[]{i, j});\n            }\n        }\n\n        candidates.sort((a, b) -> compare(a, b, nums1, nums2));\n\n        List<List<Integer>> result = new ArrayList<>();\n        int limit = Math.min(k, candidates.size());\n        for (int index = 0; index < limit; index++) {\n            int[] cell = candidates.get(index);\n            result.add(Arrays.asList(nums1[cell[0]], nums2[cell[1]]));\n        }\n        return result;\n    }\n\n    private int compare(int[] a, int[] b, int[] nums1, int[] nums2) {\n        long sumA = (long) nums1[a[0]] + nums2[a[1]];\n        long sumB = (long) nums1[b[0]] + nums2[b[1]];\n        int bySum = Long.compare(sumA, sumB);\n        if (bySum != 0) {\n            return bySum;\n        }\n        int byFirst = Integer.compare(nums1[a[0]], nums1[b[0]]);\n        if (byFirst != 0) {\n            return byFirst;\n        }\n        int bySecond = Integer.compare(nums2[a[1]], nums2[b[1]]);\n        if (bySecond != 0) {\n            return bySecond;\n        }\n        int byRow = Integer.compare(a[0], b[0]);\n        if (byRow != 0) {\n            return byRow;\n        }\n        return Integer.compare(a[1], b[1]);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Binary Search Sum Threshold",
+      "timeComplexity": "O((m + n) log W + k log k)",
+      "spaceComplexity": "O(min(m, k))",
+      "description": "## Approach\n\nBinary search the smallest sum threshold `T` such that at least the required number of index pairs have sum `<= T`. Counting pairs under a candidate threshold uses a two-pointer scan over the sorted arrays. After finding `T`, run a limited row-frontier merge that emits only pairs whose sum is at most `T` until enough ordered results have been produced.\n\n## Key Insight\n\nThe predicate `countPairsWithSumAtMost(x) >= k` is monotonic, so binary search can locate the kth pair sum without materializing all candidates. The final merge is still needed because the problem asks for actual pairs in deterministic order, not just the kth sum.\n\n## Complexity Analysis\n\n- Time Complexity: O((m + n) log W + r log min(m, r)), where `W` is the numeric sum range and `r` is the number of returned pairs.\n- Space Complexity: O(min(m, r)).",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {\n        List<List<Integer>> result = new ArrayList<>();\n        if (nums1.length == 0 || nums2.length == 0 || k <= 0) {\n            return result;\n        }\n\n        int target = (int) Math.min((long) k, (long) nums1.length * nums2.length);\n        long low = (long) nums1[0] + nums2[0];\n        long high = (long) nums1[nums1.length - 1] + nums2[nums2.length - 1];\n        while (low < high) {\n            long mid = low + (high - low) / 2;\n            if (countAtMost(nums1, nums2, mid, target) >= target) {\n                high = mid;\n            } else {\n                low = mid + 1;\n            }\n        }\n\n        long threshold = low;\n        PriorityQueue<int[]> heap = new PriorityQueue<>((a, b) -> compare(a, b, nums1, nums2));\n        for (int i = 0; i < nums1.length && i < target; i++) {\n            if ((long) nums1[i] + nums2[0] > threshold) {\n                break;\n            }\n            heap.offer(new int[]{i, 0});\n        }\n\n        while (!heap.isEmpty() && result.size() < target) {\n            int[] cell = heap.poll();\n            int i = cell[0];\n            int j = cell[1];\n            if ((long) nums1[i] + nums2[j] > threshold) {\n                break;\n            }\n            result.add(Arrays.asList(nums1[i], nums2[j]));\n            if (j + 1 < nums2.length && (long) nums1[i] + nums2[j + 1] <= threshold) {\n                heap.offer(new int[]{i, j + 1});\n            }\n        }\n        return result;\n    }\n\n    private long countAtMost(int[] nums1, int[] nums2, long limit, int stopAt) {\n        long count = 0;\n        int j = nums2.length - 1;\n        for (int value : nums1) {\n            while (j >= 0 && (long) value + nums2[j] > limit) {\n                j--;\n            }\n            count += j + 1L;\n            if (count >= stopAt) {\n                return count;\n            }\n        }\n        return count;\n    }\n\n    private int compare(int[] a, int[] b, int[] nums1, int[] nums2) {\n        long sumA = (long) nums1[a[0]] + nums2[a[1]];\n        long sumB = (long) nums1[b[0]] + nums2[b[1]];\n        int bySum = Long.compare(sumA, sumB);\n        if (bySum != 0) {\n            return bySum;\n        }\n        int byFirst = Integer.compare(nums1[a[0]], nums1[b[0]]);\n        if (byFirst != 0) {\n            return byFirst;\n        }\n        int bySecond = Integer.compare(nums2[a[1]], nums2[b[1]]);\n        if (bySecond != 0) {\n            return bySecond;\n        }\n        int byRow = Integer.compare(a[0], b[0]);\n        if (byRow != 0) {\n            return byRow;\n        }\n        return Integer.compare(a[1], b[1]);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "nums1 = [1,7,11], nums2 = [2,4,6], k = 3",
-      "output": "[[1,2],[1,4],[1,6]]"
+      "output": "[[1,2],[1,4],[1,6]]",
+      "description": "Canonical sorted arrays where all three smallest pairs share the first value from nums1."
     },
     {
       "input": "nums1 = [1,1,2], nums2 = [1,2,3], k = 2",
-      "output": "[[1,1],[1,1]]"
+      "output": "[[1,1],[1,1]]",
+      "description": "Duplicate values in nums1 produce duplicate output pairs from different index positions."
     },
-    { "input": "nums1 = [1,2], nums2 = [3], k = 3", "output": "[[1,3],[2,3]]" },
     {
-      "input": "nums1 = [-5,-2,0], nums2 = [-3,1], k = 2",
-      "output": "[[-5,-3],[-2,-3]]"
+      "input": "nums1 = [1,2], nums2 = [3], k = 3",
+      "output": "[[1,3],[2,3]]",
+      "description": "k is larger than the number of possible pairs, so every pair is returned."
+    },
+    {
+      "input": "nums1 = [-5,-2,0], nums2 = [-3,1], k = 4",
+      "output": "[[-5,-3],[-2,-3],[-5,1],[0,-3]]",
+      "description": "Negative values verify ordering below zero and across mixed signs."
+    },
+    {
+      "input": "nums1 = [1,2], nums2 = [1,2], k = 4",
+      "output": "[[1,1],[1,2],[2,1],[2,2]]",
+      "description": "Equal sums must be ordered by the first value and then the second value."
+    },
+    {
+      "input": "nums1 = [0,0], nums2 = [0,0], k = 4",
+      "output": "[[0,0],[0,0],[0,0],[0,0]]",
+      "description": "Identical values still represent four index pairs and all must be returned."
+    },
+    {
+      "input": "nums1 = [-1000000000,1000000000], nums2 = [-1000000000,1000000000], k = 4",
+      "output": "[[-1000000000,-1000000000],[-1000000000,1000000000],[1000000000,-1000000000],[1000000000,1000000000]]",
+      "description": "Boundary values catch integer-overflow comparators when sums are compared by subtraction."
+    },
+    {
+      "input": "nums1 = [5,6], nums2 = [-10,100], k = 1",
+      "output": "[[5,-10]]",
+      "description": "Only the single smallest pair should be emitted when k is one."
+    },
+    {
+      "input": "nums1 = [1,2,4], nums2 = [1,1,3], k = 6",
+      "output": "[[1,1],[1,1],[2,1],[2,1],[1,3],[2,3]]",
+      "description": "Duplicate second-array values and equal-sum candidates exercise heap frontier ordering."
+    },
+    {
+      "input": "nums1 = [-2,-1,3], nums2 = [0,2], k = 5",
+      "output": "[[-2,0],[-1,0],[-2,2],[-1,2],[3,0]]",
+      "description": "Returning almost all pairs still needs the same deterministic order."
+    },
+    {
+      "input": "nums1 = [1,1,1], nums2 = [1,2], k = 5",
+      "output": "[[1,1],[1,1],[1,1],[1,2],[1,2]]",
+      "description": "Many duplicate first-array values verify multiplicity is based on positions, not unique values."
+    },
+    {
+      "input": "nums1 = [1,3,5,7], nums2 = [2,4,6,8], k = 10",
+      "output": "[[1,2],[1,4],[3,2],[1,6],[3,4],[5,2],[1,8],[3,6],[5,4],[7,2]]",
+      "description": "A wider grid checks that several equal-sum diagonals are ordered by pair values."
     }
   ]
 }

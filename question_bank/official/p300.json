@@ -1,34 +1,97 @@
 {
   "id": "300",
   "title": "Apply Operations to an Array",
-  "description": "# Apply Operations to an Array\n\nYou are given a **0-indexed** array `nums` of size `n` consisting of **non-negative** integers.\n\nYou need to apply `n - 1` operations to this array where, in the `i`th operation (**0-indexed**), you will apply the following on the `i`th element of `nums`:\n\n*   If `nums[i] == nums[i + 1]`, then multiply `nums[i]` by `2` and set `nums[i + 1]` to `0`. Otherwise, you skip this operation.\n\nAfter performing all the operations, **shift** all the `0`'s to the end of the array.\n\n*   For example, the array `[1,0,2,0,0,1]` after shifting all its `0`'s to the end is `[1,2,1,0,0,0]`.\n\nReturn *the resulting array*.\n\nNote that the operations are applied **sequentially**, not all at once.\n\n## Example 1:\n\n**Input:** nums = [1,2,2,1,1,0]\n**Output:** [1,4,2,0,0,0]\n**Explanation:** We do the following operations:\n- i = 0: nums[0] and nums[1] are not equal, so we skip this.\n- i = 1: nums[1] and nums[2] are equal, we multiply nums[1] by 2 and change nums[2] to 0. The array becomes [1,**4**,**0**,1,1,0].\n- i = 2: nums[2] and nums[3] are not equal, so we skip this.\n- i = 3: nums[3] and nums[4] are equal, we multiply nums[3] by 2 and change nums[4] to 0. The array becomes [1,4,0,**2**,**0**,0].\n- i = 4: nums[4] and nums[5] are equal, we multiply nums[4] by 2 and change nums[5] to 0. The array becomes [1,4,0,2,**0**,**0**].\nAfter performing all the operations, the array is [1,4,0,2,0,0].\nNow we shift all 0's to the end, which gives the array [1,4,2,0,0,0].\n\n## Example 2:\n\n**Input:** nums = [0,1]\n**Output:** [1,0]\n**Explanation:** No operation can be applied, we just shift the 0 to the end.\n\n## Constraints:\n\n*   `2 <= nums.length <= 2000`\n*   `0 <= nums[i] <= 1000`",
+  "description": "# Apply Operations to an Array\n\nYou are given a **0-indexed** integer array `nums` with length `n`. Every value is non-negative.\n\nProcess the array from left to right. For each index `i` from `0` to `n - 2`, compare the **current** values of `nums[i]` and `nums[i + 1]`:\n\n* If `nums[i] == nums[i + 1]`, set `nums[i]` to `2 * nums[i]` and set `nums[i + 1]` to `0`.\n* Otherwise, leave both positions unchanged.\n\nAfter all `n - 1` operations are finished, move every `0` to the end of the array while keeping the relative order of the non-zero values.\n\nReturn the resulting array.\n\nThe operations are applied **sequentially**. A value changed to `0` by an earlier operation is the value seen by later operations.\n\n## Example 1:\n\n**Input:** nums = [1,2,2,1,1,0]\n**Output:** [1,4,2,0,0,0]\n**Explanation:** The pair at indices 1 and 2 becomes `[4,0]`, then the pair at indices 3 and 4 becomes `[2,0]`. After the operations the array is `[1,4,0,2,0,0]`; moving zeroes to the end gives `[1,4,2,0,0,0]`.\n\n## Example 2:\n\n**Input:** nums = [0,1]\n**Output:** [1,0]\n**Explanation:** No merge happens, so only the final zero-shift step changes the array.\n\n## Constraints:\n\n* `2 <= nums.length <= 2000`\n* `0 <= nums[i] <= 1000`",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public int[] applyOperations(int[] nums) {\n        \n    }\n}",
-  "tags": ["Array", "Simulation"],
+  "initialCode": "class Solution {\n    public int[] applyOperations(int[] nums) {\n        // Write your code here\n        return nums;\n    }\n}",
+  "tags": [
+    "Array",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "nums = [1,2,2,1,1,0]", "output": "[1,4,2,0,0,0]" },
-    { "input": "nums = [0,1]", "output": "[1,0]" }
+    {
+      "input": "nums = [1,2,2,1,1,0]",
+      "output": "[1,4,2,0,0,0]"
+    },
+    {
+      "input": "nums = [0,1]",
+      "output": "[1,0]"
+    }
   ],
   "solutions": [
     {
-      "name": "Simulate Then Shift",
+      "name": "In-Place Simulation Then Compact",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "First apply all operations: if nums[i] == nums[i+1], double nums[i] and zero out nums[i+1]. Then shift non-zero elements to the front using a write pointer.",
-      "code": "class Solution {\n    public int[] applyOperations(int[] nums) {\n        int n = nums.length;\n        for (int i = 0; i < n - 1; i++) {\n            if (nums[i] == nums[i + 1]) {\n                nums[i] *= 2;\n                nums[i + 1] = 0;\n            }\n        }\n        int w = 0;\n        for (int i = 0; i < n; i++) {\n            if (nums[i] != 0) nums[w++] = nums[i];\n        }\n        while (w < n) nums[w++] = 0;\n        return nums;\n    }\n}",
+      "description": "## Approach\n\nFirst run the required left-to-right operation directly on `nums`. After that simulation is complete, use a write pointer to compact every non-zero value to the front and fill the remaining suffix with zeroes.\n\n## Key Insight\n\nThe merge phase and the zero-shift phase are two ordered phases. Keeping them separate makes the sequential update rule explicit and avoids moving a value before a later comparison has used it.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int[] applyOperations(int[] nums) {\n        for (int i = 0; i + 1 < nums.length; i++) {\n            if (nums[i] == nums[i + 1]) {\n                nums[i] *= 2;\n                nums[i + 1] = 0;\n            }\n        }\n\n        int write = 0;\n        for (int num : nums) {\n            if (num != 0) {\n                nums[write++] = num;\n            }\n        }\n        while (write < nums.length) {\n            nums[write++] = 0;\n        }\n        return nums;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Separate Operations and Copy",
+      "name": "Separate Output Copy",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Apply operations first, then create a new result array by copying non-zero elements to the front. Remaining positions are already zero-initialized.",
-      "code": "class Solution {\n    public int[] applyOperations(int[] nums) {\n        int n = nums.length;\n        for (int i = 0; i < n - 1; i++) {\n            if (nums[i] == nums[i + 1]) {\n                nums[i] *= 2;\n                nums[i + 1] = 0;\n            }\n        }\n        int[] result = new int[n];\n        int idx = 0;\n        for (int i = 0; i < n; i++) {\n            if (nums[i] != 0) {\n                result[idx++] = nums[i];\n            }\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nMutate `nums` for the operation phase, then allocate a fresh answer array and copy only non-zero values into it. Java initializes the unused answer slots to zero.\n\n## Key Insight\n\nA separate output array is often the easiest way to teach stable compaction: every non-zero value is written once in order, and the zero suffix appears without extra bookkeeping.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int[] applyOperations(int[] nums) {\n        for (int i = 0; i + 1 < nums.length; i++) {\n            if (nums[i] == nums[i + 1]) {\n                nums[i] *= 2;\n                nums[i + 1] = 0;\n            }\n        }\n\n        int[] ans = new int[nums.length];\n        int index = 0;\n        for (int num : nums) {\n            if (num != 0) {\n                ans[index++] = num;\n            }\n        }\n        return ans;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "One Pass Merge Output",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nBuild the compacted result while scanning from left to right. When two adjacent values are equal, write one doubled non-zero value and advance by two positions; otherwise write the current non-zero value and advance by one.\n\n## Key Insight\n\nThe only later operation that a skipped position could affect is a zero-zero merge, which has no visible effect on the final compacted array. That makes it valid to emit the non-zero result directly.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int[] applyOperations(int[] nums) {\n        int[] answer = new int[nums.length];\n        int write = 0;\n        int index = 0;\n        while (index < nums.length) {\n            if (index + 1 < nums.length && nums[index] == nums[index + 1]) {\n                if (nums[index] != 0) {\n                    answer[write++] = nums[index] * 2;\n                }\n                index += 2;\n            } else {\n                if (nums[index] != 0) {\n                    answer[write++] = nums[index];\n                }\n                index++;\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Single Pass In-Place Write Pointer",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan every index once. Before using `nums[i]` as output, apply the required merge with `nums[i + 1]` if that next position exists. Then write the current non-zero value to the compacted prefix and fill the suffix with zeroes at the end.\n\n## Key Insight\n\nThe write pointer never moves ahead of the read index, so writing compacted values into earlier positions cannot destroy a value that a future comparison still needs.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int[] applyOperations(int[] nums) {\n        int write = 0;\n        for (int i = 0; i < nums.length; i++) {\n            if (i + 1 < nums.length && nums[i] == nums[i + 1]) {\n                nums[i] *= 2;\n                nums[i + 1] = 0;\n            }\n            if (nums[i] != 0) {\n                nums[write++] = nums[i];\n            }\n        }\n        while (write < nums.length) {\n            nums[write++] = 0;\n        }\n        return nums;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [1,2,2,1,1,0]", "output": "[1,4,2,0,0,0]" },
-    { "input": "nums = [0,1]", "output": "[1,0]" }
+    {
+      "input": "nums = [1,2,2,1,1,0]",
+      "output": "[1,4,2,0,0,0]",
+      "description": "sample applies left-to-right merges before moving zeroes"
+    },
+    {
+      "input": "nums = [0,1]",
+      "output": "[1,0]",
+      "description": "sample shifts a leading zero to the end"
+    },
+    {
+      "input": "nums = [2,2,2]",
+      "output": "[4,2,0]",
+      "description": "triple values merge only the first adjacent pair visibly"
+    },
+    {
+      "input": "nums = [1,1,2,2]",
+      "output": "[2,4,0,0]",
+      "description": "multiple independent adjacent pairs merge in one pass"
+    },
+    {
+      "input": "nums = [0,0,1,1]",
+      "output": "[2,0,0,0]",
+      "description": "zero pair has no visible output but later non-zero pair still merges"
+    },
+    {
+      "input": "nums = [1,2,3]",
+      "output": "[1,2,3]",
+      "description": "array with no equal adjacent values is unchanged"
+    },
+    {
+      "input": "nums = [0,0,0]",
+      "output": "[0,0,0]",
+      "description": "all-zero array remains all zeroes"
+    },
+    {
+      "input": "nums = [1000,1000,0,1000,1000]",
+      "output": "[2000,2000,0,0,0]",
+      "description": "upper value boundary can double and zeroes between pairs are ignored after compaction"
+    }
   ]
 }

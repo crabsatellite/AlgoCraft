@@ -1,12 +1,18 @@
 {
   "id": "266",
   "title": "Find Words Containing Character",
-  "description": "# Find Words Containing Character\n\nYou are given a **0-indexed** array of strings `words` and a character `x`.\n\nReturn *an array of indices representing the words that contain the character* `x`.\n\nNote that the returned array may be in **any** order.\n\n## Example 1:\n\n**Input:** words = [\"leet\",\"code\"], x = \"e\"\n**Output:** [0,1]\n**Explanation:** \"e\" occurs in both \"leet\" and \"code\". The indices are 0 and 1.\n\n## Example 2:\n\n**Input:** words = [\"abc\",\"bcd\",\"aaaa\",\"cbc\"], x = \"a\"\n**Output:** [0,2]\n**Explanation:** \"a\" occurs in \"abc\", and \"aaaa\". The indices are 0 and 2.\n\n## Example 3:\n\n**Input:** words = [\"abc\",\"bcd\",\"aaaa\",\"cbc\"], x = \"z\"\n**Output:** []\n**Explanation:** \"z\" does not occur in any of the words.\n\n## Constraints:\n\n*   `1 <= words.length <= 50`\n*   `1 <= words[i].length <= 50`\n*   `x` is a lowercase English letter.\n*   `words[i]` consists only of lowercase English letters.",
+  "description": "# Find Words Containing Character\n\nYou are given a **0-indexed** array of strings `words` and a character `x`.\n\nReturn the indices of every word containing `x`, in increasing order. Include each index only once, even if its word contains several copies of `x`.\n\n## Example 1:\n\n**Input:** words = [\"leet\",\"code\"], x = \"e\"\n**Output:** [0,1]\n**Explanation:** `e` occurs in both `\"leet\"` and `\"code\"`, so the matching indices are 0 and 1.\n\n## Example 2:\n\n**Input:** words = [\"abc\",\"bcd\",\"aaaa\",\"cbc\"], x = \"a\"\n**Output:** [0,2]\n**Explanation:** `a` occurs in `\"abc\"` and `\"aaaa\"`. The repeated `a` characters in `\"aaaa\"` still produce only one index.\n\n## Example 3:\n\n**Input:** words = [\"abc\",\"bcd\",\"aaaa\",\"cbc\"], x = \"z\"\n**Output:** []\n**Explanation:** `z` does not occur in any word.\n\n## Constraints:\n\n*   `1 <= words.length <= 50`\n*   `1 <= words[i].length <= 50`\n*   `x` is a lowercase English letter.\n*   `words[i]` consists only of lowercase English letters.",
   "difficulty": "EASY",
   "initialCode": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> findWordsContaining(String[] words, char x) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["Array", "String"],
+  "tags": [
+    "Array",
+    "String"
+  ],
   "examples": [
-    { "input": "words = [\"leet\",\"code\"], x = \"e\"", "output": "[0,1]" },
+    {
+      "input": "words = [\"leet\",\"code\"], x = \"e\"",
+      "output": "[0,1]"
+    },
     {
       "input": "words = [\"abc\",\"bcd\",\"aaaa\",\"cbc\"], x = \"a\"",
       "output": "[0,2]"
@@ -18,31 +24,98 @@
   ],
   "solutions": [
     {
-      "name": "Linear Scan",
-      "timeComplexity": "O(n * m)",
-      "spaceComplexity": "O(n)",
-      "description": "Check each word for the character x using indexOf. Collect indices where it's found.",
-      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> findWordsContaining(String[] words, char x) {\n        List<Integer> res = new ArrayList<>();\n        for (int i = 0; i < words.length; i++) {\n            if (words[i].indexOf(x) != -1) res.add(i);\n        }\n        return res;\n    }\n}",
+      "name": "IndexOf Scan",
+      "timeComplexity": "O(n*m)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan the words from left to right. For each word, call `indexOf(x)` and append the current index when the method reports that `x` is present.\n\n## Key Insight\n\nThe task asks only whether a character appears at least once in each word, not where every occurrence is. `indexOf` captures that membership question directly while the outer loop preserves increasing index order.\n\n## Complexity Analysis\n\n- Time Complexity: O(n*m), where `n` is the number of words and `m` is the maximum word length.\n- Space Complexity: O(1) extra space besides the returned list.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<Integer> findWordsContaining(String[] words, char x) {\n        List<Integer> indices = new ArrayList<>();\n        for (int i = 0; i < words.length; i++) {\n            if (words[i].indexOf(x) != -1) {\n                indices.add(i);\n            }\n        }\n        return indices;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Manual Character Search",
-      "timeComplexity": "O(n * m)",
-      "spaceComplexity": "O(n)",
-      "description": "For each word, manually iterate through characters to check for x instead of using indexOf.",
-      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> findWordsContaining(String[] words, char x) {\n        List<Integer> res = new ArrayList<>();\n        for (int i = 0; i < words.length; i++) {\n            boolean found = false;\n            for (int j = 0; j < words[i].length(); j++) {\n                if (words[i].charAt(j) == x) {\n                    found = true;\n                    break;\n                }\n            }\n            if (found) res.add(i);\n        }\n        return res;\n    }\n}",
+      "name": "Manual Character Scan",
+      "timeComplexity": "O(n*m)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nWrite a small helper that checks one word character by character. The main loop calls that helper for every index and appends the index when the helper returns true.\n\n## Key Insight\n\nThis route exposes the exact logic hidden inside the library call: after the first match in a word, the answer for that word is already decided, so the scan can stop immediately.\n\n## Complexity Analysis\n\n- Time Complexity: O(n*m) in the worst case, because a missing or final-position character may require scanning a full word.\n- Space Complexity: O(1) extra space besides the returned list.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<Integer> findWordsContaining(String[] words, char x) {\n        List<Integer> indices = new ArrayList<>();\n        for (int i = 0; i < words.length; i++) {\n            if (contains(words[i], x)) {\n                indices.add(i);\n            }\n        }\n        return indices;\n    }\n\n    private boolean contains(String word, char x) {\n        for (int j = 0; j < word.length(); j++) {\n            if (word.charAt(j) == x) {\n                return true;\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bitmask Per Word",
+      "timeComplexity": "O(n*m)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFor each lowercase word, build a 26-bit mask recording which letters appear. Then test whether the bit for `x` is set and append the word index when it is.\n\n## Key Insight\n\nBecause all characters are lowercase English letters, presence can be encoded in a fixed-size integer. This is more machinery than the problem needs, but it teaches how membership queries can become bit checks.\n\n## Complexity Analysis\n\n- Time Complexity: O(n*m), because every character may be read once to build its word mask.\n- Space Complexity: O(1), since the mask uses a fixed number of bits.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<Integer> findWordsContaining(String[] words, char x) {\n        List<Integer> indices = new ArrayList<>();\n        int targetMask = 1 << (x - 'a');\n        for (int i = 0; i < words.length; i++) {\n            int mask = 0;\n            for (int j = 0; j < words[i].length(); j++) {\n                mask |= 1 << (words[i].charAt(j) - 'a');\n            }\n            if ((mask & targetMask) != 0) {\n                indices.add(i);\n            }\n        }\n        return indices;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Labeled Loop Early Exit",
+      "timeComplexity": "O(n*m)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse a labeled outer loop. When the inner character loop finds `x`, append the current word index and continue directly with the next word.\n\n## Key Insight\n\nA plain `break` leaves only the inner loop, while a labeled `continue` makes the control flow explicit: after one match, skip the rest of that word so duplicate characters cannot add the same index twice.\n\n## Complexity Analysis\n\n- Time Complexity: O(n*m) in the worst case.\n- Space Complexity: O(1) extra space besides the returned list.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<Integer> findWordsContaining(String[] words, char x) {\n        List<Integer> indices = new ArrayList<>();\n        outer:\n        for (int i = 0; i < words.length; i++) {\n            String word = words[i];\n            for (int j = 0; j < word.length(); j++) {\n                if (word.charAt(j) == x) {\n                    indices.add(i);\n                    continue outer;\n                }\n            }\n        }\n        return indices;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "words = [\"leet\",\"code\"], x = \"e\"", "output": "[0,1]" },
+    {
+      "input": "words = [\"leet\",\"code\"], x = \"e\"",
+      "output": "[0,1]",
+      "description": "sample where both words contain the target"
+    },
     {
       "input": "words = [\"abc\",\"bcd\",\"aaaa\",\"cbc\"], x = \"a\"",
-      "output": "[0,2]"
+      "output": "[0,2]",
+      "description": "sample with one single occurrence and one repeated occurrence"
     },
     {
       "input": "words = [\"abc\",\"bcd\",\"aaaa\",\"cbc\"], x = \"z\"",
-      "output": "[]"
+      "output": "[]",
+      "description": "no matching words returns an empty list"
+    },
+    {
+      "input": "words = [\"a\"], x = \"a\"",
+      "output": "[0]",
+      "description": "single-word positive case"
+    },
+    {
+      "input": "words = [\"b\"], x = \"a\"",
+      "output": "[]",
+      "description": "single-word negative case"
+    },
+    {
+      "input": "words = [\"x\",\"xx\",\"abcx\",\"def\"], x = \"x\"",
+      "output": "[0,1,2]",
+      "description": "target at the beginning, repeated target, and target at the end"
+    },
+    {
+      "input": "words = [\"abc\",\"def\",\"ghi\"], x = \"f\"",
+      "output": "[1]",
+      "description": "target in the middle of a later word"
+    },
+    {
+      "input": "words = [\"aaaa\",\"bbbb\",\"abab\"], x = \"b\"",
+      "output": "[1,2]",
+      "description": "repeated characters should still add each matching index once"
+    },
+    {
+      "input": "words = [\"abc\",\"cba\",\"bac\",\"cab\"], x = \"c\"",
+      "output": "[0,1,2,3]",
+      "description": "target can appear in different positions across words"
+    },
+    {
+      "input": "words = [\"mn\",\"op\",\"qr\",\"st\"], x = \"m\"",
+      "output": "[0]",
+      "description": "first index can be the only match"
+    },
+    {
+      "input": "words = [\"mn\",\"op\",\"qr\",\"st\"], x = \"t\"",
+      "output": "[3]",
+      "description": "last index can be the only match"
+    },
+    {
+      "input": "words = [\"zzzz\",\"az\",\"za\",\"aa\"], x = \"z\"",
+      "output": "[0,1,2]",
+      "description": "multiple z occurrences do not duplicate an index"
     }
   ]
 }

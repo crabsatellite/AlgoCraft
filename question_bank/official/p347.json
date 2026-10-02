@@ -1,14 +1,18 @@
 {
   "id": "347",
   "title": "Trapping Rain Water II",
-  "description": "# Trapping Rain Water II\n\nGiven an `m x n` integer matrix `heightMap` representing the height of each unit cell in a 2D elevation map, return *the volume of water it can trap after raining*.\n\n## Example 1:\n\n**Input:** heightMap = [[1,4,3,1,3,2],[3,2,1,3,2,4],[2,3,3,2,3,1]]\n**Output:** 4\n**Explanation:**\nAfter the rain, water is trapped between the blocks.\nWe have two small ponds 1 and 3 units trapped.\nThe total volume of water trapped is 4.\n\n## Example 2:\n\n**Input:** heightMap = [[3,3,3,3,3],[3,2,2,2,3],[3,2,1,2,3],[3,2,2,2,3],[3,3,3,3,3]]\n**Output:** 10\n\n## Constraints:\n\n*   `m == heightMap.length`\n*   `n == heightMap[i].length`\n*   `1 <= m, n <= 200`\n*   `0 <= heightMap[i][j] <= 2 * 10^4`",
+  "description": "# Trapping Rain Water II\n\nYou are given an `m x n` matrix `heightMap`, where `heightMap[r][c]` is the height of the block at row `r` and column `c` in a 2D elevation map.\n\nAfter raining, water can stay on a cell only if every path from that cell to the outside boundary must cross a wall high enough to hold the water. Water can flow through the four neighboring directions: up, down, left, and right.\n\nReturn the total volume of water that can be trapped.\n\n## Example 1:\n\n**Input:** heightMap = [[1,4,3,1,3,2],[3,2,1,3,2,4],[2,3,3,2,3,1]]\n\n**Output:** 4\n\n**Explanation:** The low cells in the middle are held by the surrounding boundary. They trap a total of 4 units of water.\n\n## Example 2:\n\n**Input:** heightMap = [[3,3,3,3,3],[3,2,2,2,3],[3,2,1,2,3],[3,2,2,2,3],[3,3,3,3,3]]\n\n**Output:** 10\n\n**Explanation:** The outer ring has height 3, so the eight cells of height 2 trap 1 unit each and the center cell of height 1 traps 2 units.\n\n## Constraints:\n\n* `m == heightMap.length`\n* `n == heightMap[i].length`\n* `1 <= m, n <= 200`\n* `0 <= heightMap[i][j] <= 2 * 10^4`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int trapRainWater(int[][] heightMap) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int trapRainWater(int[][] heightMap) {\n        return 0;\n    }\n}",
   "tags": [
     "Array",
     "Breadth-First Search",
     "Heap (Priority Queue)",
-    "Matrix"
+    "Matrix",
+    "Graph",
+    "Shortest Path",
+    "Union Find",
+    "Binary Search"
   ],
   "examples": [
     {
@@ -22,37 +26,123 @@
   ],
   "solutions": [
     {
-      "name": "BFS with Min-Heap from Borders",
+      "name": "Boundary Min-Heap Flood Fill",
       "timeComplexity": "O(m * n * log(m * n))",
       "spaceComplexity": "O(m * n)",
-      "description": "Add all border cells to a min-heap. Process cells in order of height. For each neighbor, if its height is lower than current water level, water is trapped. Update the water level and add the neighbor to the heap.",
-      "code": "class Solution {\n    public int trapRainWater(int[][] heightMap) {\n        int m = heightMap.length, n = heightMap[0].length;\n        if (m < 3 || n < 3) return 0;\n        java.util.PriorityQueue<int[]> pq = new java.util.PriorityQueue<>((a, b) -> a[2] - b[2]);\n        boolean[][] visited = new boolean[m][n];\n        for (int i = 0; i < m; i++) {\n            pq.offer(new int[]{i, 0, heightMap[i][0]}); visited[i][0] = true;\n            pq.offer(new int[]{i, n - 1, heightMap[i][n - 1]}); visited[i][n - 1] = true;\n        }\n        for (int j = 1; j < n - 1; j++) {\n            pq.offer(new int[]{0, j, heightMap[0][j]}); visited[0][j] = true;\n            pq.offer(new int[]{m - 1, j, heightMap[m - 1][j]}); visited[m - 1][j] = true;\n        }\n        int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n        int water = 0;\n        while (!pq.isEmpty()) {\n            int[] cell = pq.poll();\n            for (int[] d : dirs) {\n                int nr = cell[0] + d[0], nc = cell[1] + d[1];\n                if (nr >= 0 && nr < m && nc >= 0 && nc < n && !visited[nr][nc]) {\n                    visited[nr][nc] = true;\n                    water += Math.max(0, cell[2] - heightMap[nr][nc]);\n                    pq.offer(new int[]{nr, nc, Math.max(cell[2], heightMap[nr][nc])});\n                }\n            }\n        }\n        return water;\n    }\n}",
+      "description": "## Approach\n\nAdd every boundary cell to a min-heap and mark it visited. Repeatedly pop the lowest currently known boundary. For each unvisited neighbor, trap `currentLevel - neighborHeight` if the neighbor is lower, then push the neighbor with level `max(currentLevel, neighborHeight)`.\n\n## Key Insight\n\nThe lowest boundary cell is the first place where water could leak out. Processing boundaries from low to high is the 2D version of expanding the safe water level inward.\n\n## Complexity Analysis\n- Time Complexity: O(m * n * log(m * n))\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public int trapRainWater(int[][] heightMap) {\n        int rows = heightMap.length;\n        int cols = heightMap[0].length;\n        if (rows < 3 || cols < 3) {\n            return 0;\n        }\n        java.util.PriorityQueue<int[]> heap = new java.util.PriorityQueue<>((a, b) -> a[2] - b[2]);\n        boolean[][] visited = new boolean[rows][cols];\n        for (int r = 0; r < rows; r++) {\n            addBoundaryCell(r, 0, heightMap, visited, heap);\n            addBoundaryCell(r, cols - 1, heightMap, visited, heap);\n        }\n        for (int c = 1; c < cols - 1; c++) {\n            addBoundaryCell(0, c, heightMap, visited, heap);\n            addBoundaryCell(rows - 1, c, heightMap, visited, heap);\n        }\n\n        int trapped = 0;\n        int[][] directions = {{1,0},{-1,0},{0,1},{0,-1}};\n        while (!heap.isEmpty()) {\n            int[] cell = heap.poll();\n            for (int[] direction : directions) {\n                int nr = cell[0] + direction[0];\n                int nc = cell[1] + direction[1];\n                if (nr < 0 || nr >= rows || nc < 0 || nc >= cols || visited[nr][nc]) {\n                    continue;\n                }\n                visited[nr][nc] = true;\n                trapped += Math.max(0, cell[2] - heightMap[nr][nc]);\n                heap.offer(new int[] {nr, nc, Math.max(cell[2], heightMap[nr][nc])});\n            }\n        }\n        return trapped;\n    }\n\n    private void addBoundaryCell(int r, int c, int[][] heightMap, boolean[][] visited,\n                                 java.util.PriorityQueue<int[]> heap) {\n        if (visited[r][c]) {\n            return;\n        }\n        visited[r][c] = true;\n        heap.offer(new int[] {r, c, heightMap[r][c]});\n    }\n}",
       "language": "java"
     },
     {
-      "name": "BFS Layer-by-Layer (SPFA-like)",
-      "timeComplexity": "O(m * n * max_height)",
+      "name": "Bottleneck Dijkstra Levels",
+      "timeComplexity": "O(m * n * log(m * n))",
       "spaceComplexity": "O(m * n)",
-      "description": "Maintain a water level array initialized to maximum height for interior cells and actual height for border. Use BFS from borders, propagating the minimum possible water level inward. Repeat until stable.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int trapRainWater(int[][] heightMap) {\n        int m = heightMap.length, n = heightMap[0].length;\n        if (m < 3 || n < 3) return 0;\n        int[][] water = new int[m][n];\n        int maxH = 0;\n        for (int[] row : heightMap) for (int h : row) maxH = Math.max(maxH, h);\n        Queue<int[]> queue = new LinkedList<>();\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (i == 0 || i == m - 1 || j == 0 || j == n - 1) {\n                    water[i][j] = heightMap[i][j];\n                    queue.offer(new int[]{i, j});\n                } else {\n                    water[i][j] = maxH;\n                }\n            }\n        }\n        int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n        while (!queue.isEmpty()) {\n            int[] cell = queue.poll();\n            int r = cell[0], c = cell[1];\n            for (int[] d : dirs) {\n                int nr = r + d[0], nc = c + d[1];\n                if (nr > 0 && nr < m - 1 && nc > 0 && nc < n - 1) {\n                    int newWater = Math.max(heightMap[nr][nc], water[r][c]);\n                    if (newWater < water[nr][nc]) {\n                        water[nr][nc] = newWater;\n                        queue.offer(new int[]{nr, nc});\n                    }\n                }\n            }\n        }\n        int total = 0;\n        for (int i = 1; i < m - 1; i++) {\n            for (int j = 1; j < n - 1; j++) {\n                total += water[i][j] - heightMap[i][j];\n            }\n        }\n        return total;\n    }\n}",
+      "description": "## Approach\n\nFor each cell, compute the lowest possible water level that still connects it to the boundary. Start all boundary cells as sources. Relax a neighbor with `max(currentLevel, neighborHeight)`, which is the best level of a path that reaches that neighbor through the current cell.\n\n## Key Insight\n\nA cell's final water level is the minimum, over all paths to the boundary, of the maximum height on that path. That is a shortest-path problem where path cost is a bottleneck maximum instead of a sum.\n\n## Complexity Analysis\n- Time Complexity: O(m * n * log(m * n))\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public int trapRainWater(int[][] heightMap) {\n        int rows = heightMap.length;\n        int cols = heightMap[0].length;\n        if (rows < 3 || cols < 3) {\n            return 0;\n        }\n        int[][] level = new int[rows][cols];\n        for (int[] row : level) {\n            java.util.Arrays.fill(row, Integer.MAX_VALUE);\n        }\n        java.util.PriorityQueue<int[]> heap = new java.util.PriorityQueue<>((a, b) -> a[2] - b[2]);\n        for (int r = 0; r < rows; r++) {\n            offerLevel(r, 0, heightMap[r][0], level, heap);\n            offerLevel(r, cols - 1, heightMap[r][cols - 1], level, heap);\n        }\n        for (int c = 1; c < cols - 1; c++) {\n            offerLevel(0, c, heightMap[0][c], level, heap);\n            offerLevel(rows - 1, c, heightMap[rows - 1][c], level, heap);\n        }\n\n        int[][] directions = {{1,0},{-1,0},{0,1},{0,-1}};\n        while (!heap.isEmpty()) {\n            int[] cell = heap.poll();\n            int r = cell[0];\n            int c = cell[1];\n            int waterLevel = cell[2];\n            if (waterLevel != level[r][c]) {\n                continue;\n            }\n            for (int[] direction : directions) {\n                int nr = r + direction[0];\n                int nc = c + direction[1];\n                if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) {\n                    continue;\n                }\n                int nextLevel = Math.max(waterLevel, heightMap[nr][nc]);\n                if (nextLevel < level[nr][nc]) {\n                    level[nr][nc] = nextLevel;\n                    heap.offer(new int[] {nr, nc, nextLevel});\n                }\n            }\n        }\n\n        int trapped = 0;\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                trapped += level[r][c] - heightMap[r][c];\n            }\n        }\n        return trapped;\n    }\n\n    private void offerLevel(int r, int c, int value, int[][] level,\n                            java.util.PriorityQueue<int[]> heap) {\n        if (value < level[r][c]) {\n            level[r][c] = value;\n            heap.offer(new int[] {r, c, value});\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "SPFA-Style Level Relaxation",
+      "timeComplexity": "O((m * n)^2)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nKeep an upper bound `level[r][c]` for each cell's final water level. Boundary cells start at their terrain height, interior cells start at the maximum terrain height. Use a queue to relax neighbors whenever a lower feasible water level is discovered.\n\n## Key Insight\n\nThis is the same bottleneck recurrence as Dijkstra, but without the heap ordering. It is slower, yet it makes the relaxation formula visible: a neighbor can be no lower than its terrain and no lower than the level of the cell that reaches it.\n\n## Complexity Analysis\n- Time Complexity: O((m * n)^2)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public int trapRainWater(int[][] heightMap) {\n        int rows = heightMap.length;\n        int cols = heightMap[0].length;\n        if (rows < 3 || cols < 3) {\n            return 0;\n        }\n        int maxHeight = 0;\n        for (int[] row : heightMap) {\n            for (int height : row) {\n                maxHeight = Math.max(maxHeight, height);\n            }\n        }\n        int[][] level = new int[rows][cols];\n        java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                if (isBoundary(r, c, rows, cols)) {\n                    level[r][c] = heightMap[r][c];\n                    queue.addLast(new int[] {r, c});\n                } else {\n                    level[r][c] = maxHeight;\n                }\n            }\n        }\n\n        int[][] directions = {{1,0},{-1,0},{0,1},{0,-1}};\n        while (!queue.isEmpty()) {\n            int[] cell = queue.removeFirst();\n            for (int[] direction : directions) {\n                int nr = cell[0] + direction[0];\n                int nc = cell[1] + direction[1];\n                if (nr <= 0 || nr >= rows - 1 || nc <= 0 || nc >= cols - 1) {\n                    continue;\n                }\n                int candidate = Math.max(heightMap[nr][nc], level[cell[0]][cell[1]]);\n                if (candidate < level[nr][nc]) {\n                    level[nr][nc] = candidate;\n                    queue.addLast(new int[] {nr, nc});\n                }\n            }\n        }\n\n        int trapped = 0;\n        for (int r = 1; r < rows - 1; r++) {\n            for (int c = 1; c < cols - 1; c++) {\n                trapped += level[r][c] - heightMap[r][c];\n            }\n        }\n        return trapped;\n    }\n\n    private boolean isBoundary(int r, int c, int rows, int cols) {\n        return r == 0 || r == rows - 1 || c == 0 || c == cols - 1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Union-Find Rising Water Levels",
+      "timeComplexity": "O(m * n * log(m * n))",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nActivate cells from low height to high height. Union each activated cell with active neighbors. When a connected component first touches the boundary, the current height is the lowest water level that can drain every unresolved cell in that component.\n\n## Key Insight\n\nRaising the water threshold gradually answers the same bottleneck question. A cell's final level is the first threshold at which it becomes connected to the outside boundary through cells no higher than that threshold.\n\n## Complexity Analysis\n- Time Complexity: O(m * n * log(m * n))\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public int trapRainWater(int[][] heightMap) {\n        int rows = heightMap.length;\n        int cols = heightMap[0].length;\n        if (rows < 3 || cols < 3) {\n            return 0;\n        }\n        int totalCells = rows * cols;\n        Integer[] order = new Integer[totalCells];\n        for (int id = 0; id < totalCells; id++) {\n            order[id] = id;\n        }\n        java.util.Arrays.sort(order, (a, b) -> Integer.compare(\n                heightMap[a / cols][a % cols], heightMap[b / cols][b % cols]));\n\n        UnionFind unionFind = new UnionFind(totalCells);\n        boolean[] active = new boolean[totalCells];\n        int[] level = new int[totalCells];\n        java.util.Arrays.fill(level, -1);\n        int[][] directions = {{1,0},{-1,0},{0,1},{0,-1}};\n        for (int id : order) {\n            int r = id / cols;\n            int c = id % cols;\n            int height = heightMap[r][c];\n            active[id] = true;\n            unionFind.activate(id, isBoundary(r, c, rows, cols));\n            int root = unionFind.find(id);\n            for (int[] direction : directions) {\n                int nr = r + direction[0];\n                int nc = c + direction[1];\n                if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) {\n                    continue;\n                }\n                int nextId = nr * cols + nc;\n                if (active[nextId]) {\n                    root = unionFind.union(root, nextId);\n                }\n            }\n            if (unionFind.borderConnected[root]) {\n                unionFind.assignLevel(root, height, level);\n            }\n        }\n\n        int trapped = 0;\n        for (int id = 0; id < totalCells; id++) {\n            trapped += level[id] - heightMap[id / cols][id % cols];\n        }\n        return trapped;\n    }\n\n    private boolean isBoundary(int r, int c, int rows, int cols) {\n        return r == 0 || r == rows - 1 || c == 0 || c == cols - 1;\n    }\n\n    private static class UnionFind {\n        private final int[] parent;\n        private final int[] size;\n        private final boolean[] borderConnected;\n        private final java.util.ArrayList<Integer>[] unresolved;\n\n        @SuppressWarnings(\"unchecked\")\n        UnionFind(int n) {\n            parent = new int[n];\n            size = new int[n];\n            borderConnected = new boolean[n];\n            unresolved = (java.util.ArrayList<Integer>[]) new java.util.ArrayList[n];\n            java.util.Arrays.fill(parent, -1);\n        }\n\n        void activate(int id, boolean touchesBorder) {\n            parent[id] = id;\n            size[id] = 1;\n            borderConnected[id] = touchesBorder;\n            unresolved[id] = new java.util.ArrayList<>();\n            unresolved[id].add(id);\n        }\n\n        int find(int id) {\n            if (parent[id] != id) {\n                parent[id] = find(parent[id]);\n            }\n            return parent[id];\n        }\n\n        int union(int a, int b) {\n            int rootA = find(a);\n            int rootB = find(b);\n            if (rootA == rootB) {\n                return rootA;\n            }\n            if (size[rootA] < size[rootB]) {\n                int temp = rootA;\n                rootA = rootB;\n                rootB = temp;\n            }\n            parent[rootB] = rootA;\n            size[rootA] += size[rootB];\n            borderConnected[rootA] = borderConnected[rootA] || borderConnected[rootB];\n            unresolved[rootA].addAll(unresolved[rootB]);\n            unresolved[rootB].clear();\n            return rootA;\n        }\n\n        void assignLevel(int root, int waterLevel, int[] level) {\n            root = find(root);\n            for (int id : unresolved[root]) {\n                level[id] = waterLevel;\n            }\n            unresolved[root].clear();\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Per-Cell Binary Search Escape Baseline",
+      "timeComplexity": "O((m * n)^2 * log H)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nFor each interior cell, binary search the smallest water level `L` at which the cell can reach the boundary by walking only through cells of height at most `L`. Add `L - heightMap[r][c]` to the answer.\n\n## Key Insight\n\nThe final water level of a cell is exactly the minimum threshold that opens an escape path to the outside. This baseline is slower, but it directly exposes the bottleneck-path definition used by the faster algorithms.\n\n## Complexity Analysis\n- Time Complexity: O((m * n)^2 * log H), where H is the height range\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public int trapRainWater(int[][] heightMap) {\n        int rows = heightMap.length;\n        int cols = heightMap[0].length;\n        if (rows < 3 || cols < 3) {\n            return 0;\n        }\n        int maxHeight = 0;\n        for (int[] row : heightMap) {\n            for (int height : row) {\n                maxHeight = Math.max(maxHeight, height);\n            }\n        }\n        int trapped = 0;\n        for (int r = 1; r < rows - 1; r++) {\n            for (int c = 1; c < cols - 1; c++) {\n                int low = heightMap[r][c];\n                int high = maxHeight;\n                while (low < high) {\n                    int mid = low + (high - low) / 2;\n                    if (canEscapeAtLevel(heightMap, r, c, mid)) {\n                        high = mid;\n                    } else {\n                        low = mid + 1;\n                    }\n                }\n                trapped += low - heightMap[r][c];\n            }\n        }\n        return trapped;\n    }\n\n    private boolean canEscapeAtLevel(int[][] heightMap, int startR, int startC, int level) {\n        int rows = heightMap.length;\n        int cols = heightMap[0].length;\n        boolean[][] seen = new boolean[rows][cols];\n        java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();\n        queue.addLast(new int[] {startR, startC});\n        seen[startR][startC] = true;\n        int[][] directions = {{1,0},{-1,0},{0,1},{0,-1}};\n        while (!queue.isEmpty()) {\n            int[] cell = queue.removeFirst();\n            if (cell[0] == 0 || cell[0] == rows - 1 || cell[1] == 0 || cell[1] == cols - 1) {\n                return true;\n            }\n            for (int[] direction : directions) {\n                int nr = cell[0] + direction[0];\n                int nc = cell[1] + direction[1];\n                if (nr < 0 || nr >= rows || nc < 0 || nc >= cols || seen[nr][nc]) {\n                    continue;\n                }\n                if (heightMap[nr][nc] <= level) {\n                    seen[nr][nc] = true;\n                    queue.addLast(new int[] {nr, nc});\n                }\n            }\n        }\n        return false;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "heightMap = [[1,4,3,1,3,2],[3,2,1,3,2,4],[2,3,3,2,3,1]]",
-      "output": "4"
+      "output": "4",
+      "description": "canonical 3x6 basin"
     },
     {
       "input": "heightMap = [[3,3,3,3,3],[3,2,2,2,3],[3,2,1,2,3],[3,2,2,2,3],[3,3,3,3,3]]",
-      "output": "10"
+      "output": "10",
+      "description": "nested basin inside a uniform high border"
+    },
+    {
+      "input": "heightMap = [[1]]",
+      "output": "0",
+      "description": "one cell cannot trap water"
+    },
+    {
+      "input": "heightMap = [[1,1],[1,1]]",
+      "output": "0",
+      "description": "all cells are boundary"
+    },
+    {
+      "input": "heightMap = [[5,5,5],[5,1,5],[5,5,5]]",
+      "output": "4",
+      "description": "single interior pit"
+    },
+    {
+      "input": "heightMap = [[12,13,1,12],[13,4,13,12],[13,8,10,12],[12,13,12,12],[13,13,13,13]]",
+      "output": "14",
+      "description": "uneven low boundary controls the final water level"
+    },
+    {
+      "input": "heightMap = [[1,2,3,4]]",
+      "output": "0",
+      "description": "single row has no interior cells"
+    },
+    {
+      "input": "heightMap = [[1],[2],[1]]",
+      "output": "0",
+      "description": "single column has no interior cells"
+    },
+    {
+      "input": "heightMap = [[5,5,5,5],[5,1,1,5],[5,1,1,1],[5,5,5,5]]",
+      "output": "0",
+      "description": "low interior corridor reaches a low boundary outlet"
+    },
+    {
+      "input": "heightMap = [[5,5,5,5,5],[5,1,5,1,5],[5,5,5,5,5]]",
+      "output": "8",
+      "description": "two separated pits in a thin map"
+    },
+    {
+      "input": "heightMap = [[9,9,9,9],[9,0,0,9],[9,0,9,9],[9,9,9,9]]",
+      "output": "27",
+      "description": "multi-cell deep basin with one interior wall"
+    },
+    {
+      "input": "heightMap = [[5,5,5,5],[5,4,5,5],[5,5,1,5],[5,5,5,5]]",
+      "output": "5",
+      "description": "interior wall changes local trapped volume"
+    },
+    {
+      "input": "heightMap = [[5,5,5,5,5],[5,1,1,1,5],[5,1,5,1,5],[5,1,1,1,0],[5,5,5,5,5]]",
+      "output": "0",
+      "description": "low border outlet drains a connected interior channel"
+    },
+    {
+      "input": "heightMap = [[4,4,4,4],[4,2,2,4],[4,2,2,4],[4,4,4,4]]",
+      "output": "8",
+      "description": "flat rectangular basin with four equal interior lows"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p347_example1.png",
-      "caption": "3x6 Height Map"
+      "caption": "Prompt height map input grid"
     }
   ]
 }

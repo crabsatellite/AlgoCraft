@@ -1,46 +1,118 @@
 {
   "id": "64",
   "title": "Split Array Largest Sum",
-  "description": "# Split Array Largest Sum\n\nGiven an integer array `nums` and an integer `k`, split `nums` into `k` non-empty subarrays such that the largest sum of any subarray is minimized.\n\nReturn *the minimized largest sum of the split*.\n\nA **subarray** is a contiguous part of the array.\n\n## Example 1:\n\n**Input:** nums = [7,2,5,10,8], k = 2\n**Output:** 18\n**Explanation:**\nThere are four ways to split nums into two subarrays.\nThe best way is to split it into [7,2,5] and [10,8],\nwhere the largest sum among the two subarrays is only 18.\n\n## Example 2:\n\n**Input:** nums = [1,2,3,4,5], k = 2\n**Output:** 9\n**Explanation:**\nThere are four ways to split nums into two subarrays.\nThe best way is to split it into [1,2,3] and [4,5],\nwhere the largest sum among the two subarrays is only 9.\n\n## Constraints:\n\n*   `1 <= nums.length <= 1000`\n*   `0 <= nums[i] <= 10^6`\n*   `1 <= k <= min(50, nums.length)`",
+  "description": "# Split Array Largest Sum\n\nSplit the nonnegative integer array `nums` into exactly `k` nonempty contiguous parts. Preserve the original order, and use every element exactly once.\n\nThe score of a split is the largest sum among its parts. Return the lowest possible score over all valid splits.\n\nFor example, splitting `[7,2,5,10,8]` into `[7,2,5]` and `[10,8]` gives sums `14` and `18`, so that split has score `18`.\n\n## Example 1:\n\n**Input:** nums = [7,2,5,10,8], k = 2\n**Output:** 18\n**Explanation:**\nThe best split is [7,2,5] and [10,8]. Their sums are 14 and 18, so the largest subarray sum is 18. Every other split has a larger maximum sum.\n\n## Example 2:\n\n**Input:** nums = [1,2,3,4,5], k = 2\n**Output:** 9\n**Explanation:**\nThe best split is [1,2,3] and [4,5]. Their sums are 6 and 9.\n\n## Constraints:\n\n* `1 <= nums.length <= 1000`\n* `0 <= nums[i] <= 10^6`\n* `1 <= k <= min(50, nums.length)`",
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public int splitArray(int[] nums, int k) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Binary Search", "Dynamic Programming", "Greedy"],
+  "tags": [
+    "Array",
+    "Binary Search",
+    "Dynamic Programming",
+    "Greedy"
+  ],
   "examples": [
-    { "input": "nums = [7,2,5,10,8], k = 2", "output": "18" },
-    { "input": "nums = [1,2,3,4,5], k = 2", "output": "9" }
+    {
+      "input": "nums = [7,2,5,10,8], k = 2",
+      "output": "18"
+    },
+    {
+      "input": "nums = [1,2,3,4,5], k = 2",
+      "output": "9"
+    }
   ],
   "tests": [
-    { "input": "nums = [7,2,5,10,8], k = 2", "output": "18" },
-    { "input": "nums = [1,2,3,4,5], k = 2", "output": "9" },
-    { "input": "nums = [1,4,4], k = 3", "output": "4" },
+    {
+      "input": "nums = [7,2,5,10,8], k = 2",
+      "output": "18",
+      "description": "Canonical split into two subarrays"
+    },
+    {
+      "input": "nums = [1,2,3,4,5], k = 2",
+      "output": "9",
+      "description": "Increasing array split into two parts"
+    },
+    {
+      "input": "nums = [1,4,4], k = 3",
+      "output": "4",
+      "description": "Each element can be its own subarray"
+    },
     {
       "input": "nums = [7,2,5,10,8], k = 1",
       "output": "32",
-      "note": "k=1，不分割"
+      "description": "k equals one, so no split is allowed"
     },
     {
       "input": "nums = [7,2,5,10,8], k = 5",
       "output": "10",
-      "note": "k=长度，每个一组"
+      "description": "k equals length, so answer is the maximum element"
     },
-    { "input": "nums = [1], k = 1", "output": "1", "note": "单元素" },
-    { "input": "nums = [2,3,1,2,4,3], k = 3", "output": "6" }
+    {
+      "input": "nums = [0], k = 1",
+      "output": "0",
+      "description": "Single zero element"
+    },
+    {
+      "input": "nums = [2,3,1,2,4,3], k = 3",
+      "output": "6",
+      "description": "Balanced split across three groups"
+    },
+    {
+      "input": "nums = [0,0,0,0], k = 2",
+      "output": "0",
+      "description": "All zero values keep the lower bound at zero"
+    },
+    {
+      "input": "nums = [0,1000000,0,1000000], k = 2",
+      "output": "1000000",
+      "description": "Large values with zeros between them"
+    },
+    {
+      "input": "nums = [10,1,1,1,10], k = 2",
+      "output": "12",
+      "description": "Order-sensitive case that cannot group the two tens together"
+    },
+    {
+      "input": "nums = [1,4,4], k = 2",
+      "output": "5",
+      "description": "Same array as the k equals length case but with fewer groups"
+    },
+    {
+      "input": "nums = [1,1,1,1,1,1,1,1], k = 4",
+      "output": "2",
+      "description": "Many equal small values should split evenly"
+    }
   ],
   "solutions": [
     {
-      "name": "Binary Search on Answer",
+      "name": "Half-Open Answer Binary Search",
       "timeComplexity": "O(n log S)",
       "spaceComplexity": "O(1)",
-      "description": "Binary search on the largest subarray sum. The lower bound is max(nums), the upper bound is sum(nums). For each candidate max sum, greedily count how many subarrays are needed. This is the same pattern as 'Capacity To Ship Packages'.",
-      "code": "class Solution {\n    public int splitArray(int[] nums, int k) {\n        int left = 0, right = 0;\n        \n        for (int num : nums) {\n            left = Math.max(left, num);\n            right += num;\n        }\n        \n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            \n            if (canSplit(nums, k, mid)) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        \n        return left;\n    }\n    \n    private boolean canSplit(int[] nums, int k, int maxSum) {\n        int count = 1;\n        int currentSum = 0;\n        \n        for (int num : nums) {\n            if (currentSum + num > maxSum) {\n                count++;\n                currentSum = 0;\n            }\n            currentSum += num;\n        }\n        \n        return count <= k;\n    }\n}",
+      "description": "## Approach\n\nSearch the answer range from the largest single value to the total sum. For a candidate largest sum, greedily scan left to right and start a new subarray only when adding the next value would exceed the candidate.\n\n## Key Insight\n\nThe predicate is monotonic: if a limit can cover the array using at most k subarrays, every larger limit can also cover it. Since all values are non-negative, at most k feasible groups can be split further into exactly k non-empty groups without increasing the largest sum.\n\n## Complexity Analysis\n- Time Complexity: O(n log S), where S is the sum range between max(nums) and sum(nums)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int splitArray(int[] nums, int k) {\n        int left = 0;\n        int right = 0;\n        for (int num : nums) {\n            left = Math.max(left, num);\n            right += num;\n        }\n\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (canSplit(nums, k, mid)) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        return left;\n    }\n\n    private boolean canSplit(int[] nums, int k, int limit) {\n        int groups = 1;\n        int sum = 0;\n        for (int num : nums) {\n            if (sum + num > limit) {\n                groups++;\n                sum = 0;\n                if (groups > k) {\n                    return false;\n                }\n            }\n            sum += num;\n        }\n        return true;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Dynamic Programming",
-      "timeComplexity": "O(n^2 * k)",
-      "spaceComplexity": "O(n * k)",
-      "description": "dp[i][j] = the minimized largest sum when splitting nums[0..i-1] into j subarrays. Use prefix sums to quickly compute subarray sums. Transition: dp[i][j] = min over all split points m of max(dp[m][j-1], sum(nums[m..i-1])).",
-      "code": "class Solution {\n    public int splitArray(int[] nums, int k) {\n        int n = nums.length;\n        int[] prefix = new int[n + 1];\n        \n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n        \n        int[][] dp = new int[n + 1][k + 1];\n        \n        for (int[] row : dp) {\n            Arrays.fill(row, Integer.MAX_VALUE);\n        }\n        dp[0][0] = 0;\n        \n        for (int i = 1; i <= n; i++) {\n            for (int j = 1; j <= Math.min(i, k); j++) {\n                for (int m = j - 1; m < i; m++) {\n                    int subarraySum = prefix[i] - prefix[m];\n                    dp[i][j] = Math.min(dp[i][j], Math.max(dp[m][j - 1], subarraySum));\n                }\n            }\n        }\n        \n        return dp[n][k];\n    }\n}",
+      "name": "Closed Interval with Answer Variable",
+      "timeComplexity": "O(n log S)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse a closed binary-search interval and keep `answer` as the best feasible largest sum seen so far. Each midpoint is checked by counting how many greedy groups are needed under that limit.\n\n## Key Insight\n\nThis version exposes the invariant directly: `answer` is always feasible, and the search continues to ask whether there is a smaller feasible limit to its left.\n\n## Complexity Analysis\n- Time Complexity: O(n log S), where S is the candidate answer range\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int splitArray(int[] nums, int k) {\n        int left = 0;\n        int right = 0;\n        for (int num : nums) {\n            left = Math.max(left, num);\n            right += num;\n        }\n\n        int answer = right;\n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            int groups = groupsNeeded(nums, mid);\n            if (groups <= k) {\n                answer = mid;\n                right = mid - 1;\n            } else {\n                left = mid + 1;\n            }\n        }\n        return answer;\n    }\n\n    private int groupsNeeded(int[] nums, int limit) {\n        int groups = 1;\n        int sum = 0;\n        for (int num : nums) {\n            if (sum + num > limit) {\n                groups++;\n                sum = 0;\n            }\n            sum += num;\n        }\n        return groups;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bottom-Up Partition Dynamic Programming",
+      "timeComplexity": "O(k n^2)",
+      "spaceComplexity": "O(k n)",
+      "description": "## Approach\n\nLet `dp[i][parts]` be the smallest possible largest subarray sum for the first `i` numbers split into `parts` non-empty groups. Prefix sums give the sum of the final group in O(1), and the transition enumerates where that final group starts.\n\n## Key Insight\n\nDynamic programming models the exact-k requirement directly. It is slower than answer binary search, but it is valuable because it shows the optimal substructure behind the partition problem.\n\n## Complexity Analysis\n- Time Complexity: O(k n^2)\n- Space Complexity: O(k n)",
+      "code": "class Solution {\n    public int splitArray(int[] nums, int k) {\n        int n = nums.length;\n        int[] prefix = new int[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n\n        int[][] dp = new int[n + 1][k + 1];\n        for (int[] row : dp) {\n            Arrays.fill(row, Integer.MAX_VALUE);\n        }\n        dp[0][0] = 0;\n\n        for (int parts = 1; parts <= k; parts++) {\n            for (int i = parts; i <= n; i++) {\n                for (int cut = parts - 1; cut < i; cut++) {\n                    if (dp[cut][parts - 1] == Integer.MAX_VALUE) {\n                        continue;\n                    }\n                    int lastSum = prefix[i] - prefix[cut];\n                    int largest = Math.max(dp[cut][parts - 1], lastSum);\n                    dp[i][parts] = Math.min(dp[i][parts], largest);\n                }\n            }\n        }\n        return dp[n][k];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Memoized Partition DP",
+      "timeComplexity": "O(k n^2)",
+      "spaceComplexity": "O(k n)",
+      "description": "## Approach\n\nUse recursion where `solve(index, parts)` returns the best answer for splitting `nums[index..]` into `parts` groups. Try every valid end of the first group, combine its sum with the best answer for the remaining suffix, and memoize the state.\n\n## Key Insight\n\nThe recursive form is often easier to teach: choose the first cut, solve the remaining suffix, and minimize the worse of those two sides. Because values are non-negative, once the first group sum is already no better than the current best, later cuts cannot improve it.\n\n## Complexity Analysis\n- Time Complexity: O(k n^2)\n- Space Complexity: O(k n)",
+      "code": "class Solution {\n    private int[] nums;\n    private int[] prefix;\n    private int[][] memo;\n\n    public int splitArray(int[] nums, int k) {\n        this.nums = nums;\n        int n = nums.length;\n        prefix = new int[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n\n        memo = new int[n][k + 1];\n        for (int[] row : memo) {\n            Arrays.fill(row, -1);\n        }\n        return solve(0, k);\n    }\n\n    private int solve(int index, int parts) {\n        int n = nums.length;\n        if (parts == 1) {\n            return prefix[n] - prefix[index];\n        }\n        if (memo[index][parts] != -1) {\n            return memo[index][parts];\n        }\n\n        int best = Integer.MAX_VALUE;\n        for (int next = index + 1; next <= n - parts + 1; next++) {\n            int firstSum = prefix[next] - prefix[index];\n            if (firstSum >= best) {\n                break;\n            }\n            int remaining = solve(next, parts - 1);\n            best = Math.min(best, Math.max(firstSum, remaining));\n        }\n        memo[index][parts] = best;\n        return best;\n    }\n}",
       "language": "java"
     }
   ]

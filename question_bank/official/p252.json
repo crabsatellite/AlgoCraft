@@ -1,36 +1,120 @@
 {
   "id": "252",
   "title": "Goal Parser Interpretation",
-  "description": "# Goal Parser Interpretation\n\nYou own a **Goal Parser** that can interpret a string `command`. The `command` consists of an alphabet of `\"G\"`, `\"()\"` and/or `\"(al)\"` in some order. The Goal Parser will interpret `\"G\"` as the string `\"G\"`, `\"()\"` as the string `\"o\"`, and `\"(al)\"` as the string `\"al\"`. The interpreted strings are then concatenated in the original order.\n\nGiven the string `command`, return *the Goal Parser's interpretation of* `command`.\n\n## Example 1:\n\n**Input:** command = \"G()(al)\"\n**Output:** \"Goal\"\n**Explanation:** The Goal Parser interprets the command as follows:\nG -> G\n() -> o\n(al) -> al\nThe final concatenated result is \"Goal\".\n\n## Example 2:\n\n**Input:** command = \"G()()()()(al)\"\n**Output:** \"Gooooal\"\n\n## Example 3:\n\n**Input:** command = \"(al)G(al)()()G\"\n**Output:** \"alGalooG\"\n\n## Constraints:\n\n*   `1 <= command.length <= 100`\n*   `command` consists of `\"G\"`, `\"()\"`, and/or `\"(al)\"` in some order.",
+  "description": "# Goal Parser Interpretation\n\nYou own a Goal Parser that interprets a command string. The command is formed by concatenating only these three legal tokens:\n\n*   `\"G\"`, interpreted as `\"G\"`\n*   `\"()\"`, interpreted as `\"o\"`\n*   `\"(al)\"`, interpreted as `\"al\"`\n\nThe interpreted pieces must be concatenated in the same order as the tokens appear in `command`.\n\nGiven `command`, return the Goal Parser's interpreted string.\n\n## Example 1:\n\n**Input:** command = \"G()(al)\"\n**Output:** \"Goal\"\n**Explanation:** `\"G\"` becomes `\"G\"`, `\"()\"` becomes `\"o\"`, and `\"(al)\"` becomes `\"al\"`, so the final result is \"Goal\".\n\n## Example 2:\n\n**Input:** command = \"G()()()()(al)\"\n**Output:** \"Gooooal\"\n**Explanation:** Each `\"()\"` token contributes one `\"o\"`.\n\n## Example 3:\n\n**Input:** command = \"(al)G(al)()()G\"\n**Output:** \"alGalooG\"\n**Explanation:** Tokens may appear in any legal order and must be interpreted left to right.\n\n## Constraints:\n\n*   `1 <= command.length <= 100`\n*   `command` consists only of the tokens `\"G\"`, `\"()\"`, and `\"(al)\"` concatenated in some order.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public String interpret(String command) {\n        // Write your code here\n        return \"\";\n    }\n}",
-  "tags": ["String"],
+  "tags": [
+    "String"
+  ],
   "examples": [
-    { "input": "command = \"G()(al)\"", "output": "\"Goal\"" },
-    { "input": "command = \"G()()()()(al)\"", "output": "\"Gooooal\"" },
-    { "input": "command = \"(al)G(al)()()G\"", "output": "\"alGalooG\"" }
+    {
+      "input": "command = \"G()(al)\"",
+      "output": "\"Goal\""
+    },
+    {
+      "input": "command = \"G()()()()(al)\"",
+      "output": "\"Gooooal\""
+    },
+    {
+      "input": "command = \"(al)G(al)()()G\"",
+      "output": "\"alGalooG\""
+    }
   ],
   "solutions": [
     {
-      "name": "String Replace",
+      "name": "Chained Fixed Replacement",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use built-in string replace to substitute () with o and (al) with al.",
+      "description": "## Approach\n\nUse the fact that the grammar has only two tokens that need rewriting. Replace every `()` with `o`, then replace every `(al)` with `al`; the token `G` remains unchanged.\n\n## Key Insight\n\nThe legal tokens are fixed and unambiguous. `()` and `(al)` do not overlap in a way that changes the answer, so a small chain of replacements is enough.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
       "code": "class Solution {\n    public String interpret(String command) {\n        return command.replace(\"()\", \"o\").replace(\"(al)\", \"al\");\n    }\n}",
       "language": "java"
     },
     {
-      "name": "StringBuilder Character Iteration",
+      "name": "Cursor Grammar Scan",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Iterate through the command string character by character. If 'G', append 'G'. If '(' followed by ')', append 'o'. If '(' followed by 'a', append 'al' and skip ahead.",
-      "code": "class Solution {\n    public String interpret(String command) {\n        StringBuilder sb = new StringBuilder();\n        int i = 0;\n        while (i < command.length()) {\n            if (command.charAt(i) == 'G') {\n                sb.append('G');\n                i++;\n            } else if (command.charAt(i) == '(' && command.charAt(i + 1) == ')') {\n                sb.append('o');\n                i += 2;\n            } else {\n                sb.append(\"al\");\n                i += 4;\n            }\n        }\n        return sb.toString();\n    }\n}",
+      "description": "## Approach\n\nScan the command with an index. `G` consumes one character, `()` consumes two characters and emits `o`, and `(al)` consumes four characters and emits `al`.\n\n## Key Insight\n\nWhenever the current character is `(`, the next character distinguishes the two parenthesized tokens: `)` means `()`, otherwise the valid token must be `(al)`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String interpret(String command) {\n        StringBuilder answer = new StringBuilder();\n        int i = 0;\n        while (i < command.length()) {\n            if (command.charAt(i) == 'G') {\n                answer.append('G');\n                i++;\n            } else if (command.charAt(i + 1) == ')') {\n                answer.append('o');\n                i += 2;\n            } else {\n                answer.append(\"al\");\n                i += 4;\n            }\n        }\n        return answer.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "StartsWith Token Parser",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nAt each index, check which legal token starts there with `startsWith`, append that token's interpretation, and advance by that token's length.\n\n## Key Insight\n\nThis treats the input as a tiny language with three token rules. It is slightly more verbose than the cursor scan, but the grammar mapping is explicit and easy to extend.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String interpret(String command) {\n        StringBuilder answer = new StringBuilder();\n        int i = 0;\n        while (i < command.length()) {\n            if (command.startsWith(\"G\", i)) {\n                answer.append(\"G\");\n                i += 1;\n            } else if (command.startsWith(\"()\", i)) {\n                answer.append(\"o\");\n                i += 2;\n            } else {\n                answer.append(\"al\");\n                i += 4;\n            }\n        }\n        return answer.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Table Driven Token Parser",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore the legal command tokens and their meanings in parallel arrays. At each position, find the token that starts there, append the matching meaning, and advance by that token's length.\n\n## Key Insight\n\nThis is a table-driven parser: the grammar rules live in data instead of being hard-coded into separate branches. It stays within the in-game Judge sandbox because it uses only core strings and arrays.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String interpret(String command) {\n        String[] tokens = {\"(al)\", \"()\", \"G\"};\n        String[] meanings = {\"al\", \"o\", \"G\"};\n        StringBuilder answer = new StringBuilder();\n        int i = 0;\n        while (i < command.length()) {\n            for (int t = 0; t < tokens.length; t++) {\n                if (command.startsWith(tokens[t], i)) {\n                    answer.append(meanings[t]);\n                    i += tokens[t].length();\n                    break;\n                }\n            }\n        }\n        return answer.toString();\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "command = \"G()(al)\"", "output": "\"Goal\"" },
-    { "input": "command = \"G()()()()(al)\"", "output": "\"Gooooal\"" },
-    { "input": "command = \"(al)G(al)()()G\"", "output": "\"alGalooG\"" }
+    {
+      "input": "command = \"G()(al)\"",
+      "output": "\"Goal\"",
+      "description": "all three token types appear once"
+    },
+    {
+      "input": "command = \"G()()()()(al)\"",
+      "output": "\"Gooooal\"",
+      "description": "several empty-parentheses tokens in a row"
+    },
+    {
+      "input": "command = \"(al)G(al)()()G\"",
+      "output": "\"alGalooG\"",
+      "description": "tokens can start with (al) and end with G"
+    },
+    {
+      "input": "command = \"G\"",
+      "output": "\"G\"",
+      "description": "single G token"
+    },
+    {
+      "input": "command = \"()\"",
+      "output": "\"o\"",
+      "description": "single empty-parentheses token"
+    },
+    {
+      "input": "command = \"(al)(al)\"",
+      "output": "\"alal\"",
+      "description": "repeated long token"
+    },
+    {
+      "input": "command = \"()G\"",
+      "output": "\"oG\"",
+      "description": "empty token followed by G"
+    },
+    {
+      "input": "command = \"(al)()G\"",
+      "output": "\"aloG\"",
+      "description": "long token followed by empty token and G"
+    },
+    {
+      "input": "command = \"G(al)G(al)\"",
+      "output": "\"GalGal\"",
+      "description": "alternating G and long tokens"
+    },
+    {
+      "input": "command = \"()()()\"",
+      "output": "\"ooo\"",
+      "description": "only repeated empty tokens"
+    },
+    {
+      "input": "command = \"(al)()()G(al)\"",
+      "output": "\"alooGal\"",
+      "description": "mixed sequence with repeated empty tokens in the middle"
+    },
+    {
+      "input": "command = \"G(al)()G()(al)\"",
+      "output": "\"GaloGoal\"",
+      "description": "mixed sequence with every token type repeated"
+    }
   ]
 }

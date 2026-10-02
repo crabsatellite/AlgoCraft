@@ -1,7 +1,7 @@
 {
   "id": "105",
   "title": "Map Sum Pairs",
-  "description": "# Map Sum Pairs\n\nDesign a map that allows you to do the following:\n\n*   Maps a string key to a given value.\n*   Returns the sum of the values that have a key with a prefix equal to a given string.\n\nImplement the `MapSum` class:\n\n*   `MapSum()` Initializes the `MapSum` object.\n*   `void insert(String key, int val)` Inserts the `key-val` pair into the map. If the `key` already existed, the original `key-value` pair will be overridden to the new one.\n*   `int sum(String prefix)` Returns the sum of all the pairs' value whose `key` starts with the `prefix`.\n\n## Example 1:\n\n**Input**\n[\"MapSum\", \"insert\", \"sum\", \"insert\", \"sum\"]\n[[], [\"apple\", 3], [\"ap\"], [\"app\", 2], [\"ap\"]]\n\n**Output**\n[null, null, 3, null, 5]\n\n**Explanation**\nMapSum mapSum = new MapSum();\nmapSum.insert(\"apple\", 3);\nmapSum.sum(\"ap\");           // return 3 (apple = 3)\nmapSum.insert(\"app\", 2);\nmapSum.sum(\"ap\");           // return 5 (apple + app = 3 + 2 = 5)\n\n## Constraints:\n\n*   `1 <= key.length, prefix.length <= 50`\n*   `key` and `prefix` consist of only lowercase English letters.\n*   `1 <= val <= 1000`\n*   At most `50` calls will be made to `insert` and `sum`.",
+  "description": "# Map Sum Pairs\n\nDesign a `MapSum` class that stores string keys with integer values and can return the sum of values for all keys that start with a given prefix.\n\nImplement the `MapSum` class:\n\n*   `MapSum()` initializes the object.\n*   `void insert(String key, int val)` inserts the key-value pair. If `key` already exists, its old value is replaced by `val`.\n*   `int sum(String prefix)` returns the sum of all values whose keys start with `prefix`. If no key has that prefix, return `0`.\n\nA key may also be a prefix of other keys. In that case, `sum(key)` includes the value stored at the key itself and the values of longer keys below it.\n\nA prefix is a contiguous beginning of a string. For example, `\"ap\"` is a prefix of both `\"apple\"` and `\"app\"`, but `\"pp\"` is not.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example:\n\n**Input**\n[\"MapSum\", \"insert\", \"sum\", \"insert\", \"sum\"]\n[[], [\"apple\", 3], [\"ap\"], [\"app\", 2], [\"ap\"]]\n\n**Output**\n[null, null, 3, null, 5]\n\n**Explanation**\nMapSum mapSum = new MapSum();\nmapSum.insert(\"apple\", 3);\nmapSum.sum(\"ap\"); // returns 3\nmapSum.insert(\"app\", 2);\nmapSum.sum(\"ap\"); // returns 5 because both \"apple\" and \"app\" start with \"ap\"\n\n## Constraints:\n\n*   `1 <= key.length, prefix.length <= 50`\n*   `key` and `prefix` consist of lowercase English letters.\n*   `1 <= val <= 1000`\n*   At most `50` calls will be made to `insert` and `sum`.",
   "difficulty": "MEDIUM",
   "initialCode": "class MapSum {\n\n    public MapSum() {\n        \n    }\n    \n    public void insert(String key, int val) {\n        \n    }\n    \n    public int sum(String prefix) {\n        return 0;\n    }\n}\n\n/**\n * Your MapSum object will be instantiated and called as such:\n * MapSum obj = new MapSum();\n * obj.insert(key,val);\n * int param_2 = obj.sum(prefix);\n */",
   "tags": [
@@ -12,39 +12,103 @@
   ],
   "examples": [
     {
-      "input": "[\"MapSum\", \"insert\", \"sum\", \"insert\", \"sum\"]\n[[], [\"apple\", 3], [\"ap\"], [\"app\", 2], [\"ap\"]]",
-      "output": "[null, null, 3, null, 5]"
+      "input": "[\"MapSum\",\"insert\",\"sum\",\"insert\",\"sum\"]\n[[],[\"apple\",3],[\"ap\"],[\"app\",2],[\"ap\"]]",
+      "output": "[null,null,3,null,5]"
     }
   ],
   "tests": [
     {
-      "input": "[\"MapSum\", \"insert\", \"sum\", \"insert\", \"sum\"]\n[[], [\"apple\", 3], [\"ap\"], [\"app\", 2], [\"ap\"]]",
-      "output": "[null, null, 3, null, 5]"
+      "input": "[\"MapSum\",\"insert\",\"sum\",\"insert\",\"sum\"]\n[[],[\"apple\",3],[\"ap\"],[\"app\",2],[\"ap\"]]",
+      "output": "[null,null,3,null,5]",
+      "description": "Canonical sequence where two keys share prefix `ap`."
     },
     {
-      "input": "[\"MapSum\", \"insert\", \"sum\", \"insert\", \"sum\"]\n[[], [\"apple\", 3], [\"ap\"], [\"apple\", 2], [\"ap\"]]",
-      "output": "[null, null, 3, null, 2]"
+      "input": "[\"MapSum\",\"insert\",\"sum\",\"insert\",\"sum\"]\n[[],[\"apple\",3],[\"ap\"],[\"apple\",2],[\"ap\"]]",
+      "output": "[null,null,3,null,2]",
+      "description": "Overwriting an existing key must replace its value instead of adding a second copy."
     },
     {
-      "input": "[\"MapSum\", \"insert\", \"sum\"]\n[[], [\"abc\", 5], [\"xyz\"]]",
-      "output": "[null, null, 0]"
+      "input": "[\"MapSum\",\"insert\",\"sum\"]\n[[],[\"abc\",5],[\"xyz\"]]",
+      "output": "[null,null,0]",
+      "description": "A prefix with no matching keys returns zero."
+    },
+    {
+      "input": "[\"MapSum\",\"insert\",\"insert\",\"sum\",\"sum\"]\n[[],[\"app\",2],[\"apple\",3],[\"app\"],[\"apple\"]]",
+      "output": "[null,null,null,5,3]",
+      "description": "A prefix may itself be a full key and still include longer keys below it."
+    },
+    {
+      "input": "[\"MapSum\",\"insert\",\"insert\",\"insert\",\"sum\",\"sum\",\"sum\",\"sum\"]\n[[],[\"apple\",3],[\"apricot\",4],[\"banana\",5],[\"ap\"],[\"app\"],[\"b\"],[\"c\"]]",
+      "output": "[null,null,null,null,7,3,5,0]",
+      "description": "Independent trie branches and missing branches are both checked."
+    },
+    {
+      "input": "[\"MapSum\",\"insert\",\"insert\",\"sum\",\"insert\",\"sum\",\"sum\"]\n[[],[\"app\",2],[\"apple\",3],[\"app\"],[\"app\",5],[\"app\"],[\"apple\"]]",
+      "output": "[null,null,null,5,null,8,3]",
+      "description": "Updating one key in a shared prefix should adjust only that key contribution."
+    },
+    {
+      "input": "[\"MapSum\",\"insert\",\"insert\",\"sum\"]\n[[],[\"dog\",7],[\"dog\",7],[\"do\"]]",
+      "output": "[null,null,null,7]",
+      "description": "Repeating the same key with the same value must not double count it."
+    },
+    {
+      "input": "[\"MapSum\",\"insert\",\"insert\",\"insert\",\"sum\",\"sum\",\"sum\",\"sum\"]\n[[],[\"a\",1],[\"aa\",2],[\"aaa\",3],[\"a\"],[\"aa\"],[\"aaa\"],[\"aaaa\"]]",
+      "output": "[null,null,null,null,6,5,3,0]",
+      "description": "Nested one-letter prefixes verify exact prefixes at every depth."
+    },
+    {
+      "input": "[\"MapSum\",\"insert\",\"sum\",\"sum\",\"sum\"]\n[[],[\"art\",4],[\"ar\"],[\"rt\"],[\"art\"]]",
+      "output": "[null,null,4,0,4]",
+      "description": "A substring in the middle of a key is not a prefix."
+    },
+    {
+      "input": "[\"MapSum\",\"insert\",\"insert\",\"insert\",\"sum\",\"sum\",\"sum\"]\n[[],[\"a\",2],[\"az\",3],[\"z\",4],[\"a\"],[\"az\"],[\"z\"]]",
+      "output": "[null,null,null,null,5,3,4]",
+      "description": "Keys ending in `z` exercise the lexicographic upper-bound trick used by TreeMap solutions."
+    },
+    {
+      "input": "[\"MapSum\",\"insert\",\"insert\",\"insert\",\"sum\",\"insert\",\"sum\",\"sum\",\"sum\"]\n[[],[\"car\",2],[\"cart\",3],[\"carbon\",4],[\"car\"],[\"car\",5],[\"car\"],[\"carb\"],[\"cart\"]]",
+      "output": "[null,null,null,null,9,null,12,4,3]",
+      "description": "Updating a key that is also a prefix should preserve descendant contributions."
+    },
+    {
+      "input": "[\"MapSum\",\"insert\",\"insert\",\"insert\",\"sum\",\"sum\",\"insert\",\"sum\"]\n[[],[\"leet\",10],[\"leetcode\",20],[\"leets\",5],[\"leet\"],[\"leetc\"],[\"leetcode\",7],[\"leet\"]]",
+      "output": "[null,null,null,null,35,20,null,22]",
+      "description": "Long shared prefixes verify overwrite deltas deep in the trie."
     }
   ],
   "solutions": [
     {
-      "name": "Trie with Prefix Sum Update",
-      "timeComplexity": "O(m) per operation",
-      "spaceComplexity": "O(T)",
-      "description": "Use a Trie where each node stores a cumulative sum. On insert, update delta along the path (handling key overwrites). On sum, traverse to the prefix node and return its stored sum.",
-      "code": "import java.util.*;\n\nclass MapSum {\n    private class TrieNode {\n        TrieNode[] children = new TrieNode[26];\n        int sum = 0;\n    }\n    \n    private TrieNode root;\n    private Map<String, Integer> map;\n    \n    public MapSum() {\n        root = new TrieNode();\n        map = new HashMap<>();\n    }\n    \n    public void insert(String key, int val) {\n        int delta = val - map.getOrDefault(key, 0);\n        map.put(key, val);\n        TrieNode node = root;\n        for (char c : key.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) {\n                node.children[idx] = new TrieNode();\n            }\n            node = node.children[idx];\n            node.sum += delta;\n        }\n    }\n    \n    public int sum(String prefix) {\n        TrieNode node = root;\n        for (char c : prefix.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) return 0;\n            node = node.children[idx];\n        }\n        return node.sum;\n    }\n}",
+      "name": "Trie with Delta Prefix Sums",
+      "timeComplexity": "O(L) insert, O(P) sum",
+      "spaceComplexity": "O(K * L)",
+      "description": "## Approach\n\nStore all keys in a trie. Every trie node keeps the sum of values for keys passing through that prefix. A separate hash map stores the current value for each full key. When `insert(key, val)` is called, compute `delta = val - oldValue`, then add that delta to every trie node along the key path.\n\n## Key Insight\n\nUpdates are replacements, not additive inserts. The delta map is what keeps prefix sums correct when an existing key changes value or is inserted again with the same value. After the trie has stored prefix totals, `sum(prefix)` only needs to walk to the prefix node and return its cached sum.\n\n## Complexity Analysis\n\nLet `L` be the key length and `P` be the prefix length. Insertion costs `O(L)` and sum costs `O(P)`. The trie stores at most one node per distinct key character, so the space is `O(K * L)` for `K` keys plus the key-value map.",
+      "code": "import java.util.*;\n\nclass MapSum {\n    private static class TrieNode {\n        TrieNode[] children = new TrieNode[26];\n        int prefixSum;\n    }\n\n    private final TrieNode root;\n    private final Map<String, Integer> values;\n\n    public MapSum() {\n        root = new TrieNode();\n        values = new HashMap<>();\n    }\n\n    public void insert(String key, int val) {\n        int delta = val - values.getOrDefault(key, 0);\n        values.put(key, val);\n\n        TrieNode node = root;\n        for (char c : key.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) {\n                node.children[idx] = new TrieNode();\n            }\n            node = node.children[idx];\n            node.prefixSum += delta;\n        }\n    }\n\n    public int sum(String prefix) {\n        TrieNode node = root;\n        for (char c : prefix.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) {\n                return 0;\n            }\n            node = node.children[idx];\n        }\n        return node.prefixSum;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "HashMap Brute Force",
-      "timeComplexity": "O(m) insert, O(n * m) sum",
-      "spaceComplexity": "O(n * m)",
-      "description": "Store key-value pairs in a HashMap. For sum, iterate all keys and check if each starts with the given prefix, accumulating the values of matching keys.",
-      "code": "import java.util.*;\n\nclass MapSum {\n    private Map<String, Integer> map;\n    \n    public MapSum() {\n        map = new HashMap<>();\n    }\n    \n    public void insert(String key, int val) {\n        map.put(key, val);\n    }\n    \n    public int sum(String prefix) {\n        int total = 0;\n        for (Map.Entry<String, Integer> entry : map.entrySet()) {\n            if (entry.getKey().startsWith(prefix)) {\n                total += entry.getValue();\n            }\n        }\n        return total;\n    }\n}",
+      "name": "Prefix Sum HashMap",
+      "timeComplexity": "O(L) insert, O(1) sum",
+      "spaceComplexity": "O(K * L)",
+      "description": "## Approach\n\nMaintain two maps: one from full keys to their current values, and one from every prefix string to the current sum for that prefix. On insertion, compute the replacement delta for the full key. Then generate every prefix of `key` and add the delta to that prefix's stored sum.\n\n## Key Insight\n\nThis is the same delta idea as the trie solution, but it materializes prefix strings directly in a hash map. That makes `sum(prefix)` a single lookup. It is simple and very fast for the small official constraints, while also showing that the real challenge is handling replacement updates correctly.\n\n## Complexity Analysis\n\nInsertion touches all `L` prefixes of the key, so it costs `O(L)` hash operations, ignoring substring copy costs. `sum` is `O(1)` expected time. The prefix map stores up to `O(K * L)` distinct prefixes.",
+      "code": "import java.util.*;\n\nclass MapSum {\n    private final Map<String, Integer> values;\n    private final Map<String, Integer> prefixSums;\n\n    public MapSum() {\n        values = new HashMap<>();\n        prefixSums = new HashMap<>();\n    }\n\n    public void insert(String key, int val) {\n        int delta = val - values.getOrDefault(key, 0);\n        values.put(key, val);\n        for (int end = 1; end <= key.length(); end++) {\n            String prefix = key.substring(0, end);\n            prefixSums.put(prefix, prefixSums.getOrDefault(prefix, 0) + delta);\n        }\n    }\n\n    public int sum(String prefix) {\n        return prefixSums.getOrDefault(prefix, 0);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "HashMap Brute Force Baseline",
+      "timeComplexity": "O(1) insert, O(K * P) sum",
+      "spaceComplexity": "O(K)",
+      "description": "## Approach\n\nStore only the current value of each full key in a hash map. `insert` is a plain replacement. For `sum(prefix)`, scan every stored key and add the values of keys whose string starts with the prefix.\n\n## Key Insight\n\nThis route is the clearest correctness baseline. It naturally handles overwrites because the map always contains only the latest value for each key. It is slower for many calls, but it makes the required semantics obvious before introducing cached prefix totals.\n\n## Complexity Analysis\n\nInsert is `O(1)` expected time. Sum scans `K` keys and each `startsWith` check may inspect up to `P` prefix characters, so it is `O(K * P)`. Space is `O(K)` for the key-value map.",
+      "code": "import java.util.*;\n\nclass MapSum {\n    private final Map<String, Integer> values;\n\n    public MapSum() {\n        values = new HashMap<>();\n    }\n\n    public void insert(String key, int val) {\n        values.put(key, val);\n    }\n\n    public int sum(String prefix) {\n        int total = 0;\n        for (Map.Entry<String, Integer> entry : values.entrySet()) {\n            if (entry.getKey().startsWith(prefix)) {\n                total += entry.getValue();\n            }\n        }\n        return total;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "TreeMap Prefix Range",
+      "timeComplexity": "O(log K) insert, O(log K + R) sum",
+      "spaceComplexity": "O(K)",
+      "description": "## Approach\n\nStore key-value pairs in a `TreeMap`, which keeps keys in lexicographic order. All lowercase keys with prefix `p` lie in the range `[p, p + \"{\")`, because `{` comes immediately after `z` in ASCII. `sum(prefix)` iterates over that sub-map and adds the current values.\n\n## Key Insight\n\nThis solution avoids a trie but still uses the structure of strings. A prefix corresponds to a contiguous lexicographic interval. The upper bound must be chosen carefully; `prefix + \"{\"` works for lowercase English letters and correctly includes keys ending in `z`.\n\n## Complexity Analysis\n\nInsert costs `O(log K)`. Sum costs `O(log K + R)`, where `R` is the number of keys inside the prefix range. Space is `O(K)` for the ordered map.",
+      "code": "import java.util.*;\n\nclass MapSum {\n    private final TreeMap<String, Integer> values;\n\n    public MapSum() {\n        values = new TreeMap<>();\n    }\n\n    public void insert(String key, int val) {\n        values.put(key, val);\n    }\n\n    public int sum(String prefix) {\n        int total = 0;\n        String upper = prefix + \"{\";\n        for (int value : values.subMap(prefix, true, upper, false).values()) {\n            total += value;\n        }\n        return total;\n    }\n}",
       "language": "java"
     }
   ],
@@ -52,7 +116,7 @@
     {
       "id": "trie",
       "file": "p105_trie.png",
-      "caption": "Trie with cumulative sum values"
+      "caption": "Complete character paths after inserting apple:3 and app:2 in Example 1; yellow terminal nodes store their respective values"
     }
   ]
 }

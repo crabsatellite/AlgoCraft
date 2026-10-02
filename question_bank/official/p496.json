@@ -1,7 +1,7 @@
 {
   "id": "496",
   "title": "Maximum Width of Binary Tree",
-  "description": "# Maximum Width of Binary Tree\n\nGiven the `root` of a binary tree, return *the **maximum width** of the given tree*.\n\nThe **maximum width** of a tree is the maximum **width** among all levels.\n\nThe **width** of one level is defined as the length between the end-nodes (the leftmost and rightmost non-null nodes), where the null nodes between the end-nodes that would be present in a complete binary tree extending down to that level are also counted into the length calculation.\n\nIt is **guaranteed** that the answer will in the range of a **32-bit** signed integer.\n\n## Example 1:\n\n**Input:** root = [1,3,2,5,3,null,9]\n**Output:** 4\n**Explanation:** The maximum width existing in the third level with the length 4 (5,3,null,9).\n\n## Example 2:\n\n**Input:** root = [1,3,2,5,null,null,9,6,null,7]\n**Output:** 7\n**Explanation:** The maximum width existing in the fourth level with the length 7 (6,null,null,null,null,null,7).\n\n## Example 3:\n\n**Input:** root = [1,3,2,5]\n**Output:** 2\n**Explanation:** The maximum width existing in the second level with the length 2 (3,2).\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[1, 3000]`.\n*   `-100 <= Node.val <= 100`",
+  "description": "# Maximum Width of Binary Tree\n\nGiven the `root` of a binary tree, return the maximum width among all levels.\n\nPlace the tree in the fixed slots of a complete binary tree, reserving both child positions even when a child is absent. A level's width counts slots from its leftmost to rightmost existing node, including both endpoints and interior gaps. For `[5,3,null,9]`, the width is `4`; a one-node level has width `1`.\n\nThe answer is guaranteed to fit in a 32-bit signed integer.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [1,3,2,5,3,null,9]\n**Output:** 4\n**Explanation:** On the third level, the visible nodes occupy positions for `(5, 3, null, 9)`, so the width is 4.\n\n## Example 2:\n\n**Input:** root = [1,3,2,5,null,null,9,6,null,7]\n**Output:** 7\n**Explanation:** On the fourth level, the endpoints are `6` and `7`; the missing positions between them are counted, so the width is 7.\n\n## Example 3:\n\n**Input:** root = [1,3,2,5]\n**Output:** 2\n**Explanation:** The second level contains nodes `3` and `2`, so its width is 2.\n\n## Constraints:\n\n* The number of nodes in the tree is in the range `[1, 3000]`.\n* `-100 <= Node.val <= 100`.",
   "difficulty": "MEDIUM",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public int widthOfBinaryTree(TreeNode root) {\n        \n    }\n}",
   "tags": [
@@ -26,19 +26,35 @@
   ],
   "solutions": [
     {
-      "name": "BFS with Index Tracking",
+      "name": "BFS with Normalized Level Indices",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "BFS level by level, assigning each node a position index (left child = 2*i, right child = 2*i+1). Normalize indices per level by subtracting the first index to prevent overflow. Width = last - first + 1.",
-      "code": "class Solution {\n    public int widthOfBinaryTree(TreeNode root) {\n        if (root == null) return 0;\n        int maxWidth = 0;\n        Queue<int[]> queue = new LinkedList<>();\n        queue.offer(new int[]{0});\n        Queue<TreeNode> nodeQueue = new LinkedList<>();\n        nodeQueue.offer(root);\n        while (!nodeQueue.isEmpty()) {\n            int size = nodeQueue.size();\n            int first = 0, last = 0;\n            int offset = -1;\n            for (int i = 0; i < size; i++) {\n                TreeNode node = nodeQueue.poll();\n                int idx = queue.poll()[0];\n                if (offset == -1) offset = idx;\n                idx -= offset;\n                if (i == 0) first = idx;\n                if (i == size - 1) last = idx;\n                if (node.left != null) {\n                    nodeQueue.offer(node.left);\n                    queue.offer(new int[]{2 * idx});\n                }\n                if (node.right != null) {\n                    nodeQueue.offer(node.right);\n                    queue.offer(new int[]{2 * idx + 1});\n                }\n            }\n            maxWidth = Math.max(maxWidth, last - first + 1);\n        }\n        return maxWidth;\n    }\n}",
+      "description": "## Approach\n\nTraverse the tree level by level. Assign each node the index it would have in a complete binary tree, then subtract the first index of the current level before generating child indices.\n\n## Key Insight\n\nThe width depends on complete-tree positions, not on the number of non-null nodes. Re-basing every level keeps indices small while preserving all distances within that level.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private static class Entry {\n        TreeNode node;\n        long index;\n\n        Entry(TreeNode node, long index) {\n            this.node = node;\n            this.index = index;\n        }\n    }\n\n    public int widthOfBinaryTree(TreeNode root) {\n        if (root == null) {\n            return 0;\n        }\n\n        java.util.ArrayDeque<Entry> queue = new java.util.ArrayDeque<>();\n        queue.offer(new Entry(root, 0L));\n        int best = 0;\n\n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            long levelBase = queue.peekFirst().index;\n            long first = 0;\n            long last = 0;\n\n            for (int i = 0; i < size; i++) {\n                Entry entry = queue.poll();\n                TreeNode node = entry.node;\n                long normalized = entry.index - levelBase;\n                if (i == 0) {\n                    first = normalized;\n                }\n                if (i == size - 1) {\n                    last = normalized;\n                }\n                if (node.left != null) {\n                    queue.offer(new Entry(node.left, normalized * 2));\n                }\n                if (node.right != null) {\n                    queue.offer(new Entry(node.right, normalized * 2 + 1));\n                }\n            }\n\n            best = Math.max(best, (int) (last - first + 1));\n        }\n\n        return best;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "DFS with First Index Per Level",
+      "name": "Recursive DFS with First Index Per Depth",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "Use DFS, tracking each node's index position. For each level, record the first (leftmost) index. Width at each level is current index - first index + 1. Track maximum width.",
-      "code": "class Solution {\n    private int maxWidth = 0;\n    private java.util.List<Integer> firstIndices = new java.util.ArrayList<>();\n\n    public int widthOfBinaryTree(TreeNode root) {\n        maxWidth = 0;\n        firstIndices = new java.util.ArrayList<>();\n        dfs(root, 0, 0);\n        return maxWidth;\n    }\n\n    private void dfs(TreeNode node, int depth, int index) {\n        if (node == null) return;\n        if (depth == firstIndices.size()) {\n            firstIndices.add(index);\n        }\n        int width = index - firstIndices.get(depth) + 1;\n        maxWidth = Math.max(maxWidth, width);\n        dfs(node.left, depth + 1, 2 * (index - firstIndices.get(depth)));\n        dfs(node.right, depth + 1, 2 * (index - firstIndices.get(depth)) + 1);\n    }\n}",
+      "description": "## Approach\n\nRun a preorder DFS with a complete-tree index. The first node reached at each depth is the left boundary for that depth; compare every later node on the same depth against it.\n\n## Key Insight\n\nDFS does not need to store a whole level. Keeping the first index for each depth is enough to compute the width seen so far at that depth.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h)",
+      "code": "class Solution {\n    private final java.util.List<Long> firstIndexAtDepth = new java.util.ArrayList<>();\n    private int answer;\n\n    public int widthOfBinaryTree(TreeNode root) {\n        firstIndexAtDepth.clear();\n        answer = 0;\n        dfs(root, 0, 0L);\n        return answer;\n    }\n\n    private void dfs(TreeNode node, int depth, long index) {\n        if (node == null) {\n            return;\n        }\n        if (depth == firstIndexAtDepth.size()) {\n            firstIndexAtDepth.add(index);\n        }\n\n        long normalized = index - firstIndexAtDepth.get(depth);\n        answer = Math.max(answer, (int) normalized + 1);\n        dfs(node.left, depth + 1, normalized * 2);\n        dfs(node.right, depth + 1, normalized * 2 + 1);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative DFS Stack Ranges",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nUse an explicit stack instead of recursion. For each popped node, record the first normalized index seen at its depth and update the best width for that depth.\n\n## Key Insight\n\nThe same first-index invariant works without recursion. The stack version is useful when recursion depth or call-stack limits matter.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h)",
+      "code": "class Solution {\n    private static class Frame {\n        TreeNode node;\n        int depth;\n        long index;\n\n        Frame(TreeNode node, int depth, long index) {\n            this.node = node;\n            this.depth = depth;\n            this.index = index;\n        }\n    }\n\n    public int widthOfBinaryTree(TreeNode root) {\n        if (root == null) {\n            return 0;\n        }\n\n        java.util.ArrayList<Long> firstIndexAtDepth = new java.util.ArrayList<>();\n        java.util.ArrayDeque<Frame> stack = new java.util.ArrayDeque<>();\n        stack.push(new Frame(root, 0, 0L));\n        int best = 0;\n\n        while (!stack.isEmpty()) {\n            Frame frame = stack.pop();\n            if (frame.depth == firstIndexAtDepth.size()) {\n                firstIndexAtDepth.add(frame.index);\n            }\n            long normalized = frame.index - firstIndexAtDepth.get(frame.depth);\n            best = Math.max(best, (int) normalized + 1);\n\n            if (frame.node.right != null) {\n                stack.push(new Frame(frame.node.right, frame.depth + 1, normalized * 2 + 1));\n            }\n            if (frame.node.left != null) {\n                stack.push(new Frame(frame.node.left, frame.depth + 1, normalized * 2));\n            }\n        }\n\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Level Boundary Lists",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nKeep the current level as two parallel lists: nodes and their normalized complete-tree indices. The first and last indices in the list give the level width, then build the next level lists.\n\n## Key Insight\n\nMaterializing level boundaries makes the width formula explicit: after re-basing the level, the answer is `lastIndex - firstIndex + 1`, even if many positions between them are null.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int widthOfBinaryTree(TreeNode root) {\n        if (root == null) {\n            return 0;\n        }\n\n        java.util.List<TreeNode> levelNodes = new java.util.ArrayList<>();\n        java.util.List<Long> levelIndices = new java.util.ArrayList<>();\n        levelNodes.add(root);\n        levelIndices.add(0L);\n        int best = 1;\n\n        while (!levelNodes.isEmpty()) {\n            long first = levelIndices.get(0);\n            long last = levelIndices.get(levelIndices.size() - 1);\n            best = Math.max(best, (int) (last - first + 1));\n\n            java.util.List<TreeNode> nextNodes = new java.util.ArrayList<>();\n            java.util.List<Long> nextIndices = new java.util.ArrayList<>();\n            for (int i = 0; i < levelNodes.size(); i++) {\n                TreeNode node = levelNodes.get(i);\n                long normalized = levelIndices.get(i) - first;\n                if (node.left != null) {\n                    nextNodes.add(node.left);\n                    nextIndices.add(normalized * 2);\n                }\n                if (node.right != null) {\n                    nextNodes.add(node.right);\n                    nextIndices.add(normalized * 2 + 1);\n                }\n            }\n            levelNodes = nextNodes;\n            levelIndices = nextIndices;\n        }\n\n        return best;\n    }\n}",
       "language": "java"
     }
   ],
@@ -54,13 +70,53 @@
     {
       "input": "root = [1,3,2,5]",
       "output": "2"
+    },
+    {
+      "input": "root = [1]",
+      "output": "1"
+    },
+    {
+      "input": "root = [1,3,null,5,3]",
+      "output": "2"
+    },
+    {
+      "input": "root = [1,null,2,null,3,null,4]",
+      "output": "1"
+    },
+    {
+      "input": "root = [1,2,null,3,null,4]",
+      "output": "1"
+    },
+    {
+      "input": "root = [1,2,3,4,5,6,7]",
+      "output": "4"
+    },
+    {
+      "input": "root = [1,2,3,4,null,null,7]",
+      "output": "4"
+    },
+    {
+      "input": "root = [1,2,3,4,null,null,7,8,null,null,15]",
+      "output": "8"
+    },
+    {
+      "input": "root = [1,3,2,5,null,null,9,6,null,null,7]",
+      "output": "8"
+    },
+    {
+      "input": "root = [0,0,0,0,null,null,0,0,null,null,0]",
+      "output": "8"
+    },
+    {
+      "input": "root = [5,4,6,null,3,7,null,null,2,8]",
+      "output": "2"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p496_example1.png",
-      "caption": "Example 1: Tree [1,3,2,5,3,null,9]"
+      "caption": "Example 1 bottom-level positions are [5,3,null,9]; width includes both endpoints and the interior gap, totaling 4 positions"
     }
   ]
 }

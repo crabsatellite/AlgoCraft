@@ -1,34 +1,98 @@
 {
   "id": "462",
   "title": "Minimum Moves to Equal Array Elements II",
-  "description": "# Minimum Moves to Equal Array Elements II\n\nGiven an integer array `nums` of size `n`, return *the minimum number of moves required to make all array elements equal*.\n\nIn one move, you can increment or decrement an element of the array by `1`.\n\nTest cases are designed so that the answer will fit in a **32-bit** integer.\n\n## Example 1:\n\n**Input:** nums = [1,2,3]\n**Output:** 2\n**Explanation:**\nOnly two moves are needed (remember each move increments or decrements one element):\n[1,2,3]  =>  [2,2,3]  =>  [2,2,2]\n\n## Example 2:\n\n**Input:** nums = [1,10,2,9]\n**Output:** 16\n\n## Constraints:\n\n*   `n == nums.length`\n*   `1 <= nums.length <= 10^5`\n*   `-10^9 <= nums[i] <= 10^9`",
+  "description": "# Minimum Moves to Equal Array Elements II\n\nGiven an integer array `nums`, return the minimum number of moves required to make every element equal.\n\nIn one move, choose exactly one array element and either increment it by `1` or decrement it by `1`.\n\nThe final common value may be any integer; it need not be present in the input.\n\nThe test cases are designed so that the answer fits in a 32-bit signed integer.\n\n## Example 1:\n\n**Input:** nums = [1,2,3]\n**Output:** 2\n**Explanation:** Move `1` to `2` once and move `3` to `2` once.\n\n## Example 2:\n\n**Input:** nums = [1,10,2,9]\n**Output:** 16\n**Explanation:** After sorting, the middle interval is from `2` to `9`. Choosing either `2`, `9`, or any value between them gives total distance `16`.\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^5`\n*   `-10^9 <= nums[i] <= 10^9`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int minMoves2(int[] nums) {\n        \n    }\n}",
-  "tags": ["Array", "Math", "Sorting"],
+  "tags": [
+    "Array",
+    "Math",
+    "Sorting"
+  ],
   "examples": [
-    { "input": "nums = [1,2,3]", "output": "2" },
-    { "input": "nums = [1,10,2,9]", "output": "16" }
+    {
+      "input": "nums = [1,2,3]",
+      "output": "2"
+    },
+    {
+      "input": "nums = [1,10,2,9]",
+      "output": "16"
+    }
   ],
   "solutions": [
     {
       "name": "Sort and Median",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(1)",
-      "description": "The optimal target is the median. Sort the array, find the median, and sum absolute differences from all elements to the median.",
-      "code": "class Solution {\n    public int minMoves2(int[] nums) {\n        java.util.Arrays.sort(nums);\n        int median = nums[nums.length / 2];\n        int moves = 0;\n        for (int num : nums) {\n            moves += Math.abs(num - median);\n        }\n        return moves;\n    }\n}",
+      "description": "## Approach\n\nSort the array, choose the element at index `n / 2` as a median, and add the absolute distance from every value to that median.\n\n## Key Insight\n\nFor the sum of absolute distances, moving the target from left to right decreases the distance to values on the left and increases the distance to values on the right. The total is minimized when at least half of the values are on each side, which is exactly the median condition.\n\n## Complexity Analysis\n\nSorting dominates the running time, so the time complexity is O(n log n). The implementation sorts the input array in place and uses O(1) extra space.",
+      "code": "class Solution {\n    public int minMoves2(int[] nums) {\n        java.util.Arrays.sort(nums);\n        int median = nums[nums.length / 2];\n        long moves = 0;\n        for (int num : nums) {\n            moves += Math.abs((long) num - median);\n        }\n        return (int) moves;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Quickselect Median",
+      "name": "Sort and Pair Extremes",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nSort the array, then pair the smallest remaining value with the largest remaining value. Each pair contributes `rightValue - leftValue` moves, then both pointers move inward.\n\n## Key Insight\n\nAny final value inside the median interval lies between the paired extremes. Moving the smaller value up to the target and the larger value down to the target always costs `rightValue - leftValue`, independent of the exact target inside that interval.\n\n## Complexity Analysis\n\nSorting costs O(n log n), and the two-pointer pass is linear. The implementation sorts in place and uses O(1) extra space.",
+      "code": "class Solution {\n    public int minMoves2(int[] nums) {\n        java.util.Arrays.sort(nums);\n        int left = 0;\n        int right = nums.length - 1;\n        long moves = 0;\n        while (left < right) {\n            moves += (long) nums[right] - nums[left];\n            left++;\n            right--;\n        }\n        return (int) moves;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Randomized Quickselect Median",
       "timeComplexity": "O(n) average",
       "spaceComplexity": "O(1)",
-      "description": "Use quickselect to find the median in O(n) average time without full sorting. Then sum absolute differences from all elements to the median.",
-      "code": "class Solution {\n    public int minMoves2(int[] nums) {\n        int n = nums.length;\n        int median = quickSelect(nums, 0, n - 1, n / 2);\n        int moves = 0;\n        for (int num : nums) {\n            moves += Math.abs(num - median);\n        }\n        return moves;\n    }\n\n    private int quickSelect(int[] nums, int lo, int hi, int k) {\n        while (lo < hi) {\n            int pivot = nums[hi];\n            int i = lo;\n            for (int j = lo; j < hi; j++) {\n                if (nums[j] < pivot) {\n                    int tmp = nums[i]; nums[i] = nums[j]; nums[j] = tmp;\n                    i++;\n                }\n            }\n            int tmp = nums[i]; nums[i] = nums[hi]; nums[hi] = tmp;\n            if (i == k) return nums[i];\n            else if (i < k) lo = i + 1;\n            else hi = i - 1;\n        }\n        return nums[lo];\n    }\n}",
+      "description": "## Approach\n\nUse randomized three-way quickselect to find the value that would appear at index `n / 2` in sorted order. Then compute the same absolute-distance sum to that median value.\n\n## Key Insight\n\nThe proof still depends on the median, but full sorting is not required if the only ordered fact needed is the middle element. Three-way partitioning keeps arrays with many duplicates from repeatedly recursing over values equal to the pivot.\n\n## Complexity Analysis\n\nThe expected running time is O(n), with O(n^2) worst-case behavior still possible for quickselect. The algorithm rearranges the input array in place and uses O(1) extra space.",
+      "code": "class Solution {\n    public int minMoves2(int[] nums) {\n        int median = quickSelect(nums, nums.length / 2);\n        long moves = 0;\n        for (int num : nums) {\n            moves += Math.abs((long) num - median);\n        }\n        return (int) moves;\n    }\n\n    private int quickSelect(int[] nums, int k) {\n        int left = 0;\n        int right = nums.length - 1;\n        java.util.Random random = new java.util.Random(0);\n        while (left <= right) {\n            int pivot = nums[left + random.nextInt(right - left + 1)];\n            int lt = left;\n            int i = left;\n            int gt = right;\n            while (i <= gt) {\n                if (nums[i] < pivot) {\n                    swap(nums, lt, i);\n                    lt++;\n                    i++;\n                } else if (nums[i] > pivot) {\n                    swap(nums, i, gt);\n                    gt--;\n                } else {\n                    i++;\n                }\n            }\n            if (k < lt) {\n                right = lt - 1;\n            } else if (k > gt) {\n                left = gt + 1;\n            } else {\n                return pivot;\n            }\n        }\n        return nums[k];\n    }\n\n    private void swap(int[] nums, int i, int j) {\n        int tmp = nums[i];\n        nums[i] = nums[j];\n        nums[j] = tmp;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [1,2,3]", "output": "2" },
-    { "input": "nums = [1,10,2,9]", "output": "16" }
+    {
+      "input": "nums = [1,2,3]",
+      "output": "2"
+    },
+    {
+      "input": "nums = [1,10,2,9]",
+      "output": "16"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "0"
+    },
+    {
+      "input": "nums = [-1,0,1]",
+      "output": "2"
+    },
+    {
+      "input": "nums = [1,0,0,8,6]",
+      "output": "14"
+    },
+    {
+      "input": "nums = [5,5,5,5]",
+      "output": "0"
+    },
+    {
+      "input": "nums = [-5,-1,-10]",
+      "output": "9"
+    },
+    {
+      "input": "nums = [-1000000000,0,1000000000]",
+      "output": "2000000000"
+    },
+    {
+      "input": "nums = [1,1,1,100]",
+      "output": "99"
+    },
+    {
+      "input": "nums = [7,3,9,1,5]",
+      "output": "12"
+    },
+    {
+      "input": "nums = [0,0,100,100]",
+      "output": "200"
+    },
+    {
+      "input": "nums = [-4,-4,-2,10]",
+      "output": "16"
+    }
   ]
 }

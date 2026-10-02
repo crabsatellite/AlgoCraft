@@ -1,7 +1,7 @@
 {
   "id": "169",
   "title": "Longest Increasing Path in a Matrix",
-  "description": "# Longest Increasing Path in a Matrix\n\nGiven an `m x n` integers `matrix`, return *the length of the longest increasing path in* `matrix`.\n\nFrom each cell, you can either move in four directions: left, right, up, or down. You **may not** move diagonally or move outside the boundary (i.e., wrap-around is not allowed).\n\n## Example 1:\n\n**Input:** matrix = [[9,9,4],[6,6,8],[2,1,1]]\n**Output:** 4\n**Explanation:** The longest increasing path is [1, 2, 6, 9].\n\n## Example 2:\n\n**Input:** matrix = [[3,4,5],[3,2,6],[2,2,1]]\n**Output:** 4\n**Explanation:** The longest increasing path is [3, 4, 5, 6]. Moving diagonally is not allowed.\n\n## Example 3:\n\n**Input:** matrix = [[1]]\n**Output:** 1\n\n## Constraints:\n\n*   `m == matrix.length`\n*   `n == matrix[i].length`\n*   `1 <= m, n <= 200`\n*   `0 <= matrix[i][j] <= 2^31 - 1`",
+  "description": "# Longest Increasing Path in a Matrix\n\nGiven an `m x n` integer matrix, return the length of the longest strictly increasing path in the matrix.\n\nFrom a cell, you may move only to one of its four orthogonal neighbors: up, down, left, or right. You may not move diagonally, move outside the matrix, or wrap around the boundary. Every next cell on the path must have a value strictly greater than the current cell.\n\nPath length counts visited cells; a one-cell path has length `1`.\n\n## Example 1:\n\n**Input:** matrix = [[9,9,4],[6,6,8],[2,1,1]]\n**Output:** 4\n**Explanation:** One longest increasing path has values `[1, 2, 6, 9]`.\n\n## Example 2:\n\n**Input:** matrix = [[3,4,5],[3,2,6],[2,2,1]]\n**Output:** 4\n**Explanation:** One longest increasing path has values `[3, 4, 5, 6]`. Moving diagonally is not allowed.\n\n## Example 3:\n\n**Input:** matrix = [[1]]\n**Output:** 1\n\n## Constraints:\n\n* `m == matrix.length`\n* `n == matrix[i].length`\n* `1 <= m, n <= 200`\n* `0 <= matrix[i][j] <= 2^31 - 1`",
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public int longestIncreasingPath(int[][] matrix) {\n        // Write your code here\n        return 0;\n    }\n}",
   "tags": [
@@ -29,62 +29,128 @@
   ],
   "solutions": [
     {
-      "name": "DFS with Memoization",
+      "name": "DFS Memoization on Cells",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "From each cell, DFS in 4 directions to cells with larger values. Cache results in a memo array. Each cell is computed at most once.",
-      "code": "class Solution {\n    private int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n    \n    public int longestIncreasingPath(int[][] matrix) {\n        int m = matrix.length, n = matrix[0].length;\n        int[][] memo = new int[m][n];\n        int max = 0;\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++)\n                max = Math.max(max, dfs(matrix, memo, i, j, m, n));\n        return max;\n    }\n    \n    private int dfs(int[][] matrix, int[][] memo, int i, int j, int m, int n) {\n        if (memo[i][j] != 0) return memo[i][j];\n        int best = 1;\n        for (int[] d : dirs) {\n            int ni = i + d[0], nj = j + d[1];\n            if (ni >= 0 && ni < m && nj >= 0 && nj < n && matrix[ni][nj] > matrix[i][j]) {\n                best = Math.max(best, 1 + dfs(matrix, memo, ni, nj, m, n));\n            }\n        }\n        memo[i][j] = best;\n        return best;\n    }\n}",
+      "description": "## Approach\n\nTreat each cell as the start of a path. A DFS from `(r, c)` tries only the four neighbors whose values are strictly larger, and memoizes the best path length starting from that cell.\n\n## Key Insight\n\nStrict increase makes the directed graph acyclic: a path can never return to a smaller or equal value. Therefore each cell's answer is computed once, even though many starts may reach it.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public int longestIncreasingPath(int[][] matrix) {\n        int m = matrix.length;\n        int n = matrix[0].length;\n        int[][] memo = new int[m][n];\n        int answer = 1;\n        for (int row = 0; row < m; row++) {\n            for (int col = 0; col < n; col++) {\n                answer = Math.max(answer, dfs(matrix, memo, row, col));\n            }\n        }\n        return answer;\n    }\n\n    private int dfs(int[][] matrix, int[][] memo, int row, int col) {\n        if (memo[row][col] != 0) {\n            return memo[row][col];\n        }\n        int best = 1;\n        for (int[] direction : DIRECTIONS) {\n            int nextRow = row + direction[0];\n            int nextCol = col + direction[1];\n            if (nextRow < 0 || nextRow >= matrix.length || nextCol < 0 || nextCol >= matrix[0].length) {\n                continue;\n            }\n            if (matrix[nextRow][nextCol] > matrix[row][col]) {\n                best = Math.max(best, 1 + dfs(matrix, memo, nextRow, nextCol));\n            }\n        }\n        memo[row][col] = best;\n        return best;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Topological Sort (BFS)",
+      "name": "Topological BFS from Local Minima",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "Treat cells as graph nodes with edges from smaller to larger neighbors. Compute in-degrees and process layer by layer using BFS. The number of layers is the answer.",
-      "code": "class Solution {\n    public int longestIncreasingPath(int[][] matrix) {\n        int m = matrix.length, n = matrix[0].length;\n        int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n        int[][] indegree = new int[m][n];\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++)\n                for (int[] d : dirs) {\n                    int ni = i + d[0], nj = j + d[1];\n                    if (ni >= 0 && ni < m && nj >= 0 && nj < n && matrix[ni][nj] > matrix[i][j])\n                        indegree[ni][nj]++;\n                }\n        java.util.Queue<int[]> queue = new java.util.LinkedList<>();\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++)\n                if (indegree[i][j] == 0) queue.offer(new int[]{i, j});\n        int layers = 0;\n        while (!queue.isEmpty()) {\n            layers++;\n            int size = queue.size();\n            for (int k = 0; k < size; k++) {\n                int[] cell = queue.poll();\n                for (int[] d : dirs) {\n                    int ni = cell[0] + d[0], nj = cell[1] + d[1];\n                    if (ni >= 0 && ni < m && nj >= 0 && nj < n && matrix[ni][nj] > matrix[cell[0]][cell[1]])\n                        if (--indegree[ni][nj] == 0) queue.offer(new int[]{ni, nj});\n                }\n            }\n        }\n        return layers;\n    }\n}",
+      "description": "## Approach\n\nBuild directed edges from a lower cell to a higher adjacent cell. Local minima have indegree zero, so Kahn's algorithm can peel the graph by increasing layers. The number of processed layers is the longest path length.\n\n## Key Insight\n\nEvery edge moves from one layer to a later layer. Removing all current zero-indegree cells at once corresponds to taking one step along all possible increasing paths.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public int longestIncreasingPath(int[][] matrix) {\n        int m = matrix.length;\n        int n = matrix[0].length;\n        int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        int[][] indegree = new int[m][n];\n\n        for (int row = 0; row < m; row++) {\n            for (int col = 0; col < n; col++) {\n                for (int[] direction : directions) {\n                    int nextRow = row + direction[0];\n                    int nextCol = col + direction[1];\n                    if (nextRow < 0 || nextRow >= m || nextCol < 0 || nextCol >= n) {\n                        continue;\n                    }\n                    if (matrix[nextRow][nextCol] > matrix[row][col]) {\n                        indegree[nextRow][nextCol]++;\n                    }\n                }\n            }\n        }\n\n        java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();\n        for (int row = 0; row < m; row++) {\n            for (int col = 0; col < n; col++) {\n                if (indegree[row][col] == 0) {\n                    queue.add(new int[] {row, col});\n                }\n            }\n        }\n\n        int layers = 0;\n        while (!queue.isEmpty()) {\n            layers++;\n            int size = queue.size();\n            for (int count = 0; count < size; count++) {\n                int[] cell = queue.removeFirst();\n                int row = cell[0];\n                int col = cell[1];\n                for (int[] direction : directions) {\n                    int nextRow = row + direction[0];\n                    int nextCol = col + direction[1];\n                    if (nextRow < 0 || nextRow >= m || nextCol < 0 || nextCol >= n) {\n                        continue;\n                    }\n                    if (matrix[nextRow][nextCol] > matrix[row][col] && --indegree[nextRow][nextCol] == 0) {\n                        queue.add(new int[] {nextRow, nextCol});\n                    }\n                }\n            }\n        }\n        return layers;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Value-Sorted Dynamic Programming",
+      "timeComplexity": "O(m * n log(m * n))",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nSort all cells by value in ascending order. When processing a cell, all smaller-valued neighbors have already received their best path lengths, so the current cell can extend the best smaller neighbor.\n\n## Key Insight\n\nThe matrix is a DAG ordered by value, but equal values must not connect. Sorting makes that order explicit and avoids recursion and queue layer bookkeeping.\n\n## Complexity Analysis\n- Time Complexity: O(m * n log(m * n))\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public int longestIncreasingPath(int[][] matrix) {\n        int m = matrix.length;\n        int n = matrix[0].length;\n        int[][] cells = new int[m * n][3];\n        int index = 0;\n        for (int row = 0; row < m; row++) {\n            for (int col = 0; col < n; col++) {\n                cells[index++] = new int[] {matrix[row][col], row, col};\n            }\n        }\n        java.util.Arrays.sort(cells, (a, b) -> Integer.compare(a[0], b[0]));\n\n        int[][] dp = new int[m][n];\n        int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        int answer = 1;\n        for (int[] cell : cells) {\n            int value = cell[0];\n            int row = cell[1];\n            int col = cell[2];\n            dp[row][col] = Math.max(dp[row][col], 1);\n            for (int[] direction : directions) {\n                int nextRow = row + direction[0];\n                int nextCol = col + direction[1];\n                if (nextRow < 0 || nextRow >= m || nextCol < 0 || nextCol >= n) {\n                    continue;\n                }\n                if (matrix[nextRow][nextCol] < value) {\n                    dp[row][col] = Math.max(dp[row][col], dp[nextRow][nextCol] + 1);\n                }\n            }\n            answer = Math.max(answer, dp[row][col]);\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Reverse Topological BFS from Local Maxima",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nCount each cell's outgoing edges to larger neighbors. Cells with no larger neighbor are local maxima. Peel those maxima first, then move backward to smaller neighbors; the number of reverse layers is the longest increasing path length.\n\n## Key Insight\n\nThis is the same DAG as the local-minimum topological sort, but viewed from sinks instead of sources. It is useful for teaching that the answer is a graph height independent of traversal direction.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public int longestIncreasingPath(int[][] matrix) {\n        int m = matrix.length;\n        int n = matrix[0].length;\n        int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        int[][] outdegree = new int[m][n];\n\n        for (int row = 0; row < m; row++) {\n            for (int col = 0; col < n; col++) {\n                for (int[] direction : directions) {\n                    int nextRow = row + direction[0];\n                    int nextCol = col + direction[1];\n                    if (nextRow < 0 || nextRow >= m || nextCol < 0 || nextCol >= n) {\n                        continue;\n                    }\n                    if (matrix[nextRow][nextCol] > matrix[row][col]) {\n                        outdegree[row][col]++;\n                    }\n                }\n            }\n        }\n\n        java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();\n        for (int row = 0; row < m; row++) {\n            for (int col = 0; col < n; col++) {\n                if (outdegree[row][col] == 0) {\n                    queue.add(new int[] {row, col});\n                }\n            }\n        }\n\n        int layers = 0;\n        while (!queue.isEmpty()) {\n            layers++;\n            int size = queue.size();\n            for (int count = 0; count < size; count++) {\n                int[] cell = queue.removeFirst();\n                int row = cell[0];\n                int col = cell[1];\n                for (int[] direction : directions) {\n                    int nextRow = row + direction[0];\n                    int nextCol = col + direction[1];\n                    if (nextRow < 0 || nextRow >= m || nextCol < 0 || nextCol >= n) {\n                        continue;\n                    }\n                    if (matrix[nextRow][nextCol] < matrix[row][col] && --outdegree[nextRow][nextCol] == 0) {\n                        queue.add(new int[] {nextRow, nextCol});\n                    }\n                }\n            }\n        }\n        return layers;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Explicit-Stack Postorder DFS",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nUse the same memoized DFS recurrence, but replace recursive calls with an explicit stack. Each stack frame is visited once before its larger neighbors and once after those neighbors have memo values.\n\n## Key Insight\n\nA matrix can contain a very long increasing snake. The explicit stack teaches the same postorder dependency as recursion while avoiding Java call-stack depth risk on large inputs.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public int longestIncreasingPath(int[][] matrix) {\n        int m = matrix.length;\n        int n = matrix[0].length;\n        int[][] memo = new int[m][n];\n        int answer = 1;\n        for (int row = 0; row < m; row++) {\n            for (int col = 0; col < n; col++) {\n                answer = Math.max(answer, solve(matrix, memo, row, col));\n            }\n        }\n        return answer;\n    }\n\n    private int solve(int[][] matrix, int[][] memo, int row, int col) {\n        if (memo[row][col] != 0) {\n            return memo[row][col];\n        }\n        int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        java.util.ArrayDeque<int[]> stack = new java.util.ArrayDeque<>();\n        stack.push(new int[] {row, col, 0});\n\n        while (!stack.isEmpty()) {\n            int[] state = stack.peek();\n            int r = state[0];\n            int c = state[1];\n            if (memo[r][c] != 0) {\n                stack.pop();\n                continue;\n            }\n            if (state[2] == 0) {\n                state[2] = 1;\n                for (int[] direction : directions) {\n                    int nextRow = r + direction[0];\n                    int nextCol = c + direction[1];\n                    if (nextRow < 0 || nextRow >= matrix.length || nextCol < 0 || nextCol >= matrix[0].length) {\n                        continue;\n                    }\n                    if (matrix[nextRow][nextCol] > matrix[r][c] && memo[nextRow][nextCol] == 0) {\n                        stack.push(new int[] {nextRow, nextCol, 0});\n                    }\n                }\n            } else {\n                int best = 1;\n                for (int[] direction : directions) {\n                    int nextRow = r + direction[0];\n                    int nextCol = c + direction[1];\n                    if (nextRow < 0 || nextRow >= matrix.length || nextCol < 0 || nextCol >= matrix[0].length) {\n                        continue;\n                    }\n                    if (matrix[nextRow][nextCol] > matrix[r][c]) {\n                        best = Math.max(best, 1 + memo[nextRow][nextCol]);\n                    }\n                }\n                memo[r][c] = best;\n                stack.pop();\n            }\n        }\n        return memo[row][col];\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "matrix = [[9,9,4],[6,6,8],[2,1,1]]",
-      "output": "4"
+      "output": "4",
+      "description": "Canonical matrix has a longest increasing path of length four through 1,2,6,9."
     },
     {
       "input": "matrix = [[3,4,5],[3,2,6],[2,2,1]]",
-      "output": "4"
+      "output": "4",
+      "description": "Second example follows an increasing route ending at six."
     },
     {
       "input": "matrix = [[1]]",
-      "output": "1"
+      "output": "1",
+      "description": "Single cell boundary has path length one."
     },
     {
       "input": "matrix = [[1,2]]",
-      "output": "2"
+      "output": "2",
+      "description": "One-row increasing matrix has length two."
+    },
+    {
+      "input": "matrix = [[3,2,1]]",
+      "output": "3",
+      "description": "One-row decreasing left-to-right values can still be traversed from the low end."
     },
     {
       "input": "matrix = [[1],[2]]",
-      "output": "2"
+      "output": "2",
+      "description": "One-column increasing matrix has length two."
     },
     {
       "input": "matrix = [[1,2,3],[4,5,6],[7,8,9]]",
-      "output": "5"
+      "output": "5",
+      "description": "Monotone grid still limits movement to adjacent cells, giving length five instead of nine."
     },
     {
       "input": "matrix = [[7,8,9],[9,7,6],[7,2,3]]",
-      "output": "6"
+      "output": "6",
+      "description": "Harder matrix requires turning through several cells to reach length six."
     },
     {
       "input": "matrix = [[1,1,1],[1,1,1],[1,1,1]]",
-      "output": "1"
+      "output": "1",
+      "description": "Flat matrix has no strictly increasing move, so the longest path is one."
+    },
+    {
+      "input": "matrix = [[1,100],[100,2]]",
+      "output": "2",
+      "description": "Diagonal movement from 1 to 2 is not allowed."
+    },
+    {
+      "input": "matrix = [[1,2,3],[6,5,4],[7,8,9]]",
+      "output": "9",
+      "description": "A full snake path uses every cell exactly once."
+    },
+    {
+      "input": "matrix = [[2147483646,2147483647]]",
+      "output": "2",
+      "description": "Large integer values near the maximum must compare safely."
+    },
+    {
+      "input": "matrix = [[5,4,3],[6,1,2],[7,8,9]]",
+      "output": "9",
+      "description": "A valley feeding a snake path should not confuse local-greedy choices."
+    },
+    {
+      "input": "matrix = [[0,1,2],[5,4,3]]",
+      "output": "6",
+      "description": "Zero-valued start and a two-row snake cover the lower bound and turns."
+    },
+    {
+      "input": "matrix = [[10,13,14],[9,12,15],[8,11,16]]",
+      "output": "7",
+      "description": "A larger winding route checks that multiple local choices are handled."
     }
   ],
-  "diagram": "images/p169_matrix_path.png",
   "diagrams": [
     {
       "id": "example1",
       "file": "p169_example1.png",
-      "caption": "3x3 Matrix for Longest Increasing Path"
+      "caption": "Matrix input with four-neighbor strictly increasing movement rules"
     }
   ]
 }

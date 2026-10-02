@@ -1,34 +1,136 @@
 {
   "id": "392",
   "title": "Triples with Bitwise AND Equal To Zero",
-  "description": "# Triples with Bitwise AND Equal To Zero\n\nGiven an integer array `nums`, return the number of AND triples.\n\nAn AND triple is a triple of indices `(i, j, k)` such that:\n\n*   `0 <= i < nums.length`\n*   `0 <= j < nums.length`\n*   `0 <= k < nums.length`\n*   `nums[i] & nums[j] & nums[k] == 0`, where `&` represents the bitwise-AND operator.\n\n## Example 1:\n\n**Input:** nums = [2,1,3]\n**Output:** 12\n**Explanation:** We could choose the following i, j, k triples:\n(i=0, j=0, k=1) : 2 & 2 & 1\n(i=0, j=1, k=0) : 2 & 1 & 2\n(i=0, j=1, k=1) : 2 & 1 & 1\n(i=0, j=1, k=2) : 2 & 1 & 3\n(i=0, j=2, k=1) : 2 & 3 & 1\n(i=1, j=0, k=0) : 1 & 2 & 2\n(i=1, j=0, k=1) : 1 & 2 & 1\n(i=1, j=0, k=2) : 1 & 2 & 3\n(i=1, j=1, k=0) : 1 & 1 & 2\n(i=1, j=2, k=0) : 1 & 3 & 2\n(i=2, j=0, k=1) : 3 & 2 & 1\n(i=2, j=1, k=0) : 3 & 1 & 2\n\n## Example 2:\n\n**Input:** nums = [0,0,0]\n**Output:** 27\n\n## Constraints:\n\n*   `1 <= nums.length <= 1000`\n*   `0 <= nums[i] < 2^16`",
+  "description": "# Triples with Bitwise AND Equal To Zero\n\nGiven an integer array `nums`, return the number of ordered triples `(i, j, k)` such that:\n\n`nums[i] & nums[j] & nums[k] == 0`\n\nThe triple is ordered, so `(i, j, k)` and `(j, i, k)` are different when the indices differ. The same index may also be used more than once.\n\n`&` is bitwise AND: an output bit is `1` only when all corresponding input bits are `1`; otherwise it is `0`.\n\n## Example 1:\n\n**Input:** nums = [2,1,3]\n**Output:** 12\n**Explanation:** There are 12 ordered triples whose bitwise AND is 0.\n\n## Example 2:\n\n**Input:** nums = [0,0,0]\n**Output:** 27\n**Explanation:** Every ordered triple is valid because every selected value is 0.\n\n## Constraints:\n\n* `1 <= nums.length <= 1000`\n* `0 <= nums[i] < 2^16`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int countTriplets(int[] nums) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Bit Manipulation"],
+  "initialCode": "class Solution {\n    public int countTriplets(int[] nums) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Bit Manipulation"
+  ],
   "examples": [
-    { "input": "nums = [2,1,3]", "output": "12" },
-    { "input": "nums = [0,0,0]", "output": "27" }
+    {
+      "input": "nums = [2,1,3]",
+      "output": "12"
+    },
+    {
+      "input": "nums = [0,0,0]",
+      "output": "27"
+    }
   ],
   "solutions": [
     {
-      "name": "Precompute Pairwise AND",
-      "timeComplexity": "O(n^2 + 2^16 * n)",
+      "name": "Dense Pairwise AND Frequency Scan",
+      "timeComplexity": "O(n^2 + n * 2^16)",
       "spaceComplexity": "O(2^16)",
-      "description": "First compute cnt[v] = number of pairs (i,j) where nums[i] & nums[j] == v. Then for each k, count pairs where v & nums[k] == 0. Use a frequency map of pairwise ANDs.",
-      "code": "class Solution {\n    public int countTriplets(int[] nums) {\n        int[] cnt = new int[1 << 16];\n        for (int a : nums)\n            for (int b : nums)\n                cnt[a & b]++;\n        int res = 0;\n        for (int c : nums)\n            for (int v = 0; v < (1 << 16); v++)\n                if ((v & c) == 0) res += cnt[v];\n        return res;\n    }\n}",
+      "description": "## Approach\nPrecompute `pairCount[mask]`, the number of ordered pairs `(i, j)` with `nums[i] & nums[j] == mask`. Then for every third value `c`, scan all masks and add the pair counts whose mask is disjoint from `c`.\n\n## Key Insight\nThe condition can be grouped as `(nums[i] & nums[j]) & nums[k] == 0`. Once pair AND results are counted, each third value only needs to know which pair masks have no common set bit with it.\n\n## Complexity Analysis\nThere are O(n^2) ordered pairs and 2^16 possible masks. The time complexity is O(n^2 + n * 2^16), and the space complexity is O(2^16).",
+      "code": "class Solution {\n    private static final int LIMIT = 1 << 16;\n\n    public int countTriplets(int[] nums) {\n        int[] pairCount = new int[LIMIT];\n        for (int a : nums) {\n            for (int b : nums) {\n                pairCount[a & b]++;\n            }\n        }\n\n        int answer = 0;\n        for (int c : nums) {\n            for (int mask = 0; mask < LIMIT; mask++) {\n                if ((mask & c) == 0) {\n                    answer += pairCount[mask];\n                }\n            }\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Subset Sum over Supersets (SOS DP)",
-      "timeComplexity": "O(2^16 * 16 + n)",
+      "name": "Frequency-Compressed Pair Masks",
+      "timeComplexity": "O(u^2 + n * m)",
+      "spaceComplexity": "O(u + m)",
+      "description": "## Approach\nFirst count how often each distinct number appears. Build pair-mask frequencies by iterating over distinct values instead of raw indices, multiplying their frequencies to preserve ordered pair counts. Then scan those pair masks for each third value.\n\n## Key Insight\nMany inputs contain duplicates. If value `a` appears `fa` times and value `b` appears `fb` times, then ordered pairs using those values contribute `fa * fb` to mask `a & b`.\n\n## Complexity Analysis\nLet `u` be the number of distinct values and `m` the number of distinct pair AND masks. The time complexity is O(u^2 + n * m), and the space complexity is O(u + m).",
+      "code": "import java.util.HashMap;\nimport java.util.Map;\n\nclass Solution {\n    public int countTriplets(int[] nums) {\n        Map<Integer, Integer> valueFrequency = new HashMap<>();\n        for (int value : nums) {\n            valueFrequency.merge(value, 1, Integer::sum);\n        }\n\n        Map<Integer, Integer> pairCount = new HashMap<>();\n        for (Map.Entry<Integer, Integer> first : valueFrequency.entrySet()) {\n            for (Map.Entry<Integer, Integer> second : valueFrequency.entrySet()) {\n                int mask = first.getKey() & second.getKey();\n                int orderedPairs = first.getValue() * second.getValue();\n                pairCount.merge(mask, orderedPairs, Integer::sum);\n            }\n        }\n\n        int answer = 0;\n        for (int c : nums) {\n            for (Map.Entry<Integer, Integer> entry : pairCount.entrySet()) {\n                if ((entry.getKey() & c) == 0) {\n                    answer += entry.getValue();\n                }\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Complement Submask Enumeration",
+      "timeComplexity": "O(n^2 + sum 2^zeroBits(nums[k]))",
       "spaceComplexity": "O(2^16)",
-      "description": "Count frequency of each pairwise AND. Then for each value c in nums, count complement supermasks that sum to 0 AND. Use sum over subsets (SOS) DP to efficiently compute the sum over all supersets of the complement bitmask.",
-      "code": "class Solution {\n    public int countTriplets(int[] nums) {\n        int[] pairCount = new int[1 << 16];\n        for (int a : nums)\n            for (int b : nums)\n                pairCount[a & b]++;\n        int result = 0;\n        for (int c : nums) {\n            int complement = ((1 << 16) - 1) ^ c;\n            int sub = complement;\n            result += pairCount[0];\n            while (sub > 0) {\n                result += pairCount[sub];\n                sub = (sub - 1) & complement;\n            }\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\nCount ordered pair AND masks in an array. For each third value `c`, valid pair masks must be submasks of `FULL_MASK ^ c`. Enumerate exactly those submasks and add their pair counts.\n\n## Key Insight\nA mask `p` satisfies `(p & c) == 0` if and only if all set bits of `p` lie inside the zero-bit positions of `c`. Those masks are precisely the submasks of `~c` within 16 bits.\n\n## Complexity Analysis\nPair counting costs O(n^2). The query cost depends on the number of zero bits in each third value. The space complexity is O(2^16).",
+      "code": "class Solution {\n    private static final int BITS = 16;\n    private static final int LIMIT = 1 << BITS;\n    private static final int FULL_MASK = LIMIT - 1;\n\n    public int countTriplets(int[] nums) {\n        int[] pairCount = new int[LIMIT];\n        for (int a : nums) {\n            for (int b : nums) {\n                pairCount[a & b]++;\n            }\n        }\n\n        int answer = 0;\n        for (int c : nums) {\n            int complement = FULL_MASK ^ c;\n            for (int sub = complement;; sub = (sub - 1) & complement) {\n                answer += pairCount[sub];\n                if (sub == 0) {\n                    break;\n                }\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Subset Zeta Transform Query Table",
+      "timeComplexity": "O(n^2 + 16 * 2^16 + n)",
+      "spaceComplexity": "O(2^16)",
+      "description": "## Approach\nAfter counting ordered pair AND masks, run a subset zeta transform so `subsetSum[mask]` stores the total count of pair masks that are submasks of `mask`. Then each third value `c` answers in O(1) by querying `subsetSum[FULL_MASK ^ c]`.\n\n## Key Insight\nThe same complement-submask query is repeated for many values. The zeta transform precomputes every possible submask sum once, turning each triple query into a table lookup.\n\n## Complexity Analysis\nPair counting is O(n^2), the transform is O(16 * 2^16), and the final scan is O(n). Space complexity is O(2^16).",
+      "code": "class Solution {\n    private static final int BITS = 16;\n    private static final int LIMIT = 1 << BITS;\n    private static final int FULL_MASK = LIMIT - 1;\n\n    public int countTriplets(int[] nums) {\n        int[] subsetSum = new int[LIMIT];\n        for (int a : nums) {\n            for (int b : nums) {\n                subsetSum[a & b]++;\n            }\n        }\n\n        for (int bit = 0; bit < BITS; bit++) {\n            for (int mask = 0; mask < LIMIT; mask++) {\n                if ((mask & (1 << bit)) != 0) {\n                    subsetSum[mask] += subsetSum[mask ^ (1 << bit)];\n                }\n            }\n        }\n\n        int answer = 0;\n        for (int c : nums) {\n            answer += subsetSum[FULL_MASK ^ c];\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bitwise Trie over Pair Masks",
+      "timeComplexity": "O(n^2 * 16 + n * 16)",
+      "spaceComplexity": "O(n^2 * 16)",
+      "description": "## Approach\nInsert every ordered pair AND mask into a binary trie. To query a third value `c`, walk the trie bit by bit: if `c` has a 1 bit, the pair mask must have 0 there; if `c` has a 0 bit, both pair-mask branches are allowed.\n\n## Key Insight\nThe trie encodes the same disjoint-mask predicate as a constrained bit traversal. It is useful as a teaching route because it makes the per-bit compatibility condition explicit.\n\n## Complexity Analysis\nEach ordered pair insertion touches 16 bits, and each query touches at most both compatible branches across 16 levels. The time complexity is O(n^2 * 16 + n * 16) in the compressed trie model, and the space complexity is O(n^2 * 16) in the worst case.",
+      "code": "class Solution {\n    private static final int BITS = 16;\n\n    public int countTriplets(int[] nums) {\n        Node root = new Node();\n        for (int a : nums) {\n            for (int b : nums) {\n                insert(root, a & b);\n            }\n        }\n\n        int answer = 0;\n        for (int value : nums) {\n            answer += query(root, value, BITS - 1);\n        }\n        return answer;\n    }\n\n    private void insert(Node node, int mask) {\n        for (int bit = BITS - 1; bit >= 0; bit--) {\n            if ((mask & (1 << bit)) == 0) {\n                if (node.zero == null) {\n                    node.zero = new Node();\n                }\n                node = node.zero;\n            } else {\n                if (node.one == null) {\n                    node.one = new Node();\n                }\n                node = node.one;\n            }\n        }\n        node.count++;\n    }\n\n    private int query(Node node, int value, int bit) {\n        if (node == null) {\n            return 0;\n        }\n        if (bit < 0) {\n            return node.count;\n        }\n        if ((value & (1 << bit)) != 0) {\n            return query(node.zero, value, bit - 1);\n        }\n        return query(node.zero, value, bit - 1) + query(node.one, value, bit - 1);\n    }\n\n    private static final class Node {\n        Node zero;\n        Node one;\n        int count;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [2,1,3]", "output": "12" },
-    { "input": "nums = [0,0,0]", "output": "27" }
+    {
+      "input": "nums = [2,1,3]",
+      "output": "12",
+      "description": "canonical mixed bit case"
+    },
+    {
+      "input": "nums = [0,0,0]",
+      "output": "27",
+      "description": "all ordered triples qualify"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "0",
+      "description": "single nonzero value cannot AND to zero"
+    },
+    {
+      "input": "nums = [1,2]",
+      "output": "6",
+      "description": "ordered triples where both bits are cleared"
+    },
+    {
+      "input": "nums = [0,1,2]",
+      "output": "25",
+      "description": "zero participates in many ordered triples"
+    },
+    {
+      "input": "nums = [0]",
+      "output": "1",
+      "description": "single zero can be reused for all three positions"
+    },
+    {
+      "input": "nums = [1,1,1]",
+      "output": "0",
+      "description": "duplicate nonzero values still keep the shared bit"
+    },
+    {
+      "input": "nums = [65535,0]",
+      "output": "7",
+      "description": "16-bit full mask paired with zero"
+    },
+    {
+      "input": "nums = [7,3,5]",
+      "output": "0",
+      "description": "every value shares bit zero"
+    },
+    {
+      "input": "nums = [4,4,2,1]",
+      "output": "54",
+      "description": "duplicates with several disjoint bit choices"
+    },
+    {
+      "input": "nums = [15,8,7,0]",
+      "output": "49",
+      "description": "zero plus complementary nonzero masks"
+    },
+    {
+      "input": "nums = [1,2,4,8]",
+      "output": "60",
+      "description": "distinct powers of two emphasize ordered triples"
+    },
+    {
+      "input": "nums = [65535,32768,32767]",
+      "output": "12",
+      "description": "high-bit complement at the 16-bit boundary"
+    },
+    {
+      "input": "nums = [5,10,12]",
+      "output": "12",
+      "description": "overlapping masks that need a third value to clear all bits"
+    }
   ]
 }

@@ -1,36 +1,145 @@
 {
   "id": "356",
   "title": "Remove Boxes",
-  "description": "# Remove Boxes\n\nYou are given several `boxes` with different colors represented by different positive numbers.\n\nYou may experience several rounds to remove boxes until there is no box left. Each time you can choose some continuous boxes with the same color (i.e., composed of `k` boxes, `k >= 1`), remove them and get `k * k` points.\n\nReturn *the maximum points you can get*.\n\n## Example 1:\n\n**Input:** boxes = [1,3,2,2,2,3,4,3,1]\n**Output:** 23\n**Explanation:**\n[1, 3, 2, 2, 2, 3, 4, 3, 1] \n----> [1, 3, 3, 4, 3, 1] (3*3=9 points) \n----> [1, 3, 3, 3, 1] (1*1=1 point) \n----> [1, 1] (3*3=9 points) \n----> [] (2*2=4 points)\n\n## Example 2:\n\n**Input:** boxes = [1,1,1]\n**Output:** 9\n\n## Example 3:\n\n**Input:** boxes = [1]\n**Output:** 1\n\n## Constraints:\n\n*   `1 <= boxes.length <= 100`\n*   `1 <= boxes[i] <= 100`",
+  "description": "# Remove Boxes\n\nYou are given an array `boxes`, where `boxes[i]` is the color of the `i`th box. Equal numbers represent equal colors.\n\nIn one move, choose a contiguous group of boxes that all have the same color. If the group contains `k` boxes, removing it gives `k * k` points. The remaining boxes close the gap, so boxes that were separated before can become adjacent later.\n\nReturn the maximum score obtainable after removing all boxes.\n\n## Example 1:\n\n**Input:** boxes = [1,3,2,2,2,3,4,3,1]\n**Output:** 23\n**Explanation:** One optimal order removes the three `2` boxes for `9`, then later joins the `3` boxes for another `9`, and finally joins the two `1` boxes for `4`.\n\n## Example 2:\n\n**Input:** boxes = [1,1,1]\n**Output:** 9\n\n## Example 3:\n\n**Input:** boxes = [1]\n**Output:** 1\n\n## Constraints:\n\n* `1 <= boxes.length <= 100`\n* `1 <= boxes[i] <= 100`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int removeBoxes(int[] boxes) {\n        \n    }\n}",
-  "tags": ["Array", "Dynamic Programming", "Memoization"],
+  "initialCode": "class Solution {\n    public int removeBoxes(int[] boxes) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Dynamic Programming",
+    "Memoization"
+  ],
   "examples": [
-    { "input": "boxes = [1,3,2,2,2,3,4,3,1]", "output": "23" },
-    { "input": "boxes = [1,1,1]", "output": "9" },
-    { "input": "boxes = [1]", "output": "1" }
+    {
+      "input": "boxes = [1,3,2,2,2,3,4,3,1]",
+      "output": "23"
+    },
+    {
+      "input": "boxes = [1,1,1]",
+      "output": "9"
+    },
+    {
+      "input": "boxes = [1]",
+      "output": "1"
+    }
   ],
   "solutions": [
     {
-      "name": "3D DP with Memoization",
+      "name": "Left-Carry Memoized 3D DP",
       "timeComplexity": "O(n^4)",
       "spaceComplexity": "O(n^3)",
-      "description": "dp[l][r][k] = max points from boxes[l..r] with k extra boxes same color as boxes[l] attached to the left. Either remove boxes[l] with the k extra (getting (k+1)^2 points), or find a box[m] with same color as boxes[l] and merge them.",
-      "code": "class Solution {\n    private int[][][] memo;\n    public int removeBoxes(int[] boxes) {\n        int n = boxes.length;\n        memo = new int[n][n][n];\n        return dp(boxes, 0, n - 1, 0);\n    }\n    private int dp(int[] boxes, int l, int r, int k) {\n        if (l > r) return 0;\n        if (memo[l][r][k] != 0) return memo[l][r][k];\n        int origL = l, origK = k;\n        while (l + 1 <= r && boxes[l + 1] == boxes[l]) { l++; k++; }\n        int res = (k + 1) * (k + 1) + dp(boxes, l + 1, r, 0);\n        for (int m = l + 1; m <= r; m++) {\n            if (boxes[m] == boxes[l]) {\n                res = Math.max(res, dp(boxes, l + 1, m - 1, 0) + dp(boxes, m, r, k + 1));\n            }\n        }\n        memo[origL][r][origK] = res;\n        return res;\n    }\n}",
+      "description": "## Approach\n\nUse `dp(left, right, carry)` for the best score from `boxes[left..right]` when `carry` extra boxes with the same color as `boxes[left]` are attached on the left. Compress the equal-color run starting at `left`, then either remove that enlarged left group now or clear the middle and merge it with a later equal-colored box.\n\n## Key Insight\n\nThe score of a color group depends on how many same-color boxes are saved and merged later, so a plain 2D interval DP loses essential information. The third dimension records the saved same-color count and makes delayed merging explicit.\n\n## Complexity Analysis\n- Time Complexity: O(n^4)\n- Space Complexity: O(n^3)",
+      "code": "class Solution {\n    private int[][][] memo;\n\n    public int removeBoxes(int[] boxes) {\n        memo = new int[boxes.length][boxes.length][boxes.length + 1];\n        return dp(boxes, 0, boxes.length - 1, 0);\n    }\n\n    private int dp(int[] boxes, int left, int right, int carry) {\n        if (left > right) return 0;\n        if (memo[left][right][carry] != 0) return memo[left][right][carry];\n\n        int originalLeft = left;\n        int originalCarry = carry;\n        while (left + 1 <= right && boxes[left + 1] == boxes[left]) {\n            left++;\n            carry++;\n        }\n\n        int best = (carry + 1) * (carry + 1) + dp(boxes, left + 1, right, 0);\n        for (int middle = left + 1; middle <= right; middle++) {\n            if (boxes[middle] == boxes[left]) {\n                best = Math.max(best,\n                        dp(boxes, left + 1, middle - 1, 0) + dp(boxes, middle, right, carry + 1));\n            }\n        }\n        memo[originalLeft][right][originalCarry] = best;\n        return best;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Bottom-Up 3D DP",
+      "name": "Right-Carry Memoized Interval DP",
       "timeComplexity": "O(n^4)",
       "spaceComplexity": "O(n^3)",
-      "description": "Iterative bottom-up DP. dp[l][r][k] represents max points from subarray boxes[l..r] with k identical boxes attached before l. Fill in order of increasing interval length. For each state, either remove boxes[l] with k extras or find matching box to merge.",
-      "code": "class Solution {\n    public int removeBoxes(int[] boxes) {\n        int n = boxes.length;\n        int[][][] dp = new int[n][n][n + 1];\n        for (int i = 0; i < n; i++) {\n            for (int k = 0; k < n; k++) {\n                dp[i][i][k] = (k + 1) * (k + 1);\n            }\n        }\n        for (int len = 2; len <= n; len++) {\n            for (int l = 0; l <= n - len; l++) {\n                int r = l + len - 1;\n                for (int k = 0; k < n; k++) {\n                    int res = (k + 1) * (k + 1) + dp[l + 1][r][0];\n                    for (int m = l + 1; m <= r; m++) {\n                        if (boxes[m] == boxes[l]) {\n                            int left = (l + 1 <= m - 1) ? dp[l + 1][m - 1][0] : 0;\n                            res = Math.max(res, left + dp[m][r][k + 1]);\n                        }\n                    }\n                    dp[l][r][k] = res;\n                }\n            }\n        }\n        return dp[0][n - 1][0];\n    }\n}",
+      "description": "## Approach\n\nUse the symmetric state `dp(left, right, carry)`, where `carry` boxes matching `boxes[right]` are attached on the right. Compress the equal-color run ending at `right`, remove the right group now, or merge it with an earlier equal-colored box after clearing the middle interval.\n\n## Key Insight\n\nThe same delayed-merge idea works from either end. The right-carry version is often easier to reason about when the recurrence removes the suffix group first, and it makes clear that the important state is the carried color count, not the physical direction.\n\n## Complexity Analysis\n- Time Complexity: O(n^4)\n- Space Complexity: O(n^3)",
+      "code": "class Solution {\n    private int[][][] memo;\n    private int[] boxes;\n\n    public int removeBoxes(int[] boxes) {\n        this.boxes = boxes;\n        memo = new int[boxes.length][boxes.length][boxes.length + 1];\n        return dp(0, boxes.length - 1, 0);\n    }\n\n    private int dp(int left, int right, int carry) {\n        if (left > right) return 0;\n        if (memo[left][right][carry] != 0) return memo[left][right][carry];\n\n        int originalRight = right;\n        int originalCarry = carry;\n        while (right > left && boxes[right] == boxes[right - 1]) {\n            right--;\n            carry++;\n        }\n\n        int best = dp(left, right - 1, 0) + (carry + 1) * (carry + 1);\n        for (int mid = left; mid < right; mid++) {\n            if (boxes[mid] == boxes[right]) {\n                best = Math.max(best, dp(left, mid, carry + 1) + dp(mid + 1, right - 1, 0));\n            }\n        }\n        memo[left][originalRight][originalCarry] = best;\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bottom-Up 3D Interval DP",
+      "timeComplexity": "O(n^4)",
+      "spaceComplexity": "O(n^3)",
+      "description": "## Approach\n\nFill the same 3D interval state iteratively by increasing interval length. `dp[left][right][carry]` stores the best score when `carry` boxes of `boxes[left]` are already attached to the left. For every state, remove the left group immediately or merge it with a matching position inside the interval.\n\n## Key Insight\n\nThe bottom-up table uses the same recurrence as memoization but makes dependency order visible: smaller intervals are already known when a larger interval tries to clear the middle before merging equal colors.\n\n## Complexity Analysis\n- Time Complexity: O(n^4)\n- Space Complexity: O(n^3)",
+      "code": "class Solution {\n    public int removeBoxes(int[] boxes) {\n        int n = boxes.length;\n        int[][][] dp = new int[n][n][n + 2];\n        for (int length = 1; length <= n; length++) {\n            for (int left = 0; left + length - 1 < n; left++) {\n                int right = left + length - 1;\n                for (int carry = n; carry >= 0; carry--) {\n                    int best = (carry + 1) * (carry + 1);\n                    if (left + 1 <= right) {\n                        best += dp[left + 1][right][0];\n                    }\n                    if (carry + 1 <= n) {\n                        for (int middle = left + 1; middle <= right; middle++) {\n                            if (boxes[middle] == boxes[left]) {\n                                int middleScore = middle == left + 1 ? 0 : dp[left + 1][middle - 1][0];\n                                best = Math.max(best, middleScore + dp[middle][right][carry + 1]);\n                            }\n                        }\n                    }\n                    dp[left][right][carry] = best;\n                }\n            }\n        }\n        return dp[0][n - 1][0];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Run-Length Encoded Interval DP",
+      "timeComplexity": "O(g^4)",
+      "spaceComplexity": "O(g^2 * n)",
+      "description": "## Approach\n\nFirst compress consecutive equal boxes into color runs. The interval DP then works on runs instead of individual boxes: `solve(left, right, carry)` means the rightmost run has `carry` extra boxes of the same color attached to it. Removing a run scores `(count + carry)^2`; merging tries earlier runs with the same color.\n\n## Key Insight\n\nConsecutive equal boxes should never be split across different removal moves. Run-length encoding bakes that fact into the state, reducing duplicate states and making the carried count represent real boxes rather than repeated individual positions.\n\n## Complexity Analysis\n- Time Complexity: O(g^4), where `g` is the number of color runs\n- Space Complexity: O(g^2 * n)",
+      "code": "class Solution {\n    private int[] colors;\n    private int[] counts;\n    private int[][][] memo;\n\n    public int removeBoxes(int[] boxes) {\n        int n = boxes.length;\n        colors = new int[n];\n        counts = new int[n];\n        int groups = 0;\n        for (int box : boxes) {\n            if (groups > 0 && colors[groups - 1] == box) {\n                counts[groups - 1]++;\n            } else {\n                colors[groups] = box;\n                counts[groups] = 1;\n                groups++;\n            }\n        }\n        memo = new int[groups][groups][n + 1];\n        return solve(0, groups - 1, 0);\n    }\n\n    private int solve(int left, int right, int carry) {\n        if (left > right) return 0;\n        if (memo[left][right][carry] != 0) return memo[left][right][carry];\n\n        int mergedCount = counts[right] + carry;\n        int best = solve(left, right - 1, 0) + mergedCount * mergedCount;\n        for (int mid = left; mid < right; mid++) {\n            if (colors[mid] == colors[right]) {\n                best = Math.max(best,\n                        solve(left, mid, carry + counts[right]) + solve(mid + 1, right - 1, 0));\n            }\n        }\n        memo[left][right][carry] = best;\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Same-Color Jump List Memoization",
+      "timeComplexity": "O(n^4)",
+      "spaceComplexity": "O(n^3)",
+      "description": "## Approach\n\nKeep the left-carry memoized DP, but precompute the positions of every color. When a state wants to merge the left group with a later box of the same color, iterate only those precomputed same-color positions that lie inside the interval.\n\n## Key Insight\n\nThe expensive split loop only matters at positions with the same color as the carried group. A position list does not change the recurrence, but it removes irrelevant split candidates and is a useful optimization pattern for interval DP.\n\n## Complexity Analysis\n- Time Complexity: O(n^4) worst case, with fewer split checks when colors are diverse\n- Space Complexity: O(n^3)",
+      "code": "import java.util.*;\n\nclass Solution {\n    private int[][][] memo;\n    private Map<Integer, List<Integer>> positions;\n\n    public int removeBoxes(int[] boxes) {\n        memo = new int[boxes.length][boxes.length][boxes.length + 1];\n        positions = new HashMap<>();\n        for (int i = 0; i < boxes.length; i++) {\n            positions.computeIfAbsent(boxes[i], ignored -> new ArrayList<>()).add(i);\n        }\n        return score(boxes, 0, boxes.length - 1, 0);\n    }\n\n    private int score(int[] boxes, int left, int right, int carry) {\n        if (left > right) return 0;\n        if (memo[left][right][carry] != 0) return memo[left][right][carry];\n\n        int originalLeft = left;\n        int originalCarry = carry;\n        while (left + 1 <= right && boxes[left + 1] == boxes[left]) {\n            left++;\n            carry++;\n        }\n\n        int best = (carry + 1) * (carry + 1) + score(boxes, left + 1, right, 0);\n        for (int middle : positions.get(boxes[left])) {\n            if (middle <= left || middle > right) continue;\n            best = Math.max(best,\n                    score(boxes, left + 1, middle - 1, 0) + score(boxes, middle, right, carry + 1));\n        }\n        memo[originalLeft][right][originalCarry] = best;\n        return best;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "boxes = [1,3,2,2,2,3,4,3,1]", "output": "23" },
-    { "input": "boxes = [1,1,1]", "output": "9" },
-    { "input": "boxes = [1]", "output": "1" }
+    {
+      "input": "boxes = [1,3,2,2,2,3,4,3,1]",
+      "output": "23",
+      "description": "canonical sample with delayed merges"
+    },
+    {
+      "input": "boxes = [1,1,1]",
+      "output": "9",
+      "description": "single color run"
+    },
+    {
+      "input": "boxes = [1]",
+      "output": "1",
+      "description": "single box"
+    },
+    {
+      "input": "boxes = [1,2,1,2,1]",
+      "output": "11",
+      "description": "alternating colors reward delayed same-color merge"
+    },
+    {
+      "input": "boxes = [1,2,2,2,1]",
+      "output": "13",
+      "description": "remove middle run before joining edges"
+    },
+    {
+      "input": "boxes = [1,2,3]",
+      "output": "3",
+      "description": "all colors unique"
+    },
+    {
+      "input": "boxes = [1,1,1,1]",
+      "output": "16",
+      "description": "longer single run"
+    },
+    {
+      "input": "boxes = [1,2,1]",
+      "output": "5",
+      "description": "smallest separated merge"
+    },
+    {
+      "input": "boxes = [1,1,2,2,2,1]",
+      "output": "18",
+      "description": "left run should merge after removing middle run"
+    },
+    {
+      "input": "boxes = [1,2,2,1,1]",
+      "output": "13",
+      "description": "right-side run can be merged with earlier color"
+    },
+    {
+      "input": "boxes = [1,2,3,3,3,2,1]",
+      "output": "17",
+      "description": "nested delayed merges around a central run"
+    },
+    {
+      "input": "boxes = [1,2,1,2,1,2,1]",
+      "output": "19",
+      "description": "many alternating repeated colors"
+    },
+    {
+      "input": "boxes = [2,2,2,1,2]",
+      "output": "17",
+      "description": "large prefix run merges with a trailing same color"
+    },
+    {
+      "input": "boxes = [1,3,3,3,1,3]",
+      "output": "18",
+      "description": "chooses between immediate long run and later merge"
+    },
+    {
+      "input": "boxes = [1,2,2,1,2,2,1]",
+      "output": "21",
+      "description": "multiple runs of two colors require nested intervals"
+    }
   ]
 }

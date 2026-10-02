@@ -1,28 +1,83 @@
 {
   "id": "31",
   "title": "Best Time to Buy and Sell Stock",
-  "description": "# Best Time to Buy and Sell Stock\n\nYou are given an array `prices` where `prices[i]` is the price of a given stock on the `i`th day.\n\nYou want to maximize your profit by choosing a single day to buy one stock and choosing a different day in the future to sell that stock.\n\nReturn *the maximum profit you can achieve from this transaction*. If you cannot achieve any profit, return `0`.\n\n## Example 1:\n\n**Input:** prices = [7,1,5,3,6,4]\n**Output:** 5\n**Explanation:** Buy on day 2 (price = 1) and sell on day 5 (price = 6), profit = 6-1 = 5.\nNote that buying on day 2 and selling on day 1 is not allowed because you must buy before you sell.\n\n## Example 2:\n\n**Input:** prices = [7,6,4,3,1]\n**Output:** 0\n**Explanation:** In this case, no transactions are done and the max profit = 0.\n\n## Constraints:\n\n*   `1 <= prices.length <= 10^5`\n*   `0 <= prices[i] <= 10^4`",
+  "description": "# Best Time to Buy and Sell Stock\n\nYou are given an array `prices` where `prices[i]` is the price of one stock on day `i`.\n\nChoose **one** day to buy and a **later** day to sell. Return the maximum profit from this single transaction. If every valid transaction loses money or breaks even, return `0`.\n\nThe buy-before-sell order is part of the problem. You may not sell before buying, and you may not combine several profitable segments as if multiple transactions were allowed.\n\n## Example 1:\n\n**Input:** prices = [7,1,5,3,6,4]\n**Output:** 5\n**Explanation:** Buy at price 1 and sell later at price 6, for profit 6 - 1 = 5.\n\n## Example 2:\n\n**Input:** prices = [7,6,4,3,1]\n**Output:** 0\n**Explanation:** The price never rises after a buy day, so the best action is to make no transaction.\n\n## Constraints:\n\n*   `1 <= prices.length <= 10^5`\n*   `0 <= prices[i] <= 10^4`\n\n## Follow-up:\n\n*   Can you solve it in one pass with constant extra space?\n*   Can you explain the invariant that makes the running minimum safe?\n*   How does this problem relate to Kadane's maximum subarray algorithm on day-to-day price differences?\n*   Why would a solution for unlimited transactions be wrong here?",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int maxProfit(int[] prices) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Dynamic Programming"],
+  "tags": [
+    "Array",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "prices = [7,1,5,3,6,4]", "output": "5" },
-    { "input": "prices = [7,6,4,3,1]", "output": "0" }
+    {
+      "input": "prices = [7,1,5,3,6,4]",
+      "output": "5"
+    },
+    {
+      "input": "prices = [7,6,4,3,1]",
+      "output": "0"
+    }
   ],
   "tests": [
-    { "input": "prices = [7,1,5,3,6,4]", "output": "5" },
-    { "input": "prices = [7,6,4,3,1]", "output": "0" },
-    { "input": "prices = [1,2]", "output": "1" },
-    { "input": "prices = [2,1]", "output": "0" },
+    {
+      "input": "prices = [7,1,5,3,6,4]",
+      "output": "5",
+      "description": "Canonical valley-then-peak case"
+    },
+    {
+      "input": "prices = [7,6,4,3,1]",
+      "output": "0",
+      "description": "Strictly decreasing prices allow no profitable transaction"
+    },
+    {
+      "input": "prices = [1,2]",
+      "output": "1",
+      "description": "Two-day profit"
+    },
+    {
+      "input": "prices = [2,1]",
+      "output": "0",
+      "description": "Two-day loss must return zero"
+    },
     {
       "input": "prices = [5]",
       "output": "0",
-      "description": "Single day - no transaction possible"
+      "description": "Single day has no valid sell day"
     },
     {
       "input": "prices = [3,3,3,3,3]",
       "output": "0",
-      "description": "All same price - no profit"
+      "description": "Flat prices produce no positive profit"
+    },
+    {
+      "input": "prices = [1,2,3,4,5]",
+      "output": "4",
+      "description": "Monotone increasing prices choose first buy and last sell"
+    },
+    {
+      "input": "prices = [3,1,4,8,7,2,5]",
+      "output": "7",
+      "description": "Early valley and later peak beat later small profit"
+    },
+    {
+      "input": "prices = [2,4,1,7]",
+      "output": "6",
+      "description": "Later lower buy produces the best transaction"
+    },
+    {
+      "input": "prices = [6,1,3,2,4,7]",
+      "output": "6",
+      "description": "Single transaction cannot sum multiple rising segments"
+    },
+    {
+      "input": "prices = [9,8,1,2]",
+      "output": "1",
+      "description": "Late tiny profit after a long decline"
+    },
+    {
+      "input": "prices = [0,10000,0,10000]",
+      "output": "10000",
+      "description": "Constraint-boundary prices with repeated best transactions"
     }
   ],
   "solutions": [
@@ -30,22 +85,29 @@
       "name": "One Pass - Track Minimum",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Track the minimum price seen so far and calculate potential profit at each day. Update max profit if current profit is higher.",
-      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int minPrice = Integer.MAX_VALUE;\n        int maxProfit = 0;\n        \n        for (int price : prices) {\n            if (price < minPrice) {\n                minPrice = price; // Update minimum buying price\n            } else {\n                maxProfit = Math.max(maxProfit, price - minPrice);\n            }\n        }\n        \n        return maxProfit;\n    }\n}"
+      "description": "## Approach\n\nScan the prices once from left to right. Keep the lowest price seen before or at the current day, and treat the current day as a possible sell day. The best profit is the largest `price - minPrice` encountered.\n\n## Key Insight\n\nFor any fixed sell day, the best valid buy day is simply the cheapest earlier day. Updating the minimum while scanning preserves the buy-before-sell constraint without needing to remember every prior price.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int minPrice = Integer.MAX_VALUE;\n        int maxProfit = 0;\n\n        for (int price : prices) {\n            if (price < minPrice) {\n                minPrice = price;\n            } else {\n                maxProfit = Math.max(maxProfit, price - minPrice);\n            }\n        }\n\n        return maxProfit;\n    }\n}"
     },
     {
-      "name": "One Pass - Simplified",
+      "name": "Suffix Maximum Sell Price",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(1)",
-      "description": "Same approach but with simplified logic - always update both min price and max profit in each iteration.",
-      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int minPrice = Integer.MAX_VALUE;\n        int maxProfit = 0;\n        \n        for (int price : prices) {\n            minPrice = Math.min(minPrice, price);\n            maxProfit = Math.max(maxProfit, price - minPrice);\n        }\n        \n        return maxProfit;\n    }\n}"
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nPrecompute `maxFuture[i]`, the best sell price available on or after day `i`. Then try each buy day and sell at the best later price `maxFuture[buy + 1]`.\n\n## Key Insight\n\nThis reverses the usual running-minimum view. Instead of asking for the cheapest earlier buy for each sell day, ask for the highest later sell for each buy day, which makes the time-order rule explicit.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int n = prices.length;\n        if (n < 2) {\n            return 0;\n        }\n\n        int[] maxFuture = new int[n];\n        maxFuture[n - 1] = prices[n - 1];\n        for (int i = n - 2; i >= 0; i--) {\n            maxFuture[i] = Math.max(prices[i], maxFuture[i + 1]);\n        }\n\n        int best = 0;\n        for (int buy = 0; buy < n - 1; buy++) {\n            best = Math.max(best, maxFuture[buy + 1] - prices[buy]);\n        }\n        return best;\n    }\n}"
     },
     {
-      "name": "Kadane's Algorithm Variant",
+      "name": "Kadane's Algorithm on Daily Gains",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Think of it as maximum subarray problem on price differences. Calculate daily gains and find max contiguous sum.",
-      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int maxProfit = 0;\n        int currentProfit = 0;\n        \n        for (int i = 1; i < prices.length; i++) {\n            int dailyGain = prices[i] - prices[i - 1];\n            \n            // Either extend current profit or start fresh\n            currentProfit = Math.max(0, currentProfit + dailyGain);\n            maxProfit = Math.max(maxProfit, currentProfit);\n        }\n        \n        return maxProfit;\n    }\n}"
+      "description": "## Approach\n\nConvert the price array into day-to-day gains. Buying before a run of gains and selling after it earns the sum of that subarray, so the answer is the maximum non-negative subarray sum.\n\n## Key Insight\n\nA single buy/sell transaction corresponds to one contiguous interval of daily differences. Kadane's algorithm keeps the best profitable interval ending at the current day and drops intervals once they become negative.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int maxProfit = 0;\n        int currentProfit = 0;\n\n        for (int i = 1; i < prices.length; i++) {\n            int dailyGain = prices[i] - prices[i - 1];\n            currentProfit = Math.max(0, currentProfit + dailyGain);\n            maxProfit = Math.max(maxProfit, currentProfit);\n        }\n\n        return maxProfit;\n    }\n}"
+    },
+    {
+      "name": "Brute Force Buy/Sell Pairs",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nTry every ordered pair of days where `buy < sell`, compute `prices[sell] - prices[buy]`, and keep the largest positive profit.\n\n## Key Insight\n\nThe direct definition is slow for large inputs, but it is a useful baseline because it makes the single-transaction and buy-before-sell requirements completely explicit.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int best = 0;\n        for (int buy = 0; buy < prices.length; buy++) {\n            for (int sell = buy + 1; sell < prices.length; sell++) {\n                int profit = prices[sell] - prices[buy];\n                best = Math.max(best, profit);\n            }\n        }\n        return best;\n    }\n}"
     }
   ]
 }

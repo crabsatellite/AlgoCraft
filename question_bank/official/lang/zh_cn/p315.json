@@ -1,0 +1,22 @@
+{
+  "title": "文本左右对齐",
+  "description": "# 文本左右对齐\n\n给定单词数组 `words` 和整数 `maxWidth`，把这些单词排版成若干行，使返回的每个字符串长度都恰好等于 `maxWidth`。\n\n构造每一行时使用贪心策略：从下一个未使用的单词开始，在相邻单词之间至少保留一个空格的前提下，尽量放入更多单词。确定一行包含哪些单词后，再按以下规则渲染这一行：\n\n* 普通行如果至少有两个单词，需要把所有空格尽可能平均地分配到单词间隔里。\n* 如果空格无法平均分配，左侧更靠前的间隔获得更多空格。\n* 只有一个单词的行左对齐：单词后补空格直到长度达到 `maxWidth`。\n* 最后一行也左对齐：单词之间只放一个空格，然后在右侧补空格。\n\n不能删除或重排单词。输出行里的空格只能由你的算法插入。\n\n## 示例 1：\n\n**输入：** words = [\"This\", \"is\", \"an\", \"example\", \"of\", \"text\", \"justification.\"], maxWidth = 16\n**输出：** [\"This    is    an\",\"example  of text\",\"justification.  \"]\n\n## 示例 2：\n\n**输入：** words = [\"What\",\"must\",\"be\",\"acknowledgment\",\"shall\",\"be\"], maxWidth = 16\n**输出：** [\"What   must   be\",\"acknowledgment  \",\"shall be        \"]\n\n## 示例 3：\n\n**输入：** words = [\"Science\",\"is\",\"what\",\"we\",\"understand\",\"well\",\"enough\",\"to\",\"explain\",\"to\",\"a\",\"computer.\",\"Art\",\"is\",\"everything\",\"else\",\"we\",\"do\"], maxWidth = 20\n**输出：** [\"Science  is  what we\",\"understand      well\",\"enough to explain to\",\"a computer.  Art is \",\"everything  else  we\",\"do                  \"]\n\n## 约束条件：\n\n* `1 <= words.length <= 300`\n* `1 <= words[i].length <= 20`\n* `words[i]` 由不含空格的英文字母和符号组成。\n* `1 <= maxWidth <= 100`\n* `words[i].length <= maxWidth`",
+  "solutions": [
+    {
+      "name": "贪心装行",
+      "description": "## 思路\n\n用起点下标遍历 `words`。每一行都尽量向右扩展终点，只要当前单词总长度加上最少单词间空格仍不超过 `maxWidth`，就继续放入下一词。确定范围后立即渲染成左对齐行或完全对齐行。\n\n## 关键点\n\n装行判断中的 `letters + words[end].length() + (end - start) <= maxWidth` 很关键：`end - start` 正好是加入新单词后至少需要的间隔数量。范围确定后，只需要把 `maxWidth - letters` 个空格分配到 `gaps` 个间隔。\n\n## 复杂度分析\n\n- 时间复杂度：O(n * maxWidth)\n- 空间复杂度：O(maxWidth)，不计返回结果"
+    },
+    {
+      "name": "显式间隔数组构造",
+      "description": "## 思路\n\n贪心确定一行包含的单词后，用一个整数数组记录每个单词间隔应该放多少个空格。渲染时只需要按顺序追加单词和对应数量的空格。\n\n## 关键点\n\n间隔数组把空格计算和字符串构造分开。普通行先让所有间隔获得 `totalSpaces / gaps` 个空格，再把前 `totalSpaces % gaps` 个间隔各加一个空格，直接体现左侧优先规则。\n\n## 复杂度分析\n\n- 时间复杂度：O(n * maxWidth)\n- 空间复杂度：O(maxWidth)"
+    },
+    {
+      "name": "固定宽度字符缓冲区",
+      "description": "## 思路\n\n为每一行创建长度为 `maxWidth` 的 `char[]`，并预先填满空格。随后把每个单词复制到最终位置，写入指针按计算出的间隔宽度向后移动。\n\n## 关键点\n\n固定宽度缓冲区让行长不变量天然成立。算法仍然使用相同的贪心装行和左侧优先空格分配，只是右侧补齐已经由预填空格完成。\n\n## 复杂度分析\n\n- 时间复杂度：O(n * maxWidth)\n- 空间复杂度：O(maxWidth)"
+    },
+    {
+      "name": "两阶段范围渲染",
+      "description": "## 思路\n\n第一阶段先记录所有贪心得到的行范围和每行单词总长度。第二阶段用渲染辅助函数处理每个范围，并把是否为最后一行作为参数传入。\n\n## 关键点\n\n保存范围能把“哪些单词属于一行”和“这一行如何排版”分开讲清楚。分组固定后，每一行都遵循同一个公式：最后一行或单词独占行使用单空格加右侧补齐，普通行把 `maxWidth - letters` 分配到各个间隔。\n\n## 复杂度分析\n\n- 时间复杂度：O(n * maxWidth)\n- 空间复杂度：O(n)"
+    }
+  ]
+}

@@ -1,36 +1,160 @@
 {
   "id": "314",
   "title": "Valid Number",
-  "description": "# Valid Number\n\nA **valid number** can be split up into these components (in order):\n\n1.  A **decimal number** or an **integer**.\n2.  (Optional) An `'e'` or `'E'`, followed by an **integer**.\n\nA **decimal number** can be split up into these components (in order):\n\n1.  (Optional) A sign character (either `'+'` or `'-'`).\n2.  One of the following formats:\n    1.  One or more digits, followed by a dot `'.'`.\n    2.  One or more digits, followed by a dot `'.'`, followed by one or more digits.\n    3.  A dot `'.'`, followed by one or more digits.\n\nAn **integer** can be split up into these components (in order):\n\n1.  (Optional) A sign character (either `'+'` or `'-'`).\n2.  One or more digits.\n\nFor example, all the following are valid numbers: `[\"2\", \"0089\", \"-0.1\", \"+3.14\", \"4.\", \"-.9\", \"2e10\", \"-90E3\", \"3e+7\", \"+6e-1\", \"53.5e93\", \"-123.456e789\"]`, while the following are not valid numbers: `[\"abc\", \"1a\", \"1e\", \"e3\", \"99e2.5\", \"--6\", \"-+3\", \"95a54e53\"]`.\n\nGiven a string `s`, return `true` *if* `s` *is a **valid number***.\n\n## Example 1:\n\n**Input:** s = \"0\"\n**Output:** true\n\n## Example 2:\n\n**Input:** s = \"e\"\n**Output:** false\n\n## Example 3:\n\n**Input:** s = \".\"\n**Output:** false\n\n## Constraints:\n\n*   `1 <= s.length <= 20`\n*   `s` consists of only English letters (both uppercase and lowercase), digits (`0-9`), plus `'+'`, minus `'-'`, or dot `'.'`.",
+  "description": "# Valid Number\n\nDecide whether the entire string `s` is a valid decimal number under this grammar. The parser must consume every character; a valid prefix is not enough.\n\nA valid number is either:\n\n* a signed or unsigned integer, such as `\"2\"`, `\"0089\"`, or `\"-90\"`;\n* a signed or unsigned decimal, such as `\"-0.1\"`, `\"+3.14\"`, `\"4.\"`, or `\"-.9\"`;\n* one of those integer or decimal forms followed by `e` or `E` and then a signed or unsigned integer exponent, such as `\"2e10\"`, `\"3e+7\"`, or `\"+6e-1\"`.\n\nThe base part may contain at most one dot. If a dot appears, at least one digit must appear somewhere in the base part. The exponent part, when present, may not contain a dot and must contain at least one digit after its optional sign.\n\nInvalid examples include `\"abc\"`, `\"1a\"`, `\"1e\"`, `\"e3\"`, `\"99e2.5\"`, `\"--6\"`, `\"-+3\"`, and `\".\"`.\n\n## Example 1:\n\n**Input:** s = \"0\"\n**Output:** true\n\n## Example 2:\n\n**Input:** s = \"e\"\n**Output:** false\n\n## Example 3:\n\n**Input:** s = \".\"\n**Output:** false\n\n## Constraints:\n\n* `1 <= s.length <= 20`\n* `s` consists only of English letters, digits (`0-9`), plus `'+'`, minus `'-'`, and dot `'.'`.\n* No leading or trailing spaces are part of this problem.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public boolean isNumber(String s) {\n        \n    }\n}",
-  "tags": ["String"],
+  "initialCode": "class Solution {\n    public boolean isNumber(String s) {\n        return false;\n    }\n}",
+  "tags": [
+    "String"
+  ],
   "examples": [
-    { "input": "s = \"0\"", "output": "true" },
-    { "input": "s = \"e\"", "output": "false" },
-    { "input": "s = \".\"", "output": "false" }
+    {
+      "input": "s = \"0\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"e\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \".\"",
+      "output": "false"
+    }
   ],
   "solutions": [
     {
-      "name": "Flag-based Parsing",
+      "name": "Flag-Based Single Pass Parser",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Track flags for whether we've seen a digit, dot, or exponent. Validate each character against the current state and update flags accordingly.",
-      "code": "class Solution {\n    public boolean isNumber(String s) {\n        boolean seenDigit = false, seenDot = false, seenExp = false;\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (c >= '0' && c <= '9') {\n                seenDigit = true;\n            } else if (c == '.') {\n                if (seenDot || seenExp) return false;\n                seenDot = true;\n            } else if (c == 'e' || c == 'E') {\n                if (seenExp || !seenDigit) return false;\n                seenExp = true;\n                seenDigit = false;\n            } else if (c == '+' || c == '-') {\n                if (i > 0 && s.charAt(i - 1) != 'e' && s.charAt(i - 1) != 'E') return false;\n            } else {\n                return false;\n            }\n        }\n        return seenDigit;\n    }\n}",
+      "description": "## Approach\n\nScan the string once while tracking whether a digit, decimal point, or exponent marker has already appeared. A sign is accepted only at the start or immediately after `e`/`E`; a dot is accepted only before the exponent; and an exponent is accepted only after the base has already produced a digit.\n\n## Key Insight\n\nAfter reading `e` or `E`, the parser deliberately resets `seenDigit` to `false`. This forces the exponent side to contain its own integer digits, so cases like `\"1e\"`, `\"4e+\"`, and `\"99e2.5\"` are rejected for the right reason.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean isNumber(String s) {\n        boolean seenDigit = false;\n        boolean seenDot = false;\n        boolean seenExponent = false;\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (c >= '0' && c <= '9') {\n                seenDigit = true;\n            } else if (c == '.') {\n                if (seenDot || seenExponent) {\n                    return false;\n                }\n                seenDot = true;\n            } else if (c == 'e' || c == 'E') {\n                if (seenExponent || !seenDigit) {\n                    return false;\n                }\n                seenExponent = true;\n                seenDigit = false;\n            } else if (c == '+' || c == '-') {\n                if (i != 0 && s.charAt(i - 1) != 'e' && s.charAt(i - 1) != 'E') {\n                    return false;\n                }\n            } else {\n                return false;\n            }\n        }\n        return seenDigit;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Deterministic Finite Automaton (DFA)",
+      "name": "Table-Driven DFA",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Model the valid number grammar as a state machine with transitions for digits, signs, dots, and exponents. Track current state and check if it ends in an accepting state.",
-      "code": "class Solution {\n    public boolean isNumber(String s) {\n        // States: 0=start, 1=sign, 2=digit, 3=dot-after-digit, 4=dot-no-digit, 5=digit-after-dot\n        // 6=exp, 7=exp-sign, 8=exp-digit\n        int state = 0;\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (c >= '0' && c <= '9') {\n                if (state == 0 || state == 1) state = 2;\n                else if (state == 2) state = 2;\n                else if (state == 3) state = 5;\n                else if (state == 4) state = 5;\n                else if (state == 5) state = 5;\n                else if (state == 6 || state == 7) state = 8;\n                else if (state == 8) state = 8;\n                else return false;\n            } else if (c == '+' || c == '-') {\n                if (state == 0) state = 1;\n                else if (state == 6) state = 7;\n                else return false;\n            } else if (c == '.') {\n                if (state == 0 || state == 1) state = 4;\n                else if (state == 2) state = 3;\n                else return false;\n            } else if (c == 'e' || c == 'E') {\n                if (state == 2 || state == 3 || state == 5) state = 6;\n                else return false;\n            } else {\n                return false;\n            }\n        }\n        return state == 2 || state == 3 || state == 5 || state == 8;\n    }\n}",
+      "description": "## Approach\n\nClassify each character as sign, digit, dot, exponent marker, or invalid, then move through a deterministic finite automaton. The accepting states are the ones where the string has ended after a valid integer, a valid decimal, or a valid exponent integer.\n\n## Key Insight\n\nThe state machine makes every local rule explicit: `.` from the start means a digit must follow, `e` can only leave a completed base number, and a sign after `e` still requires an exponent digit before the final state is accepted.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    private static final int INVALID = -1;\n    private static final int[][] TRANSITION = {\n        {1, 2, 3, INVALID},\n        {INVALID, 2, 3, INVALID},\n        {INVALID, 2, 4, 5},\n        {INVALID, 4, INVALID, INVALID},\n        {INVALID, 4, INVALID, 5},\n        {6, 7, INVALID, INVALID},\n        {INVALID, 7, INVALID, INVALID},\n        {INVALID, 7, INVALID, INVALID}\n    };\n\n    public boolean isNumber(String s) {\n        int state = 0;\n        for (int i = 0; i < s.length(); i++) {\n            int type = classify(s.charAt(i));\n            if (type == INVALID) {\n                return false;\n            }\n            state = TRANSITION[state][type];\n            if (state == INVALID) {\n                return false;\n            }\n        }\n        return state == 2 || state == 4 || state == 7;\n    }\n\n    private int classify(char c) {\n        if (c == '+' || c == '-') {\n            return 0;\n        }\n        if (c >= '0' && c <= '9') {\n            return 1;\n        }\n        if (c == '.') {\n            return 2;\n        }\n        if (c == 'e' || c == 'E') {\n            return 3;\n        }\n        return INVALID;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Grammar Regex",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nWrite the grammar directly as one regular expression: optional sign, then either digits with an optional dot and fractional suffix or a dot followed by digits, then an optional exponent with its own optional sign and required digits.\n\n## Key Insight\n\nThe two base-number alternatives are necessary. `\\d+\\.?\\d*` accepts integers, `\"3.\"`, and `\"3.14\"`, while `\\.\\d+` accepts `\".8\"` but prevents the lone dot from slipping through.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean isNumber(String s) {\n        return s.matches(\"[+-]?((\\\\d+\\\\.?\\\\d*)|(\\\\.\\\\d+))([eE][+-]?\\\\d+)?\");\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Split Grammar Parser",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFirst split the string around the single allowed exponent marker. Validate the base side as either an integer or decimal, then validate the exponent side as an integer only. Helper methods handle optional signs and require at least one digit in the part they own.\n\n## Key Insight\n\nSeparating the base grammar from the exponent grammar prevents a common bug: allowing decimal syntax after `e`. The base helper may accept `\"4.\"` and `\"-.9\"`, but the exponent helper accepts only signed digits, so `\"99e2.5\"` and `\"1e\"` fail cleanly.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean isNumber(String s) {\n        int exponent = findExponent(s);\n        if (exponent == -2) {\n            return false;\n        }\n        if (exponent >= 0) {\n            return exponent > 0\n                    && exponent + 1 < s.length()\n                    && isDecimalOrInteger(s, 0, exponent)\n                    && isInteger(s, exponent + 1, s.length());\n        }\n        return isDecimalOrInteger(s, 0, s.length());\n    }\n\n    private int findExponent(String s) {\n        int found = -1;\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (c == 'e' || c == 'E') {\n                if (found != -1) {\n                    return -2;\n                }\n                found = i;\n            }\n        }\n        return found;\n    }\n\n    private boolean isDecimalOrInteger(String s, int left, int right) {\n        if (left >= right) {\n            return false;\n        }\n        if (s.charAt(left) == '+' || s.charAt(left) == '-') {\n            left++;\n        }\n        boolean seenDigit = false;\n        boolean seenDot = false;\n        for (int i = left; i < right; i++) {\n            char c = s.charAt(i);\n            if (c >= '0' && c <= '9') {\n                seenDigit = true;\n            } else if (c == '.' && !seenDot) {\n                seenDot = true;\n            } else {\n                return false;\n            }\n        }\n        return seenDigit;\n    }\n\n    private boolean isInteger(String s, int left, int right) {\n        if (left >= right) {\n            return false;\n        }\n        if (s.charAt(left) == '+' || s.charAt(left) == '-') {\n            left++;\n        }\n        if (left >= right) {\n            return false;\n        }\n        for (int i = left; i < right; i++) {\n            char c = s.charAt(i);\n            if (c < '0' || c > '9') {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"0\"", "output": "true" },
-    { "input": "s = \"e\"", "output": "false" },
-    { "input": "s = \".\"", "output": "false" }
+    {
+      "input": "s = \"0\"",
+      "output": "true",
+      "description": "single digit integer"
+    },
+    {
+      "input": "s = \"e\"",
+      "output": "false",
+      "description": "exponent marker needs a base number"
+    },
+    {
+      "input": "s = \".\"",
+      "output": "false",
+      "description": "dot alone has no digit"
+    },
+    {
+      "input": "s = \"+.8\"",
+      "output": "true",
+      "description": "signed decimal without integer part"
+    },
+    {
+      "input": "s = \"46.e3\"",
+      "output": "true",
+      "description": "decimal ending with a dot followed by exponent"
+    },
+    {
+      "input": "s = \"2e10\"",
+      "output": "true",
+      "description": "integer base with exponent"
+    },
+    {
+      "input": "s = \"-90E3\"",
+      "output": "true",
+      "description": "uppercase exponent marker"
+    },
+    {
+      "input": "s = \"1e\"",
+      "output": "false",
+      "description": "exponent must contain digits"
+    },
+    {
+      "input": "s = \"99e2.5\"",
+      "output": "false",
+      "description": "exponent part cannot be decimal"
+    },
+    {
+      "input": "s = \"--6\"",
+      "output": "false",
+      "description": "repeated leading sign"
+    },
+    {
+      "input": "s = \"-+3\"",
+      "output": "false",
+      "description": "mixed leading signs"
+    },
+    {
+      "input": "s = \"3.\"",
+      "output": "true",
+      "description": "dot may appear after digits with no fractional suffix"
+    },
+    {
+      "input": "s = \".1\"",
+      "output": "true",
+      "description": "dot may appear before digits"
+    },
+    {
+      "input": "s = \"+.\"",
+      "output": "false",
+      "description": "sign and dot still need a digit"
+    },
+    {
+      "input": "s = \"4e+\"",
+      "output": "false",
+      "description": "exponent sign still needs a digit"
+    },
+    {
+      "input": "s = \"1E-16\"",
+      "output": "true",
+      "description": "uppercase exponent with negative exponent sign"
+    },
+    {
+      "input": "s = \"1e-0\"",
+      "output": "true",
+      "description": "zero exponent with sign is valid"
+    },
+    {
+      "input": "s = \"1..0\"",
+      "output": "false",
+      "description": "base cannot contain two dots"
+    },
+    {
+      "input": "s = \"6e6.5\"",
+      "output": "false",
+      "description": "decimal point after exponent is invalid"
+    },
+    {
+      "input": "s = \"abc\"",
+      "output": "false",
+      "description": "letters are not number grammar"
+    }
   ]
 }

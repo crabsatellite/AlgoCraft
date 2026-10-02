@@ -1,35 +1,117 @@
 {
   "id": "333",
   "title": "Find Minimum in Rotated Sorted Array II",
-  "description": "# Find Minimum in Rotated Sorted Array II\n\nSuppose an array of length `n` sorted in ascending order is **rotated** between `1` and `n` times. For example, the array `nums = [0,1,4,4,5,6,7]` might become:\n\n*   `[4,5,6,7,0,1,4]` if it was rotated `4` times.\n*   `[0,1,4,4,5,6,7]` if it was rotated `7` times.\n\nNotice that **rotating** an array `[a[0], a[1], a[2], ..., a[n-1]]` 1 time results in the array `[a[n-1], a[0], a[1], a[2], ..., a[n-2]]`.\n\nGiven the sorted rotated array `nums` that may contain **duplicates**, return *the minimum element of this array*.\n\nYou must decrease the overall operation steps as much as possible.\n\n## Example 1:\n\n**Input:** nums = [1,3,5]\n**Output:** 1\n\n## Example 2:\n\n**Input:** nums = [2,2,2,0,1]\n**Output:** 0\n\n## Constraints:\n\n*   `n == nums.length`\n*   `1 <= n <= 5000`\n*   `-5000 <= nums[i] <= 5000`\n*   `nums` is sorted and rotated between `1` and `n` times.",
+  "description": "# Find Minimum in Rotated Sorted Array II\n\nA nondecreasing array of length `n` is rotated between `1` and `n` times. For example, `nums = [0,1,4,4,5,6,7]` may become:\n\n*   `[4,5,6,7,0,1,4]` after `4` rotations.\n*   `[0,1,4,4,5,6,7]` after `7` rotations.\n\nRotating `[a[0], a[1], ..., a[n - 1]]` once produces `[a[n - 1], a[0], a[1], ..., a[n - 2]]`.\n\nGiven the rotated array `nums`, which may contain duplicates, return its minimum element.\n\n## Example 1:\n\n**Input:** nums = [1,3,5]\n**Output:** 1\n**Explanation:** The array may be rotated back to sorted order.\n\n## Example 2:\n\n**Input:** nums = [2,2,2,0,1]\n**Output:** 0\n**Explanation:** The pivot is hidden behind duplicate `2` values.\n\n## Constraints:\n\n*   `n == nums.length`\n*   `1 <= n <= 5000`\n*   `-5000 <= nums[i] <= 5000`\n*   `nums` is sorted in nondecreasing order and then rotated between `1` and `n` times.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int findMin(int[] nums) {\n        \n    }\n}",
-  "tags": ["Array", "Binary Search"],
+  "initialCode": "class Solution {\n    public int findMin(int[] nums) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Binary Search"
+  ],
   "examples": [
-    { "input": "nums = [1,3,5]", "output": "1" },
-    { "input": "nums = [2,2,2,0,1]", "output": "0" }
+    {
+      "input": "nums = [1,3,5]",
+      "output": "1"
+    },
+    {
+      "input": "nums = [2,2,2,0,1]",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
-      "name": "Binary Search with Duplicate Handling",
-      "timeComplexity": "O(n) worst, O(log n) average",
+      "name": "Right-Bound Binary Search with Duplicate Shrink",
+      "timeComplexity": "O(log n) average, O(n) worst",
       "spaceComplexity": "O(1)",
-      "description": "Binary search comparing mid with right. If mid < right, min is in left half. If mid > right, min is in right half. If equal, shrink right by 1 to handle duplicates.",
-      "code": "class Solution {\n    public int findMin(int[] nums) {\n        int lo = 0, hi = nums.length - 1;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (nums[mid] > nums[hi]) lo = mid + 1;\n            else if (nums[mid] < nums[hi]) hi = mid;\n            else hi--;\n        }\n        return nums[lo];\n    }\n}",
+      "description": "## Approach\n\nKeep a search interval `[lo, hi]` that contains the minimum. Compare `nums[mid]` with `nums[hi]`: if it is larger, the minimum is strictly to the right of `mid`; if it is smaller, the minimum is at `mid` or to its left; if equal, discard only `hi`.\n\n## Key Insight\n\nThe right endpoint tells which half is sorted unless duplicates erase the signal. When `nums[mid] == nums[hi]`, removing `hi` is safe because `mid` has the same value and can stand in for it.\n\n## Complexity Analysis\n- Time Complexity: O(log n) on informative inputs, O(n) in the worst case with many duplicates.\n- Space Complexity: O(1).",
+      "code": "class Solution {\n    public int findMin(int[] nums) {\n        int lo = 0;\n        int hi = nums.length - 1;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (nums[mid] > nums[hi]) {\n                lo = mid + 1;\n            } else if (nums[mid] < nums[hi]) {\n                hi = mid;\n            } else {\n                hi--;\n            }\n        }\n        return nums[lo];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Linear Scan",
+      "name": "Trim Equal Edges Then Binary Search",
+      "timeComplexity": "O(log n) average, O(n) worst",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nBefore each binary-search step, remove duplicate values from the right edge when they match the left edge. If the remaining interval is already sorted, return its left value; otherwise use the relation between `nums[mid]` and `nums[lo]` to choose the side containing the pivot.\n\n## Key Insight\n\nEqual values at both ends hide whether the pivot is inside the interval. Trimming those duplicates restores useful order information whenever possible, but still preserves the minimum if all trimmed values equal the left endpoint.\n\n## Complexity Analysis\n- Time Complexity: O(log n) on typical inputs, O(n) when repeated equal endpoints dominate.\n- Space Complexity: O(1).",
+      "code": "class Solution {\n    public int findMin(int[] nums) {\n        int lo = 0;\n        int hi = nums.length - 1;\n        while (lo < hi) {\n            while (lo < hi && nums[lo] == nums[hi]) {\n                hi--;\n            }\n            if (nums[lo] <= nums[hi]) {\n                return nums[lo];\n            }\n            int mid = lo + (hi - lo) / 2;\n            if (nums[mid] >= nums[lo]) {\n                lo = mid + 1;\n            } else {\n                hi = mid;\n            }\n        }\n        return nums[lo];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Linear Scan Baseline",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Simple linear scan to find the minimum element. While binary search is faster on average, this approach is guaranteed O(n) even in the worst case with many duplicates.",
-      "code": "class Solution {\n    public int findMin(int[] nums) {\n        int min = nums[0];\n        for (int i = 1; i < nums.length; i++) {\n            if (nums[i] < min) {\n                min = nums[i];\n            }\n        }\n        return min;\n    }\n}",
+      "description": "## Approach\n\nScan every value and keep the smallest one seen. This ignores the rotation structure but is simple and always correct.\n\n## Key Insight\n\nThe duplicate-heavy worst case can force binary search to discard only one element at a time. The linear scan is the baseline that shows the unavoidable worst-case ceiling for comparison-based solutions on ambiguous inputs.\n\n## Complexity Analysis\n- Time Complexity: O(n).\n- Space Complexity: O(1).",
+      "code": "class Solution {\n    public int findMin(int[] nums) {\n        int minimum = nums[0];\n        for (int value : nums) {\n            if (value < minimum) {\n                minimum = value;\n            }\n        }\n        return minimum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Divide and Conquer with Sorted-Interval Pruning",
+      "timeComplexity": "O(log n) best, O(n) worst",
+      "spaceComplexity": "O(log n) average, O(n) worst",
+      "description": "## Approach\n\nRecursively solve an interval. If `nums[lo] < nums[hi]`, the interval is strictly sorted and `nums[lo]` is the minimum. Otherwise split at the middle and take the smaller minimum from the two halves, letting sorted subintervals prune quickly.\n\n## Key Insight\n\nThis route makes the ambiguity explicit: when duplicates prevent deciding which side contains the pivot, both sides may need to be explored. Strictly sorted subranges still stop immediately.\n\n## Complexity Analysis\n- Time Complexity: O(log n) when pruning quickly finds sorted ranges, O(n) when duplicates force both sides to be explored.\n- Space Complexity: O(log n) average recursion depth, O(n) in the most ambiguous split pattern.",
+      "code": "class Solution {\n    public int findMin(int[] nums) {\n        return search(nums, 0, nums.length - 1);\n    }\n\n    private int search(int[] nums, int lo, int hi) {\n        if (lo == hi) return nums[lo];\n        if (nums[lo] < nums[hi]) return nums[lo];\n        int mid = lo + (hi - lo) / 2;\n        int left = search(nums, lo, mid);\n        int right = search(nums, mid + 1, hi);\n        return Math.min(left, right);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [1,3,5]", "output": "1" },
-    { "input": "nums = [2,2,2,0,1]", "output": "0" },
-    { "input": "nums = [3,3,1,3]", "output": "1" }
+    {
+      "input": "nums = [1,3,5]",
+      "output": "1",
+      "description": "sample already in sorted order"
+    },
+    {
+      "input": "nums = [2,2,2,0,1]",
+      "output": "0",
+      "description": "sample where duplicates hide the pivot"
+    },
+    {
+      "input": "nums = [3,3,1,3]",
+      "output": "1",
+      "description": "duplicate right edge forces cautious shrink"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "1",
+      "description": "single element boundary"
+    },
+    {
+      "input": "nums = [10,1,10,10,10]",
+      "output": "1",
+      "description": "minimum surrounded by equal large values"
+    },
+    {
+      "input": "nums = [2,2,2,2,2]",
+      "output": "2",
+      "description": "all values are equal"
+    },
+    {
+      "input": "nums = [4,5,6,7,0,1,4]",
+      "output": "0",
+      "description": "classic rotation with a duplicate at the end"
+    },
+    {
+      "input": "nums = [3,4,5,1,2]",
+      "output": "1",
+      "description": "no-duplicate version should still work"
+    },
+    {
+      "input": "nums = [1,1,1,0,1]",
+      "output": "0",
+      "description": "both ends can equal values around the pivot"
+    },
+    {
+      "input": "nums = [-1,-1,-1,-5,-3]",
+      "output": "-5",
+      "description": "negative values after rotation"
+    },
+    {
+      "input": "nums = [2,2,2,2,0,2,2]",
+      "output": "0",
+      "description": "long duplicate plateau with one smaller pivot"
+    },
+    {
+      "input": "nums = [5,6,7,1,2,3,4]",
+      "output": "1",
+      "description": "strictly rotated array with the minimum near the middle"
+    }
   ]
 }

@@ -1,12 +1,13 @@
 {
   "id": "304",
   "title": "Swap Nodes in Pairs",
-  "description": "# Swap Nodes in Pairs\n\nGiven a linked list, swap every two adjacent nodes and return its head. You must solve the problem without modifying the values in the list's nodes (i.e., only nodes themselves may be changed).\n\n## Example 1:\n\n**Input:** head = [1,2,3,4]\n**Output:** [2,1,4,3]\n**Explanation:** The first pair (1,2) is swapped to (2,1), and the second pair (3,4) is swapped to (4,3).\n\n## Example 2:\n\n**Input:** head = []\n**Output:** []\n\n## Example 3:\n\n**Input:** head = [1]\n**Output:** [1]\n\n## Constraints:\n\n*   The number of nodes in the list is in the range `[0, 100]`.\n*   `0 <= Node.val <= 100`",
+  "description": "# Swap Nodes in Pairs\n\nGiven the head of a singly linked list, swap every two adjacent nodes and return the head of the modified list.\n\nYou must swap the nodes themselves by changing `next` pointers. Do not solve the problem by only swapping the values stored inside the nodes.\n\nIf the list has an odd number of nodes, the final unpaired node stays at the end in its original relative position.\n\nExample arrays display values in `next` order; `[]` denotes an empty list (`null`). A node stores its value in `val` and its next node in `next`. Use node objects for list parameters and results as shown in the initial code.\n\n## Example 1:\n\n**Input:** head = [1,2,3,4]\n**Output:** [2,1,4,3]\n**Explanation:** The first pair (1,2) becomes (2,1), and the second pair (3,4) becomes (4,3).\n\n## Example 2:\n\n**Input:** head = []\n**Output:** []\n\n## Example 3:\n\n**Input:** head = [1]\n**Output:** [1]\n\n## Constraints:\n\n*   The number of nodes in the list is in the range `[0, 100]`.\n*   `0 <= Node.val <= 100`",
   "difficulty": "MEDIUM",
-  "initialCode": "/**\n * Definition for singly-linked list.\n * public class ListNode {\n *     int val;\n *     ListNode next;\n *     ListNode() {}\n *     ListNode(int val) { this.val = val; }\n *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n * }\n */\nclass Solution {\n    public ListNode swapPairs(ListNode head) {\n        \n    }\n}",
+  "initialCode": "/**\n * Definition for singly-linked list.\n * public class ListNode {\n *     int val;\n *     ListNode next;\n *     ListNode() {}\n *     ListNode(int val) { this.val = val; }\n *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n * }\n */\nclass Solution {\n    public ListNode swapPairs(ListNode head) {\n        return head;\n    }\n}",
   "tags": [
     "Linked List",
-    "Recursion"
+    "Recursion",
+    "Stack"
   ],
   "examples": [
     {
@@ -22,63 +23,92 @@
       "output": "[1]"
     }
   ],
-  "solutions": [
-    {
-      "name": "Iterative Swap",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(1)",
-      "description": "Use a dummy node before head. For each pair, rewire the pointers: prev -> second -> first -> rest, then advance prev by two nodes.",
-      "code": "class Solution {\n    public ListNode swapPairs(ListNode head) {\n        ListNode dummy = new ListNode(0, head);\n        ListNode prev = dummy;\n        while (prev.next != null && prev.next.next != null) {\n            ListNode first = prev.next;\n            ListNode second = first.next;\n            first.next = second.next;\n            second.next = first;\n            prev.next = second;\n            prev = first;\n        }\n        return dummy.next;\n    }\n}",
-      "language": "java"
-    },
-    {
-      "name": "Recursive Swap",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Recursively swap pairs: for each pair, swap the first two nodes and set the first node's next to the result of recursion on the remaining list.",
-      "code": "class Solution {\n    public ListNode swapPairs(ListNode head) {\n        if (head == null || head.next == null) return head;\n        ListNode second = head.next;\n        head.next = swapPairs(second.next);\n        second.next = head;\n        return second;\n    }\n}",
-      "language": "java"
-    }
-  ],
   "tests": [
     {
       "input": "head = [1,2,3,4]",
-      "output": "[2,1,4,3]"
+      "output": "[2,1,4,3]",
+      "description": "even-length list swaps every adjacent pair"
     },
     {
       "input": "head = []",
-      "output": "[]"
+      "output": "[]",
+      "description": "empty list remains empty"
     },
     {
       "input": "head = [1]",
-      "output": "[1]"
+      "output": "[1]",
+      "description": "single node has no partner to swap"
     },
     {
       "input": "head = [1,2,3]",
-      "output": "[2,1,3]"
+      "output": "[2,1,3]",
+      "description": "odd-length list leaves the tail node in place"
     },
     {
       "input": "head = [1,2]",
-      "output": "[2,1]"
+      "output": "[2,1]",
+      "description": "two nodes form one direct swap"
     },
     {
       "input": "head = [1,2,3,4,5,6]",
-      "output": "[2,1,4,3,6,5]"
+      "output": "[2,1,4,3,6,5]",
+      "description": "long even list checks repeated pointer rewiring"
     },
     {
       "input": "head = [1,2,3,4,5]",
-      "output": "[2,1,4,3,5]"
+      "output": "[2,1,4,3,5]",
+      "description": "long odd list checks repeated swaps plus a tail"
     },
     {
       "input": "head = [0,0,0,0]",
-      "output": "[0,0,0,0]"
+      "output": "[0,0,0,0]",
+      "description": "equal values should still be handled by node rewiring"
+    },
+    {
+      "input": "head = [100,0,50]",
+      "output": "[0,100,50]",
+      "description": "node values can use both value bounds while the odd tail remains"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Iterative Dummy Node Rewire",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCreate a dummy node before `head` so every pair has a node before it. For each pair, name the two nodes `first` and `second`, rewire `prev -> second -> first -> rest`, then move `prev` to the tail of the swapped pair.\n\n## Key Insight\n\nThe first pair changes the head of the list, which is the awkward boundary case. A dummy node turns that case into the same pointer update used for every later pair.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode swapPairs(ListNode head) {\n        ListNode dummy = new ListNode(0, head);\n        ListNode prev = dummy;\n        while (prev.next != null && prev.next.next != null) {\n            ListNode first = prev.next;\n            ListNode second = first.next;\n            ListNode rest = second.next;\n\n            prev.next = second;\n            second.next = first;\n            first.next = rest;\n            prev = first;\n        }\n        return dummy.next;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Pair Swap",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse recursion to solve the suffix after the first pair. If there are at least two nodes, swap the first two nodes, connect the original first node to the recursively swapped rest, and return the original second node.\n\n## Key Insight\n\nAfter the first pair is swapped, the remaining list has exactly the same problem shape. The base case is an empty list or a single unpaired node.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n), for the recursion stack",
+      "code": "class Solution {\n    public ListNode swapPairs(ListNode head) {\n        if (head == null || head.next == null) {\n            return head;\n        }\n        ListNode second = head.next;\n        ListNode rest = second.next;\n\n        second.next = head;\n        head.next = swapPairs(rest);\n        return second;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Head Tail Iteration Without Dummy",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nHandle the first pair specially to discover the new head. Then keep `previousTail`, the tail of the already swapped prefix, and connect it to the head of each newly swapped pair.\n\n## Key Insight\n\nA dummy node is convenient but not required. The real invariant is that the already processed prefix has a known tail, and that tail must point to the second node of the current pair after the swap.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode swapPairs(ListNode head) {\n        if (head == null || head.next == null) {\n            return head;\n        }\n\n        ListNode newHead = head.next;\n        ListNode previousTail = null;\n        ListNode current = head;\n        while (current != null && current.next != null) {\n            ListNode first = current;\n            ListNode second = current.next;\n            ListNode nextPair = second.next;\n\n            second.next = first;\n            first.next = nextPair;\n            if (previousTail != null) {\n                previousTail.next = second;\n            }\n\n            previousTail = first;\n            current = nextPair;\n        }\n        return newHead;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two Node Stack Buffer",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nRead at most two nodes into a small stack, detach them from the old list, and append them to the output chain by popping the stack. A final single node is appended unchanged.\n\n## Key Insight\n\nThe stack is only a temporary buffer of size two, so it gives a clear group-processing view without changing asymptotic space. Detaching each node prevents stale `next` pointers from accidentally keeping old links alive.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1), because the stack holds at most two nodes",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\nclass Solution {\n    public ListNode swapPairs(ListNode head) {\n        ListNode dummy = new ListNode(0);\n        ListNode tail = dummy;\n        ListNode current = head;\n\n        while (current != null) {\n            Deque<ListNode> stack = new ArrayDeque<>();\n            int count = 0;\n            while (current != null && count < 2) {\n                ListNode next = current.next;\n                current.next = null;\n                stack.push(current);\n                current = next;\n                count++;\n            }\n\n            if (count == 1) {\n                tail.next = stack.pop();\n                break;\n            }\n            while (!stack.isEmpty()) {\n                tail.next = stack.pop();\n                tail = tail.next;\n            }\n        }\n        return dummy.next;\n    }\n}",
+      "language": "java"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p304_example1.png",
-      "caption": "Example 1: List [1,2,3,4] (pairs to swap highlighted)"
+      "caption": "Example 1 input list before any node swaps"
     }
   ]
 }

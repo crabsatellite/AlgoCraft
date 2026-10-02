@@ -1,13 +1,14 @@
 {
   "id": "374",
   "title": "Falling Squares",
-  "description": "# Falling Squares\n\nThere are several squares being dropped onto the X-axis of a 2D plane.\n\nYou are given a 2D integer array `positions` where `positions[i] = [left_i, sideLength_i]` represents the `i-th` square dropped with a left edge at `left_i` and a side length of `sideLength_i`.\n\nThe squares are dropped one by one. A square drops down until it hits another square or the X-axis (at y=0). A square \"hits\" another square if the bottom edge of the dropping square has some non-zero overlap with the top edge of the other square. Note that the square drops vertically and won't rotate.\n\nAfter each square drops, you need to record the height of the current highest stack of squares.\n\nReturn an integer array `ans` where `ans[i]` is the height of the highest stack of squares after dropping the `i-th` square.\n\n## Example 1:\n\n**Input:** positions = [[1,2],[2,3],[6,1]]\n**Output:** [2,5,5]\n**Explanation:**\nAfter the first drop, the tallest stack is square 1 with height 2.\nAfter the second drop, the tallest stack is squares 1 and 2 with height 2 + 3 = 5.\nAfter the third drop, the tallest stack is still squares 1 and 2 with height 5.\nThus, we return [2, 5, 5].\n\n## Example 2:\n\n**Input:** positions = [[100,100],[200,100]]\n**Output:** [100,100]\n**Explanation:**\nAfter the first drop, the tallest stack is square 1 with height 100.\nAfter the second drop, the tallest stack is either square 1 or square 2, both with height 100.\nThus, we return [100, 100].\n\n## Constraints:\n\n*   `1 <= positions.length <= 1000`\n*   `1 <= left_i <= 10^8`\n*   `1 <= sideLength_i <= 10^6`",
+  "description": "# Falling Squares\n\nSquares are dropped one by one onto the x-axis. Each entry `positions[i] = [left_i, sideLength_i]` gives the left x-coordinate and side length of the next square.\n\nA square falls vertically until its bottom edge reaches the x-axis or lands on top of an earlier square. It lands on an earlier square only when their horizontal ranges overlap with positive width. If one square ends exactly where another begins, they only touch at an edge and do not stack.\n\nAfter each drop, record the highest y-coordinate occupied by any square so far. Return the list of those running maximum heights.\n\n## Example 1\n\n**Input:** positions = [[1,2],[2,3],[6,1]]\n\n**Output:** [2,5,5]\n\n**Explanation:** The first square covers [1,3) and reaches height 2. The second covers [2,5), overlaps the first on [2,3), and lands at height 2 + 3 = 5. The third covers [6,7) and lands on the ground, so the running maximum remains 5.\n\n## Example 2\n\n**Input:** positions = [[100,100],[200,100]]\n\n**Output:** [100,100]\n\n**Explanation:** The first square covers [100,200) and the second covers [200,300). They touch only at x = 200, so the second square does not stack on the first.\n\n## Constraints\n\n* `1 <= positions.length <= 1000`\n* `1 <= left_i <= 10^8`\n* `1 <= sideLength_i <= 10^6`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public List<Integer> fallingSquares(int[][] positions) {\n        \n    }\n}",
+  "initialCode": "import java.util.*;\n\nclass Solution {\n    public List<Integer> fallingSquares(int[][] positions) {\n        return new ArrayList<>();\n    }\n}",
   "tags": [
     "Segment Tree",
     "Array",
-    "Ordered Set"
+    "Ordered Set",
+    "Line Sweep"
   ],
   "examples": [
     {
@@ -24,34 +25,115 @@
       "name": "Brute Force Interval Check",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n)",
-      "description": "For each new square, check all previously dropped squares for overlap. The new square's height = its side length + max height of overlapping squares. Track the running maximum height.",
+      "description": "## Approach\n\nStore every square that has already landed as a half-open interval [left, right) together with its top height. For each new square, scan all previous intervals, find the maximum height among intervals with positive overlap, place the new square on that base, and append the running maximum.\n\n## Key Insight\n\nTwo squares interact exactly when their half-open x-intervals overlap: oldLeft < right && left < oldRight. Edge touching has zero width and therefore must not stack.\n\n## Complexity Analysis\n\nFor n drops, each square scans at most all earlier squares, so the time complexity is O(n^2). The stored intervals and answer list use O(n) space.",
       "code": "class Solution {\n    public List<Integer> fallingSquares(int[][] positions) {\n        List<Integer> result = new java.util.ArrayList<>();\n        int[] heights = new int[positions.length];\n        int maxH = 0;\n        for (int i = 0; i < positions.length; i++) {\n            int left = positions[i][0], side = positions[i][1], right = left + side;\n            heights[i] = side;\n            for (int j = 0; j < i; j++) {\n                int pLeft = positions[j][0], pRight = pLeft + positions[j][1];\n                if (pLeft < right && left < pRight) {\n                    heights[i] = Math.max(heights[i], heights[j] + side);\n                }\n            }\n            maxH = Math.max(maxH, heights[i]);\n            result.add(maxH);\n        }\n        return result;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Coordinate Compression + Segment Tree",
+      "name": "Coordinate-Compressed Block Repainting",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCollect every left and right edge, sort them, and treat adjacent coordinates as elementary x-blocks. For each square, scan the covered blocks to find the base height, then repaint all covered blocks to the new top height.\n\n## Key Insight\n\nCompression preserves every possible change point of the skyline. Between two neighboring compressed coordinates, the height is uniform for future overlap queries.\n\n## Complexity Analysis\n\nThere are at most 2n - 1 elementary blocks. Each drop may scan and repaint all blocks, giving O(n^2) time and O(n) space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<Integer> fallingSquares(int[][] positions) {\n        TreeSet<Integer> endpoints = new TreeSet<>();\n        for (int[] square : positions) {\n            endpoints.add(square[0]);\n            endpoints.add(square[0] + square[1]);\n        }\n\n        Map<Integer, Integer> index = new HashMap<>();\n        int id = 0;\n        for (int x : endpoints) {\n            index.put(x, id++);\n        }\n\n        int[] blockHeights = new int[Math.max(1, id - 1)];\n        List<Integer> answer = new ArrayList<>();\n        int highest = 0;\n        for (int[] square : positions) {\n            int left = index.get(square[0]);\n            int right = index.get(square[0] + square[1]);\n            int base = 0;\n            for (int i = left; i < right; i++) {\n                base = Math.max(base, blockHeights[i]);\n            }\n            int newHeight = base + square[1];\n            for (int i = left; i < right; i++) {\n                blockHeights[i] = newHeight;\n            }\n            highest = Math.max(highest, newHeight);\n            answer.add(highest);\n        }\n        return answer;\n    }\n}\n",
+      "language": "java"
+    },
+    {
+      "name": "Coordinate Compression with Lazy Segment Tree",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Coordinate compress the x-coordinates. Use a segment tree with lazy propagation to query the max height in an interval and update the height for the new square's interval. Track running max for the result.",
+      "description": "## Approach\n\nCompress all square boundaries, build a segment tree over elementary blocks, query the current maximum height over the square footprint, then assign that footprint to base + sideLength with lazy propagation.\n\n## Key Insight\n\nA falling square overwrites the visible height over its whole horizontal footprint. Segment-tree range maximum query gives the base; range assignment records the new flat top efficiently.\n\n## Complexity Analysis\n\nThere are O(n) compressed blocks. Each square performs one range maximum query and one range assignment, so the total time is O(n log n) and the tree uses O(n) space.",
       "code": "import java.util.*;\n\nclass Solution {\n    private int[] tree;\n    private int[] lazy;\n\n    public List<Integer> fallingSquares(int[][] positions) {\n        Set<Integer> coords = new TreeSet<>();\n        for (int[] p : positions) {\n            coords.add(p[0]);\n            coords.add(p[0] + p[1] - 1);\n            coords.add(p[0] + p[1]);\n        }\n        Map<Integer, Integer> compress = new HashMap<>();\n        int idx = 0;\n        for (int c : coords) compress.put(c, idx++);\n        int sz = idx;\n        tree = new int[4 * sz];\n        lazy = new int[4 * sz];\n        List<Integer> result = new ArrayList<>();\n        int maxH = 0;\n        for (int[] p : positions) {\n            int left = compress.get(p[0]);\n            int right = compress.get(p[0] + p[1] - 1);\n            int curMax = query(1, 0, sz - 1, left, right);\n            int newH = curMax + p[1];\n            update(1, 0, sz - 1, left, right, newH);\n            maxH = Math.max(maxH, newH);\n            result.add(maxH);\n        }\n        return result;\n    }\n    private void pushDown(int node) {\n        if (lazy[node] > 0) {\n            tree[2 * node] = Math.max(tree[2 * node], lazy[node]);\n            tree[2 * node + 1] = Math.max(tree[2 * node + 1], lazy[node]);\n            lazy[2 * node] = Math.max(lazy[2 * node], lazy[node]);\n            lazy[2 * node + 1] = Math.max(lazy[2 * node + 1], lazy[node]);\n            lazy[node] = 0;\n        }\n    }\n    private int query(int node, int lo, int hi, int l, int r) {\n        if (l > hi || r < lo) return 0;\n        if (l <= lo && hi <= r) return tree[node];\n        pushDown(node);\n        int mid = (lo + hi) / 2;\n        return Math.max(query(2 * node, lo, mid, l, r), query(2 * node + 1, mid + 1, hi, l, r));\n    }\n    private void update(int node, int lo, int hi, int l, int r, int val) {\n        if (l > hi || r < lo) return;\n        if (l <= lo && hi <= r) {\n            tree[node] = Math.max(tree[node], val);\n            lazy[node] = Math.max(lazy[node], val);\n            return;\n        }\n        pushDown(node);\n        int mid = (lo + hi) / 2;\n        update(2 * node, lo, mid, l, r, val);\n        update(2 * node + 1, mid + 1, hi, l, r, val);\n        tree[node] = Math.max(tree[2 * node], tree[2 * node + 1]);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Ordered Disjoint Intervals",
+      "timeComplexity": "O(n^2 log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nMaintain a TreeMap of disjoint half-open intervals and their current heights. Before placing a square, split intervals at the square boundaries, scan the covered pieces for the base height, remove those pieces, and insert one flat interval for the new square.\n\n## Key Insight\n\nAfter splitting at both boundaries, every interval is either fully inside or fully outside the new square footprint. That makes deleting the covered pieces safe without damaging neighboring heights.\n\n## Complexity Analysis\n\nEach operation uses ordered-map lookups, but a square can cover many existing intervals. The worst-case total time is O(n^2 log n) and the map stores O(n) intervals.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<Integer> fallingSquares(int[][] positions) {\n        TreeMap<Integer, int[]> intervals = new TreeMap<>();\n        List<Integer> answer = new ArrayList<>();\n        int highest = 0;\n\n        for (int[] position : positions) {\n            int left = position[0];\n            int right = left + position[1];\n            split(intervals, left);\n            split(intervals, right);\n\n            int base = 0;\n            for (Map.Entry<Integer, int[]> entry = intervals.ceilingEntry(left);\n                 entry != null && entry.getKey() < right;\n                 entry = intervals.higherEntry(entry.getKey())) {\n                base = Math.max(base, entry.getValue()[1]);\n            }\n\n            List<Integer> toRemove = new ArrayList<>();\n            for (Map.Entry<Integer, int[]> entry = intervals.ceilingEntry(left);\n                 entry != null && entry.getKey() < right;\n                 entry = intervals.higherEntry(entry.getKey())) {\n                toRemove.add(entry.getKey());\n            }\n            for (int key : toRemove) {\n                intervals.remove(key);\n            }\n\n            int height = base + position[1];\n            intervals.put(left, new int[]{right, height});\n            highest = Math.max(highest, height);\n            answer.add(highest);\n        }\n\n        return answer;\n    }\n\n    private void split(TreeMap<Integer, int[]> intervals, int x) {\n        Map.Entry<Integer, int[]> floor = intervals.floorEntry(x);\n        if (floor == null) {\n            return;\n        }\n        int start = floor.getKey();\n        int[] segment = floor.getValue();\n        if (start < x && x < segment[0]) {\n            int oldEnd = segment[0];\n            int height = segment[1];\n            segment[0] = x;\n            intervals.put(x, new int[]{oldEnd, height});\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Dynamic Segment Tree on Raw Coordinates",
+      "timeComplexity": "O(n log C)",
+      "spaceComplexity": "O(n log C) worst case, O(nodes touched) in practice",
+      "description": "## Approach\n\nBuild segment-tree nodes only when a query or update reaches that coordinate range. Use the original x-coordinates directly, query [left, right] for the base height, and lazily assign the new height over that raw interval.\n\n## Key Insight\n\nCoordinate compression is not required if the tree is sparse. The domain is huge, but each square touches only O(log C) nodes on the paths and covered ranges it needs.\n\n## Complexity Analysis\n\nLet C be the coordinate domain. Each drop performs a range query and update in O(log C), so total time is O(n log C). Allocated nodes are bounded by touched ranges, with worst-case O(n log C) space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int LIMIT = 1_100_000_000;\n\n    public List<Integer> fallingSquares(int[][] positions) {\n        Node root = new Node();\n        List<Integer> answer = new ArrayList<>();\n        int highest = 0;\n\n        for (int[] square : positions) {\n            int left = square[0];\n            int right = left + square[1] - 1;\n            int base = query(root, 1, LIMIT, left, right);\n            int newHeight = base + square[1];\n            update(root, 1, LIMIT, left, right, newHeight);\n            highest = Math.max(highest, newHeight);\n            answer.add(highest);\n        }\n\n        return answer;\n    }\n\n    private int query(Node node, int lo, int hi, int left, int right) {\n        if (node == null || right < lo || hi < left) {\n            return 0;\n        }\n        if (left <= lo && hi <= right) {\n            return node.max;\n        }\n        push(node);\n        int mid = lo + (hi - lo) / 2;\n        return Math.max(query(node.left, lo, mid, left, right),\n                query(node.right, mid + 1, hi, left, right));\n    }\n\n    private void update(Node node, int lo, int hi, int left, int right, int value) {\n        if (right < lo || hi < left) {\n            return;\n        }\n        if (left <= lo && hi <= right) {\n            node.max = value;\n            node.lazy = value;\n            return;\n        }\n        push(node);\n        int mid = lo + (hi - lo) / 2;\n        update(node.left, lo, mid, left, right, value);\n        update(node.right, mid + 1, hi, left, right, value);\n        node.max = Math.max(node.left.max, node.right.max);\n    }\n\n    private void push(Node node) {\n        if (node.left == null) {\n            node.left = new Node();\n        }\n        if (node.right == null) {\n            node.right = new Node();\n        }\n        if (node.lazy != 0) {\n            node.left.max = node.lazy;\n            node.right.max = node.lazy;\n            node.left.lazy = node.lazy;\n            node.right.lazy = node.lazy;\n            node.lazy = 0;\n        }\n    }\n\n    private static final class Node {\n        private Node left;\n        private Node right;\n        private int max;\n        private int lazy;\n    }\n}\n",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "positions = [[1,2],[2,3],[6,1]]",
-      "output": "[2,5,5]"
+      "output": "[2,5,5]",
+      "description": "sample with partial overlap stacking"
     },
     {
       "input": "positions = [[100,100],[200,100]]",
-      "output": "[100,100]"
+      "output": "[100,100]",
+      "description": "edge touching does not count as overlap"
+    },
+    {
+      "input": "positions = [[1,2],[4,2]]",
+      "output": "[2,2]",
+      "description": "separated squares keep the maximum unchanged"
+    },
+    {
+      "input": "positions = [[1,2],[2,2],[3,2]]",
+      "output": "[2,4,6]",
+      "description": "chain of partial overlaps stacks upward"
+    },
+    {
+      "input": "positions = [[6,1],[1,2],[2,4]]",
+      "output": "[1,2,6]",
+      "description": "later wide square stacks on a previous interval"
+    },
+    {
+      "input": "positions = [[1,2],[3,2],[5,2]]",
+      "output": "[2,2,2]",
+      "description": "touching boundaries repeatedly should never stack"
+    },
+    {
+      "input": "positions = [[1,5],[2,2],[3,1]]",
+      "output": "[5,7,8]",
+      "description": "nested intervals stack on the current covered height"
+    },
+    {
+      "input": "positions = [[1,2],[1,3]]",
+      "output": "[2,5]",
+      "description": "same left edge but different side length"
+    },
+    {
+      "input": "positions = [[1,2],[1,2],[1,2]]",
+      "output": "[2,4,6]",
+      "description": "identical intervals stack repeatedly"
+    },
+    {
+      "input": "positions = [[100000000,1000000],[100999999,1],[101000000,2]]",
+      "output": "[1000000,1000001,1000001]",
+      "description": "large coordinates with one-unit overlap and edge touch"
+    },
+    {
+      "input": "positions = [[1,1],[3,1],[1,3]]",
+      "output": "[1,1,4]",
+      "description": "later square covers separated previous stacks"
+    },
+    {
+      "input": "positions = [[9,7],[1,9],[3,1]]",
+      "output": "[7,16,17]",
+      "description": "non-monotonic positions with a later inner square"
+    },
+    {
+      "input": "positions = [[2,4],[5,3],[4,2],[6,1]]",
+      "output": "[4,7,9,9]",
+      "description": "overlapping updates whose maximum range is not the first interval"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p374_example1.png",
-      "caption": "Falling Squares positions"
+      "caption": "Example drops as half-open x-intervals"
     }
   ]
 }

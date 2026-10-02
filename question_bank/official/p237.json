@@ -4,7 +4,11 @@
   "description": "# Unique Email Addresses\n\nEvery **valid email** consists of a **local name** and a **domain name**, separated by the `'@'` sign. Besides lowercase letters, the email may contain one or more `'.'` or `'+'`.\n\n*   For example, in `\"alice@leetcode.com\"`, `\"alice\"` is the **local name**, and `\"leetcode.com\"` is the **domain name**.\n\nIf you add periods `'.'` between some characters in the **local name** part of an email address, mail sent there will be forwarded to the same address without dots in the local name. Note that this rule **does not apply** to **domain names**.\n\n*   For example, `\"alice.z@leetcode.com\"` and `\"alicez@leetcode.com\"` forward to the same email address.\n\nIf you add a plus `'+'` in the **local name**, everything after the first plus sign will be ignored. This allows certain emails to be filtered. Note that this rule **does not apply** to **domain names**.\n\n*   For example, `\"m.y+name@email.com\"` will be forwarded to `\"my@email.com\"`.\n\nIt is possible to use both of these rules at the same time.\n\nGiven an array of strings `emails` where we send one email to each `emails[i]`, return *the number of different addresses that actually receive mails*.\n\n## Example 1:\n\n**Input:** emails = [\"test.email+alex@leetcode.com\",\"test.e.mail+bob.cathy@leetcode.com\",\"testemail+david@lee.tcode.com\"]\n**Output:** 2\n**Explanation:** \"testemail@leetcode.com\" and \"testemail@lee.tcode.com\" actually receive mails.\n\n## Example 2:\n\n**Input:** emails = [\"a@leetcode.com\",\"b@leetcode.com\",\"c@leetcode.com\"]\n**Output:** 3\n\n## Constraints:\n\n*   `1 <= emails.length <= 100`\n*   `1 <= emails[i].length <= 100`\n*   `emails[i]` consist of lowercase English letters, `'+'`, `'.'` and `'@'`.\n*   Each `emails[i]` contains exactly one `'@'` character.\n*   All local and domain names are non-empty.\n*   Local names do not start with a `'+'` character.\n*   Domain names end with the `\".com\"` suffix.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int numUniqueEmails(String[] emails) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "HashTable", "String"],
+  "tags": [
+    "Array",
+    "HashTable",
+    "String"
+  ],
   "examples": [
     {
       "input": "emails = [\"test.email+alex@leetcode.com\",\"test.e.mail+bob.cathy@leetcode.com\",\"testemail+david@lee.tcode.com\"]",
@@ -17,30 +21,101 @@
   ],
   "solutions": [
     {
-      "name": "HashSet with Normalization",
+      "name": "HashSet with Canonical Address",
       "timeComplexity": "O(n * m)",
       "spaceComplexity": "O(n * m)",
-      "description": "For each email, split at '@'. In the local part, remove dots and truncate at '+'. Combine with domain and add to a HashSet. Return the set size.",
-      "code": "import java.util.Set;\nimport java.util.HashSet;\n\nclass Solution {\n    public int numUniqueEmails(String[] emails) {\n        Set<String> set = new HashSet<>();\n        for (String email : emails) {\n            String[] parts = email.split(\"@\");\n            String local = parts[0];\n            int plusIdx = local.indexOf('+');\n            if (plusIdx != -1) local = local.substring(0, plusIdx);\n            local = local.replace(\".\", \"\");\n            set.add(local + \"@\" + parts[1]);\n        }\n        return set.size();\n    }\n}",
+      "description": "## Approach\n\nFor each email, split it at the `@`, normalize only the local part, then insert the canonical `local@domain` address into a `HashSet`.\n\n## Key Insight\n\nUniqueness should be counted after the forwarding rules are applied. The domain is part of the final recipient and must be copied unchanged, including dots and any plus signs after `@`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * m), where `n` is the number of emails and `m` is the maximum email length.\n- Space Complexity: O(n * m), because the set can store every normalized address.",
+      "code": "import java.util.HashSet;\nimport java.util.Set;\n\nclass Solution {\n    public int numUniqueEmails(String[] emails) {\n        Set<String> seen = new HashSet<>();\n        for (String email : emails) {\n            int at = email.indexOf('@');\n            String local = email.substring(0, at);\n            String domain = email.substring(at + 1);\n\n            int plus = local.indexOf('+');\n            if (plus >= 0) {\n                local = local.substring(0, plus);\n            }\n            local = local.replace(\".\", \"\");\n            seen.add(local + \"@\" + domain);\n        }\n        return seen.size();\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Manual Parsing with StringBuilder",
+      "name": "Manual Parser Streaming Canonical Form",
       "timeComplexity": "O(n * m)",
       "spaceComplexity": "O(n * m)",
-      "description": "For each email, manually parse the local part character by character. Skip dots, stop at '+', then append '@' and the domain. Use a HashSet to count unique results.",
-      "code": "import java.util.Set;\nimport java.util.HashSet;\n\nclass Solution {\n    public int numUniqueEmails(String[] emails) {\n        Set<String> set = new HashSet<>();\n        for (String email : emails) {\n            StringBuilder sb = new StringBuilder();\n            boolean atDomain = false;\n            boolean plusSeen = false;\n            for (int i = 0; i < email.length(); i++) {\n                char c = email.charAt(i);\n                if (c == '@') {\n                    atDomain = true;\n                    sb.append(c);\n                } else if (atDomain) {\n                    sb.append(c);\n                } else if (c == '+') {\n                    plusSeen = true;\n                } else if (c == '.') {\n                    if (plusSeen) continue;\n                } else {\n                    if (!plusSeen) sb.append(c);\n                }\n            }\n            set.add(sb.toString());\n        }\n        return set.size();\n    }\n}",
+      "description": "## Approach\n\nScan each email character by character. Before `@`, skip dots and stop appending once the first plus is seen; when `@` appears, append the remaining domain unchanged and store the result.\n\n## Key Insight\n\nThe parser has two phases: rewrite the local part, then copy the domain verbatim. This makes the boundary at `@` explicit and avoids accidentally applying local-name rules to the domain.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * m), because every email is scanned once.\n- Space Complexity: O(n * m), for the canonical strings stored in the set.",
+      "code": "import java.util.HashSet;\nimport java.util.Set;\n\nclass Solution {\n    public int numUniqueEmails(String[] emails) {\n        Set<String> seen = new HashSet<>();\n        for (String email : emails) {\n            StringBuilder normalized = new StringBuilder();\n            boolean ignoringLocalSuffix = false;\n            for (int i = 0; i < email.length(); i++) {\n                char c = email.charAt(i);\n                if (c == '@') {\n                    normalized.append(c);\n                    normalized.append(email.substring(i + 1));\n                    break;\n                }\n                if (c == '+') {\n                    ignoringLocalSuffix = true;\n                } else if (!ignoringLocalSuffix && c != '.') {\n                    normalized.append(c);\n                }\n            }\n            seen.add(normalized.toString());\n        }\n        return seen.size();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Normalize Sort and Count",
+      "timeComplexity": "O(n * m + n log n)",
+      "spaceComplexity": "O(n * m)",
+      "description": "## Approach\n\nConvert every email into its canonical recipient address, sort the canonical addresses, and count how many adjacent values are different.\n\n## Key Insight\n\nSorting groups equal recipients together without a hash table. This is a useful alternative when teaching that uniqueness can be found either by hashing or by ordering.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * m + n log n), for normalization plus sorting.\n- Space Complexity: O(n * m), for the normalized address array.",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int numUniqueEmails(String[] emails) {\n        String[] normalized = new String[emails.length];\n        for (int i = 0; i < emails.length; i++) {\n            normalized[i] = normalize(emails[i]);\n        }\n        Arrays.sort(normalized);\n\n        int unique = 0;\n        for (int i = 0; i < normalized.length; i++) {\n            if (i == 0 || !normalized[i].equals(normalized[i - 1])) {\n                unique++;\n            }\n        }\n        return unique;\n    }\n\n    private String normalize(String email) {\n        int at = email.indexOf('@');\n        StringBuilder local = new StringBuilder();\n        for (int i = 0; i < at && email.charAt(i) != '+'; i++) {\n            char c = email.charAt(i);\n            if (c != '.') {\n                local.append(c);\n            }\n        }\n        return local.append(email.substring(at)).toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Domain Buckets with Canonical Locals",
+      "timeComplexity": "O(n * m)",
+      "spaceComplexity": "O(n * m)",
+      "description": "## Approach\n\nUse a map from each unchanged domain to a set of canonical local names seen under that domain. After processing all emails, sum the sizes of the per-domain local sets.\n\n## Key Insight\n\nThe actual recipient is a pair: normalized local name plus exact domain. Grouping by domain makes it impossible to merge the same local name across different domains.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * m), because each email is parsed once and each canonical local name is inserted once.\n- Space Complexity: O(n * m), for the map of domains and local-name sets.",
+      "code": "import java.util.HashMap;\nimport java.util.HashSet;\nimport java.util.Map;\nimport java.util.Set;\n\nclass Solution {\n    public int numUniqueEmails(String[] emails) {\n        Map<String, Set<String>> localsByDomain = new HashMap<>();\n        for (String email : emails) {\n            int at = email.indexOf('@');\n            String domain = email.substring(at + 1);\n            String local = canonicalLocal(email, at);\n            localsByDomain.computeIfAbsent(domain, key -> new HashSet<>()).add(local);\n        }\n\n        int total = 0;\n        for (Set<String> locals : localsByDomain.values()) {\n            total += locals.size();\n        }\n        return total;\n    }\n\n    private String canonicalLocal(String email, int at) {\n        StringBuilder local = new StringBuilder();\n        for (int i = 0; i < at; i++) {\n            char c = email.charAt(i);\n            if (c == '+') {\n                break;\n            }\n            if (c != '.') {\n                local.append(c);\n            }\n        }\n        return local.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Trie of Canonical Addresses",
+      "timeComplexity": "O(n * m)",
+      "spaceComplexity": "O(n * m)",
+      "description": "## Approach\n\nNormalize each email, then insert the canonical address into a trie. Count the insertion only when the terminal node was not already marked as a complete address.\n\n## Key Insight\n\nA trie stores shared prefixes of canonical addresses. It teaches the same uniqueness concept with a prefix tree instead of a hash table or sorting, while still respecting the exact normalized string.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * m), because each canonical address is inserted character by character.\n- Space Complexity: O(n * m), for trie nodes in the worst case when addresses share little prefix structure.",
+      "code": "import java.util.HashMap;\nimport java.util.Map;\n\nclass Solution {\n    static class Node {\n        Map<Character, Node> children = new HashMap<>();\n        boolean terminal;\n    }\n\n    public int numUniqueEmails(String[] emails) {\n        Node root = new Node();\n        int unique = 0;\n        for (String email : emails) {\n            String normalized = normalize(email);\n            if (insert(root, normalized)) {\n                unique++;\n            }\n        }\n        return unique;\n    }\n\n    private boolean insert(Node root, String word) {\n        Node node = root;\n        for (int i = 0; i < word.length(); i++) {\n            char c = word.charAt(i);\n            node = node.children.computeIfAbsent(c, key -> new Node());\n        }\n        if (node.terminal) {\n            return false;\n        }\n        node.terminal = true;\n        return true;\n    }\n\n    private String normalize(String email) {\n        int at = email.indexOf('@');\n        StringBuilder builder = new StringBuilder();\n        for (int i = 0; i < at; i++) {\n            char c = email.charAt(i);\n            if (c == '+') {\n                break;\n            }\n            if (c != '.') {\n                builder.append(c);\n            }\n        }\n        return builder.append(email.substring(at)).toString();\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "emails = [\"test.email+alex@leetcode.com\",\"test.e.mail+bob.cathy@leetcode.com\",\"testemail+david@lee.tcode.com\"]",
-      "output": "2"
+      "output": "2",
+      "description": "The canonical example combines dot removal, plus truncation, and different domains."
     },
     {
       "input": "emails = [\"a@leetcode.com\",\"b@leetcode.com\",\"c@leetcode.com\"]",
-      "output": "3"
+      "output": "3",
+      "description": "Different local names remain different recipients."
+    },
+    {
+      "input": "emails = [\"a.b+c@leetcode.com\",\"ab@leetcode.com\"]",
+      "output": "1",
+      "description": "Dots are removed and plus suffixes are ignored in the local name."
+    },
+    {
+      "input": "emails = [\"test.email+alex@leetcode.com\",\"test.email.leet+alex@code.com\"]",
+      "output": "2",
+      "description": "The same local-rule processing must not merge different domains."
+    },
+    {
+      "input": "emails = [\"x+test@domain.com\",\"x@domain.com\",\"x.y@domain.com\"]",
+      "output": "2",
+      "description": "Plus filtering can merge with an existing local name while a dotted different local stays distinct."
+    },
+    {
+      "input": "emails = [\"u.ser+tag@a.com\",\"user@a.com\",\"u.s.e.r@a.com\"]",
+      "output": "1",
+      "description": "Several local spellings can normalize to the same local name and domain."
+    },
+    {
+      "input": "emails = [\"a@leetcode.com\",\"a@leet.code.com\",\"a@leetcode.com\"]",
+      "output": "2",
+      "description": "Dots inside the domain are part of the recipient and must remain unchanged."
+    },
+    {
+      "input": "emails = [\"ab+c.d@leetcode.com\",\"ab@leetcode.com\",\"a.b+c@leetcode.com\"]",
+      "output": "1",
+      "description": "Characters after the first plus in the local name are ignored, even if they include dots."
+    },
+    {
+      "input": "emails = [\"a@b+tag.com\",\"a@b.com\",\"a+b@b+tag.com\"]",
+      "output": "2",
+      "description": "A plus sign after the at sign belongs to the domain and must not be treated as a filter."
+    },
+    {
+      "input": "emails = [\"first.last+tag@leetcode.com\",\"firstlast@leetcode.com\",\"first.last@lee.tcode.com\",\"firstlast+other@lee.tcode.com\"]",
+      "output": "2",
+      "description": "The same normalized local name counts separately under different domains."
+    },
+    {
+      "input": "emails = [\"z@a.com\"]",
+      "output": "1",
+      "description": "A single email is one unique recipient."
     }
   ]
 }

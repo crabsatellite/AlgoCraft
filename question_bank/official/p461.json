@@ -1,34 +1,104 @@
 {
   "id": "461",
   "title": "Hamming Distance",
-  "description": "# Hamming Distance\n\nThe Hamming distance between two integers is the number of positions at which the corresponding bits are different.\n\nGiven two integers `x` and `y`, return *the Hamming distance between them*.\n\n## Example 1:\n\n**Input:** x = 1, y = 4\n**Output:** 2\n**Explanation:**\n1   (0 0 0 1)\n4   (0 1 0 0)\n       \u2191   \u2191\nThe above arrows point to positions where the corresponding bits are different.\n\n## Example 2:\n\n**Input:** x = 3, y = 1\n**Output:** 1\n\n## Constraints:\n\n*   `0 <= x, y <= 2^31 - 1`",
+  "description": "# Hamming Distance\n\nThe Hamming distance between two integers is the number of bit positions where their binary representations are different.\n\nAlign the binary representations at their least significant bits and pad the shorter one with leading zeroes. For example, `1 = 001` and `4 = 100` differ at two positions, giving distance `2`.\n\nReturn the number of differing binary positions between `x` and `y`.\n\n## Example 1:\n\n**Input:** x = 1, y = 4\n**Output:** 2\n**Explanation:** `1` is `001` and `4` is `100`; the first and third bit positions differ.\n\n## Example 2:\n\n**Input:** x = 3, y = 1\n**Output:** 1\n**Explanation:** `3` is `11` and `1` is `01`; only the second bit position differs.\n\n## Constraints:\n\n*   `0 <= x, y <= 2^31 - 1`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int hammingDistance(int x, int y) {\n        \n    }\n}",
-  "tags": ["Bit Manipulation"],
+  "tags": [
+    "Bit Manipulation"
+  ],
   "examples": [
-    { "input": "x = 1, y = 4", "output": "2" },
-    { "input": "x = 3, y = 1", "output": "1" }
+    {
+      "input": "x = 1, y = 4",
+      "output": "2"
+    },
+    {
+      "input": "x = 3, y = 1",
+      "output": "1"
+    }
   ],
   "solutions": [
     {
-      "name": "XOR and Bit Count",
+      "name": "XOR and Library Bit Count",
       "timeComplexity": "O(1)",
       "spaceComplexity": "O(1)",
-      "description": "XOR the two numbers to get bits that differ, then count the set bits using Integer.bitCount.",
-      "code": "class Solution {\n    public int hammingDistance(int x, int y) {\n        return Integer.bitCount(x ^ y);\n    }\n}",
+      "description": "## Approach\n\nXOR `x` and `y`. A bit in `x ^ y` is `1` exactly when the corresponding input bits differ. Count the `1` bits with `Integer.bitCount`.\n\n## Key Insight\n\nHamming distance is a population count after XOR. Separating the two ideas keeps the code short and makes the bit invariant explicit.\n\n## Complexity Analysis\n\nThe integer width is fixed. Time Complexity: O(1). Space Complexity: O(1).",
+      "code": "class Solution {\n    public int hammingDistance(int x, int y) {\n        int differentBits = x ^ y;\n        return Integer.bitCount(differentBits);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Brian Kernighan's Bit Counting",
-      "timeComplexity": "O(k) where k is number of set bits",
+      "name": "Brian Kernighan Bit Clearing",
+      "timeComplexity": "O(k)",
       "spaceComplexity": "O(1)",
-      "description": "XOR the two numbers to get differing bits. Then use Brian Kernighan's algorithm: repeatedly clear the lowest set bit (n & (n-1)) and count iterations until zero.",
-      "code": "class Solution {\n    public int hammingDistance(int x, int y) {\n        int xor = x ^ y;\n        int count = 0;\n        while (xor != 0) {\n            count++;\n            xor = xor & (xor - 1);\n        }\n        return count;\n    }\n}",
+      "description": "## Approach\n\nXOR the inputs, then repeatedly clear the lowest set bit using `bits &= bits - 1`. Each clearing operation corresponds to one differing bit.\n\n## Key Insight\n\nKernighan's trick loops once per set bit, not once per bit position. It is a classic way to teach why `n & (n - 1)` removes the lowest `1` bit.\n\n## Complexity Analysis\n\nLet `k` be the Hamming distance. Time Complexity: O(k), bounded by O(31). Space Complexity: O(1).",
+      "code": "class Solution {\n    public int hammingDistance(int x, int y) {\n        int bits = x ^ y;\n        int distance = 0;\n        while (bits != 0) {\n            distance++;\n            bits &= bits - 1;\n        }\n        return distance;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Fixed-Width Bit Scan",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nXOR the inputs, then scan the low 31 bit positions. At each step, add the current low bit to the answer and unsigned-shift the value right by one.\n\n## Key Insight\n\nBecause both inputs are between `0` and `2^31 - 1`, the answer is completely determined by exactly 31 bit positions. Unsigned shifting keeps the scan definition independent of sign extension details.\n\n## Complexity Analysis\n\nThe scan length is fixed at 31. Time Complexity: O(1). Space Complexity: O(1).",
+      "code": "class Solution {\n    public int hammingDistance(int x, int y) {\n        int bits = x ^ y;\n        int distance = 0;\n        for (int position = 0; position < 31; position++) {\n            distance += bits & 1;\n            bits >>>= 1;\n        }\n        return distance;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Nibble Lookup Table",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nPrecompute the number of set bits for every 4-bit value from `0` to `15`. XOR the inputs and consume the result one nibble at a time, adding the table value for `bits & 15`.\n\n## Key Insight\n\nA population count can be decomposed into fixed-size chunks. This route is useful for teaching lookup-table decomposition before students see hardware intrinsics or broadword bit hacks.\n\n## Complexity Analysis\n\nThere are always eight 4-bit chunks in an `int`. Time Complexity: O(1). Space Complexity: O(1).",
+      "code": "class Solution {\n    private static final int[] NIBBLE_BITS = {\n            0, 1, 1, 2,\n            1, 2, 2, 3,\n            1, 2, 2, 3,\n            2, 3, 3, 4\n    };\n\n    public int hammingDistance(int x, int y) {\n        int bits = x ^ y;\n        int distance = 0;\n        for (int chunk = 0; chunk < 8; chunk++) {\n            distance += NIBBLE_BITS[bits & 15];\n            bits >>>= 4;\n        }\n        return distance;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "x = 1, y = 4", "output": "2" },
-    { "input": "x = 3, y = 1", "output": "1" }
+    {
+      "input": "x = 1, y = 4",
+      "output": "2"
+    },
+    {
+      "input": "x = 3, y = 1",
+      "output": "1"
+    },
+    {
+      "input": "x = 0, y = 0",
+      "output": "0"
+    },
+    {
+      "input": "x = 2147483647, y = 0",
+      "output": "31"
+    },
+    {
+      "input": "x = 7, y = 7",
+      "output": "0"
+    },
+    {
+      "input": "x = 5, y = 10",
+      "output": "4"
+    },
+    {
+      "input": "x = 8, y = 0",
+      "output": "1"
+    },
+    {
+      "input": "x = 1023, y = 512",
+      "output": "9"
+    },
+    {
+      "input": "x = 2147483647, y = 2147483646",
+      "output": "1"
+    },
+    {
+      "input": "x = 1431655765, y = 715827882",
+      "output": "31"
+    },
+    {
+      "input": "x = 16, y = 31",
+      "output": "4"
+    },
+    {
+      "input": "x = 1073741824, y = 1",
+      "output": "2"
+    }
   ]
 }

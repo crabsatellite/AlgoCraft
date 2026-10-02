@@ -1,9 +1,9 @@
 {
   "id": "377",
   "title": "Couples Holding Hands",
-  "description": "# Couples Holding Hands\n\nThere are `n` couples sitting in `2n` seats arranged in a row and want to hold hands.\n\nThe people and seats are represented by an integer array `row` where `row[i]` is the ID of the person sitting in the `i-th` seat. The couples are numbered in order of their first appearance in `row`. e.g. the first couple is `(0, 1)`, the second couple is `(2, 3)`, and so on with the last couple being `(2n - 2, 2n - 1)`.\n\nReturn the minimum number of swaps so that every couple is sitting side by side. A swap consists of choosing any two people, then they stand up and switch seats.\n\n## Example 1:\n\n**Input:** row = [0,2,1,3]\n**Output:** 1\n**Explanation:** We only need to swap the second (row[1]) and third (row[2]) person.\n\n## Example 2:\n\n**Input:** row = [3,2,0,1]\n**Output:** 0\n**Explanation:** All couples are already seated side by side.\n\n## Constraints:\n\n*   `2n == row.length`\n*   `2 <= n <= 30`\n*   `n` is even.\n*   `0 <= row[i] < 2n`\n*   All the elements of `row` are unique.",
+  "description": "# Couples Holding Hands\n\nThere are `n` couples sitting in `2n` seats arranged in a row. The people are represented by an integer array `row`, where `row[i]` is the ID of the person in seat `i`.\n\nPartners have fixed ids `(0,1)`, `(2,3)`, `(4,5)`, and so on. Seats are paired too: indices `(0,1)` form the first pair, `(2,3)` the second. Each seat pair must hold one couple, in either order.\n\nIn one move, you may choose any two people and swap their seats. Return the minimum number of swaps needed so that every couple sits side by side.\n\n## Example 1\n\n**Input:** row = [0,2,1,3]\n\n**Output:** 1\n\n**Explanation:** Person `0` should sit next to person `1`. Swap people `2` and `1`, producing `[0,1,2,3]`.\n\n## Example 2\n\n**Input:** row = [3,2,0,1]\n\n**Output:** 0\n\n**Explanation:** Couples `(2,3)` and `(0,1)` are already adjacent. The order inside each pair does not matter.\n\n## Constraints\n\n* `2 <= row.length <= 60`\n* `row.length` is even\n* `0 <= row[i] < row.length`\n* All values in `row` are unique",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int minSwapsCouples(int[] row) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int minSwapsCouples(int[] row) {\n        return 0;\n    }\n}",
   "tags": [
     "Greedy",
     "Depth-First Search",
@@ -23,37 +23,108 @@
   ],
   "solutions": [
     {
-      "name": "Greedy Swap",
+      "name": "Position-Array Greedy Swap",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "For each pair of seats (0,1), (2,3), ..., check if they form a couple. If not, find the partner and swap. Use a position array for O(1) partner lookup. Each swap fixes one couple.",
-      "code": "class Solution {\n    public int minSwapsCouples(int[] row) {\n        int n = row.length;\n        int[] pos = new int[n];\n        for (int i = 0; i < n; i++) pos[row[i]] = i;\n        int swaps = 0;\n        for (int i = 0; i < n; i += 2) {\n            int partner = row[i] ^ 1;\n            if (row[i + 1] != partner) {\n                int j = pos[partner];\n                pos[row[i + 1]] = j;\n                pos[partner] = i + 1;\n                int tmp = row[i + 1]; row[i + 1] = row[j]; row[j] = tmp;\n                swaps++;\n            }\n        }\n        return swaps;\n    }\n}",
+      "description": "## Approach\n\nProcess the sofas from left to right. For each sofa, keep the left person fixed, compute that person's partner with `first ^ 1`, and use a position array to find the partner's current seat. If the partner is not already on the right seat of this sofa, swap the current right person with the partner.\n\n## Key Insight\n\nOnce a sofa is fixed, later swaps never need to touch it again. Putting the correct partner beside the left person uses exactly one swap when the sofa is wrong, and no optimal solution can fix that sofa with fewer than one swap.\n\n## Complexity Analysis\n\nBuilding the position array takes O(n) time, and every sofa is processed once. Each swap and position update is O(1), so the total time is O(n). The position array uses O(n) space.",
+      "code": "class Solution {\n    public int minSwapsCouples(int[] row) {\n        int[] position = new int[row.length];\n        for (int i = 0; i < row.length; i++) {\n            position[row[i]] = i;\n        }\n\n        int swaps = 0;\n        for (int sofa = 0; sofa < row.length; sofa += 2) {\n            int first = row[sofa];\n            int partner = first ^ 1;\n            if (row[sofa + 1] == partner) {\n                continue;\n            }\n            int partnerIndex = position[partner];\n            swap(row, sofa + 1, partnerIndex, position);\n            swaps++;\n        }\n        return swaps;\n    }\n\n    private void swap(int[] row, int i, int j, int[] position) {\n        int a = row[i];\n        int b = row[j];\n        row[i] = b;\n        row[j] = a;\n        position[a] = j;\n        position[b] = i;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Union-Find Cycle Counting",
+      "name": "Union-Find on Couple IDs",
       "timeComplexity": "O(n * alpha(n))",
       "spaceComplexity": "O(n)",
-      "description": "Each pair of seats should hold a couple. Create a graph where each couple-group in seat pairs is a node. Union the couple-IDs sitting in each seat pair. The number of swaps equals the total number of couples minus the number of connected components.",
-      "code": "class Solution {\n    private int[] parent;\n    private int[] rank;\n    public int minSwapsCouples(int[] row) {\n        int n = row.length / 2;\n        parent = new int[n];\n        rank = new int[n];\n        for (int i = 0; i < n; i++) parent[i] = i;\n        int components = n;\n        for (int i = 0; i < row.length; i += 2) {\n            int c1 = row[i] / 2;\n            int c2 = row[i + 1] / 2;\n            if (find(c1) != find(c2)) {\n                union(c1, c2);\n                components--;\n            }\n        }\n        return n - components;\n    }\n    private int find(int x) {\n        while (parent[x] != x) {\n            parent[x] = parent[parent[x]];\n            x = parent[x];\n        }\n        return x;\n    }\n    private void union(int a, int b) {\n        int ra = find(a), rb = find(b);\n        if (ra == rb) return;\n        if (rank[ra] < rank[rb]) { parent[ra] = rb; }\n        else if (rank[ra] > rank[rb]) { parent[rb] = ra; }\n        else { parent[rb] = ra; rank[ra]++; }\n    }\n}",
+      "description": "## Approach\n\nTreat each couple ID, `person / 2`, as a node. Every sofa currently contains two people; union the two couple IDs represented on that sofa. If a connected component contains `s` couples, the sofas in that component are mixed together and need `s - 1` swaps.\n\n## Key Insight\n\nA swap inside one connected component can reduce that component's disorder by one couple. Components are independent, so the total answer is the number of couples minus the number of connected components.\n\n## Complexity Analysis\n\nThere are `n` sofas and therefore O(n) union operations. With path compression and union by size, the total time is O(n * alpha(n)), and the parent and size arrays use O(n) space.",
+      "code": "class Solution {\n    public int minSwapsCouples(int[] row) {\n        int couples = row.length / 2;\n        UnionFind uf = new UnionFind(couples);\n        int components = couples;\n\n        for (int sofa = 0; sofa < row.length; sofa += 2) {\n            int leftCouple = row[sofa] / 2;\n            int rightCouple = row[sofa + 1] / 2;\n            if (uf.union(leftCouple, rightCouple)) {\n                components--;\n            }\n        }\n        return couples - components;\n    }\n\n    private static final class UnionFind {\n        private final int[] parent;\n        private final int[] size;\n\n        UnionFind(int n) {\n            parent = new int[n];\n            size = new int[n];\n            for (int i = 0; i < n; i++) {\n                parent[i] = i;\n                size[i] = 1;\n            }\n        }\n\n        int find(int x) {\n            while (parent[x] != x) {\n                parent[x] = parent[parent[x]];\n                x = parent[x];\n            }\n            return x;\n        }\n\n        boolean union(int a, int b) {\n            int rootA = find(a);\n            int rootB = find(b);\n            if (rootA == rootB) {\n                return false;\n            }\n            if (size[rootA] < size[rootB]) {\n                int tmp = rootA;\n                rootA = rootB;\n                rootB = tmp;\n            }\n            parent[rootB] = rootA;\n            size[rootA] += size[rootB];\n            return true;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Couple Graph DFS Components",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nBuild an undirected graph whose nodes are couple IDs. For every sofa, connect the two couple IDs sitting on that sofa. Then run depth-first search over this graph. A component with `s` couple nodes contributes `s - 1` swaps.\n\n## Key Insight\n\nA connected component captures exactly the couples whose members are interleaved across the same group of sofas. No swap outside that component is useful, and each internal swap can permanently place one couple.\n\n## Complexity Analysis\n\nThe graph has `n` nodes and at most `2n` adjacency entries. Building it and running DFS are O(n) time. The adjacency lists, seen array, and recursion stack use O(n) space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minSwapsCouples(int[] row) {\n        int couples = row.length / 2;\n        List<List<Integer>> graph = new ArrayList<>();\n        for (int i = 0; i < couples; i++) {\n            graph.add(new ArrayList<>());\n        }\n\n        for (int sofa = 0; sofa < row.length; sofa += 2) {\n            int a = row[sofa] / 2;\n            int b = row[sofa + 1] / 2;\n            if (a != b) {\n                graph.get(a).add(b);\n                graph.get(b).add(a);\n            }\n        }\n\n        boolean[] seen = new boolean[couples];\n        int swaps = 0;\n        for (int couple = 0; couple < couples; couple++) {\n            if (!seen[couple]) {\n                int componentSize = dfs(couple, graph, seen);\n                swaps += componentSize - 1;\n            }\n        }\n        return swaps;\n    }\n\n    private int dfs(int couple, List<List<Integer>> graph, boolean[] seen) {\n        if (seen[couple]) {\n            return 0;\n        }\n        seen[couple] = true;\n        int size = 1;\n        for (int next : graph.get(couple)) {\n            size += dfs(next, graph, seen);\n        }\n        return size;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sofa Graph Union-Find",
+      "timeComplexity": "O(n * alpha(n))",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nInstead of making couples the nodes, make sofa indices the nodes. Scan every person and remember the first sofa where each couple appears. When the second member of that couple is found, union the two sofas containing that couple. The number of swaps is the number of sofas minus the number of sofa components.\n\n## Key Insight\n\nIf a couple is split across two sofas, those sofas belong to the same repair component. A component of `s` sofas can be solved in `s - 1` swaps, regardless of which couple is used to connect the sofas.\n\n## Complexity Analysis\n\nThe scan is O(n), with at most one union per couple. Union-find gives O(n * alpha(n)) total time. The first-sofa, parent, and size arrays use O(n) space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minSwapsCouples(int[] row) {\n        int sofas = row.length / 2;\n        int[] firstSofa = new int[sofas];\n        Arrays.fill(firstSofa, -1);\n        UnionFind uf = new UnionFind(sofas);\n        int components = sofas;\n\n        for (int seat = 0; seat < row.length; seat++) {\n            int couple = row[seat] / 2;\n            int sofa = seat / 2;\n            if (firstSofa[couple] == -1) {\n                firstSofa[couple] = sofa;\n            } else if (uf.union(firstSofa[couple], sofa)) {\n                components--;\n            }\n        }\n        return sofas - components;\n    }\n\n    private static final class UnionFind {\n        private final int[] parent;\n        private final int[] size;\n\n        UnionFind(int n) {\n            parent = new int[n];\n            size = new int[n];\n            for (int i = 0; i < n; i++) {\n                parent[i] = i;\n                size[i] = 1;\n            }\n        }\n\n        int find(int x) {\n            while (parent[x] != x) {\n                parent[x] = parent[parent[x]];\n                x = parent[x];\n            }\n            return x;\n        }\n\n        boolean union(int a, int b) {\n            int rootA = find(a);\n            int rootB = find(b);\n            if (rootA == rootB) {\n                return false;\n            }\n            if (size[rootA] < size[rootB]) {\n                int tmp = rootA;\n                rootA = rootB;\n                rootB = tmp;\n            }\n            parent[rootB] = rootA;\n            size[rootA] += size[rootB];\n            return true;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Compact BFS over Couple Cycles",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nThe couple graph has very small degree: every misplaced couple can touch at most two sofas. Store the graph in fixed two-slot neighbor arrays, then use a queue to breadth-first-search each component and add `componentSize - 1` to the answer.\n\n## Key Insight\n\nThis is the same component formula as the graph proof, but it avoids recursive DFS and avoids allocating many tiny adjacency lists. It is useful when teaching the cycle structure hidden inside the seating arrangement.\n\n## Complexity Analysis\n\nEach sofa contributes at most two directed neighbor entries, and each couple is enqueued once. Time is O(n), and the fixed neighbor arrays plus queue use O(n) space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minSwapsCouples(int[] row) {\n        int couples = row.length / 2;\n        int[][] neighbors = new int[couples][2];\n        int[] degree = new int[couples];\n        for (int[] pair : neighbors) {\n            Arrays.fill(pair, -1);\n        }\n\n        for (int sofa = 0; sofa < row.length; sofa += 2) {\n            int a = row[sofa] / 2;\n            int b = row[sofa + 1] / 2;\n            if (a != b) {\n                neighbors[a][degree[a]++] = b;\n                neighbors[b][degree[b]++] = a;\n            }\n        }\n\n        boolean[] seen = new boolean[couples];\n        ArrayDeque<Integer> queue = new ArrayDeque<>();\n        int swaps = 0;\n        for (int start = 0; start < couples; start++) {\n            if (seen[start]) {\n                continue;\n            }\n            seen[start] = true;\n            queue.add(start);\n            int componentSize = 0;\n            while (!queue.isEmpty()) {\n                int current = queue.remove();\n                componentSize++;\n                for (int i = 0; i < degree[current]; i++) {\n                    int next = neighbors[current][i];\n                    if (!seen[next]) {\n                        seen[next] = true;\n                        queue.add(next);\n                    }\n                }\n            }\n            swaps += componentSize - 1;\n        }\n        return swaps;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "row = [0,2,1,3]",
-      "output": "1"
+      "output": "1",
+      "description": "canonical one swap"
     },
     {
       "input": "row = [3,2,0,1]",
-      "output": "0"
+      "output": "0",
+      "description": "both couples already adjacent in reversed sofa order"
+    },
+    {
+      "input": "row = [1,0]",
+      "output": "0",
+      "description": "single couple can sit in either order"
+    },
+    {
+      "input": "row = [0,1,2,3]",
+      "output": "0",
+      "description": "natural order is already solved"
+    },
+    {
+      "input": "row = [0,3,2,1]",
+      "output": "1",
+      "description": "one crossed pair among two couples"
+    },
+    {
+      "input": "row = [3,1,4,0,2,5]",
+      "output": "2",
+      "description": "three-couple component needs two swaps"
+    },
+    {
+      "input": "row = [0,2,4,6,1,3,5,7]",
+      "output": "2",
+      "description": "four couples split into two repair components"
+    },
+    {
+      "input": "row = [5,4,2,6,3,1,0,7]",
+      "output": "2",
+      "description": "one solved sofa plus a three-couple component"
+    },
+    {
+      "input": "row = [0,3,2,5,4,7,6,1]",
+      "output": "3",
+      "description": "single four-couple cycle"
+    },
+    {
+      "input": "row = [10,0,2,11,4,1,6,3,8,5,7,9]",
+      "output": "5",
+      "description": "six-couple cycle in shuffled label order"
+    },
+    {
+      "input": "row = [0,3,2,5,4,7,6,9,8,11,10,13,12,15,14,17,16,19,18,21,20,23,22,25,24,27,26,29,28,31,30,33,32,35,34,37,36,39,38,41,40,43,42,45,44,47,46,49,48,51,50,53,52,55,54,57,56,59,58,1]",
+      "output": "29",
+      "description": "maximum-size single cycle at the row length boundary"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p377_example1.png",
-      "caption": "Seat arrangement [0,2,1,3]"
+      "caption": "Example row [0,2,1,3] before the swap"
     }
   ]
 }

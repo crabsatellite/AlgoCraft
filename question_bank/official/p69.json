@@ -1,12 +1,13 @@
 {
   "id": "69",
   "title": "Copy List with Random Pointer",
-  "description": "# Copy List with Random Pointer\n\nA linked list of length `n` is given such that each node contains an additional random pointer, which could point to any node in the list, or `null`.\n\nConstruct a [deep copy](https://en.wikipedia.org/wiki/Object_copying#Deep_copy) of the list. The deep copy should consist of exactly `n` **brand new** nodes, where each new node has its value set to the value of its corresponding original node. Both the `next` and `random` pointer of the new nodes should point to new nodes in the copied list such that the pointers in the original list and copied list represent the same list state. **None of the pointers in the new list should point to nodes in the original list**.\n\nFor example, if there are two nodes `X` and `Y` in the original list, where `X.random --> Y`, then for the corresponding two nodes `x` and `y` in the copied list, `x.random --> y`.\n\nReturn *the head of the copied linked list*.\n\nThe linked list is represented in the input/output as a list of `n` nodes. Each node is represented as a pair of `[val, random_index]` where:\n\n*   `val`: an integer representing `Node.val`\n*   `random_index`: the index of the node (range `0` to `n-1`) that the `random` pointer points to, or `null` if it does not point to any node.\n\nYour code will only be given the `head` of the original linked list.\n\n## Example 1:\n\n**Input:** head = [[7,null],[13,0],[11,4],[10,2],[1,0]]\n**Output:** [[7,null],[13,0],[11,4],[10,2],[1,0]]\n\n## Example 2:\n\n**Input:** head = [[1,1],[2,1]]\n**Output:** [[1,1],[2,1]]\n\n## Example 3:\n\n**Input:** head = [[3,null],[3,0],[3,null]]\n**Output:** [[3,null],[3,0],[3,null]]\n\n## Constraints:\n\n*   `0 <= n <= 1000`\n*   `-10^4 <= Node.val <= 10^4`\n*   `Node.random` is `null` or is pointing to some node in the linked list.",
+  "description": "# Copy List with Random Pointer\n\nA linked list of length `n` is given. Each node contains `val`, `next`, and an additional `random` pointer. The `random` pointer can point to any node in the list, including the node itself, or it can be `null`.\n\nConstruct a **deep copy** of the list. The copied list must contain exactly `n` brand new nodes. Each copied node must have the same value as its corresponding original node, and its `next` and `random` pointers must point only to copied nodes in the new list. No pointer in the copied list may point back into the original list.\n\nFor example, if original node `X.random` points to original node `Y`, then copied node `x.random` must point to copied node `y`, not to `Y`.\n\nReturn the head of the copied linked list.\n\nThe input and output use a serialized form only for testing. Each node is represented as `[val, random_index]`, where `random_index` is the zero-based index of the node referenced by `random`, or `null` when the random pointer is empty. Your code receives only `head`, not the serialized array.\n\n## Example 1:\n\n**Input:** head = [[7,null],[13,0],[11,4],[10,2],[1,0]]\n**Output:** [[7,null],[13,0],[11,4],[10,2],[1,0]]\n\n## Example 2:\n\n**Input:** head = [[1,1],[2,1]]\n**Output:** [[1,1],[2,1]]\n\n## Example 3:\n\n**Input:** head = [[3,null],[3,0],[3,null]]\n**Output:** [[3,null],[3,0],[3,null]]\n\n## Constraints:\n\n*   `0 <= n <= 1000`\n*   `-10^4 <= Node.val <= 10^4`\n*   `Node.random` is `null` or points to a node in the linked list.",
   "difficulty": "MEDIUM",
   "initialCode": "/*\n// Definition for a Node.\nclass Node {\n    int val;\n    Node next;\n    Node random;\n\n    public Node(int val) {\n        this.val = val;\n        this.next = null;\n        this.random = null;\n    }\n}\n*/\n\nclass Solution {\n    public Node copyRandomList(Node head) {\n        // Write your code here\n        return null;\n    }\n}",
   "tags": [
     "Hash Table",
-    "Linked List"
+    "Linked List",
+    "Recursion"
   ],
   "examples": [
     {
@@ -25,46 +26,96 @@
   "tests": [
     {
       "input": "head = [[7,null],[13,0],[11,4],[10,2],[1,0]]",
-      "output": "[[7,null],[13,0],[11,4],[10,2],[1,0]]"
+      "output": "[[7,null],[13,0],[11,4],[10,2],[1,0]]",
+      "description": "Canonical list with mixed random pointers"
     },
     {
       "input": "head = [[1,1],[2,1]]",
-      "output": "[[1,1],[2,1]]"
+      "output": "[[1,1],[2,1]]",
+      "description": "Two nodes with both random pointers targeting the second node"
     },
     {
       "input": "head = [[3,null],[3,0],[3,null]]",
-      "output": "[[3,null],[3,0],[3,null]]"
+      "output": "[[3,null],[3,0],[3,null]]",
+      "description": "Duplicate values with a backward random pointer"
     },
     {
       "input": "head = []",
-      "output": "[]"
+      "output": "[]",
+      "description": "Empty list"
     },
     {
       "input": "head = [[1,0]]",
       "output": "[[1,0]]",
-      "note": "单节点random指向自己"
+      "description": "Single node random points to itself"
     },
     {
       "input": "head = [[5,null]]",
       "output": "[[5,null]]",
-      "note": "单节点random为null"
+      "description": "Single node random is null"
+    },
+    {
+      "input": "head = [[1,null],[2,0]]",
+      "output": "[[1,null],[2,0]]",
+      "description": "Two nodes with null then backward random pointer"
+    },
+    {
+      "input": "head = [[1,null],[2,null],[3,null]]",
+      "output": "[[1,null],[2,null],[3,null]]",
+      "description": "All random pointers are null"
+    },
+    {
+      "input": "head = [[1,2],[2,0],[3,1]]",
+      "output": "[[1,2],[2,0],[3,1]]",
+      "description": "Random pointers form a cycle independent of next pointers"
+    },
+    {
+      "input": "head = [[-10000,1],[10000,0]]",
+      "output": "[[-10000,1],[10000,0]]",
+      "description": "Boundary values with cross random pointers"
+    },
+    {
+      "input": "head = [[5,2],[6,null],[7,0],[8,2]]",
+      "output": "[[5,2],[6,null],[7,0],[8,2]]",
+      "description": "Forward, backward, null, and self-like repeated target patterns"
+    },
+    {
+      "input": "head = [[1,0],[2,1],[3,2]]",
+      "output": "[[1,0],[2,1],[3,2]]",
+      "description": "Every random pointer points to its own node"
     }
   ],
   "solutions": [
     {
-      "name": "HashMap",
+      "name": "Two-Pass HashMap",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use a HashMap to map each original node to its copy. First pass: create all new nodes. Second pass: set next and random pointers using the map.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public Node copyRandomList(Node head) {\n        if (head == null) return null;\n        \n        Map<Node, Node> map = new HashMap<>();\n        \n        // First pass: create all nodes\n        Node curr = head;\n        while (curr != null) {\n            map.put(curr, new Node(curr.val));\n            curr = curr.next;\n        }\n        \n        // Second pass: set next and random pointers\n        curr = head;\n        while (curr != null) {\n            map.get(curr).next = map.get(curr.next);\n            map.get(curr).random = map.get(curr.random);\n            curr = curr.next;\n        }\n        \n        return map.get(head);\n    }\n}",
+      "description": "## Approach\n\nUse a map from each original node to its copied node. The first pass creates all copied nodes. The second pass fills each copied node's `next` and `random` pointers by looking up the copies of the original neighbors.\n\n## Key Insight\n\nRandom pointers can point forward, backward, to self, or to `null`, so the copy of a target node must be found by identity rather than by value. A map preserves that original-to-copy correspondence.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public Node copyRandomList(Node head) {\n        if (head == null) {\n            return null;\n        }\n\n        Map<Node, Node> copies = new HashMap<>();\n        Node curr = head;\n        while (curr != null) {\n            copies.put(curr, new Node(curr.val));\n            curr = curr.next;\n        }\n\n        curr = head;\n        while (curr != null) {\n            Node copy = copies.get(curr);\n            copy.next = copies.get(curr.next);\n            copy.random = copies.get(curr.random);\n            curr = curr.next;\n        }\n\n        return copies.get(head);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Interleave Nodes - O(1) Space",
+      "name": "Interleaved Nodes O(1) Extra Space",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Three passes without extra space: (1) Insert each copy node right after its original. (2) Set random pointers for copy nodes. (3) Separate the two interleaved lists.",
-      "code": "class Solution {\n    public Node copyRandomList(Node head) {\n        if (head == null) return null;\n        \n        // Step 1: Insert copy nodes A -> A' -> B -> B' -> ...\n        Node curr = head;\n        while (curr != null) {\n            Node copy = new Node(curr.val);\n            copy.next = curr.next;\n            curr.next = copy;\n            curr = copy.next;\n        }\n        \n        // Step 2: Set random pointers for copy nodes\n        curr = head;\n        while (curr != null) {\n            if (curr.random != null) {\n                curr.next.random = curr.random.next;\n            }\n            curr = curr.next.next;\n        }\n        \n        // Step 3: Separate the two lists\n        Node dummy = new Node(0);\n        Node copyTail = dummy;\n        curr = head;\n        while (curr != null) {\n            copyTail.next = curr.next;\n            copyTail = copyTail.next;\n            curr.next = curr.next.next;\n            curr = curr.next;\n        }\n        \n        return dummy.next;\n    }\n}",
+      "description": "## Approach\n\nInsert each copied node immediately after its original node, making `A -> A' -> B -> B'`. Then set `A'.random` to `A.random.next`, because every original node's copy is next to it. Finally detach the copied nodes while restoring the original list.\n\n## Key Insight\n\nBy weaving copies into the original list, the original-to-copy mapping is encoded in the list structure itself. That removes the need for an external HashMap while still keeping all copied pointers inside the copied list.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public Node copyRandomList(Node head) {\n        if (head == null) {\n            return null;\n        }\n\n        Node curr = head;\n        while (curr != null) {\n            Node copy = new Node(curr.val);\n            copy.next = curr.next;\n            curr.next = copy;\n            curr = copy.next;\n        }\n\n        curr = head;\n        while (curr != null) {\n            if (curr.random != null) {\n                curr.next.random = curr.random.next;\n            }\n            curr = curr.next.next;\n        }\n\n        Node dummy = new Node(0);\n        Node copyTail = dummy;\n        curr = head;\n        while (curr != null) {\n            Node copy = curr.next;\n            Node nextOriginal = copy.next;\n            copyTail.next = copy;\n            copyTail = copy;\n            curr.next = nextOriginal;\n            curr = nextOriginal;\n        }\n        return dummy.next;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive DFS with Memoization",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nTreat `next` and `random` as graph edges. Recursively clone a node, store it in a memo map before cloning neighbors, then recursively assign the copied `next` and `random` pointers.\n\n## Key Insight\n\nStoring the copy before following edges prevents infinite recursion when random pointers point backward, point to self, or form cycles. Every original node is cloned once and reused through the memo map.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private Map<Node, Node> seen = new HashMap<>();\n\n    public Node copyRandomList(Node head) {\n        return clone(head);\n    }\n\n    private Node clone(Node node) {\n        if (node == null) {\n            return null;\n        }\n        if (seen.containsKey(node)) {\n            return seen.get(node);\n        }\n        Node copy = new Node(node.val);\n        seen.put(node, copy);\n        copy.next = clone(node.next);\n        copy.random = clone(node.random);\n        return copy;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "One-Pass Lazy HashMap",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nWalk the `next` chain once. Whenever the current node, its `next`, or its `random` target needs a copy, create that copy lazily with a helper. Then wire the current copy to the copied neighbors.\n\n## Key Insight\n\nA random pointer may reference a node that has not been reached by `next` traversal yet. Lazy creation lets the algorithm create a placeholder copy immediately and fill its own outgoing pointers later when traversal reaches that original node.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public Node copyRandomList(Node head) {\n        Map<Node, Node> copies = new HashMap<>();\n        Node curr = head;\n        while (curr != null) {\n            Node copy = getCopy(curr, copies);\n            copy.next = getCopy(curr.next, copies);\n            copy.random = getCopy(curr.random, copies);\n            curr = curr.next;\n        }\n        return getCopy(head, copies);\n    }\n\n    private Node getCopy(Node node, Map<Node, Node> copies) {\n        if (node == null) {\n            return null;\n        }\n        Node copy = copies.get(node);\n        if (copy == null) {\n            copy = new Node(node.val);\n            copies.put(node, copy);\n        }\n        return copy;\n    }\n}",
       "language": "java"
     }
   ],
@@ -72,7 +123,7 @@
     {
       "id": "example1",
       "file": "p69_example1.png",
-      "caption": "Example 1: Linked List with Random Pointers"
+      "caption": "Example 1: next links run left to right; the table gives each random target by node index, with null for no target"
     }
   ]
 }

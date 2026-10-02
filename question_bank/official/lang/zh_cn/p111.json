@@ -1,0 +1,28 @@
+{
+  "title": "设计 Twitter",
+  "description": "# 设计 Twitter\n\n设计一个简化版 Twitter 服务。用户可以发布推文、关注或取关其他用户，并请求一个新闻动态，返回最多 10 条最近可见的推文 ID。\n\n实现 `Twitter` 类：\n\n* `Twitter()` 初始化对象。\n* `void postTweet(int userId, int tweetId)` 用户 `userId` 发布一条 ID 为 `tweetId` 的新推文。测试数据中的每个 `tweetId` 都是唯一的。\n* `List<Integer> getNewsFeed(int userId)` 返回 `userId` 当前可见的最多 10 条推文 ID，按从新到旧排序。可见推文必须由 `userId` 自己发布，或者由 `userId` 当前关注的用户发布。\n* `void follow(int followerId, int followeeId)` 让 `followerId` 关注 `followeeId`。重复关注同一个用户没有额外效果。\n* `void unfollow(int followerId, int followeeId)` 让 `followerId` 停止关注 `followeeId`。取关一个当前并未关注的用户没有效果。\n\n用户始终能看到自己的推文。如果 `followerId == followeeId`，`follow` 和 `unfollow` 都不做任何事。\n\n操作示例中，第一组数组是操作名，第二组是对应参数，按同一下标配对并从左到右执行。第一项创建对象，之后都操作同一个对象。输出数组也逐项对应：构造和没有返回值的方法写作 `null`；`[]` 作为参数表示无参数调用。\n\n## 示例 1\n\n**输入**\n[\"Twitter\", \"postTweet\", \"getNewsFeed\", \"follow\", \"postTweet\", \"getNewsFeed\", \"unfollow\", \"getNewsFeed\"]\n[[], [1, 5], [1], [1, 2], [2, 6], [1], [1, 2], [1]]\n\n**输出**\n[null, null, [5], null, null, [6, 5], null, [5]]\n\n**解释**\nTwitter twitter = new Twitter();\ntwitter.postTweet(1, 5); // 用户 1 发布推文 5。\ntwitter.getNewsFeed(1);  // 用户 1 能看到自己的推文：[5]。\ntwitter.follow(1, 2);    // 用户 1 关注用户 2。\ntwitter.postTweet(2, 6); // 用户 2 发布推文 6。\ntwitter.getNewsFeed(1);  // 用户 1 先看到用户 2 更新的推文，再看到自己的推文：[6, 5]。\ntwitter.unfollow(1, 2);  // 用户 1 取关用户 2。\ntwitter.getNewsFeed(1);  // 用户 1 不再看到用户 2 的推文：[5]。\n\n## 约束\n\n* `1 <= userId, followerId, followeeId <= 500`\n* `0 <= tweetId <= 10^4`\n* 所有推文 ID 都互不相同。\n* 最多调用 `postTweet`、`getNewsFeed`、`follow` 和 `unfollow` 共 `3 * 10^4` 次。",
+  "solutions": [
+    {
+      "name": "可见推文上的固定大小最小堆",
+      "description": "## 思路\n\n用哈希表保存每个用户的推文列表和关注集合。查询动态时扫描自己和当前关注用户的推文，只在最小堆中保留最新的 10 条候选推文，最后把这 10 条按时间从新到旧输出。\n\n## 关键点\n\n动态最多返回 10 条，所以堆不应该无限增长。关注集合可以自然去掉重复关注，自关注被忽略，自己的推文也就不会重复出现。\n\n## 复杂度分析\n\n- 时间复杂度：`getNewsFeed` 为 O(M log 10)，其中 M 是被扫描的可见推文数；其他操作平均 O(1)。\n- 空间复杂度：O(T + F)，另有 O(10) 的查询临时空间。"
+    },
+    {
+      "name": "每个用户一条推文链表并做 k 路归并",
+      "description": "## 思路\n\n每个用户的推文按最新在前保存为链表。查询动态时，把自己和每个关注用户的链表头放进最大堆；每取出一条最新推文，就把同一条链表上的下一条推文放回堆。\n\n## 关键点\n\n每个用户自己的推文链表已经按时间有序，因此动态查询就是多条有序链表的 k 路归并。这样只访问可能进入前 10 的候选，而不必扫描所有旧推文。\n\n## 复杂度分析\n\n- 时间复杂度：`getNewsFeed` 为 O(10 log U)，其中 U 是关注用户数加自己；其他操作平均 O(1)。\n- 空间复杂度：O(T + F)，查询时额外使用 O(U) 的堆。"
+    },
+    {
+      "name": "全局时间线倒序扫描",
+      "description": "## 思路\n\n把所有推文追加到一条全局时间线里，同时维护每个用户当前关注的人。查询动态时从时间线尾部向前扫描，遇到自己或当前关注用户发布的推文就收集，直到得到 10 条。\n\n## 关键点\n\n倒序扫描是最直接的正确性基线：可见性由当前关注集合决定，而从时间线尾部开始天然保证从新到旧。它较慢，但很适合先讲清题目语义。\n\n## 复杂度分析\n\n- 时间复杂度：`getNewsFeed` 为 O(T)，其中 T 是总推文数；其他操作平均 O(1)。\n- 空间复杂度：O(T + F)。"
+    },
+    {
+      "name": "写入时分发的动态缓存",
+      "description": "## 思路\n\n为每个用户维护一个最多 10 条的动态缓存。有人发推时，把这条推文推入作者自己的缓存，也推入所有粉丝的缓存。关注或取关改变可见范围时，只重建该用户自己的 10 条缓存。\n\n## 关键点\n\n这条路线展示了社交动态系统中读时计算和写时分发的取舍：读取很快，但关注关系变化时必须重建，保证关注后能看到历史推文、取关后旧推文和未来推文都不可见。\n\n## 复杂度分析\n\n- 时间复杂度：`postTweet` 与粉丝数成正比，`follow/unfollow` 重建时扫描最近时间线，`getNewsFeed` 为 O(10)。\n- 空间复杂度：O(T + F + 10U)，其中 U 是拥有缓存的用户数。"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "design",
+      "caption": "示例 1 中用户 1 关注用户 2、用户 2 发布推文 6 后：用户 1 的动态为 [6,5]，新推文在前"
+    }
+  ]
+}

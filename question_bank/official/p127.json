@@ -1,9 +1,9 @@
 {
   "id": "127",
   "title": "Partition to K Equal Sum Subsets",
-  "description": "# Partition to K Equal Sum Subsets\n\nGiven an integer array `nums` and an integer `k`, return `true` if it is possible to divide this array into `k` non-empty subsets whose sums are all equal.\n\n## Example 1:\n\n**Input:** nums = [4,3,2,3,5,2,1], k = 4\n**Output:** true\n**Explanation:** It is possible to divide it into 4 subsets (5), (1, 4), (2,3), (2,3) with equal sums.\n\n## Example 2:\n\n**Input:** nums = [1,2,3,4], k = 3\n**Output:** false\n\n## Constraints:\n\n*   `1 <= k <= nums.length <= 16`\n*   `1 <= nums[i] <= 10^4`\n*   The frequency of each element is in the range `[1, 4]`.",
+  "description": "# Partition to K Equal Sum Subsets\n\nGiven an integer array `nums` and an integer `k`, return `true` if it is possible to split every element of `nums` into exactly `k` non-empty subsets whose sums are all equal.\n\nEvery element must belong to exactly one subset. Subsets need not be contiguous; do not omit or reuse elements.\n\n## Example 1:\n\n**Input:** nums = [4,3,2,3,5,2,1], k = 4\n**Output:** true\n**Explanation:** One valid partition is `[5]`, `[1,4]`, `[2,3]`, and `[2,3]`. Each subset sums to `5`.\n\n## Example 2:\n\n**Input:** nums = [1,2,3,4], k = 3\n**Output:** false\n**Explanation:** The total sum is `10`, which is not divisible by `3`.\n\n## Constraints:\n\n* `1 <= k <= nums.length <= 16`\n* `1 <= nums[i] <= 10^4`\n* The frequency of each element is in the range `[1, 4]`.",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public boolean canPartitionKSubsets(int[] nums, int k) {\n        // Write your code here\n        return false;\n    }\n}",
+  "initialCode": "import java.util.*;\n\nclass Solution {\n    public boolean canPartitionKSubsets(int[] nums, int k) {\n        // Write your code here\n        return false;\n    }\n}",
   "tags": [
     "Array",
     "Dynamic Programming",
@@ -13,31 +13,84 @@
     "Bitmask"
   ],
   "examples": [
-    { "input": "nums = [4,3,2,3,5,2,1], k = 4", "output": "true" },
-    { "input": "nums = [1,2,3,4], k = 3", "output": "false" }
+    {
+      "input": "nums = [4,3,2,3,5,2,1], k = 4",
+      "output": "true"
+    },
+    {
+      "input": "nums = [1,2,3,4], k = 3",
+      "output": "false"
+    }
   ],
   "solutions": [
     {
-      "name": "Backtracking with Sorting",
-      "timeComplexity": "O(k * 2^n)",
-      "spaceComplexity": "O(n)",
-      "description": "Compute target = totalSum/k. Sort descending to prune early. Try to fill k buckets one at a time. For each bucket, pick unused elements. Skip duplicates and prune when sum exceeds target.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean canPartitionKSubsets(int[] nums, int k) {\n        int sum = 0;\n        for (int n : nums) sum += n;\n        if (sum % k != 0) return false;\n        int target = sum / k;\n        Arrays.sort(nums);\n        if (nums[nums.length - 1] > target) return false;\n        boolean[] used = new boolean[nums.length];\n        return backtrack(nums, used, k, 0, 0, target);\n    }\n\n    private boolean backtrack(int[] nums, boolean[] used, int k, int start, int curSum, int target) {\n        if (k == 0) return true;\n        if (curSum == target) return backtrack(nums, used, k - 1, 0, 0, target);\n        for (int i = start; i < nums.length; i++) {\n            if (used[i] || curSum + nums[i] > target) continue;\n            if (i > 0 && nums[i] == nums[i - 1] && !used[i - 1]) continue;\n            used[i] = true;\n            if (backtrack(nums, used, k, i + 1, curSum + nums[i], target)) return true;\n            used[i] = false;\n        }\n        return false;\n    }\n}",
+      "name": "Bucket Sums with Symmetry Pruning",
+      "timeComplexity": "O(k^n)",
+      "spaceComplexity": "O(k + n)",
+      "description": "## Approach\n\nFirst compute the total sum. If it is not divisible by `k`, no equal partition is possible. Sort the array so larger numbers are placed first, then recursively assign the next number to one of the `k` bucket sums without exceeding the target. At each recursion level, skip buckets that currently have the same sum because placing the number into either bucket would create equivalent states.\n\n## Key Insight\n\nThe subsets have no labels. Two empty buckets, or two buckets with the same current sum, are interchangeable. Symmetry pruning is what keeps direct bucket assignment from repeating the same search under different bucket names.\n\n## Complexity Analysis\n- Time Complexity: O(k^n) in the worst case because each element may try several buckets\n- Space Complexity: O(k + n), for bucket sums plus recursion depth",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean canPartitionKSubsets(int[] nums, int k) {\n        int total = 0;\n        for (int num : nums) {\n            total += num;\n        }\n        if (total % k != 0) {\n            return false;\n        }\n\n        int target = total / k;\n        Arrays.sort(nums);\n        if (nums[nums.length - 1] > target) {\n            return false;\n        }\n\n        int[] buckets = new int[k];\n        return place(nums, nums.length - 1, buckets, target);\n    }\n\n    private boolean place(int[] nums, int index, int[] buckets, int target) {\n        if (index < 0) {\n            return true;\n        }\n\n        int value = nums[index];\n        Set<Integer> triedSums = new HashSet<>();\n        for (int bucket = 0; bucket < buckets.length; bucket++) {\n            if (buckets[bucket] + value > target) {\n                continue;\n            }\n            if (!triedSums.add(buckets[bucket])) {\n                continue;\n            }\n\n            buckets[bucket] += value;\n            if (place(nums, index - 1, buckets, target)) {\n                return true;\n            }\n            buckets[bucket] -= value;\n\n            if (buckets[bucket] == 0) {\n                break;\n            }\n        }\n        return false;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Bitmask DP",
+      "name": "Build One Target Subset at a Time",
+      "timeComplexity": "O(k * 2^n * n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort the numbers and repeatedly build one subset whose sum is the target. A `used` array marks numbers that already belong to completed subsets. When the current subset reaches the target, start building the next subset from the largest unused number. Duplicate values and failed empty-subset starts are skipped to avoid equivalent branches.\n\n## Key Insight\n\nInstead of assigning every number to a named bucket, this route treats all completed buckets as identical and only searches for the next target-sum subset. When only one bucket remains, the remaining numbers must sum to the target, so the recursion can return true immediately.\n\n## Complexity Analysis\n- Time Complexity: O(k * 2^n * n) in the worst case, because many unused masks may be explored while forming each target subset\n- Space Complexity: O(n), for the `used` array and recursion depth",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean canPartitionKSubsets(int[] nums, int k) {\n        int total = 0;\n        for (int num : nums) {\n            total += num;\n        }\n        if (total % k != 0) {\n            return false;\n        }\n\n        int target = total / k;\n        Arrays.sort(nums);\n        if (nums[nums.length - 1] > target) {\n            return false;\n        }\n\n        boolean[] used = new boolean[nums.length];\n        return fill(nums, used, k, nums.length - 1, 0, target);\n    }\n\n    private boolean fill(int[] nums, boolean[] used, int bucketsLeft, int start, int currentSum, int target) {\n        if (bucketsLeft == 1) {\n            return true;\n        }\n        if (currentSum == target) {\n            return fill(nums, used, bucketsLeft - 1, nums.length - 1, 0, target);\n        }\n\n        int previous = -1;\n        for (int i = start; i >= 0; i--) {\n            if (used[i] || nums[i] == previous || currentSum + nums[i] > target) {\n                continue;\n            }\n\n            used[i] = true;\n            if (fill(nums, used, bucketsLeft, i - 1, currentSum + nums[i], target)) {\n                return true;\n            }\n            used[i] = false;\n            previous = nums[i];\n\n            if (currentSum == 0) {\n                break;\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bottom-Up Bitmask DP",
       "timeComplexity": "O(n * 2^n)",
       "spaceComplexity": "O(2^n)",
-      "description": "Use bitmask to represent which elements have been used. dp[mask] stores the current sum mod target for the subset represented by mask. If adding an element stays within target, transition to the new mask.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean canPartitionKSubsets(int[] nums, int k) {\n        int sum = 0;\n        for (int n : nums) sum += n;\n        if (sum % k != 0) return false;\n        int target = sum / k;\n        for (int n : nums) if (n > target) return false;\n        int total = 1 << nums.length;\n        int[] dp = new int[total];\n        Arrays.fill(dp, -1);\n        dp[0] = 0;\n        for (int mask = 0; mask < total; mask++) {\n            if (dp[mask] == -1) continue;\n            for (int i = 0; i < nums.length; i++) {\n                if ((mask & (1 << i)) != 0) continue;\n                int nextMask = mask | (1 << i);\n                if (dp[nextMask] != -1) continue;\n                int newSum = dp[mask] + nums[i];\n                if (newSum <= target) {\n                    dp[nextMask] = newSum % target;\n                }\n            }\n        }\n        return dp[total - 1] == 0;\n    }\n}",
+      "description": "## Approach\n\nRepresent the set of already used numbers with a bit mask. `dp[mask]` stores the current partial bucket sum modulo the target for reachable masks, or `-1` when the mask is unreachable. From each reachable mask, try adding one unused number if it does not overflow the current bucket.\n\n## Key Insight\n\nThe modulo value is enough state: whenever the partial sum becomes `0`, one bucket has just been completed. If the full mask is reachable with modulo `0`, then all numbers can be arranged into complete target-sum buckets.\n\n## Complexity Analysis\n- Time Complexity: O(n * 2^n), because each mask tries up to `n` next elements\n- Space Complexity: O(2^n), for the reachable-mask table",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean canPartitionKSubsets(int[] nums, int k) {\n        int total = 0;\n        for (int num : nums) {\n            total += num;\n        }\n        if (total % k != 0) {\n            return false;\n        }\n\n        int target = total / k;\n        for (int num : nums) {\n            if (num > target) {\n                return false;\n            }\n        }\n\n        int totalMasks = 1 << nums.length;\n        int[] dp = new int[totalMasks];\n        Arrays.fill(dp, -1);\n        dp[0] = 0;\n\n        for (int mask = 0; mask < totalMasks; mask++) {\n            if (dp[mask] == -1) {\n                continue;\n            }\n            for (int i = 0; i < nums.length; i++) {\n                if ((mask & (1 << i)) != 0) {\n                    continue;\n                }\n                int nextSum = dp[mask] + nums[i];\n                if (nextSum > target) {\n                    continue;\n                }\n                int nextMask = mask | (1 << i);\n                if (dp[nextMask] == -1) {\n                    dp[nextMask] = nextSum % target;\n                }\n            }\n        }\n\n        return dp[totalMasks - 1] == 0;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Memoized Remaining Mask",
+      "timeComplexity": "O(n * 2^n)",
+      "spaceComplexity": "O(2^n)",
+      "description": "## Approach\n\nUse a mask of unused numbers and recursively choose one number to add to the current bucket. The current bucket sum is carried modulo the target. Failed states are memoized by `unusedMask` when starting a new bucket, which is the point where bucket identities no longer matter.\n\n## Key Insight\n\nA remaining mask fully describes the future search whenever the current bucket is empty. Memoizing those boundary states prevents the algorithm from rebuilding the same set of remaining buckets through different earlier choices.\n\n## Complexity Analysis\n- Time Complexity: O(n * 2^n), because each remaining mask may scan the available bits\n- Space Complexity: O(2^n), for memoized masks plus recursion depth",
+      "code": "import java.util.*;\n\nclass Solution {\n    private int[] nums;\n    private int target;\n    private Map<Integer, Boolean> memo;\n\n    public boolean canPartitionKSubsets(int[] nums, int k) {\n        int total = 0;\n        for (int num : nums) {\n            total += num;\n        }\n        if (total % k != 0) {\n            return false;\n        }\n\n        this.target = total / k;\n        for (int num : nums) {\n            if (num > target) {\n                return false;\n            }\n        }\n        this.nums = nums;\n        this.memo = new HashMap<>();\n        return search((1 << nums.length) - 1, 0);\n    }\n\n    private boolean search(int unusedMask, int currentSum) {\n        if (unusedMask == 0) {\n            return currentSum == 0;\n        }\n        if (currentSum == 0 && memo.containsKey(unusedMask)) {\n            return memo.get(unusedMask);\n        }\n\n        int remaining = unusedMask;\n        while (remaining != 0) {\n            int bit = remaining & -remaining;\n            int index = Integer.numberOfTrailingZeros(bit);\n            int nextSum = currentSum + nums[index];\n            if (nextSum <= target && search(unusedMask ^ bit, nextSum % target)) {\n                if (currentSum == 0) {\n                    memo.put(unusedMask, true);\n                }\n                return true;\n            }\n            remaining -= bit;\n        }\n\n        if (currentSum == 0) {\n            memo.put(unusedMask, false);\n        }\n        return false;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [4,3,2,3,5,2,1], k = 4", "output": "true" },
-    { "input": "nums = [1,2,3,4], k = 3", "output": "false" },
-    { "input": "nums = [2,2,2,2,3,4,5], k = 4", "output": "false" },
-    { "input": "nums = [1,1,1,1], k = 4", "output": "true" }
+    {
+      "input": "nums = [4,3,2,3,5,2,1], k = 4",
+      "output": "true",
+      "description": "Canonical true case can fill four subsets with target sum 5."
+    },
+    {
+      "input": "nums = [1,2,3,4], k = 3",
+      "output": "false",
+      "description": "The total sum is not divisible by k."
+    },
+    {
+      "input": "nums = [2,2,2,2,3,4,5], k = 4",
+      "output": "false",
+      "description": "The total is divisible by k, but the values cannot fill four target-sum buckets."
+    },
+    {
+      "input": "nums = [1,1,1,1], k = 4",
+      "output": "true",
+      "description": "Each element can form its own non-empty subset."
+    },
+    {
+      "input": "nums = [2,2,2,2], k = 1",
+      "output": "true",
+      "description": "With k equal to 1, the entire array is the single subset."
+    },
+    {
+      "input": "nums = [10,1,1,1,1,1], k = 5",
+      "output": "false",
+      "description": "The largest number is greater than the required target sum."
+    },
+    {
+      "input": "nums = [2,2,2,2,2,2], k = 3",
+      "output": "true",
+      "description": "Repeated equal values require symmetry handling but can form three buckets of sum 4."
+    }
   ]
 }

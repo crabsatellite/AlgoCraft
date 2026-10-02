@@ -1,42 +1,143 @@
 {
   "id": "194",
   "title": "Multiply Strings",
-  "description": "# Multiply Strings\n\nGiven two non-negative integers `num1` and `num2` represented as strings, return the product of `num1` and `num2`, also represented as a string.\n\n**Note:** You must not use any built-in BigInteger library or convert the inputs to integer directly.\n\n## Example 1:\n\n**Input:** num1 = \"2\", num2 = \"3\"\n**Output:** \"6\"\n\n## Example 2:\n\n**Input:** num1 = \"123\", num2 = \"456\"\n**Output:** \"56088\"\n\n## Constraints:\n\n*   `1 <= num1.length, num2.length <= 200`\n*   `num1` and `num2` consist of digits only.\n*   Both `num1` and `num2` do not contain any leading zero, except the number 0 itself.",
+  "description": "# Multiply Strings\n\nGiven two non-negative integers `num1` and `num2` represented as strings, return the product of `num1` and `num2`, also represented as a string.\n\nYou must not use any built-in `BigInteger` library, and you must not convert an entire input string directly into a numeric type. Processing one digit, or a bounded fixed-width chunk, at a time is allowed.\n\n## Example 1:\n\n**Input:** num1 = \"2\", num2 = \"3\"\n**Output:** \"6\"\n\n## Example 2:\n\n**Input:** num1 = \"123\", num2 = \"456\"\n**Output:** \"56088\"\n\n## Constraints:\n\n* `1 <= num1.length, num2.length <= 200`\n* `num1` and `num2` consist of digits only.\n* Both `num1` and `num2` do not contain any leading zero, except the number 0 itself.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public String multiply(String num1, String num2) {\n        // Write your code here\n        return \"\";\n    }\n}",
-  "tags": ["Math", "String", "Simulation"],
+  "tags": [
+    "Math",
+    "String",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "num1 = \"2\", num2 = \"3\"", "output": "\"6\"" },
-    { "input": "num1 = \"123\", num2 = \"456\"", "output": "\"56088\"" }
+    {
+      "input": "num1 = \"2\", num2 = \"3\"",
+      "output": "\"6\""
+    },
+    {
+      "input": "num1 = \"123\", num2 = \"456\"",
+      "output": "\"56088\""
+    }
   ],
   "solutions": [
     {
       "name": "Grade School Multiplication",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m + n)",
-      "description": "Multiply digit by digit. Position i*j contributes to position i+j and i+j+1 in the result array. Handle carries and leading zeros.",
-      "code": "class Solution {\n    public String multiply(String num1, String num2) {\n        int m = num1.length(), n = num2.length();\n        int[] result = new int[m + n];\n        for (int i = m - 1; i >= 0; i--) {\n            for (int j = n - 1; j >= 0; j--) {\n                int mul = (num1.charAt(i) - '0') * (num2.charAt(j) - '0');\n                int p1 = i + j, p2 = i + j + 1;\n                int sum = mul + result[p2];\n                result[p2] = sum % 10;\n                result[p1] += sum / 10;\n            }\n        }\n        StringBuilder sb = new StringBuilder();\n        for (int d : result)\n            if (!(sb.length() == 0 && d == 0)) sb.append(d);\n        return sb.length() == 0 ? \"0\" : sb.toString();\n    }\n}",
+      "description": "## Approach\n\nAllocate an integer array with `m + n` slots and simulate the multiplication table from right to left. The product of `num1[i]` and `num2[j]` contributes to positions `i + j` and `i + j + 1`, so each inner-loop step immediately stores the current digit and carries into the previous slot.\n\n## Key Insight\n\nThe largest product of an `m`-digit and an `n`-digit number has at most `m + n` digits. Once that fixed array is available, every pair of digits has a deterministic output position and no full input ever needs to become an integer.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m + n)",
+      "code": "class Solution {\n    public String multiply(String num1, String num2) {\n        if (num1.equals(\"0\") || num2.equals(\"0\")) {\n            return \"0\";\n        }\n\n        int m = num1.length();\n        int n = num2.length();\n        int[] result = new int[m + n];\n\n        for (int i = m - 1; i >= 0; i--) {\n            for (int j = n - 1; j >= 0; j--) {\n                int product = (num1.charAt(i) - '0') * (num2.charAt(j) - '0');\n                int p1 = i + j;\n                int p2 = i + j + 1;\n                int sum = product + result[p2];\n                result[p2] = sum % 10;\n                result[p1] += sum / 10;\n            }\n        }\n\n        StringBuilder answer = new StringBuilder();\n        for (int digit : result) {\n            if (answer.length() == 0 && digit == 0) {\n                continue;\n            }\n            answer.append(digit);\n        }\n        return answer.length() == 0 ? \"0\" : answer.toString();\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Add-and-Multiply with String Addition",
+      "name": "Partial Products with String Addition",
+      "timeComplexity": "O(n * (m + n))",
+      "spaceComplexity": "O(m + n)",
+      "description": "## Approach\n\nFor every digit of `num2`, build the hand-written partial product against all digits of `num1`, append the positional zero shift, and add that partial product into a running string sum. The helper methods are the same multiplication-by-one-digit and addition routines used on paper.\n\n## Key Insight\n\nThis route is intentionally close to manual multiplication. It is not the tightest implementation, but it teaches that big-number multiplication can be reduced to repeated single-digit multiplication plus string addition.\n\n## Complexity Analysis\n- Time Complexity: O(n * (m + n))\n- Space Complexity: O(m + n)",
+      "code": "class Solution {\n    public String multiply(String num1, String num2) {\n        if (num1.equals(\"0\") || num2.equals(\"0\")) {\n            return \"0\";\n        }\n\n        String answer = \"0\";\n        int trailingZeros = 0;\n        for (int i = num2.length() - 1; i >= 0; i--, trailingZeros++) {\n            String partial = multiplyByDigit(num1, num2.charAt(i) - '0', trailingZeros);\n            answer = addStrings(answer, partial);\n        }\n        return answer;\n    }\n\n    private String multiplyByDigit(String num, int digit, int trailingZeros) {\n        if (digit == 0) {\n            return \"0\";\n        }\n\n        StringBuilder reversed = new StringBuilder();\n        for (int i = 0; i < trailingZeros; i++) {\n            reversed.append('0');\n        }\n\n        int carry = 0;\n        for (int i = num.length() - 1; i >= 0; i--) {\n            int product = (num.charAt(i) - '0') * digit + carry;\n            reversed.append((char) ('0' + product % 10));\n            carry = product / 10;\n        }\n        while (carry > 0) {\n            reversed.append((char) ('0' + carry % 10));\n            carry /= 10;\n        }\n        return reversed.reverse().toString();\n    }\n\n    private String addStrings(String a, String b) {\n        StringBuilder reversed = new StringBuilder();\n        int i = a.length() - 1;\n        int j = b.length() - 1;\n        int carry = 0;\n        while (i >= 0 || j >= 0 || carry > 0) {\n            int sum = carry;\n            if (i >= 0) {\n                sum += a.charAt(i--) - '0';\n            }\n            if (j >= 0) {\n                sum += b.charAt(j--) - '0';\n            }\n            reversed.append((char) ('0' + sum % 10));\n            carry = sum / 10;\n        }\n        return reversed.reverse().toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Reversed Digit Convolution",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m + n)",
-      "description": "Multiply each digit of num2 with all of num1 (like manual multiplication), then add partial results using string addition with proper zero-padding shifts.",
-      "code": "class Solution {\n    public String multiply(String num1, String num2) {\n        if (num1.equals(\"0\") || num2.equals(\"0\")) return \"0\";\n        int m = num1.length(), n = num2.length();\n        int[] product = new int[m + n];\n        for (int i = m - 1; i >= 0; i--) {\n            int d1 = num1.charAt(i) - '0';\n            for (int j = n - 1; j >= 0; j--) {\n                int d2 = num2.charAt(j) - '0';\n                int pos = i + j + 1;\n                int sum = d1 * d2 + product[pos];\n                product[pos] = sum % 10;\n                product[i + j] += sum / 10;\n            }\n        }\n        StringBuilder sb = new StringBuilder();\n        boolean leadingZero = true;\n        for (int i = 0; i < product.length; i++) {\n            if (leadingZero && product[i] == 0) continue;\n            leadingZero = false;\n            sb.append(product[i]);\n        }\n        return sb.length() == 0 ? \"0\" : sb.toString();\n    }\n}",
+      "description": "## Approach\n\nRead both strings from low digit to high digit and accumulate each pairwise product into a reversed result array at index `(m - 1 - i) + (n - 1 - j)`. After all raw products are collected, perform one carry pass and reverse the digits to form the answer.\n\n## Key Insight\n\nThe multiplication table is a digit convolution: every pair whose low-end offsets sum to the same value contributes to the same result digit before carries. Separating accumulation from carrying makes that structure visible.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m + n)",
+      "code": "class Solution {\n    public String multiply(String num1, String num2) {\n        if (num1.equals(\"0\") || num2.equals(\"0\")) {\n            return \"0\";\n        }\n\n        int m = num1.length();\n        int n = num2.length();\n        int[] reversed = new int[m + n];\n\n        for (int i = m - 1; i >= 0; i--) {\n            int a = num1.charAt(i) - '0';\n            for (int j = n - 1; j >= 0; j--) {\n                int b = num2.charAt(j) - '0';\n                int reversedIndex = (m - 1 - i) + (n - 1 - j);\n                reversed[reversedIndex] += a * b;\n            }\n        }\n\n        StringBuilder digits = new StringBuilder();\n        int carry = 0;\n        for (int value : reversed) {\n            int total = value + carry;\n            digits.append((char) ('0' + total % 10));\n            carry = total / 10;\n        }\n        while (carry > 0) {\n            digits.append((char) ('0' + carry % 10));\n            carry /= 10;\n        }\n        while (digits.length() > 1 && digits.charAt(digits.length() - 1) == '0') {\n            digits.deleteCharAt(digits.length() - 1);\n        }\n        return digits.reverse().toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Base-10000 Chunk Multiplication",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m + n)",
+      "description": "## Approach\n\nSplit each input into fixed-width decimal chunks stored from least significant to most significant. Multiply every chunk pair into a `long` array using base 10000, then normalize carries and print the highest chunk normally while padding lower chunks to four digits.\n\n## Key Insight\n\nA bounded chunk is not the whole input number. Grouping four decimal digits at a time reduces loop iterations while preserving the same manual multiplication invariant and avoiding `BigInteger` or whole-input parsing.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m + n)",
+      "code": "class Solution {\n    private static final int BASE = 10000;\n    private static final int WIDTH = 4;\n\n    public String multiply(String num1, String num2) {\n        if (num1.equals(\"0\") || num2.equals(\"0\")) {\n            return \"0\";\n        }\n\n        int[] a = toChunks(num1);\n        int[] b = toChunks(num2);\n        long[] product = new long[a.length + b.length];\n\n        for (int i = 0; i < a.length; i++) {\n            for (int j = 0; j < b.length; j++) {\n                product[i + j] += 1L * a[i] * b[j];\n            }\n        }\n\n        long carry = 0;\n        for (int i = 0; i < product.length; i++) {\n            long total = product[i] + carry;\n            product[i] = total % BASE;\n            carry = total / BASE;\n        }\n\n        int last = product.length - 1;\n        while (last > 0 && product[last] == 0) {\n            last--;\n        }\n\n        StringBuilder answer = new StringBuilder();\n        answer.append(product[last]);\n        for (int i = last - 1; i >= 0; i--) {\n            String chunk = Long.toString(product[i]);\n            for (int pad = chunk.length(); pad < WIDTH; pad++) {\n                answer.append('0');\n            }\n            answer.append(chunk);\n        }\n        return answer.toString();\n    }\n\n    private int[] toChunks(String num) {\n        int chunkCount = (num.length() + WIDTH - 1) / WIDTH;\n        int[] chunks = new int[chunkCount];\n        int index = 0;\n        for (int end = num.length(); end > 0; end -= WIDTH) {\n            int start = Math.max(0, end - WIDTH);\n            int value = 0;\n            for (int i = start; i < end; i++) {\n                value = value * 10 + (num.charAt(i) - '0');\n            }\n            chunks[index++] = value;\n        }\n        return chunks;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Karatsuba Divide and Conquer",
+      "timeComplexity": "O(n^1.585)",
+      "spaceComplexity": "O(n log n)",
+      "description": "## Approach\n\nRecursively split both decimal strings into high and low halves. Compute `z0 = lowA * lowB`, `z2 = highA * highB`, and `z1 = (lowA + highA) * (lowB + highB)`, then derive the cross term as `z1 - z2 - z0` and shift the three pieces back into decimal positions.\n\n## Key Insight\n\nKaratsuba replaces four half-size multiplications with three by recovering the two cross products together. It is an advanced route for this lesson because it uses the same string add, subtract, and decimal-shift building blocks but changes the multiplication structure.\n\n## Complexity Analysis\n- Time Complexity: O(n^1.585)\n- Space Complexity: O(n log n)",
+      "code": "class Solution {\n    public String multiply(String num1, String num2) {\n        if (num1.equals(\"0\") || num2.equals(\"0\")) {\n            return \"0\";\n        }\n        return multiplyPositive(num1, num2);\n    }\n\n    private String multiplyPositive(String a, String b) {\n        a = trim(a);\n        b = trim(b);\n        if (a.equals(\"0\") || b.equals(\"0\")) {\n            return \"0\";\n        }\n        if (Math.max(a.length(), b.length()) <= 4) {\n            return multiplySmall(a, b);\n        }\n\n        int n = Math.max(a.length(), b.length());\n        int half = n / 2;\n\n        String lowA = suffix(a, half);\n        String highA = prefix(a, half);\n        String lowB = suffix(b, half);\n        String highB = prefix(b, half);\n\n        String z0 = multiplyPositive(lowA, lowB);\n        String z2 = multiplyPositive(highA, highB);\n        String z1 = multiplyPositive(add(lowA, highA), add(lowB, highB));\n        String middle = subtract(subtract(z1, z2), z0);\n\n        return trim(add(add(shift(z2, 2 * half), shift(middle, half)), z0));\n    }\n\n    private String multiplySmall(String a, String b) {\n        long left = 0;\n        long right = 0;\n        for (int i = 0; i < a.length(); i++) {\n            left = left * 10 + (a.charAt(i) - '0');\n        }\n        for (int i = 0; i < b.length(); i++) {\n            right = right * 10 + (b.charAt(i) - '0');\n        }\n        return Long.toString(left * right);\n    }\n\n    private String suffix(String value, int width) {\n        int start = Math.max(0, value.length() - width);\n        return value.substring(start);\n    }\n\n    private String prefix(String value, int lowWidth) {\n        int end = Math.max(0, value.length() - lowWidth);\n        return end == 0 ? \"0\" : value.substring(0, end);\n    }\n\n    private String shift(String value, int zeros) {\n        value = trim(value);\n        if (value.equals(\"0\")) {\n            return \"0\";\n        }\n        StringBuilder shifted = new StringBuilder(value);\n        for (int i = 0; i < zeros; i++) {\n            shifted.append('0');\n        }\n        return shifted.toString();\n    }\n\n    private String add(String a, String b) {\n        StringBuilder reversed = new StringBuilder();\n        int i = a.length() - 1;\n        int j = b.length() - 1;\n        int carry = 0;\n        while (i >= 0 || j >= 0 || carry > 0) {\n            int sum = carry;\n            if (i >= 0) {\n                sum += a.charAt(i--) - '0';\n            }\n            if (j >= 0) {\n                sum += b.charAt(j--) - '0';\n            }\n            reversed.append((char) ('0' + sum % 10));\n            carry = sum / 10;\n        }\n        return reversed.reverse().toString();\n    }\n\n    private String subtract(String a, String b) {\n        StringBuilder reversed = new StringBuilder();\n        int i = a.length() - 1;\n        int j = b.length() - 1;\n        int borrow = 0;\n        while (i >= 0) {\n            int digit = a.charAt(i--) - '0' - borrow;\n            if (j >= 0) {\n                digit -= b.charAt(j--) - '0';\n            }\n            if (digit < 0) {\n                digit += 10;\n                borrow = 1;\n            } else {\n                borrow = 0;\n            }\n            reversed.append((char) ('0' + digit));\n        }\n        return trim(reversed.reverse().toString());\n    }\n\n    private String trim(String value) {\n        int index = 0;\n        while (index + 1 < value.length() && value.charAt(index) == '0') {\n            index++;\n        }\n        return value.substring(index);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "num1 = \"2\", num2 = \"3\"", "output": "\"6\"" },
-    { "input": "num1 = \"123\", num2 = \"456\"", "output": "\"56088\"" },
-    { "input": "num1 = \"0\", num2 = \"0\"", "output": "\"0\"" },
-    { "input": "num1 = \"999\", num2 = \"999\"", "output": "\"998001\"" },
-    { "input": "num1 = \"123456789\", num2 = \"0\"", "output": "\"0\"" },
-    { "input": "num1 = \"1\", num2 = \"1\"", "output": "\"1\"" },
-    { "input": "num1 = \"10\", num2 = \"10\"", "output": "\"100\"" },
-    { "input": "num1 = \"9133\", num2 = \"0\"", "output": "\"0\"" },
-    { "input": "num1 = \"498828660196\", num2 = \"840477629533\"", "output": "\"419254329864656431168468\"" }
+    {
+      "input": "num1 = \"2\", num2 = \"3\"",
+      "output": "\"6\"",
+      "description": "Single-digit multiplication baseline."
+    },
+    {
+      "input": "num1 = \"123\", num2 = \"456\"",
+      "output": "\"56088\"",
+      "description": "Canonical multi-digit multiplication with carries."
+    },
+    {
+      "input": "num1 = \"0\", num2 = \"0\"",
+      "output": "\"0\"",
+      "description": "Zero times zero returns the single string zero."
+    },
+    {
+      "input": "num1 = \"123456789\", num2 = \"0\"",
+      "output": "\"0\"",
+      "description": "A nonzero value times zero must not leave leading zeros."
+    },
+    {
+      "input": "num1 = \"999\", num2 = \"999\"",
+      "output": "\"998001\"",
+      "description": "Carries propagate across every digit."
+    },
+    {
+      "input": "num1 = \"10\", num2 = \"10\"",
+      "output": "\"100\"",
+      "description": "Trailing zeros in both inputs are preserved in the product."
+    },
+    {
+      "input": "num1 = \"1\", num2 = \"999999999999999999\"",
+      "output": "\"999999999999999999\"",
+      "description": "Multiplication by one preserves a value larger than primitive integer range."
+    },
+    {
+      "input": "num1 = \"1001\", num2 = \"1001\"",
+      "output": "\"1002001\"",
+      "description": "Internal zeros still contribute through positional arithmetic."
+    },
+    {
+      "input": "num1 = \"99999\", num2 = \"99999\"",
+      "output": "\"9999800001\"",
+      "description": "A carry chain expands the output length."
+    },
+    {
+      "input": "num1 = \"5000\", num2 = \"4000\"",
+      "output": "\"20000000\"",
+      "description": "Large trailing-zero factors should not be trimmed incorrectly."
+    },
+    {
+      "input": "num1 = \"123456789\", num2 = \"987654321\"",
+      "output": "\"121932631112635269\"",
+      "description": "Nine-digit factors exceed safe direct int multiplication."
+    },
+    {
+      "input": "num1 = \"498828660196\", num2 = \"840477629533\"",
+      "output": "\"419254329864656431168468\"",
+      "description": "Large twelve-digit inputs require manual digit arithmetic."
+    },
+    {
+      "input": "num1 = \"7\", num2 = \"12345678901234567890\"",
+      "output": "\"86419752308641975230\"",
+      "description": "Asymmetric lengths must align from the right."
+    },
+    {
+      "input": "num1 = \"12345678901234567890\", num2 = \"98765432109876543210\"",
+      "output": "\"1219326311370217952237463801111263526900\"",
+      "description": "Twenty-digit factors cover values far beyond primitive numeric types."
+    }
   ],
-  "diagrams": ["p194_example1"]
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p194_example1.png",
+      "caption": "Two decimal strings prompt for manual multiplication"
+    }
+  ]
 }

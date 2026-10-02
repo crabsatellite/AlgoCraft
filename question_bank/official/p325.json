@@ -1,34 +1,117 @@
 {
   "id": "325",
   "title": "Best Time to Buy and Sell Stock IV",
-  "description": "# Best Time to Buy and Sell Stock IV\n\nYou are given an integer array `prices` where `prices[i]` is the price of a given stock on the `i`th day, and an integer `k`.\n\nFind the maximum profit you can achieve. You may complete at most `k` transactions: i.e. you may buy at most `k` times and sell at most `k` times.\n\nNote: You may not engage in multiple transactions simultaneously (i.e., you must sell the stock before you buy again).\n\n## Example 1:\n\n**Input:** k = 2, prices = [2,4,1]\n**Output:** 2\n**Explanation:** Buy on day 1 (price = 2) and sell on day 2 (price = 4), profit = 4-2 = 2.\n\n## Example 2:\n\n**Input:** k = 2, prices = [3,2,6,5,0,3]\n**Output:** 7\n**Explanation:** Buy on day 2 (price = 2) and sell on day 3 (price = 6), profit = 6-2 = 4.\nThen buy on day 5 (price = 0) and sell on day 6 (price = 3), profit = 3-0 = 3.\n\n## Constraints:\n\n*   `1 <= k <= 100`\n*   `1 <= prices.length <= 1000`\n*   `0 <= prices[i] <= 1000`",
+  "description": "# Best Time to Buy and Sell Stock IV\n\nYou are given an integer `k` and an array `prices`, where `prices[i]` is the price of a stock on the `i`th day.\n\nReturn the maximum profit you can achieve with **at most `k` transactions**.\n\nA transaction is one buy followed by one sell. You may not hold more than one share at a time, so you must sell the stock before buying again. You may also make fewer than `k` transactions, including zero transactions.\n\n## Example 1:\n\n**Input:** k = 2, prices = [2,4,1]\n**Output:** 2\n**Explanation:** Buy at price 2 and sell at price 4, for profit 2.\n\n## Example 2:\n\n**Input:** k = 2, prices = [3,2,6,5,0,3]\n**Output:** 7\n**Explanation:** Buy at price 2 and sell at price 6, then buy at price 0 and sell at price 3. The total profit is 4 + 3 = 7.\n\n## Constraints:\n\n*   `0 <= k <= 100`\n*   `1 <= prices.length <= 1000`\n*   `0 <= prices[i] <= 1000`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int maxProfit(int k, int[] prices) {\n        \n    }\n}",
-  "tags": ["Array", "Dynamic Programming"],
+  "initialCode": "class Solution {\n    public int maxProfit(int k, int[] prices) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "k = 2, prices = [2,4,1]", "output": "2" },
-    { "input": "k = 2, prices = [3,2,6,5,0,3]", "output": "7" }
+    {
+      "input": "k = 2, prices = [2,4,1]",
+      "output": "2"
+    },
+    {
+      "input": "k = 2, prices = [3,2,6,5,0,3]",
+      "output": "7"
+    }
   ],
   "solutions": [
     {
-      "name": "DP with k Transactions",
+      "name": "Buy and Sell State Arrays",
       "timeComplexity": "O(n * k)",
       "spaceComplexity": "O(k)",
-      "description": "Generalize the 2-transaction approach. Use arrays buy[k] and sell[k]. If k >= n/2, collect all positive differences (unlimited transactions).",
-      "code": "class Solution {\n    public int maxProfit(int k, int[] prices) {\n        int n = prices.length;\n        if (k >= n / 2) {\n            int profit = 0;\n            for (int i = 1; i < n; i++) profit += Math.max(0, prices[i] - prices[i - 1]);\n            return profit;\n        }\n        int[] buy = new int[k], sell = new int[k];\n        java.util.Arrays.fill(buy, Integer.MIN_VALUE);\n        for (int p : prices) {\n            for (int i = 0; i < k; i++) {\n                buy[i] = Math.max(buy[i], (i == 0 ? 0 : sell[i - 1]) - p);\n                sell[i] = Math.max(sell[i], buy[i] + p);\n            }\n        }\n        return k == 0 ? 0 : sell[k - 1];\n    }\n}",
+      "description": "## Approach\n\nUse `buy[t]` and `sell[t]` to store the best balance after the `t`th buy and the best profit after the `t`th sell. For each price, update all transaction states in order. If `k >= n / 2`, switch to the unlimited-transactions greedy shortcut.\n\n## Key Insight\n\nThe `t`th buy depends on the profit after the `(t - 1)`th sell, and the `t`th sell depends on the balance after the `t`th buy. This is the Stock III four-state machine generalized to an arbitrary number of transactions.\n\n## Complexity Analysis\n- Time Complexity: O(n * k)\n- Space Complexity: O(k)",
+      "code": "class Solution {\n    public int maxProfit(int k, int[] prices) {\n        int n = prices.length;\n        if (k == 0 || n < 2) return 0;\n        if (k >= n / 2) {\n            int profit = 0;\n            for (int i = 1; i < n; i++) profit += Math.max(0, prices[i] - prices[i - 1]);\n            return profit;\n        }\n        int[] buy = new int[k];\n        int[] sell = new int[k];\n        java.util.Arrays.fill(buy, Integer.MIN_VALUE / 4);\n        for (int price : prices) {\n            for (int i = 0; i < k; i++) {\n                buy[i] = Math.max(buy[i], (i == 0 ? 0 : sell[i - 1]) - price);\n                sell[i] = Math.max(sell[i], buy[i] + price);\n            }\n        }\n        return sell[k - 1];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "2D DP Table",
+      "name": "2D DP Table with Best Difference",
       "timeComplexity": "O(n * k)",
       "spaceComplexity": "O(n * k)",
-      "description": "Use a 2D table dp[t][i] = max profit using at most t transactions up to day i. For each transaction count, track the maximum of (dp[t-1][j] - prices[j]) for all j < i to optimize the inner loop.",
-      "code": "class Solution {\n    public int maxProfit(int k, int[] prices) {\n        int n = prices.length;\n        if (n <= 1) return 0;\n        if (k >= n / 2) {\n            int profit = 0;\n            for (int i = 1; i < n; i++) {\n                if (prices[i] > prices[i - 1]) profit += prices[i] - prices[i - 1];\n            }\n            return profit;\n        }\n        int[][] dp = new int[k + 1][n];\n        for (int t = 1; t <= k; t++) {\n            int maxDiff = -prices[0];\n            for (int i = 1; i < n; i++) {\n                dp[t][i] = Math.max(dp[t][i - 1], prices[i] + maxDiff);\n                maxDiff = Math.max(maxDiff, dp[t - 1][i] - prices[i]);\n            }\n        }\n        return dp[k][n - 1];\n    }\n}",
+      "description": "## Approach\n\nLet `dp[t][i]` be the best profit using at most `t` transactions through day `i`. For each transaction count, scan days while maintaining the best value of `dp[t - 1][j] - prices[j]`, which represents the best prior state before buying.\n\n## Key Insight\n\nThe direct transition tries every earlier buy day and would be O(n^2 * k). Keeping the running best difference compresses that inner loop while preserving the same recurrence.\n\n## Complexity Analysis\n- Time Complexity: O(n * k)\n- Space Complexity: O(n * k)",
+      "code": "class Solution {\n    public int maxProfit(int k, int[] prices) {\n        int n = prices.length;\n        if (k == 0 || n < 2) return 0;\n        if (k >= n / 2) {\n            int profit = 0;\n            for (int i = 1; i < n; i++) {\n                if (prices[i] > prices[i - 1]) profit += prices[i] - prices[i - 1];\n            }\n            return profit;\n        }\n        int[][] dp = new int[k + 1][n];\n        for (int t = 1; t <= k; t++) {\n            int maxDiff = -prices[0];\n            for (int i = 1; i < n; i++) {\n                dp[t][i] = Math.max(dp[t][i - 1], prices[i] + maxDiff);\n                maxDiff = Math.max(maxDiff, dp[t - 1][i] - prices[i]);\n            }\n        }\n        return dp[k][n - 1];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Memoized Buy/Sell DFS",
+      "timeComplexity": "O(n * k)",
+      "spaceComplexity": "O(n * k)",
+      "description": "## Approach\n\nUse top-down DP over `(day, remaining transactions, holding)`. Each day either skips, buys if not holding, or sells if holding. Memoization ensures each state is solved once.\n\n## Key Insight\n\nThis route is closest to the decision tree and makes the state definition explicit. Selling consumes one remaining transaction, while buying only changes the holding state.\n\n## Complexity Analysis\n- Time Complexity: O(n * k)\n- Space Complexity: O(n * k)",
+      "code": "class Solution {\n    public int maxProfit(int k, int[] prices) {\n        if (k == 0 || prices.length < 2) return 0;\n        Integer[][][] memo = new Integer[prices.length][k + 1][2];\n        return dfs(0, k, 0, prices, memo);\n    }\n\n    private int dfs(int day, int remaining, int holding, int[] prices, Integer[][][] memo) {\n        if (day == prices.length) return 0;\n        if (memo[day][remaining][holding] != null) return memo[day][remaining][holding];\n        int best = dfs(day + 1, remaining, holding, prices, memo);\n        if (holding == 1) {\n            if (remaining > 0) {\n                best = Math.max(best, prices[day] + dfs(day + 1, remaining - 1, 0, prices, memo));\n            }\n        } else if (remaining > 0) {\n            best = Math.max(best, -prices[day] + dfs(day + 1, remaining, 1, prices, memo));\n        }\n        memo[day][remaining][holding] = best;\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Local and Global Profit DP",
+      "timeComplexity": "O(n * k)",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nTrack `local[t]`, the best profit with exactly `t` transactions where the last transaction ends on the current day, and `global[t]`, the best profit with at most `t` transactions up to the current day. Update them from each day-to-day price difference.\n\n## Key Insight\n\nA transaction can either extend yesterday's last transaction by today's difference, or start a new transaction using the previous global profit plus a positive difference. This formulation teaches the classic local/global stock DP without explicit buy states.\n\n## Complexity Analysis\n- Time Complexity: O(n * k)\n- Space Complexity: O(k)",
+      "code": "class Solution {\n    public int maxProfit(int k, int[] prices) {\n        int n = prices.length;\n        if (k == 0 || n < 2) return 0;\n        if (k >= n / 2) {\n            int profit = 0;\n            for (int day = 1; day < n; day++) profit += Math.max(0, prices[day] - prices[day - 1]);\n            return profit;\n        }\n        int[] local = new int[k + 1];\n        int[] global = new int[k + 1];\n        for (int day = 1; day < n; day++) {\n            int diff = prices[day] - prices[day - 1];\n            for (int t = k; t >= 1; t--) {\n                local[t] = Math.max(global[t - 1] + Math.max(diff, 0), local[t] + diff);\n                global[t] = Math.max(global[t], local[t]);\n            }\n        }\n        return global[k];\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "k = 2, prices = [2,4,1]", "output": "2" },
-    { "input": "k = 2, prices = [3,2,6,5,0,3]", "output": "7" }
+    {
+      "input": "k = 2, prices = [2,4,1]",
+      "output": "2",
+      "description": "sample with one useful transaction although two are allowed"
+    },
+    {
+      "input": "k = 2, prices = [3,2,6,5,0,3]",
+      "output": "7",
+      "description": "sample with two profitable windows"
+    },
+    {
+      "input": "k = 0, prices = [1,3,2]",
+      "output": "0",
+      "description": "zero allowed transactions should always return zero"
+    },
+    {
+      "input": "k = 1, prices = [5]",
+      "output": "0",
+      "description": "one day cannot produce profit"
+    },
+    {
+      "input": "k = 1, prices = [1,2,3,4,5]",
+      "output": "4",
+      "description": "with one transaction use the whole rise"
+    },
+    {
+      "input": "k = 100, prices = [1,2,3,4,5]",
+      "output": "4",
+      "description": "large k degenerates to unlimited transactions"
+    },
+    {
+      "input": "k = 3, prices = [2,4,1,7,5,3,6,4]",
+      "output": "11",
+      "description": "three transactions can use three separate rises"
+    },
+    {
+      "input": "k = 2, prices = [1,2,4,2,5,7,2,4,9,0]",
+      "output": "13",
+      "description": "larger case shared with the two-transaction specialization"
+    },
+    {
+      "input": "k = 2, prices = [7,6,4,3,1]",
+      "output": "0",
+      "description": "decreasing prices should make no transaction"
+    },
+    {
+      "input": "k = 2, prices = [1,4,2,7]",
+      "output": "8",
+      "description": "two short transactions can beat one long transaction"
+    },
+    {
+      "input": "k = 100, prices = [1,3,2,8,4,9]",
+      "output": "13",
+      "description": "unlimited shortcut must sum all positive differences"
+    },
+    {
+      "input": "k = 2, prices = [0,0,0]",
+      "output": "0",
+      "description": "flat prices produce no profit"
+    }
   ]
 }

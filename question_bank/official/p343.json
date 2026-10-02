@@ -1,9 +1,9 @@
 {
   "id": "343",
   "title": "Count of Smaller Numbers After Self",
-  "description": "# Count of Smaller Numbers After Self\n\nGiven an integer array `nums`, return *an integer array* `counts` *where* `counts[i]` *is the number of smaller elements to the right of* `nums[i]`.\n\n## Example 1:\n\n**Input:** nums = [5,2,6,1]\n**Output:** [2,1,1,0]\n**Explanation:**\nTo the right of 5 there are 2 smaller elements (2 and 1).\nTo the right of 2 there is 1 smaller element (1).\nTo the right of 6 there is 1 smaller element (1).\nTo the right of 1 there is 0 smaller element.\n\n## Example 2:\n\n**Input:** nums = [-1]\n**Output:** [0]\n\n## Example 3:\n\n**Input:** nums = [-1,-1]\n**Output:** [0,0]\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^5`\n*   `-10^4 <= nums[i] <= 10^4`",
+  "description": "# Count of Smaller Numbers After Self\n\nGiven an integer array `nums`, return an integer array `counts` where `counts[i]` is the number of elements to the right of `nums[i]` that are strictly smaller than `nums[i]`.\n\nEqual values do not count as smaller. Negative values and duplicate values must be handled correctly.\n\n## Example 1:\n\n**Input:** nums = [5,2,6,1]\n**Output:** [2,1,1,0]\n**Explanation:**\nTo the right of `5`, the smaller values are `2` and `1`.\nTo the right of `2`, the smaller value is `1`.\nTo the right of `6`, the smaller value is `1`.\nTo the right of `1`, there are no smaller values.\n\n## Example 2:\n\n**Input:** nums = [-1]\n**Output:** [0]\n\n## Example 3:\n\n**Input:** nums = [-1,-1]\n**Output:** [0,0]\n**Explanation:** Equal values are not strictly smaller.\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^5`\n*   `-10^4 <= nums[i] <= 10^4`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public List<Integer> countSmaller(int[] nums) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public java.util.List<Integer> countSmaller(int[] nums) {\n        return new java.util.ArrayList<>();\n    }\n}",
   "tags": [
     "Array",
     "Binary Search",
@@ -14,31 +14,131 @@
     "Ordered Set"
   ],
   "examples": [
-    { "input": "nums = [5,2,6,1]", "output": "[2,1,1,0]" },
-    { "input": "nums = [-1]", "output": "[0]" },
-    { "input": "nums = [-1,-1]", "output": "[0,0]" }
+    {
+      "input": "nums = [5,2,6,1]",
+      "output": "[2,1,1,0]"
+    },
+    {
+      "input": "nums = [-1]",
+      "output": "[0]"
+    },
+    {
+      "input": "nums = [-1,-1]",
+      "output": "[0,0]"
+    }
   ],
   "solutions": [
     {
       "name": "Merge Sort with Index Tracking",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Modified merge sort that counts how many elements from the right half are moved before elements from the left half during merge. Track original indices to accumulate counts correctly.",
-      "code": "class Solution {\n    private int[] counts;\n    public List<Integer> countSmaller(int[] nums) {\n        int n = nums.length;\n        counts = new int[n];\n        int[][] indexed = new int[n][2];\n        for (int i = 0; i < n; i++) indexed[i] = new int[]{nums[i], i};\n        mergeSort(indexed, 0, n - 1);\n        List<Integer> result = new java.util.ArrayList<>();\n        for (int c : counts) result.add(c);\n        return result;\n    }\n    private void mergeSort(int[][] arr, int lo, int hi) {\n        if (lo >= hi) return;\n        int mid = lo + (hi - lo) / 2;\n        mergeSort(arr, lo, mid);\n        mergeSort(arr, mid + 1, hi);\n        merge(arr, lo, mid, hi);\n    }\n    private void merge(int[][] arr, int lo, int mid, int hi) {\n        int[][] temp = new int[hi - lo + 1][2];\n        int i = lo, j = mid + 1, k = 0, rightCount = 0;\n        while (i <= mid && j <= hi) {\n            if (arr[j][0] < arr[i][0]) { rightCount++; temp[k++] = arr[j++]; }\n            else { counts[arr[i][1]] += rightCount; temp[k++] = arr[i++]; }\n        }\n        while (i <= mid) { counts[arr[i][1]] += rightCount; temp[k++] = arr[i++]; }\n        while (j <= hi) temp[k++] = arr[j++];\n        System.arraycopy(temp, 0, arr, lo, temp.length);\n    }\n}",
+      "description": "## Approach\n\nStore the original index of each value and run a modified merge sort. During merge, whenever a right-half value is moved before a left-half value, that right-half value is strictly smaller and sits to the right in the original split. Count how many such right-half values have already moved before each left-half index.\n\n## Key Insight\n\nA merge-sort split preserves the original left-to-right order between the two halves. Values in the right half are exactly elements that appear after values in the left half, so cross-half inversions give the smaller-after-self counts.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public java.util.List<Integer> countSmaller(int[] nums) {\n        int n = nums.length;\n        int[] indexes = new int[n];\n        int[] temp = new int[n];\n        int[] counts = new int[n];\n        for (int i = 0; i < n; i++) {\n            indexes[i] = i;\n        }\n        mergeSort(nums, indexes, temp, counts, 0, n);\n        java.util.List<Integer> result = new java.util.ArrayList<>();\n        for (int value : counts) {\n            result.add(value);\n        }\n        return result;\n    }\n\n    private void mergeSort(int[] nums, int[] indexes, int[] temp, int[] counts, int left, int right) {\n        if (right - left <= 1) {\n            return;\n        }\n        int mid = left + (right - left) / 2;\n        mergeSort(nums, indexes, temp, counts, left, mid);\n        mergeSort(nums, indexes, temp, counts, mid, right);\n        merge(nums, indexes, temp, counts, left, mid, right);\n    }\n\n    private void merge(int[] nums, int[] indexes, int[] temp, int[] counts, int left, int mid, int right) {\n        int i = left;\n        int j = mid;\n        int k = left;\n        int rightMoved = 0;\n        while (i < mid && j < right) {\n            if (nums[indexes[j]] < nums[indexes[i]]) {\n                rightMoved++;\n                temp[k++] = indexes[j++];\n            } else {\n                counts[indexes[i]] += rightMoved;\n                temp[k++] = indexes[i++];\n            }\n        }\n        while (i < mid) {\n            counts[indexes[i]] += rightMoved;\n            temp[k++] = indexes[i++];\n        }\n        while (j < right) {\n            temp[k++] = indexes[j++];\n        }\n        System.arraycopy(temp, left, indexes, left, right - left);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Binary Indexed Tree (BIT)",
+      "name": "Binary Indexed Tree with Coordinate Compression",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Coordinate-compress the values. Iterate from right to left, querying the BIT for the count of values smaller than the current value, then updating the BIT with the current value.",
-      "code": "import java.util.*;\n\nclass Solution {\n    private int[] tree;\n    public List<Integer> countSmaller(int[] nums) {\n        int n = nums.length;\n        int[] sorted = nums.clone();\n        Arrays.sort(sorted);\n        Map<Integer, Integer> ranks = new HashMap<>();\n        int rank = 1;\n        for (int v : sorted) {\n            if (!ranks.containsKey(v)) {\n                ranks.put(v, rank++);\n            }\n        }\n        tree = new int[rank + 1];\n        Integer[] result = new Integer[n];\n        for (int i = n - 1; i >= 0; i--) {\n            int r = ranks.get(nums[i]);\n            result[i] = query(r - 1);\n            update(r, rank);\n        }\n        return Arrays.asList(result);\n    }\n    private void update(int i, int max) {\n        for (; i <= max; i += i & (-i)) tree[i]++;\n    }\n    private int query(int i) {\n        int sum = 0;\n        for (; i > 0; i -= i & (-i)) sum += tree[i];\n        return sum;\n    }\n}",
+      "description": "## Approach\n\nCoordinate-compress all values so negative numbers and large gaps become ranks from `1` to `u`. Scan `nums` from right to left. Before inserting the current rank, query the Fenwick tree for how many inserted ranks are smaller than it.\n\n## Key Insight\n\nAfter scanning from right to left, the data structure contains exactly the values to the right of the current index. A prefix sum up to `rank - 1` counts only strictly smaller values, so duplicates are excluded automatically.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private int[] tree;\n\n    public java.util.List<Integer> countSmaller(int[] nums) {\n        int n = nums.length;\n        int[] sorted = nums.clone();\n        java.util.Arrays.sort(sorted);\n        java.util.Map<Integer, Integer> ranks = new java.util.HashMap<>();\n        int nextRank = 1;\n        for (int value : sorted) {\n            if (!ranks.containsKey(value)) {\n                ranks.put(value, nextRank++);\n            }\n        }\n        tree = new int[nextRank + 1];\n        Integer[] answer = new Integer[n];\n        for (int i = n - 1; i >= 0; i--) {\n            int rank = ranks.get(nums[i]);\n            answer[i] = query(rank - 1);\n            update(rank);\n        }\n        return java.util.Arrays.asList(answer);\n    }\n\n    private void update(int index) {\n        for (int i = index; i < tree.length; i += i & -i) {\n            tree[i]++;\n        }\n    }\n\n    private int query(int index) {\n        int sum = 0;\n        for (int i = index; i > 0; i -= i & -i) {\n            sum += tree[i];\n        }\n        return sum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Compressed Segment Tree Prefix Counts",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse the same coordinate compression as the Fenwick solution, but store frequencies in an iterative segment tree. For each value scanned from right to left, query the rank interval `[1, rank - 1]`, then update the current rank by one.\n\n## Key Insight\n\nThe segment tree makes the counted interval explicit. It is the same mathematical query as the Fenwick tree, but it teaches range-query decomposition and can be extended to richer aggregate data.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private int[] tree;\n    private int size;\n\n    public java.util.List<Integer> countSmaller(int[] nums) {\n        int n = nums.length;\n        int[] sorted = nums.clone();\n        java.util.Arrays.sort(sorted);\n        java.util.Map<Integer, Integer> ranks = new java.util.HashMap<>();\n        int nextRank = 1;\n        for (int value : sorted) {\n            if (!ranks.containsKey(value)) {\n                ranks.put(value, nextRank++);\n            }\n        }\n        size = 1;\n        while (size < nextRank) {\n            size <<= 1;\n        }\n        tree = new int[size * 2];\n        Integer[] answer = new Integer[n];\n        for (int i = n - 1; i >= 0; i--) {\n            int rank = ranks.get(nums[i]);\n            answer[i] = query(1, rank - 1);\n            add(rank);\n        }\n        return java.util.Arrays.asList(answer);\n    }\n\n    private void add(int rank) {\n        int index = rank + size - 1;\n        while (index > 0) {\n            tree[index]++;\n            index >>= 1;\n        }\n    }\n\n    private int query(int left, int right) {\n        if (left > right) {\n            return 0;\n        }\n        int sum = 0;\n        int l = left + size - 1;\n        int r = right + size - 1;\n        while (l <= r) {\n            if ((l & 1) == 1) {\n                sum += tree[l++];\n            }\n            if ((r & 1) == 0) {\n                sum += tree[r--];\n            }\n            l >>= 1;\n            r >>= 1;\n        }\n        return sum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Augmented Binary Search Tree",
+      "timeComplexity": "O(n log n) average, O(n^2) worst case",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nScan from right to left and insert each number into a binary search tree. Each node stores how many values are in its left subtree and how many duplicates are equal to the node value. While inserting, accumulate how many existing values are strictly smaller than the inserted value.\n\n## Key Insight\n\nWhen the inserted value goes right, every value in the current node's left subtree plus the current node's duplicates is smaller and should be added. When it goes left, the current node's `leftSize` increases, but no smaller values have been passed.\n\n## Complexity Analysis\n- Time Complexity: O(n log n) on a balanced tree shape, O(n^2) in the worst unbalanced case\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private Node root;\n\n    public java.util.List<Integer> countSmaller(int[] nums) {\n        Integer[] answer = new Integer[nums.length];\n        for (int i = nums.length - 1; i >= 0; i--) {\n            root = insert(root, nums[i], 0, answer, i);\n        }\n        return java.util.Arrays.asList(answer);\n    }\n\n    private Node insert(Node node, int value, int smallerBefore, Integer[] answer, int index) {\n        if (node == null) {\n            answer[index] = smallerBefore;\n            return new Node(value);\n        }\n        if (value == node.value) {\n            node.duplicates++;\n            answer[index] = smallerBefore + node.leftSize;\n        } else if (value < node.value) {\n            node.leftSize++;\n            node.left = insert(node.left, value, smallerBefore, answer, index);\n        } else {\n            node.right = insert(node.right, value, smallerBefore + node.leftSize + node.duplicates, answer, index);\n        }\n        return node;\n    }\n\n    private static class Node {\n        final int value;\n        int leftSize;\n        int duplicates = 1;\n        Node left;\n        Node right;\n\n        Node(int value) {\n            this.value = value;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Ordered Insertion Baseline",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nScan from right to left while maintaining a sorted list of values already seen. The lower-bound insertion index is exactly the number of strictly smaller values to the right. Insert the current value at that position to keep the list sorted.\n\n## Key Insight\n\nThe sorted list is a direct model of the suffix that has already been scanned. It is slower because inserting into an array list shifts elements, but it makes the meaning of lower bound and strict comparison easy to see.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public java.util.List<Integer> countSmaller(int[] nums) {\n        java.util.List<Integer> sorted = new java.util.ArrayList<>();\n        Integer[] answer = new Integer[nums.length];\n        for (int i = nums.length - 1; i >= 0; i--) {\n            int position = lowerBound(sorted, nums[i]);\n            answer[i] = position;\n            sorted.add(position, nums[i]);\n        }\n        return java.util.Arrays.asList(answer);\n    }\n\n    private int lowerBound(java.util.List<Integer> values, int target) {\n        int left = 0;\n        int right = values.size();\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (values.get(mid) < target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [5,2,6,1]", "output": "[2,1,1,0]" },
-    { "input": "nums = [-1]", "output": "[0]" },
-    { "input": "nums = [-1,-1]", "output": "[0,0]" }
+    {
+      "input": "nums = [5,2,6,1]",
+      "output": "[2,1,1,0]",
+      "description": "canonical mixed ordering example"
+    },
+    {
+      "input": "nums = [-1]",
+      "output": "[0]",
+      "description": "single element has no right side"
+    },
+    {
+      "input": "nums = [-1,-1]",
+      "output": "[0,0]",
+      "description": "equal values are not smaller"
+    },
+    {
+      "input": "nums = [2,0,1]",
+      "output": "[2,0,0]",
+      "description": "smaller elements may be separated by larger ones"
+    },
+    {
+      "input": "nums = [1,2,3,4]",
+      "output": "[0,0,0,0]",
+      "description": "already increasing array has no smaller suffix values"
+    },
+    {
+      "input": "nums = [4,3,2,1]",
+      "output": "[3,2,1,0]",
+      "description": "strictly decreasing array counts every suffix value"
+    },
+    {
+      "input": "nums = [2,2,1]",
+      "output": "[1,1,0]",
+      "description": "duplicates count the same smaller suffix value"
+    },
+    {
+      "input": "nums = [0,-1,-1,-2]",
+      "output": "[3,1,1,0]",
+      "description": "negative duplicates and one lower tail value"
+    },
+    {
+      "input": "nums = [-10000,10000,0,-10000,10000]",
+      "output": "[0,2,1,0,0]",
+      "description": "constraint boundary values with duplicates"
+    },
+    {
+      "input": "nums = [5,4,5,4,5]",
+      "output": "[2,0,1,0,0]",
+      "description": "alternating high and low duplicates"
+    },
+    {
+      "input": "nums = [1,0,2,0,1]",
+      "output": "[2,0,2,0,0]",
+      "description": "zeros and repeated positive values"
+    },
+    {
+      "input": "nums = [10,-10,5,-5,0]",
+      "output": "[4,0,2,0,0]",
+      "description": "mixed signs without duplicates"
+    },
+    {
+      "input": "nums = [2,1,2,1,2,1]",
+      "output": "[3,0,2,0,1,0]",
+      "description": "dense alternating duplicates"
+    },
+    {
+      "input": "nums = [3,3,3]",
+      "output": "[0,0,0]",
+      "description": "all equal values produce zero counts"
+    }
   ]
 }

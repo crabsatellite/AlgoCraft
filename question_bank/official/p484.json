@@ -1,58 +1,107 @@
 {
   "id": "484",
-  "title": "Replace Words",
-  "description": "# Replace Words\n\nIn English, we have a concept called **root**, which can be followed by some other word to form another longer word - let's call this word **successor**. For example, when the **root** `\"an\"` is followed by the **successor** word `\"other\"`, we can form a new word `\"another\"`.\n\nGiven a `dictionary` consisting of many **roots** and a `sentence` consisting of words separated by spaces, replace all the **successors** in the sentence with the **root** forming it. If a **successor** can be replaced by more than one **root**, replace it with the **root** that has **the shortest length**.\n\nReturn *the `sentence` after the replacement*.\n\n## Example 1:\n\n**Input:** dictionary = [\"cat\",\"bat\",\"rat\"], sentence = \"the cattle was rattled by the battery\"\n**Output:** \"the cat was rat by the bat\"\n\n## Example 2:\n\n**Input:** dictionary = [\"a\",\"b\",\"c\"], sentence = \"aadsfasf absbs bbab cadsfafs\"\n**Output:** \"a a b c\"\n\n## Constraints:\n\n*   `1 <= dictionary.length <= 1000`\n*   `1 <= dictionary[i].length <= 100`\n*   `dictionary[i]` consists of only lower-case letters.\n*   `1 <= sentence.length <= 10^6`\n*   `sentence` consists of only lower-case letters and spaces.\n*   The number of words in `sentence` is in the range `[1, 1000]`.\n*   The length of each word in `sentence` is in the range `[1, 1000]`.\n*   Every two consecutive words in `sentence` will be separated by exactly one space.\n*   `sentence` does not have leading or trailing spaces.",
+  "title": "Count Length-Three Palindromic Subsequences",
+  "description": "# Count Length-Three Palindromic Subsequences\n\nGiven a string `s`, return the number of distinct palindromic subsequences of length three.\n\nA subsequence is formed by deleting zero or more characters without changing the relative order of the remaining characters. A length-three palindrome has the form `x y x`, where the first and third characters are equal. Two subsequences count as the same if their three-character strings are equal, even when they are formed from different indices.\n\n## Example 1\n\n**Input:** `s = \"aabca\"`\n\n**Output:** `3`\n\n**Explanation:** The distinct length-three palindromic subsequences are `\"aaa\"`, `\"aba\"`, and `\"aca\"`.\n\n## Example 2\n\n**Input:** `s = \"adc\"`\n\n**Output:** `0`\n\n**Explanation:** No character appears on both sides of a possible middle character, so no length-three palindrome can be formed.\n\n## Example 3\n\n**Input:** `s = \"bbcbaba\"`\n\n**Output:** `4`\n\n**Explanation:** The distinct palindromic subsequences are `\"bbb\"`, `\"bcb\"`, `\"bab\"`, and `\"aba\"`.\n\n## Constraints\n\n* `1 <= s.length <= 10^5`\n* `s` contains only lowercase English letters.",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public String replaceWords(List<String> dictionary, String sentence) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int countPalindromicSubsequence(String s) {\n        \n    }\n}",
   "tags": [
-    "Array",
     "Hash Table",
     "String",
-    "Trie"
+    "Prefix Sum",
+    "Bitmask"
   ],
   "examples": [
     {
-      "input": "dictionary = [\"cat\",\"bat\",\"rat\"], sentence = \"the cattle was rattled by the battery\"",
-      "output": "\"the cat was rat by the bat\""
+      "input": "s = \"aabca\"",
+      "output": "3"
     },
     {
-      "input": "dictionary = [\"a\",\"b\",\"c\"], sentence = \"aadsfasf absbs bbab cadsfafs\"",
-      "output": "\"a a b c\""
-    }
-  ],
-  "solutions": [
-    {
-      "name": "Trie Prefix Search",
-      "timeComplexity": "O(D*L + S)",
-      "spaceComplexity": "O(D*L)",
-      "description": "Build a Trie from all dictionary roots. For each word in the sentence, traverse the Trie to find the shortest matching prefix root. Replace the word with the root if found.",
-      "code": "class Solution {\n    private int[][] trie = new int[100001][26];\n    private boolean[] end = new boolean[100001];\n    private int idx = 0;\n    \n    public String replaceWords(List<String> dictionary, String sentence) {\n        for (String root : dictionary) {\n            int node = 0;\n            for (char c : root.toCharArray()) {\n                int ci = c - 'a';\n                if (trie[node][ci] == 0) trie[node][ci] = ++idx;\n                node = trie[node][ci];\n            }\n            end[node] = true;\n        }\n        StringBuilder sb = new StringBuilder();\n        for (String word : sentence.split(\" \")) {\n            if (sb.length() > 0) sb.append(' ');\n            int node = 0;\n            boolean found = false;\n            for (int i = 0; i < word.length(); i++) {\n                int ci = word.charAt(i) - 'a';\n                if (trie[node][ci] == 0) break;\n                node = trie[node][ci];\n                if (end[node]) {\n                    sb.append(word, 0, i + 1);\n                    found = true;\n                    break;\n                }\n            }\n            if (!found) sb.append(word);\n        }\n        return sb.toString();\n    }\n}",
-      "language": "java"
+      "input": "s = \"adc\"",
+      "output": "0"
     },
     {
-      "name": "HashSet Prefix Search",
-      "timeComplexity": "O(D*L + S*L)",
-      "spaceComplexity": "O(D*L)",
-      "description": "Store all roots in a HashSet. For each word in the sentence, try all prefixes from length 1 up to the word length. Replace with the first (shortest) prefix found in the set.",
-      "code": "class Solution {\n    public String replaceWords(java.util.List<String> dictionary, String sentence) {\n        java.util.Set<String> roots = new java.util.HashSet<>(dictionary);\n        StringBuilder sb = new StringBuilder();\n        for (String word : sentence.split(\" \")) {\n            if (sb.length() > 0) sb.append(' ');\n            boolean found = false;\n            for (int i = 1; i <= word.length(); i++) {\n                String prefix = word.substring(0, i);\n                if (roots.contains(prefix)) {\n                    sb.append(prefix);\n                    found = true;\n                    break;\n                }\n            }\n            if (!found) sb.append(word);\n        }\n        return sb.toString();\n    }\n}",
-      "language": "java"
+      "input": "s = \"bbcbaba\"",
+      "output": "4"
     }
   ],
   "tests": [
     {
-      "input": "dictionary = [\"cat\",\"bat\",\"rat\"], sentence = \"the cattle was rattled by the battery\"",
-      "output": "\"the cat was rat by the bat\""
+      "input": "s = \"aabca\"",
+      "output": "3"
     },
     {
-      "input": "dictionary = [\"a\",\"b\",\"c\"], sentence = \"aadsfasf absbs bbab cadsfafs\"",
-      "output": "\"a a b c\""
+      "input": "s = \"adc\"",
+      "output": "0"
+    },
+    {
+      "input": "s = \"bbcbaba\"",
+      "output": "4"
+    },
+    {
+      "input": "s = \"aaaa\"",
+      "output": "1"
+    },
+    {
+      "input": "s = \"abcba\"",
+      "output": "3"
+    },
+    {
+      "input": "s = \"bb\"",
+      "output": "0"
+    },
+    {
+      "input": "s = \"zzazz\"",
+      "output": "2"
+    },
+    {
+      "input": "s = \"a\"",
+      "output": "0"
+    },
+    {
+      "input": "s = \"aaa\"",
+      "output": "1"
+    },
+    {
+      "input": "s = \"abca\"",
+      "output": "2"
+    },
+    {
+      "input": "s = \"abcabc\"",
+      "output": "6"
+    },
+    {
+      "input": "s = \"abcdefghijklmnopqrstuvwxyz\"",
+      "output": "0"
+    },
+    {
+      "input": "s = \"abacaba\"",
+      "output": "5"
     }
   ],
-  "diagrams": [
+  "solutions": [
     {
-      "id": "trie",
-      "file": "p484_trie.png",
-      "caption": "Trie: word -> world"
+      "name": "First Last Window",
+      "timeComplexity": "O(26n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFor each possible outer character, find its first and last occurrence. If both exist with at least one index between them, every distinct middle character inside that open interval forms exactly one palindrome of the form `outer + middle + outer`.\n\n## Key Insight\n\nThe answer counts distinct strings, not index triples. Once the outer character is fixed, choosing the earliest and latest occurrence gives the widest possible middle window, so counting unique letters inside that window counts every palindrome with that outer character exactly once.\n\n## Complexity Analysis\n\nThere are only 26 lowercase letters. For each one, scanning the middle window costs at most `O(n)`, and the temporary `middleSeen` array has constant size.",
+      "code": "class Solution {\n    public int countPalindromicSubsequence(String s) {\n        int answer = 0;\n        for (int outer = 0; outer < 26; outer++) {\n            char ch = (char) ('a' + outer);\n            int first = s.indexOf(ch);\n            int last = s.lastIndexOf(ch);\n            if (first == -1 || first == last) {\n                continue;\n            }\n\n            boolean[] middleSeen = new boolean[26];\n            int distinctMiddle = 0;\n            for (int i = first + 1; i < last; i++) {\n                int middle = s.charAt(i) - 'a';\n                if (!middleSeen[middle]) {\n                    middleSeen[middle] = true;\n                    distinctMiddle++;\n                }\n            }\n            answer += distinctMiddle;\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Prefix Suffix Presence Tables",
+      "timeComplexity": "O(26n)",
+      "spaceComplexity": "O(26n)",
+      "description": "## Approach\n\nTreat every index as the middle character. Precompute which letters appear before each index and which letters appear after each index. For every middle position, any letter present on both sides forms one candidate palindrome; a `counted[outer][middle]` table removes duplicates.\n\n## Key Insight\n\nThis route directly models the definition `x y x`: an outer letter must exist on both sides of the chosen middle letter. The de-duplication target is the `(outer, middle)` pair, because that pair uniquely determines the three-character palindrome.\n\n## Complexity Analysis\n\nThe prefix and suffix presence tables each contain `n * 26` booleans. The final scan checks 26 possible outer letters for each middle index.",
+      "code": "class Solution {\n    public int countPalindromicSubsequence(String s) {\n        int n = s.length();\n        boolean[][] left = new boolean[n][26];\n        boolean[][] right = new boolean[n][26];\n\n        for (int i = 1; i < n; i++) {\n            System.arraycopy(left[i - 1], 0, left[i], 0, 26);\n            left[i][s.charAt(i - 1) - 'a'] = true;\n        }\n        for (int i = n - 2; i >= 0; i--) {\n            System.arraycopy(right[i + 1], 0, right[i], 0, 26);\n            right[i][s.charAt(i + 1) - 'a'] = true;\n        }\n\n        boolean[][] counted = new boolean[26][26];\n        int answer = 0;\n        for (int middleIndex = 0; middleIndex < n; middleIndex++) {\n            int middle = s.charAt(middleIndex) - 'a';\n            for (int outer = 0; outer < 26; outer++) {\n                if (left[middleIndex][outer] && right[middleIndex][outer] && !counted[outer][middle]) {\n                    counted[outer][middle] = true;\n                    answer++;\n                }\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Streaming Middle Bitmasks",
+      "timeComplexity": "O(26n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan the string from left to right. Maintain a bitmask of letters already seen on the left, and a bitmask of letters still remaining on the right. At each middle index, the bitwise intersection of those masks is exactly the set of valid outer letters.\n\n## Key Insight\n\nThe prefix/suffix table can be compressed because the alphabet is fixed at 26 letters. A bit set in both masks means that letter can be chosen before and after the current middle, and the `counted[outer][middle]` table ensures each distinct palindrome string is counted once.\n\n## Complexity Analysis\n\nEach position may iterate over up to 26 outer letters, so the time is `O(26n)`. The frequency array, masks, and `26 x 26` counted table are constant space under the fixed lowercase alphabet.",
+      "code": "class Solution {\n    public int countPalindromicSubsequence(String s) {\n        int[] rightCount = new int[26];\n        int rightMask = 0;\n        for (int i = 0; i < s.length(); i++) {\n            int c = s.charAt(i) - 'a';\n            rightCount[c]++;\n            rightMask |= 1 << c;\n        }\n\n        int leftMask = 0;\n        boolean[][] counted = new boolean[26][26];\n        int answer = 0;\n        for (int i = 0; i < s.length(); i++) {\n            int middle = s.charAt(i) - 'a';\n            rightCount[middle]--;\n            if (rightCount[middle] == 0) {\n                rightMask &= ~(1 << middle);\n            }\n\n            int outerMask = leftMask & rightMask;\n            while (outerMask != 0) {\n                int bit = outerMask & -outerMask;\n                int outer = Integer.numberOfTrailingZeros(bit);\n                if (!counted[outer][middle]) {\n                    counted[outer][middle] = true;\n                    answer++;\n                }\n                outerMask -= bit;\n            }\n\n            leftMask |= 1 << middle;\n        }\n        return answer;\n    }\n}",
+      "language": "java"
     }
   ]
 }

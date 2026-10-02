@@ -1,7 +1,7 @@
 {
   "id": "207",
   "title": "Remove Duplicates from Sorted List",
-  "description": "# Remove Duplicates from Sorted List\n\nGiven the `head` of a sorted linked list, *delete all duplicates such that each element appears only once*. Return *the linked list sorted as well*.\n\n## Example 1:\n\n**Input:** head = [1,1,2]\n**Output:** [1,2]\n\n## Example 2:\n\n**Input:** head = [1,1,2,3,3]\n**Output:** [1,2,3]\n\n## Constraints:\n\n*   The number of nodes in the list is in the range `[0, 300]`.\n*   `-100 <= Node.val <= 100`\n*   The list is guaranteed to be sorted in ascending order.",
+  "description": "# Remove Duplicates from Sorted List\n\nGiven a singly linked list sorted in nondecreasing order, remove extra duplicate nodes so each distinct value remains once. Return the resulting head, preserving nondecreasing order.\n\nFor example, `1 -> 1 -> 2 -> 3 -> 3` becomes `1 -> 2 -> 3`. You may relink existing nodes or build a new result list.\n\nExample arrays display values in `next` order; `[]` denotes an empty list (`null`). A node stores its value in `val` and its next node in `next`. Use node objects for list parameters and results as shown in the initial code.\n\n## Example 1:\n\n**Input:** head = [1,1,2]\n**Output:** [1,2]\n**Explanation:** The two `1` nodes form one duplicate run, so only one `1` remains before `2`.\n\n## Example 2:\n\n**Input:** head = [1,1,2,3,3]\n**Output:** [1,2,3]\n**Explanation:** The head run of `1`s and the tail run of `3`s are each compressed to one node.\n\n## Constraints:\n\n* The number of nodes in the list is in the range `[0, 300]`.\n* `-100 <= Node.val <= 100`\n* The list is sorted in ascending order.\n* The relative order of the distinct values must stay ascending.",
   "difficulty": "EASY",
   "initialCode": "/**\n * Definition for singly-linked list.\n * public class ListNode {\n *     int val;\n *     ListNode next;\n *     ListNode() {}\n *     ListNode(int val) { this.val = val; }\n *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n * }\n */\nclass Solution {\n    public ListNode deleteDuplicates(ListNode head) {\n        // Write your code here\n        return null;\n    }\n}",
   "tags": [
@@ -19,57 +19,113 @@
   ],
   "solutions": [
     {
-      "name": "Iterative",
+      "name": "In-Place Adjacent Skip",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Traverse the list. When current node's value equals the next node's value, skip the next node. Otherwise advance.",
+      "description": "## Approach\n\nWalk a pointer `curr` through the sorted list. When `curr.next` has the same value as `curr`, bypass `curr.next` by assigning `curr.next = curr.next.next`. Only advance `curr` when no deletion happens, because the new `curr.next` may still be another duplicate.\n\n## Key Insight\n\nSorting makes every duplicate of a value adjacent to its first remaining node. The invariant after each loop is that the prefix ending at `curr` already contains exactly one copy of each value and is still linked in sorted order.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
       "code": "class Solution {\n    public ListNode deleteDuplicates(ListNode head) {\n        ListNode curr = head;\n        while (curr != null && curr.next != null) {\n            if (curr.val == curr.next.val) {\n                curr.next = curr.next.next;\n            } else {\n                curr = curr.next;\n            }\n        }\n        return head;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Recursive",
+      "name": "Run-End Relink with Sentinel Tail",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nTreat the input as consecutive value runs. For each run, attach its first node to an answer tail, then advance the read pointer past the whole run. After all runs are processed, cut `tail.next` to avoid leaving any skipped duplicate nodes reachable.\n\n## Key Insight\n\nInstead of deleting one duplicate at a time, this route reasons in runs: exactly one representative from each sorted run is kept. The final `tail.next = null` is important because the last kept representative may originally still point into duplicate nodes.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode deleteDuplicates(ListNode head) {\n        ListNode sentinel = new ListNode(0);\n        ListNode tail = sentinel;\n        ListNode read = head;\n\n        while (read != null) {\n            tail.next = read;\n            tail = read;\n            int value = read.val;\n            while (read != null && read.val == value) {\n                read = read.next;\n            }\n        }\n\n        tail.next = null;\n        return sentinel.next;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Suffix Cleanup",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Recursively process the rest of the list. If current node's value equals the returned head's value, skip current (return rest). Otherwise link current to the result.",
-      "code": "class Solution {\n    public ListNode deleteDuplicates(ListNode head) {\n        if (head == null || head.next == null) return head;\n        head.next = deleteDuplicates(head.next);\n        return head.val == head.next.val ? head.next : head;\n    }\n}",
+      "description": "## Approach\n\nFirst recursively remove duplicates from `head.next`. Then compare `head` with the first node of the cleaned suffix. If the two values are equal, return the suffix head and skip the current node; otherwise keep `head` and return it.\n\n## Key Insight\n\nThe recursive call gives a suffix that already contains one copy per value. Because the original list is sorted, the only value that can conflict with `head` is the first value of that cleaned suffix.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n) recursion stack",
+      "code": "class Solution {\n    public ListNode deleteDuplicates(ListNode head) {\n        if (head == null || head.next == null) {\n            return head;\n        }\n        head.next = deleteDuplicates(head.next);\n        return head.val == head.next.val ? head.next : head;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Fresh Unique List Rebuild",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nTraverse the sorted input and create a new node only when the current value differs from the last value appended to the answer. A dummy head gives a stable place to append each unique value.\n\n## Key Insight\n\nRebuilding is not the most space-efficient answer, but it is useful pedagogically: it separates value filtering from pointer surgery and avoids accidentally keeping stale duplicate links from the original list.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(k), where `k` is the number of distinct values",
+      "code": "class Solution {\n    public ListNode deleteDuplicates(ListNode head) {\n        ListNode dummy = new ListNode(0);\n        ListNode tail = dummy;\n        boolean first = true;\n        int last = 0;\n        ListNode read = head;\n\n        while (read != null) {\n            if (first || read.val != last) {\n                tail.next = new ListNode(read.val);\n                tail = tail.next;\n                last = read.val;\n                first = false;\n            }\n            read = read.next;\n        }\n        return dummy.next;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two-Pointer Value Compaction",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nReuse the first `k` nodes of the list as write slots. A read pointer scans every input node; when it finds a new value, the write pointer advances one node and copies that value into the write node. At the end, truncate after the last written node.\n\n## Key Insight\n\nThis mirrors array-style in-place compaction. It keeps the returned value sequence correct without allocating nodes, but it changes node values, so it is mainly a teaching contrast to pointer-relinking solutions.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode deleteDuplicates(ListNode head) {\n        if (head == null) {\n            return null;\n        }\n\n        ListNode write = head;\n        ListNode read = head.next;\n        int last = head.val;\n\n        while (read != null) {\n            if (read.val != last) {\n                write = write.next;\n                write.val = read.val;\n                last = read.val;\n            }\n            read = read.next;\n        }\n\n        write.next = null;\n        return head;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "head = [1,1,2]",
-      "output": "[1,2]"
+      "output": "[1,2]",
+      "description": "Canonical duplicate run at the head is compressed to one node."
     },
     {
       "input": "head = [1,1,2,3,3]",
-      "output": "[1,2,3]"
+      "output": "[1,2,3]",
+      "description": "Duplicate runs at both the head and tail are removed."
     },
     {
       "input": "head = []",
-      "output": "[]"
+      "output": "[]",
+      "description": "Empty list remains empty."
     },
     {
       "input": "head = [1]",
-      "output": "[1]"
+      "output": "[1]",
+      "description": "Single node has no duplicate to remove."
     },
     {
       "input": "head = [1,1,1]",
-      "output": "[1]"
+      "output": "[1]",
+      "description": "A list made of one long duplicate run collapses to one node."
     },
     {
       "input": "head = [1,2,3]",
-      "output": "[1,2,3]"
+      "output": "[1,2,3]",
+      "description": "Already unique sorted list is unchanged."
     },
     {
       "input": "head = [-1,-1,0,0,1,1]",
-      "output": "[-1,0,1]"
+      "output": "[-1,0,1]",
+      "description": "Negative, zero, and positive duplicate runs are handled uniformly."
+    },
+    {
+      "input": "head = [0,0,0,1,1,2,2,2,3]",
+      "output": "[0,1,2,3]",
+      "description": "Multiple duplicate runs of different lengths are compressed."
+    },
+    {
+      "input": "head = [-100,-100,-99,-99,-99,100]",
+      "output": "[-100,-99,100]",
+      "description": "Constraint boundary values and an interior long run are preserved correctly."
+    },
+    {
+      "input": "head = [1,1,2,2,3,3,4,4]",
+      "output": "[1,2,3,4]",
+      "description": "Every value appears as a duplicate pair."
+    },
+    {
+      "input": "head = [1,2,2,2,3,4,4,5]",
+      "output": "[1,2,3,4,5]",
+      "description": "Interior long run and tail duplicate run are both handled."
+    },
+    {
+      "input": "head = [1,1,1,2]",
+      "output": "[1,2]",
+      "description": "A long duplicate run at the head followed by a unique tail keeps the tail reachable."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p207_example1.png",
-      "caption": "Example: Sorted List with Duplicates [1,1,2,3,3]"
+      "caption": "Sorted input list with repeated values"
     }
   ]
 }

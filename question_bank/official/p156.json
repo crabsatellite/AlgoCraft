@@ -1,37 +1,127 @@
 {
   "id": "156",
   "title": "Palindromic Substrings",
-  "description": "# Palindromic Substrings\n\nGiven a string `s`, return *the number of **palindromic substrings** in it*.\n\nA string is a **palindrome** when it reads the same backward as forward.\n\nA **substring** is a contiguous sequence of characters within the string.\n\n## Example 1:\n\n**Input:** s = \"abc\"\n**Output:** 3\n**Explanation:** Three palindromic strings: \"a\", \"b\", \"c\".\n\n## Example 2:\n\n**Input:** s = \"aaa\"\n**Output:** 6\n**Explanation:** Six palindromic strings: \"a\", \"a\", \"a\", \"aa\", \"aa\", \"aaa\".\n\n## Constraints:\n\n*   `1 <= s.length <= 1000`\n*   `s` consists of lowercase English letters.",
+  "description": "# Palindromic Substrings\n\nGiven a string `s`, return the number of palindromic substrings in `s`.\n\nA palindrome reads the same from left to right and from right to left. A substring must be contiguous.\n\nCount every occurrence by its own start and end indices. Two equal-looking substrings at different positions are counted separately.\n\n## Example 1\n\n**Input:** `s = \"abc\"`\n\n**Output:** `3`\n\n**Explanation:** The only palindromic substrings are the three single-character substrings: `\"a\"`, `\"b\"`, and `\"c\"`.\n\n## Example 2\n\n**Input:** `s = \"aaa\"`\n\n**Output:** `6`\n\n**Explanation:** The palindromic substrings are three single-character occurrences, two `\"aa\"` occurrences, and one `\"aaa\"` occurrence.\n\n## Example 3\n\n**Input:** `s = \"ababa\"`\n\n**Output:** `9`\n\n**Explanation:** Overlapping palindromes such as `\"aba\"` and `\"bab\"` are counted by their own ranges.\n\n## Constraints\n\n- `1 <= s.length <= 1000`\n- `s` consists of lowercase English letters.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int countSubstrings(String s) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["String", "Dynamic Programming"],
+  "tags": [
+    "String",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "s = \"abc\"", "output": "3" },
-    { "input": "s = \"aaa\"", "output": "6" }
+    {
+      "input": "s = \"abc\"",
+      "output": "3"
+    },
+    {
+      "input": "s = \"aaa\"",
+      "output": "6"
+    },
+    {
+      "input": "s = \"ababa\"",
+      "output": "9"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p156_palindromic_substrings.png",
+      "alt": "A string of character cells with overlapping mirrored substrings marked by separate ranges",
+      "caption": "Overlapping mirrored blocks are separate substring occurrences"
+    }
   ],
   "solutions": [
     {
-      "name": "Expand Around Center",
-      "timeComplexity": "O(n^2)",
+      "name": "Brute Force Substring Validation",
+      "timeComplexity": "O(n^3)",
       "spaceComplexity": "O(1)",
-      "description": "For each center (odd and even), expand outward while characters match. Each expansion that succeeds is a palindromic substring.",
-      "code": "class Solution {\n    public int countSubstrings(String s) {\n        int count = 0;\n        for (int i = 0; i < s.length(); i++) {\n            count += expand(s, i, i);\n            count += expand(s, i, i + 1);\n        }\n        return count;\n    }\n\n    private int expand(String s, int l, int r) {\n        int count = 0;\n        while (l >= 0 && r < s.length() && s.charAt(l) == s.charAt(r)) {\n            count++; l--; r++;\n        }\n        return count;\n    }\n}",
+      "description": "## Approach\n\nEnumerate every possible substring by start and end index. For each range, use two pointers to check whether it is a palindrome, and increment the answer when the check succeeds.\n\n## Key Insight\n\nThe problem counts occurrences, not distinct text values. Enumerating ranges directly matches that definition: every `(start, end)` pair is considered once, even when two substrings contain the same letters.\n\n## Complexity Analysis\n\nThere are `O(n^2)` ranges and each palindrome check can scan `O(n)` characters, so the time complexity is `O(n^3)`. The check uses only two pointers, so the space complexity is `O(1)`.",
+      "code": "class Solution {\n    public int countSubstrings(String s) {\n        int n = s.length();\n        int count = 0;\n        for (int start = 0; start < n; start++) {\n            for (int end = start; end < n; end++) {\n                if (isPalindrome(s, start, end)) {\n                    count++;\n                }\n            }\n        }\n        return count;\n    }\n\n    private boolean isPalindrome(String s, int left, int right) {\n        while (left < right) {\n            if (s.charAt(left) != s.charAt(right)) {\n                return false;\n            }\n            left++;\n            right--;\n        }\n        return true;\n    }\n}",
       "language": "java"
     },
     {
       "name": "Expand Around Center",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(1)",
-      "description": "For each center (odd and even), expand outward while characters match. Each successful expansion is a palindromic substring.",
-      "code": "class Solution {\n    public int countSubstrings(String s) {\n        int count = 0;\n        for (int i = 0; i < s.length(); i++) {\n            count += expand(s, i, i);\n            count += expand(s, i, i + 1);\n        }\n        return count;\n    }\n    private int expand(String s, int l, int r) {\n        int count = 0;\n        while (l >= 0 && r < s.length() && s.charAt(l) == s.charAt(r)) {\n            count++;\n            l--;\n            r++;\n        }\n        return count;\n    }\n}",
+      "description": "## Approach\n\nEvery palindrome has either one center character or a gap between two center characters. Expand from every odd and even center, and add one to the count each time the expansion still mirrors correctly.\n\n## Key Insight\n\nA palindromic substring is discovered exactly once by its center. Counting successful expansion steps naturally counts overlapping ranges and repeated text occurrences separately.\n\n## Complexity Analysis\n\nThere are `2n - 1` centers, and each expansion can move across the string, so the time complexity is `O(n^2)`. The algorithm stores only the current pointers and count, giving `O(1)` space.",
+      "code": "class Solution {\n    public int countSubstrings(String s) {\n        int count = 0;\n        for (int center = 0; center < s.length(); center++) {\n            count += countAroundCenter(s, center, center);\n            count += countAroundCenter(s, center, center + 1);\n        }\n        return count;\n    }\n\n    private int countAroundCenter(String s, int left, int right) {\n        int palindromes = 0;\n        while (left >= 0 && right < s.length() && s.charAt(left) == s.charAt(right)) {\n            palindromes++;\n            left--;\n            right++;\n        }\n        return palindromes;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Dynamic Programming Table",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nLet `palindrome[start][end]` record whether `s[start..end]` is palindromic. Fill shorter lengths first, then use the inner substring result to decide longer ranges and count every true table entry.\n\n## Key Insight\n\nA range is palindromic when the endpoint characters match and the inside range is also palindromic. The table makes each substring range explicit, which matches the occurrence-counting requirement.\n\n## Complexity Analysis\n\nThe table has `O(n^2)` entries, each computed in constant time. The time complexity is `O(n^2)`, and the table uses `O(n^2)` space.",
+      "code": "class Solution {\n    public int countSubstrings(String s) {\n        int n = s.length();\n        boolean[][] palindrome = new boolean[n][n];\n        int count = 0;\n        for (int length = 1; length <= n; length++) {\n            for (int start = 0; start + length <= n; start++) {\n                int end = start + length - 1;\n                if (s.charAt(start) == s.charAt(end)\n                        && (length <= 2 || palindrome[start + 1][end - 1])) {\n                    palindrome[start][end] = true;\n                    count++;\n                }\n            }\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Memoized Range Check",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nEnumerate all substring ranges, but memoize the recursive palindrome check for each range. A range checks its endpoints and then asks whether the inner range is palindromic.\n\n## Key Insight\n\nThis keeps the direct range-enumeration definition while avoiding repeated work inside nested palindrome checks. Each `(left, right)` range has one cached truth value.\n\n## Complexity Analysis\n\nThere are `O(n^2)` ranges, and each memoized range is solved once. The time complexity is `O(n^2)`, while the memo table and recursion stack use `O(n^2)` space in total.",
+      "code": "class Solution {\n    public int countSubstrings(String s) {\n        int n = s.length();\n        int[][] memo = new int[n][n];\n        int count = 0;\n        for (int start = 0; start < n; start++) {\n            for (int end = start; end < n; end++) {\n                if (isPalindrome(s, start, end, memo)) {\n                    count++;\n                }\n            }\n        }\n        return count;\n    }\n\n    private boolean isPalindrome(String s, int left, int right, int[][] memo) {\n        if (left >= right) {\n            return true;\n        }\n        if (memo[left][right] != 0) {\n            return memo[left][right] == 1;\n        }\n        boolean ok = s.charAt(left) == s.charAt(right)\n                && isPalindrome(s, left + 1, right - 1, memo);\n        memo[left][right] = ok ? 1 : -1;\n        return ok;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Manacher Radius Counting",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nTransform the string with separators so odd and even palindromes share one representation. Run Manacher's algorithm to compute a radius for each transformed center, then convert each radius into the number of original palindromic substrings contributed by that center.\n\n## Key Insight\n\nIn the transformed string, a center with radius `r` contributes `(r + 1) / 2` original substrings. Manacher's mirror reuse computes all radii in linear time.\n\n## Complexity Analysis\n\nEach transformed position expands beyond the current right boundary at most once, so the time complexity is `O(n)`. The transformed array and radius array use `O(n)` space.",
+      "code": "class Solution {\n    public int countSubstrings(String s) {\n        int n = s.length();\n        char[] transformed = new char[n * 2 + 3];\n        int index = 0;\n        transformed[index++] = '^';\n        for (int i = 0; i < n; i++) {\n            transformed[index++] = '#';\n            transformed[index++] = s.charAt(i);\n        }\n        transformed[index++] = '#';\n        transformed[index++] = '$';\n\n        int[] radius = new int[transformed.length];\n        int center = 0;\n        int right = 0;\n        int count = 0;\n        for (int i = 1; i < index - 1; i++) {\n            int mirror = 2 * center - i;\n            if (i < right && mirror >= 0) {\n                radius[i] = Math.min(right - i, radius[mirror]);\n            }\n            while (i + 1 + radius[i] < index\n                    && i - 1 - radius[i] >= 0\n                    && transformed[i + 1 + radius[i]] == transformed[i - 1 - radius[i]]) {\n                radius[i]++;\n            }\n            if (i + radius[i] > right) {\n                center = i;\n                right = i + radius[i];\n            }\n            count += (radius[i] + 1) / 2;\n        }\n        return count;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"abc\"", "output": "3" },
-    { "input": "s = \"aaa\"", "output": "6" },
-    { "input": "s = \"a\"", "output": "1" },
-    { "input": "s = \"aba\"", "output": "4" },
-    { "input": "s = \"abba\"", "output": "6" }
+    {
+      "input": "s = \"abc\"",
+      "output": "3",
+      "description": "Only the three single-character substrings are palindromic."
+    },
+    {
+      "input": "s = \"aaa\"",
+      "output": "6",
+      "description": "Repeated equal text is counted by occurrence, not by distinct value."
+    },
+    {
+      "input": "s = \"a\"",
+      "output": "1",
+      "description": "Single-character boundary."
+    },
+    {
+      "input": "s = \"aba\"",
+      "output": "4",
+      "description": "Odd full-length palindrome adds one range beyond the single characters."
+    },
+    {
+      "input": "s = \"abba\"",
+      "output": "6",
+      "description": "Even center produces both the middle pair and the full string."
+    },
+    {
+      "input": "s = \"ababa\"",
+      "output": "9",
+      "description": "Overlapping odd palindromes must all be counted."
+    },
+    {
+      "input": "s = \"aaaaa\"",
+      "output": "15",
+      "description": "All substrings are palindromic, exposing distinct-count mistakes."
+    },
+    {
+      "input": "s = \"racecar\"",
+      "output": "10",
+      "description": "Nested odd palindromes inside a classic seven-character palindrome."
+    },
+    {
+      "input": "s = \"abccba\"",
+      "output": "9",
+      "description": "Nested even palindromes around the center pair."
+    },
+    {
+      "input": "s = \"abab\"",
+      "output": "6",
+      "description": "Two overlapping length-three palindromes share characters but have different ranges."
+    }
   ]
 }

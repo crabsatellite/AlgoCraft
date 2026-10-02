@@ -1,49 +1,150 @@
 {
   "id": "187",
   "title": "Minimum Number of Arrows to Burst Balloons",
-  "description": "# Minimum Number of Arrows to Burst Balloons\n\nThere are some spherical balloons taped onto a flat wall that represents the XY-plane. The balloons are represented as a 2D integer array `points` where `points[i] = [xstart, xend]` denotes a balloon whose horizontal diameter stretches between `xstart` and `xend`. You do not know the exact y-coordinates of the balloons.\n\nArrows can be shot up directly vertically (in the positive y-direction) from different points along the x-axis. A balloon with `xstart` and `xend` is **burst** by an arrow shot at `x` if `xstart <= x <= xend`. There is no limit to the number of arrows that can be shot. A shot arrow keeps traveling up infinitely, bursting any balloons in its path.\n\nGiven the array `points`, return *the minimum number of arrows that must be shot to burst all balloons*.\n\n## Example 1:\n\n**Input:** points = [[10,16],[2,8],[1,6],[7,12]]\n**Output:** 2\n**Explanation:** The balloons can be burst by 2 arrows:\n- Shoot an arrow at x = 6, bursting the balloons [2,8] and [1,6].\n- Shoot an arrow at x = 11, bursting the balloons [10,16] and [7,12].\n\n## Example 2:\n\n**Input:** points = [[1,2],[3,4],[5,6],[7,8]]\n**Output:** 4\n**Explanation:** One arrow needs to be shot for each balloon for a total of 4 arrows.\n\n## Example 3:\n\n**Input:** points = [[1,2],[2,3],[3,4],[4,5]]\n**Output:** 2\n**Explanation:** The balloons can be burst by 2 arrows:\n- Shoot an arrow at x = 2, bursting the balloons [1,2] and [2,3].\n- Shoot an arrow at x = 4, bursting the balloons [3,4] and [4,5].\n\n## Constraints:\n\n*   `1 <= points.length <= 10^5`\n*   `points[i].length == 2`\n*   `-2^31 <= xstart < xend <= 2^31 - 1`",
+  "description": "# Minimum Number of Arrows to Burst Balloons\n\nSome spherical balloons are taped to a flat wall that represents the XY-plane. You are given a 2D integer array `points`, where `points[i] = [xstart, xend]` means the horizontal diameter of one balloon covers every x-coordinate from `xstart` through `xend`, inclusive.\n\nYou may shoot arrows vertically upward from any x-coordinate. An arrow shot at coordinate `x` bursts every balloon whose interval contains `x`, meaning `xstart <= x <= xend`.\n\nReturn the minimum number of arrows needed to burst every balloon.\n\nThe intervals are closed: if one balloon ends at `x = 2` and another starts at `x = 2`, one arrow at `x = 2` bursts both balloons. The input intervals are not guaranteed to be sorted.\n\n## Example 1:\n\n**Input:** points = [[10,16],[2,8],[1,6],[7,12]]\n**Output:** 2\n**Explanation:** Shoot one arrow at `x = 6` to burst `[2,8]` and `[1,6]`, and one arrow at `x = 11` to burst `[10,16]` and `[7,12]`.\n\n## Example 2:\n\n**Input:** points = [[1,2],[3,4],[5,6],[7,8]]\n**Output:** 4\n**Explanation:** No two balloons overlap, so each balloon needs its own arrow.\n\n## Example 3:\n\n**Input:** points = [[1,2],[2,3],[3,4],[4,5]]\n**Output:** 2\n**Explanation:** An arrow at `x = 2` bursts `[1,2]` and `[2,3]`; an arrow at `x = 4` bursts `[3,4]` and `[4,5]`.\n\n## Constraints:\n\n*   `1 <= points.length <= 10^5`\n*   `points[i].length == 2`\n*   `-2^31 <= xstart < xend <= 2^31 - 1`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int findMinArrowShots(int[][] points) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Greedy", "Sorting"],
+  "tags": [
+    "Array",
+    "Greedy",
+    "Sorting"
+  ],
   "examples": [
-    { "input": "points = [[10,16],[2,8],[1,6],[7,12]]", "output": "2" },
-    { "input": "points = [[1,2],[3,4],[5,6],[7,8]]", "output": "4" },
-    { "input": "points = [[1,2],[2,3],[3,4],[4,5]]", "output": "2" }
+    {
+      "input": "points = [[10,16],[2,8],[1,6],[7,12]]",
+      "output": "2"
+    },
+    {
+      "input": "points = [[1,2],[3,4],[5,6],[7,8]]",
+      "output": "4"
+    },
+    {
+      "input": "points = [[1,2],[2,3],[3,4],[4,5]]",
+      "output": "2"
+    }
   ],
   "solutions": [
     {
-      "name": "Greedy (Sort by End)",
+      "name": "Greedy Sort By Right Endpoint",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(1)",
-      "description": "Sort balloons by end position. Shoot arrow at the end of the first balloon. Skip all balloons that this arrow also bursts. Repeat for remaining balloons.",
-      "code": "class Solution {\n    public int findMinArrowShots(int[][] points) {\n        java.util.Arrays.sort(points, (a, b) -> Integer.compare(a[1], b[1]));\n        int arrows = 1;\n        int arrowPos = points[0][1];\n        for (int i = 1; i < points.length; i++) {\n            if (points[i][0] > arrowPos) {\n                arrows++;\n                arrowPos = points[i][1];\n            }\n        }\n        return arrows;\n    }\n}",
+      "description": "## Approach\n\nSort balloons by right endpoint. Shoot the first arrow at the right endpoint of the first balloon. For every later balloon, if its start is greater than the current arrow position, it cannot be burst by that arrow, so shoot a new arrow at this balloon's right endpoint.\n\n## Key Insight\n\nWhen a new arrow is necessary, placing it at the earliest possible right endpoint is never worse than placing it later: it still bursts the current balloon and leaves the largest chance to also hit future balloons.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), dominated by sorting.\n- Space Complexity: O(1), aside from sorting implementation details.",
+      "code": "class Solution {\n    public int findMinArrowShots(int[][] points) {\n        java.util.Arrays.sort(points, (a, b) -> Integer.compare(a[1], b[1]));\n        int arrows = 1;\n        int arrowPosition = points[0][1];\n        for (int i = 1; i < points.length; i++) {\n            if (points[i][0] > arrowPosition) {\n                arrows++;\n                arrowPosition = points[i][1];\n            }\n        }\n        return arrows;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Greedy (Sort by Start)",
+      "name": "Greedy Sort By Start And Shrink Intersection",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(1)",
-      "description": "Sort balloons by start position. Track the current intersection window. When a new balloon doesn't overlap the window, shoot a new arrow and reset the window.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int findMinArrowShots(int[][] points) {\n        Arrays.sort(points, new Comparator<int[]>() {\n            public int compare(int[] a, int[] b) {\n                return Integer.compare(a[0], b[0]);\n            }\n        });\n        int arrows = 1;\n        int currentEnd = points[0][1];\n        for (int i = 1; i < points.length; i++) {\n            if (points[i][0] > currentEnd) {\n                arrows++;\n                currentEnd = points[i][1];\n            } else {\n                currentEnd = Math.min(currentEnd, points[i][1]);\n            }\n        }\n        return arrows;\n    }\n}",
+      "description": "## Approach\n\nSort balloons by start coordinate. Maintain the shared intersection of the current group that can be hit by one arrow. If the next balloon starts inside that intersection, shrink the right boundary. If it starts after the intersection, the previous group needs one arrow and a new group begins.\n\n## Key Insight\n\nA group of balloons can be burst by one arrow exactly when their closed intervals have a non-empty common intersection. The right boundary tracks the latest safe arrow position for the active group.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), for sorting.\n- Space Complexity: O(1), aside from sorting implementation details.",
+      "code": "class Solution {\n    public int findMinArrowShots(int[][] points) {\n        java.util.Arrays.sort(points, (a, b) -> {\n            int byStart = Integer.compare(a[0], b[0]);\n            return byStart != 0 ? byStart : Integer.compare(a[1], b[1]);\n        });\n        int arrows = 1;\n        int currentEnd = points[0][1];\n        for (int i = 1; i < points.length; i++) {\n            if (points[i][0] > currentEnd) {\n                arrows++;\n                currentEnd = points[i][1];\n            } else {\n                currentEnd = Math.min(currentEnd, points[i][1]);\n            }\n        }\n        return arrows;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Active Intersection Priority Queue",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort balloons by start coordinate and keep a min-heap of right endpoints for the active overlapping group. If the next balloon starts at or before the smallest active right endpoint, add it to the same group. Otherwise, shoot one arrow at that smallest right endpoint, clear the group, and begin again.\n\n## Key Insight\n\nThe smallest active right endpoint is a valid arrow position for the whole active group. Once a later balloon starts after that point, no single arrow can hit both the old group and the new balloon.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), from sorting and heap operations.\n- Space Complexity: O(n), for the heap in the worst case.",
+      "code": "class Solution {\n    public int findMinArrowShots(int[][] points) {\n        java.util.Arrays.sort(points, (a, b) -> {\n            int byStart = Integer.compare(a[0], b[0]);\n            return byStart != 0 ? byStart : Integer.compare(a[1], b[1]);\n        });\n        java.util.PriorityQueue<Integer> activeEnds = new java.util.PriorityQueue<>();\n        int arrows = 0;\n        for (int[] point : points) {\n            if (!activeEnds.isEmpty() && activeEnds.peek() < point[0]) {\n                arrows++;\n                activeEnds.clear();\n            }\n            activeEnds.offer(point[1]);\n        }\n        return arrows + (activeEnds.isEmpty() ? 0 : 1);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Explicit Event Sweep",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCreate a start event and an end event for every balloon. Sort events by coordinate, processing start events before end events at the same coordinate. Keep the set of active unburst balloons. When an end event still belongs to an active balloon, shoot an arrow at that coordinate and clear the active set.\n\n## Key Insight\n\nProcessing starts before ends at the same coordinate encodes the closed-interval rule: a balloon starting at `x` can be burst by an arrow fired at another balloon's end coordinate `x`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), for sorting events.\n- Space Complexity: O(n), for events and the active set.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int findMinArrowShots(int[][] points) {\n        int[][] events = new int[points.length * 2][3];\n        int index = 0;\n        for (int i = 0; i < points.length; i++) {\n            events[index++] = new int[]{points[i][0], 0, i};\n            events[index++] = new int[]{points[i][1], 1, i};\n        }\n        java.util.Arrays.sort(events, (a, b) -> {\n            int byCoordinate = Integer.compare(a[0], b[0]);\n            return byCoordinate != 0 ? byCoordinate : Integer.compare(a[1], b[1]);\n        });\n        Set<Integer> active = new HashSet<>();\n        int arrows = 0;\n        for (int[] event : events) {\n            if (event[1] == 0) {\n                active.add(event[2]);\n            } else if (active.remove(event[2])) {\n                arrows++;\n                active.clear();\n            }\n        }\n        return arrows;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Ordered Arrow Set",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort balloons by right endpoint and store chosen arrow positions in a `TreeSet`. For each balloon, look for the first chosen arrow whose coordinate is at least the balloon's start. If that arrow is also at or before the balloon's end, the balloon is already burst; otherwise, add a new arrow at the balloon's right endpoint.\n\n## Key Insight\n\nSorting by right endpoint keeps every newly inserted arrow as early as possible, while the ordered set makes the coverage check explicit. This is useful when explaining interval stabbing as maintaining selected points.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), because each lookup and insertion is ordered-set logarithmic after sorting.\n- Space Complexity: O(n), for the chosen arrow set.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int findMinArrowShots(int[][] points) {\n        java.util.Arrays.sort(points, (a, b) -> Integer.compare(a[1], b[1]));\n        TreeSet<Integer> arrows = new TreeSet<>();\n        for (int[] point : points) {\n            Integer candidate = arrows.ceiling(point[0]);\n            if (candidate != null && candidate <= point[1]) {\n                continue;\n            }\n            arrows.add(point[1]);\n        }\n        return arrows.size();\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "points = [[10,16],[2,8],[1,6],[7,12]]", "output": "2" },
-    { "input": "points = [[1,2],[3,4],[5,6],[7,8]]", "output": "4" },
-    { "input": "points = [[1,2],[2,3],[3,4],[4,5]]", "output": "2" },
-    { "input": "points = [[1,10]]", "output": "1" },
-    { "input": "points = [[1,5],[1,5],[1,5]]", "output": "1" },
-    { "input": "points = [[1,10],[2,5],[6,9]]", "output": "2" },
-    { "input": "points = [[1,6],[2,8],[7,12],[10,16]]", "output": "2" },
-    { "input": "points = [[-2147483648,2147483647]]", "output": "1" },
-    { "input": "points = [[1,2],[1,2],[1,2],[1,2]]", "output": "1" }
-  ],
-  "diagrams": [
     {
-      "id": "example1",
-      "file": "p187_example1.png",
-      "caption": "Balloons and Arrows Visualization"
+      "input": "points = [[10,16],[2,8],[1,6],[7,12]]",
+      "output": "2",
+      "description": "Canonical overlapping balloon set can be burst with two arrows."
+    },
+    {
+      "input": "points = [[1,2],[3,4],[5,6],[7,8]]",
+      "output": "4",
+      "description": "Completely disjoint balloons each need their own arrow."
+    },
+    {
+      "input": "points = [[1,2],[2,3],[3,4],[4,5]]",
+      "output": "2",
+      "description": "Endpoint contact lets one arrow burst two adjacent balloons."
+    },
+    {
+      "input": "points = [[1,10]]",
+      "output": "1",
+      "description": "Single balloon always needs one arrow."
+    },
+    {
+      "input": "points = [[1,5],[1,5],[1,5]]",
+      "output": "1",
+      "description": "Identical balloon intervals share one arrow."
+    },
+    {
+      "input": "points = [[1,10],[2,5],[6,9]]",
+      "output": "2",
+      "description": "Nested balloons with separated inner intervals need two arrow positions."
+    },
+    {
+      "input": "points = [[1,6],[2,8],[7,12],[10,16]]",
+      "output": "2",
+      "description": "Two overlap clusters should produce two arrows."
+    },
+    {
+      "input": "points = [[-2147483648,2147483647]]",
+      "output": "1",
+      "description": "A single balloon spanning the integer range needs one arrow."
+    },
+    {
+      "input": "points = [[1,2],[1,2],[1,2],[1,2]]",
+      "output": "1",
+      "description": "Many identical intervals still need only one arrow."
+    },
+    {
+      "input": "points = [[1,5],[2,5],[3,5]]",
+      "output": "1",
+      "description": "Different starts with the same end share one arrow at the common end."
+    },
+    {
+      "input": "points = [[1,5],[1,2],[1,3]]",
+      "output": "1",
+      "description": "Different ends with the same start can share one arrow inside the shortest interval."
+    },
+    {
+      "input": "points = [[1,4],[2,5],[3,6],[7,9],[8,10]]",
+      "output": "2",
+      "description": "Staggered overlaps form two separate arrow groups."
+    },
+    {
+      "input": "points = [[1,3],[2,4],[3,5]]",
+      "output": "1",
+      "description": "A chain with a shared closed endpoint can still be hit by one arrow."
+    },
+    {
+      "input": "points = [[-2147483648,-2147483647],[2147483646,2147483647]]",
+      "output": "2",
+      "description": "Two far-apart extreme intervals check overflow-safe comparisons."
+    },
+    {
+      "input": "points = [[-2147483648,2147483647],[-2147483648,0],[0,2147483647]]",
+      "output": "1",
+      "description": "Closed endpoint zero is shared even across extreme bounds."
+    },
+    {
+      "input": "points = [[9,12],[1,10],[11,20],[2,3],[4,8]]",
+      "output": "3",
+      "description": "Unsorted mixed clusters require three arrows after grouping overlaps."
     }
   ]
 }

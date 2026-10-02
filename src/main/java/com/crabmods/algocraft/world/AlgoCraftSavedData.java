@@ -1,7 +1,9 @@
 package com.crabmods.algocraft.world;
 
 import com.crabmods.algocraft.logic.AchievementManager;
-import net.minecraft.core.HolderLookup;
+import com.crabmods.algocraft.logic.Problem;
+import com.crabmods.algocraft.logic.ProblemManager;
+
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -23,6 +25,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class AlgoCraftSavedData extends SavedData {
     private static final String DATA_NAME = "algocraft_data";
+    private final AchievementManager achievementManager = AchievementManager.createForWorld();
+    private boolean worldScoped;
+    private UUID catalogServerId = UUID.randomUUID();
+    private Set<String> enabledBanks = new HashSet<>(Set.of("official"));
+    public UUID getCatalogServerId() { return catalogServerId; }
+    public Set<String> getEnabledBanks() { return Set.copyOf(enabledBanks); }
+    public void setEnabledBanks(Set<String> banks) { enabledBanks = new HashSet<>(banks); setDirty(); }
     
     // UUID -> (ProblemID -> LastSolvedTimestamp)
     // Using ConcurrentHashMap for thread-safety
@@ -32,17 +41,74 @@ public class AlgoCraftSavedData extends SavedData {
     private final Map<UUID, PlayerStats> playerStats = new ConcurrentHashMap<>();
 
     public static AlgoCraftSavedData get(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(new SavedData.Factory<>(
-            AlgoCraftSavedData::new,
-            AlgoCraftSavedData::load,
-            null
-        ), DATA_NAME);
+        // A player has one learning history across all dimensions of this save.
+        AlgoCraftSavedData data = level.getServer().overworld().getDataStorage().computeIfAbsent(AlgoCraftSavedData::load, AlgoCraftSavedData::new, DATA_NAME);
+        if (!data.worldScoped) {
+            for (ServerLevel dimension : level.getServer().getAllLevels()) {
+                if (dimension != level.getServer().overworld()) {
+                    AlgoCraftSavedData legacy = dimension.getDataStorage().get(AlgoCraftSavedData::load, DATA_NAME);
+                    if (legacy != null) {
+                        data.mergeLegacyProgress(legacy);
+                    }
+                }
+            }
+            data.worldScoped = true;
+            data.setDirty();
+        }
+        return data;
+    }
+
+    public AchievementManager getAchievementManager() {
+        return achievementManager;
+    }
+
+    /** Import old dimension-local records without deleting or rewriting their source files. */
+    public void mergeLegacyProgress(AlgoCraftSavedData legacy) {
+        for (var entry : legacy.playerProgress.entrySet()) {
+            UUID uuid = entry.getKey();
+            Map<String, Long> merged = playerProgress.computeIfAbsent(uuid, key -> new ConcurrentHashMap<>());
+            entry.getValue().forEach((id, time) -> merged.merge(id, time, Math::max));
+            PlayerStats stats = getPlayerStats(uuid);
+            PlayerStats previous = legacy.getPlayerStats(uuid);
+            if (previous.lastSolveDay > stats.lastSolveDay) {
+                stats.lastSolveDay = previous.lastSolveDay;
+                stats.currentStreak = previous.currentStreak;
+                stats.consecutiveCorrect = previous.consecutiveCorrect;
+            }
+            stats.bestStreak = Math.max(stats.bestStreak, previous.bestStreak);
+            stats.totalSolved = merged.size();
+            int easy = 0, medium = 0, hard = 0;
+            for (String id : merged.keySet()) {
+                Problem problem = ProblemManager.getProblem(id);
+                if (problem == null) continue;
+                switch (problem.getDifficulty().toLowerCase(java.util.Locale.ROOT)) {
+                    case "easy" -> easy++;
+                    case "medium" -> medium++;
+                    case "hard" -> hard++;
+                }
+            }
+            // Deleted custom problems cannot be reclassified. Retain their previous counters.
+            stats.easyCount = Math.max(easy, Math.max(stats.easyCount, previous.easyCount));
+            stats.mediumCount = Math.max(medium, Math.max(stats.mediumCount, previous.mediumCount));
+            stats.hardCount = Math.max(hard, Math.max(stats.hardCount, previous.hardCount));
+            Set<String> achievements = new HashSet<>(achievementManager.getPlayerAchievements(uuid));
+            achievements.addAll(legacy.achievementManager.getPlayerAchievements(uuid));
+            achievementManager.loadPlayerAchievementsFromSet(uuid, achievements);
+        }
+        setDirty();
     }
     
     public AlgoCraftSavedData() {}
 
-    public static AlgoCraftSavedData load(CompoundTag tag, HolderLookup.Provider provider) {
+    public static AlgoCraftSavedData load(CompoundTag tag) {
         AlgoCraftSavedData data = new AlgoCraftSavedData();
+        data.worldScoped = tag.getBoolean("WorldScoped");
+        if (tag.hasUUID("CatalogServerId")) data.catalogServerId = tag.getUUID("CatalogServerId");
+        else data.setDirty();
+        if (tag.contains("EnabledBanks", Tag.TAG_LIST)) {
+            data.enabledBanks.clear();
+            for (var bank : tag.getList("EnabledBanks", Tag.TAG_STRING)) data.enabledBanks.add(bank.getAsString());
+        }
         ListTag playersList = tag.getList("Players", Tag.TAG_COMPOUND);
         
         for (int i = 0; i < playersList.size(); i++) {
@@ -80,14 +146,19 @@ public class AlgoCraftSavedData extends SavedData {
                 for (int j = 0; j < achievementsList.size(); j++) {
                     achievements.add(achievementsList.getString(j));
                 }
-                AchievementManager.getInstance().loadPlayerAchievementsFromSet(uuid, achievements);
+                data.achievementManager.loadPlayerAchievementsFromSet(uuid, achievements);
             }
         }
         return data;
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag, HolderLookup.Provider provider) {
+    public CompoundTag save(CompoundTag tag) {
+        tag.putBoolean("WorldScoped", worldScoped);
+        tag.putUUID("CatalogServerId", catalogServerId);
+        ListTag banks = new ListTag();
+        enabledBanks.stream().sorted().forEach(bank -> banks.add(StringTag.valueOf(bank)));
+        tag.put("EnabledBanks", banks);
         ListTag playersList = new ListTag();
         
         for (Map.Entry<UUID, Map<String, Long>> entry : playerProgress.entrySet()) {
@@ -119,7 +190,7 @@ public class AlgoCraftSavedData extends SavedData {
             }
             
             // Save player achievements from AchievementManager
-            Set<String> achievements = AchievementManager.getInstance().getPlayerAchievements(entry.getKey());
+            Set<String> achievements = achievementManager.getPlayerAchievements(entry.getKey());
             if (!achievements.isEmpty()) {
                 ListTag achievementsList = new ListTag();
                 for (String achievementId : achievements) {

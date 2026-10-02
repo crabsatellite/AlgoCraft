@@ -1,50 +1,99 @@
 {
   "id": "453",
-  "title": "Count the Number of Consistent Strings",
-  "description": "# Count the Number of Consistent Strings\n\nYou are given a string `allowed` consisting of distinct characters and an array of strings `words`. A string is **consistent** if all characters in the string appear in the string `allowed`.\n\nReturn the number of **consistent** strings in the array `words`.\n\n## Example 1:\n\n**Input:** allowed = \"ab\", words = [\"ad\",\"bd\",\"aaab\",\"baa\",\"badab\"]\n**Output:** 2\n**Explanation:** Strings \"aaab\" and \"baa\" are consistent since they only contain characters 'a' and 'b'.\n\n## Example 2:\n\n**Input:** allowed = \"abc\", words = [\"a\",\"b\",\"c\",\"ab\",\"ac\",\"bc\",\"abc\"]\n**Output:** 7\n**Explanation:** All strings are consistent.\n\n## Example 3:\n\n**Input:** allowed = \"cad\", words = [\"cc\",\"acd\",\"b\",\"ba\",\"bac\",\"bad\",\"ac\",\"d\"]\n**Output:** 4\n**Explanation:** Strings \"cc\", \"acd\", \"ac\", and \"d\" are consistent.\n\n## Constraints:\n\n*   `1 <= words.length <= 10^4`\n*   `1 <= allowed.length <= 26`\n*   `1 <= words[i].length <= 10`\n*   The characters in `allowed` are distinct.\n*   `allowed` and `words[i]` consist of lowercase English letters.",
+  "title": "Count Good Substrings of Length Three",
+  "description": "# Count Good Substrings of Length Three\n\nA substring is called **good** if it has length exactly `3` and all three characters are distinct.\n\nGiven a string `s`, return the number of good substrings of `s`.\n\nSubstrings are contiguous, so overlapping length-three windows are counted separately when they are both good.\n\n## Example 1:\n\n**Input:** s = \"xyzzaz\"\n**Output:** 1\n**Explanation:** The only good substring is `\"xyz\"`.\n\n## Example 2:\n\n**Input:** s = \"aababcabc\"\n**Output:** 4\n**Explanation:** The good substrings are `\"abc\"`, `\"bca\"`, `\"cab\"`, and `\"abc\"`.\n\n## Constraints:\n\n*   `0 <= s.length <= 10^5`\n*   `s` contains only lowercase English letters.",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public int countConsistentStrings(String allowed, String[] words) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "String", "Bit Manipulation"],
+  "initialCode": "class Solution {\n    public int countGoodSubstrings(String s) {\n        \n    }\n}",
+  "tags": [
+    "String",
+    "Sliding Window",
+    "Hash Table",
+    "Bit Manipulation"
+  ],
   "examples": [
     {
-      "input": "allowed = \"ab\", words = [\"ad\",\"bd\",\"aaab\",\"baa\",\"badab\"]",
-      "output": "2"
+      "input": "s = \"xyzzaz\"",
+      "output": "1"
     },
     {
-      "input": "allowed = \"abc\", words = [\"a\",\"b\",\"c\",\"ab\",\"ac\",\"bc\",\"abc\"]",
-      "output": "7"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "Boolean Set Check",
-      "timeComplexity": "O(n * L)",
-      "spaceComplexity": "O(1)",
-      "description": "Build a boolean set of allowed characters. For each word, check if all its characters are in the allowed set.",
-      "code": "class Solution {\n    public int countConsistentStrings(String allowed, String[] words) {\n        boolean[] ok = new boolean[26];\n        for (char c : allowed.toCharArray()) ok[c - 'a'] = true;\n        int count = 0;\n        for (String w : words) {\n            boolean consistent = true;\n            for (char c : w.toCharArray()) {\n                if (!ok[c - 'a']) { consistent = false; break; }\n            }\n            if (consistent) count++;\n        }\n        return count;\n    }\n}",
-      "language": "java"
-    },
-    {
-      "name": "Bitmask Check",
-      "timeComplexity": "O(n * L)",
-      "spaceComplexity": "O(1)",
-      "description": "Represent allowed characters as a bitmask. For each word, compute its character bitmask. A word is consistent if its bitmask is a subset of the allowed bitmask (i.e., wordMask & ~allowedMask == 0).",
-      "code": "class Solution {\n    public int countConsistentStrings(String allowed, String[] words) {\n        int allowedMask = 0;\n        for (char c : allowed.toCharArray()) allowedMask |= (1 << (c - 'a'));\n        int count = 0;\n        for (String w : words) {\n            int wordMask = 0;\n            for (char c : w.toCharArray()) wordMask |= (1 << (c - 'a'));\n            if ((wordMask & ~allowedMask) == 0) count++;\n        }\n        return count;\n    }\n}",
-      "language": "java"
+      "input": "s = \"aababcabc\"",
+      "output": "4"
     }
   ],
   "tests": [
     {
-      "input": "allowed = \"ab\", words = [\"ad\",\"bd\",\"aaab\",\"baa\",\"badab\"]",
+      "input": "s = \"xyzzaz\"",
+      "output": "1"
+    },
+    {
+      "input": "s = \"aababcabc\"",
+      "output": "4"
+    },
+    {
+      "input": "s = \"abc\"",
+      "output": "1"
+    },
+    {
+      "input": "s = \"aaa\"",
+      "output": "0"
+    },
+    {
+      "input": "s = \"\"",
+      "output": "0"
+    },
+    {
+      "input": "s = \"ab\"",
+      "output": "0"
+    },
+    {
+      "input": "s = \"abcd\"",
       "output": "2"
     },
     {
-      "input": "allowed = \"abc\", words = [\"a\",\"b\",\"c\",\"ab\",\"ac\",\"bc\",\"abc\"]",
-      "output": "7"
+      "input": "s = \"abcabc\"",
+      "output": "4"
     },
     {
-      "input": "allowed = \"cad\", words = [\"cc\",\"acd\",\"b\",\"ba\",\"bac\",\"bad\",\"ac\",\"d\"]",
-      "output": "4"
+      "input": "s = \"abcae\"",
+      "output": "3"
+    },
+    {
+      "input": "s = \"abbcca\"",
+      "output": "0"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Fixed Three-Character Comparison",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nEnumerate every starting index of a length-three substring. Read the three characters and compare the three pairs directly: first with second, first with third, and second with third.\n\n## Key Insight\nThe window length is fixed at exactly `3`, so a general data structure is not required. Three pairwise comparisons completely decide whether the substring is good.\n\n## Complexity Analysis\nThere are `n - 2` candidate windows and each takes constant work, so the time complexity is `O(n)`. Only three characters and a counter are stored, so the space complexity is `O(1)`.",
+      "code": "class Solution {\n    public int countGoodSubstrings(String s) {\n        int answer = 0;\n        for (int i = 0; i + 2 < s.length(); i++) {\n            char first = s.charAt(i);\n            char second = s.charAt(i + 1);\n            char third = s.charAt(i + 2);\n            if (first != second && first != third && second != third) {\n                answer++;\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Frequency Window With Duplicate Count",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nMaintain frequencies for the current sliding window of at most three characters. Track how many character kinds currently appear at least twice. A length-three window is good exactly when that duplicate-kind count is zero.\n\n## Key Insight\nThis is the scalable fixed-window pattern. Adding a character can create one duplicated kind, and removing a character can eliminate one duplicated kind. The answer check then becomes constant time.\n\n## Complexity Analysis\nEach character is added once and removed once, so the time complexity is `O(n)`. The frequency array has fixed size 26, so the extra space is `O(1)`.",
+      "code": "class Solution {\n    public int countGoodSubstrings(String s) {\n        int[] frequency = new int[26];\n        int duplicateKinds = 0;\n        int answer = 0;\n\n        for (int right = 0; right < s.length(); right++) {\n            int added = s.charAt(right) - 'a';\n            frequency[added]++;\n            if (frequency[added] == 2) {\n                duplicateKinds++;\n            }\n\n            if (right >= 3) {\n                int removed = s.charAt(right - 3) - 'a';\n                if (frequency[removed] == 2) {\n                    duplicateKinds--;\n                }\n                frequency[removed]--;\n            }\n\n            if (right >= 2 && duplicateKinds == 0) {\n                answer++;\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Three-Character Bitmask",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nFor each length-three window, put its characters into a 26-bit mask. If all three characters are distinct, the mask has exactly three set bits; otherwise it has one or two set bits.\n\n## Key Insight\nA bitmask represents the set of unique characters in the window. Since the window length is fixed, `Integer.bitCount(mask) == 3` is equivalent to saying no character was repeated.\n\n## Complexity Analysis\nEach window processes exactly three characters, so the time complexity is `O(n)`. The mask and counters are constant-size values, giving `O(1)` space.",
+      "code": "class Solution {\n    public int countGoodSubstrings(String s) {\n        int answer = 0;\n        for (int i = 0; i + 2 < s.length(); i++) {\n            int mask = 0;\n            for (int j = i; j < i + 3; j++) {\n                mask |= 1 << (s.charAt(j) - 'a');\n            }\n            if (Integer.bitCount(mask) == 3) {\n                answer++;\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "HashSet Window Baseline",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nFor every length-three window, insert its characters into a `HashSet`. The substring is good when the set size is exactly three.\n\n## Key Insight\nThis route follows the definition directly: distinct characters are exactly the unique members of the window. It is less compact than pairwise comparisons, but it is a clear baseline that generalizes to other fixed window sizes.\n\n## Complexity Analysis\nThe set handles only three characters per window, so the total time complexity is `O(n)`. The set size is bounded by three, which is `O(1)` extra space.",
+      "code": "class Solution {\n    public int countGoodSubstrings(String s) {\n        int answer = 0;\n        for (int i = 0; i + 2 < s.length(); i++) {\n            java.util.HashSet<Character> window = new java.util.HashSet<>();\n            window.add(s.charAt(i));\n            window.add(s.charAt(i + 1));\n            window.add(s.charAt(i + 2));\n            if (window.size() == 3) {\n                answer++;\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
     }
   ]
 }

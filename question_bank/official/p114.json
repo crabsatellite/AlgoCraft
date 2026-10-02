@@ -1,9 +1,9 @@
 {
   "id": "114",
   "title": "Top K Frequent Words",
-  "description": "# Top K Frequent Words\n\nGiven an array of strings `words` and an integer `k`, return *the* `k` *most frequent strings*.\n\nReturn the answer **sorted** by **the frequency** from highest to lowest. Sort the words with the same frequency by their **lexicographical order**.\n\n## Example 1:\n\n**Input:** words = [\"i\",\"love\",\"leetcode\",\"i\",\"love\",\"coding\"], k = 2\n**Output:** [\"i\",\"love\"]\n**Explanation:** \"i\" and \"love\" are the two most frequent words.\nNote that \"i\" comes before \"love\" due to a lower alphabetical order.\n\n## Example 2:\n\n**Input:** words = [\"the\",\"day\",\"is\",\"sunny\",\"the\",\"the\",\"the\",\"sunny\",\"is\",\"is\"], k = 4\n**Output:** [\"the\",\"is\",\"sunny\",\"day\"]\n**Explanation:** \"the\", \"is\", \"sunny\" and \"day\" are the four most frequent words, with the number of occurrence being 4, 3, 2 and 1 respectively.\n\n## Constraints:\n\n*   `1 <= words.length <= 500`\n*   `1 <= words[i].length <= 10`\n*   `words[i]` consists of lowercase English letters.\n*   `k` is in the range `[1, The number of unique words[i]]`\n\n**Follow-up:** Could you solve it in `O(n log(k))` time and `O(n)` extra space?",
+  "description": "# Top K Frequent Words\n\nGiven an array of lowercase strings `words` and an integer `k`, return the `k` most frequent words.\n\nThe answer must be ordered by decreasing frequency. If two words have the same frequency, the word with the smaller lexicographic order comes first.\n\nLexicographic order compares the first differing letter using `a` through `z`. If one string is the complete beginning of another, the shorter string comes first: `\"ab\"` precedes `\"abc\"`.\n\n## Example 1\n\n**Input**\nwords = [\"i\",\"love\",\"leetcode\",\"i\",\"love\",\"coding\"], k = 2\n\n**Output**\n[\"i\",\"love\"]\n\n**Explanation**\nBoth `\"i\"` and `\"love\"` appear twice. They are ordered lexicographically, so `\"i\"` comes first.\n\n## Example 2\n\n**Input**\nwords = [\"the\",\"day\",\"is\",\"sunny\",\"the\",\"the\",\"the\",\"sunny\",\"is\",\"is\"], k = 4\n\n**Output**\n[\"the\",\"is\",\"sunny\",\"day\"]\n\n## Constraints\n\n* `1 <= words.length <= 500`\n* `1 <= words[i].length <= 10`\n* `words[i]` consists of lowercase English letters.\n* `1 <= k <= number of unique words in words`\n\n## Follow-up\n\nCan you solve it in `O(n log k)` time and `O(n)` extra space?",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public List<String> topKFrequent(String[] words, int k) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
+  "initialCode": "import java.util.*;\n\nclass Solution {\n    public List<String> topKFrequent(String[] words, int k) {\n        return new ArrayList<>();\n    }\n}",
   "tags": [
     "Hash Table",
     "String",
@@ -25,35 +25,98 @@
   ],
   "solutions": [
     {
-      "name": "HashMap + Sort",
-      "timeComplexity": "O(n log n)",
-      "spaceComplexity": "O(n)",
-      "description": "Count frequencies with a HashMap. Sort unique words by frequency descending, then lexicographically. Return the first k.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> topKFrequent(String[] words, int k) {\n        Map<String, Integer> freq = new HashMap<>();\n        for (String w : words) freq.merge(w, 1, Integer::sum);\n        List<String> candidates = new ArrayList<>(freq.keySet());\n        candidates.sort((a, b) -> {\n            int cmp = freq.get(b) - freq.get(a);\n            return cmp != 0 ? cmp : a.compareTo(b);\n        });\n        return candidates.subList(0, k);\n    }\n}",
+      "name": "HashMap Count and Full Sort",
+      "timeComplexity": "O(n + u log u), where u is the number of unique words",
+      "spaceComplexity": "O(u)",
+      "description": "## Approach\n\nCount each word in a hash map, copy the unique words into a list, and sort that list by the required final order: higher frequency first, then lexicographically smaller word first.\n\n## Key Insight\n\nThe comparator must express both parts of the ordering rule. This route is the clearest reference implementation because it directly sorts the final candidate set, even though it does more work than needed when `k` is small.\n\n## Complexity Analysis\n\n- Time Complexity: O(n + u log u), where `u` is the number of unique words.\n- Space Complexity: O(u).",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> topKFrequent(String[] words, int k) {\n        Map<String, Integer> frequency = new HashMap<>();\n        for (String word : words) {\n            frequency.put(word, frequency.getOrDefault(word, 0) + 1);\n        }\n\n        List<String> unique = new ArrayList<>(frequency.keySet());\n        unique.sort((a, b) -> {\n            int byCount = Integer.compare(frequency.get(b), frequency.get(a));\n            if (byCount != 0) {\n                return byCount;\n            }\n            return a.compareTo(b);\n        });\n\n        return new ArrayList<>(unique.subList(0, k));\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Min Heap of Size k",
-      "timeComplexity": "O(n log k)",
-      "spaceComplexity": "O(n)",
-      "description": "Count frequencies, then use a min-heap of size k with reverse comparator (low freq first, reverse lex for same freq). Pop from heap and reverse to get result.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> topKFrequent(String[] words, int k) {\n        Map<String, Integer> freq = new HashMap<>();\n        for (String w : words) freq.merge(w, 1, Integer::sum);\n        PriorityQueue<String> pq = new PriorityQueue<>((a, b) -> {\n            int cmp = freq.get(a) - freq.get(b);\n            return cmp != 0 ? cmp : b.compareTo(a);\n        });\n        for (String w : freq.keySet()) {\n            pq.offer(w);\n            if (pq.size() > k) pq.poll();\n        }\n        LinkedList<String> result = new LinkedList<>();\n        while (!pq.isEmpty()) result.addFirst(pq.poll());\n        return result;\n    }\n}",
+      "name": "Size K Min Heap",
+      "timeComplexity": "O(n + u log k), where u is the number of unique words",
+      "spaceComplexity": "O(u + k)",
+      "description": "## Approach\n\nAfter counting frequencies, keep a min heap of at most `k` words. The heap root is the weakest kept word: lower frequency is worse, and for equal frequency the lexicographically larger word is worse. Remove the root whenever the heap grows past `k`, then pop the heap into the front of the answer.\n\n## Key Insight\n\nThe heap comparator is intentionally the reverse of the final answer order at the tie boundary, because the heap must discard the worst candidate among the current top `k`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n + u log k).\n- Space Complexity: O(u + k).",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> topKFrequent(String[] words, int k) {\n        Map<String, Integer> frequency = new HashMap<>();\n        for (String word : words) {\n            frequency.put(word, frequency.getOrDefault(word, 0) + 1);\n        }\n\n        PriorityQueue<String> heap = new PriorityQueue<>((a, b) -> {\n            int byCount = Integer.compare(frequency.get(a), frequency.get(b));\n            if (byCount != 0) {\n                return byCount;\n            }\n            return b.compareTo(a);\n        });\n\n        for (String word : frequency.keySet()) {\n            heap.offer(word);\n            if (heap.size() > k) {\n                heap.poll();\n            }\n        }\n\n        LinkedList<String> result = new LinkedList<>();\n        while (!heap.isEmpty()) {\n            result.addFirst(heap.poll());\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Frequency Buckets with Lexicographic Sort",
+      "timeComplexity": "O(n + sum(bucket sorting costs))",
+      "spaceComplexity": "O(n + u)",
+      "description": "## Approach\n\nCount words, place each unique word into the bucket for its frequency, sort each non-empty bucket lexicographically, and scan buckets from high frequency to low until `k` words have been collected.\n\n## Key Insight\n\nFrequency order is bounded by `words.length`, so buckets handle the primary ordering. Sorting only inside equal-frequency buckets isolates the lexicographic tie rule.\n\n## Complexity Analysis\n\n- Time Complexity: O(n + sum of the sorting costs across non-empty buckets).\n- Space Complexity: O(n + u).",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> topKFrequent(String[] words, int k) {\n        Map<String, Integer> frequency = new HashMap<>();\n        for (String word : words) {\n            frequency.put(word, frequency.getOrDefault(word, 0) + 1);\n        }\n\n        List<String>[] buckets = new List[words.length + 1];\n        for (Map.Entry<String, Integer> entry : frequency.entrySet()) {\n            int count = entry.getValue();\n            if (buckets[count] == null) {\n                buckets[count] = new ArrayList<>();\n            }\n            buckets[count].add(entry.getKey());\n        }\n\n        List<String> answer = new ArrayList<>();\n        for (int count = buckets.length - 1; count >= 0 && answer.size() < k; count--) {\n            if (buckets[count] == null) {\n                continue;\n            }\n            Collections.sort(buckets[count]);\n            for (String word : buckets[count]) {\n                answer.add(word);\n                if (answer.size() == k) {\n                    break;\n                }\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Frequency Buckets with Trie Order",
+      "timeComplexity": "O(n * L + A), where L is word length and A is traversed trie nodes",
+      "spaceComplexity": "O(n * L)",
+      "description": "## Approach\n\nCount words and create one trie bucket per frequency. Insert each unique word into the trie for its count, then scan frequencies from high to low and perform DFS through each trie in character order.\n\n## Key Insight\n\nA trie traversal over lowercase children naturally emits words in lexicographic order. This avoids calling a comparison sort inside a bucket and shows why the problem's lowercase constraint can matter algorithmically.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * L + A), where `L` is the maximum word length and `A` is the number of trie nodes visited before collecting `k` words.\n- Space Complexity: O(n * L) for trie nodes.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static class TrieNode {\n        TrieNode[] children = new TrieNode[26];\n        String word;\n    }\n\n    public List<String> topKFrequent(String[] words, int k) {\n        Map<String, Integer> frequency = new HashMap<>();\n        int maxFrequency = 0;\n        for (String word : words) {\n            int count = frequency.getOrDefault(word, 0) + 1;\n            frequency.put(word, count);\n            maxFrequency = Math.max(maxFrequency, count);\n        }\n\n        TrieNode[] buckets = new TrieNode[maxFrequency + 1];\n        for (Map.Entry<String, Integer> entry : frequency.entrySet()) {\n            int count = entry.getValue();\n            if (buckets[count] == null) {\n                buckets[count] = new TrieNode();\n            }\n            insert(buckets[count], entry.getKey());\n        }\n\n        List<String> result = new ArrayList<>();\n        for (int count = maxFrequency; count >= 1 && result.size() < k; count--) {\n            if (buckets[count] != null) {\n                collect(buckets[count], result, k);\n            }\n        }\n        return result;\n    }\n\n    private void insert(TrieNode root, String word) {\n        TrieNode node = root;\n        for (char c : word.toCharArray()) {\n            int index = c - 'a';\n            if (node.children[index] == null) {\n                node.children[index] = new TrieNode();\n            }\n            node = node.children[index];\n        }\n        node.word = word;\n    }\n\n    private void collect(TrieNode node, List<String> result, int k) {\n        if (node == null || result.size() == k) {\n            return;\n        }\n        if (node.word != null) {\n            result.add(node.word);\n            if (result.size() == k) {\n                return;\n            }\n        }\n        for (TrieNode child : node.children) {\n            collect(child, result, k);\n            if (result.size() == k) {\n                return;\n            }\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "words = [\"i\",\"love\",\"leetcode\",\"i\",\"love\",\"coding\"], k = 2",
-      "output": "[\"i\",\"love\"]"
+      "output": "[\"i\",\"love\"]",
+      "description": "Canonical frequency ranking with lexicographic tie order."
     },
     {
       "input": "words = [\"the\",\"day\",\"is\",\"sunny\",\"the\",\"the\",\"the\",\"sunny\",\"is\",\"is\"], k = 4",
-      "output": "[\"the\",\"is\",\"sunny\",\"day\"]"
+      "output": "[\"the\",\"is\",\"sunny\",\"day\"]",
+      "description": "Larger example with four requested words and multiple frequencies."
     },
     {
       "input": "words = [\"a\",\"b\",\"c\"], k = 3",
-      "output": "[\"a\",\"b\",\"c\"]"
+      "output": "[\"a\",\"b\",\"c\"]",
+      "description": "All words have the same frequency, so pure lexicographic order decides."
     },
-    { "input": "words = [\"hello\"], k = 1", "output": "[\"hello\"]" }
+    {
+      "input": "words = [\"hello\"], k = 1",
+      "output": "[\"hello\"]",
+      "description": "Single word boundary case."
+    },
+    {
+      "input": "words = [\"b\",\"a\",\"c\"], k = 1",
+      "output": "[\"a\"]",
+      "description": "When all frequencies tie and k is one, the lexicographically first word wins."
+    },
+    {
+      "input": "words = [\"banana\",\"apple\",\"banana\",\"apple\",\"cherry\"], k = 2",
+      "output": "[\"apple\",\"banana\"]",
+      "description": "Two top words have the same frequency and must be sorted lexicographically."
+    },
+    {
+      "input": "words = [\"z\",\"z\",\"y\",\"y\",\"x\",\"x\",\"a\"], k = 3",
+      "output": "[\"x\",\"y\",\"z\"]",
+      "description": "Several tied top words with k smaller than the unique count."
+    },
+    {
+      "input": "words = [\"delta\",\"alpha\",\"charlie\",\"bravo\",\"alpha\",\"bravo\",\"charlie\"], k = 4",
+      "output": "[\"alpha\",\"bravo\",\"charlie\",\"delta\"]",
+      "description": "k equals the number of unique words and still requires both frequency and lexicographic ordering."
+    },
+    {
+      "input": "words = [\"aaaaaaaaaa\",\"bbbbbbbbbb\",\"aaaaaaaaaa\",\"cccccccccc\"], k = 2",
+      "output": "[\"aaaaaaaaaa\",\"bbbbbbbbbb\"]",
+      "description": "Maximum-length words and a lexicographic tie for the second answer."
+    },
+    {
+      "input": "words = [\"same\",\"same\",\"same\"], k = 1",
+      "output": "[\"same\"]",
+      "description": "Repeated copies of one unique word."
+    },
+    {
+      "input": "words = [\"app\",\"apple\",\"app\",\"apple\",\"apply\",\"apply\"], k = 3",
+      "output": "[\"app\",\"apple\",\"apply\"]",
+      "description": "Prefix-related words verify true lexicographic order, not length order."
+    },
+    {
+      "input": "words = [\"red\",\"blue\",\"red\",\"green\",\"blue\",\"yellow\",\"green\",\"green\"], k = 3",
+      "output": "[\"green\",\"blue\",\"red\"]",
+      "description": "A clear frequency winner followed by a lexicographic tie among the next best words."
+    }
   ]
 }

@@ -1,41 +1,125 @@
 {
   "id": "198",
   "title": "Counting Bits",
-  "description": "# Counting Bits\n\nGiven an integer `n`, return *an array* `ans` *of length* `n + 1` *such that for each* `i` (`0 <= i <= n`), `ans[i]` *is the number of* `1`*'s in the binary representation of* `i`.\n\n## Example 1:\n\n**Input:** n = 2\n**Output:** [0,1,1]\n**Explanation:**\n0 --> 0\n1 --> 1\n2 --> 10\n\n## Example 2:\n\n**Input:** n = 5\n**Output:** [0,1,1,2,1,2]\n**Explanation:**\n0 --> 0\n1 --> 1\n2 --> 10\n3 --> 11\n4 --> 100\n5 --> 101\n\n## Constraints:\n\n*   `0 <= n <= 10^5`",
+  "description": "# Counting Bits\n\nGiven an integer `n`, return an array `ans` of length `n + 1` where `ans[i]` is the number of `1` bits in the binary representation of `i` for every `0 <= i <= n`.\n\n## Example 1:\n\n**Input:** n = 2\n**Output:** [0,1,1]\n**Explanation:**\n0 -> 0\n1 -> 1\n2 -> 10\n\n## Example 2:\n\n**Input:** n = 5\n**Output:** [0,1,1,2,1,2]\n**Explanation:**\n0 -> 0\n1 -> 1\n2 -> 10\n3 -> 11\n4 -> 100\n5 -> 101\n\n## Constraints:\n\n* `0 <= n <= 10^5`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int[] countBits(int n) {\n        // Write your code here\n        return new int[0];\n    }\n}",
-  "tags": ["Bit Manipulation", "Dynamic Programming"],
+  "tags": [
+    "Bit Manipulation",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "n = 2", "output": "[0,1,1]" },
-    { "input": "n = 5", "output": "[0,1,1,2,1,2]" }
+    {
+      "input": "n = 2",
+      "output": "[0,1,1]"
+    },
+    {
+      "input": "n = 5",
+      "output": "[0,1,1,2,1,2]"
+    }
   ],
   "solutions": [
     {
-      "name": "DP with Bit Manipulation",
+      "name": "Right-Shift Lowest-Bit DP",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "ans[i] = ans[i >> 1] + (i & 1). The number of 1-bits in i equals the bits in i/2 plus whether the last bit is 1.",
+      "description": "## Approach\nBuild the answer from left to right with the recurrence `ans[i] = ans[i >> 1] + (i & 1)`. Shifting right removes the lowest bit of `i`; the removed bit contributes one extra count only when it is `1`.\n\n## Key Insight\nEvery `i >> 1` is smaller than `i`, so its bit count is already known when we reach `i`. This turns the one-number counting rule into a table recurrence and avoids rescanning all bits for every value.\n\n## Complexity Analysis\nTime Complexity: O(n), because each index is filled once. Space Complexity: O(n), counting the required output array.",
       "code": "class Solution {\n    public int[] countBits(int n) {\n        int[] ans = new int[n + 1];\n        for (int i = 1; i <= n; i++) {\n            ans[i] = ans[i >> 1] + (i & 1);\n        }\n        return ans;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "DP with Last Set Bit",
+      "name": "Last Set Bit DP",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use the relation ans[i] = ans[i & (i-1)] + 1. i & (i-1) removes the last set bit, so we add 1 to the count of the number with that bit removed.",
+      "description": "## Approach\nUse `ans[i] = ans[i & (i - 1)] + 1`. The expression `i & (i - 1)` clears the lowest set bit of `i`, leaving a strictly smaller number whose answer is already in the table.\n\n## Key Insight\nThis is Brian Kernighan's bit-counting idea converted into dynamic programming. Instead of clearing every set bit in a loop for each number, one table lookup accounts for the remaining bits after a single clear operation.\n\n## Complexity Analysis\nTime Complexity: O(n), because each value performs one constant-time transition. Space Complexity: O(n), counting the output array.",
       "code": "class Solution {\n    public int[] countBits(int n) {\n        int[] ans = new int[n + 1];\n        for (int i = 1; i <= n; i++) {\n            ans[i] = ans[i & (i - 1)] + 1;\n        }\n        return ans;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Highest Power Offset DP",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nTrack the highest power of two not greater than the current index. That highest bit contributes one `1`, and the rest of the count is `ans[i - highestPowerOfTwo]`.\n\n## Key Insight\nNumbers between two powers of two repeat the previous block of bit counts with one extra leading bit. Updating the offset only at powers of two makes that block structure explicit.\n\n## Complexity Analysis\nTime Complexity: O(n), since every table cell is written once. Space Complexity: O(n), counting the returned array.",
+      "code": "class Solution {\n    public int[] countBits(int n) {\n        int[] ans = new int[n + 1];\n        int highestPowerOfTwo = 0;\n        for (int i = 1; i <= n; i++) {\n            if ((i & (i - 1)) == 0) {\n                highestPowerOfTwo = i;\n            }\n            ans[i] = ans[i - highestPowerOfTwo] + 1;\n        }\n        return ans;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Power-of-Two Block Copy",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nProcess the answer in blocks whose lengths are powers of two. Once counts for `[0, offset - 1]` are known, the next block `[offset, 2 * offset - 1]` repeats those counts with one extra leading bit.\n\n## Key Insight\nThe binary numbers from `offset` to `2 * offset - 1` are exactly the previous block with a new high bit attached. Copying a whole block is a visual way to teach why the table has a repeated pattern.\n\n## Complexity Analysis\nTime Complexity: O(n), because each output position is filled once. Space Complexity: O(n), counting the output array.",
+      "code": "class Solution {\n    public int[] countBits(int n) {\n        int[] ans = new int[n + 1];\n        int offset = 1;\n        while (offset <= n) {\n            for (int i = 0; i < offset && i + offset <= n; i++) {\n                ans[i + offset] = ans[i] + 1;\n            }\n            offset <<= 1;\n        }\n        return ans;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Kernighan Per-Number Baseline",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nFor each value from `1` to `n`, run the Brian Kernighan loop on a temporary copy: repeatedly clear the lowest set bit with `x &= x - 1` and count how many clears were needed.\n\n## Key Insight\nThis is intentionally not the optimal dynamic-programming solution. It is a useful baseline because it shows the cost of solving each number independently and makes the DP improvement easy to compare against.\n\n## Complexity Analysis\nTime Complexity: O(n log n) in the fixed-width educational model, or proportional to the total number of set bits over all numbers. Space Complexity: O(n), counting the returned array.",
+      "code": "class Solution {\n    public int[] countBits(int n) {\n        int[] ans = new int[n + 1];\n        for (int i = 1; i <= n; i++) {\n            int x = i;\n            int count = 0;\n            while (x != 0) {\n                x &= (x - 1);\n                count++;\n            }\n            ans[i] = count;\n        }\n        return ans;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "n = 2", "output": "[0,1,1]" },
-    { "input": "n = 5", "output": "[0,1,1,2,1,2]" },
-    { "input": "n = 0", "output": "[0]" },
-    { "input": "n = 1", "output": "[0,1]" },
-    { "input": "n = 7", "output": "[0,1,1,2,1,2,2,3]" },
-    { "input": "n = 8", "output": "[0,1,1,2,1,2,2,3,1]" },
-    { "input": "n = 15", "output": "[0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4]" },
-    { "input": "n = 16", "output": "[0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4,1]" }
-  ],
-  "diagrams": ["p198_example1"]
+    {
+      "input": "n = 0",
+      "output": "[0]",
+      "description": "Zero returns an array containing only zero."
+    },
+    {
+      "input": "n = 1",
+      "output": "[0,1]",
+      "description": "Range through one checks the smallest nonzero answer."
+    },
+    {
+      "input": "n = 2",
+      "output": "[0,1,1]",
+      "description": "Small range through two gives counts for zero, one, and two."
+    },
+    {
+      "input": "n = 5",
+      "output": "[0,1,1,2,1,2]",
+      "description": "Canonical range through five exercises odd and even transitions."
+    },
+    {
+      "input": "n = 7",
+      "output": "[0,1,1,2,1,2,2,3]",
+      "description": "Range through seven covers all three-bit values."
+    },
+    {
+      "input": "n = 8",
+      "output": "[0,1,1,2,1,2,2,3,1]",
+      "description": "Power-of-two boundary resets the count to one."
+    },
+    {
+      "input": "n = 10",
+      "output": "[0,1,1,2,1,2,2,3,1,2,2]",
+      "description": "Mixed even and odd values after a power of two."
+    },
+    {
+      "input": "n = 15",
+      "output": "[0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4]",
+      "description": "Range through fifteen covers all four-bit values before the next reset."
+    },
+    {
+      "input": "n = 16",
+      "output": "[0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4,1]",
+      "description": "Range through sixteen includes the next power-of-two boundary."
+    },
+    {
+      "input": "n = 23",
+      "output": "[0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4,1,2,2,3,2,3,3,4]",
+      "description": "A mid-block value checks reuse after the sixteen boundary."
+    },
+    {
+      "input": "n = 31",
+      "output": "[0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5]",
+      "description": "All five-bit values before the next power of two."
+    },
+    {
+      "input": "n = 32",
+      "output": "[0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,1]",
+      "description": "The thirty-two boundary catches off-by-one errors in block and high-bit solutions."
+    }
+  ]
 }

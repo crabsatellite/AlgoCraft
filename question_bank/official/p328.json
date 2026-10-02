@@ -1,34 +1,122 @@
 {
   "id": "328",
-  "title": "Longest Consecutive Sequence",
-  "description": "# Longest Consecutive Sequence\n\nGiven an unsorted array of integers `nums`, return *the length of the longest consecutive elements sequence*.\n\nYou must write an algorithm that runs in `O(n)` time.\n\n## Example 1:\n\n**Input:** nums = [100,4,200,1,3,2]\n**Output:** 4\n**Explanation:** The longest consecutive elements sequence is [1, 2, 3, 4]. Therefore its length is 4.\n\n## Example 2:\n\n**Input:** nums = [0,3,7,2,5,8,4,6,0,1]\n**Output:** 9\n\n## Constraints:\n\n*   `0 <= nums.length <= 10^5`\n*   `-10^9 <= nums[i] <= 10^9`",
-  "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public int longestConsecutive(int[] nums) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Union Find"],
-  "examples": [
-    { "input": "nums = [100,4,200,1,3,2]", "output": "4" },
-    { "input": "nums = [0,3,7,2,5,8,4,6,0,1]", "output": "9" }
+  "title": "Longest Bounded Difference Window",
+  "description": "# Longest Bounded Difference Window\n\nGiven an integer array `nums` and an integer `limit`, return the length of the longest contiguous subarray whose maximum value and minimum value differ by at most `limit`.\n\nFor a window `nums[l..r]`, the window is valid when `max(nums[l..r]) - min(nums[l..r]) <= limit`.\n\n## Example 1:\n\n**Input:** nums = [8,2,4,7], limit = 4\n**Output:** 2\n**Explanation:** The window `[2,4]` has maximum `4`, minimum `2`, and difference `2`. No length-3 window is valid.\n\n## Example 2:\n\n**Input:** nums = [10,1,2,4,7,2], limit = 5\n**Output:** 4\n**Explanation:** The window `[2,4,7,2]` has maximum `7`, minimum `2`, and difference `5`.\n\n## Example 3:\n\n**Input:** nums = [4,2,2,2,4,4,2,2], limit = 0\n**Output:** 3\n**Explanation:** With limit `0`, every value in the window must be equal. The longest equal run has length `3`.\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^5`\n*   `-10^9 <= nums[i] <= 10^9`\n*   `0 <= limit <= 10^9`",
+  "difficulty": "HARD",
+  "initialCode": "class Solution {\n    public int longestBoundedWindow(int[] nums, int limit) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Sliding Window",
+    "Monotonic Queue"
   ],
-  "solutions": [
+  "examples": [
     {
-      "name": "HashSet with Sequence Start",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Put all numbers in a HashSet. For each number that is the start of a sequence (num-1 not in set), count consecutive numbers forward. Track the longest sequence.",
-      "code": "class Solution {\n    public int longestConsecutive(int[] nums) {\n        java.util.Set<Integer> set = new java.util.HashSet<>();\n        for (int num : nums) set.add(num);\n        int longest = 0;\n        for (int num : set) {\n            if (!set.contains(num - 1)) {\n                int len = 1;\n                while (set.contains(num + len)) len++;\n                longest = Math.max(longest, len);\n            }\n        }\n        return longest;\n    }\n}",
-      "language": "java"
+      "input": "nums = [8,2,4,7], limit = 4",
+      "output": "2"
     },
     {
-      "name": "Union-Find",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Map each number to a Union-Find node. For each number, if num+1 exists in the map, union them. Track component sizes and return the maximum size.",
-      "code": "import java.util.*;\n\nclass Solution {\n    private int[] parent;\n    private int[] size;\n    public int longestConsecutive(int[] nums) {\n        if (nums.length == 0) return 0;\n        Map<Integer, Integer> map = new HashMap<>();\n        parent = new int[nums.length];\n        size = new int[nums.length];\n        for (int i = 0; i < nums.length; i++) {\n            parent[i] = i;\n            size[i] = 1;\n        }\n        for (int i = 0; i < nums.length; i++) {\n            if (map.containsKey(nums[i])) continue;\n            map.put(nums[i], i);\n            if (map.containsKey(nums[i] - 1)) {\n                union(i, map.get(nums[i] - 1));\n            }\n            if (map.containsKey(nums[i] + 1)) {\n                union(i, map.get(nums[i] + 1));\n            }\n        }\n        int longest = 0;\n        for (int i = 0; i < nums.length; i++) {\n            longest = Math.max(longest, size[find(i)]);\n        }\n        return longest;\n    }\n    private int find(int x) {\n        while (parent[x] != x) {\n            parent[x] = parent[parent[x]];\n            x = parent[x];\n        }\n        return x;\n    }\n    private void union(int a, int b) {\n        int ra = find(a), rb = find(b);\n        if (ra == rb) return;\n        if (size[ra] < size[rb]) { int t = ra; ra = rb; rb = t; }\n        parent[rb] = ra;\n        size[ra] += size[rb];\n    }\n}",
-      "language": "java"
+      "input": "nums = [10,1,2,4,7,2], limit = 5",
+      "output": "4"
+    },
+    {
+      "input": "nums = [4,2,2,2,4,4,2,2], limit = 0",
+      "output": "3"
     }
   ],
   "tests": [
-    { "input": "nums = [100,4,200,1,3,2]", "output": "4" },
-    { "input": "nums = [0,3,7,2,5,8,4,6,0,1]", "output": "9" }
+    {
+      "input": "nums = [8,2,4,7], limit = 4",
+      "output": "2",
+      "description": "sample where the best window is [2,4]"
+    },
+    {
+      "input": "nums = [10,1,2,4,7,2], limit = 5",
+      "output": "4",
+      "description": "window [2,4,7,2] has max-min exactly five"
+    },
+    {
+      "input": "nums = [4,2,2,2,4,4,2,2], limit = 0",
+      "output": "3",
+      "description": "equal-value runs only when limit is zero"
+    },
+    {
+      "input": "nums = [1,5,6,7,8,10,6,5,6], limit = 4",
+      "output": "5",
+      "description": "longest valid window appears after shrinking the left side"
+    },
+    {
+      "input": "nums = [1], limit = 0",
+      "output": "1",
+      "description": "single element always satisfies the bound"
+    },
+    {
+      "input": "nums = [1,1,1], limit = 0",
+      "output": "3",
+      "description": "all equal values allow the whole array"
+    },
+    {
+      "input": "nums = [1,2,3], limit = 10",
+      "output": "3",
+      "description": "large limit allows the whole array"
+    },
+    {
+      "input": "nums = [4,8,5,1,7,9], limit = 3",
+      "output": "2",
+      "description": "several short windows compete under a tight limit"
+    },
+    {
+      "input": "nums = [-1,-5,-3,-4], limit = 2",
+      "output": "3",
+      "description": "negative values still use max minus min"
+    },
+    {
+      "input": "nums = [1,100,1,100,1], limit = 0",
+      "output": "1",
+      "description": "alternating far-apart values force unit windows"
+    },
+    {
+      "input": "nums = [1000000000,-1000000000,0], limit = 1000000000",
+      "output": "2",
+      "description": "extreme integer values require comparing max and min without assuming nonnegative inputs"
+    },
+    {
+      "input": "nums = [8,2,4,7,2,3,4], limit = 2",
+      "output": "3",
+      "description": "after an invalid early window, the answer must be rebuilt later"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Monotonic Deques",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nMaintain two deques of indexes for the current window. The max deque keeps values decreasing, and the min deque keeps values increasing. Move the right edge forward, then shrink the left edge while the difference between the two deque fronts is too large.\n\n## Key Insight\n\nThe front of each deque is always the current window extreme. Removing old indexes as the left edge moves gives O(1) amortized updates per element.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each index enters and leaves each deque at most once.\n- Space Complexity: O(n) for the deques in the worst case.",
+      "code": "class Solution { public int longestBoundedWindow(int[] nums, int limit) { java.util.Deque<Integer> maxDeque = new java.util.ArrayDeque<>(); java.util.Deque<Integer> minDeque = new java.util.ArrayDeque<>(); int left = 0; int best = 0; for (int right = 0; right < nums.length; right++) { while (!maxDeque.isEmpty() && nums[maxDeque.peekLast()] < nums[right]) maxDeque.pollLast(); while (!minDeque.isEmpty() && nums[minDeque.peekLast()] > nums[right]) minDeque.pollLast(); maxDeque.addLast(right); minDeque.addLast(right); while ((long) nums[maxDeque.peekFirst()] - nums[minDeque.peekFirst()] > limit) { if (maxDeque.peekFirst() == left) maxDeque.pollFirst(); if (minDeque.peekFirst() == left) minDeque.pollFirst(); left++; } best = Math.max(best, right - left + 1); } return best; } }",
+      "language": "java"
+    },
+    {
+      "name": "TreeMap Multiset Window",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse a `TreeMap` as a multiset for values inside the current window. The first key is the minimum and the last key is the maximum. After inserting the right value, remove values from the left until the window is valid again.\n\n## Key Insight\n\nA sorted multiset trades the specialized monotonic-queue idea for a direct data structure: it can answer current min and max queries immediately, while counts handle duplicate values.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), due to map insertions and deletions.\n- Space Complexity: O(n), for values currently represented in the multiset.",
+      "code": "class Solution { public int longestBoundedWindow(int[] nums, int limit) { java.util.TreeMap<Integer,Integer> counts = new java.util.TreeMap<>(); int left = 0; int best = 0; for (int right = 0; right < nums.length; right++) { counts.merge(nums[right], 1, Integer::sum); while ((long) counts.lastKey() - counts.firstKey() > limit) { int value = nums[left++]; int next = counts.get(value) - 1; if (next == 0) counts.remove(value); else counts.put(value, next); } best = Math.max(best, right - left + 1); } return best; } }",
+      "language": "java"
+    },
+    {
+      "name": "Lazy Dual Heaps",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore `(value, index)` pairs in a max heap and a min heap. When the current extremes violate the limit, advance the left edge past the older extreme. Before reading a heap top, lazily discard entries whose indexes are already outside the window.\n\n## Key Insight\n\nPriority queues do not support efficient deletion from the middle, so stale entries are allowed to remain until they reach the top. The index stored with each value tells whether the heap entry still belongs to the current window.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), because each value is pushed once and eventually popped from each heap.\n- Space Complexity: O(n), for heap entries.",
+      "code": "class Solution { public int longestBoundedWindow(int[] nums, int limit) { java.util.PriorityQueue<int[]> maxHeap = new java.util.PriorityQueue<>((a, b) -> Integer.compare(b[0], a[0])); java.util.PriorityQueue<int[]> minHeap = new java.util.PriorityQueue<>((a, b) -> Integer.compare(a[0], b[0])); int left = 0; int best = 0; for (int right = 0; right < nums.length; right++) { maxHeap.offer(new int[]{nums[right], right}); minHeap.offer(new int[]{nums[right], right}); while (true) { while (maxHeap.peek()[1] < left) maxHeap.poll(); while (minHeap.peek()[1] < left) minHeap.poll(); long diff = (long) maxHeap.peek()[0] - minHeap.peek()[0]; if (diff <= limit) break; if (maxHeap.peek()[1] < minHeap.peek()[1]) left = maxHeap.peek()[1] + 1; else left = minHeap.peek()[1] + 1; } best = Math.max(best, right - left + 1); } return best; } }",
+      "language": "java"
+    },
+    {
+      "name": "Binary Search with Sparse Tables",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n log n)",
+      "description": "## Approach\n\nPrecompute sparse tables for range maximum and range minimum queries. Then binary search the answer length: for a fixed length, scan all windows of that length and check whether any window has max minus min within the limit.\n\n## Key Insight\n\nIf there is a valid window of length `L`, then some shorter length is also valid. This monotonic property makes answer-length binary search possible once each fixed-length window can be checked quickly.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), from sparse-table construction and O(n) checks across O(log n) answer lengths.\n- Space Complexity: O(n log n), for the two sparse tables.",
+      "code": "class Solution { public int longestBoundedWindow(int[] nums, int limit) { int n = nums.length; int levels = 32 - Integer.numberOfLeadingZeros(n); int[][] maxTable = new int[levels][n]; int[][] minTable = new int[levels][n]; for (int i = 0; i < n; i++) { maxTable[0][i] = nums[i]; minTable[0][i] = nums[i]; } for (int level = 1; level < levels; level++) { int span = 1 << level; int half = span >> 1; for (int i = 0; i + span <= n; i++) { maxTable[level][i] = Math.max(maxTable[level - 1][i], maxTable[level - 1][i + half]); minTable[level][i] = Math.min(minTable[level - 1][i], minTable[level - 1][i + half]); } } int low = 1; int high = n; int best = 1; while (low <= high) { int mid = low + (high - low) / 2; if (existsValidWindow(nums, limit, maxTable, minTable, mid)) { best = mid; low = mid + 1; } else { high = mid - 1; } } return best; } private boolean existsValidWindow(int[] nums, int limit, int[][] maxTable, int[][] minTable, int len) { int level = 31 - Integer.numberOfLeadingZeros(len); int span = 1 << level; for (int left = 0; left + len <= nums.length; left++) { int rightStart = left + len - span; int max = Math.max(maxTable[level][left], maxTable[level][rightStart]); int min = Math.min(minTable[level][left], minTable[level][rightStart]); if ((long) max - min <= limit) return true; } return false; } }",
+      "language": "java"
+    }
   ]
 }

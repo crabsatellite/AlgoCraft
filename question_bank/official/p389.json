@@ -1,9 +1,9 @@
 {
   "id": "389",
   "title": "Binary Tree Cameras",
-  "description": "# Binary Tree Cameras\n\nYou are given the `root` of a binary tree. We install cameras on the tree nodes where each camera at a node can monitor its parent, itself, and its immediate children.\n\nReturn *the minimum number of cameras needed to monitor all nodes of the tree*.\n\n## Example 1:\n\n**Input:** root = [0,0,null,0,0]\n**Output:** 1\n**Explanation:** One camera is enough to monitor all nodes if placed as shown.\n\n## Example 2:\n\n**Input:** root = [0,0,null,0,null,0,null,null,0]\n**Output:** 2\n**Explanation:** At least two cameras are needed to monitor all nodes of the tree. The above image shows one of the valid configurations of camera placement.\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[1, 1000]`.\n*   `Node.val == 0`",
+  "description": "# Binary Tree Cameras\n\nYou are given the `root` of a binary tree. You may install cameras on any tree nodes. A camera at a node monitors exactly three local areas: its parent, the node itself, and its immediate children. It does not monitor grandchildren or more distant nodes.\n\nReturn the minimum number of cameras needed so that every node in the tree is monitored. The node values are all `0`; only the shape of the tree matters.\n\nA parent is the node directly above the current node. Direct children are its immediate left and right children.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [0,0,null,0,0]\n**Output:** 1\n**Explanation:** Placing one camera at the internal child covers its parent, itself, and both children, so every node is monitored.\n\n## Example 2:\n\n**Input:** root = [0,0,null,0,null,0,null,null,0]\n**Output:** 2\n**Explanation:** This one-sided tree is too long for one camera. Two cameras at separated depths are sufficient and necessary.\n\n## Constraints:\n\n* The number of nodes in the tree is in the range `[1, 1000]`.\n* `Node.val == 0`.\n* A camera covers only its parent, itself, and its direct children.",
   "difficulty": "HARD",
-  "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public int minCameraCover(TreeNode root) {\n        \n    }\n}",
+  "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public int minCameraCover(TreeNode root) {\n        return 0;\n    }\n}",
   "tags": [
     "Dynamic Programming",
     "Tree",
@@ -22,37 +22,113 @@
   ],
   "solutions": [
     {
-      "name": "Greedy DFS with 3 States",
+      "name": "Recursive Greedy DFS with Three States",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "Post-order DFS. Each node returns one of 3 states: 0 = needs camera, 1 = has camera, 2 = covered. If any child needs camera, place camera here. If any child has camera, this node is covered. Otherwise, this node needs a camera from parent.",
-      "code": "class Solution {\n    private int cameras = 0;\n    public int minCameraCover(TreeNode root) {\n        if (dfs(root) == 0) cameras++;\n        return cameras;\n    }\n    private int dfs(TreeNode node) {\n        if (node == null) return 2;\n        int left = dfs(node.left), right = dfs(node.right);\n        if (left == 0 || right == 0) { cameras++; return 1; }\n        if (left == 1 || right == 1) return 2;\n        return 0;\n    }\n}",
+      "description": "## Approach\nRun a postorder DFS. Each child reports whether it still needs a camera, already has a camera, or is covered by a child camera. If either child needs a camera, the current node is the lowest possible place that can cover that child, so place a camera here.\n\n## Key Insight\nThe greedy choice is local but safe because a child that reaches its parent as uncovered can only be covered by itself, its parent, or its own children. Its children have already declined to place a camera, so the parent is the highest-value placement.\n\n## Complexity Analysis\n- Time Complexity: O(n), because every node is visited once.\n- Space Complexity: O(h), where h is the recursion height.",
+      "code": "class Solution {\n    private static final int NEEDS_CAMERA = 0;\n    private static final int HAS_CAMERA = 1;\n    private static final int COVERED = 2;\n    private int cameras;\n\n    public int minCameraCover(TreeNode root) {\n        cameras = 0;\n        if (postorder(root) == NEEDS_CAMERA) {\n            cameras++;\n        }\n        return cameras;\n    }\n\n    private int postorder(TreeNode node) {\n        if (node == null) {\n            return COVERED;\n        }\n\n        int left = postorder(node.left);\n        int right = postorder(node.right);\n        if (left == NEEDS_CAMERA || right == NEEDS_CAMERA) {\n            cameras++;\n            return HAS_CAMERA;\n        }\n        if (left == HAS_CAMERA || right == HAS_CAMERA) {\n            return COVERED;\n        }\n        return NEEDS_CAMERA;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Tree DP with Three States per Node",
+      "name": "Exact Tree DP with Three Costs per Node",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "For each node, compute three values: (1) min cameras if node has a camera, (2) min cameras if node is covered by a child, (3) min cameras if node is covered by its parent. Choose optimal states bottom-up.",
-      "code": "class Solution {\n    public int minCameraCover(TreeNode root) {\n        int[] res = dfs(root);\n        return Math.min(res[0], res[1]);\n    }\n    private int[] dfs(TreeNode node) {\n        if (node == null) return new int[]{9999, 0, 0};\n        int[] left = dfs(node.left);\n        int[] right = dfs(node.right);\n        int withCam = 1 + Math.min(left[0], Math.min(left[1], left[2]))\n                        + Math.min(right[0], Math.min(right[1], right[2]));\n        int coveredByChild = Math.min(\n            left[0] + Math.min(right[0], right[1]),\n            right[0] + Math.min(left[0], left[1])\n        );\n        int coveredByParent = Math.min(left[0] + right[0],\n            Math.min(left[0] + right[1],\n                Math.min(left[1] + right[0], left[1] + right[1])));\n        return new int[]{withCam, coveredByChild, coveredByParent};\n    }\n}",
+      "description": "## Approach\nFor every node compute three costs: the node has a camera, the node is covered without a camera, and the node is still uncovered and must be covered by its parent. The transitions combine the three costs from the two children.\n\n## Key Insight\nThis DP separates feasibility from optimality. The root cannot remain uncovered, but an internal node may temporarily be uncovered if its parent will later choose a camera.\n\n## Complexity Analysis\n- Time Complexity: O(n), since each node contributes one constant-size transition.\n- Space Complexity: O(h), for the recursion stack.",
+      "code": "class Solution {\n    private static final int INF = 1_000_000;\n\n    public int minCameraCover(TreeNode root) {\n        int[] answer = dfs(root);\n        return Math.min(answer[0], answer[1]);\n    }\n\n    private int[] dfs(TreeNode node) {\n        if (node == null) {\n            return new int[]{INF, 0, 0};\n        }\n\n        int[] left = dfs(node.left);\n        int[] right = dfs(node.right);\n        int withCamera = 1 + min(left[0], left[1], left[2])\n                + min(right[0], right[1], right[2]);\n        int coveredNoCamera = Math.min(\n                left[0] + Math.min(right[0], right[1]),\n                right[0] + Math.min(left[0], left[1]));\n        int uncovered = left[1] + right[1];\n        return new int[]{withCamera, coveredNoCamera, uncovered};\n    }\n\n    private int min(int a, int b, int c) {\n        return Math.min(a, Math.min(b, c));\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Parent-State Memoized Placement DP",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nMemoize `dp(node, parentCamera, hasCamera)`. For each node, enumerate whether each real child has a camera, reject states where the node is not covered, and add the optimal child subproblems.\n\n## Key Insight\nInstead of deriving compact formulas first, this route spells out the coverage contract. It is a useful teaching bridge from brute-force placement to the compressed three-state DP.\n\n## Complexity Analysis\n- Time Complexity: O(n), because every node has four parent/current-camera states and each state checks four child-camera combinations.\n- Space Complexity: O(n), for memo tables stored by node identity.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int INF = 1_000_000;\n    private final Map<TreeNode, int[][]> memo = new IdentityHashMap<>();\n\n    public int minCameraCover(TreeNode root) {\n        return Math.min(dp(root, 0, 0), dp(root, 0, 1));\n    }\n\n    private int dp(TreeNode node, int parentCamera, int hasCamera) {\n        if (node == null) {\n            return hasCamera == 1 ? INF : 0;\n        }\n\n        int[][] table = memo.computeIfAbsent(node, ignored -> {\n            int[][] created = new int[2][2];\n            for (int[] row : created) {\n                Arrays.fill(row, -1);\n            }\n            return created;\n        });\n        if (table[parentCamera][hasCamera] != -1) {\n            return table[parentCamera][hasCamera];\n        }\n\n        int best = INF;\n        for (int leftCamera = 0; leftCamera <= 1; leftCamera++) {\n            if (node.left == null && leftCamera == 1) {\n                continue;\n            }\n            int leftCost = dp(node.left, hasCamera, leftCamera);\n            if (leftCost >= INF) {\n                continue;\n            }\n            for (int rightCamera = 0; rightCamera <= 1; rightCamera++) {\n                if (node.right == null && rightCamera == 1) {\n                    continue;\n                }\n                boolean covered = parentCamera == 1 || hasCamera == 1 || leftCamera == 1 || rightCamera == 1;\n                if (!covered) {\n                    continue;\n                }\n                int rightCost = dp(node.right, hasCamera, rightCamera);\n                if (rightCost >= INF) {\n                    continue;\n                }\n                best = Math.min(best, hasCamera + leftCost + rightCost);\n            }\n        }\n        table[parentCamera][hasCamera] = best;\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative Postorder State Map",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nSimulate postorder traversal with an explicit stack and store each processed node's state in an identity map. The state transitions are the same as the recursive greedy version, but no call stack is required.\n\n## Key Insight\nTree camera decisions only need child states after both subtrees are complete. An explicit postorder traversal makes that dependency visible and avoids recursion-depth concerns.\n\n## Complexity Analysis\n- Time Complexity: O(n), with each node pushed and popped once.\n- Space Complexity: O(n), for the explicit stack and state map.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int NEEDS_CAMERA = 0;\n    private static final int HAS_CAMERA = 1;\n    private static final int COVERED = 2;\n\n    public int minCameraCover(TreeNode root) {\n        Map<TreeNode, Integer> state = new IdentityHashMap<>();\n        Deque<TreeNode> stack = new ArrayDeque<>();\n        TreeNode current = root;\n        TreeNode lastVisited = null;\n        int cameras = 0;\n\n        while (current != null || !stack.isEmpty()) {\n            if (current != null) {\n                stack.push(current);\n                current = current.left;\n            } else {\n                TreeNode node = stack.peek();\n                if (node.right != null && lastVisited != node.right) {\n                    current = node.right;\n                    continue;\n                }\n\n                int left = state.getOrDefault(node.left, COVERED);\n                int right = state.getOrDefault(node.right, COVERED);\n                if (left == NEEDS_CAMERA || right == NEEDS_CAMERA) {\n                    cameras++;\n                    state.put(node, HAS_CAMERA);\n                } else if (left == HAS_CAMERA || right == HAS_CAMERA) {\n                    state.put(node, COVERED);\n                } else {\n                    state.put(node, NEEDS_CAMERA);\n                }\n                lastVisited = stack.pop();\n            }\n        }\n\n        if (state.getOrDefault(root, NEEDS_CAMERA) == NEEDS_CAMERA) {\n            cameras++;\n        }\n        return cameras;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Deepest Uncovered Leaf Parent Greedy",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nBuild parent links and a node order, then scan nodes from deepest to root. Whenever a node is still uncovered, place a camera at its parent if possible; for the root, place the camera at the root itself. Mark the camera node, its parent, and its children covered.\n\n## Key Insight\nThe deepest uncovered node cannot be helped by any lower descendant. Putting the camera at its parent covers that node while also covering as much of the remaining upper tree as possible.\n\n## Complexity Analysis\n- Time Complexity: O(n), because each node is processed a constant number of times.\n- Space Complexity: O(n), for parent links, traversal order, and the covered set.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minCameraCover(TreeNode root) {\n        Map<TreeNode, TreeNode> parent = new IdentityHashMap<>();\n        List<TreeNode> order = new ArrayList<>();\n        Deque<TreeNode> stack = new ArrayDeque<>();\n        stack.push(root);\n        parent.put(root, null);\n\n        while (!stack.isEmpty()) {\n            TreeNode node = stack.pop();\n            order.add(node);\n            if (node.left != null) {\n                parent.put(node.left, node);\n                stack.push(node.left);\n            }\n            if (node.right != null) {\n                parent.put(node.right, node);\n                stack.push(node.right);\n            }\n        }\n\n        Set<TreeNode> covered = Collections.newSetFromMap(new IdentityHashMap<>());\n        covered.add(null);\n        int cameras = 0;\n        for (int i = order.size() - 1; i >= 0; i--) {\n            TreeNode node = order.get(i);\n            if (covered.contains(node)) {\n                continue;\n            }\n\n            TreeNode cameraNode = parent.get(node);\n            if (cameraNode == null) {\n                cameraNode = node;\n            }\n            cameras++;\n            covered.add(cameraNode);\n            covered.add(parent.get(cameraNode));\n            covered.add(cameraNode.left);\n            covered.add(cameraNode.right);\n        }\n        return cameras;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "root = [0,0,null,0,0]",
-      "output": "1"
+      "output": "1",
+      "description": "one internal child camera covers the sample tree"
     },
     {
       "input": "root = [0,0,null,0,null,0,null,null,0]",
-      "output": "2"
+      "output": "2",
+      "description": "a long one-sided chain needs cameras at separated levels"
+    },
+    {
+      "input": "root = [0]",
+      "output": "1",
+      "description": "single root has no parent or child to cover it"
+    },
+    {
+      "input": "root = [0,0,0]",
+      "output": "1",
+      "description": "root camera covers both children"
+    },
+    {
+      "input": "root = [0,null,0,null,0]",
+      "output": "1",
+      "description": "middle camera covers a three-node right chain"
+    },
+    {
+      "input": "root = [0,0,null,0,null,0]",
+      "output": "2",
+      "description": "four-node chain cannot be covered by one camera"
+    },
+    {
+      "input": "root = [0,0,0,0,0,0,0]",
+      "output": "2",
+      "description": "perfect tree with seven nodes is best covered by the two children"
+    },
+    {
+      "input": "root = [0,0,0,null,0,null,0]",
+      "output": "2",
+      "description": "asymmetric grandchildren on both sides need two cameras"
+    },
+    {
+      "input": "root = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]",
+      "output": "5",
+      "description": "perfect tree with fifteen nodes also needs the root after covering leaves"
+    },
+    {
+      "input": "root = [0,0,0,0,null,null,null,0]",
+      "output": "2",
+      "description": "deep left branch plus shallow right child checks parent coverage"
+    },
+    {
+      "input": "root = [0,null,0,0,0,null,null,0,0]",
+      "output": "2",
+      "description": "right subtree with two lower leaves should not over-place cameras"
+    },
+    {
+      "input": "root = [0,0,0,null,null,0,null,0,null,0]",
+      "output": "2",
+      "description": "right-heavy internal chain under a covered root side"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p389_example1.png",
-      "caption": "Example 1: Tree [0,0,null,0,0]"
+      "caption": "Example 1 input tree [0,0,null,0,0]; camera placement is not shown."
     }
   ]
 }

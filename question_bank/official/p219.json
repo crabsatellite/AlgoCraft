@@ -1,10 +1,13 @@
 {
   "id": "219",
   "title": "Reverse String",
-  "description": "# Reverse String\n\nWrite a function that reverses a string. The input string is given as an array of characters `s`.\n\nYou must do this by modifying the input array [in-place](https://en.wikipedia.org/wiki/In-place_algorithm) with `O(1)` extra memory.\n\n## Example 1:\n\n**Input:** s = [\"h\",\"e\",\"l\",\"l\",\"o\"]\n**Output:** [\"o\",\"l\",\"l\",\"e\",\"h\"]\n\n## Example 2:\n\n**Input:** s = [\"H\",\"a\",\"n\",\"n\",\"a\",\"h\"]\n**Output:** [\"h\",\"a\",\"n\",\"n\",\"a\",\"H\"]\n\n## Constraints:\n\n*   `1 <= s.length <= 10^5`\n*   `s[i]` is a printable ascii character.",
+  "description": "# Reverse String\n\nWrite a function that reverses a string. The input string is given as a character array `s`, and the function must modify `s` directly.\n\nYou must reverse the array **in-place** with `O(1)` extra memory. That means you may use a constant number of variables, but you should not build another array or return a new string.\n\n## Example 1:\n\n**Input:** s = [\"h\",\"e\",\"l\",\"l\",\"o\"]\n**Output:** [\"o\",\"l\",\"l\",\"e\",\"h\"]\n\n## Example 2:\n\n**Input:** s = [\"H\",\"a\",\"n\",\"n\",\"a\",\"h\"]\n**Output:** [\"h\",\"a\",\"n\",\"n\",\"a\",\"H\"]\n\n## Constraints:\n\n*   `1 <= s.length <= 10^5`\n*   `s[i]` is a printable ASCII character.",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public void reverseString(char[] s) {\n        // Write your code here\n        \n    }\n}",
-  "tags": ["Two Pointers", "String"],
+  "initialCode": "class Solution {\n    public void reverseString(char[] s) {\n        // Write your code here\n    }\n}",
+  "tags": [
+    "Two Pointers",
+    "String"
+  ],
   "examples": [
     {
       "input": "s = [\"h\",\"e\",\"l\",\"l\",\"o\"]",
@@ -17,30 +20,106 @@
   ],
   "solutions": [
     {
-      "name": "Two Pointers",
+      "name": "Two-Pointer Temporary Swap",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use left and right pointers moving toward the center, swapping characters at each step.",
-      "code": "class Solution {\n    public void reverseString(char[] s) {\n        int left = 0, right = s.length - 1;\n        while (left < right) {\n            char temp = s[left];\n            s[left++] = s[right];\n            s[right--] = temp;\n        }\n    }\n}",
+      "description": "## Approach\n\nPlace one pointer at the left end and one pointer at the right end. Swap those two characters, then move both pointers inward until they meet or cross.\n\n## Key Insight\n\nReversal pairs each index `i` with index `n - 1 - i`. Swapping each symmetric pair exactly once reverses the whole array without allocating another array.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each character is touched at most once as part of a swap.\n- Space Complexity: O(1), because only two indices and one temporary character are used.",
+      "code": "class Solution {\n    public void reverseString(char[] s) {\n        int left = 0;\n        int right = s.length - 1;\n        while (left < right) {\n            char temp = s[left];\n            s[left] = s[right];\n            s[right] = temp;\n            left++;\n            right--;\n        }\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Recursive Swap",
+      "name": "Mirror Index For Loop",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Recursively swap the first and last characters, then recurse on the inner subarray.",
-      "code": "class Solution {\n    public void reverseString(char[] s) {\n        helper(s, 0, s.length - 1);\n    }\n\n    private void helper(char[] s, int left, int right) {\n        if (left >= right) return;\n        char temp = s[left];\n        s[left] = s[right];\n        s[right] = temp;\n        helper(s, left + 1, right - 1);\n    }\n}",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nIterate `i` through the first half of the array. For every `i`, compute its mirror index `j = n - 1 - i` and swap `s[i]` with `s[j]`.\n\n## Key Insight\n\nThe loop length is exactly `n / 2` because each swap fixes two positions. For odd lengths, the center character maps to itself and does not need to move.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because the first half of the array is scanned once.\n- Space Complexity: O(1), because the algorithm stores only indices and a temporary character.",
+      "code": "class Solution {\n    public void reverseString(char[] s) {\n        int n = s.length;\n        for (int i = 0; i < n / 2; i++) {\n            int j = n - 1 - i;\n            char temp = s[i];\n            s[i] = s[j];\n            s[j] = temp;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "XOR Swap Variant",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse the same outside-in pointer movement, but exchange the two characters with three XOR operations instead of a temporary variable.\n\n## Key Insight\n\nXOR swap only works safely when the two indices are different, so the loop condition must be `left < right`. This is mainly a bit-manipulation teaching variant; the temporary-variable swap is usually clearer.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each symmetric pair is processed once.\n- Space Complexity: O(1), because no additional array is allocated.",
+      "code": "class Solution {\n    public void reverseString(char[] s) {\n        int left = 0;\n        int right = s.length - 1;\n        while (left < right) {\n            s[left] = (char) (s[left] ^ s[right]);\n            s[right] = (char) (s[left] ^ s[right]);\n            s[left] = (char) (s[left] ^ s[right]);\n            left++;\n            right--;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Printable ASCII Arithmetic Swap",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nBecause the prompt restricts characters to printable ASCII, two character values can be added and subtracted without leaving the Java `char` range. Use this arithmetic identity to swap each symmetric pair.\n\n## Key Insight\n\nThis is a constraint-specific swap technique. It still uses the same mirror-pair reversal, but it demonstrates how prompt constraints can make an otherwise risky trick safe for this input domain.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because every symmetric pair is processed once.\n- Space Complexity: O(1), because only two indices are stored.",
+      "code": "class Solution {\n    public void reverseString(char[] s) {\n        int left = 0;\n        int right = s.length - 1;\n        while (left < right) {\n            s[left] = (char) (s[left] + s[right]);\n            s[right] = (char) (s[left] - s[right]);\n            s[left] = (char) (s[left] - s[right]);\n            left++;\n            right--;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Adjacent Pull Baseline",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nRepeatedly move the current first element of the active prefix to the end of that prefix by adjacent swaps. Shrink the active prefix after each pass.\n\n## Key Insight\n\nThis is still in-place and correct, but it performs many unnecessary adjacent swaps. Comparing it with mirror-pair swapping shows why the optimal solutions exchange far-apart symmetric positions directly.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), because many adjacent swaps are performed.\n- Space Complexity: O(1), because the algorithm only uses loop indices and one temporary character.",
+      "code": "class Solution {\n    public void reverseString(char[] s) {\n        for (int end = s.length - 1; end > 0; end--) {\n            for (int i = 0; i < end; i++) {\n                char temp = s[i];\n                s[i] = s[i + 1];\n                s[i + 1] = temp;\n            }\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "s = [\"h\",\"e\",\"l\",\"l\",\"o\"]",
-      "output": "[\"o\",\"l\",\"l\",\"e\",\"h\"]"
+      "output": "[\"o\",\"l\",\"l\",\"e\",\"h\"]",
+      "description": "Odd-length sample reverses around the center."
     },
     {
       "input": "s = [\"H\",\"a\",\"n\",\"n\",\"a\",\"h\"]",
-      "output": "[\"h\",\"a\",\"n\",\"n\",\"a\",\"H\"]"
+      "output": "[\"h\",\"a\",\"n\",\"n\",\"a\",\"H\"]",
+      "description": "Even-length sample swaps every symmetric pair."
+    },
+    {
+      "input": "s = [\"a\"]",
+      "output": "[\"a\"]",
+      "description": "Single character stays unchanged."
+    },
+    {
+      "input": "s = [\"a\",\"b\"]",
+      "output": "[\"b\",\"a\"]",
+      "description": "Two-character array performs exactly one swap."
+    },
+    {
+      "input": "s = [\"1\",\"2\",\"3\",\"4\"]",
+      "output": "[\"4\",\"3\",\"2\",\"1\"]",
+      "description": "Digit characters reverse by position."
+    },
+    {
+      "input": "s = [\"!\",\"?\"]",
+      "output": "[\"?\",\"!\"]",
+      "description": "Punctuation characters are ordinary printable ASCII."
+    },
+    {
+      "input": "s = [\"x\",\"x\",\"x\"]",
+      "output": "[\"x\",\"x\",\"x\"]",
+      "description": "Repeated equal characters should not confuse swap logic."
+    },
+    {
+      "input": "s = [\"r\",\"a\",\"c\",\"e\",\"c\",\"a\",\"r\"]",
+      "output": "[\"r\",\"a\",\"c\",\"e\",\"c\",\"a\",\"r\"]",
+      "description": "Palindrome input remains visually identical after reversal."
+    },
+    {
+      "input": "s = [\"M\",\"i\",\"n\",\"e\",\"c\",\"r\",\"a\",\"f\",\"t\"]",
+      "output": "[\"t\",\"f\",\"a\",\"r\",\"c\",\"e\",\"n\",\"i\",\"M\"]",
+      "description": "Longer mixed-case word checks multiple odd-length swaps."
+    },
+    {
+      "input": "s = [\"A\",\"b\",\"C\",\"d\",\"E\"]",
+      "output": "[\"E\",\"d\",\"C\",\"b\",\"A\"]",
+      "description": "Case is preserved while positions are reversed."
+    },
+    {
+      "input": "s = [\"#\",\"$\",\"%\",\"&\"]",
+      "output": "[\"&\",\"%\",\"$\",\"#\"]",
+      "description": "Symbol punctuation tests printable ASCII beyond letters and digits."
+    },
+    {
+      "input": "s = [\"0\",\"0\",\"1\",\"1\",\"2\"]",
+      "output": "[\"2\",\"1\",\"1\",\"0\",\"0\"]",
+      "description": "Duplicate values with an odd length still reverse by index."
     }
   ]
 }

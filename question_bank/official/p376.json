@@ -1,34 +1,118 @@
 {
   "id": "376",
   "title": "Cracking the Safe",
-  "description": "# Cracking the Safe\n\nThere is a safe protected by a password. The password is a sequence of `n` digits where each digit can be in the range `[0, k - 1]`.\n\nThe safe has a peculiar way of checking the password. When you enter a sequence, it checks the last `n` digits entered. If the last `n` digits match the password, the safe unlocks.\n\nFor example, if the password is \"345\" and you enter \"012345\", the safe will unlock because the last 3 digits are \"345\".\n\nReturn any string of minimum length that will unlock the safe at some point of entering it.\n\n## Example 1:\n\n**Input:** n = 1, k = 2\n**Output:** \"01\"\n**Explanation:** \"10\" is also a valid output.\n\n## Example 2:\n\n**Input:** n = 2, k = 2\n**Output:** \"00110\"\n**Explanation:** \"01100\", \"10011\", \"11001\" will also unlock the safe.\n\n## Constraints:\n\n*   `1 <= n <= 4`\n*   `1 <= k <= 10`\n*   `k^n <= 4096`",
+  "description": "# Cracking the Safe\n\nA safe is protected by a password of length `n`. Each password digit is in the range `0` to `k - 1`.\n\nWhen you keep typing digits, the safe checks only the last `n` digits entered. If those last `n` digits equal the password, the safe opens.\n\nReturn any string with minimum possible length that is guaranteed to open the safe no matter which password was chosen. Equivalently, every possible length-`n` password over the `k` digits must appear as a contiguous substring of your returned string.\n\n## Example 1\n\n**Input:** n = 1, k = 2\n\n**Output:** \"01\"\n\n**Explanation:** The one-digit passwords are \"0\" and \"1\", and both appear. \"10\" is also valid.\n\n## Example 2\n\n**Input:** n = 2, k = 2\n\n**Output:** \"00110\"\n\n**Explanation:** The length-2 substrings are \"00\", \"01\", \"11\", and \"10\", covering every binary password exactly once. Other De Bruijn rotations such as \"01100\" are also valid.\n\n## Constraints\n\n* `1 <= n <= 4`\n* `1 <= k <= 10`\n* `k^n <= 4096`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public String crackSafe(int n, int k) {\n        \n    }\n}",
-  "tags": ["Depth-First Search", "Graph", "Eulerian Circuit"],
+  "initialCode": "class Solution {\n    public String crackSafe(int n, int k) {\n        return \"\";\n    }\n}",
+  "tags": [
+    "Depth-First Search",
+    "Graph",
+    "Eulerian Circuit"
+  ],
   "examples": [
-    { "input": "n = 1, k = 2", "output": "\"01\"" },
-    { "input": "n = 2, k = 2", "output": "\"01100\"" }
+    {
+      "input": "n = 1, k = 2",
+      "output": "\"01\""
+    },
+    {
+      "input": "n = 2, k = 2",
+      "output": "\"00110\""
+    }
   ],
   "solutions": [
     {
-      "name": "De Bruijn Sequence (Euler Circuit DFS)",
-      "timeComplexity": "O(k^n)",
-      "spaceComplexity": "O(k^n)",
-      "description": "Build a De Bruijn sequence using Hierholzer's algorithm for Euler circuit. Each node is an (n-1)-length string, edges represent appending a digit. DFS through all edges to form a sequence containing every n-length combination exactly once.",
-      "code": "class Solution {\n    public String crackSafe(int n, int k) {\n        if (n == 1) {\n            StringBuilder sb = new StringBuilder();\n            for (int i = 0; i < k; i++) sb.append(i);\n            return sb.toString();\n        }\n        StringBuilder sb = new StringBuilder();\n        for (int i = 0; i < n - 1; i++) sb.append('0');\n        String start = sb.toString();\n        sb.setLength(0);\n        java.util.Set<String> visited = new java.util.HashSet<>();\n        dfs(start, k, visited, sb);\n        sb.append(start);\n        return sb.toString();\n    }\n    private void dfs(String node, int k, java.util.Set<String> visited, StringBuilder sb) {\n        for (int i = 0; i < k; i++) {\n            String edge = node + i;\n            if (visited.add(edge)) {\n                dfs(edge.substring(1), k, visited, sb);\n                sb.append(i);\n            }\n        }\n    }\n}",
+      "name": "Recursive Eulerian Circuit over String Nodes",
+      "timeComplexity": "O(k^n * n)",
+      "spaceComplexity": "O(k^n * n)",
+      "description": "## Approach\n\nModel every length n - 1 suffix as a graph node. Appending one digit creates a directed edge whose label is a length n password. Run postorder DFS in Hierholzer style so each edge is used once, then append the start suffix.\n\n## Key Insight\n\nThe safe only cares about the last n digits, so each newly traversed edge contributes exactly one new password window. An Eulerian circuit over all k^n edges gives the shortest possible string.\n\n## Complexity Analysis\n\nThere are k^n edges. String slicing costs up to O(n) per edge, so the time complexity is O(k^n * n). The visited edge set and recursion stack use O(k^n * n) space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String crackSafe(int n, int k) {\n        if (n == 1) {\n            StringBuilder single = new StringBuilder();\n            for (int digit = 0; digit < k; digit++) {\n                single.append(digit);\n            }\n            return single.toString();\n        }\n\n        String start = \"0\".repeat(n - 1);\n        Set<String> visited = new HashSet<>();\n        StringBuilder sequence = new StringBuilder();\n        dfs(start, k, visited, sequence);\n        sequence.append(start);\n        return sequence.toString();\n    }\n\n    private void dfs(String node, int k, Set<String> visited, StringBuilder sequence) {\n        for (int digit = 0; digit < k; digit++) {\n            String edge = node + digit;\n            if (visited.add(edge)) {\n                dfs(edge.substring(1), k, visited, sequence);\n                sequence.append(digit);\n            }\n        }\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Iterative De Bruijn with Inverse Burrows-Wheeler",
+      "name": "Iterative Hierholzer Stack",
+      "timeComplexity": "O(k^n * n)",
+      "spaceComplexity": "O(k^n * n)",
+      "description": "## Approach\n\nUse the same De Bruijn graph, but replace recursion with explicit stack frames. Each frame remembers the next digit to try from that node; when a frame has no unused outgoing edge left, append the digit that led into it.\n\n## Key Insight\n\nHierholzer's algorithm is postorder: a digit is emitted only after all edges reachable through that digit have been consumed. The explicit stack preserves that invariant without relying on the Java call stack.\n\n## Complexity Analysis\n\nEach of the k^n edges is pushed and popped once, and each string edge has length n. Time is O(k^n * n), and the visited set plus stack use O(k^n * n) space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String crackSafe(int n, int k) {\n        if (n == 1) {\n            StringBuilder single = new StringBuilder();\n            for (int digit = 0; digit < k; digit++) {\n                single.append(digit);\n            }\n            return single.toString();\n        }\n\n        String start = \"0\".repeat(n - 1);\n        Set<String> visited = new HashSet<>();\n        Deque<Frame> stack = new ArrayDeque<>();\n        StringBuilder sequence = new StringBuilder();\n        stack.push(new Frame(start, -1));\n\n        while (!stack.isEmpty()) {\n            Frame top = stack.peek();\n            if (top.nextDigit + 1 < k) {\n                top.nextDigit++;\n                int digit = top.nextDigit;\n                String edge = top.node + digit;\n                if (visited.add(edge)) {\n                    stack.push(new Frame(edge.substring(1), -1));\n                }\n            } else {\n                Frame done = stack.pop();\n                if (!stack.isEmpty()) {\n                    sequence.append(done.node.charAt(done.node.length() - 1));\n                }\n            }\n        }\n\n        sequence.append(start);\n        return sequence.toString();\n    }\n\n    private static final class Frame {\n        private final String node;\n        private int nextDigit;\n\n        private Frame(String node, int nextDigit) {\n            this.node = node;\n            this.nextDigit = nextDigit;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Numeric Euler Circuit",
       "timeComplexity": "O(k^n)",
       "spaceComplexity": "O(k^n)",
-      "description": "Build the De Bruijn sequence iteratively. Use Hierholzer's algorithm with an explicit stack instead of recursion to find the Euler circuit. This avoids potential stack overflow for larger inputs.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public String crackSafe(int n, int k) {\n        if (n == 1) {\n            StringBuilder sb = new StringBuilder();\n            for (int i = 0; i < k; i++) sb.append(i);\n            return sb.toString();\n        }\n        Set<String> visited = new HashSet<>();\n        StringBuilder start = new StringBuilder();\n        for (int i = 0; i < n - 1; i++) start.append('0');\n        Deque<String> stack = new ArrayDeque<>();\n        List<Integer> path = new ArrayList<>();\n        stack.push(start.toString());\n        while (!stack.isEmpty()) {\n            String node = stack.peek();\n            boolean found = false;\n            for (int i = 0; i < k; i++) {\n                String edge = node + i;\n                if (!visited.contains(edge)) {\n                    visited.add(edge);\n                    stack.push(edge.substring(1));\n                    found = true;\n                    break;\n                }\n            }\n            if (!found) {\n                stack.pop();\n                if (!stack.isEmpty()) {\n                    path.add(node.charAt(node.length() - 1) - '0');\n                }\n            }\n        }\n        StringBuilder result = new StringBuilder();\n        for (int i = path.size() - 1; i >= 0; i--) {\n            result.append(path.get(i));\n        }\n        result.append(start);\n        return result.toString();\n    }\n}",
+      "description": "## Approach\n\nEncode each length n - 1 node as an integer in base k. The edge for appending digit d is node * k + d, and the next node is that edge modulo k^(n - 1). Run the same Euler DFS over integer states.\n\n## Key Insight\n\nThe graph structure is identical to the string version, but numeric encoding avoids allocating substring nodes and fixed-length edge strings.\n\n## Complexity Analysis\n\nEvery edge is visited once, giving O(k^n) time. The boolean edge array and recursion stack use O(k^n) space.",
+      "code": "class Solution {\n    private int k;\n    private int mod;\n    private boolean[] seen;\n    private StringBuilder sequence;\n\n    public String crackSafe(int n, int k) {\n        this.k = k;\n        if (n == 1) {\n            StringBuilder single = new StringBuilder();\n            for (int digit = 0; digit < k; digit++) {\n                single.append(digit);\n            }\n            return single.toString();\n        }\n\n        mod = 1;\n        for (int i = 0; i < n - 1; i++) {\n            mod *= k;\n        }\n        seen = new boolean[mod * k];\n        sequence = new StringBuilder();\n        dfs(0);\n        for (int i = 0; i < n - 1; i++) {\n            sequence.append('0');\n        }\n        return sequence.toString();\n    }\n\n    private void dfs(int node) {\n        for (int digit = 0; digit < k; digit++) {\n            int edge = node * k + digit;\n            if (!seen[edge]) {\n                seen[edge] = true;\n                dfs(edge % mod);\n                sequence.append(digit);\n            }\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "FKM Lyndon Word Generation",
+      "timeComplexity": "O(k^n)",
+      "spaceComplexity": "O(n * k)",
+      "description": "## Approach\n\nGenerate the De Bruijn cycle by concatenating Lyndon words whose lengths divide n, using the Fredricksen-Kessler-Maiorana recurrence. Then append n - 1 zeroes to turn the cycle into a linear safe input string.\n\n## Key Insight\n\nThe Lyndon-word construction lists exactly the necklace representatives needed for a De Bruijn sequence. It reaches the same minimum length without explicitly traversing graph edges.\n\n## Complexity Analysis\n\nThe recurrence emits k^n symbols in total, so the time complexity is O(k^n). The working array has O(n * k) slots and the output itself has length O(k^n).",
+      "code": "class Solution {\n    private int n;\n    private int k;\n    private int[] a;\n    private StringBuilder sequence;\n\n    public String crackSafe(int n, int k) {\n        this.n = n;\n        this.k = k;\n        a = new int[n * k + 1];\n        sequence = new StringBuilder();\n        deBruijn(1, 1);\n        for (int i = 0; i < n - 1; i++) {\n            sequence.append('0');\n        }\n        return sequence.toString();\n    }\n\n    private void deBruijn(int t, int p) {\n        if (t > n) {\n            if (n % p == 0) {\n                for (int i = 1; i <= p; i++) {\n                    sequence.append(a[i]);\n                }\n            }\n            return;\n        }\n\n        a[t] = a[t - p];\n        deBruijn(t + 1, p);\n        for (int j = a[t - p] + 1; j < k; j++) {\n            a[t] = j;\n            deBruijn(t + 1, t);\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Visited Window Backtracking",
+      "timeComplexity": "O(k^n * k) practical, exponential backtracking worst case",
+      "spaceComplexity": "O(k^n * n)",
+      "description": "## Approach\n\nStart with n zeroes, marking that password as seen. Repeatedly append a digit only when the new last n digits form an unseen password. Backtrack if a choice cannot complete all k^n windows.\n\n## Key Insight\n\nThe output string is valid exactly when every sliding window of length n is a different password. This version states that invariant directly, which makes it useful as a teaching bridge from brute force to De Bruijn graphs.\n\n## Complexity Analysis\n\nWith the standard digit order it behaves like a De Bruijn construction on the official constraints, visiting O(k^n) windows. In the abstract backtracking model the worst case is exponential. The seen set stores O(k^n) windows of length n.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String crackSafe(int n, int k) {\n        StringBuilder answer = new StringBuilder();\n        for (int i = 0; i < n; i++) {\n            answer.append('0');\n        }\n\n        Set<String> seen = new HashSet<>();\n        seen.add(answer.toString());\n        int total = 1;\n        for (int i = 0; i < n; i++) {\n            total *= k;\n        }\n        search(answer, seen, total, n, k);\n        return answer.toString();\n    }\n\n    private boolean search(StringBuilder answer, Set<String> seen, int total, int n, int k) {\n        if (seen.size() == total) {\n            return true;\n        }\n\n        String prefix = answer.substring(answer.length() - n + 1);\n        for (int digit = 0; digit < k; digit++) {\n            String next = prefix + digit;\n            if (seen.add(next)) {\n                answer.append(digit);\n                if (search(answer, seen, total, n, k)) {\n                    return true;\n                }\n                answer.deleteCharAt(answer.length() - 1);\n                seen.remove(next);\n            }\n        }\n        return false;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "n = 1, k = 2", "output": "\"01\"" },
-    { "input": "n = 2, k = 2", "output": "\"01100\"" }
+    {
+      "input": "n = 1, k = 2",
+      "output": "\"01\"",
+      "description": "all one-digit passwords over two symbols"
+    },
+    {
+      "input": "n = 2, k = 2",
+      "output": "\"00110\"",
+      "description": "binary order-two safe sequence; other rotations are also valid"
+    },
+    {
+      "input": "n = 1, k = 1",
+      "output": "\"0\"",
+      "description": "single possible password"
+    },
+    {
+      "input": "n = 2, k = 1",
+      "output": "\"00\"",
+      "description": "one symbol repeated to length n"
+    },
+    {
+      "input": "n = 1, k = 10",
+      "output": "\"0123456789\"",
+      "description": "all single digits in the largest alphabet"
+    },
+    {
+      "input": "n = 2, k = 3",
+      "output": "\"0010211220\"",
+      "description": "ternary two-digit passwords"
+    },
+    {
+      "input": "n = 3, k = 2",
+      "output": "\"0001011100\"",
+      "description": "binary three-digit passwords"
+    },
+    {
+      "input": "n = 3, k = 3",
+      "output": "\"00010020110120210221112122200\"",
+      "description": "larger ternary sequence still under the official cap"
+    },
+    {
+      "input": "n = 4, k = 2",
+      "output": "\"0000100110101111000\"",
+      "description": "higher order binary sequence"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "debruijn-graph",
+      "file": "p376_debruijn_graph.png",
+      "caption": "Rule illustration for n=2, k=2: input 01100 yields consecutive windows 01, 11, 10 and 00, covering every password"
+    }
   ]
 }

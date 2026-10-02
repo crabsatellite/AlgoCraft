@@ -1,7 +1,7 @@
 {
   "id": "449",
   "title": "My Calendar I",
-  "description": "# My Calendar I\n\nYou are implementing a program to use as your calendar. We can add a new event if adding the event will not cause a **double booking**.\n\nA **double booking** happens when two events have some non-empty intersection (i.e., some moment is common to both events.).\n\nThe event can be represented as a pair of integers `start` and `end` that represents a booking on the half-open interval `[start, end)`, the range of real numbers `x` such that `start <= x < end`.\n\nImplement the `MyCalendar` class:\n\n*   `MyCalendar()` Initializes the calendar object.\n*   `boolean book(int start, int end)` Returns `true` if the event can be added to the calendar successfully without causing a **double booking**. Otherwise, return `false` and do not add the event to the calendar.\n\n## Example 1:\n\n**Input**\n[\"MyCalendar\", \"book\", \"book\", \"book\"]\n[[], [10, 20], [15, 25], [20, 30]]\n**Output**\n[null, true, false, true]\n**Explanation**\nMyCalendar myCalendar = new MyCalendar();\nmyCalendar.book(10, 20); // return True\nmyCalendar.book(15, 25); // return False, It can not be booked because time 15 is already booked by another event.\nmyCalendar.book(20, 30); // return True, The event can be booked, as the first event takes every time less than 20, but not including 20.\n\n## Constraints:\n\n*   `0 <= start < end <= 10^9`\n*   At most `1000` calls will be made to `book`.",
+  "description": "# My Calendar I\n\nYou are implementing a calendar. A new event may be booked only when it does not create a **double booking** with any event that was already accepted.\n\nA **double booking** happens when two events have a non-empty intersection. Each event is represented by a half-open interval `[start, end)`, meaning every time `x` with `start <= x < end`. Two events that only touch at an endpoint, such as `[10, 20)` and `[20, 30)`, do not overlap.\n\nImplement the `MyCalendar` class:\n\n*   `MyCalendar()` initializes an empty calendar.\n*   `boolean book(int start, int end)` returns `true` and stores the event if it can be added without a double booking. Otherwise it returns `false` and must leave the calendar unchanged.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1:\n\n**Input**\n[\"MyCalendar\", \"book\", \"book\", \"book\"]\n[[], [10, 20], [15, 25], [20, 30]]\n**Output**\n[null, true, false, true]\n**Explanation**\n`[10, 20)` is accepted. `[15, 25)` is rejected because it intersects `[10, 20)` on `[15, 20)`. `[20, 30)` is accepted because it only touches the first booking at time `20`, and the first booking does not include `20`.\n\n## Constraints:\n\n*   `0 <= start < end <= 10^9`\n*   At most `1000` calls will be made to `book`.",
   "difficulty": "MEDIUM",
   "initialCode": "class MyCalendar {\n\n    public MyCalendar() {\n        \n    }\n    \n    public boolean book(int start, int end) {\n        \n    }\n}",
   "tags": [
@@ -19,19 +19,43 @@
   ],
   "solutions": [
     {
-      "name": "TreeMap with Interval Check",
+      "name": "TreeMap Neighbor Check",
       "timeComplexity": "O(log n) per book",
       "spaceComplexity": "O(n)",
-      "description": "Use a TreeMap to store booked intervals (start -> end). For a new booking [start, end), check the floor and ceiling entries. If the floor's end > start or ceiling's start < end, there's an overlap.",
-      "code": "class MyCalendar {\n    private java.util.TreeMap<Integer, Integer> calendar;\n\n    public MyCalendar() {\n        calendar = new java.util.TreeMap<>();\n    }\n\n    public boolean book(int start, int end) {\n        Integer prev = calendar.floorKey(start);\n        if (prev != null && calendar.get(prev) > start) return false;\n        Integer next = calendar.ceilingKey(start);\n        if (next != null && next < end) return false;\n        calendar.put(start, end);\n        return true;\n    }\n}",
+      "description": "## Approach\n\nStore accepted intervals in a `TreeMap` from start time to end time. For a new interval, the only accepted events that can overlap it are the interval with the greatest start not larger than `start`, and the interval with the smallest start not smaller than `start`. Check those two neighbors before inserting.\n\n## Key Insight\n\nOnce intervals are sorted by start time and the calendar never contains overlaps, a non-neighbor cannot jump across a valid neighbor to overlap the new interval. The half-open rule means `previousEnd == start` and `nextStart == end` are both safe.\n\n## Complexity Analysis\n\nEach neighbor lookup and insertion costs O(log n), where `n` is the number of accepted bookings. The calendar stores O(n) intervals.",
+      "code": "class MyCalendar {\n    private final java.util.TreeMap<Integer, Integer> intervals = new java.util.TreeMap<>();\n\n    public MyCalendar() {\n    }\n\n    public boolean book(int start, int end) {\n        Integer previousStart = intervals.floorKey(start);\n        if (previousStart != null && intervals.get(previousStart) > start) {\n            return false;\n        }\n\n        Integer nextStart = intervals.ceilingKey(start);\n        if (nextStart != null && nextStart < end) {\n            return false;\n        }\n\n        intervals.put(start, end);\n        return true;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Brute Force List Scan",
+      "name": "Brute Force Interval List",
       "timeComplexity": "O(n) per book",
       "spaceComplexity": "O(n)",
-      "description": "Store all booked intervals in a list. For each new booking, scan all existing intervals to check for overlap. If none overlap, add the new interval.",
-      "code": "import java.util.*;\n\nclass MyCalendar {\n    private List<int[]> events;\n\n    public MyCalendar() {\n        events = new ArrayList();\n    }\n\n    public boolean book(int start, int end) {\n        for (int i = 0; i < events.size(); i++) {\n            int[] event = events.get(i);\n            if (start < event[1] && end > event[0]) {\n                return false;\n            }\n        }\n        events.add(new int[]{start, end});\n        return true;\n    }\n}",
+      "description": "## Approach\n\nKeep every accepted event in an unsorted list. To book `[start, end)`, scan all existing intervals and reject as soon as one satisfies `start < existingEnd && existingStart < end`. If no interval overlaps, append the new event.\n\n## Key Insight\n\nThe overlap predicate is the most important baseline for this problem. For half-open intervals, two ranges overlap exactly when each starts before the other ends; equality at an endpoint is not an overlap.\n\n## Complexity Analysis\n\nA booking scans up to O(n) accepted events, and insertion is O(1). The list uses O(n) space.",
+      "code": "import java.util.*;\n\nclass MyCalendar {\n    private final List<int[]> events = new ArrayList<>();\n\n    public MyCalendar() {\n    }\n\n    public boolean book(int start, int end) {\n        for (int[] event : events) {\n            if (start < event[1] && event[0] < end) {\n                return false;\n            }\n        }\n        events.add(new int[] {start, end});\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Arrays with Binary Search",
+      "timeComplexity": "O(n) per book",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nMaintain two parallel `ArrayList`s: sorted start times and their matching end times. Binary search finds the insertion index for the new start. Then check only the previous and next stored intervals; if both are compatible, insert the new start and end at that index.\n\n## Key Insight\n\nThis is the array version of the ordered-neighbor idea. Binary search finds the only two possible conflicts, while the cost of keeping arrays sorted is paid during insertion.\n\n## Complexity Analysis\n\nBinary search is O(log n), but inserting into the middle of an array list shifts O(n) values, so each successful booking is O(n). Space is O(n).",
+      "code": "import java.util.*;\n\nclass MyCalendar {\n    private final ArrayList<Integer> starts = new ArrayList<>();\n    private final ArrayList<Integer> ends = new ArrayList<>();\n\n    public MyCalendar() {\n    }\n\n    public boolean book(int start, int end) {\n        int index = Collections.binarySearch(starts, start);\n        if (index < 0) {\n            index = -index - 1;\n        }\n\n        if (index > 0 && ends.get(index - 1) > start) {\n            return false;\n        }\n        if (index < starts.size() && starts.get(index) < end) {\n            return false;\n        }\n\n        starts.add(index, start);\n        ends.add(index, end);\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sweep-Line Delta with Rollback",
+      "timeComplexity": "O(n) per book",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore sweep-line deltas in a `TreeMap`: add `+1` at each accepted start and `-1` at each accepted end. For a tentative booking, apply its two deltas, scan the prefix sum in time order, and reject if the active count ever becomes greater than one. On rejection, undo the two tentative deltas.\n\n## Key Insight\n\nThis route directly models the definition of double booking. The rollback step is essential: a failed `book` call must leave the data structure exactly as it was before the attempt.\n\n## Complexity Analysis\n\nEach attempt scans O(n) distinct endpoints after O(log n) delta updates. The map stores O(n) endpoints.",
+      "code": "class MyCalendar {\n    private final java.util.TreeMap<Integer, Integer> delta = new java.util.TreeMap<>();\n\n    public MyCalendar() {\n    }\n\n    public boolean book(int start, int end) {\n        addDelta(start, 1);\n        addDelta(end, -1);\n\n        int active = 0;\n        for (int change : delta.values()) {\n            active += change;\n            if (active > 1) {\n                addDelta(start, -1);\n                addDelta(end, 1);\n                return false;\n            }\n        }\n        return true;\n    }\n\n    private void addDelta(int time, int change) {\n        int next = delta.getOrDefault(time, 0) + change;\n        if (next == 0) {\n            delta.remove(time);\n        } else {\n            delta.put(time, next);\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Dynamic Segment Tree Occupancy",
+      "timeComplexity": "O(log U) per book",
+      "spaceComplexity": "O(n log U)",
+      "description": "## Approach\n\nBuild a dynamic segment tree over the coordinate range `[0, 10^9]`. Query the maximum occupancy on `[start, end - 1]`; if it is already positive, the new event overlaps an accepted booking. Otherwise add one to that range. Nodes are created only along touched paths.\n\n## Key Insight\n\nThe time domain is huge, but each booking touches only O(log U) segment-tree nodes. This route is heavier than ordered-neighbor checks for Calendar I, yet it prepares the same range-counting machinery used by harder calendar variants.\n\n## Complexity Analysis\n\nEach query and update costs O(log U), where `U = 10^9 + 1`. A successful booking can allocate O(log U) nodes, so space is O(n log U) in the worst case.",
+      "code": "class MyCalendar {\n    private static class Node {\n        Node left;\n        Node right;\n        int add;\n        int max;\n    }\n\n    private final Node root = new Node();\n\n    public MyCalendar() {\n    }\n\n    public boolean book(int start, int end) {\n        int left = start;\n        int right = end - 1;\n        if (query(root, 0, 1_000_000_000, left, right, 0) > 0) {\n            return false;\n        }\n        update(root, 0, 1_000_000_000, left, right, 1);\n        return true;\n    }\n\n    private void update(Node node, int left, int right, int ql, int qr, int delta) {\n        if (ql <= left && right <= qr) {\n            node.add += delta;\n            node.max += delta;\n            return;\n        }\n\n        int mid = left + (right - left) / 2;\n        if (ql <= mid) {\n            if (node.left == null) {\n                node.left = new Node();\n            }\n            update(node.left, left, mid, ql, qr, delta);\n        }\n        if (qr > mid) {\n            if (node.right == null) {\n                node.right = new Node();\n            }\n            update(node.right, mid + 1, right, ql, qr, delta);\n        }\n\n        int leftMax = node.left == null ? 0 : node.left.max;\n        int rightMax = node.right == null ? 0 : node.right.max;\n        node.max = node.add + Math.max(leftMax, rightMax);\n    }\n\n    private int query(Node node, int left, int right, int ql, int qr, int carry) {\n        if (qr < left || right < ql) {\n            return 0;\n        }\n        if (node == null) {\n            return carry;\n        }\n        if (ql <= left && right <= qr) {\n            return carry + node.max;\n        }\n\n        int mid = left + (right - left) / 2;\n        int nextCarry = carry + node.add;\n        return Math.max(\n                query(node.left, left, mid, ql, qr, nextCarry),\n                query(node.right, mid + 1, right, ql, qr, nextCarry));\n    }\n}",
       "language": "java"
     }
   ],
@@ -39,13 +63,42 @@
     {
       "input": "[\"MyCalendar\", \"book\", \"book\", \"book\"]\n[[], [10, 20], [15, 25], [20, 30]]",
       "output": "[null, true, false, true]"
-    }
-  ],
-  "diagrams": [
+    },
     {
-      "id": "timeline",
-      "file": "p449_timeline.png",
-      "caption": "Calendar Events: [10,20], [15,25], [20,30]"
+      "input": "[\"MyCalendar\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [1, 5], [5, 10], [0, 1], [4, 6], [10, 11]]",
+      "output": "[null, true, true, true, false, true]"
+    },
+    {
+      "input": "[\"MyCalendar\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [10, 50], [20, 30], [50, 60], [30, 40], [0, 10]]",
+      "output": "[null, true, false, true, false, true]"
+    },
+    {
+      "input": "[\"MyCalendar\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [20, 30], [10, 40], [20, 30], [30, 35], [35, 40]]",
+      "output": "[null, true, false, false, true, true]"
+    },
+    {
+      "input": "[\"MyCalendar\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [10, 20], [10, 15], [5, 20], [5, 10], [20, 25]]",
+      "output": "[null, true, false, false, true, true]"
+    },
+    {
+      "input": "[\"MyCalendar\", \"book\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [10, 15], [20, 25], [15, 20], [16, 19], [25, 30], [5, 10]]",
+      "output": "[null, true, true, true, false, true, true]"
+    },
+    {
+      "input": "[\"MyCalendar\", \"book\", \"book\", \"book\", \"book\"]\n[[], [0, 1], [999999999, 1000000000], [1, 999999999], [0, 1000000000]]",
+      "output": "[null, true, true, true, false]"
+    },
+    {
+      "input": "[\"MyCalendar\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [100, 200], [150, 160], [200, 250], [160, 170], [250, 260]]",
+      "output": "[null, true, false, true, false, true]"
+    },
+    {
+      "input": "[\"MyCalendar\", \"book\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [50, 60], [10, 20], [30, 40], [20, 30], [40, 50], [25, 35]]",
+      "output": "[null, true, true, true, true, true, false]"
+    },
+    {
+      "input": "[\"MyCalendar\", \"book\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [0, 10], [10, 20], [20, 30], [9, 10], [30, 31], [29, 30]]",
+      "output": "[null, true, true, true, false, true, false]"
     }
   ]
 }

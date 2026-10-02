@@ -1,7 +1,7 @@
 {
   "id": "160",
   "title": "Word Break",
-  "description": "# Word Break\n\nGiven a string `s` and a dictionary of strings `wordDict`, return `true` if `s` can be segmented into a space-separated sequence of one or more dictionary words.\n\nNote that the same word in the dictionary may be reused multiple times in the segmentation.\n\n## Example 1:\n\n**Input:** s = \"leetcode\", wordDict = [\"leet\",\"code\"]\n**Output:** true\n**Explanation:** Return true because \"leetcode\" can be segmented as \"leet code\".\n\n## Example 2:\n\n**Input:** s = \"applepenapple\", wordDict = [\"apple\",\"pen\"]\n**Output:** true\n**Explanation:** Return true because \"applepenapple\" can be segmented as \"apple pen apple\".\nNote that you are allowed to reuse a dictionary word.\n\n## Example 3:\n\n**Input:** s = \"catsandog\", wordDict = [\"cats\",\"dog\",\"sand\",\"and\",\"cat\"]\n**Output:** false\n\n## Constraints:\n\n*   `1 <= s.length <= 300`\n*   `1 <= wordDict.length <= 1000`\n*   `1 <= wordDict[i].length <= 20`\n*   `s` and `wordDict[i]` consist of only lowercase English letters.\n*   All the strings of `wordDict` are **unique**.",
+  "description": "# Word Break\n\nGiven a string `s` and a dictionary `wordDict`, return `true` if `s` can be segmented into one or more dictionary words.\n\nA segmentation must cover the whole string from left to right without skipping characters. Dictionary words may be reused any number of times. You only need to decide whether at least one valid segmentation exists; you do not need to return the words.\n\n## Example 1\n\n**Input:** `s = \"leetcode\", wordDict = [\"leet\",\"code\"]`\n\n**Output:** `true`\n\n**Explanation:** `\"leetcode\"` can be segmented as `\"leet code\"`.\n\n## Example 2\n\n**Input:** `s = \"applepenapple\", wordDict = [\"apple\",\"pen\"]`\n\n**Output:** `true`\n\n**Explanation:** `\"apple\"` can be reused, so the string can be segmented as `\"apple pen apple\"`.\n\n## Example 3\n\n**Input:** `s = \"catsandog\", wordDict = [\"cats\",\"dog\",\"sand\",\"and\",\"cat\"]`\n\n**Output:** `false`\n\n**Explanation:** The words overlap in useful ways, but no sequence covers every character exactly once.\n\n## Constraints\n\n- `1 <= s.length <= 300`\n- `1 <= wordDict.length <= 1000`\n- `1 <= wordDict[i].length <= 20`\n- `s` and `wordDict[i]` contain only lowercase English letters\n- All strings in `wordDict` are unique",
   "difficulty": "MEDIUM",
   "initialCode": "import java.util.List;\n\nclass Solution {\n    public boolean wordBreak(String s, List<String> wordDict) {\n        // Write your code here\n        return false;\n    }\n}",
   "tags": [
@@ -25,38 +25,116 @@
       "output": "false"
     }
   ],
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p160_word_break.png",
+      "alt": "Example 1: leet and code are dictionary words whose concatenation covers the entire string leetcode",
+      "caption": "Example 1: leet and code are dictionary words whose concatenation covers the entire string leetcode"
+    }
+  ],
   "solutions": [
     {
-      "name": "Bottom-Up DP",
-      "timeComplexity": "O(n * m) where n = s.length, m = wordDict size",
-      "spaceComplexity": "O(n)",
-      "description": "dp[i] = true if s[0..i-1] can be segmented. For each position i, check all words: if dp[i - word.length] is true and s ends with that word at position i, set dp[i] = true.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean wordBreak(String s, List<String> wordDict) {\n        Set<String> words = new HashSet<>(wordDict);\n        boolean[] dp = new boolean[s.length() + 1];\n        dp[0] = true;\n        for (int i = 1; i <= s.length(); i++)\n            for (int j = 0; j < i; j++)\n                if (dp[j] && words.contains(s.substring(j, i))) {\n                    dp[i] = true;\n                    break;\n                }\n        return dp[s.length()];\n    }\n}",
+      "name": "Bottom-Up Cut DP",
+      "timeComplexity": "O(n * L^2)",
+      "spaceComplexity": "O(n + W)",
+      "description": "## Approach\n\nLet `dp[end]` mean the prefix `s[0..end)` can be segmented. Store dictionary words in a hash set and track the maximum word length. For each `end`, try only possible previous cut positions within that length window.\n\n## Key Insight\n\nA prefix is segmentable if it can be split at some earlier reachable cut and the last block is a dictionary word. `dp[0] = true` represents the empty prefix before the first word.\n\n## Complexity Analysis\n\nFor each end position, at most `L` previous cuts are checked, and substring creation can cost up to `L`, so the time complexity is `O(n * L^2)`, where `L` is the maximum word length. The DP table and dictionary set use `O(n + W)` space, where `W` is the number of dictionary words.",
+      "code": "import java.util.HashSet;\nimport java.util.List;\nimport java.util.Set;\n\nclass Solution {\n    public boolean wordBreak(String s, List<String> wordDict) {\n        Set<String> words = new HashSet<>(wordDict);\n        int n = s.length();\n        int maxWordLength = 0;\n        for (String word : wordDict) {\n            maxWordLength = Math.max(maxWordLength, word.length());\n        }\n\n        boolean[] dp = new boolean[n + 1];\n        dp[0] = true;\n        for (int end = 1; end <= n; end++) {\n            for (int start = Math.max(0, end - maxWordLength); start < end; start++) {\n                if (dp[start] && words.contains(s.substring(start, end))) {\n                    dp[end] = true;\n                    break;\n                }\n            }\n        }\n        return dp[n];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "BFS",
-      "timeComplexity": "O(n^2 * m) where n = s.length, m = wordDict size",
+      "name": "Forward Reachability by Words",
+      "timeComplexity": "O(n * W * L)",
       "spaceComplexity": "O(n)",
-      "description": "Use BFS to explore all possible word break positions. Start from index 0, try all words, and add reachable indices to the queue.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean wordBreak(String s, List<String> wordDict) {\n        Set<String> set = new HashSet<>(wordDict);\n        boolean[] visited = new boolean[s.length() + 1];\n        Queue<Integer> queue = new LinkedList<>();\n        queue.offer(0);\n        while (!queue.isEmpty()) {\n            int start = queue.poll();\n            if (visited[start]) continue;\n            visited[start] = true;\n            for (int end = start + 1; end <= s.length(); end++) {\n                if (set.contains(s.substring(start, end))) {\n                    if (end == s.length()) return true;\n                    queue.offer(end);\n                }\n            }\n        }\n        return false;\n    }\n}",
+      "description": "## Approach\n\nUse a boolean array `reachable`, where `reachable[start]` means a valid segmentation can end at index `start`. From every reachable cut, try every dictionary word and mark the next cut when `s` starts with that word.\n\n## Key Insight\n\nThis is the same state graph as DP, but traversed forward from known reachable cuts. It avoids checking cuts that are not reachable and makes word reuse explicit.\n\n## Complexity Analysis\n\nEvery reachable index may try all `W` words, and each `startsWith` check costs up to `L`, so the time complexity is `O(n * W * L)`. The reachable array uses `O(n)` space.",
+      "code": "import java.util.List;\n\nclass Solution {\n    public boolean wordBreak(String s, List<String> wordDict) {\n        int n = s.length();\n        boolean[] reachable = new boolean[n + 1];\n        reachable[0] = true;\n\n        for (int start = 0; start <= n; start++) {\n            if (!reachable[start]) {\n                continue;\n            }\n            for (String word : wordDict) {\n                int end = start + word.length();\n                if (end <= n && s.startsWith(word, start)) {\n                    reachable[end] = true;\n                }\n            }\n            if (reachable[n]) {\n                return true;\n            }\n        }\n        return reachable[n];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Memoized DFS",
+      "timeComplexity": "O(n^2 * L)",
+      "spaceComplexity": "O(n + W)",
+      "description": "## Approach\n\nDefine `canBreak(index)` as whether the suffix beginning at `index` can be segmented. Try every possible next word ending, recurse on the remaining suffix, and memoize failed or successful indices.\n\n## Key Insight\n\nThe recursion mirrors the natural question: choose the first word, then solve the rest. Memoization prevents repeated exploration of the same suffix after different earlier cuts.\n\n## Complexity Analysis\n\nThere are `n` suffix states and each can try up to `n` endings. Substring lookup costs depend on substring length, so the simple bound is `O(n^2 * L)`. The memo table and dictionary set use `O(n + W)` space.",
+      "code": "import java.util.HashSet;\nimport java.util.List;\nimport java.util.Set;\n\nclass Solution {\n    public boolean wordBreak(String s, List<String> wordDict) {\n        Set<String> words = new HashSet<>(wordDict);\n        Boolean[] memo = new Boolean[s.length()];\n        return canBreak(s, 0, words, memo);\n    }\n\n    private boolean canBreak(String s, int index, Set<String> words, Boolean[] memo) {\n        if (index == s.length()) {\n            return true;\n        }\n        if (memo[index] != null) {\n            return memo[index];\n        }\n        for (int end = index + 1; end <= s.length(); end++) {\n            if (words.contains(s.substring(index, end)) && canBreak(s, end, words, memo)) {\n                memo[index] = true;\n                return true;\n            }\n        }\n        memo[index] = false;\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "BFS Over Cut Positions",
+      "timeComplexity": "O(n^3)",
+      "spaceComplexity": "O(n + W)",
+      "description": "## Approach\n\nTreat string indices as nodes in an unweighted graph. There is an edge from `start` to `end` when `s[start..end)` is a dictionary word. BFS explores reachable cut positions and succeeds when it reaches `n`.\n\n## Key Insight\n\nThe problem is reachability over cut positions. A visited array is essential because many different segmentations can lead to the same index.\n\n## Complexity Analysis\n\nThere are `O(n^2)` possible substrings, and creating/checking substrings can cost up to `O(n)`, so the straightforward bound is `O(n^3)`. The queue, visited array, and dictionary set use `O(n + W)` space.",
+      "code": "import java.util.ArrayDeque;\nimport java.util.HashSet;\nimport java.util.List;\nimport java.util.Queue;\nimport java.util.Set;\n\nclass Solution {\n    public boolean wordBreak(String s, List<String> wordDict) {\n        Set<String> words = new HashSet<>(wordDict);\n        int n = s.length();\n        boolean[] visited = new boolean[n + 1];\n        Queue<Integer> queue = new ArrayDeque<>();\n        queue.add(0);\n        visited[0] = true;\n\n        while (!queue.isEmpty()) {\n            int start = queue.poll();\n            for (int end = start + 1; end <= n; end++) {\n                if (!visited[end] && words.contains(s.substring(start, end))) {\n                    if (end == n) {\n                        return true;\n                    }\n                    visited[end] = true;\n                    queue.add(end);\n                }\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Trie-Accelerated Prefix DP",
+      "timeComplexity": "O(n * L)",
+      "spaceComplexity": "O(n + T)",
+      "description": "## Approach\n\nInsert every dictionary word into a trie. From each reachable start index, walk the trie along `s`; whenever a trie node marks a full word, mark that end index reachable.\n\n## Key Insight\n\nThe trie lets the algorithm stop as soon as the current prefix is not shared by any dictionary word. This avoids repeatedly hashing substrings and is useful when many words share prefixes.\n\n## Complexity Analysis\n\nFrom each reachable start, the trie walk is bounded by maximum word length `L`, so the time complexity is `O(n * L)`. The reachable table uses `O(n)` space and the trie uses `O(T)` space for total dictionary characters.",
+      "code": "import java.util.List;\n\nclass Solution {\n    public boolean wordBreak(String s, List<String> wordDict) {\n        TrieNode root = new TrieNode();\n        for (String word : wordDict) {\n            insert(root, word);\n        }\n\n        boolean[] reachable = new boolean[s.length() + 1];\n        reachable[0] = true;\n        for (int start = 0; start < s.length(); start++) {\n            if (!reachable[start]) {\n                continue;\n            }\n            TrieNode node = root;\n            for (int end = start; end < s.length(); end++) {\n                int idx = s.charAt(end) - 'a';\n                if (node.children[idx] == null) {\n                    break;\n                }\n                node = node.children[idx];\n                if (node.word) {\n                    reachable[end + 1] = true;\n                }\n            }\n        }\n        return reachable[s.length()];\n    }\n\n    private void insert(TrieNode root, String word) {\n        TrieNode node = root;\n        for (char ch : word.toCharArray()) {\n            int idx = ch - 'a';\n            if (node.children[idx] == null) {\n                node.children[idx] = new TrieNode();\n            }\n            node = node.children[idx];\n        }\n        node.word = true;\n    }\n\n    static class TrieNode {\n        TrieNode[] children = new TrieNode[26];\n        boolean word;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "s = \"leetcode\", wordDict = [\"leet\",\"code\"]",
-      "output": "true"
+      "output": "true",
+      "description": "Canonical segmentation splits the string into two words."
     },
     {
       "input": "s = \"applepenapple\", wordDict = [\"apple\",\"pen\"]",
-      "output": "true"
+      "output": "true",
+      "description": "Dictionary words may be reused."
     },
     {
       "input": "s = \"catsandog\", wordDict = [\"cats\",\"dog\",\"sand\",\"and\",\"cat\"]",
-      "output": "false"
+      "output": "false",
+      "description": "Overlapping words still cannot cover the whole string."
     },
-    { "input": "s = \"a\", wordDict = [\"a\"]", "output": "true" },
-    { "input": "s = \"ab\", wordDict = [\"a\",\"b\"]", "output": "true" }
+    {
+      "input": "s = \"a\", wordDict = [\"a\"]",
+      "output": "true",
+      "description": "Single-character exact dictionary word."
+    },
+    {
+      "input": "s = \"ab\", wordDict = [\"a\",\"b\"]",
+      "output": "true",
+      "description": "Two one-character words cover the string."
+    },
+    {
+      "input": "s = \"cars\", wordDict = [\"car\",\"ca\",\"rs\"]",
+      "output": "true",
+      "description": "The correct split is not necessarily the longest first word."
+    },
+    {
+      "input": "s = \"aaaaaaa\", wordDict = [\"aaaa\",\"aaa\"]",
+      "output": "true",
+      "description": "Overlapping repeated prefixes can still be segmentable."
+    },
+    {
+      "input": "s = \"aaaaaaa\", wordDict = [\"aaaa\",\"aa\"]",
+      "output": "false",
+      "description": "Repeated prefixes do not guarantee full coverage."
+    },
+    {
+      "input": "s = \"pineapplepenapple\", wordDict = [\"apple\",\"pen\",\"applepen\",\"pine\",\"pineapple\"]",
+      "output": "true",
+      "description": "Multiple valid segmentations exist, but only existence matters."
+    },
+    {
+      "input": "s = \"catsanddog\", wordDict = [\"cats\",\"dog\",\"sand\",\"and\",\"cat\"]",
+      "output": "true",
+      "description": "A close positive pair for the catsandog near miss."
+    },
+    {
+      "input": "s = \"aaaaab\", wordDict = [\"a\",\"aa\",\"aaa\",\"aaaa\"]",
+      "output": "false",
+      "description": "Long repeated-prefix search should stop at the final missing character."
+    },
+    {
+      "input": "s = \"bb\", wordDict = [\"a\",\"b\",\"bbb\",\"bbbb\"]",
+      "output": "true",
+      "description": "A short word can be reused to cover the string."
+    }
   ]
 }

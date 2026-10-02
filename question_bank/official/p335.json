@@ -1,9 +1,9 @@
 {
   "id": "335",
   "title": "Dungeon Game",
-  "description": "# Dungeon Game\n\nThe demons had captured the princess and imprisoned her in the bottom-right corner of a `dungeon`. The `dungeon` consists of `m x n` rooms laid out in a 2D grid. Our valiant knight was initially positioned in the top-left room and must fight his way through `dungeon` to rescue the princess.\n\nThe knight has an initial health point represented by a positive integer. If at any point his health point drops to `0` or below, he dies immediately.\n\nSome of the rooms are guarded by demons (represented by negative integers), so the knight loses health upon entering these rooms; other rooms are either empty (represented as 0) or contain magic orbs that increase the knight's health (represented by positive integers).\n\nTo reach the princess as quickly as possible, the knight decides to move only rightward or downward in each step.\n\nReturn *the knight's minimum initial health so that he can rescue the princess*.\n\nNote that any room can contain threats or power-ups, even the first room the knight enters and the bottom-right room where the princess is imprisoned.\n\n## Example 1:\n\n**Input:** dungeon = [[-2,-3,3],[-5,-10,1],[10,30,-5]]\n**Output:** 7\n**Explanation:** The initial health of the knight must be at least 7 if he follows the optimal path: RIGHT-> RIGHT -> DOWN -> DOWN.\n\n## Example 2:\n\n**Input:** dungeon = [[0]]\n**Output:** 1\n\n## Constraints:\n\n*   `m == dungeon.length`\n*   `n == dungeon[i].length`\n*   `1 <= m, n <= 200`\n*   `-1000 <= dungeon[i][j] <= 1000`",
+  "description": "# Dungeon Game\n\nA knight starts in the top-left room of a dungeon and wants to rescue the princess in the bottom-right room. The dungeon is an `m x n` grid. Each room contains an integer:\n\n*   A negative value means the knight loses that much health after entering the room.\n*   A positive value means the knight gains that much health after entering the room.\n*   `0` means the room has no effect.\n\nThe knight may move only right or down. His health must stay strictly greater than `0` after every room he enters, including the starting room and the princess room.\n\nReturn the minimum initial health needed to guarantee that the knight can reach the princess alive.\n\n## Example 1:\n\n**Input:** dungeon = [[-2,-3,3],[-5,-10,1],[10,30,-5]]\n**Output:** 7\n**Explanation:** One optimal path is RIGHT -> RIGHT -> DOWN -> DOWN. With 7 initial health, the knight's health never drops to 0 or below.\n\n## Example 2:\n\n**Input:** dungeon = [[0]]\n**Output:** 1\n**Explanation:** Even an empty starting room requires at least 1 health.\n\n## Constraints:\n\n*   `m == dungeon.length`\n*   `n == dungeon[i].length`\n*   `1 <= m, n <= 200`\n*   `-1000 <= dungeon[i][j] <= 1000`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int calculateMinimumHP(int[][] dungeon) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int calculateMinimumHP(int[][] dungeon) {\n        return 1;\n    }\n}",
   "tags": [
     "Array",
     "Dynamic Programming",
@@ -21,37 +21,115 @@
   ],
   "solutions": [
     {
-      "name": "Reverse DP",
+      "name": "Reverse Required-Health DP",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "Work backwards from bottom-right. dp[i][j] = min health needed at (i,j) to reach the princess alive. dp[i][j] = max(1, min(dp[i+1][j], dp[i][j+1]) - dungeon[i][j]).",
-      "code": "class Solution {\n    public int calculateMinimumHP(int[][] dungeon) {\n        int m = dungeon.length, n = dungeon[0].length;\n        int[][] dp = new int[m + 1][n + 1];\n        for (int[] row : dp) java.util.Arrays.fill(row, Integer.MAX_VALUE);\n        dp[m][n - 1] = dp[m - 1][n] = 1;\n        for (int i = m - 1; i >= 0; i--) {\n            for (int j = n - 1; j >= 0; j--) {\n                dp[i][j] = Math.max(1, Math.min(dp[i + 1][j], dp[i][j + 1]) - dungeon[i][j]);\n            }\n        }\n        return dp[0][0];\n    }\n}",
+      "description": "## Approach\n\nLet `need[i][j]` be the minimum health required before entering room `(i, j)`. Work backward from the princess room. The knight chooses the cheaper of the right and down continuations, then the current room's value adjusts the required health.\n\n## Key Insight\n\nThe state stores required health before entering a room, not health remaining after a forward path. That makes positive and negative room effects local: `need = max(1, min(nextRight, nextDown) - dungeon[i][j])`.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public int calculateMinimumHP(int[][] dungeon) {\n        int m = dungeon.length;\n        int n = dungeon[0].length;\n        int inf = 1_000_000_000;\n        int[][] need = new int[m + 1][n + 1];\n        for (int[] row : need) {\n            java.util.Arrays.fill(row, inf);\n        }\n        need[m][n - 1] = 1;\n        need[m - 1][n] = 1;\n\n        for (int row = m - 1; row >= 0; row--) {\n            for (int col = n - 1; col >= 0; col--) {\n                int next = Math.min(need[row + 1][col], need[row][col + 1]);\n                need[row][col] = Math.max(1, next - dungeon[row][col]);\n            }\n        }\n        return need[0][0];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Space-Optimized Reverse DP (1D Array)",
+      "name": "Space-Optimized Reverse DP",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(n)",
-      "description": "Optimize space by using a single 1D array of size n+1. Process rows from bottom to top, columns right to left, updating dp[j] in place using dp[j] (below) and dp[j+1] (right).",
-      "code": "class Solution {\n    public int calculateMinimumHP(int[][] dungeon) {\n        int m = dungeon.length, n = dungeon[0].length;\n        int[] dp = new int[n + 1];\n        java.util.Arrays.fill(dp, Integer.MAX_VALUE);\n        dp[n - 1] = 1;\n        for (int i = m - 1; i >= 0; i--) {\n            for (int j = n - 1; j >= 0; j--) {\n                int minNext = Math.min(dp[j], dp[j + 1]);\n                dp[j] = Math.max(1, minNext - dungeon[i][j]);\n            }\n            dp[n] = Integer.MAX_VALUE;\n        }\n        return dp[0];\n    }\n}",
+      "description": "## Approach\n\nUse the same reverse recurrence but keep only the row of requirements below the current row. Process rows from bottom to top and columns from right to left.\n\n## Key Insight\n\nAt cell `(row, col)`, `need[col]` still represents the down continuation and `need[col + 1]` represents the right continuation. Updating from right to left preserves both values at the moment they are needed.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int calculateMinimumHP(int[][] dungeon) {\n        int m = dungeon.length;\n        int n = dungeon[0].length;\n        int inf = 1_000_000_000;\n        int[] need = new int[n + 1];\n        java.util.Arrays.fill(need, inf);\n        need[n - 1] = 1;\n\n        for (int row = m - 1; row >= 0; row--) {\n            for (int col = n - 1; col >= 0; col--) {\n                int next = Math.min(need[col], need[col + 1]);\n                need[col] = Math.max(1, next - dungeon[row][col]);\n            }\n            need[n] = inf;\n        }\n        return need[0];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Required-Health DFS",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nWrite the same required-health recurrence as a memoized DFS from the start room. Each call returns the minimum health needed before entering its room.\n\n## Key Insight\n\nOut-of-bounds moves are impossible continuations, the princess room is the base case, and every other room chooses the cheaper valid continuation. Memoization prevents the exponential overlap from recomputing suffix rectangles.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public int calculateMinimumHP(int[][] dungeon) {\n        int rows = dungeon.length;\n        int cols = dungeon[0].length;\n        int[][] memo = new int[rows][cols];\n        return need(0, 0, dungeon, memo);\n    }\n\n    private int need(int row, int col, int[][] dungeon, int[][] memo) {\n        int rows = dungeon.length;\n        int cols = dungeon[0].length;\n        if (row >= rows || col >= cols) {\n            return 1_000_000_000;\n        }\n        if (memo[row][col] != 0) {\n            return memo[row][col];\n        }\n        if (row == rows - 1 && col == cols - 1) {\n            memo[row][col] = Math.max(1, 1 - dungeon[row][col]);\n            return memo[row][col];\n        }\n        int next = Math.min(need(row + 1, col, dungeon, memo), need(row, col + 1, dungeon, memo));\n        memo[row][col] = Math.max(1, next - dungeon[row][col]);\n        return memo[row][col];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Binary Search Initial Health with Feasibility DP",
+      "timeComplexity": "O(m * n * log S)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nBinary search the initial health. For a candidate value, run a forward DP that stores the maximum health remaining after entering each reachable room. If the princess room can be reached with positive health, the candidate is feasible.\n\n## Key Insight\n\nFeasibility is monotonic: if health `H` works, any larger initial health also works. This route is slower than reverse DP, but it teaches why the answer can be searched and why a forward pass needs to track survivable health, not only path sum.\n\n## Complexity Analysis\n- Time Complexity: O(m * n * log S), where S is one plus the total possible negative damage\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public int calculateMinimumHP(int[][] dungeon) {\n        int high = 1;\n        for (int[] row : dungeon) {\n            for (int value : row) {\n                if (value < 0) {\n                    high += -value;\n                }\n            }\n        }\n\n        int low = 1;\n        while (low < high) {\n            int mid = low + (high - low) / 2;\n            if (canSurvive(dungeon, mid)) {\n                high = mid;\n            } else {\n                low = mid + 1;\n            }\n        }\n        return low;\n    }\n\n    private boolean canSurvive(int[][] dungeon, int initialHealth) {\n        int rows = dungeon.length;\n        int cols = dungeon[0].length;\n        int[][] best = new int[rows][cols];\n        for (int[] row : best) {\n            java.util.Arrays.fill(row, -1);\n        }\n\n        int startHealth = initialHealth + dungeon[0][0];\n        if (startHealth <= 0) {\n            return false;\n        }\n        best[0][0] = startHealth;\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (best[row][col] <= 0) {\n                    continue;\n                }\n                if (row + 1 < rows) {\n                    int downHealth = best[row][col] + dungeon[row + 1][col];\n                    if (downHealth > 0) {\n                        best[row + 1][col] = Math.max(best[row + 1][col], downHealth);\n                    }\n                }\n                if (col + 1 < cols) {\n                    int rightHealth = best[row][col] + dungeon[row][col + 1];\n                    if (rightHealth > 0) {\n                        best[row][col + 1] = Math.max(best[row][col + 1], rightHealth);\n                    }\n                }\n            }\n        }\n        return best[rows - 1][cols - 1] > 0;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "dungeon = [[-2,-3,3],[-5,-10,1],[10,30,-5]]",
-      "output": "7"
+      "output": "7",
+      "description": "canonical sample where the optimal path still needs seven initial health"
     },
     {
       "input": "dungeon = [[0]]",
-      "output": "1"
+      "output": "1",
+      "description": "empty room still requires at least one health"
+    },
+    {
+      "input": "dungeon = [[100]]",
+      "output": "1",
+      "description": "positive starting room cannot reduce the minimum below one"
+    },
+    {
+      "input": "dungeon = [[-5]]",
+      "output": "6",
+      "description": "single damaging room requires damage plus one"
+    },
+    {
+      "input": "dungeon = [[1,-3,3],[0,-2,0],[-3,-3,-3]]",
+      "output": "3",
+      "description": "mixed grid where future debt determines earlier health"
+    },
+    {
+      "input": "dungeon = [[0,-3]]",
+      "output": "4",
+      "description": "single-row path accumulates future loss"
+    },
+    {
+      "input": "dungeon = [[1],[-2],[3]]",
+      "output": "2",
+      "description": "single-column path must survive the middle loss"
+    },
+    {
+      "input": "dungeon = [[5,1],[2,3]]",
+      "output": "1",
+      "description": "all positive rooms require only one initial health"
+    },
+    {
+      "input": "dungeon = [[-2,-3,-4]]",
+      "output": "10",
+      "description": "single-row all-negative path sums all damage plus one"
+    },
+    {
+      "input": "dungeon = [[-1,10]]",
+      "output": "2",
+      "description": "starting loss must be survived before a later reward can help"
+    },
+    {
+      "input": "dungeon = [[100,-250],[100,-1]]",
+      "output": "1",
+      "description": "large safe detour keeps the answer at one despite a tempting trap"
+    },
+    {
+      "input": "dungeon = [[-5,100],[-100,-100]]",
+      "output": "6",
+      "description": "a high early reward can still require enough health to survive the start"
+    },
+    {
+      "input": "dungeon = [[-2,-100,100],[1,-1,-1],[1,1,-1]]",
+      "output": "3",
+      "description": "central trap forces the route decision to look ahead"
+    },
+    {
+      "input": "dungeon = [[100],[-200],[100],[-1]]",
+      "output": "101",
+      "description": "narrow column with a deep middle loss"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p335_example1.png",
-      "caption": "3x3 Dungeon Grid"
+      "caption": "Dungeon input grid with health gains and losses"
     }
   ]
 }

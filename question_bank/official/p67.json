@@ -1,10 +1,15 @@
 {
   "id": "67",
   "title": "Reorder List",
-  "description": "# Reorder List\n\nYou are given the head of a singly linked-list. The list can be represented as:\n\n`L0 → L1 → … → Ln - 1 → Ln`\n\nReorder the list to be on the following form:\n\n`L0 → Ln → L1 → Ln - 1 → L2 → Ln - 2 → …`\n\nYou may not modify the values in the list's nodes. Only nodes themselves may be changed.\n\n## Example 1:\n\n**Input:** head = [1,2,3,4]\n**Output:** [1,4,2,3]\n\n## Example 2:\n\n**Input:** head = [1,2,3,4,5]\n**Output:** [1,5,2,4,3]\n\n## Constraints:\n\n*   The number of nodes in the list is in the range `[1, 5 * 10^4]`.\n*   `1 <= Node.val <= 1000`",
+  "description": "# Reorder List\n\nYou are given the head of a singly linked list. If the original node order is:\n\n`L0 -> L1 -> ... -> Ln-1 -> Ln`\n\nreorder the same nodes into this order:\n\n`L0 -> Ln -> L1 -> Ln-1 -> L2 -> Ln-2 -> ...`\n\nYou may not modify the values stored in the nodes. Only the `next` pointers may be changed. The returned order in the examples is written as an array only to describe the final linked-list order.\n\nExample arrays display values in `next` order; `[]` denotes an empty list (`null`). A node stores its value in `val` and its next node in `next`. Use node objects for list parameters and results as shown in the initial code.\n\n## Example 1:\n\n**Input:** head = [1,2,3,4]\n**Output:** [1,4,2,3]\n\n## Example 2:\n\n**Input:** head = [1,2,3,4,5]\n**Output:** [1,5,2,4,3]\n\n## Constraints:\n\n*   The number of nodes in the list is in the range `[1, 5 * 10^4]`.\n*   `1 <= Node.val <= 1000`",
   "difficulty": "MEDIUM",
   "initialCode": "/**\n * Definition for singly-linked list.\n * public class ListNode {\n *     int val;\n *     ListNode next;\n *     ListNode() {}\n *     ListNode(int val) { this.val = val; }\n *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n * }\n */\nclass Solution {\n    public void reorderList(ListNode head) {\n        // Write your code here\n        \n    }\n}",
-  "tags": ["Linked List", "Two Pointers", "Stack", "Recursion"],
+  "tags": [
+    "Linked List",
+    "Two Pointers",
+    "Stack",
+    "Recursion"
+  ],
   "examples": [
     {
       "input": "head = [1,2,3,4]",
@@ -18,41 +23,70 @@
   "tests": [
     {
       "input": "head = [1,2,3,4]",
-      "output": "[1,4,2,3]"
+      "output": "[1,4,2,3]",
+      "description": "Even-length canonical reorder"
     },
     {
       "input": "head = [1,2,3,4,5]",
-      "output": "[1,5,2,4,3]"
+      "output": "[1,5,2,4,3]",
+      "description": "Odd-length canonical reorder leaves the middle node last"
     },
     {
       "input": "head = [1]",
-      "output": "[1]"
+      "output": "[1]",
+      "description": "Single node remains unchanged"
     },
     {
       "input": "head = [1,2]",
-      "output": "[1,2]"
+      "output": "[1,2]",
+      "description": "Two nodes remain in place"
     },
     {
       "input": "head = [1,2,3]",
       "output": "[1,3,2]",
-      "note": "3节点"
+      "description": "Three-node list places the tail after the head"
     },
     {
       "input": "head = [1,2,3,4,5,6]",
       "output": "[1,6,2,5,3,4]",
-      "note": "6节点偶数"
+      "description": "Six-node even reorder"
+    },
+    {
+      "input": "head = [1,2,3,4,5,6,7]",
+      "output": "[1,7,2,6,3,5,4]",
+      "description": "Seven-node odd reorder"
+    },
+    {
+      "input": "head = [10,20,30,40]",
+      "output": "[10,40,20,30]",
+      "description": "Values do not matter; only positions are rearranged"
+    },
+    {
+      "input": "head = [1,1,2,2,3]",
+      "output": "[1,3,1,2,2]",
+      "description": "Duplicate values prove the operation is positional"
+    },
+    {
+      "input": "head = [1000,1,999,2,998]",
+      "output": "[1000,998,1,2,999]",
+      "description": "Boundary-sized values in non-sorted order"
+    },
+    {
+      "input": "head = [1,2,3,4,5,6,7,8]",
+      "output": "[1,8,2,7,3,6,4,5]",
+      "description": "Longer even list checks repeated alternation"
+    },
+    {
+      "input": "head = [5,6,7,8,9,10,11,12,13]",
+      "output": "[5,13,6,12,7,11,8,10,9]",
+      "description": "Longer odd list checks the final middle node"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p67_example1.png",
-      "caption": "Example 1"
-    },
-    {
-      "id": "example1_reordered",
-      "file": "p67_example1_reordered.png",
-      "caption": "Example 1 - After Reorder"
+      "caption": "Input list before any next pointers are rearranged"
     }
   ],
   "solutions": [
@@ -60,16 +94,32 @@
       "name": "Find Middle + Reverse + Merge",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Three steps: (1) Use slow/fast pointers to find the middle. (2) Reverse the second half. (3) Merge the two halves by alternating nodes.",
-      "code": "class Solution {\n    public void reorderList(ListNode head) {\n        if (head == null || head.next == null) return;\n        \n        // Step 1: Find middle\n        ListNode slow = head, fast = head;\n        while (fast.next != null && fast.next.next != null) {\n            slow = slow.next;\n            fast = fast.next.next;\n        }\n        \n        // Step 2: Reverse second half\n        ListNode second = slow.next;\n        slow.next = null;\n        ListNode prev = null;\n        while (second != null) {\n            ListNode next = second.next;\n            second.next = prev;\n            prev = second;\n            second = next;\n        }\n        second = prev;\n        \n        // Step 3: Merge two halves\n        ListNode first = head;\n        while (second != null) {\n            ListNode tmp1 = first.next;\n            ListNode tmp2 = second.next;\n            first.next = second;\n            second.next = tmp1;\n            first = tmp1;\n            second = tmp2;\n        }\n    }\n}",
+      "description": "## Approach\n\nUse slow and fast pointers to find the end of the first half. Cut the list there, reverse the second half in place, then merge the two halves by alternating one node from the first half and one node from the reversed second half.\n\n## Key Insight\n\nThe desired order is the original front half interleaved with the back half read from right to left. Reversing the second half turns that right-to-left order into a normal forward traversal.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public void reorderList(ListNode head) {\n        if (head == null || head.next == null) {\n            return;\n        }\n\n        ListNode slow = head, fast = head;\n        while (fast.next != null && fast.next.next != null) {\n            slow = slow.next;\n            fast = fast.next.next;\n        }\n\n        ListNode second = slow.next;\n        slow.next = null;\n        ListNode prev = null;\n        while (second != null) {\n            ListNode next = second.next;\n            second.next = prev;\n            prev = second;\n            second = next;\n        }\n        second = prev;\n\n        ListNode first = head;\n        while (second != null) {\n            ListNode nextFirst = first.next;\n            ListNode nextSecond = second.next;\n            first.next = second;\n            second.next = nextFirst;\n            first = nextFirst;\n            second = nextSecond;\n        }\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Using Deque",
+      "name": "Deque Front/Back Rebuild",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Store all nodes in a deque, then alternately take from front and back to rebuild the list.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public void reorderList(ListNode head) {\n        if (head == null) return;\n        \n        Deque<ListNode> deque = new ArrayDeque<>();\n        ListNode curr = head.next;\n        while (curr != null) {\n            deque.addLast(curr);\n            curr = curr.next;\n        }\n        \n        curr = head;\n        boolean fromBack = true;\n        while (!deque.isEmpty()) {\n            ListNode node = fromBack ? deque.pollLast() : deque.pollFirst();\n            curr.next = node;\n            curr = node;\n            fromBack = !fromBack;\n        }\n        curr.next = null;\n    }\n}",
+      "description": "## Approach\n\nPut every node after the head into a deque. Starting from `head`, alternately take a node from the back and the front of the deque, attach it after the current node, and advance the current pointer.\n\n## Key Insight\n\nThe target order repeatedly asks for the farthest remaining tail node, then the nearest remaining front node. A deque exposes exactly those two ends and makes the desired order explicit.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public void reorderList(ListNode head) {\n        if (head == null) {\n            return;\n        }\n\n        Deque<ListNode> deque = new ArrayDeque<>();\n        ListNode curr = head.next;\n        while (curr != null) {\n            deque.addLast(curr);\n            curr = curr.next;\n        }\n\n        curr = head;\n        boolean fromBack = true;\n        while (!deque.isEmpty()) {\n            ListNode node = fromBack ? deque.pollLast() : deque.pollFirst();\n            curr.next = node;\n            curr = node;\n            fromBack = !fromBack;\n        }\n        curr.next = null;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Front Pointer",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse recursion to walk to the tail while a `front` pointer starts at the head. During the unwind phase, insert the current tail-side node after `front`, then move `front` one step forward. Stop once the two sides meet or cross.\n\n## Key Insight\n\nThe call stack naturally visits nodes from the end of the list back toward the middle. Pairing that tail-side visit with a moving front pointer produces the same outside-in order without explicitly reversing a half.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private ListNode front;\n\n    public void reorderList(ListNode head) {\n        front = head;\n        reorderFromTail(head);\n    }\n\n    private boolean reorderFromTail(ListNode right) {\n        if (right == null) {\n            return true;\n        }\n        if (!reorderFromTail(right.next)) {\n            return false;\n        }\n        if (front == right || front.next == right) {\n            right.next = null;\n            return false;\n        }\n\n        ListNode nextFront = front.next;\n        front.next = right;\n        right.next = nextFront;\n        front = nextFront;\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Stack of Second-Half Nodes",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFind the middle with slow and fast pointers. Push the nodes after the middle onto a stack, cut the list after the middle, then pop nodes and insert each one after the next node of the first half.\n\n## Key Insight\n\nOnly the second half needs to be consumed from back to front. A stack gives that reverse order directly while keeping the first half in its original forward order.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public void reorderList(ListNode head) {\n        if (head == null || head.next == null) {\n            return;\n        }\n\n        ListNode slow = head, fast = head;\n        while (fast != null && fast.next != null) {\n            slow = slow.next;\n            fast = fast.next.next;\n        }\n\n        Deque<ListNode> stack = new ArrayDeque<>();\n        ListNode curr = slow.next;\n        slow.next = null;\n        while (curr != null) {\n            stack.push(curr);\n            curr = curr.next;\n        }\n\n        ListNode first = head;\n        while (!stack.isEmpty()) {\n            ListNode later = stack.pop();\n            ListNode next = first.next;\n            first.next = later;\n            later.next = next;\n            first = next;\n        }\n    }\n}",
       "language": "java"
     }
   ]

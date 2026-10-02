@@ -1,36 +1,136 @@
 {
   "id": "398",
   "title": "Parsing A Boolean Expression",
-  "description": "# Parsing A Boolean Expression\n\nA boolean expression is an expression that evaluates to either `true` or `false`. It can be in one of the following shapes:\n\n*   `'t'` that evaluates to `true`.\n*   `'f'` that evaluates to `false`.\n*   `'!(subExpr)'` that evaluates to the logical NOT of the inner expression `subExpr`.\n*   `'&(subExpr1, subExpr2, ..., subExprn)'` that evaluates to the logical AND of the inner expressions `subExpr1, subExpr2, ..., subExprn` where `n >= 1`.\n*   `'|(subExpr1, subExpr2, ..., subExprn)'` that evaluates to the logical OR of the inner expressions `subExpr1, subExpr2, ..., subExprn` where `n >= 1`.\n\nGiven a string `expression` that represents a boolean expression, return the evaluation of that expression.\n\n## Example 1:\n\n**Input:** expression = \"&(|(f))\"\n**Output:** false\n**Explanation:**\nFirst, evaluate |(f) --> f. The expression becomes \"&(f)\".\nThen, evaluate &(f) --> f. The expression becomes \"f\".\nFinally, return false.\n\n## Example 2:\n\n**Input:** expression = \"|(f,f,f,t)\"\n**Output:** true\n**Explanation:** The evaluation of (false OR false OR false OR true) is true.\n\n## Example 3:\n\n**Input:** expression = \"!(&(f,t))\"\n**Output:** true\n**Explanation:**\nFirst, evaluate &(f,t) --> (false AND true) --> false --> f. The expression becomes \"!(f)\".\nThen, evaluate !(f) --> NOT false --> true. The expression becomes \"t\".\nFinally, return true.\n\n## Constraints:\n\n*   `1 <= expression.length <= 20000`\n*   `expression[i]` is one of characters `'('`, `')'`, `'&'`, `'|'`, `'!'`, `'t'`, `'f'`, and `','`.",
+  "description": "# Parsing A Boolean Expression\n\nA boolean expression evaluates to either `true` or `false`. The input string is guaranteed to be a valid expression using only these forms:\n\n* `t` evaluates to `true`.\n* `f` evaluates to `false`.\n* `!(subExpr)` evaluates to the logical NOT of one sub-expression.\n* `&(subExpr1, subExpr2, ..., subExprn)` evaluates to the logical AND of one or more sub-expressions.\n* `|(subExpr1, subExpr2, ..., subExprn)` evaluates to the logical OR of one or more sub-expressions.\n\nCommas only separate operands inside `&` and `|`. Parentheses always belong to the immediately preceding operator.\n\nGiven `expression`, return the boolean value of the whole expression.\n\nAND is true only when all operands are true; OR is true when at least one operand is true; NOT reverses true and false. For example, `!(t)` is false and `|(f,t)` is true.\n\n## Example 1:\n\n**Input:** expression = \"&(|(f))\"\n**Output:** false\n**Explanation:** `|(f)` is false, so `&(false)` is also false.\n\n## Example 2:\n\n**Input:** expression = \"|(f,f,f,t)\"\n**Output:** true\n**Explanation:** At least one operand of the OR expression is true.\n\n## Example 3:\n\n**Input:** expression = \"!(&(f,t))\"\n**Output:** true\n**Explanation:** `&(f,t)` is false, and negating it gives true.\n\n## Constraints:\n\n* `1 <= expression.length <= 20000`\n* `expression[i]` is one of `(`, `)`, `&`, `|`, `!`, `t`, `f`, and `,`\n* `expression` is syntactically valid\n* `!` has exactly one operand\n* `&` and `|` have at least one operand",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public boolean parseBoolExpr(String expression) {\n        \n    }\n}",
-  "tags": ["String", "Stack", "Recursion"],
+  "initialCode": "class Solution {\n    public boolean parseBoolExpr(String expression) {\n        return false;\n    }\n}",
+  "tags": [
+    "String",
+    "Stack",
+    "Recursion",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "expression = \"&(|(f))\"", "output": "false" },
-    { "input": "expression = \"|(f,f,f,t)\"", "output": "true" },
-    { "input": "expression = \"!(&(f,t))\"", "output": "true" }
+    {
+      "input": "expression = \"&(|(f))\"",
+      "output": "false"
+    },
+    {
+      "input": "expression = \"|(f,f,f,t)\"",
+      "output": "true"
+    },
+    {
+      "input": "expression = \"!(&(f,t))\"",
+      "output": "true"
+    }
   ],
   "solutions": [
     {
-      "name": "Stack-Based Evaluation",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Use a stack of characters. Push operators and operands. On closing paren, pop all operands until '(', then pop the operator and evaluate. Push the result back.",
-      "code": "class Solution {\n    public boolean parseBoolExpr(String expression) {\n        java.util.Deque<Character> stack = new java.util.ArrayDeque<>();\n        for (char c : expression.toCharArray()) {\n            if (c == ',') continue;\n            if (c != ')') { stack.push(c); continue; }\n            boolean hasTrue = false, hasFalse = false;\n            while (stack.peek() != '(') {\n                char val = stack.pop();\n                if (val == 't') hasTrue = true;\n                else hasFalse = true;\n            }\n            stack.pop();\n            char op = stack.pop();\n            if (op == '!') stack.push(hasTrue ? 'f' : 't');\n            else if (op == '&') stack.push(hasFalse ? 'f' : 't');\n            else stack.push(hasTrue ? 't' : 'f');\n        }\n        return stack.peek() == 't';\n    }\n}",
-      "language": "java"
+      "name": "Character Stack Reduction",
+      "description": "## Approach\n\nScan the expression left to right. Ignore commas, push operators, opening parentheses, and boolean literals. When a closing parenthesis appears, pop all boolean literals for that call, pop the opening parenthesis and operator, reduce the call to one boolean literal, and push it back.\n\n## Key Insight\n\nEvery closing parenthesis marks a complete sub-expression whose operands are already reduced to `t` or `f`. The stack therefore always stores unresolved outer context plus already-evaluated child values.\n\n## Complexity Analysis\n- Time Complexity: O(n), where n is the expression length.\n- Space Complexity: O(n) for the stack.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean parseBoolExpr(String expression) {\n        Deque<Character> stack = new ArrayDeque<>();\n        for (char c : expression.toCharArray()) {\n            if (c == ',') {\n                continue;\n            }\n            if (c != ')') {\n                stack.push(c);\n                continue;\n            }\n\n            boolean hasTrue = false;\n            boolean hasFalse = false;\n            while (stack.peek() != '(') {\n                char value = stack.pop();\n                hasTrue |= value == 't';\n                hasFalse |= value == 'f';\n            }\n            stack.pop();\n            char operator = stack.pop();\n            stack.push(reduce(operator, hasTrue, hasFalse) ? 't' : 'f');\n        }\n        return stack.peek() == 't';\n    }\n\n    private boolean reduce(char operator, boolean hasTrue, boolean hasFalse) {\n        if (operator == '!') {\n            return !hasTrue;\n        }\n        if (operator == '&') {\n            return !hasFalse;\n        }\n        return hasTrue;\n    }\n}\n"
     },
     {
       "name": "Recursive Descent Parser",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Parse the expression recursively. For 't' or 'f', return the value directly. For operators, parse the sub-expressions between parentheses, applying the operator as each sub-expression is evaluated.",
-      "code": "class Solution {\n    private int pos;\n    public boolean parseBoolExpr(String expression) {\n        pos = 0;\n        return parse(expression);\n    }\n    private boolean parse(String s) {\n        char c = s.charAt(pos);\n        if (c == 't') { pos++; return true; }\n        if (c == 'f') { pos++; return false; }\n        char op = c;\n        pos += 2;\n        boolean result;\n        if (op == '!') {\n            result = !parse(s);\n            pos++;\n            return result;\n        }\n        result = (op == '&');\n        boolean first = true;\n        while (s.charAt(pos) != ')') {\n            if (s.charAt(pos) == ',') pos++;\n            boolean val = parse(s);\n            if (first) { result = val; first = false; }\n            else if (op == '&') result = result && val;\n            else result = result || val;\n        }\n        pos++;\n        return result;\n    }\n}",
-      "language": "java"
+      "description": "## Approach\n\nKeep one index into the string and parse according to the grammar. Literals return immediately. For an operator, consume its opening parenthesis, recursively parse each child, combine child values, then consume the closing parenthesis.\n\n## Key Insight\n\nThe expression grammar is prefix-form and fully parenthesized, so one moving index is enough. After each recursive call returns, the index is positioned at the next comma or closing parenthesis of the current operator.\n\n## Complexity Analysis\n- Time Complexity: O(n), because every character is consumed once.\n- Space Complexity: O(d), where d is the nesting depth of the expression.",
+      "code": "class Solution {\n    private int index;\n\n    public boolean parseBoolExpr(String expression) {\n        index = 0;\n        return parse(expression);\n    }\n\n    private boolean parse(String expression) {\n        char token = expression.charAt(index);\n        if (token == 't') {\n            index++;\n            return true;\n        }\n        if (token == 'f') {\n            index++;\n            return false;\n        }\n\n        char operator = token;\n        index += 2;\n        if (operator == '!') {\n            boolean value = !parse(expression);\n            index++;\n            return value;\n        }\n\n        boolean result = operator == '&';\n        boolean first = true;\n        while (expression.charAt(index) != ')') {\n            if (expression.charAt(index) == ',') {\n                index++;\n                continue;\n            }\n            boolean value = parse(expression);\n            if (first) {\n                result = value;\n                first = false;\n            } else if (operator == '&') {\n                result &= value;\n            } else {\n                result |= value;\n            }\n        }\n        index++;\n        return result;\n    }\n}\n"
+    },
+    {
+      "name": "Operator Frame Stack",
+      "description": "## Approach\n\nRepresent each open operator call as a frame. A frame stores its operator and whether any child value has been true or false. Literal values and completed child frames are fed into the parent frame, and a closing parenthesis reduces the top frame.\n\n## Key Insight\n\nAND, OR, and NOT do not need the exact list of children after the children are evaluated. A pair of flags, `hasTrue` and `hasFalse`, contains enough information to reduce the operator.\n\n## Complexity Analysis\n- Time Complexity: O(n).\n- Space Complexity: O(d) frames for nesting depth d.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean parseBoolExpr(String expression) {\n        Deque<Frame> frames = new ArrayDeque<>();\n        char pendingOperator = 0;\n        boolean result = false;\n\n        for (int i = 0; i < expression.length(); i++) {\n            char token = expression.charAt(i);\n            if (token == '&' || token == '|' || token == '!') {\n                pendingOperator = token;\n            } else if (token == '(') {\n                frames.push(new Frame(pendingOperator));\n                pendingOperator = 0;\n            } else if (token == 't' || token == 'f') {\n                result = token == 't';\n                if (!frames.isEmpty()) {\n                    frames.peek().add(result);\n                }\n            } else if (token == ')') {\n                result = frames.pop().value();\n                if (!frames.isEmpty()) {\n                    frames.peek().add(result);\n                }\n            }\n        }\n        return result;\n    }\n\n    private static final class Frame {\n        private final char operator;\n        private boolean hasTrue;\n        private boolean hasFalse;\n\n        Frame(char operator) {\n            this.operator = operator;\n        }\n\n        void add(boolean value) {\n            hasTrue |= value;\n            hasFalse |= !value;\n        }\n\n        boolean value() {\n            if (operator == '!') {\n                return !hasTrue;\n            }\n            if (operator == '&') {\n                return !hasFalse;\n            }\n            return hasTrue;\n        }\n    }\n}\n"
+    },
+    {
+      "name": "Short-Circuit Recursive Parser",
+      "description": "## Approach\n\nUse recursive parsing, but once an `&` has seen a false child or a `|` has seen a true child, skip the remaining child expressions syntactically instead of evaluating them. Skipping still advances over nested parentheses correctly.\n\n## Key Insight\n\nShort-circuiting is safe only if the parser still consumes the entire expression. The result is decided early, but `skipExpression` preserves the invariant that the index lands on the next delimiter of the current operator.\n\n## Complexity Analysis\n- Time Complexity: O(n), since evaluated and skipped characters are each scanned once.\n- Space Complexity: O(d), where d is nesting depth.",
+      "code": "class Solution {\n    private int index;\n\n    public boolean parseBoolExpr(String expression) {\n        index = 0;\n        return parse(expression);\n    }\n\n    private boolean parse(String expression) {\n        char token = expression.charAt(index);\n        if (token == 't') {\n            index++;\n            return true;\n        }\n        if (token == 'f') {\n            index++;\n            return false;\n        }\n\n        char operator = token;\n        index += 2;\n        if (operator == '!') {\n            boolean value = !parse(expression);\n            index++;\n            return value;\n        }\n\n        boolean answer = operator == '&';\n        boolean decided = false;\n        while (expression.charAt(index) != ')') {\n            if (expression.charAt(index) == ',') {\n                index++;\n                continue;\n            }\n            if (decided) {\n                skipExpression(expression);\n                continue;\n            }\n            boolean value = parse(expression);\n            if (operator == '&' && !value) {\n                answer = false;\n                decided = true;\n            } else if (operator == '|' && value) {\n                answer = true;\n                decided = true;\n            } else {\n                answer = value;\n            }\n        }\n        index++;\n        return answer;\n    }\n\n    private void skipExpression(String expression) {\n        char token = expression.charAt(index);\n        if (token == 't' || token == 'f') {\n            index++;\n            return;\n        }\n        index += 2;\n        int depth = 1;\n        while (depth > 0) {\n            char current = expression.charAt(index++);\n            if (current == '(') {\n                depth++;\n            } else if (current == ')') {\n                depth--;\n            }\n        }\n    }\n}\n"
+    },
+    {
+      "name": "Primitive Array Frame Machine",
+      "description": "## Approach\n\nUse primitive arrays instead of object frames. One array stores the operator for each nesting level, and another stores a two-bit mask: bit 0 means a false child has appeared, and bit 1 means a true child has appeared.\n\n## Key Insight\n\nThe frame-stack idea can be made allocation-light. The same `hasTrue`/`hasFalse` information fits in two bits, so the parser can evaluate long expressions with predictable memory use.\n\n## Complexity Analysis\n- Time Complexity: O(n).\n- Space Complexity: O(n) worst-case for the primitive stacks.",
+      "code": "class Solution {\n    public boolean parseBoolExpr(String expression) {\n        int n = expression.length();\n        char[] operators = new char[n];\n        int[] masks = new int[n];\n        int top = -1;\n        char pendingOperator = 0;\n        boolean result = false;\n\n        for (int i = 0; i < n; i++) {\n            char token = expression.charAt(i);\n            if (token == '&' || token == '|' || token == '!') {\n                pendingOperator = token;\n            } else if (token == '(') {\n                top++;\n                operators[top] = pendingOperator;\n                masks[top] = 0;\n                pendingOperator = 0;\n            } else if (token == 't' || token == 'f') {\n                result = token == 't';\n                if (top >= 0) {\n                    masks[top] |= result ? 2 : 1;\n                }\n            } else if (token == ')') {\n                result = reduce(operators[top], masks[top]);\n                top--;\n                if (top >= 0) {\n                    masks[top] |= result ? 2 : 1;\n                }\n            }\n        }\n        return result;\n    }\n\n    private boolean reduce(char operator, int mask) {\n        if (operator == '!') {\n            return (mask & 2) == 0;\n        }\n        if (operator == '&') {\n            return (mask & 1) == 0;\n        }\n        return (mask & 2) != 0;\n    }\n}\n"
     }
   ],
   "tests": [
-    { "input": "expression = \"&(|(f))\"", "output": "false" },
-    { "input": "expression = \"|(f,f,f,t)\"", "output": "true" },
-    { "input": "expression = \"!(&(f,t))\"", "output": "true" }
+    {
+      "input": "expression = \"t\"",
+      "output": "true",
+      "description": "single true literal"
+    },
+    {
+      "input": "expression = \"f\"",
+      "output": "false",
+      "description": "single false literal"
+    },
+    {
+      "input": "expression = \"&(|(f))\"",
+      "output": "false",
+      "description": "canonical nested OR inside AND"
+    },
+    {
+      "input": "expression = \"|(f,f,f,t)\"",
+      "output": "true",
+      "description": "OR succeeds with one true operand"
+    },
+    {
+      "input": "expression = \"!(&(f,t))\"",
+      "output": "true",
+      "description": "negated false conjunction"
+    },
+    {
+      "input": "expression = \"!(f)\"",
+      "output": "true",
+      "description": "single negation"
+    },
+    {
+      "input": "expression = \"&(t,t,t)\"",
+      "output": "true",
+      "description": "all operands true for AND"
+    },
+    {
+      "input": "expression = \"|(&(t,f,t),!(t))\"",
+      "output": "false",
+      "description": "both nested branches are false"
+    },
+    {
+      "input": "expression = \"&(|(f,t),!(f),&(t,t,!(f)))\"",
+      "output": "true",
+      "description": "mixed nested branches all true"
+    },
+    {
+      "input": "expression = \"|(f,!(t),&(t,f),|(f))\"",
+      "output": "false",
+      "description": "many false-producing branches in OR"
+    },
+    {
+      "input": "expression = \"!(&(t,t,|(f,f)))\"",
+      "output": "true",
+      "description": "NOT around an AND that fails late"
+    },
+    {
+      "input": "expression = \"&(t,!(|(f,f)),|(&(t,t),!(t)))\"",
+      "output": "true",
+      "description": "AND with nested NOT and OR subtrees"
+    },
+    {
+      "input": "expression = \"|(&(t,!(f),|(f,f,t)),!(&(t,t,t)),&(t,t,!(|(f,f))))\"",
+      "output": "true",
+      "description": "wide expression with several nested operator kinds"
+    },
+    {
+      "input": "expression = \"!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(!(t))))))))))))))))))))))))))))))))))))))))))))))))))\"",
+      "output": "true",
+      "description": "deep chain of unary NOT operators"
+    },
+    {
+      "input": "expression = \"|(f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,t)\"",
+      "output": "true",
+      "description": "long OR operand list with final true"
+    },
+    {
+      "input": "expression = \"&(t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,!(f))\"",
+      "output": "true",
+      "description": "long AND operand list with final true expression"
+    }
   ]
 }

@@ -1,10 +1,15 @@
 {
   "id": "92",
   "title": "Kth Smallest Element in a BST",
-  "description": "# Kth Smallest Element in a BST\n\nGiven the `root` of a binary search tree, and an integer `k`, return *the* `k`*th smallest value (1-indexed) of all the values of the nodes in the tree*.\n\n## Example 1:\n\n**Input:** root = [3,1,4,null,2], k = 1\n**Output:** 1\n\n## Example 2:\n\n**Input:** root = [5,3,6,2,4,null,null,1], k = 3\n**Output:** 3\n\n## Constraints:\n\n*   The number of nodes in the tree is `n`.\n*   `1 <= k <= n <= 10^4`\n*   `0 <= Node.val <= 10^4`",
+  "description": "# Kth Smallest Element in a BST\n\nGiven the `root` of a binary search tree and an integer `k`, return the `k`th smallest value in the tree. `k` is 1-indexed.\n\nRank values from smallest to largest; rank `1` is the minimum. In this BST, left-subtree values are smaller and right-subtree values are larger than the current node's value.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [3,1,4,null,2], k = 1\n**Output:** 1\n\n## Example 2:\n\n**Input:** root = [5,3,6,2,4,null,null,1], k = 3\n**Output:** 3\n\n## Constraints:\n\n* The number of nodes in the tree is `n`.\n* `1 <= k <= n <= 10^4`\n* `0 <= Node.val <= 10^4`",
   "difficulty": "MEDIUM",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public int kthSmallest(TreeNode root, int k) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Tree", "Depth-First Search", "Binary Search Tree", "Binary Tree"],
+  "tags": [
+    "Tree",
+    "Depth-First Search",
+    "Binary Search Tree",
+    "Binary Tree"
+  ],
   "examples": [
     {
       "input": "root = [3,1,4,null,2], k = 1",
@@ -18,47 +23,103 @@
   "tests": [
     {
       "input": "root = [3,1,4,null,2], k = 1",
-      "output": "1"
+      "output": "1",
+      "description": "Canonical example where the smallest value is requested."
     },
     {
       "input": "root = [5,3,6,2,4,null,null,1], k = 3",
-      "output": "3"
+      "output": "3",
+      "description": "Canonical example where k lands inside the left subtree ordering."
     },
     {
       "input": "root = [1], k = 1",
-      "output": "1"
+      "output": "1",
+      "description": "Single-node BST."
     },
     {
       "input": "root = [3,1,4,null,2], k = 4",
-      "output": "4"
+      "output": "4",
+      "description": "Request the largest value in the small BST."
     },
     {
       "input": "root = [5,3,6,2,4,null,null,1], k = 6",
-      "output": "6"
+      "output": "6",
+      "description": "Request the largest value in the larger canonical BST."
+    },
+    {
+      "input": "root = [5,3,7,2,4,6,8], k = 4",
+      "output": "5",
+      "description": "Balanced BST where the kth value is the root."
+    },
+    {
+      "input": "root = [5,3,7,2,4,6,8], k = 5",
+      "output": "6",
+      "description": "Balanced BST where the answer is in the right subtree."
+    },
+    {
+      "input": "root = [1,null,2,null,3,null,4], k = 3",
+      "output": "3",
+      "description": "Right-skewed BST behaves like an increasing linked list."
+    },
+    {
+      "input": "root = [4,3,null,2,null,1], k = 2",
+      "output": "2",
+      "description": "Left-skewed BST requires walking down the entire left spine first."
+    },
+    {
+      "input": "root = [5000,1000,9000,0,2000,8000,10000], k = 1",
+      "output": "0",
+      "description": "Minimum allowed value at the far left boundary."
+    },
+    {
+      "input": "root = [5000,1000,9000,0,2000,8000,10000], k = 7",
+      "output": "10000",
+      "description": "Maximum allowed value at the far right boundary."
+    },
+    {
+      "input": "root = [8,3,10,1,6,null,14,null,null,4,7,13], k = 5",
+      "output": "7",
+      "description": "Sparse deeper BST where missing children must not disturb inorder order."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p92_example1.png",
-      "caption": "Example 1"
+      "caption": "Input tree for Example 1, with k provided in text"
     }
   ],
   "solutions": [
     {
-      "name": "Iterative Inorder Traversal",
-      "timeComplexity": "O(H + k)",
-      "spaceComplexity": "O(H)",
-      "description": "Inorder traversal of BST yields sorted order. Use an iterative approach with a stack, counting until we reach the kth element.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int kthSmallest(TreeNode root, int k) {\n        Deque<TreeNode> stack = new ArrayDeque<>();\n        TreeNode curr = root;\n        \n        while (curr != null || !stack.isEmpty()) {\n            while (curr != null) {\n                stack.push(curr);\n                curr = curr.left;\n            }\n            \n            curr = stack.pop();\n            k--;\n            if (k == 0) return curr.val;\n            \n            curr = curr.right;\n        }\n        \n        return -1;\n    }\n}",
+      "name": "Iterative Inorder Stack",
+      "timeComplexity": "O(h + k)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nUse an explicit stack to simulate inorder traversal. Each pop visits the next smallest value, so decrement `k` at every popped node and return when `k` reaches zero.\n\n## Key Insight\n\nA BST's inorder traversal is sorted. The stack lets us stop as soon as the kth value is reached, without visiting larger nodes that cannot affect the answer.\n\n## Complexity Analysis\n- Time Complexity: O(h + k)\n- Space Complexity: O(h)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int kthSmallest(TreeNode root, int k) {\n        Deque<TreeNode> stack = new ArrayDeque<>();\n        TreeNode current = root;\n\n        while (current != null || !stack.isEmpty()) {\n            while (current != null) {\n                stack.push(current);\n                current = current.left;\n            }\n\n            current = stack.pop();\n            k--;\n            if (k == 0) {\n                return current.val;\n            }\n            current = current.right;\n        }\n\n        return -1;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Recursive Inorder",
+      "name": "Recursive Inorder Counter",
+      "timeComplexity": "O(h + k)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nRun recursive inorder traversal while keeping a shared remaining count. Stop descending once the answer is found, and store the visited value that makes the count reach zero.\n\n## Key Insight\n\nThis is the recursive form of early-stopping inorder traversal. The remaining counter represents how many sorted values still need to be skipped before the answer.\n\n## Complexity Analysis\n- Time Complexity: O(h + k)\n- Space Complexity: O(h)",
+      "code": "class Solution {\n    private int remaining;\n    private int answer;\n\n    public int kthSmallest(TreeNode root, int k) {\n        remaining = k;\n        answer = -1;\n        dfs(root);\n        return answer;\n    }\n\n    private void dfs(TreeNode node) {\n        if (node == null || remaining == 0) return;\n        dfs(node.left);\n        if (remaining == 0) return;\n        remaining--;\n        if (remaining == 0) {\n            answer = node.val;\n            return;\n        }\n        dfs(node.right);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Inorder List",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Perform inorder traversal collecting all values into a list, then return the (k-1)th element.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int kthSmallest(TreeNode root, int k) {\n        List<Integer> list = new ArrayList<>();\n        inorder(root, list);\n        return list.get(k - 1);\n    }\n    \n    private void inorder(TreeNode node, List<Integer> list) {\n        if (node == null) return;\n        inorder(node.left, list);\n        list.add(node.val);\n        inorder(node.right, list);\n    }\n}",
+      "description": "## Approach\n\nCollect every value with a recursive inorder traversal, then return the element at index `k - 1`. This directly exposes the sorted sequence produced by a BST.\n\n## Key Insight\n\nThis route is less efficient than early stopping, but it is useful pedagogically because it separates the sorted-order fact from the kth-selection step.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int kthSmallest(TreeNode root, int k) {\n        List<Integer> values = new ArrayList<>();\n        inorder(root, values);\n        return values.get(k - 1);\n    }\n\n    private void inorder(TreeNode node, List<Integer> values) {\n        if (node == null) return;\n        inorder(node.left, values);\n        values.add(node.val);\n        inorder(node.right, values);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Morris Inorder Traversal",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse Morris traversal to enumerate nodes in inorder order without recursion or an explicit stack. Count each visited node and return when the kth visit occurs.\n\n## Key Insight\n\nMorris traversal achieves constant extra space by temporarily threading predecessors back to the current node. Every temporary link must be restored before the traversal moves past that subtree.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int kthSmallest(TreeNode root, int k) {\n        TreeNode current = root;\n        int seen = 0;\n\n        while (current != null) {\n            if (current.left == null) {\n                seen++;\n                if (seen == k) {\n                    return current.val;\n                }\n                current = current.right;\n            } else {\n                TreeNode predecessor = current.left;\n                while (predecessor.right != null && predecessor.right != current) {\n                    predecessor = predecessor.right;\n                }\n\n                if (predecessor.right == null) {\n                    predecessor.right = current;\n                    current = current.left;\n                } else {\n                    predecessor.right = null;\n                    seen++;\n                    if (seen == k) {\n                        return current.val;\n                    }\n                    current = current.right;\n                }\n            }\n        }\n\n        return -1;\n    }\n}",
       "language": "java"
     }
   ]

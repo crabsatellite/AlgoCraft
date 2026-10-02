@@ -1,10 +1,13 @@
 {
   "id": "124",
   "title": "N-Queens",
-  "description": "# N-Queens\n\nThe **n-queens** puzzle is the problem of placing `n` queens on an `n x n` chessboard such that no two queens attack each other.\n\nGiven an integer `n`, return *all distinct solutions to the **n-queens puzzle***. You may return the answer in **any order**.\n\nEach solution contains a distinct board configuration of the n-queens' placement, where `'Q'` and `'.'` both indicate a queen and an empty space, respectively.\n\n## Example 1:\n\n**Input:** n = 4\n**Output:** [[\".Q..\",\"...Q\",\"Q...\",\"..Q.\"],[\"..Q.\",\"Q...\",\"...Q\",\".Q..\"]]\n**Explanation:** There exist two distinct solutions to the 4-queens puzzle as shown above\n\n## Example 2:\n\n**Input:** n = 1\n**Output:** [[\"Q\"]]\n\n## Constraints:\n\n*   `1 <= n <= 9`",
+  "description": "# N-Queens\n\nThe **n-queens** puzzle asks you to place `n` queens on an `n x n` chessboard so that no two queens attack each other.\n\nGiven an integer `n`, return all distinct solutions to the n-queens puzzle. You may return the list of solutions in any order.\n\nEach solution is an `n`-row board. In every row string, `'Q'` represents a queen and `'.'` represents an empty square. A valid board must contain exactly one queen in each row, and no two queens may share a column, a main diagonal, or an anti-diagonal.\n\nA queen attacks along its row, column, and both diagonal directions. No two queens may share a row, column, or diagonal.\n\n## Example 1:\n\n**Input:** n = 4\n**Output:** [[\".Q..\",\"...Q\",\"Q...\",\"..Q.\"],[\"..Q.\",\"Q...\",\"...Q\",\".Q..\"]]\n**Explanation:** There are exactly two distinct valid placements for 4 queens.\n\n## Example 2:\n\n**Input:** n = 1\n**Output:** [[\"Q\"]]\n\n## Constraints:\n\n* `1 <= n <= 9`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public List<List<String>> solveNQueens(int n) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["Array", "Backtracking"],
+  "initialCode": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> solveNQueens(int n) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
+  "tags": [
+    "Array",
+    "Backtracking"
+  ],
   "examples": [
     {
       "input": "n = 4",
@@ -20,36 +23,67 @@
       "name": "Backtracking with Sets",
       "timeComplexity": "O(n!)",
       "spaceComplexity": "O(n)",
-      "description": "Place queens row by row. Track occupied columns, main diagonals (row-col), and anti-diagonals (row+col) using sets. If a column is safe, place the queen and recurse.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> solveNQueens(int n) {\n        List<List<String>> result = new ArrayList<>();\n        Set<Integer> cols = new HashSet<>(), diag1 = new HashSet<>(), diag2 = new HashSet<>();\n        char[][] board = new char[n][n];\n        for (char[] row : board) Arrays.fill(row, '.');\n        backtrack(board, 0, cols, diag1, diag2, result);\n        return result;\n    }\n\n    private void backtrack(char[][] board, int row, Set<Integer> cols, Set<Integer> diag1, Set<Integer> diag2, List<List<String>> result) {\n        if (row == board.length) {\n            List<String> snapshot = new ArrayList<>();\n            for (char[] r : board) snapshot.add(new String(r));\n            result.add(snapshot);\n            return;\n        }\n        for (int col = 0; col < board.length; col++) {\n            if (cols.contains(col) || diag1.contains(row - col) || diag2.contains(row + col)) continue;\n            board[row][col] = 'Q';\n            cols.add(col); diag1.add(row - col); diag2.add(row + col);\n            backtrack(board, row + 1, cols, diag1, diag2, result);\n            board[row][col] = '.';\n            cols.remove(col); diag1.remove(row - col); diag2.remove(row + col);\n        }\n    }\n}",
+      "description": "## Approach\n\nPlace queens one row at a time. Keep three sets for occupied columns, main diagonals `row - col`, and anti-diagonals `row + col`. A candidate square is legal only when none of those three sets already contains its attack line.\n\n## Key Insight\n\nBecause we decide exactly one queen per row, row conflicts are impossible by construction. The whole safety check reduces to columns and the two diagonal families.\n\n## Complexity Analysis\n- Time Complexity: O(n!), because each row can use only one remaining column and invalid branches are pruned early\n- Space Complexity: O(n) excluding the returned boards",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> solveNQueens(int n) {\n        List<List<String>> answer = new ArrayList<>();\n        Set<Integer> columns = new HashSet<>();\n        Set<Integer> mainDiagonals = new HashSet<>();\n        Set<Integer> antiDiagonals = new HashSet<>();\n        char[][] board = new char[n][n];\n        for (char[] row : board) {\n            Arrays.fill(row, '.');\n        }\n        backtrack(0, board, columns, mainDiagonals, antiDiagonals, answer);\n        return answer;\n    }\n\n    private void backtrack(int row, char[][] board, Set<Integer> columns,\n                           Set<Integer> mainDiagonals, Set<Integer> antiDiagonals,\n                           List<List<String>> answer) {\n        int n = board.length;\n        if (row == n) {\n            answer.add(snapshot(board));\n            return;\n        }\n        for (int col = 0; col < n; col++) {\n            int main = row - col;\n            int anti = row + col;\n            if (columns.contains(col) || mainDiagonals.contains(main) || antiDiagonals.contains(anti)) {\n                continue;\n            }\n            board[row][col] = 'Q';\n            columns.add(col);\n            mainDiagonals.add(main);\n            antiDiagonals.add(anti);\n            backtrack(row + 1, board, columns, mainDiagonals, antiDiagonals, answer);\n            board[row][col] = '.';\n            columns.remove(col);\n            mainDiagonals.remove(main);\n            antiDiagonals.remove(anti);\n        }\n    }\n\n    private List<String> snapshot(char[][] board) {\n        List<String> rows = new ArrayList<>();\n        for (char[] row : board) {\n            rows.add(new String(row));\n        }\n        return rows;\n    }\n}",
       "language": "java"
     },
     {
       "name": "Backtracking with Boolean Arrays",
       "timeComplexity": "O(n!)",
       "spaceComplexity": "O(n)",
-      "description": "Instead of HashSets, use boolean arrays to track occupied columns, main diagonals (row-col+n-1), and anti-diagonals (row+col). Array indexing is faster than set operations.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> solveNQueens(int n) {\n        List<List<String>> result = new ArrayList<>();\n        boolean[] cols = new boolean[n];\n        boolean[] diag1 = new boolean[2 * n - 1];\n        boolean[] diag2 = new boolean[2 * n - 1];\n        char[][] board = new char[n][n];\n        for (char[] row : board) Arrays.fill(row, '.');\n        solve(board, 0, cols, diag1, diag2, result, n);\n        return result;\n    }\n\n    private void solve(char[][] board, int row, boolean[] cols, boolean[] diag1, boolean[] diag2, List<List<String>> result, int n) {\n        if (row == n) {\n            List<String> snapshot = new ArrayList<>();\n            for (char[] r : board) snapshot.add(new String(r));\n            result.add(snapshot);\n            return;\n        }\n        for (int col = 0; col < n; col++) {\n            int d1 = row - col + n - 1;\n            int d2 = row + col;\n            if (cols[col] || diag1[d1] || diag2[d2]) continue;\n            board[row][col] = 'Q';\n            cols[col] = true;\n            diag1[d1] = true;\n            diag2[d2] = true;\n            solve(board, row + 1, cols, diag1, diag2, result, n);\n            board[row][col] = '.';\n            cols[col] = false;\n            diag1[d1] = false;\n            diag2[d2] = false;\n        }\n    }\n}",
+      "description": "## Approach\n\nUse boolean arrays instead of hash sets. `columns[col]` marks occupied columns, `mainDiagonals[row - col + n - 1]` marks one diagonal family, and `antiDiagonals[row + col]` marks the other.\n\n## Key Insight\n\nThe same attack lines can be encoded as direct array indexes. This keeps the search logic identical to the set version while removing hashing overhead and making diagonal ranges explicit.\n\n## Complexity Analysis\n- Time Complexity: O(n!)\n- Space Complexity: O(n) excluding the returned boards",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> solveNQueens(int n) {\n        List<List<String>> answer = new ArrayList<>();\n        boolean[] columns = new boolean[n];\n        boolean[] mainDiagonals = new boolean[2 * n - 1];\n        boolean[] antiDiagonals = new boolean[2 * n - 1];\n        char[][] board = new char[n][n];\n        for (char[] row : board) {\n            Arrays.fill(row, '.');\n        }\n        search(0, board, columns, mainDiagonals, antiDiagonals, answer);\n        return answer;\n    }\n\n    private void search(int row, char[][] board, boolean[] columns,\n                        boolean[] mainDiagonals, boolean[] antiDiagonals,\n                        List<List<String>> answer) {\n        int n = board.length;\n        if (row == n) {\n            answer.add(snapshot(board));\n            return;\n        }\n        for (int col = 0; col < n; col++) {\n            int main = row - col + n - 1;\n            int anti = row + col;\n            if (columns[col] || mainDiagonals[main] || antiDiagonals[anti]) {\n                continue;\n            }\n            board[row][col] = 'Q';\n            columns[col] = true;\n            mainDiagonals[main] = true;\n            antiDiagonals[anti] = true;\n            search(row + 1, board, columns, mainDiagonals, antiDiagonals, answer);\n            board[row][col] = '.';\n            columns[col] = false;\n            mainDiagonals[main] = false;\n            antiDiagonals[anti] = false;\n        }\n    }\n\n    private List<String> snapshot(char[][] board) {\n        List<String> rows = new ArrayList<>();\n        for (char[] row : board) {\n            rows.add(new String(row));\n        }\n        return rows;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bitmask Backtracking",
+      "timeComplexity": "O(n!)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nRepresent occupied columns and diagonals as bit masks. For each row, compute all available columns with one mask expression, then repeatedly take the least significant available bit and recurse.\n\n## Key Insight\n\nA board with `n <= 9` fits comfortably in integer masks. Shifting the diagonal masks when moving to the next row carries each attack line into the columns it threatens next.\n\n## Complexity Analysis\n- Time Complexity: O(n!)\n- Space Complexity: O(n) recursion depth and board storage, excluding returned boards",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> solveNQueens(int n) {\n        List<List<String>> answer = new ArrayList<>();\n        char[][] board = new char[n][n];\n        for (char[] row : board) {\n            Arrays.fill(row, '.');\n        }\n        backtrack(0, n, 0, 0, 0, board, answer);\n        return answer;\n    }\n\n    private void backtrack(int row, int n, int columns, int mainDiagonals, int antiDiagonals,\n                           char[][] board, List<List<String>> answer) {\n        if (row == n) {\n            answer.add(snapshot(board));\n            return;\n        }\n        int available = ((1 << n) - 1) & ~(columns | mainDiagonals | antiDiagonals);\n        while (available != 0) {\n            int bit = available & -available;\n            int col = Integer.numberOfTrailingZeros(bit);\n            board[row][col] = 'Q';\n            backtrack(row + 1, n, columns | bit, (mainDiagonals | bit) << 1,\n                    (antiDiagonals | bit) >> 1, board, answer);\n            board[row][col] = '.';\n            available -= bit;\n        }\n    }\n\n    private List<String> snapshot(char[][] board) {\n        List<String> rows = new ArrayList<>();\n        for (char[] row : board) {\n            rows.add(new String(row));\n        }\n        return rows;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Permutation Enumeration with Diagonal Filter",
+      "timeComplexity": "O(n! * n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nGenerate permutations of the column order in ascending-column recursion. In one permutation, row `r` places its queen at `columns[r]`, so row and column conflicts are already impossible. After a full permutation is built, reject it if two rows share a diagonal; otherwise build the board.\n\n## Key Insight\n\nN-Queens can be separated into two constraints. A permutation solves the row-and-column part first, then a diagonal filter handles the remaining attack rules. This is slower than pruning diagonals during search but useful as a teaching baseline.\n\n## Complexity Analysis\n- Time Complexity: O(n! * n), because every permutation may need an O(n) diagonal check\n- Space Complexity: O(n) excluding returned boards",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> solveNQueens(int n) {\n        List<List<String>> answer = new ArrayList<>();\n        int[] columns = new int[n];\n        boolean[] used = new boolean[n];\n        enumeratePermutations(0, columns, used, answer);\n        return answer;\n    }\n\n    private void enumeratePermutations(int row, int[] columns, boolean[] used,\n                                       List<List<String>> answer) {\n        int n = columns.length;\n        if (row == n) {\n            if (hasNoDiagonalConflict(columns)) {\n                answer.add(buildBoard(columns));\n            }\n            return;\n        }\n        for (int col = 0; col < n; col++) {\n            if (used[col]) {\n                continue;\n            }\n            columns[row] = col;\n            used[col] = true;\n            enumeratePermutations(row + 1, columns, used, answer);\n            used[col] = false;\n        }\n    }\n\n    private boolean hasNoDiagonalConflict(int[] columns) {\n        Set<Integer> mainDiagonals = new HashSet<>();\n        Set<Integer> antiDiagonals = new HashSet<>();\n        for (int row = 0; row < columns.length; row++) {\n            int col = columns[row];\n            if (!mainDiagonals.add(row - col) || !antiDiagonals.add(row + col)) {\n                return false;\n            }\n        }\n        return true;\n    }\n\n    private List<String> buildBoard(int[] columns) {\n        List<String> board = new ArrayList<>();\n        for (int row = 0; row < columns.length; row++) {\n            char[] line = new char[columns.length];\n            Arrays.fill(line, '.');\n            line[columns[row]] = 'Q';\n            board.add(new String(line));\n        }\n        return board;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "n = 4",
-      "output": "[[\".Q..\",\"...Q\",\"Q...\",\"..Q.\"],[\"..Q.\",\"Q...\",\"...Q\",\".Q..\"]]"
+      "output": "[[\".Q..\",\"...Q\",\"Q...\",\"..Q.\"],[\"..Q.\",\"Q...\",\"...Q\",\".Q..\"]]",
+      "description": "n = 4 is the canonical case with exactly two valid board arrangements."
     },
     {
       "input": "n = 1",
-      "output": "[[\"Q\"]]"
+      "output": "[[\"Q\"]]",
+      "description": "n = 1 has the single trivial queen placement."
     },
-    { "input": "n = 2", "output": "[]" },
-    { "input": "n = 3", "output": "[]" }
+    {
+      "input": "n = 2",
+      "output": "[]",
+      "description": "n = 2 has no legal placement."
+    },
+    {
+      "input": "n = 3",
+      "output": "[]",
+      "description": "n = 3 has no legal placement."
+    },
+    {
+      "input": "n = 5",
+      "output": "[[\"Q....\",\"..Q..\",\"....Q\",\".Q...\",\"...Q.\"],[\"Q....\",\"...Q.\",\".Q...\",\"....Q\",\"..Q..\"],[\".Q...\",\"...Q.\",\"Q....\",\"..Q..\",\"....Q\"],[\".Q...\",\"....Q\",\"..Q..\",\"Q....\",\"...Q.\"],[\"..Q..\",\"Q....\",\"...Q.\",\".Q...\",\"....Q\"],[\"..Q..\",\"....Q\",\".Q...\",\"...Q.\",\"Q....\"],[\"...Q.\",\"Q....\",\"..Q..\",\"....Q\",\".Q...\"],[\"...Q.\",\".Q...\",\"....Q\",\"..Q..\",\"Q....\"],[\"....Q\",\".Q...\",\"...Q.\",\"Q....\",\"..Q..\"],[\"....Q\",\"..Q..\",\"Q....\",\"...Q.\",\".Q...\"]]",
+      "description": "n = 5 verifies the non-trivial ten-solution case and deeper search output."
+    }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p124_example1.png",
-      "caption": "Example 1"
+      "caption": "Rule illustration: one queen attacks its row, column and diagonals; another queen cannot occupy an x square"
     }
   ]
 }

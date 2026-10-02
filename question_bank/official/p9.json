@@ -1,45 +1,86 @@
 {
   "id": "9",
   "title": "Longest Consecutive Sequence",
-  "description": "# Longest Consecutive Sequence\n\nGiven an unsorted array of integers `nums`, return *the length of the longest consecutive elements sequence*.\n\nYou must write an algorithm that runs in `O(n)` time.\n\n## Example 1:\n\n**Input:** nums = [100,4,200,1,3,2]\n**Output:** 4\n**Explanation:** The longest consecutive elements sequence is `[1, 2, 3, 4]`. Therefore its length is 4.\n\n## Example 2:\n\n**Input:** nums = [0,3,7,2,5,8,4,6,0,1]\n**Output:** 9\n\n## Constraints:\n\n*   `0 <= nums.length <= 10^5`\n*   `-10^9 <= nums[i] <= 10^9`",
+  "description": "# Longest Consecutive Sequence\n\nGiven an unsorted integer array `nums`, return the length of the longest sequence of consecutive values.\n\nA consecutive sequence is based on value, not on the original array order. For example, the values `1, 2, 3, 4` form a sequence of length `4` even if they appear scattered in the input. Duplicate values do not extend the sequence.\n\nYou must write an algorithm that runs in `O(n)` time.\n\n## Example 1:\n\n**Input:** nums = [100,4,200,1,3,2]\n**Output:** 4\n**Explanation:** The longest consecutive sequence is `[1, 2, 3, 4]`.\n\n## Example 2:\n\n**Input:** nums = [0,3,7,2,5,8,4,6,0,1]\n**Output:** 9\n**Explanation:** The sequence `[0,1,2,3,4,5,6,7,8]` has length 9. The duplicate `0` does not increase the length.\n\n## Constraints:\n\n*   `0 <= nums.length <= 10^5`\n*   `-10^9 <= nums[i] <= 10^9`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int longestConsecutive(int[] nums) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Hash Table", "Union Find"],
-  "examples": [{ "input": "nums = [100,4,200,1,3,2]", "output": "4" }],
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Union Find"
+  ],
+  "examples": [
+    {
+      "input": "nums = [100,4,200,1,3,2]",
+      "output": "4",
+      "description": "scattered values form sequence 1 through 4"
+    },
+    {
+      "input": "nums = [0,3,7,2,5,8,4,6,0,1]",
+      "output": "9",
+      "description": "duplicate zero does not extend the value sequence"
+    }
+  ],
   "tests": [
-    { "input": "nums = [100,4,200,1,3,2]", "output": "4" },
-    { "input": "nums = [0,3,7,2,5,8,4,6,0,1]", "output": "9" },
-    { "input": "nums = []", "output": "0" },
-    { "input": "nums = [1]", "output": "1" },
-    { "input": "nums = [1,2,0,1]", "output": "3" },
+    {
+      "input": "nums = [100,4,200,1,3,2]",
+      "output": "4"
+    },
+    {
+      "input": "nums = [0,3,7,2,5,8,4,6,0,1]",
+      "output": "9"
+    },
+    {
+      "input": "nums = []",
+      "output": "0"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "1"
+    },
+    {
+      "input": "nums = [1,2,0,1]",
+      "output": "3",
+      "description": "duplicates do not split or extend the run"
+    },
+    {
+      "input": "nums = [1,1,1]",
+      "output": "1",
+      "description": "all duplicate values form one sequence of length one"
+    },
     {
       "input": "nums = [-5,-4,-3,-2,-1]",
       "output": "5",
-      "description": "Consecutive negative numbers"
+      "description": "consecutive negative numbers"
+    },
+    {
+      "input": "nums = [9,1,4,7,3,-1,0,5,8,-1,6]",
+      "output": "7",
+      "description": "two candidate runs compete; 3 through 9 is longest"
     },
     {
       "input": "nums = [1000000000,-1000000000]",
       "output": "1",
-      "description": "Large range scattered values"
+      "description": "large range scattered values"
     }
   ],
   "solutions": [
     {
-      "name": "HashSet - Optimal",
-      "description": "## Approach\n\nUse HashSet for O(1) lookups. For each number, only start counting if it's the beginning of a sequence (num-1 doesn't exist).\n\n## Key Insight\n\nBy only starting from sequence beginnings, we ensure each element is visited at most twice.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
-      "code": "class Solution {\n    public int longestConsecutive(int[] nums) {\n        if (nums.length == 0) return 0;\n        \n        Set<Integer> numSet = new HashSet<>();\n        for (int num : nums) {\n            numSet.add(num);\n        }\n        \n        int maxLength = 0;\n        \n        for (int num : numSet) {\n            // Only start counting if num is the start of a sequence\n            if (!numSet.contains(num - 1)) {\n                int currentNum = num;\n                int currentLength = 1;\n                \n                while (numSet.contains(currentNum + 1)) {\n                    currentNum++;\n                    currentLength++;\n                }\n                \n                maxLength = Math.max(maxLength, currentLength);\n            }\n        }\n        \n        return maxLength;\n    }\n}",
+      "name": "HashSet Boundary Starts",
+      "description": "## Approach\n\nInsert every distinct value into a `HashSet`. For each value, start counting only when `num - 1` is absent, because that value is the left boundary of a consecutive run. Then count upward until the run ends.\n\n## Key Insight\n\nThe boundary check prevents recounting the same run from every element. Each value is either skipped because it has a predecessor, or counted once as part of the run that starts at its left boundary.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int longestConsecutive(int[] nums) {\n        Set<Integer> values = new HashSet<>();\n        for (int num : nums) {\n            values.add(num);\n        }\n\n        int best = 0;\n        for (int num : values) {\n            if (values.contains(num - 1)) {\n                continue;\n            }\n\n            int current = num;\n            int length = 1;\n            while (values.contains(current + 1)) {\n                current++;\n                length++;\n            }\n            best = Math.max(best, length);\n        }\n        return best;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Sorting",
-      "description": "## Approach\n\nSort the array first, then scan for consecutive sequences.\n\n## Complexity Analysis\n- Time Complexity: O(n log n) - Due to sorting\n- Space Complexity: O(1) or O(n) - Depends on sorting implementation",
-      "code": "class Solution {\n    public int longestConsecutive(int[] nums) {\n        if (nums.length == 0) return 0;\n        \n        Arrays.sort(nums);\n        \n        int maxLength = 1;\n        int currentLength = 1;\n        \n        for (int i = 1; i < nums.length; i++) {\n            // Skip duplicates\n            if (nums[i] == nums[i - 1]) continue;\n            \n            if (nums[i] == nums[i - 1] + 1) {\n                currentLength++;\n            } else {\n                maxLength = Math.max(maxLength, currentLength);\n                currentLength = 1;\n            }\n        }\n        \n        return Math.max(maxLength, currentLength);\n    }\n}",
+      "name": "Boundary Length HashMap",
+      "description": "## Approach\n\nMaintain a map from sequence boundary values to the length of that sequence. When a new value arrives, look at the lengths ending at `num - 1` and starting at `num + 1`, merge the two neighboring sequences through `num`, and update only the new left and right boundaries.\n\n## Key Insight\n\nInterior values do not need accurate stored lengths after a merge; future merges only consult boundaries. This gives a one-pass linear solution while showing a different hash-table invariant from the boundary-start scan.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int longestConsecutive(int[] nums) {\n        Map<Integer, Integer> lengthByBoundary = new HashMap<>();\n        int best = 0;\n\n        for (int num : nums) {\n            if (lengthByBoundary.containsKey(num)) {\n                continue;\n            }\n\n            int leftLength = lengthByBoundary.getOrDefault(num - 1, 0);\n            int rightLength = lengthByBoundary.getOrDefault(num + 1, 0);\n            int mergedLength = leftLength + 1 + rightLength;\n\n            lengthByBoundary.put(num, mergedLength);\n            lengthByBoundary.put(num - leftLength, mergedLength);\n            lengthByBoundary.put(num + rightLength, mergedLength);\n            best = Math.max(best, mergedLength);\n        }\n\n        return best;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Union Find",
-      "description": "## Approach\n\nUse Union-Find data structure. For each number, union it with num+1 if it exists. Track the size of each connected component.\n\n## Complexity Analysis\n- Time Complexity: O(n × α(n)) ≈ O(n)\n- Space Complexity: O(n)",
-      "code": "class Solution {\n    private int[] parent;\n    private int[] rank;\n    private int maxSize;\n    \n    public int longestConsecutive(int[] nums) {\n        if (nums.length == 0) return 0;\n        \n        Map<Integer, Integer> numToIdx = new HashMap<>();\n        int n = nums.length;\n        parent = new int[n];\n        rank = new int[n];\n        maxSize = 1;\n        \n        // Initialize\n        for (int i = 0; i < n; i++) {\n            parent[i] = i;\n            rank[i] = 1;\n        }\n        \n        for (int i = 0; i < n; i++) {\n            if (numToIdx.containsKey(nums[i])) continue;\n            numToIdx.put(nums[i], i);\n            \n            if (numToIdx.containsKey(nums[i] - 1)) {\n                union(i, numToIdx.get(nums[i] - 1));\n            }\n            if (numToIdx.containsKey(nums[i] + 1)) {\n                union(i, numToIdx.get(nums[i] + 1));\n            }\n        }\n        \n        return maxSize;\n    }\n    \n    private int find(int x) {\n        if (parent[x] != x) {\n            parent[x] = find(parent[x]);\n        }\n        return parent[x];\n    }\n    \n    private void union(int x, int y) {\n        int rootX = find(x);\n        int rootY = find(y);\n        \n        if (rootX != rootY) {\n            if (rank[rootX] < rank[rootY]) {\n                parent[rootX] = rootY;\n                rank[rootY] += rank[rootX];\n                maxSize = Math.max(maxSize, rank[rootY]);\n            } else {\n                parent[rootY] = rootX;\n                rank[rootX] += rank[rootY];\n                maxSize = Math.max(maxSize, rank[rootX]);\n            }\n        }\n    }\n}",
+      "name": "Remove While Expanding",
+      "description": "## Approach\n\nPut every distinct value in a `HashSet`. Repeatedly pick any remaining value, remove it, then expand left and right while removing every visited neighbor from the set. The removed values form one complete consecutive component.\n\n## Key Insight\n\nRemoving values as soon as they are counted guarantees that no value can be scanned by another expansion later. The outer loop may choose arbitrary starts, but the total work over all expansions is still linear.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int longestConsecutive(int[] nums) {\n        Set<Integer> remaining = new HashSet<>();\n        for (int num : nums) {\n            remaining.add(num);\n        }\n\n        int best = 0;\n        while (!remaining.isEmpty()) {\n            int start = remaining.iterator().next();\n            remaining.remove(start);\n\n            int length = 1;\n            int left = start - 1;\n            while (remaining.remove(left)) {\n                left--;\n                length++;\n            }\n\n            int right = start + 1;\n            while (remaining.remove(right)) {\n                right++;\n                length++;\n            }\n\n            best = Math.max(best, length);\n        }\n        return best;\n    }\n}",
       "language": "java"
     }
   ]

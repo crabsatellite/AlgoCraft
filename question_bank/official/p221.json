@@ -1,34 +1,128 @@
 {
   "id": "221",
   "title": "Intersection of Two Arrays",
-  "description": "# Intersection of Two Arrays\n\nGiven two integer arrays `nums1` and `nums2`, return *an array of their intersection*. Each element in the result must be **unique** and you may return the result in **any order**.\n\n## Example 1:\n\n**Input:** nums1 = [1,2,2,1], nums2 = [2,2]\n**Output:** [2]\n\n## Example 2:\n\n**Input:** nums1 = [4,9,5], nums2 = [9,4,9,8,4]\n**Output:** [9,4]\n**Explanation:** [4,9] is also accepted.\n\n## Constraints:\n\n*   `1 <= nums1.length, nums2.length <= 1000`\n*   `0 <= nums1[i], nums2[i] <= 1000`",
+  "description": "# Intersection of Two Arrays\n\nGiven two integer arrays `nums1` and `nums2`, return an array containing every value that appears in **both** arrays.\n\nThe result must satisfy two rules:\n\n* each value appears at most once in the returned array, even if it appears many times in the inputs;\n* the returned values may be in any order.\n\n## Example 1:\n\n**Input:** nums1 = [1,2,2,1], nums2 = [2,2]\n**Output:** [2]\n**Explanation:** The value 2 appears in both arrays, but it is returned only once.\n\n## Example 2:\n\n**Input:** nums1 = [4,9,5], nums2 = [9,4,9,8,4]\n**Output:** [9,4]\n**Explanation:** [4,9] is also accepted because the output order does not matter.\n\n## Constraints:\n\n* `1 <= nums1.length, nums2.length <= 1000`\n* `0 <= nums1[i], nums2[i] <= 1000`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int[] intersection(int[] nums1, int[] nums2) {\n        // Write your code here\n        return new int[]{};\n    }\n}",
-  "tags": ["Array", "HashTable", "Two Pointers", "Binary Search", "Sorting"],
+  "tags": [
+    "Array",
+    "HashTable",
+    "Two Pointers",
+    "Binary Search",
+    "Sorting"
+  ],
   "examples": [
-    { "input": "nums1 = [1,2,2,1], nums2 = [2,2]", "output": "[2]" },
-    { "input": "nums1 = [4,9,5], nums2 = [9,4,9,8,4]", "output": "[9,4]" }
+    {
+      "input": "nums1 = [1,2,2,1], nums2 = [2,2]",
+      "output": "[2]"
+    },
+    {
+      "input": "nums1 = [4,9,5], nums2 = [9,4,9,8,4]",
+      "output": "[9,4]"
+    }
   ],
   "solutions": [
     {
-      "name": "HashSet",
+      "name": "HashSet Membership Scan",
       "timeComplexity": "O(n + m)",
-      "spaceComplexity": "O(n + m)",
-      "description": "Add all elements of nums1 to a HashSet, then iterate nums2 and collect elements present in the set (removing to avoid duplicates).",
-      "code": "import java.util.Set;\nimport java.util.HashSet;\n\nclass Solution {\n    public int[] intersection(int[] nums1, int[] nums2) {\n        Set<Integer> set = new HashSet<>();\n        for (int n : nums1) set.add(n);\n        Set<Integer> res = new HashSet<>();\n        for (int n : nums2) {\n            if (set.contains(n)) res.add(n);\n        }\n        int[] ans = new int[res.size()];\n        int i = 0;\n        for (int n : res) ans[i++] = n;\n        return ans;\n    }\n}",
+      "spaceComplexity": "O(n + k)",
+      "description": "## Approach\n\nInsert every distinct value from `nums1` into a `HashSet`, then scan `nums2`. When a value from `nums2` is present in the first set, insert it into a second result set.\n\n## Key Insight\n\nThe output is a mathematical set, not a multiset. The result set is what enforces uniqueness, so repeated values in either input cannot create repeated output values.\n\n## Complexity Analysis\n- Time Complexity: O(n + m) average time for set insertion and lookup.\n- Space Complexity: O(n + k), where `k` is the number of unique intersection values.",
+      "code": "import java.util.Set;\nimport java.util.HashSet;\n\nclass Solution {\n    public int[] intersection(int[] nums1, int[] nums2) {\n        Set<Integer> seen = new HashSet<>();\n        for (int value : nums1) {\n            seen.add(value);\n        }\n\n        Set<Integer> intersection = new HashSet<>();\n        for (int value : nums2) {\n            if (seen.contains(value)) {\n                intersection.add(value);\n            }\n        }\n\n        int[] answer = new int[intersection.size()];\n        int index = 0;\n        for (int value : intersection) {\n            answer[index++] = value;\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Sort and Two Pointers",
+      "name": "Sorted Two-Pointer Merge",
       "timeComplexity": "O(n log n + m log m)",
-      "spaceComplexity": "O(min(n, m))",
-      "description": "Sort both arrays, then use two pointers to find common elements. Skip duplicates by advancing past equal values.",
-      "code": "import java.util.Arrays;\nimport java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public int[] intersection(int[] nums1, int[] nums2) {\n        Arrays.sort(nums1);\n        Arrays.sort(nums2);\n        List<Integer> result = new ArrayList<>();\n        int i = 0, j = 0;\n        while (i < nums1.length && j < nums2.length) {\n            if (nums1[i] < nums2[j]) {\n                i++;\n            } else if (nums1[i] > nums2[j]) {\n                j++;\n            } else {\n                if (result.isEmpty() || result.get(result.size() - 1) != nums1[i]) {\n                    result.add(nums1[i]);\n                }\n                i++;\n                j++;\n            }\n        }\n        int[] ans = new int[result.size()];\n        for (int k = 0; k < result.size(); k++) ans[k] = result.get(k);\n        return ans;\n    }\n}",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nSort both arrays and walk them with two pointers. When one value is smaller, advance that pointer. When the values match, append the value only if it has not already been appended, then advance both pointers.\n\n## Key Insight\n\nSorting groups duplicate values together. That makes it enough to compare with the last emitted value to preserve the unique-output rule.\n\n## Complexity Analysis\n- Time Complexity: O(n log n + m log m) for sorting plus a linear merge scan.\n- Space Complexity: O(k) for the list of intersection values, ignoring the implementation details of library sorting.",
+      "code": "import java.util.Arrays;\nimport java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public int[] intersection(int[] nums1, int[] nums2) {\n        Arrays.sort(nums1);\n        Arrays.sort(nums2);\n\n        List<Integer> result = new ArrayList<>();\n        int i = 0;\n        int j = 0;\n        while (i < nums1.length && j < nums2.length) {\n            if (nums1[i] < nums2[j]) {\n                i++;\n            } else if (nums1[i] > nums2[j]) {\n                j++;\n            } else {\n                if (result.isEmpty() || result.get(result.size() - 1) != nums1[i]) {\n                    result.add(nums1[i]);\n                }\n                i++;\n                j++;\n            }\n        }\n\n        int[] answer = new int[result.size()];\n        for (int index = 0; index < result.size(); index++) {\n            answer[index] = result.get(index);\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Array Binary Search",
+      "timeComplexity": "O(m log m + n log m)",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nSort `nums2`, then binary-search each value from `nums1` inside that sorted array. Put every successful lookup into a result set so duplicates are removed automatically.\n\n## Key Insight\n\nBinary search can replace hash membership after one array is sorted. The result set is still necessary because the same candidate value may be searched more than once.\n\n## Complexity Analysis\n- Time Complexity: O(m log m + n log m), where `m` is the length of the sorted searched array.\n- Space Complexity: O(k) for the unique intersection values.",
+      "code": "import java.util.Arrays;\nimport java.util.Set;\nimport java.util.HashSet;\n\nclass Solution {\n    public int[] intersection(int[] nums1, int[] nums2) {\n        Arrays.sort(nums2);\n        Set<Integer> result = new HashSet<>();\n        for (int value : nums1) {\n            if (Arrays.binarySearch(nums2, value) >= 0) {\n                result.add(value);\n            }\n        }\n\n        int[] answer = new int[result.size()];\n        int index = 0;\n        for (int value : result) {\n            answer[index++] = value;\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Fixed Domain Boolean Presence Map",
+      "timeComplexity": "O(n + m + U)",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\n\nUse the constraint `0 <= value <= 1000` to build boolean presence arrays. Mark every value from `nums1`, mark matching values seen in `nums2`, then emit the marked intersection values.\n\n## Key Insight\n\nWhen the value domain is tiny and known, direct addressing is simpler than hashing. Each number becomes its own index, so membership and uniqueness are both represented by booleans.\n\n## Complexity Analysis\n- Time Complexity: O(n + m + U), where `U = 1001` is the fixed value domain size.\n- Space Complexity: O(U) for the two boolean maps.",
+      "code": "class Solution {\n    public int[] intersection(int[] nums1, int[] nums2) {\n        boolean[] inFirst = new boolean[1001];\n        for (int value : nums1) {\n            inFirst[value] = true;\n        }\n\n        boolean[] inBoth = new boolean[1001];\n        for (int value : nums2) {\n            if (inFirst[value]) {\n                inBoth[value] = true;\n            }\n        }\n\n        int count = 0;\n        for (boolean present : inBoth) {\n            if (present) {\n                count++;\n            }\n        }\n\n        int[] answer = new int[count];\n        int index = 0;\n        for (int value = 0; value < inBoth.length; value++) {\n            if (inBoth[value]) {\n                answer[index++] = value;\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "BitSet Set Algebra",
+      "timeComplexity": "O(n + m + U / wordSize)",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\n\nStore the values from each array in a `BitSet`, then call `and` to keep only the bits present in both sets. Iterate over the remaining set bits to build the answer.\n\n## Key Insight\n\nA `BitSet` is a compact set representation for small non-negative integers. The intersection operation becomes one bitwise set-algebra operation instead of many individual membership checks.\n\n## Complexity Analysis\n- Time Complexity: O(n + m + U / wordSize) because the final `and` touches packed machine words.\n- Space Complexity: O(U) bits for the two sets over the fixed value domain.",
+      "code": "import java.util.BitSet;\n\nclass Solution {\n    public int[] intersection(int[] nums1, int[] nums2) {\n        BitSet first = new BitSet(1001);\n        BitSet second = new BitSet(1001);\n        for (int value : nums1) {\n            first.set(value);\n        }\n        for (int value : nums2) {\n            second.set(value);\n        }\n\n        second.and(first);\n        int[] answer = new int[second.cardinality()];\n        int index = 0;\n        for (int value = second.nextSetBit(0); value >= 0; value = second.nextSetBit(value + 1)) {\n            answer[index++] = value;\n        }\n        return answer;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums1 = [1,2,2,1], nums2 = [2,2]", "output": "[2]" },
-    { "input": "nums1 = [4,9,5], nums2 = [9,4,9,8,4]", "output": "[9,4]" }
+    {
+      "input": "nums1 = [1,2,2,1], nums2 = [2,2]",
+      "output": "[2]",
+      "description": "Duplicates in both arrays still produce one unique intersection value."
+    },
+    {
+      "input": "nums1 = [4,9,5], nums2 = [9,4,9,8,4]",
+      "output": "[9,4]",
+      "description": "Multiple common values may be returned in any order."
+    },
+    {
+      "input": "nums1 = [1,3,5], nums2 = [2,4,6]",
+      "output": "[]",
+      "description": "Disjoint arrays return an empty intersection."
+    },
+    {
+      "input": "nums1 = [0,0,0], nums2 = [0,1,2]",
+      "output": "[0]",
+      "description": "Zero is a valid value and repeated zeros still appear once."
+    },
+    {
+      "input": "nums1 = [1000,999,998], nums2 = [998,998,1000]",
+      "output": "[998,1000]",
+      "description": "Upper-bound values and duplicates both participate in the unique result."
+    },
+    {
+      "input": "nums1 = [7], nums2 = [7]",
+      "output": "[7]",
+      "description": "Single-element arrays with the same value intersect."
+    },
+    {
+      "input": "nums1 = [1], nums2 = [2]",
+      "output": "[]",
+      "description": "Single-element arrays with different values do not intersect."
+    },
+    {
+      "input": "nums1 = [2,2,2,2], nums2 = [2,2]",
+      "output": "[2]",
+      "description": "Heavy duplication of the same common value still emits one copy."
+    },
+    {
+      "input": "nums1 = [1,2,3,4,5], nums2 = [5,4,3,2,1]",
+      "output": "[1,2,3,4,5]",
+      "description": "Every value can be common even when the input orders are opposite."
+    },
+    {
+      "input": "nums1 = [6,7,8,9], nums2 = [9,9,8,8,7,7,6,6]",
+      "output": "[6,7,8,9]",
+      "description": "Repeated second-array values do not change the set intersection."
+    },
+    {
+      "input": "nums1 = [10,20,30], nums2 = [30,40,50]",
+      "output": "[30]",
+      "description": "A single common value can appear at the end of one array and the start of the other."
+    },
+    {
+      "input": "nums1 = [0,1000], nums2 = [1000,0,1000]",
+      "output": "[0,1000]",
+      "description": "Both domain boundary values can be part of the unique intersection."
+    }
   ]
 }

@@ -1,10 +1,14 @@
 {
   "id": "239",
   "title": "Verifying an Alien Dictionary",
-  "description": "# Verifying an Alien Dictionary\n\nIn an alien language, surprisingly, they also use English lowercase letters, but possibly in a different `order`. The `order` of the alphabet is some permutation of lowercase letters.\n\nGiven a sequence of strings `words` and the string `order`, return `true` if and only if the given `words` are sorted lexicographically according to the `order` of letters.\n\n## Example 1:\n\n**Input:** words = [\"hello\",\"leetcode\"], order = \"hlabcdefgijkmnopqrstuvwxyz\"\n**Output:** true\n**Explanation:** As 'h' comes before 'l' in this language, then the sequence is sorted.\n\n## Example 2:\n\n**Input:** words = [\"word\",\"world\",\"row\"], order = \"worldabcefghijkmnpqstuvxyz\"\n**Output:** false\n**Explanation:** As 'd' comes after 'l' in this language, then words[0] > words[1], hence the sequence is unsorted.\n\n## Example 3:\n\n**Input:** words = [\"apple\",\"app\"], order = \"abcdefghijklmnopqrstuvwxyz\"\n**Output:** false\n**Explanation:** The first three characters \"app\" match, and the second string is shorter (in size.) According to lexicographical rules \"apple\" > \"app\", because 'l' > '∅', where '∅' is defined as the blank character which is less than any other character (More info). \n\n## Constraints:\n\n*   `1 <= words.length <= 100`\n*   `1 <= words[i].length <= 20`\n*   `order.length == 26`\n*   All characters in `words[i]` and `order` are English lowercase letters.",
+  "description": "# Verifying an Alien Dictionary\n\nIn an alien language, surprisingly, they also use English lowercase letters, but possibly in a different `order`. The `order` of the alphabet is some permutation of lowercase letters.\n\nGiven a sequence of strings `words` and the string `order`, return `true` if and only if the given `words` are sorted lexicographically according to the `order` of letters.\n\nLexicographic order compares two words from left to right. The first position with different characters decides the order. If one word is a prefix of the other, the shorter word must come first.\n\n## Example 1:\n\n**Input:** words = [\"hello\",\"leetcode\"], order = \"hlabcdefgijkmnopqrstuvwxyz\"\n**Output:** true\n**Explanation:** As `h` comes before `l` in this language, the sequence is sorted.\n\n## Example 2:\n\n**Input:** words = [\"word\",\"world\",\"row\"], order = \"worldabcefghijkmnpqstuvxyz\"\n**Output:** false\n**Explanation:** In the first two words, `d` comes after `l` in the alien order, so `\"word\"` should come after `\"world\"`.\n\n## Example 3:\n\n**Input:** words = [\"apple\",\"app\"], order = \"abcdefghijklmnopqrstuvwxyz\"\n**Output:** false\n**Explanation:** The first three characters match, but `\"app\"` is shorter. A word cannot appear before its own prefix in lexicographic order.\n\n## Constraints:\n\n*   `1 <= words.length <= 100`\n*   `1 <= words[i].length <= 20`\n*   `order.length == 26`\n*   All characters in `words[i]` and `order` are English lowercase letters.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public boolean isAlienSorted(String[] words, String order) {\n        // Write your code here\n        return false;\n    }\n}",
-  "tags": ["Array", "HashTable", "String"],
+  "tags": [
+    "Array",
+    "HashTable",
+    "String"
+  ],
   "examples": [
     {
       "input": "words = [\"hello\",\"leetcode\"], order = \"hlabcdefgijkmnopqrstuvwxyz\"",
@@ -21,34 +25,106 @@
   ],
   "solutions": [
     {
-      "name": "Order Map Comparison",
+      "name": "Adjacent Rank Array Comparison",
       "timeComplexity": "O(n * m)",
       "spaceComplexity": "O(1)",
-      "description": "Build an order mapping array. Compare each adjacent pair of words character by character using the custom order.",
-      "code": "class Solution {\n    public boolean isAlienSorted(String[] words, String order) {\n        int[] map = new int[26];\n        for (int i = 0; i < 26; i++) {\n            map[order.charAt(i) - 'a'] = i;\n        }\n        for (int i = 0; i < words.length - 1; i++) {\n            if (!inOrder(words[i], words[i + 1], map)) return false;\n        }\n        return true;\n    }\n    \n    private boolean inOrder(String a, String b, int[] map) {\n        int len = Math.min(a.length(), b.length());\n        for (int i = 0; i < len; i++) {\n            if (map[a.charAt(i) - 'a'] < map[b.charAt(i) - 'a']) return true;\n            if (map[a.charAt(i) - 'a'] > map[b.charAt(i) - 'a']) return false;\n        }\n        return a.length() <= b.length();\n    }\n}",
+      "description": "## Approach\n\nBuild an integer rank array for the alien alphabet, then compare every adjacent pair of words character by character. Return false as soon as one pair is out of order.\n\n## Key Insight\n\nA list is sorted exactly when every adjacent pair is sorted. The prefix case is not a character comparison: if all shared characters match, the shorter word must come first.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * m), where `n` is the number of words and `m` is the maximum word length.\n- Space Complexity: O(1), because the rank table always has 26 entries.",
+      "code": "class Solution {\n    public boolean isAlienSorted(String[] words, String order) {\n        int[] rank = new int[26];\n        for (int i = 0; i < order.length(); i++) {\n            rank[order.charAt(i) - 'a'] = i;\n        }\n        for (int i = 0; i + 1 < words.length; i++) {\n            if (compare(words[i], words[i + 1], rank) > 0) {\n                return false;\n            }\n        }\n        return true;\n    }\n\n    private int compare(String left, String right, int[] rank) {\n        int limit = Math.min(left.length(), right.length());\n        for (int i = 0; i < limit; i++) {\n            int a = rank[left.charAt(i) - 'a'];\n            int b = rank[right.charAt(i) - 'a'];\n            if (a != b) {\n                return a - b;\n            }\n        }\n        return left.length() - right.length();\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Character Remapping",
+      "name": "Canonical Word Translation",
       "timeComplexity": "O(n * m)",
       "spaceComplexity": "O(n * m)",
-      "description": "Remap each character in each word to its position in the alien order, then check if the remapped words are in standard sorted order.",
-      "code": "class Solution {\n    public boolean isAlienSorted(String[] words, String order) {\n        int[] map = new int[26];\n        for (int i = 0; i < 26; i++) {\n            map[order.charAt(i) - 'a'] = i;\n        }\n        for (int i = 0; i < words.length - 1; i++) {\n            String w1 = words[i];\n            String w2 = words[i + 1];\n            boolean found = false;\n            for (int j = 0; j < Math.min(w1.length(), w2.length()); j++) {\n                int c1 = map[w1.charAt(j) - 'a'];\n                int c2 = map[w2.charAt(j) - 'a'];\n                if (c1 < c2) { found = true; break; }\n                if (c1 > c2) return false;\n            }\n            if (!found && w1.length() > w2.length()) return false;\n        }\n        return true;\n    }\n}",
+      "description": "## Approach\n\nMap every alien character to a normal lowercase character whose natural order has the same rank. Translate each word, then use Java's ordinary string comparison on the translated words.\n\n## Key Insight\n\nInstead of changing how comparison works, transform the input into a representation where the standard comparator already means alien-order comparison.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * m), because each character is translated once.\n- Space Complexity: O(n * m), for the translated strings.",
+      "code": "class Solution {\n    public boolean isAlienSorted(String[] words, String order) {\n        char[] canonical = new char[26];\n        for (int i = 0; i < order.length(); i++) {\n            canonical[order.charAt(i) - 'a'] = (char) ('a' + i);\n        }\n\n        String previous = translate(words[0], canonical);\n        for (int i = 1; i < words.length; i++) {\n            String current = translate(words[i], canonical);\n            if (previous.compareTo(current) > 0) {\n                return false;\n            }\n            previous = current;\n        }\n        return true;\n    }\n\n    private String translate(String word, char[] canonical) {\n        char[] converted = new char[word.length()];\n        for (int i = 0; i < word.length(); i++) {\n            converted[i] = canonical[word.charAt(i) - 'a'];\n        }\n        return new String(converted);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sort Copy with Alien Comparator",
+      "timeComplexity": "O(n log n * m)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nClone the word array, sort the copy with a comparator that uses the alien ranks, and compare the sorted copy with the original order.\n\n## Key Insight\n\nIf the original list is already sorted, applying the same comparator with a stable total ordering should leave every position unchanged. This route teaches how to package the alien rule as a reusable comparator.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n * m), because sorting compares words repeatedly.\n- Space Complexity: O(n), for the cloned array used by sorting.",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public boolean isAlienSorted(String[] words, String order) {\n        int[] rank = new int[26];\n        for (int i = 0; i < order.length(); i++) {\n            rank[order.charAt(i) - 'a'] = i;\n        }\n\n        String[] sorted = words.clone();\n        Arrays.sort(sorted, (a, b) -> compareAlien(a, b, rank));\n        for (int i = 0; i < words.length; i++) {\n            if (!words[i].equals(sorted[i])) {\n                return false;\n            }\n        }\n        return true;\n    }\n\n    private int compareAlien(String a, String b, int[] rank) {\n        int limit = Math.min(a.length(), b.length());\n        for (int i = 0; i < limit; i++) {\n            int left = rank[a.charAt(i) - 'a'];\n            int right = rank[b.charAt(i) - 'a'];\n            if (left != right) {\n                return left - right;\n            }\n        }\n        return a.length() - b.length();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Pair Comparator",
+      "timeComplexity": "O(n * m)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nUse the same rank table, but express the comparison of two words recursively. At each index, either a differing character decides the pair or the comparison advances to the next index.\n\n## Key Insight\n\nLexicographic comparison is naturally recursive: compare the current character, and only if it ties do you compare the suffix. The base case is the prefix-length rule.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * m), because each adjacent pair may scan all shared characters.\n- Space Complexity: O(m), for the recursion depth of one word comparison.",
+      "code": "class Solution {\n    public boolean isAlienSorted(String[] words, String order) {\n        int[] rank = new int[26];\n        for (int i = 0; i < order.length(); i++) {\n            rank[order.charAt(i) - 'a'] = i;\n        }\n        for (int i = 0; i + 1 < words.length; i++) {\n            if (!inOrder(words[i], words[i + 1], 0, rank)) {\n                return false;\n            }\n        }\n        return true;\n    }\n\n    private boolean inOrder(String left, String right, int index, int[] rank) {\n        if (index == left.length() || index == right.length()) {\n            return left.length() <= right.length();\n        }\n        int a = rank[left.charAt(index) - 'a'];\n        int b = rank[right.charAt(index) - 'a'];\n        if (a != b) {\n            return a < b;\n        }\n        return inOrder(left, right, index + 1, rank);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sentinel Rank Sequence Encoding",
+      "timeComplexity": "O(n * m)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nEncode each word as a sequence of alien ranks plus a terminal sentinel value smaller than any letter. Compare adjacent encoded sequences lexicographically.\n\n## Key Insight\n\nThe sentinel turns the prefix rule into ordinary integer-sequence comparison: `app` becomes the same prefix as `apple`, followed by a smaller end marker.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * m), because each word is encoded and compared once against its predecessor.\n- Space Complexity: O(m), because only two encoded sequences need to be kept at a time.",
+      "code": "class Solution {\n    public boolean isAlienSorted(String[] words, String order) {\n        int[] rank = new int[26];\n        for (int i = 0; i < order.length(); i++) {\n            rank[order.charAt(i) - 'a'] = i + 1;\n        }\n\n        int[] previous = encode(words[0], rank);\n        for (int i = 1; i < words.length; i++) {\n            int[] current = encode(words[i], rank);\n            if (!lessOrEqual(previous, current)) {\n                return false;\n            }\n            previous = current;\n        }\n        return true;\n    }\n\n    private int[] encode(String word, int[] rank) {\n        int[] encoded = new int[word.length() + 1];\n        for (int i = 0; i < word.length(); i++) {\n            encoded[i] = rank[word.charAt(i) - 'a'];\n        }\n        encoded[word.length()] = 0;\n        return encoded;\n    }\n\n    private boolean lessOrEqual(int[] left, int[] right) {\n        int limit = Math.min(left.length, right.length);\n        for (int i = 0; i < limit; i++) {\n            if (left[i] != right[i]) {\n                return left[i] < right[i];\n            }\n        }\n        return true;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "words = [\"hello\",\"leetcode\"], order = \"hlabcdefgijkmnopqrstuvwxyz\"",
-      "output": "true"
+      "output": "true",
+      "description": "The first differing characters h and l follow the alien order."
     },
     {
       "input": "words = [\"word\",\"world\",\"row\"], order = \"worldabcefghijkmnpqstuvxyz\"",
-      "output": "false"
+      "output": "false",
+      "description": "The first pair violates the custom order at d versus l."
     },
     {
       "input": "words = [\"apple\",\"app\"], order = \"abcdefghijklmnopqrstuvwxyz\"",
-      "output": "false"
+      "output": "false",
+      "description": "A longer word cannot come before its own prefix."
+    },
+    {
+      "input": "words = [\"app\",\"apple\"], order = \"abcdefghijklmnopqrstuvwxyz\"",
+      "output": "true",
+      "description": "A shorter prefix may come before the longer word."
+    },
+    {
+      "input": "words = [\"hello\",\"hello\"], order = \"abcdefghijklmnopqrstuvwxyz\"",
+      "output": "true",
+      "description": "Equal adjacent words are sorted."
+    },
+    {
+      "input": "words = [\"z\",\"x\"], order = \"zyxwvutsrqponmlkjihgfedcba\"",
+      "output": "true",
+      "description": "A reversed alphabet can make z come before x."
+    },
+    {
+      "input": "words = [\"alone\"], order = \"abcdefghijklmnopqrstuvwxyz\"",
+      "output": "true",
+      "description": "A single word is always sorted."
+    },
+    {
+      "input": "words = [\"b\",\"a\",\"c\"], order = \"bacdefghijklmnopqrstuvwxyz\"",
+      "output": "true",
+      "description": "A custom alphabet can put b before a while keeping c later."
+    },
+    {
+      "input": "words = [\"abx\",\"aby\"], order = \"abcdefghijklmnopqrstuvwxyz\"",
+      "output": "true",
+      "description": "Comparison may be decided by a later character after a long shared prefix."
+    },
+    {
+      "input": "words = [\"abz\",\"aby\"], order = \"abcdefghijklmnopqrstuvwxyz\"",
+      "output": "false",
+      "description": "A later differing character can also reveal an ordering violation."
+    },
+    {
+      "input": "words = [\"a\",\"aa\",\"aaa\"], order = \"abcdefghijklmnopqrstuvwxyz\"",
+      "output": "true",
+      "description": "Increasing prefix lengths are valid."
+    },
+    {
+      "input": "words = [\"app\",\"apple\",\"banana\",\"bat\",\"bar\"], order = \"abcdefghijklmnopqrstuvwxyz\"",
+      "output": "false",
+      "description": "The list must reject violations that occur after several sorted adjacent pairs."
     }
   ]
 }

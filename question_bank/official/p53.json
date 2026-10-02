@@ -1,42 +1,132 @@
 {
   "id": "53",
   "title": "Koko Eating Bananas",
-  "description": "# Koko Eating Bananas\n\nKoko loves to eat bananas. There are `n` piles of bananas, the `i`th pile has `piles[i]` bananas. The guards have gone and will come back in `h` hours.\n\nKoko can decide her bananas-per-hour eating speed of `k`. Each hour, she chooses some pile of bananas and eats `k` bananas from that pile. If the pile has less than `k` bananas, she eats all of them instead and will not eat any more bananas during this hour.\n\nKoko likes to eat slowly but still wants to finish eating all the bananas before the guards return.\n\nReturn *the minimum integer* `k` *such that she can eat all the bananas within* `h` *hours*.\n\n## Example 1:\n\n**Input:** piles = [3,6,7,11], h = 8\n**Output:** 4\n\n## Example 2:\n\n**Input:** piles = [30,11,23,4,20], h = 5\n**Output:** 30\n\n## Example 3:\n\n**Input:** piles = [30,11,23,4,20], h = 6\n**Output:** 23\n\n## Constraints:\n\n*   `1 <= piles.length <= 10^4`\n*   `piles.length <= h <= 10^9`\n*   `1 <= piles[i] <= 10^9`",
+  "description": "# Koko Eating Bananas\n\nKoko has `n` banana piles. The `i`th pile contains `piles[i]` bananas, and the guards return after `h` hours.\n\nKoko chooses an integer eating speed `k`, measured in bananas per hour. During each hour, she chooses one pile and eats up to `k` bananas from that pile. If the pile has fewer than `k` bananas left, she finishes that pile and does not eat from another pile during the same hour.\n\nReturn the minimum integer `k` such that Koko can finish all piles within `h` hours.\n\n## Example 1\n\n**Input:** piles = [3,6,7,11], h = 8\n\n**Output:** 4\n\n## Example 2\n\n**Input:** piles = [30,11,23,4,20], h = 5\n\n**Output:** 30\n\n## Example 3\n\n**Input:** piles = [30,11,23,4,20], h = 6\n\n**Output:** 23\n\n## Constraints\n\n* `1 <= piles.length <= 10000`\n* `piles.length <= h <= 1000000000`\n* `1 <= piles[i] <= 1000000000`",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public int minEatingSpeed(int[] piles, int h) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Binary Search"],
+  "initialCode": "class Solution {\n    public int minEatingSpeed(int[] piles, int h) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Binary Search"
+  ],
   "examples": [
-    { "input": "piles = [3,6,7,11], h = 8", "output": "4" },
-    { "input": "piles = [30,11,23,4,20], h = 5", "output": "30" },
-    { "input": "piles = [30,11,23,4,20], h = 6", "output": "23" }
+    {
+      "input": "piles = [3,6,7,11], h = 8",
+      "output": "4"
+    },
+    {
+      "input": "piles = [30,11,23,4,20], h = 5",
+      "output": "30"
+    },
+    {
+      "input": "piles = [30,11,23,4,20], h = 6",
+      "output": "23"
+    }
   ],
   "tests": [
-    { "input": "piles = [3,6,7,11], h = 8", "output": "4" },
-    { "input": "piles = [30,11,23,4,20], h = 5", "output": "30" },
-    { "input": "piles = [30,11,23,4,20], h = 6", "output": "23" },
-    { "input": "piles = [312884470], h = 312884469", "output": "2" },
-    { "input": "piles = [1], h = 1", "output": "1", "note": "单堆刚好" },
-    { "input": "piles = [1,1,1,1], h = 4", "output": "1", "note": "每堆都是1" },
+    {
+      "input": "piles = [3,6,7,11], h = 8",
+      "output": "4",
+      "description": "Canonical answer-space search"
+    },
+    {
+      "input": "piles = [30,11,23,4,20], h = 5",
+      "output": "30",
+      "description": "One hour per pile requires max pile speed"
+    },
+    {
+      "input": "piles = [30,11,23,4,20], h = 6",
+      "output": "23",
+      "description": "One extra hour lowers the required speed"
+    },
+    {
+      "input": "piles = [312884470], h = 312884469",
+      "output": "2",
+      "description": "Single large pile needs speed above one"
+    },
+    {
+      "input": "piles = [1], h = 1",
+      "output": "1",
+      "description": "Single pile finished in one hour"
+    },
+    {
+      "input": "piles = [1,1,1,1], h = 4",
+      "output": "1",
+      "description": "Every pile has one banana"
+    },
     {
       "input": "piles = [3,6,7,11], h = 4",
       "output": "11",
-      "note": "时间等于堆数，必须最大速度"
+      "description": "Time equals pile count, so max pile speed is required"
+    },
+    {
+      "input": "piles = [1000000000], h = 1",
+      "output": "1000000000",
+      "description": "Largest pile with one hour"
+    },
+    {
+      "input": "piles = [1000000000,1000000000], h = 3",
+      "output": "1000000000",
+      "description": "Two huge piles with only one spare hour"
+    },
+    {
+      "input": "piles = [9,9,9], h = 9",
+      "output": "3",
+      "description": "Ceiling division can be exact across piles"
+    },
+    {
+      "input": "piles = [9,9,9], h = 8",
+      "output": "5",
+      "description": "One fewer hour changes the ceiling threshold"
+    },
+    {
+      "input": "piles = [2,2,2,2], h = 8",
+      "output": "1",
+      "description": "Slowest speed is feasible when there is enough time"
+    },
+    {
+      "input": "piles = [2,2,2,2], h = 7",
+      "output": "2",
+      "description": "Just below slowest-speed feasibility"
+    },
+    {
+      "input": "piles = [805306368,805306368,805306368], h = 1000000000",
+      "output": "3",
+      "description": "Large totals require long arithmetic"
+    },
+    {
+      "input": "piles = [5,10,15], h = 10",
+      "output": "4",
+      "description": "Answer is not a pile size"
     }
   ],
   "solutions": [
     {
-      "name": "二分查找答案",
+      "name": "Half-Open Answer Binary Search",
       "timeComplexity": "O(n log M)",
       "spaceComplexity": "O(1)",
-      "description": "二分查找吃香蕉的速度 k。对于每个速度，计算吃完所有香蕉需要的小时数。如果能在 h 小时内吃完，尝试更小的速度；否则需要更大的速度。M 是最大堆的香蕉数。",
-      "code": "class Solution {\n    public int minEatingSpeed(int[] piles, int h) {\n        int left = 1;\n        int right = 0;\n        for (int pile : piles) {\n            right = Math.max(right, pile);\n        }\n        \n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            \n            if (canFinish(piles, mid, h)) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        \n        return left;\n    }\n    \n    private boolean canFinish(int[] piles, int k, int h) {\n        int hours = 0;\n        for (int pile : piles) {\n            hours += (pile + k - 1) / k; // 向上取整\n        }\n        return hours <= h;\n    }\n}"
+      "description": "## Approach\n\nBinary search the speed range `[1, maxPile]` with a half-open style loop. For each candidate speed, compute how many hours are needed using integer ceiling division.\n\n## Key Insight\n\nFeasibility is monotonic: if speed `k` finishes within `h` hours, then any speed larger than `k` also finishes. That makes the minimum feasible speed a lower-bound target.\n\n## Complexity Analysis\n- Time Complexity: O(n log M), where M is the largest pile\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int minEatingSpeed(int[] piles, int h) {\n        int left = 1;\n        int right = 0;\n        for (int pile : piles) {\n            right = Math.max(right, pile);\n        }\n\n        while (left < right) {\n            int speed = left + (right - left) / 2;\n            if (canFinish(piles, h, speed)) {\n                right = speed;\n            } else {\n                left = speed + 1;\n            }\n        }\n\n        return left;\n    }\n\n    private boolean canFinish(int[] piles, int h, int speed) {\n        long hours = 0;\n        for (int pile : piles) {\n            hours += (pile + speed - 1L) / speed;\n        }\n        return hours <= h;\n    }\n}"
     },
     {
-      "name": "二分查找 - 使用 Math.ceil",
+      "name": "Closed-Interval Answer Binary Search",
       "timeComplexity": "O(n log M)",
       "spaceComplexity": "O(1)",
-      "description": "与方法一相同，但使用 Math.ceil 进行向上取整，代码更直观。",
-      "code": "class Solution {\n    public int minEatingSpeed(int[] piles, int h) {\n        int left = 1;\n        int right = Arrays.stream(piles).max().getAsInt();\n        \n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            long hours = getHours(piles, mid);\n            \n            if (hours <= h) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        \n        return left;\n    }\n    \n    private long getHours(int[] piles, int k) {\n        long hours = 0;\n        for (int pile : piles) {\n            hours += (long) Math.ceil((double) pile / k);\n        }\n        return hours;\n    }\n}"
+      "description": "## Approach\n\nUse a closed interval `[left, right]` and keep an `answer` variable for the best feasible speed seen so far. When a speed works, record it and search the smaller half.\n\n## Key Insight\n\nClosed-interval answer search is useful when the loop removes `mid` from the remaining range. The stored `answer` preserves the best feasible candidate before `right` moves to `mid - 1`.\n\n## Complexity Analysis\n- Time Complexity: O(n log M)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int minEatingSpeed(int[] piles, int h) {\n        int left = 1;\n        int right = 0;\n        for (int pile : piles) {\n            right = Math.max(right, pile);\n        }\n\n        int answer = right;\n        while (left <= right) {\n            int speed = left + (right - left) / 2;\n            if (canFinish(piles, h, speed)) {\n                answer = speed;\n                right = speed - 1;\n            } else {\n                left = speed + 1;\n            }\n        }\n\n        return answer;\n    }\n\n    private boolean canFinish(int[] piles, int h, int speed) {\n        long hours = 0;\n        for (int pile : piles) {\n            hours += (pile + speed - 1L) / speed;\n            if (hours > h) {\n                return false;\n            }\n        }\n        return true;\n    }\n}"
+    },
+    {
+      "name": "Average Lower Bound with Early Stop",
+      "timeComplexity": "O(n log M)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCompute the total number of bananas and start the binary search from `ceil(total / h)` instead of `1`. During feasibility checks, stop as soon as the hour count exceeds `h`.\n\n## Key Insight\n\nNo speed below the average required rate can finish on time. This mathematical lower bound shrinks the search range, and early stopping prevents unnecessary work on impossible candidates.\n\n## Complexity Analysis\n- Time Complexity: O(n log M)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int minEatingSpeed(int[] piles, int h) {\n        long total = 0;\n        int right = 0;\n        for (int pile : piles) {\n            total += pile;\n            right = Math.max(right, pile);\n        }\n\n        int left = (int) Math.max(1, (total + h - 1L) / h);\n        while (left < right) {\n            int speed = left + (right - left) / 2;\n            if (canFinish(piles, h, speed)) {\n                right = speed;\n            } else {\n                left = speed + 1;\n            }\n        }\n        return left;\n    }\n\n    private boolean canFinish(int[] piles, int h, int speed) {\n        long hours = 0;\n        for (int pile : piles) {\n            hours += (pile + speed - 1L) / speed;\n            if (hours > h) {\n                return false;\n            }\n        }\n        return true;\n    }\n}"
+    },
+    {
+      "name": "Recursive Answer Binary Search",
+      "timeComplexity": "O(n log M)",
+      "spaceComplexity": "O(log M)",
+      "description": "## Approach\n\nFind the largest pile, then recursively binary search the speed range. Each recursive call tests the middle speed and keeps only the feasible or infeasible half that can still contain the minimum answer.\n\n## Key Insight\n\nThe recursion is the same lower-bound search over answer space. The base case `left >= right` means the smallest feasible speed has been isolated.\n\n## Complexity Analysis\n- Time Complexity: O(n log M)\n- Space Complexity: O(log M)",
+      "code": "class Solution {\n    public int minEatingSpeed(int[] piles, int h) {\n        int right = 0;\n        for (int pile : piles) {\n            right = Math.max(right, pile);\n        }\n        return search(piles, h, 1, right);\n    }\n\n    private int search(int[] piles, int h, int left, int right) {\n        if (left >= right) {\n            return left;\n        }\n\n        int speed = left + (right - left) / 2;\n        if (canFinish(piles, h, speed)) {\n            return search(piles, h, left, speed);\n        }\n        return search(piles, h, speed + 1, right);\n    }\n\n    private boolean canFinish(int[] piles, int h, int speed) {\n        long hours = 0;\n        for (int pile : piles) {\n            hours += (pile + speed - 1L) / speed;\n            if (hours > h) {\n                return false;\n            }\n        }\n        return true;\n    }\n}"
     }
   ]
 }

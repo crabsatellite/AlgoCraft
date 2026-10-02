@@ -1,38 +1,121 @@
 {
   "id": "154",
   "title": "House Robber II",
-  "description": "# House Robber II\n\nYou are a professional robber planning to rob houses along a street. Each house has a certain amount of money stashed. All houses at this place are **arranged in a circle**. That means the first house is the neighbor of the last one. Meanwhile, adjacent houses have a security system connected, and **it will automatically contact the police if two adjacent houses were broken into on the same night**.\n\nGiven an integer array `nums` representing the amount of money of each house, return *the maximum amount of money you can rob tonight **without alerting the police***.\n\n## Example 1:\n\n**Input:** nums = [2,3,2]\n**Output:** 3\n**Explanation:** You cannot rob house 1 (money = 2) and then rob house 3 (money = 2), because they are adjacent houses.\n\n## Example 2:\n\n**Input:** nums = [1,2,3,1]\n**Output:** 4\n**Explanation:** Rob house 1 (money = 1) and then rob house 3 (money = 3).\nTotal amount you can rob = 1 + 3 = 4.\n\n## Example 3:\n\n**Input:** nums = [1,2,3]\n**Output:** 3\n\n## Constraints:\n\n*   `1 <= nums.length <= 100`\n*   `0 <= nums[i] <= 1000`",
+  "description": "# House Robber II\n\nYou are given an integer array `nums`, where `nums[i]` is the amount of money in the `i`-th house. The houses are arranged in a circle, so house `0` and house `nums.length - 1` are adjacent.\n\nYou may rob any set of houses, but you may not rob two adjacent houses on the same night. This includes the first and last houses.\n\nReturn the maximum total amount of money you can rob without robbing adjacent houses.\n\nIf there is only one house, you may rob it; it is not treated as its own neighbor.\n\n## Example 1\n\n**Input:** `nums = [2,3,2]`\n\n**Output:** `3`\n\n**Explanation:** The two houses with value `2` are first and last, so they are adjacent in the circle and cannot both be chosen.\n\n## Example 2\n\n**Input:** `nums = [1,2,3,1]`\n\n**Output:** `4`\n\n**Explanation:** Choose houses with values `1` and `3`. They are not adjacent, and the total is `4`.\n\n## Example 3\n\n**Input:** `nums = [5,1,1,5]`\n\n**Output:** `6`\n\n**Explanation:** In the linear version the two `5` values could both be chosen, but in the circle they are adjacent. The best legal total is `5 + 1 = 6`.\n\n## Constraints\n\n- `1 <= nums.length <= 100`\n- `0 <= nums[i] <= 1000`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int rob(int[] nums) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Dynamic Programming"],
+  "tags": [
+    "Array",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "nums = [2,3,2]", "output": "3" },
-    { "input": "nums = [1,2,3,1]", "output": "4" },
-    { "input": "nums = [1,2,3]", "output": "3" }
+    {
+      "input": "nums = [2,3,2]",
+      "output": "3"
+    },
+    {
+      "input": "nums = [1,2,3,1]",
+      "output": "4"
+    },
+    {
+      "input": "nums = [5,1,1,5]",
+      "output": "6"
+    }
   ],
   "solutions": [
     {
-      "name": "Two-Pass House Robber",
+      "name": "Two Excluded Ranges with Rolling DP",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Since houses form a circle, we can't rob both first and last. Run House Robber I on nums[0..n-2] and nums[1..n-1]. Return the max of both.",
-      "code": "class Solution {\n    public int rob(int[] nums) {\n        if (nums.length == 1) return nums[0];\n        return Math.max(robRange(nums, 0, nums.length - 2), robRange(nums, 1, nums.length - 1));\n    }\n\n    private int robRange(int[] nums, int start, int end) {\n        int prev2 = 0, prev1 = 0;\n        for (int i = start; i <= end; i++) {\n            int cur = Math.max(prev1, prev2 + nums[i]);\n            prev2 = prev1;\n            prev1 = cur;\n        }\n        return prev1;\n    }\n}",
+      "description": "## Approach\n\nThe only new conflict compared with the linear problem is between the first and last houses. Split the circle into two legal lines: one excludes the last house, and the other excludes the first house. Solve each line with the rolling House Robber recurrence and return the larger result.\n\n## Key Insight\n\nEvery valid circular solution belongs to at least one of these two cases. If it uses the first house, it must exclude the last; if it uses the last house, it must exclude the first; if it uses neither endpoint, it is counted by both ranges.\n\n## Complexity Analysis\n\nEach range is scanned once, so the time complexity is `O(n)`. The rolling recurrence stores only the best totals one and two houses back, so the space complexity is `O(1)`.",
+      "code": "class Solution {\n    public int rob(int[] nums) {\n        int n = nums.length;\n        if (n == 1) {\n            return nums[0];\n        }\n        int excludeLast = robLine(nums, 0, n - 2);\n        int excludeFirst = robLine(nums, 1, n - 1);\n        return Math.max(excludeLast, excludeFirst);\n    }\n\n    private int robLine(int[] nums, int start, int end) {\n        int twoHousesBack = 0;\n        int oneHouseBack = 0;\n        for (int i = start; i <= end; i++) {\n            int current = Math.max(oneHouseBack, twoHousesBack + nums[i]);\n            twoHousesBack = oneHouseBack;\n            oneHouseBack = current;\n        }\n        return oneHouseBack;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Two-Pass Linear",
+      "name": "Bottom-Up DP Tables for Both Ranges",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nBuild a normal House Robber DP table for each endpoint-excluded range. The helper uses `dp[len]` for a linear slice from `start` to `end`, where each position either skips the current house or takes it with the best value two positions behind.\n\n## Key Insight\n\nA table makes the circular reduction easier to audit: the circle is handled only by the two range boundaries, while each range uses the familiar linear recurrence.\n\n## Complexity Analysis\n\nThe two ranges together contain `O(n)` houses, so the time complexity is `O(n)`. Each helper allocates a table proportional to its range length, so the space complexity is `O(n)`.",
+      "code": "class Solution {\n    public int rob(int[] nums) {\n        int n = nums.length;\n        if (n == 1) {\n            return nums[0];\n        }\n        return Math.max(robTable(nums, 0, n - 2), robTable(nums, 1, n - 1));\n    }\n\n    private int robTable(int[] nums, int start, int end) {\n        int length = end - start + 1;\n        int[] dp = new int[length + 1];\n        for (int offset = 1; offset <= length; offset++) {\n            int money = nums[start + offset - 1];\n            int skip = dp[offset - 1];\n            int take = money + (offset >= 2 ? dp[offset - 2] : 0);\n            dp[offset] = Math.max(skip, take);\n        }\n        return dp[length];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Memoized Ranges",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nRecursively solve the two legal linear ranges. Inside a range, `bestFrom(index)` either skips `index` and moves to `index + 1`, or takes it and moves to `index + 2`. Memoization ensures each index in each range is solved once.\n\n## Key Insight\n\nThe recursion keeps the take-or-skip decision tree visible, while the range endpoints enforce the circular first-last conflict. The recursion must stop at the range end, not at the physical array end.\n\n## Complexity Analysis\n\nThe two ranges have linear total size, and every index is memoized. The time complexity is `O(n)`, and the memo arrays plus recursion stack use `O(n)` space.",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int rob(int[] nums) {\n        int n = nums.length;\n        if (n == 1) {\n            return nums[0];\n        }\n        return Math.max(robRange(nums, 0, n - 2), robRange(nums, 1, n - 1));\n    }\n\n    private int robRange(int[] nums, int start, int end) {\n        int[] memo = new int[nums.length];\n        Arrays.fill(memo, -1);\n        return bestFrom(nums, start, end, memo);\n    }\n\n    private int bestFrom(int[] nums, int index, int end, int[] memo) {\n        if (index > end) {\n            return 0;\n        }\n        if (memo[index] != -1) {\n            return memo[index];\n        }\n        int skip = bestFrom(nums, index + 1, end, memo);\n        int take = nums[index] + bestFrom(nums, index + 2, end, memo);\n        memo[index] = Math.max(skip, take);\n        return memo[index];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "First-House Decision Split",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Run the linear House Robber on two ranges: excluding the last house and excluding the first house. Return the maximum of both passes.",
-      "code": "class Solution {\n    public int rob(int[] nums) {\n        if (nums.length == 1) return nums[0];\n        return Math.max(robRange(nums, 0, nums.length - 2), robRange(nums, 1, nums.length - 1));\n    }\n    private int robRange(int[] nums, int lo, int hi) {\n        int prev2 = 0, prev1 = 0;\n        for (int i = lo; i <= hi; i++) {\n            int curr = Math.max(prev1, prev2 + nums[i]);\n            prev2 = prev1;\n            prev1 = curr;\n        }\n        return prev1;\n    }\n}",
+      "description": "## Approach\n\nSplit by the first house's decision. If the first house is taken, then the second and last houses are forbidden, so the remaining legal middle range is `2..n-2`. If the first house is skipped, then houses `1..n-1` form a normal line.\n\n## Key Insight\n\nThis is equivalent to excluding one endpoint at a time, but it mirrors the actual circular decision: choosing the first house immediately removes both of its neighbors from consideration.\n\n## Complexity Analysis\n\nAt most two linear ranges are scanned, so the time complexity is `O(n)`. The helper uses rolling variables, so the space complexity is `O(1)`.",
+      "code": "class Solution {\n    public int rob(int[] nums) {\n        int n = nums.length;\n        if (n == 1) {\n            return nums[0];\n        }\n        int takeFirst = nums[0] + robLinear(nums, 2, n - 2);\n        int skipFirst = robLinear(nums, 1, n - 1);\n        return Math.max(takeFirst, skipFirst);\n    }\n\n    private int robLinear(int[] nums, int start, int end) {\n        int twoHousesBack = 0;\n        int oneHouseBack = 0;\n        for (int i = start; i <= end; i++) {\n            int current = Math.max(oneHouseBack, twoHousesBack + nums[i]);\n            twoHousesBack = oneHouseBack;\n            oneHouseBack = current;\n        }\n        return oneHouseBack;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Robbed-or-Skipped State Machine Ranges",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse the two endpoint-excluded ranges, but solve each linear range with explicit states: `robbed` means the current house is selected, and `skipped` means it is not. Selecting a house can only follow a skipped previous house.\n\n## Key Insight\n\nThe range split handles the circular first-last conflict, and the state machine handles ordinary adjacency inside a line. Keeping those two constraints separate makes the proof of correctness easier to teach.\n\n## Complexity Analysis\n\nBoth ranges are scanned once, so the time complexity is `O(n)`. Each scan stores two state values, giving `O(1)` space.",
+      "code": "class Solution {\n    public int rob(int[] nums) {\n        int n = nums.length;\n        if (n == 1) {\n            return nums[0];\n        }\n        return Math.max(robStates(nums, 0, n - 2), robStates(nums, 1, n - 1));\n    }\n\n    private int robStates(int[] nums, int start, int end) {\n        int robbed = Integer.MIN_VALUE / 4;\n        int skipped = 0;\n        for (int i = start; i <= end; i++) {\n            int nextRobbed = skipped + nums[i];\n            int nextSkipped = Math.max(skipped, robbed);\n            robbed = nextRobbed;\n            skipped = nextSkipped;\n        }\n        return Math.max(robbed, skipped);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [2,3,2]", "output": "3" },
-    { "input": "nums = [1,2,3,1]", "output": "4" },
-    { "input": "nums = [1,2,3]", "output": "3" },
-    { "input": "nums = [0]", "output": "0" },
-    { "input": "nums = [1,2]", "output": "2" }
+    {
+      "input": "nums = [2,3,2]",
+      "output": "3",
+      "description": "Canonical three-house cycle where the equal endpoints conflict."
+    },
+    {
+      "input": "nums = [1,2,3,1]",
+      "output": "4",
+      "description": "Canonical four-house cycle chooses a non-adjacent set within one legal range."
+    },
+    {
+      "input": "nums = [1,2,3]",
+      "output": "3",
+      "description": "Three-house boundary catches treating the first and last houses as independent."
+    },
+    {
+      "input": "nums = [0]",
+      "output": "0",
+      "description": "Single zero-valued house is a valid circular boundary case."
+    },
+    {
+      "input": "nums = [1,2]",
+      "output": "2",
+      "description": "Two houses are adjacent in the circle, so only the larger value may be chosen."
+    },
+    {
+      "input": "nums = [5,1,1,5]",
+      "output": "6",
+      "description": "The two high endpoints cannot both be chosen because the street is circular."
+    },
+    {
+      "input": "nums = [100,1,1,100]",
+      "output": "101",
+      "description": "Large equal endpoints expose implementations that solve the linear version by mistake."
+    },
+    {
+      "input": "nums = [4,1,2,7,5,3,1]",
+      "output": "14",
+      "description": "Longer cycle requires comparing both endpoint-excluded ranges."
+    },
+    {
+      "input": "nums = [1000,0,1000,0,1000]",
+      "output": "2000",
+      "description": "Maximum allowed values at alternating positions still cannot include both circular endpoints."
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p154_house_robber_ii.png",
+      "caption": "Rule illustration of a circular street: adjacent houses cannot both be chosen, including the first and last"
+    }
   ]
 }

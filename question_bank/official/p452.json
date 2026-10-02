@@ -1,34 +1,99 @@
 {
   "id": "452",
-  "title": "Find the Prefix Common Array of Two Arrays",
-  "description": "# Find the Prefix Common Array of Two Arrays\n\nYou are given two 0-indexed integer permutations `A` and `B` of length `n`.\n\nA **prefix common array** of `A` and `B` is an array `C` such that `C[i]` is equal to the count of numbers that are present at or before the index `i` in both `A` and `B`.\n\nReturn the **prefix common array** of `A` and `B`.\n\nA sequence of `n` integers is called a **permutation** if it contains all integers from `1` to `n` exactly once.\n\n## Example 1:\n\n**Input:** A = [1,3,2,4], B = [3,1,2,4]\n**Output:** [0,2,3,4]\n**Explanation:** At i = 0: no number is common, so C[0] = 0.\nAt i = 1: 1 and 3 are common in A and B, so C[1] = 2.\nAt i = 2: 1, 2, and 3 are common in A and B, so C[2] = 3.\nAt i = 3: 1, 2, 3, and 4 are common in A and B, so C[3] = 4.\n\n## Example 2:\n\n**Input:** A = [2,3,1], B = [3,1,2]\n**Output:** [0,1,3]\n**Explanation:** At i = 0: no number is common, so C[0] = 0.\nAt i = 1: only 3 is common in A and B, so C[1] = 1.\nAt i = 2: 1, 2, and 3 are common in A and B, so C[2] = 3.\n\n## Constraints:\n\n*   `1 <= A.length == B.length == n <= 50`\n*   `1 <= A[i], B[i] <= n`\n*   It is guaranteed that `A` and `B` are both a permutation of `n` integers.",
+  "title": "Subarray Product Less Than K",
+  "description": "# Subarray Product Less Than K\n\nGiven an array of positive integers `nums` and an integer `k`, return the number of non-empty contiguous subarrays where the product of all elements in the subarray is strictly less than `k`.\n\nThe inequality is strict: a product equal to `k` does not count.\n\n## Example 1:\n\n**Input:** nums = [10,5,2,6], k = 100\n**Output:** 8\n**Explanation:** The valid subarrays are `[10]`, `[5]`, `[2]`, `[6]`, `[10,5]`, `[5,2]`, `[2,6]`, and `[5,2,6]`.\n\n## Example 2:\n\n**Input:** nums = [1,2,3], k = 0\n**Output:** 0\n**Explanation:** Every product is positive, so no subarray can have product less than `0`.\n\n## Constraints:\n\n*   `1 <= nums.length <= 3 * 10^4`\n*   `1 <= nums[i] <= 1000`\n*   `0 <= k <= 10^6`",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public int[] findThePrefixCommonArray(int[] A, int[] B) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Bit Manipulation"],
+  "initialCode": "class Solution {\n    public int numSubarrayProductLessThanK(int[] nums, int k) {\n        \n    }\n}",
+  "tags": [
+    "Array",
+    "Sliding Window",
+    "Two Pointers",
+    "Binary Search"
+  ],
   "examples": [
-    { "input": "A = [1,3,2,4], B = [3,1,2,4]", "output": "[0,2,3,4]" },
-    { "input": "A = [2,3,1], B = [3,1,2]", "output": "[0,1,3]" }
+    {
+      "input": "nums = [10,5,2,6], k = 100",
+      "output": "8"
+    },
+    {
+      "input": "nums = [1,2,3], k = 0",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
-      "name": "Frequency Count Array",
+      "name": "Sliding Window Product",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Use a count array. For each index i, increment count for A[i] and B[i]. Each time a count reaches 2, that number is common in both prefixes, so increment the running common count.",
-      "code": "class Solution {\n    public int[] findThePrefixCommonArray(int[] A, int[] B) {\n        int n = A.length;\n        int[] result = new int[n];\n        int[] count = new int[n + 1];\n        int common = 0;\n        for (int i = 0; i < n; i++) {\n            count[A[i]]++;\n            if (count[A[i]] == 2) common++;\n            count[B[i]]++;\n            if (count[B[i]] == 2) common++;\n            result[i] = common;\n        }\n        return result;\n    }\n}",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nUse a two-pointer window whose product is always less than `k` after shrinking. Extend the right end by multiplying `nums[right]`. While the product is too large, divide out `nums[left]` and move `left` forward. Once valid, every subarray ending at `right` and starting from `left` through `right` is valid.\n\n## Key Insight\nAll numbers are positive, so extending the window never decreases the product and removing elements from the left never increases it. That monotonic behavior is exactly what makes a sliding window correct.\n\n## Complexity Analysis\nEach index enters and leaves the window at most once, so the time complexity is `O(n)`. The algorithm uses `O(1)` extra space.",
+      "code": "class Solution {\n    public int numSubarrayProductLessThanK(int[] nums, int k) {\n        if (k <= 1) return 0;\n\n        int answer = 0;\n        int left = 0;\n        long product = 1L;\n        for (int right = 0; right < nums.length; right++) {\n            product *= nums[right];\n            while (product >= k) {\n                product /= nums[left];\n                left++;\n            }\n            answer += right - left + 1;\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Bit Manipulation",
-      "timeComplexity": "O(n^2)",
+      "name": "Reset-Aware Sliding Window",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nThis is the same window invariant, but it treats any single value `>= k` as a hard separator. Such a value cannot belong to any valid subarray, so the product is reset and the next window starts after it. Inside each clean segment, the usual product window counts valid endings.\n\n## Key Insight\nWhen `k > 1`, every valid subarray must avoid values that are already at least `k`. Making that reset explicit helps prevent off-by-one mistakes around single invalid elements and product equality.\n\n## Complexity Analysis\nEvery element is processed a constant number of times, so the time complexity is `O(n)`. Only a few counters are stored, so the space complexity is `O(1)`.",
+      "code": "class Solution {\n    public int numSubarrayProductLessThanK(int[] nums, int k) {\n        if (k <= 1) return 0;\n\n        int answer = 0;\n        int left = 0;\n        long product = 1L;\n        for (int right = 0; right < nums.length; right++) {\n            if (nums[right] >= k) {\n                product = 1L;\n                left = right + 1;\n                continue;\n            }\n\n            product *= nums[right];\n            while (product >= k) {\n                product /= nums[left];\n                left++;\n            }\n            answer += right - left + 1;\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Prefix Log Binary Search",
+      "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Use bitmasks to track which numbers have appeared in A and B prefixes. The common count at each index is the popcount of the AND of both bitmasks.",
-      "code": "class Solution {\n    public int[] findThePrefixCommonArray(int[] A, int[] B) {\n        int n = A.length;\n        int[] result = new int[n];\n        long maskA = 0, maskB = 0;\n        for (int i = 0; i < n; i++) {\n            maskA |= (1L << A[i]);\n            maskB |= (1L << B[i]);\n            result[i] = Long.bitCount(maskA & maskB);\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\nConvert products to sums of logarithms. A subarray product `nums[start..end]` is less than `k` exactly when `logPrefix[end + 1] - logPrefix[start] < log(k)`. For each start index, binary search the largest prefix index that still satisfies this inequality.\n\n## Key Insight\nLogs turn multiplication into addition, and all values are positive, so the prefix-log array is nondecreasing. This gives an alternate binary-search route and also reinforces why strict `< k` needs a small epsilon around equality.\n\n## Complexity Analysis\nBuilding the prefix-log array costs `O(n)`. Running one binary search per start costs `O(n log n)` total time, and the prefix array uses `O(n)` space.",
+      "code": "class Solution {\n    public int numSubarrayProductLessThanK(int[] nums, int k) {\n        if (k <= 1) return 0;\n\n        int n = nums.length;\n        double[] prefix = new double[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + Math.log(nums[i]);\n        }\n\n        int answer = 0;\n        double logK = Math.log(k);\n        for (int start = 0; start < n; start++) {\n            double limit = prefix[start] + logK - 1e-12;\n            int firstGreater = upperBound(prefix, limit);\n            answer += Math.max(0, firstGreater - start - 1);\n        }\n        return answer;\n    }\n\n    private int upperBound(double[] values, double target) {\n        int left = 0;\n        int right = values.length;\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (values[mid] <= target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Brute Force With Early Break",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nEnumerate every start index, multiply values while extending the end index, and stop as soon as the product reaches or exceeds `k`. Every product observed before that break is a valid subarray.\n\n## Key Insight\nBecause every value is positive, once a growing product is no longer less than `k`, extending it farther cannot make it valid again. That gives a simple correctness baseline and explains the monotonicity used by the sliding window.\n\n## Complexity Analysis\nIn the worst case, many products stay below `k`, so the nested loops take `O(n^2)` time. Only the running product and answer are stored, so the space complexity is `O(1)`.",
+      "code": "class Solution {\n    public int numSubarrayProductLessThanK(int[] nums, int k) {\n        if (k <= 1) return 0;\n\n        int answer = 0;\n        for (int start = 0; start < nums.length; start++) {\n            long product = 1L;\n            for (int end = start; end < nums.length; end++) {\n                product *= nums[end];\n                if (product >= k) {\n                    break;\n                }\n                answer++;\n            }\n        }\n        return answer;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "A = [1,3,2,4], B = [3,1,2,4]", "output": "[0,2,3,4]" },
-    { "input": "A = [2,3,1], B = [3,1,2]", "output": "[0,1,3]" }
+    {
+      "input": "nums = [10,5,2,6], k = 100",
+      "output": "8"
+    },
+    {
+      "input": "nums = [1,2,3], k = 0",
+      "output": "0"
+    },
+    {
+      "input": "nums = [1,1,1], k = 2",
+      "output": "6"
+    },
+    {
+      "input": "nums = [2,5,3,10], k = 30",
+      "output": "6"
+    },
+    {
+      "input": "nums = [3,4,2], k = 10",
+      "output": "4"
+    },
+    {
+      "input": "nums = [1,2,1,3], k = 4",
+      "output": "8"
+    },
+    {
+      "input": "nums = [100], k = 100",
+      "output": "0"
+    },
+    {
+      "input": "nums = [50], k = 100",
+      "output": "1"
+    },
+    {
+      "input": "nums = [1,2,3,4], k = 25",
+      "output": "10"
+    },
+    {
+      "input": "nums = [10,2,2,5,4], k = 50",
+      "output": "12"
+    }
   ]
 }

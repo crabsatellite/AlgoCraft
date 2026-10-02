@@ -1,34 +1,117 @@
 {
   "id": "269",
   "title": "Faulty Keyboard",
-  "description": "# Faulty Keyboard\n\nYour laptop keyboard is faulty, and whenever you type a character `'i'` on it, it reverses the string that you have written. Typing other characters works as expected.\n\nYou are given a **0-indexed** string `s`, and you type each character of `s` using your faulty keyboard.\n\nReturn *the final string that will be present on your laptop screen*.\n\n## Example 1:\n\n**Input:** s = \"string\"\n**Output:** \"rtsng\"\n**Explanation:** \nAfter typing first character 's', the text on the screen is \"s\".\nAfter typing second character 't', the text on the screen is \"st\".\nAfter typing third character 'r', the text on the screen is \"str\".\nAfter typing fourth character 'i', the text on the screen is \"rts\".\nAfter typing fifth character 'n', the text on the screen is \"rtsn\".\nAfter typing sixth character 'g', the text on the screen is \"rtsng\".\n\n## Example 2:\n\n**Input:** s = \"poiinter\"\n**Output:** \"ponter\"\n**Explanation:** \nAfter typing first character 'p', the text on the screen is \"p\".\nAfter typing second character 'o', the text on the screen is \"po\".\nAfter typing third character 'i', the text on the screen is \"op\".\nAfter typing fourth character 'i', the text on the screen is \"po\".\nAfter typing fifth character 'n', the text on the screen is \"pon\".\nAfter typing sixth character 't', the text on the screen is \"pont\".\nAfter typing seventh character 'e', the text on the screen is \"ponte\".\nAfter typing eighth character 'r', the text on the screen is \"ponter\".\n\n## Constraints:\n\n*   `1 <= s.length <= 100`\n*   `s` consists of lowercase English letters.\n*   `s[0] != 'i'`",
+  "description": "# Faulty Keyboard\n\nYour laptop keyboard has one fault: whenever you type the character `'i'`, the text already on the screen is reversed, and that `'i'` is **not** inserted into the text.\n\nYou are given the exact string `s` that you type from left to right. Return the final string shown on the screen after every character has been processed.\n\nThe screen starts empty. Each other character is appended to the text; typing `i` only reverses the existing text.\n\n## Example 1:\n\n**Input:** s = \"string\"\n**Output:** \"rtsng\"\n**Explanation:** The characters `s`, `t`, and `r` are typed normally, so the screen shows \"str\". Typing `i` reverses it to \"rts\". Then `n` and `g` are appended, giving \"rtsng\".\n\n## Example 2:\n\n**Input:** s = \"poiinter\"\n**Output:** \"ponter\"\n**Explanation:** After typing `p` and `o`, the first `i` reverses \"po\" to \"op\". The second `i` reverses it back to \"po\". The remaining characters append normally.\n\n## Constraints:\n\n*   `1 <= s.length <= 100`\n*   `s` consists only of lowercase English letters.\n*   `s[0] != 'i'`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public String finalString(String s) {\n        // Write your code here\n        return \"\";\n    }\n}",
-  "tags": ["String", "Simulation"],
+  "tags": [
+    "String",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "s = \"string\"", "output": "\"rtsng\"" },
-    { "input": "s = \"poiinter\"", "output": "\"ponter\"" }
+    {
+      "input": "s = \"string\"",
+      "output": "\"rtsng\""
+    },
+    {
+      "input": "s = \"poiinter\"",
+      "output": "\"ponter\""
+    }
   ],
   "solutions": [
     {
-      "name": "StringBuilder Simulation",
+      "name": "StringBuilder Direct Reverse",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n)",
-      "description": "Use a StringBuilder. For each character, if it's 'i' reverse the builder, otherwise append the character.",
-      "code": "class Solution {\n    public String finalString(String s) {\n        StringBuilder sb = new StringBuilder();\n        for (char c : s.toCharArray()) {\n            if (c == 'i') {\n                sb.reverse();\n            } else {\n                sb.append(c);\n            }\n        }\n        return sb.toString();\n    }\n}",
+      "description": "## Approach\n\nSimulate the keyboard exactly. Append every normal character to a `StringBuilder`; when the faulty key `i` appears, call `reverse()` on the builder and do not append the `i`.\n\n## Key Insight\n\nThis route is the clearest statement-level baseline: it directly models the screen. Its weakness is that many reversals can repeatedly move the same characters.\n\n## Complexity Analysis\n- Time Complexity: O(n^2) in the worst case because each `reverse()` may scan the current screen.\n- Space Complexity: O(n) for the builder holding the screen contents.",
+      "code": "class Solution {\n    public String finalString(String s) {\n        StringBuilder builder = new StringBuilder();\n        for (int index = 0; index < s.length(); index++) {\n            char c = s.charAt(index);\n            if (c == 'i') {\n                builder.reverse();\n            } else {\n                builder.append(c);\n            }\n        }\n        return builder.toString();\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Deque Front/Back Insert",
+      "name": "Deque Direction Simulation",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use a deque and a direction flag. When 'i' is encountered, flip the direction. When adding characters, add to front or back based on direction. At the end, drain the deque in the correct order.",
-      "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\nclass Solution {\n    public String finalString(String s) {\n        Deque<Character> deque = new ArrayDeque<>();\n        boolean front = false;\n        for (char c : s.toCharArray()) {\n            if (c == 'i') {\n                front = !front;\n            } else {\n                if (front) {\n                    deque.addFirst(c);\n                } else {\n                    deque.addLast(c);\n                }\n            }\n        }\n        StringBuilder sb = new StringBuilder();\n        if (front) {\n            while (!deque.isEmpty()) sb.append(deque.pollLast());\n        } else {\n            while (!deque.isEmpty()) sb.append(deque.pollFirst());\n        }\n        return sb.toString();\n    }\n}",
+      "description": "## Approach\n\nKeep a deque of characters and a boolean that tells whether the logical screen is currently reversed. Normal characters go to the back in normal mode and to the front in reversed mode. The final read direction depends on the boolean.\n\n## Key Insight\n\nA reversal only changes which end is considered the front. By toggling a direction flag instead of moving all characters, each typed character is inserted once.\n\n## Complexity Analysis\n- Time Complexity: O(n), since every input character is handled once and every output character is read once.\n- Space Complexity: O(n) for the deque and answer builder.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String finalString(String s) {\n        Deque<Character> deque = new ArrayDeque<>();\n        boolean reversed = false;\n\n        for (int index = 0; index < s.length(); index++) {\n            char c = s.charAt(index);\n            if (c == 'i') {\n                reversed = !reversed;\n            } else if (reversed) {\n                deque.addFirst(c);\n            } else {\n                deque.addLast(c);\n            }\n        }\n\n        StringBuilder answer = new StringBuilder();\n        if (!reversed) {\n            while (!deque.isEmpty()) {\n                answer.append(deque.removeFirst());\n            }\n        } else {\n            while (!deque.isEmpty()) {\n                answer.append(deque.removeLast());\n            }\n        }\n        return answer.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two Buffer Direction Merge",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore characters typed during reversed phases in a front buffer and characters typed during normal phases in a back buffer. At the end, reverse only the buffer whose order must be flipped and concatenate the two parts.\n\n## Key Insight\n\nThe final string can be described by where characters were typed relative to the current direction. Delaying the actual reversal turns repeated screen reversals into one final merge.\n\n## Complexity Analysis\n- Time Complexity: O(n), because each character is appended once and each buffer is reversed at most once.\n- Space Complexity: O(n) for the two buffers.",
+      "code": "class Solution {\n    public String finalString(String s) {\n        StringBuilder front = new StringBuilder();\n        StringBuilder back = new StringBuilder();\n        boolean reversed = false;\n\n        for (int index = 0; index < s.length(); index++) {\n            char c = s.charAt(index);\n            if (c == 'i') {\n                reversed = !reversed;\n            } else if (reversed) {\n                front.append(c);\n            } else {\n                back.append(c);\n            }\n        }\n\n        if (!reversed) {\n            return front.reverse().append(back).toString();\n        }\n        return back.reverse().append(front).toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Run Deque Deferred Reversal",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nGroup consecutive non-`i` characters into runs. When a run ends, place it at the back in normal mode or place its reversed form at the front in reversed mode. If the final mode is reversed, read the stored runs from back to front and reverse each run while reading.\n\n## Key Insight\n\nThis is the deque idea lifted from individual characters to whole runs. It teaches that the operation is about orientation, so contiguous typed text can be moved as a block.\n\n## Complexity Analysis\n- Time Complexity: O(n), since every character joins one run and is copied a constant number of times.\n- Space Complexity: O(n) for the stored runs and final answer.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String finalString(String s) {\n        Deque<String> blocks = new ArrayDeque<>();\n        StringBuilder run = new StringBuilder();\n        boolean reversed = false;\n\n        for (int index = 0; index < s.length(); index++) {\n            char c = s.charAt(index);\n            if (c == 'i') {\n                flushRun(blocks, run, reversed);\n                reversed = !reversed;\n            } else {\n                run.append(c);\n            }\n        }\n        flushRun(blocks, run, reversed);\n\n        StringBuilder answer = new StringBuilder();\n        if (!reversed) {\n            for (String block : blocks) {\n                answer.append(block);\n            }\n        } else {\n            Iterator<String> iterator = blocks.descendingIterator();\n            while (iterator.hasNext()) {\n                answer.append(new StringBuilder(iterator.next()).reverse());\n            }\n        }\n        return answer.toString();\n    }\n\n    private void flushRun(Deque<String> blocks, StringBuilder run, boolean reversed) {\n        if (run.length() == 0) {\n            return;\n        }\n        if (reversed) {\n            blocks.addFirst(run.reverse().toString());\n        } else {\n            blocks.addLast(run.toString());\n        }\n        run.setLength(0);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"string\"", "output": "\"rtsng\"" },
-    { "input": "s = \"poiinter\"", "output": "\"ponter\"" }
+    {
+      "input": "s = \"string\"",
+      "output": "\"rtsng\"",
+      "description": "sample with one reversal trigger"
+    },
+    {
+      "input": "s = \"poiinter\"",
+      "output": "\"ponter\"",
+      "description": "sample with two adjacent reversal triggers"
+    },
+    {
+      "input": "s = \"abc\"",
+      "output": "\"abc\"",
+      "description": "no faulty key leaves the string unchanged"
+    },
+    {
+      "input": "s = \"a\"",
+      "output": "\"a\"",
+      "description": "minimum length without a reversal"
+    },
+    {
+      "input": "s = \"ai\"",
+      "output": "\"a\"",
+      "description": "a trailing reversal on one character keeps the same screen"
+    },
+    {
+      "input": "s = \"aia\"",
+      "output": "\"aa\"",
+      "description": "a normal character after a reversal appends to the logical end"
+    },
+    {
+      "input": "s = \"abicid\"",
+      "output": "\"cabd\"",
+      "description": "multiple separated reversals interleave with normal characters"
+    },
+    {
+      "input": "s = \"abcidief\"",
+      "output": "\"dabcef\"",
+      "description": "two reversals create a front block before later appends"
+    },
+    {
+      "input": "s = \"abcii\"",
+      "output": "\"abc\"",
+      "description": "two trailing reversals cancel each other"
+    },
+    {
+      "input": "s = \"leetcodei\"",
+      "output": "\"edocteel\"",
+      "description": "a final reversal flips a longer accumulated screen"
+    },
+    {
+      "input": "s = \"xixix\"",
+      "output": "\"xxx\"",
+      "description": "alternating single-character runs should not emit any i characters"
+    },
+    {
+      "input": "s = \"axbicydi\"",
+      "output": "\"dycaxb\"",
+      "description": "a final reversal after a reversed run checks both order and placement"
+    }
   ]
 }

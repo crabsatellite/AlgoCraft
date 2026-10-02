@@ -1,14 +1,15 @@
 {
   "id": "373",
   "title": "Stickers to Spell Word",
-  "description": "# Stickers to Spell Word\n\nWe are given `n` different types of stickers. Each sticker has a lowercase English word on it.\n\nYou would like to spell out the given string `target` by cutting individual letters from your collection of stickers and rearranging them.\n\nYou can use each sticker more than once if you want, and you have infinite quantities of each sticker.\n\nWhat is the minimum number of stickers that you need to spell out the `target`? If the task is impossible, return -1.\n\n## Example 1:\n\n**Input:** stickers = [\"with\",\"example\",\"science\"], target = \"thehat\"\n**Output:** 3\n**Explanation:**\nWe can use 2 \"with\" stickers, and 1 \"example\" sticker.\nAfter cutting and rearranging the letters of those stickers, we can form the target \"thehat\".\nAlso, this is the minimum number of stickers necessary to form the target string.\n\n## Example 2:\n\n**Input:** stickers = [\"notice\",\"possible\"], target = \"basicbasic\"\n**Output:** -1\n**Explanation:**\nWe can't form the target \"basicbasic\" from these stickers.\n\n## Constraints:\n\n*   `n == stickers.length`\n*   `1 <= n <= 50`\n*   `1 <= stickers[i].length <= 10`\n*   `1 <= target.length <= 15`\n*   `stickers[i]` and `target` consist of lowercase English letters.",
+  "description": "# Stickers to Spell Word\n\nYou are given several sticker types. Each sticker type is a lowercase English word, and you have an unlimited supply of each type.\n\nTo form `target`, you may take any number of stickers, cut individual letters from them, and rearrange those letters in any order. Each physical sticker copy can contribute each of its letters at most once, but the same sticker type may be used again by taking another copy.\n\nReturn the minimum number of sticker copies needed to form the whole `target`. If no collection of stickers can supply all required letters, return `-1`.\n\n## Example 1\n\n**Input:** stickers = [\"with\",\"example\",\"science\"], target = \"thehat\"\n\n**Output:** 3\n\n**Explanation:** Two copies of \"with\" and one copy of \"example\" can provide all letters in \"thehat\". No solution using only two sticker copies exists.\n\n## Example 2\n\n**Input:** stickers = [\"notice\",\"possible\"], target = \"basicbasic\"\n\n**Output:** -1\n\n**Explanation:** The stickers cannot supply every required letter for the target, so the word cannot be formed.\n\n## Constraints\n\n* `1 <= stickers.length <= 50`\n* `1 <= stickers[i].length <= 10`\n* `1 <= target.length <= 15`\n* `stickers[i]` and `target` contain only lowercase English letters.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int minStickers(String[] stickers, String target) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int minStickers(String[] stickers, String target) {\n        return -1;\n    }\n}",
   "tags": [
     "Dynamic Programming",
     "Backtracking",
     "Bit Manipulation",
-    "Bitmask"
+    "Bitmask",
+    "Breadth-First Search"
   ],
   "examples": [
     {
@@ -22,30 +23,106 @@
   ],
   "solutions": [
     {
-      "name": "Bitmask DP",
-      "timeComplexity": "O(2^T * n * T)",
-      "spaceComplexity": "O(2^T)",
-      "description": "Represent the remaining target characters as a bitmask. dp[mask] = minimum stickers to form the characters in mask. For each state, try each sticker and greedily apply it to match as many remaining characters as possible.",
-      "code": "class Solution {\n    public int minStickers(String[] stickers, String target) {\n        int n = target.length();\n        int[] dp = new int[1 << n];\n        java.util.Arrays.fill(dp, Integer.MAX_VALUE);\n        dp[0] = 0;\n        for (int mask = 0; mask < (1 << n); mask++) {\n            if (dp[mask] == Integer.MAX_VALUE) continue;\n            for (String s : stickers) {\n                int newMask = mask;\n                int[] cnt = new int[26];\n                for (char c : s.toCharArray()) cnt[c - 'a']++;\n                for (int i = 0; i < n; i++) {\n                    if ((newMask & (1 << i)) == 0 && cnt[target.charAt(i) - 'a'] > 0) {\n                        newMask |= (1 << i);\n                        cnt[target.charAt(i) - 'a']--;\n                    }\n                }\n                dp[newMask] = Math.min(dp[newMask], dp[mask] + 1);\n            }\n        }\n        return dp[(1 << n) - 1] == Integer.MAX_VALUE ? -1 : dp[(1 << n) - 1];\n    }\n}",
+      "name": "Bitmask Dynamic Programming",
+      "timeComplexity": "O(2^t * s * (t + L))",
+      "spaceComplexity": "O(2^t)",
+      "description": "## Approach\n\nTreat each target character position as a bit in a mask. `dp[mask]` is the fewest stickers needed to cover exactly the positions already set in `mask`; from every reachable state, apply one sticker greedily to uncovered target positions and relax the new mask.\n\n## Key Insight\n\nThe target length is at most 15, so positions are small enough to use as the state. Repeated equal letters must remain separate positions because one sticker letter can cover only one target occurrence.\n\n## Complexity Analysis\n\nLet `t = target.length`, `s = stickers.length`, and `L` be the maximum sticker length. There are `2^t` states; each transition counts a sticker and scans the target, giving `O(2^t * s * (t + L))` time and `O(2^t)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minStickers(String[] stickers, String target) {\n        int n = target.length();\n        int fullMask = (1 << n) - 1;\n        int[][] stickerCounts = buildCounts(stickers);\n        int[] dp = new int[1 << n];\n        Arrays.fill(dp, n + 1);\n        dp[0] = 0;\n\n        for (int mask = 0; mask < (1 << n); mask++) {\n            if (dp[mask] > n) {\n                continue;\n            }\n            for (int[] sticker : stickerCounts) {\n                int nextMask = applySticker(mask, sticker, target);\n                if (nextMask != mask) {\n                    dp[nextMask] = Math.min(dp[nextMask], dp[mask] + 1);\n                }\n            }\n        }\n\n        return dp[fullMask] > n ? -1 : dp[fullMask];\n    }\n\n    private int[][] buildCounts(String[] stickers) {\n        int[][] counts = new int[stickers.length][26];\n        for (int i = 0; i < stickers.length; i++) {\n            for (char ch : stickers[i].toCharArray()) {\n                counts[i][ch - 'a']++;\n            }\n        }\n        return counts;\n    }\n\n    private int applySticker(int mask, int[] sticker, String target) {\n        int[] available = sticker.clone();\n        int nextMask = mask;\n        for (int i = 0; i < target.length(); i++) {\n            int letter = target.charAt(i) - 'a';\n            if ((nextMask & (1 << i)) == 0 && available[letter] > 0) {\n                available[letter]--;\n                nextMask |= 1 << i;\n            }\n        }\n        return nextMask;\n    }\n}\n",
       "language": "java"
     },
     {
-      "name": "DFS with Memoization on String State",
-      "timeComplexity": "O(2^T * n * T)",
-      "spaceComplexity": "O(2^T)",
-      "description": "Represent target as a sorted string of remaining characters. For each state, try each sticker and greedily remove matching characters. Use HashMap to memoize on the remaining target string. DFS to find minimum stickers.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int minStickers(String[] stickers, String target) {\n        int n = stickers.length;\n        int[][] stickerCounts = new int[n][26];\n        for (int i = 0; i < n; i++) {\n            for (char c : stickers[i].toCharArray()) stickerCounts[i][c - 'a']++;\n        }\n        Map<String, Integer> memo = new HashMap<>();\n        memo.put(\"\", 0);\n        int result = dfs(stickerCounts, target, memo);\n        return result;\n    }\n    private int dfs(int[][] stickerCounts, String target, Map<String, Integer> memo) {\n        if (memo.containsKey(target)) return memo.get(target);\n        int[] tCount = new int[26];\n        for (char c : target.toCharArray()) tCount[c - 'a']++;\n        int best = Integer.MAX_VALUE;\n        for (int[] sticker : stickerCounts) {\n            if (sticker[target.charAt(0) - 'a'] == 0) continue;\n            StringBuilder sb = new StringBuilder();\n            int[] used = new int[26];\n            for (int i = 0; i < 26; i++) used[i] = sticker[i];\n            for (char c : target.toCharArray()) {\n                int ci = c - 'a';\n                if (used[ci] > 0) {\n                    used[ci]--;\n                } else {\n                    sb.append(c);\n                }\n            }\n            String remaining = sb.toString();\n            int sub = dfs(stickerCounts, remaining, memo);\n            if (sub != -1) {\n                best = Math.min(best, sub + 1);\n            }\n        }\n        int result = (best == Integer.MAX_VALUE) ? -1 : best;\n        memo.put(target, result);\n        return result;\n    }\n}",
+      "name": "Remaining-String Memoized DFS",
+      "timeComplexity": "O(s * t * states)",
+      "spaceComplexity": "O(t * states)",
+      "description": "## Approach\n\nRepresent a state by the sorted string of target letters still missing. For each state, try only stickers containing the first missing letter, subtract that sticker from the remaining multiset, and memoize the answer for the resulting string.\n\n## Key Insight\n\nAfter a sticker is chosen, only the multiset of remaining letters matters. Rebuilding the remaining string in sorted order gives a canonical key and prevents equivalent paths from being solved repeatedly.\n\n## Complexity Analysis\n\nThe number of reachable remaining multisets is bounded by the subsets and multiplicities of the target. Each state tries up to `s` stickers and rebuilds at most `t` characters, so the practical bound is `O(s * t * states)` time and `O(t * states)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int INF = 1_000_000;\n\n    public int minStickers(String[] stickers, String target) {\n        int[][] stickerCounts = buildCounts(stickers);\n        Map<String, Integer> memo = new HashMap<>();\n        memo.put(\"\", 0);\n        int answer = dfs(sortLetters(target), stickerCounts, memo);\n        return answer >= INF ? -1 : answer;\n    }\n\n    private int dfs(String target, int[][] stickerCounts, Map<String, Integer> memo) {\n        if (memo.containsKey(target)) {\n            return memo.get(target);\n        }\n\n        int[] need = countLetters(target);\n        int best = INF;\n        for (int[] sticker : stickerCounts) {\n            if (sticker[target.charAt(0) - 'a'] == 0) {\n                continue;\n            }\n            StringBuilder builder = new StringBuilder();\n            for (int i = 0; i < 26; i++) {\n                int remainingCount = Math.max(0, need[i] - sticker[i]);\n                for (int k = 0; k < remainingCount; k++) {\n                    builder.append((char) ('a' + i));\n                }\n            }\n            String remaining = builder.toString();\n            int sub = dfs(remaining, stickerCounts, memo);\n            if (sub != INF) {\n                best = Math.min(best, sub + 1);\n            }\n        }\n\n        memo.put(target, best);\n        return best;\n    }\n\n    private int[][] buildCounts(String[] stickers) {\n        int[][] counts = new int[stickers.length][26];\n        for (int i = 0; i < stickers.length; i++) {\n            for (char ch : stickers[i].toCharArray()) {\n                counts[i][ch - 'a']++;\n            }\n        }\n        return counts;\n    }\n\n    private int[] countLetters(String word) {\n        int[] count = new int[26];\n        for (char ch : word.toCharArray()) {\n            count[ch - 'a']++;\n        }\n        return count;\n    }\n\n    private String sortLetters(String word) {\n        char[] chars = word.toCharArray();\n        Arrays.sort(chars);\n        return new String(chars);\n    }\n}\n",
+      "language": "java"
+    },
+    {
+      "name": "Target Count Vector Memo DFS",
+      "timeComplexity": "O(s * 26 * states)",
+      "spaceComplexity": "O(26 * states)",
+      "description": "## Approach\n\nStore the remaining target as a 26-element count vector instead of a string. Memoize by the serialized vector, pick one still-needed pivot letter, and only recurse through stickers that can reduce that pivot.\n\n## Key Insight\n\nThe pivot-letter filter is a correctness-preserving branch cut: any valid next sticker in an optimal solution can be reordered so that some sticker covering the pivot is chosen now.\n\n## Complexity Analysis\n\nFor every reachable count vector, the solver scans candidate stickers and updates 26 counts. This gives `O(s * 26 * states)` time and `O(26 * states)` memo space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int INF = 1_000_000;\n    private int[][] stickerCounts;\n    private Map<String, Integer> memo;\n\n    public int minStickers(String[] stickers, String target) {\n        stickerCounts = buildCounts(stickers);\n        int[] need = new int[26];\n        for (char ch : target.toCharArray()) {\n            need[ch - 'a']++;\n        }\n        memo = new HashMap<>();\n        int answer = dfs(need);\n        return answer >= INF ? -1 : answer;\n    }\n\n    private int dfs(int[] need) {\n        String key = Arrays.toString(need);\n        if (memo.containsKey(key)) {\n            return memo.get(key);\n        }\n\n        int firstNeeded = firstNeededIndex(need);\n        if (firstNeeded == -1) {\n            return 0;\n        }\n\n        int best = INF;\n        for (int[] sticker : stickerCounts) {\n            if (sticker[firstNeeded] == 0) {\n                continue;\n            }\n            int[] next = new int[26];\n            for (int i = 0; i < 26; i++) {\n                next[i] = Math.max(0, need[i] - sticker[i]);\n            }\n            int sub = dfs(next);\n            if (sub != INF) {\n                best = Math.min(best, sub + 1);\n            }\n        }\n\n        memo.put(key, best);\n        return best;\n    }\n\n    private int firstNeededIndex(int[] need) {\n        for (int i = 0; i < 26; i++) {\n            if (need[i] > 0) {\n                return i;\n            }\n        }\n        return -1;\n    }\n\n    private int[][] buildCounts(String[] stickers) {\n        int[][] counts = new int[stickers.length][26];\n        for (int i = 0; i < stickers.length; i++) {\n            for (char ch : stickers[i].toCharArray()) {\n                counts[i][ch - 'a']++;\n            }\n        }\n        return counts;\n    }\n}\n",
+      "language": "java"
+    },
+    {
+      "name": "Breadth-First Search over Bitmask States",
+      "timeComplexity": "O(2^t * s * (t + L))",
+      "spaceComplexity": "O(2^t)",
+      "description": "## Approach\n\nView every covered-position mask as a graph node and every sticker application as one unweighted edge. Run BFS from the empty mask; the first time the full mask is reached, the BFS depth is the minimum number of stickers.\n\n## Key Insight\n\nThis is the shortest-path version of bitmask DP. BFS makes the optimality proof visible: all states reached at depth `k` use exactly `k` stickers, so the first full mask cannot be beaten.\n\n## Complexity Analysis\n\nThere are `2^t` masks and each outgoing layer tries all stickers, producing `O(2^t * s * (t + L))` time and `O(2^t)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minStickers(String[] stickers, String target) {\n        int n = target.length();\n        int fullMask = (1 << n) - 1;\n        int[][] stickerCounts = buildCounts(stickers);\n        int[] distance = new int[1 << n];\n        Arrays.fill(distance, -1);\n        ArrayDeque<Integer> queue = new ArrayDeque<>();\n        queue.add(0);\n        distance[0] = 0;\n\n        while (!queue.isEmpty()) {\n            int mask = queue.removeFirst();\n            for (int[] sticker : stickerCounts) {\n                int nextMask = applyStickerToMask(mask, sticker, target);\n                if (nextMask == mask || distance[nextMask] != -1) {\n                    continue;\n                }\n                distance[nextMask] = distance[mask] + 1;\n                if (nextMask == fullMask) {\n                    return distance[nextMask];\n                }\n                queue.addLast(nextMask);\n            }\n        }\n\n        return fullMask == 0 ? 0 : -1;\n    }\n\n    private int[][] buildCounts(String[] stickers) {\n        int[][] counts = new int[stickers.length][26];\n        for (int i = 0; i < stickers.length; i++) {\n            for (char ch : stickers[i].toCharArray()) {\n                counts[i][ch - 'a']++;\n            }\n        }\n        return counts;\n    }\n\n    private int applyStickerToMask(int mask, int[] sticker, String target) {\n        int[] available = sticker.clone();\n        int nextMask = mask;\n        for (int i = 0; i < target.length(); i++) {\n            int letter = target.charAt(i) - 'a';\n            if ((nextMask & (1 << i)) == 0 && available[letter] > 0) {\n                available[letter]--;\n                nextMask |= 1 << i;\n            }\n        }\n        return nextMask;\n    }\n}\n",
+      "language": "java"
+    },
+    {
+      "name": "Dominance-Pruned Branch and Bound",
+      "timeComplexity": "O(s^t * 26) worst case, heavily pruned for t <= 15",
+      "spaceComplexity": "O(26 * states)",
+      "description": "## Approach\n\nPrecompute sticker counts, remove stickers dominated by another sticker, and solve by DFS on the remaining count vector. At each state, choose a needed pivot letter with the fewest useful stickers, branch only through stickers covering it, and prune branches whose lower bound cannot beat the best answer already found.\n\n## Key Insight\n\nThe search is still exact because every valid completion must eventually use a sticker that covers the chosen pivot letter. Dominance pruning and lower bounds only remove choices that cannot improve an optimal solution.\n\n## Complexity Analysis\n\nThe worst case is exponential in the target length, but the target has at most 15 letters. The lower-bound, seen-state, and dominance filters keep the practical state count small; memo and recursion use `O(26 * states)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int INF = 1_000_000;\n    private int[][] stickers;\n    private int[] maxByChar;\n    private List<Integer>[] candidateStickers;\n    private Map<String, Integer> seen;\n    private int best;\n\n    public int minStickers(String[] stickers, String target) {\n        int[][] rawCounts = buildCounts(stickers);\n        this.stickers = removeDominatedStickers(rawCounts);\n        int[] need = countTarget(target);\n\n        maxByChar = new int[26];\n        candidateStickers = new ArrayList[26];\n        for (int i = 0; i < 26; i++) {\n            candidateStickers[i] = new ArrayList<>();\n        }\n        for (int i = 0; i < this.stickers.length; i++) {\n            for (int c = 0; c < 26; c++) {\n                if (this.stickers[i][c] > 0) {\n                    maxByChar[c] = Math.max(maxByChar[c], this.stickers[i][c]);\n                    candidateStickers[c].add(i);\n                }\n            }\n        }\n        for (int c = 0; c < 26; c++) {\n            if (need[c] > 0 && maxByChar[c] == 0) {\n                return -1;\n            }\n        }\n\n        best = INF;\n        seen = new HashMap<>();\n        dfs(need, 0);\n        return best == INF ? -1 : best;\n    }\n\n    private void dfs(int[] need, int used) {\n        if (isEmpty(need)) {\n            best = Math.min(best, used);\n            return;\n        }\n        int lowerBound = lowerBound(need);\n        if (used + lowerBound >= best) {\n            return;\n        }\n\n        String key = Arrays.toString(need);\n        Integer previousUsed = seen.get(key);\n        if (previousUsed != null && previousUsed <= used) {\n            return;\n        }\n        seen.put(key, used);\n\n        int pivot = choosePivot(need);\n        for (int stickerIndex : candidateStickers[pivot]) {\n            int[] sticker = stickers[stickerIndex];\n            int[] next = need.clone();\n            boolean changed = false;\n            for (int c = 0; c < 26; c++) {\n                int reduced = Math.max(0, next[c] - sticker[c]);\n                if (reduced != next[c]) {\n                    changed = true;\n                }\n                next[c] = reduced;\n            }\n            if (changed) {\n                dfs(next, used + 1);\n            }\n        }\n    }\n\n    private int choosePivot(int[] need) {\n        int pivot = -1;\n        int fewestCandidates = Integer.MAX_VALUE;\n        for (int c = 0; c < 26; c++) {\n            if (need[c] > 0 && candidateStickers[c].size() < fewestCandidates) {\n                fewestCandidates = candidateStickers[c].size();\n                pivot = c;\n            }\n        }\n        return pivot;\n    }\n\n    private int lowerBound(int[] need) {\n        int bound = 0;\n        for (int c = 0; c < 26; c++) {\n            if (need[c] > 0) {\n                bound = Math.max(bound, (need[c] + maxByChar[c] - 1) / maxByChar[c]);\n            }\n        }\n        return bound;\n    }\n\n    private boolean isEmpty(int[] need) {\n        for (int count : need) {\n            if (count > 0) {\n                return false;\n            }\n        }\n        return true;\n    }\n\n    private int[][] removeDominatedStickers(int[][] rawCounts) {\n        List<int[]> kept = new ArrayList<>();\n        for (int i = 0; i < rawCounts.length; i++) {\n            boolean dominated = false;\n            for (int j = 0; j < rawCounts.length && !dominated; j++) {\n                if (i != j && dominates(rawCounts[j], rawCounts[i], j < i)) {\n                    dominated = true;\n                }\n            }\n            if (!dominated) {\n                kept.add(rawCounts[i]);\n            }\n        }\n        return kept.toArray(new int[0][]);\n    }\n\n    private boolean dominates(int[] stronger, int[] weaker, boolean tieBreaksEqual) {\n        boolean strictlyBetter = tieBreaksEqual;\n        for (int c = 0; c < 26; c++) {\n            if (stronger[c] < weaker[c]) {\n                return false;\n            }\n            if (stronger[c] > weaker[c]) {\n                strictlyBetter = true;\n            }\n        }\n        return strictlyBetter;\n    }\n\n    private int[][] buildCounts(String[] stickers) {\n        int[][] counts = new int[stickers.length][26];\n        for (int i = 0; i < stickers.length; i++) {\n            for (char ch : stickers[i].toCharArray()) {\n                counts[i][ch - 'a']++;\n            }\n        }\n        return counts;\n    }\n\n    private int[] countTarget(String target) {\n        int[] need = new int[26];\n        for (char ch : target.toCharArray()) {\n            need[ch - 'a']++;\n        }\n        return need;\n    }\n}\n",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "stickers = [\"with\",\"example\",\"science\"], target = \"thehat\"",
-      "output": "3"
+      "output": "3",
+      "description": "canonical solvable target where one sticker must be reused"
     },
     {
       "input": "stickers = [\"notice\",\"possible\"], target = \"basicbasic\"",
-      "output": "-1"
+      "output": "-1",
+      "description": "missing required letters makes the target impossible"
+    },
+    {
+      "input": "stickers = [\"a\",\"b\"], target = \"ab\"",
+      "output": "2",
+      "description": "two single-letter stickers are both required"
+    },
+    {
+      "input": "stickers = [\"abc\"], target = \"abcabc\"",
+      "output": "2",
+      "description": "a sticker type may be reused multiple times"
+    },
+    {
+      "input": "stickers = [\"these\",\"guess\",\"about\",\"garden\",\"him\"], target = \"atomher\"",
+      "output": "3",
+      "description": "known case that benefits from memoization"
+    },
+    {
+      "input": "stickers = [\"control\",\"heart\",\"interest\",\"stream\",\"sentence\",\"soil\",\"wonder\",\"them\",\"month\",\"slip\",\"table\",\"miss\",\"boat\",\"speak\",\"figure\",\"no\",\"perhaps\",\"twenty\",\"throw\",\"rich\",\"capital\",\"save\",\"method\",\"store\",\"meant\",\"life\",\"oil\",\"string\",\"song\",\"food\",\"am\",\"who\",\"fat\",\"if\",\"put\",\"path\",\"come\",\"grow\",\"box\",\"great\",\"word\",\"object\",\"stead\",\"common\",\"fresh\",\"the\",\"operate\",\"where\",\"road\",\"mean\"], target = \"stoodcrease\"",
+      "output": "3",
+      "description": "large sticker set with many distracting choices"
+    },
+    {
+      "input": "stickers = [\"aaaa\",\"aa\",\"b\"], target = \"aaaaab\"",
+      "output": "3",
+      "description": "duplicate target letters require counting occurrences, not set membership"
+    },
+    {
+      "input": "stickers = [\"ab\",\"bc\",\"ca\"], target = \"abcabc\"",
+      "output": "3",
+      "description": "cycle of partial stickers where all three are needed"
+    },
+    {
+      "input": "stickers = [\"abc\",\"abd\",\"bcd\",\"acd\"], target = \"abcd\"",
+      "output": "2",
+      "description": "one sticker cannot cover every required letter"
+    },
+    {
+      "input": "stickers = [\"abc\",\"def\",\"gh\"], target = \"fedcba\"",
+      "output": "2",
+      "description": "target order is irrelevant after cutting letters"
+    },
+    {
+      "input": "stickers = [\"xyz\",\"xy\",\"yz\"], target = \"xxyz\"",
+      "output": "2",
+      "description": "repeated x forces use of overlapping stickers"
+    },
+    {
+      "input": "stickers = [\"aaaaa\",\"bbbbb\",\"ccccc\"], target = \"abcabcabcabcabc\"",
+      "output": "3",
+      "description": "target length limit with three separated letter supplies"
     }
   ]
 }

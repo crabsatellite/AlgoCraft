@@ -1,34 +1,125 @@
 {
   "id": "220",
   "title": "Reverse Vowels of a String",
-  "description": "# Reverse Vowels of a String\n\nGiven a string `s`, reverse only all the vowels in the string and return it.\n\nThe vowels are `'a'`, `'e'`, `'i'`, `'o'`, and `'u'`, and they can appear in both lower and upper cases, more than once.\n\n## Example 1:\n\n**Input:** s = \"hello\"\n**Output:** \"holle\"\n\n## Example 2:\n\n**Input:** s = \"leetcode\"\n**Output:** \"leotcede\"\n\n## Constraints:\n\n*   `1 <= s.length <= 3 * 10^5`\n*   `s` consist of printable ASCII characters.",
+  "description": "# Reverse Vowels of a String\n\nGiven a string `s`, reverse only the vowels in the string and return the resulting string.\n\nThe vowels are `a`, `e`, `i`, `o`, and `u`. They can appear in lowercase or uppercase, and every vowel occurrence participates in the reversal. All non-vowel characters must stay at their original indices. The letter `y` is not considered a vowel for this problem.\n\n## Example 1:\n\n**Input:** s = \"hello\"\n**Output:** \"holle\"\n**Explanation:** The vowels are `e` and `o`; reversing them gives `o` and `e`.\n\n## Example 2:\n\n**Input:** s = \"leetcode\"\n**Output:** \"leotcede\"\n\n## Constraints:\n\n*   `1 <= s.length <= 3 * 10^5`\n*   `s` consists of printable ASCII characters.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public String reverseVowels(String s) {\n        // Write your code here\n        return \"\";\n    }\n}",
-  "tags": ["Two Pointers", "String"],
+  "tags": [
+    "Two Pointers",
+    "String"
+  ],
   "examples": [
-    { "input": "s = \"hello\"", "output": "\"holle\"" },
-    { "input": "s = \"leetcode\"", "output": "\"leotcede\"" }
+    {
+      "input": "s = \"hello\"",
+      "output": "\"holle\""
+    },
+    {
+      "input": "s = \"leetcode\"",
+      "output": "\"leotcede\""
+    }
   ],
   "solutions": [
     {
-      "name": "Two Pointers",
+      "name": "Two-Pointer Membership Scan",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Convert to char array. Use two pointers from both ends, swapping only when both point to vowels.",
-      "code": "class Solution {\n    public String reverseVowels(String s) {\n        char[] arr = s.toCharArray();\n        int left = 0, right = arr.length - 1;\n        String vowels = \"aeiouAEIOU\";\n        while (left < right) {\n            while (left < right && vowels.indexOf(arr[left]) == -1) left++;\n            while (left < right && vowels.indexOf(arr[right]) == -1) right--;\n            char temp = arr[left];\n            arr[left++] = arr[right];\n            arr[right--] = temp;\n        }\n        return new String(arr);\n    }\n}",
+      "description": "## Approach\n\nConvert the string to a character array. Move a left pointer forward until it reaches a vowel, move a right pointer backward until it reaches a vowel, then swap those two vowels and continue inward.\n\n## Key Insight\n\nOnly vowel positions are allowed to change. Two pointers find the next pair of vowel positions that should exchange values while automatically skipping consonants, digits, and punctuation.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each pointer scans across the string at most once.\n- Space Complexity: O(n), because Java strings are immutable and the result is built through a character array.",
+      "code": "class Solution {\n    public String reverseVowels(String s) {\n        char[] chars = s.toCharArray();\n        int left = 0;\n        int right = chars.length - 1;\n        String vowels = \"aeiouAEIOU\";\n        while (left < right) {\n            while (left < right && vowels.indexOf(chars[left]) == -1) {\n                left++;\n            }\n            while (left < right && vowels.indexOf(chars[right]) == -1) {\n                right--;\n            }\n            char temp = chars[left];\n            chars[left] = chars[right];\n            chars[right] = temp;\n            left++;\n            right--;\n        }\n        return new String(chars);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Collect and Reverse Vowels",
+      "name": "ASCII Lookup Table Two Pointers",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Collect all vowels into a list, then iterate through the string again replacing vowels in reverse order from the list.",
-      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public String reverseVowels(String s) {\n        char[] arr = s.toCharArray();\n        List<Character> vowelList = new ArrayList<>();\n        String vowels = \"aeiouAEIOU\";\n        for (char c : arr) {\n            if (vowels.indexOf(c) != -1) vowelList.add(c);\n        }\n        int vi = vowelList.size() - 1;\n        for (int i = 0; i < arr.length; i++) {\n            if (vowels.indexOf(arr[i]) != -1) {\n                arr[i] = vowelList.get(vi--);\n            }\n        }\n        return new String(arr);\n    }\n}",
+      "description": "## Approach\n\nBuild a constant-size boolean table for printable ASCII vowels, then run the same outside-in two-pointer swap using table lookup instead of repeated string searches.\n\n## Key Insight\n\nThe prompt limits input to printable ASCII, so vowel membership can be answered in O(1) by indexing a table. This keeps the reversal idea the same while making membership checks explicit and cheap.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because the table is constant-size and the scan is linear.\n- Space Complexity: O(n), because the character array holds the mutable result; the lookup table is constant-size.",
+      "code": "class Solution {\n    public String reverseVowels(String s) {\n        boolean[] vowel = new boolean[128];\n        for (char c : \"aeiouAEIOU\".toCharArray()) {\n            vowel[c] = true;\n        }\n\n        char[] chars = s.toCharArray();\n        int left = 0;\n        int right = chars.length - 1;\n        while (left < right) {\n            while (left < right && !vowel[chars[left]]) {\n                left++;\n            }\n            while (left < right && !vowel[chars[right]]) {\n                right--;\n            }\n            char temp = chars[left];\n            chars[left] = chars[right];\n            chars[right] = temp;\n            left++;\n            right--;\n        }\n        return new String(chars);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Collect Vowels Then Refill",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFirst scan the string and collect every vowel character in encounter order. Then scan the character array again; whenever a vowel position appears, fill it with the next collected vowel from the end.\n\n## Key Insight\n\nThis separates the task into two simple parts: discover the sequence of vowels, then write that sequence back in reverse while leaving every non-vowel character untouched.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because the string is scanned twice.\n- Space Complexity: O(n), because the mutable character array and collected vowels may both grow with the input size.",
+      "code": "class Solution {\n    public String reverseVowels(String s) {\n        char[] chars = s.toCharArray();\n        StringBuilder vowels = new StringBuilder();\n        for (char c : chars) {\n            if (isVowel(c)) {\n                vowels.append(c);\n            }\n        }\n\n        int write = vowels.length() - 1;\n        for (int i = 0; i < chars.length; i++) {\n            if (isVowel(chars[i])) {\n                chars[i] = vowels.charAt(write--);\n            }\n        }\n        return new String(chars);\n    }\n\n    private boolean isVowel(char c) {\n        return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u'\n                || c == 'A' || c == 'E' || c == 'I' || c == 'O' || c == 'U';\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Vowel Index List Swap",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCollect the indices of all vowels. Then use two pointers over that index list and swap the characters stored at the paired indices in the character array.\n\n## Key Insight\n\nThe vowel positions form the only subsequence that changes. Reversing the characters at those stored positions is equivalent to reversing the vowel subsequence while preserving all other indices.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each character is checked once and each vowel index is swapped at most once.\n- Space Complexity: O(n), because the index list can contain every position when the string is all vowels.",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public String reverseVowels(String s) {\n        char[] chars = s.toCharArray();\n        List<Integer> positions = new ArrayList<>();\n        for (int i = 0; i < chars.length; i++) {\n            if (isVowel(chars[i])) {\n                positions.add(i);\n            }\n        }\n\n        int left = 0;\n        int right = positions.size() - 1;\n        while (left < right) {\n            int i = positions.get(left++);\n            int j = positions.get(right--);\n            char temp = chars[i];\n            chars[i] = chars[j];\n            chars[j] = temp;\n        }\n        return new String(chars);\n    }\n\n    private boolean isVowel(char c) {\n        return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u'\n                || c == 'A' || c == 'E' || c == 'I' || c == 'O' || c == 'U';\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Outside-In Scan",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse a recursive helper on the mutable character array. If the left side is not a vowel, recurse with `left + 1`; if the right side is not a vowel, recurse with `right - 1`; otherwise swap the two vowels and recurse inward.\n\n## Key Insight\n\nThis is the same invariant as the iterative two-pointer solution: before each recursive step, everything outside the current range has already been placed correctly. It is useful for teaching the recurrence, though the loop version avoids stack growth.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each recursive step moves at least one boundary inward.\n- Space Complexity: O(n), because recursion can use a linear call stack in addition to the result array.",
+      "code": "class Solution {\n    public String reverseVowels(String s) {\n        char[] chars = s.toCharArray();\n        reverse(chars, 0, chars.length - 1);\n        return new String(chars);\n    }\n\n    private void reverse(char[] chars, int left, int right) {\n        if (left >= right) {\n            return;\n        }\n        if (!isVowel(chars[left])) {\n            reverse(chars, left + 1, right);\n            return;\n        }\n        if (!isVowel(chars[right])) {\n            reverse(chars, left, right - 1);\n            return;\n        }\n        char temp = chars[left];\n        chars[left] = chars[right];\n        chars[right] = temp;\n        reverse(chars, left + 1, right - 1);\n    }\n\n    private boolean isVowel(char c) {\n        return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u'\n                || c == 'A' || c == 'E' || c == 'I' || c == 'O' || c == 'U';\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"hello\"", "output": "\"holle\"" },
-    { "input": "s = \"leetcode\"", "output": "\"leotcede\"" }
+    {
+      "input": "s = \"hello\"",
+      "output": "\"holle\"",
+      "description": "Canonical lowercase word reverses two vowels."
+    },
+    {
+      "input": "s = \"leetcode\"",
+      "output": "\"leotcede\"",
+      "description": "Multiple vowels reverse while consonants stay fixed."
+    },
+    {
+      "input": "s = \"aA\"",
+      "output": "\"Aa\"",
+      "description": "Lowercase and uppercase vowels both participate."
+    },
+    {
+      "input": "s = \"bcdfg\"",
+      "output": "\"bcdfg\"",
+      "description": "String with no vowels remains unchanged."
+    },
+    {
+      "input": "s = \"IceCreAm\"",
+      "output": "\"AceCreIm\"",
+      "description": "Mixed-case vowels reverse across the full string."
+    },
+    {
+      "input": "s = \"ai\"",
+      "output": "\"ia\"",
+      "description": "Two-vowel string swaps both characters."
+    },
+    {
+      "input": "s = \"AEIOU\"",
+      "output": "\"UOIEA\"",
+      "description": "All-uppercase vowels reverse as a block."
+    },
+    {
+      "input": "s = \"uoiea\"",
+      "output": "\"aeiou\"",
+      "description": "All-lowercase vowels reverse as a block."
+    },
+    {
+      "input": "s = \"Yy\"",
+      "output": "\"Yy\"",
+      "description": "The letter y is not a vowel in this problem."
+    },
+    {
+      "input": "s = \"123ae!\"",
+      "output": "\"123ea!\"",
+      "description": "Digits and punctuation stay at their original indices."
+    },
+    {
+      "input": "s = \"AlgoCraft\"",
+      "output": "\"algoCrAft\"",
+      "description": "Project-themed word checks uppercase and lowercase vowels with consonants fixed."
+    },
+    {
+      "input": "s = \"Education\"",
+      "output": "\"odicatuEn\"",
+      "description": "Longer word checks five vowels and mixed case preservation."
+    }
   ]
 }

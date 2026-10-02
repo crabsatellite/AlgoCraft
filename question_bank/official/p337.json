@@ -1,36 +1,133 @@
 {
   "id": "337",
   "title": "Basic Calculator",
-  "description": "# Basic Calculator\n\nGiven a string `s` representing a valid expression, implement a basic calculator to evaluate it, and return *the result of the evaluation*.\n\n**Note:** You are **not** allowed to use any built-in function which evaluates strings as mathematical expressions, such as `eval()`.\n\n## Example 1:\n\n**Input:** s = \"1 + 1\"\n**Output:** 2\n\n## Example 2:\n\n**Input:** s = \" 2-1 + 2 \"\n**Output:** 3\n\n## Example 3:\n\n**Input:** s = \"(1+(4+5+2)-3)+(6+8)\"\n**Output:** 23\n\n## Constraints:\n\n*   `1 <= s.length <= 3 * 10^5`\n*   `s` consists of digits, `'+'`, `'-'`, `'('`, `')'`, and `' '`.\n*   `s` represents a valid expression.\n*   `'+'` is not used as a unary operation (i.e., `\"+1\"` and `\"+(2 + 3)\"` is invalid).\n*   `'-'` could be used as a unary operation (i.e., `\"-1\"` and `\"-(2 + 3)\"` is valid).\n*   There will be no two consecutive operators in the input.\n*   Every number and running calculation will fit in a signed 32-bit integer.",
+  "description": "# Basic Calculator\n\nGiven a valid arithmetic expression string `s`, evaluate the expression and return its integer value.\n\nThe expression may contain non-negative integers, spaces, plus signs, minus signs, and parentheses. Addition and subtraction have the same precedence and are evaluated from left to right unless parentheses change the grouping.\n\nYou may not call a built-in expression evaluator such as `eval`.\n\n## Example 1:\n\n**Input:** s = \"1 + 1\"\n**Output:** 2\n\n## Example 2:\n\n**Input:** s = \" 2-1 + 2 \"\n**Output:** 3\n\n## Example 3:\n\n**Input:** s = \"(1+(4+5+2)-3)+(6+8)\"\n**Output:** 23\n\n## Important Details:\n\n* A minus sign can be unary at the beginning of the expression or immediately after `(`, so `-1` and `-(2 + 3)` are valid.\n* A plus sign is never unary.\n* Spaces may appear anywhere between tokens and should be ignored.\n\n## Constraints:\n\n* `1 <= s.length <= 3 * 10^5`\n* `s` consists of digits, `'+'`, `'-'`, `'('`, `')'`, and `' '`.\n* `s` represents a valid expression.\n* There will be no two consecutive binary operators in the input.\n* Every number and running calculation fits in a signed 32-bit integer.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int calculate(String s) {\n        \n    }\n}",
-  "tags": ["Math", "String", "Stack", "Recursion"],
+  "initialCode": "class Solution {\n    public int calculate(String s) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Math",
+    "String",
+    "Stack",
+    "Recursion"
+  ],
   "examples": [
-    { "input": "s = \"1 + 1\"", "output": "2" },
-    { "input": "s = \" 2-1 + 2 \"", "output": "3" },
-    { "input": "s = \"(1+(4+5+2)-3)+(6+8)\"", "output": "23" }
+    {
+      "input": "s = \"1 + 1\"",
+      "output": "2"
+    },
+    {
+      "input": "s = \" 2-1 + 2 \"",
+      "output": "3"
+    },
+    {
+      "input": "s = \"(1+(4+5+2)-3)+(6+8)\"",
+      "output": "23"
+    }
   ],
   "solutions": [
     {
-      "name": "Stack with Sign",
+      "name": "Stack with Saved Result and Sign",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use a stack to track the sign before each parenthesis group. Maintain running result and current sign. On '(' push result and sign, reset. On ')' combine with saved state.",
-      "code": "class Solution {\n    public int calculate(String s) {\n        java.util.Deque<Integer> stack = new java.util.ArrayDeque<>();\n        int result = 0, num = 0, sign = 1;\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (Character.isDigit(c)) {\n                num = num * 10 + (c - '0');\n            } else if (c == '+') {\n                result += sign * num;\n                num = 0;\n                sign = 1;\n            } else if (c == '-') {\n                result += sign * num;\n                num = 0;\n                sign = -1;\n            } else if (c == '(') {\n                stack.push(result);\n                stack.push(sign);\n                result = 0;\n                sign = 1;\n            } else if (c == ')') {\n                result += sign * num;\n                num = 0;\n                result *= stack.pop();\n                result += stack.pop();\n            }\n        }\n        return result + sign * num;\n    }\n}",
+      "description": "## Approach\n\nScan the expression once while keeping the current `result`, the current `num`, and the sign that should be applied to `num`. When a plus or minus arrives, flush `sign * num` into `result` and reset the number. When `(` arrives, push the outer result and outer sign, then start a fresh inner expression. When `)` arrives, finish the inner expression, multiply it by the saved sign, and add it back to the saved outer result.\n\n## Key Insight\n\nA parenthesized expression behaves like one value in the outer expression. Saving the outer result and the sign before `(` gives enough information to fold the entire inner result back when `)` is reached, including cases such as `1-(-2)`.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int calculate(String s) {\n        java.util.Deque<Integer> stack = new java.util.ArrayDeque<>();\n        int result = 0;\n        int num = 0;\n        int sign = 1;\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (Character.isDigit(c)) {\n                num = num * 10 + (c - '0');\n            } else if (c == '+') {\n                result += sign * num;\n                num = 0;\n                sign = 1;\n            } else if (c == '-') {\n                result += sign * num;\n                num = 0;\n                sign = -1;\n            } else if (c == '(') {\n                stack.push(result);\n                stack.push(sign);\n                result = 0;\n                sign = 1;\n            } else if (c == ')') {\n                result += sign * num;\n                num = 0;\n                result *= stack.pop();\n                result += stack.pop();\n            }\n        }\n        return result + sign * num;\n    }\n}",
       "language": "java"
     },
     {
       "name": "Recursive Descent Parser",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use recursive descent parsing with a global index. Parse numbers, handle + and - operators, and recurse into parenthesized sub-expressions. Each '(' triggers a recursive call, ')' returns.",
-      "code": "class Solution {\n    private int idx;\n    public int calculate(String s) {\n        idx = 0;\n        return eval(s);\n    }\n    private int eval(String s) {\n        int result = 0;\n        int sign = 1;\n        while (idx < s.length()) {\n            char c = s.charAt(idx);\n            if (c == ' ') {\n                idx++;\n            } else if (c == '(') {\n                idx++;\n                result += sign * eval(s);\n            } else if (c == ')') {\n                idx++;\n                return result;\n            } else if (c == '+') {\n                sign = 1;\n                idx++;\n            } else if (c == '-') {\n                sign = -1;\n                idx++;\n            } else {\n                int num = 0;\n                while (idx < s.length() && s.charAt(idx) >= '0' && s.charAt(idx) <= '9') {\n                    num = num * 10 + (s.charAt(idx) - '0');\n                    idx++;\n                }\n                result += sign * num;\n            }\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nTreat the expression grammar directly. A helper parses terms until it reaches the matching right parenthesis or the end of the string. Digits build a multi-digit number, plus and minus update the pending sign, and `(` recursively evaluates a nested expression whose value is added with the pending sign.\n\n## Key Insight\n\nThe input is already valid and only has addition, subtraction, and parentheses. That means the recursive parser does not need precedence tables; each recursive call simply owns one parenthesized region and returns its computed value to the caller.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private int index;\n\n    public int calculate(String s) {\n        index = 0;\n        return parse(s);\n    }\n\n    private int parse(String s) {\n        int result = 0;\n        int sign = 1;\n        while (index < s.length()) {\n            char c = s.charAt(index);\n            if (c == ' ') {\n                index++;\n            } else if (c == '+') {\n                sign = 1;\n                index++;\n            } else if (c == '-') {\n                sign = -1;\n                index++;\n            } else if (c == '(') {\n                index++;\n                result += sign * parse(s);\n            } else if (c == ')') {\n                index++;\n                return result;\n            } else {\n                int value = 0;\n                while (index < s.length() && Character.isDigit(s.charAt(index))) {\n                    value = value * 10 + (s.charAt(index) - '0');\n                    index++;\n                }\n                result += sign * value;\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two Stacks with Explicit Unary Minus",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse one stack for numbers and one stack for operators. Since `+` and `-` have the same precedence, apply pending operators before pushing the next binary operator, stopping at `(`. Track whether the parser is expecting a number; if a minus appears in that state, push a leading `0` so unary minus becomes ordinary subtraction.\n\n## Key Insight\n\nThis is the general expression-evaluator pattern specialized to one precedence level. Converting unary minus into `0 - value` lets the operator stack use the same apply step for both unary and binary subtraction.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int calculate(String s) {\n        java.util.Deque<Integer> nums = new java.util.ArrayDeque<>();\n        java.util.Deque<Character> ops = new java.util.ArrayDeque<>();\n        boolean expectNumber = true;\n        for (int i = 0; i < s.length(); ) {\n            char c = s.charAt(i);\n            if (c == ' ') {\n                i++;\n            } else if (Character.isDigit(c)) {\n                int value = 0;\n                while (i < s.length() && Character.isDigit(s.charAt(i))) {\n                    value = value * 10 + (s.charAt(i) - '0');\n                    i++;\n                }\n                nums.push(value);\n                expectNumber = false;\n            } else if (c == '(') {\n                ops.push(c);\n                expectNumber = true;\n                i++;\n            } else if (c == ')') {\n                while (!ops.isEmpty() && ops.peek() != '(') {\n                    apply(nums, ops);\n                }\n                ops.pop();\n                expectNumber = false;\n                i++;\n            } else {\n                if (expectNumber) {\n                    nums.push(0);\n                }\n                while (!ops.isEmpty() && ops.peek() != '(') {\n                    apply(nums, ops);\n                }\n                ops.push(c);\n                expectNumber = true;\n                i++;\n            }\n        }\n        while (!ops.isEmpty()) {\n            apply(nums, ops);\n        }\n        return nums.pop();\n    }\n\n    private void apply(java.util.Deque<Integer> nums, java.util.Deque<Character> ops) {\n        int right = nums.pop();\n        int left = nums.pop();\n        char op = ops.pop();\n        nums.push(op == '+' ? left + right : left - right);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sign Context Stack",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nKeep a stack of the sign context contributed by surrounding parentheses. The top of the stack tells whether numbers in the current parenthesized region should be added to or subtracted from the global result. A plus sets the next number's sign to the current context; a minus sets it to the opposite context. Entering `(` pushes the sign that was just chosen for the whole group, and leaving `)` pops that context.\n\n## Key Insight\n\nBecause the grammar only has addition and subtraction, parentheses do not need a separate result stack. A parenthesis only flips or preserves the signs of every number inside it, so a stack of sign contexts is enough to accumulate the final answer directly.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int calculate(String s) {\n        java.util.Deque<Integer> signs = new java.util.ArrayDeque<>();\n        signs.push(1);\n        int result = 0;\n        int sign = 1;\n        for (int i = 0; i < s.length(); ) {\n            char c = s.charAt(i);\n            if (c == ' ') {\n                i++;\n            } else if (c == '+') {\n                sign = signs.peek();\n                i++;\n            } else if (c == '-') {\n                sign = -signs.peek();\n                i++;\n            } else if (c == '(') {\n                signs.push(sign);\n                i++;\n            } else if (c == ')') {\n                signs.pop();\n                i++;\n            } else {\n                int value = 0;\n                while (i < s.length() && Character.isDigit(s.charAt(i))) {\n                    value = value * 10 + (s.charAt(i) - '0');\n                    i++;\n                }\n                result += sign * value;\n            }\n        }\n        return result;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"1 + 1\"", "output": "2" },
-    { "input": "s = \" 2-1 + 2 \"", "output": "3" },
-    { "input": "s = \"(1+(4+5+2)-3)+(6+8)\"", "output": "23" }
+    {
+      "input": "s = \"1 + 1\"",
+      "output": "2",
+      "description": "simple addition with spaces"
+    },
+    {
+      "input": "s = \" 2-1 + 2 \"",
+      "output": "3",
+      "description": "spaces and left-to-right addition/subtraction"
+    },
+    {
+      "input": "s = \"(1+(4+5+2)-3)+(6+8)\"",
+      "output": "23",
+      "description": "nested parentheses sample"
+    },
+    {
+      "input": "s = \"-2+ 1\"",
+      "output": "-1",
+      "description": "unary minus at the start"
+    },
+    {
+      "input": "s = \"1-(     -2)\"",
+      "output": "3",
+      "description": "unary minus inside parentheses"
+    },
+    {
+      "input": "s = \"2-(5-6)\"",
+      "output": "3",
+      "description": "subtracting a parenthesized negative result"
+    },
+    {
+      "input": "s = \"(7)-(0)+(4)\"",
+      "output": "11",
+      "description": "parentheses around single numbers"
+    },
+    {
+      "input": "s = \"2147483647\"",
+      "output": "2147483647",
+      "description": "large single number within 32-bit signed range"
+    },
+    {
+      "input": "s = \"12 + 34 - (5 - 6) + 78\"",
+      "output": "125",
+      "description": "multi-digit numbers and a negative parenthesized value"
+    },
+    {
+      "input": "s = \"-(3+(2-1))\"",
+      "output": "-4",
+      "description": "unary minus before an entire parenthesized group"
+    },
+    {
+      "input": "s = \"1-(-(-2))\"",
+      "output": "-1",
+      "description": "nested unary minus signs through parentheses"
+    },
+    {
+      "input": "s = \"((10)-(2+3)-(4-(5-6)))\"",
+      "output": "0",
+      "description": "deep nesting with sign propagation through multiple groups"
+    },
+    {
+      "input": "s = \"0 - (3 - (4 + 5) + 6)\"",
+      "output": "0",
+      "description": "outer subtraction of an expression that evaluates to zero"
+    },
+    {
+      "input": "s = \"100000 - (99999 - (88888 - 77777))\"",
+      "output": "11112",
+      "description": "larger multi-digit values with nested subtraction"
+    }
   ]
 }

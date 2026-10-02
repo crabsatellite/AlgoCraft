@@ -1,36 +1,109 @@
 {
   "id": "459",
   "title": "Repeated Substring Pattern",
-  "description": "# Repeated Substring Pattern\n\nGiven a string `s`, check if it can be constructed by taking a substring of it and appending multiple copies of the substring together.\n\n## Example 1:\n\n**Input:** s = \"abab\"\n**Output:** true\n**Explanation:** It is the substring \"ab\" twice.\n\n## Example 2:\n\n**Input:** s = \"aba\"\n**Output:** false\n\n## Example 3:\n\n**Input:** s = \"abcabcabcabc\"\n**Output:** true\n**Explanation:** It is the substring \"abc\" four times or the substring \"abcabc\" twice.\n\n## Constraints:\n\n*   `1 <= s.length <= 10^4`\n*   `s` consists of lowercase English letters.",
+  "description": "# Repeated Substring Pattern\n\nGiven a string `s`, return `true` if `s` can be built by choosing a non-empty substring and repeating that substring two or more times. Return `false` otherwise.\n\nThe repeated substring must cover the entire string without leftover characters. The substring may be one character long, but it cannot be the whole string.\n\n## Example 1:\n\n**Input:** s = \"abab\"\n**Output:** true\n**Explanation:** The substring \"ab\" repeated twice forms the whole string.\n\n## Example 2:\n\n**Input:** s = \"aba\"\n**Output:** false\n**Explanation:** No shorter non-empty substring can be repeated to form the whole string.\n\n## Example 3:\n\n**Input:** s = \"abcabcabcabc\"\n**Output:** true\n**Explanation:** The substring \"abc\" repeated four times works; \"abcabc\" repeated twice also works.\n\n## Constraints:\n\n*   `1 <= s.length <= 10^4`\n*   `s` consists of lowercase English letters.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public boolean repeatedSubstringPattern(String s) {\n        \n    }\n}",
-  "tags": ["String", "String Matching"],
+  "tags": [
+    "String",
+    "String Matching"
+  ],
   "examples": [
-    { "input": "s = \"abab\"", "output": "true" },
-    { "input": "s = \"aba\"", "output": "false" },
-    { "input": "s = \"abcabcabcabc\"", "output": "true" }
+    {
+      "input": "s = \"abab\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"aba\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \"abcabcabcabc\"",
+      "output": "true"
+    }
   ],
   "solutions": [
     {
-      "name": "String Concatenation Trick",
+      "name": "Doubled String Interior Search",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "If s is made of repeated substrings, then s can be found in (s+s) with the first and last characters removed. This is because the doubled string creates overlap points at the repeat boundaries.",
-      "code": "class Solution {\n    public boolean repeatedSubstringPattern(String s) {\n        String doubled = s + s;\n        return doubled.substring(1, doubled.length() - 1).contains(s);\n    }\n}",
+      "description": "## Approach\n\nBuild `s + s`, remove the first and last character, and search for `s` inside that interior string. If `s` is periodic, one of its shifted copies appears strictly inside the doubled string. If `s` is not periodic, the only exact copies start at the original boundaries, which were removed.\n\n## Key Insight\n\nA string made from repeated blocks is unchanged by shifting it by one block length. The doubled string exposes those valid shifts, while trimming both ends rejects the trivial shift by `0` or `n`.\n\n## Complexity Analysis\n\nLet `n` be the length of `s`. Time Complexity: O(n) with the standard linear string-search model. Space Complexity: O(n).",
+      "code": "class Solution {\n    public boolean repeatedSubstringPattern(String s) {\n        String doubled = s + s;\n        String interior = doubled.substring(1, doubled.length() - 1);\n        return interior.contains(s);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Divisor Length Check",
+      "name": "Divisor Length Verification",
       "timeComplexity": "O(n * sqrt(n))",
       "spaceComplexity": "O(1)",
-      "description": "Try every possible substring length that divides n. For each divisor length, check if repeating the prefix of that length reconstructs the entire string.",
-      "code": "class Solution {\n    public boolean repeatedSubstringPattern(String s) {\n        int n = s.length();\n        for (int len = 1; len <= n / 2; len++) {\n            if (n % len != 0) continue;\n            boolean match = true;\n            for (int i = len; i < n; i++) {\n                if (s.charAt(i) != s.charAt(i % len)) {\n                    match = false;\n                    break;\n                }\n            }\n            if (match) return true;\n        }\n        return false;\n    }\n}",
+      "description": "## Approach\n\nOnly lengths that divide `n` can be repeat block lengths. Enumerate divisor pairs of `n`; for each proper divisor, compare every character with the character at the same position modulo the candidate period.\n\n## Key Insight\n\nThe repeated block must tile the whole string exactly. Checking only divisor lengths avoids trying impossible periods and makes the simple direct verification precise enough for teaching.\n\n## Complexity Analysis\n\nLet `n` be the length of `s`. Time Complexity: O(n * sqrt(n)) in the worst case because each divisor candidate may scan the string. Space Complexity: O(1).",
+      "code": "class Solution {\n    public boolean repeatedSubstringPattern(String s) {\n        int n = s.length();\n        for (int len = 1; len * len <= n; len++) {\n            if (n % len != 0) {\n                continue;\n            }\n            if (len < n && matchesPeriod(s, len)) {\n                return true;\n            }\n            int other = n / len;\n            if (other < n && other != len && matchesPeriod(s, other)) {\n                return true;\n            }\n        }\n        return false;\n    }\n\n    private boolean matchesPeriod(String s, int period) {\n        for (int i = period; i < s.length(); i++) {\n            if (s.charAt(i) != s.charAt(i % period)) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "KMP Prefix Function",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCompute the KMP prefix-function array `lps`, where `lps[i]` is the length of the longest proper prefix of `s[0..i]` that is also a suffix. Let `border = lps[n - 1]`. If `border > 0` and `n` is divisible by `n - border`, then the string is built from the period of length `n - border`.\n\n## Key Insight\n\nA repeated string has a non-empty overlap between its prefix and suffix. The longest overlap tells us the smallest possible period candidate; the divisibility check proves that this candidate tiles the whole string.\n\n## Complexity Analysis\n\nLet `n` be the length of `s`. Time Complexity: O(n). Space Complexity: O(n).",
+      "code": "class Solution {\n    public boolean repeatedSubstringPattern(String s) {\n        int n = s.length();\n        int[] lps = new int[n];\n        for (int i = 1; i < n; i++) {\n            int j = lps[i - 1];\n            while (j > 0 && s.charAt(i) != s.charAt(j)) {\n                j = lps[j - 1];\n            }\n            if (s.charAt(i) == s.charAt(j)) {\n                j++;\n            }\n            lps[i] = j;\n        }\n\n        int border = lps[n - 1];\n        int period = n - border;\n        return border > 0 && n % period == 0;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Z-Function Period Check",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCompute the Z-function, where `z[i]` is the longest prefix length that matches the substring starting at `i`. For every proper divisor `period` of `n`, if `z[period] >= n - period`, then the suffix from `period` onward matches the prefix and the period tiles the whole string.\n\n## Key Insight\n\nInstead of deriving the period from a suffix overlap as KMP does, the Z-function directly asks whether each candidate shift aligns the remaining characters with the prefix.\n\n## Complexity Analysis\n\nLet `n` be the length of `s`. Time Complexity: O(n) for the Z-function plus the period scan. Space Complexity: O(n).",
+      "code": "class Solution {\n    public boolean repeatedSubstringPattern(String s) {\n        int n = s.length();\n        int[] z = new int[n];\n        int left = 0;\n        int right = 0;\n        for (int i = 1; i < n; i++) {\n            if (i <= right) {\n                z[i] = Math.min(right - i + 1, z[i - left]);\n            }\n            while (i + z[i] < n && s.charAt(z[i]) == s.charAt(i + z[i])) {\n                z[i]++;\n            }\n            if (i + z[i] - 1 > right) {\n                left = i;\n                right = i + z[i] - 1;\n            }\n        }\n\n        for (int period = 1; period <= n / 2; period++) {\n            if (n % period == 0 && z[period] >= n - period) {\n                return true;\n            }\n        }\n        return false;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"abab\"", "output": "true" },
-    { "input": "s = \"aba\"", "output": "false" },
-    { "input": "s = \"abcabcabcabc\"", "output": "true" }
+    {
+      "input": "s = \"abab\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"aba\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \"abcabcabcabc\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"a\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \"aaaa\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"zz\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"ababab\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"abcabcabcab\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \"abababa\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \"abcabcabcx\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \"xyzxyzxyz\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"abaabaaba\"",
+      "output": "true"
+    }
   ]
 }

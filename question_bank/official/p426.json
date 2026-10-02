@@ -1,38 +1,106 @@
 {
   "id": "426",
-  "title": "Design Parking System",
-  "description": "# Design Parking System\n\nDesign a parking system for a parking lot. The parking lot has three kinds of parking spaces: big, medium, and small, with a fixed number of slots for each size.\n\nImplement the `ParkingSystem` class:\n\n*   `ParkingSystem(int big, int medium, int small)` Initializes object of the `ParkingSystem` class. The number of slots for each parking space are given as part of the constructor.\n*   `boolean addCar(int carType)` Checks whether there is a parking space of `carType` for the car that wants to get into the parking lot. `carType` can be of three kinds: big, medium, or small, which are represented by `1`, `2`, and `3` respectively. **A car can only park in a parking space of its `carType`.** If there is no space available, return `false`, else park the car in that size space and return `true`.\n\n## Example 1:\n\n**Input:**\n[\"ParkingSystem\", \"addCar\", \"addCar\", \"addCar\", \"addCar\"]\n[[1, 1, 0], [1], [2], [3], [1]]\n**Output:**\n[null, true, true, false, false]\n**Explanation:**\nParkingSystem parkingSystem = new ParkingSystem(1, 1, 0);\nparkingSystem.addCar(1); // return true because there is 1 available slot for a big car\nparkingSystem.addCar(2); // return true because there is 1 available slot for a medium car\nparkingSystem.addCar(3); // return false because there is no available slot for a small car\nparkingSystem.addCar(1); // return false because there is no available slot for a big car. It is already occupied.\n\n## Constraints:\n\n*   `0 <= big, medium, small <= 1000`\n*   `carType` is `1`, `2`, or `3`\n*   At most `1000` calls will be made to `addCar`.",
+  "title": "Time Needed to Buy Tickets",
+  "description": "# Time Needed to Buy Tickets\n\nThere are people in a queue. `tickets[i]` is how many tickets person `i` wants to buy. Each second, the person at the front buys exactly one ticket. If that person still needs more tickets, they move to the back of the queue; otherwise, they leave the queue.\n\nReturn how many seconds pass until person `k` finishes buying all tickets.\n\n## Example 1:\n\n**Input:** tickets = [2,3,2], k = 2\n\n**Output:** 6\n\n**Explanation:** The queue sells tickets in this index order: `0,1,2,0,1,2`. Person `2` finishes at second `6`.\n\n## Example 2:\n\n**Input:** tickets = [5,1,1,1], k = 0\n\n**Output:** 8\n\n**Explanation:** Person `0` needs five turns. The people after `0` each buy only once before leaving.\n\n## Constraints:\n\n*   `1 <= tickets.length <= 100`\n*   `1 <= tickets[i] <= 100`\n*   `0 <= k < tickets.length`",
   "difficulty": "EASY",
-  "initialCode": "class ParkingSystem {\n\n    public ParkingSystem(int big, int medium, int small) {\n        \n    }\n    \n    public boolean addCar(int carType) {\n        \n    }\n}",
-  "tags": ["Design", "Simulation", "Counting"],
+  "initialCode": "class Solution {\n    public int timeRequiredToBuy(int[] tickets, int k) {\n        // Write your code here\n    }\n}",
+  "tags": [
+    "Array",
+    "Queue",
+    "Simulation"
+  ],
   "examples": [
     {
-      "input": "[\"ParkingSystem\", \"addCar\", \"addCar\", \"addCar\", \"addCar\"]\n[[1, 1, 0], [1], [2], [3], [1]]",
-      "output": "[null, true, true, false, false]"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "Simple Counter Array",
-      "timeComplexity": "O(1) per operation",
-      "spaceComplexity": "O(1)",
-      "description": "Store remaining slots for each car type in an array of size 3. addCar decrements the counter for the given type and returns whether a slot was available.",
-      "code": "class ParkingSystem {\n    private int[] slots;\n    public ParkingSystem(int big, int medium, int small) {\n        slots = new int[]{big, medium, small};\n    }\n    public boolean addCar(int carType) {\n        if (slots[carType - 1] > 0) { slots[carType - 1]--; return true; }\n        return false;\n    }\n}",
-      "language": "java"
+      "input": "tickets = [2,3,2], k = 2",
+      "output": "6"
     },
     {
-      "name": "HashMap Based",
-      "timeComplexity": "O(1) per operation",
-      "spaceComplexity": "O(1)",
-      "description": "Use a HashMap mapping car type to remaining slots. addCar checks and decrements the count for the given type.",
-      "code": "import java.util.*;\n\nclass ParkingSystem {\n    private Map<Integer, Integer> capacity;\n    public ParkingSystem(int big, int medium, int small) {\n        capacity = new HashMap();\n        capacity.put(1, big);\n        capacity.put(2, medium);\n        capacity.put(3, small);\n    }\n    public boolean addCar(int carType) {\n        int remaining = capacity.get(carType).intValue();\n        if (remaining > 0) {\n            capacity.put(carType, remaining - 1);\n            return true;\n        }\n        return false;\n    }\n}",
-      "language": "java"
+      "input": "tickets = [5,1,1,1], k = 0",
+      "output": "8"
     }
   ],
   "tests": [
     {
-      "input": "[\"ParkingSystem\", \"addCar\", \"addCar\", \"addCar\", \"addCar\"]\n[[1, 1, 0], [1], [2], [3], [1]]",
-      "output": "[null, true, true, false, false]"
+      "input": "tickets = [2,3,2], k = 2",
+      "output": "6"
+    },
+    {
+      "input": "tickets = [5,1,1,1], k = 0",
+      "output": "8"
+    },
+    {
+      "input": "tickets = [1], k = 0",
+      "output": "1"
+    },
+    {
+      "input": "tickets = [3,2,3], k = 1",
+      "output": "5"
+    },
+    {
+      "input": "tickets = [1,2,3,4], k = 2",
+      "output": "8"
+    },
+    {
+      "description": "People after k only contribute up to tickets[k] - 1 seconds.",
+      "input": "tickets = [2,2,2], k = 0",
+      "output": "4"
+    },
+    {
+      "description": "When k is last and needs one ticket, every earlier active person buys once first.",
+      "input": "tickets = [4,4,1], k = 2",
+      "output": "3"
+    },
+    {
+      "description": "Equal demands show that people after k miss the final target turn.",
+      "input": "tickets = [3,3,3], k = 1",
+      "output": "8"
+    },
+    {
+      "description": "Small surrounding demands finish before the target person's later rounds.",
+      "input": "tickets = [1,1,5,1,1], k = 2",
+      "output": "9"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Single Pass Capped Contribution",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nLet `target = tickets[k]`. A person at index `i <= k` can buy at most `target` tickets before person `k` finishes. A person at index `i > k` can buy at most `target - 1` tickets, because the process stops immediately when person `k` buys the final ticket.\n\n## Key Insight\n\nEach person's contribution is independent once we know whether they stand before or after `k`. Summing `min(tickets[i], cap)` gives the exact elapsed seconds without moving the queue.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each person is counted once.\n- Space Complexity: O(1), because only counters are stored.",
+      "code": "class Solution {\n    public int timeRequiredToBuy(int[] tickets, int k) {\n        int target = tickets[k];\n        int time = 0;\n        for (int i = 0; i < tickets.length; i++) {\n            int cap = i <= k ? target : target - 1;\n            time += Math.min(tickets[i], cap);\n        }\n        return time;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Split Prefix and Suffix Caps",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCompute the contribution from the prefix `0..k` and the suffix `k+1..n-1` separately. The prefix uses cap `tickets[k]`; the suffix uses cap `tickets[k] - 1`.\n\n## Key Insight\n\nSplitting the queue around `k` makes the final-round asymmetry explicit. Everyone before `k` can still act in the final pass, while everyone after `k` cannot.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because the two loops cover the array once.\n- Space Complexity: O(1), because no auxiliary data structure is needed.",
+      "code": "class Solution {\n    public int timeRequiredToBuy(int[] tickets, int k) {\n        int target = tickets[k];\n        int time = 0;\n        for (int i = 0; i <= k; i++) {\n            time += Math.min(tickets[i], target);\n        }\n        for (int i = k + 1; i < tickets.length; i++) {\n            time += Math.min(tickets[i], target - 1);\n        }\n        return time;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Queue Simulation",
+      "timeComplexity": "O(total tickets bought before k finishes)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nPut all indices into a queue. Each step removes the front index, decreases that person's remaining ticket count, and either returns the index to the back or stops if it was person `k`'s final ticket.\n\n## Key Insight\n\nThis is a literal implementation of the statement. It is slower than the formula but useful as an executable model for checking the contribution reasoning.\n\n## Complexity Analysis\n\n- Time Complexity: O(total tickets bought before k finishes), because one loop iteration sells one ticket.\n- Space Complexity: O(n), for the queue of active people.",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Queue;\n\nclass Solution {\n    public int timeRequiredToBuy(int[] tickets, int k) {\n        Queue<Integer> queue = new ArrayDeque<>();\n        for (int i = 0; i < tickets.length; i++) {\n            queue.offer(i);\n        }\n        int[] remaining = tickets.clone();\n        int time = 0;\n        while (true) {\n            int index = queue.poll();\n            remaining[index]--;\n            time++;\n            if (index == k && remaining[index] == 0) {\n                return time;\n            }\n            if (remaining[index] > 0) {\n                queue.offer(index);\n            }\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Cyclic Array Simulation",
+      "timeComplexity": "O(total tickets bought before k finishes)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCopy the ticket counts and repeatedly scan indices from left to right. Whenever a person still needs tickets, sell one ticket to them. Stop at the exact moment person `k` reaches zero.\n\n## Key Insight\n\nThe queue order is the same as repeated cyclic scans after finished people are skipped. This avoids a queue object while still simulating one ticket per second.\n\n## Complexity Analysis\n\n- Time Complexity: O(total tickets bought before k finishes), because every counted second decrements one remaining ticket.\n- Space Complexity: O(n), for the mutable copy of ticket counts.",
+      "code": "class Solution {\n    public int timeRequiredToBuy(int[] tickets, int k) {\n        int[] remaining = tickets.clone();\n        int time = 0;\n        while (true) {\n            for (int i = 0; i < remaining.length; i++) {\n                if (remaining[i] == 0) {\n                    continue;\n                }\n                remaining[i]--;\n                time++;\n                if (i == k && remaining[i] == 0) {\n                    return time;\n                }\n            }\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Round Layer Counting",
+      "timeComplexity": "O(n * tickets[k])",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nThink in rounds instead of people. In round `r`, every person with at least `r` desired tickets gets one turn, except that in the final round `tickets[k]`, only people up through index `k` act before the process stops.\n\n## Key Insight\n\nThe formula can be derived by stacking ticket purchases in layers. Counting layer by layer is slower, but it directly shows why people after `k` contribute one fewer possible ticket.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * tickets[k]), which is acceptable under the small ticket constraint.\n- Space Complexity: O(1), because only the time counter is stored.",
+      "code": "class Solution {\n    public int timeRequiredToBuy(int[] tickets, int k) {\n        int target = tickets[k];\n        int time = 0;\n        for (int round = 1; round <= target; round++) {\n            for (int i = 0; i < tickets.length; i++) {\n                if (tickets[i] >= round && (round < target || i <= k)) {\n                    time++;\n                }\n            }\n        }\n        return time;\n    }\n}",
+      "language": "java"
     }
   ]
 }

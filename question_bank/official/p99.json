@@ -1,13 +1,15 @@
 {
   "id": "99",
   "title": "Path Sum III",
-  "description": "# Path Sum III\n\nGiven the `root` of a binary tree and an integer `targetSum`, return *the number of paths where the sum of the values along the path equals* `targetSum`.\n\nThe path does not need to start or end at the root or a leaf, but it must go downwards (i.e., traveling only from parent nodes to child nodes).\n\n## Example 1:\n\n**Input:** root = [10,5,-3,3,2,null,11,3,-2,null,1], targetSum = 8\n**Output:** 3\n**Explanation:** The paths that sum to 8 are shown.\n\n## Example 2:\n\n**Input:** root = [5,4,8,11,null,13,4,7,2,5,1], targetSum = 22\n**Output:** 3\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[0, 1000]`.\n*   `-10^9 <= Node.val <= 10^9`\n*   `-1000 <= targetSum <= 1000`",
+  "description": "# Path Sum III\n\nGiven the `root` of a binary tree and an integer `targetSum`, return the number of downward paths whose node values sum to `targetSum`.\n\nA path may start and end at any nodes in the tree. It does not need to start at the root or end at a leaf, but every step must move from a parent node to one of its children.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [10,5,-3,3,2,null,11,3,-2,null,1], targetSum = 8\n**Output:** 3\n**Explanation:** There are three downward paths with sum 8: 5 -> 3, 5 -> 2 -> 1, and -3 -> 11.\n\n## Example 2:\n\n**Input:** root = [5,4,8,11,null,13,4,7,2,5,1], targetSum = 22\n**Output:** 3\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[0, 1000]`.\n*   `-10^9 <= Node.val <= 10^9`\n*   `-1000 <= targetSum <= 1000`",
   "difficulty": "MEDIUM",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public int pathSum(TreeNode root, int targetSum) {\n        // Write your code here\n        return 0;\n    }\n}",
   "tags": [
     "Tree",
     "Depth-First Search",
-    "Binary Tree"
+    "Binary Tree",
+    "Hash Table",
+    "Prefix Sum"
   ],
   "examples": [
     {
@@ -22,27 +24,63 @@
   "tests": [
     {
       "input": "root = [10,5,-3,3,2,null,11,3,-2,null,1], targetSum = 8",
-      "output": "3"
+      "output": "3",
+      "description": "Canonical tree counts three downward paths that may start below the root."
     },
     {
       "input": "root = [5,4,8,11,null,13,4,7,2,5,1], targetSum = 22",
-      "output": "3"
+      "output": "3",
+      "description": "Second canonical tree includes multiple root-to-leaf and internal-ending paths."
     },
     {
       "input": "root = [], targetSum = 0",
-      "output": "0"
+      "output": "0",
+      "description": "Empty tree contains no paths, even when targetSum is zero."
     },
     {
       "input": "root = [1], targetSum = 1",
-      "output": "1"
+      "output": "1",
+      "description": "Single node equal to target counts as one length-one path."
     },
     {
       "input": "root = [1,2,3], targetSum = 100",
-      "output": "0"
+      "output": "0",
+      "description": "No path should be counted when every downward sum misses the target."
     },
     {
       "input": "root = [1,-2,-3,1,3,-2,null,-1], targetSum = -1",
-      "output": "4"
+      "output": "4",
+      "description": "Negative values and negative target verify that prefix sums are not monotonic."
+    },
+    {
+      "input": "root = [1], targetSum = 0",
+      "output": "0",
+      "description": "Single node not equal to target should not be counted."
+    },
+    {
+      "input": "root = [0], targetSum = 0",
+      "output": "1",
+      "description": "A zero-valued singleton contributes exactly one path."
+    },
+    {
+      "input": "root = [0,0,0], targetSum = 0",
+      "output": "5",
+      "description": "All-zero tree verifies that overlapping paths ending at different nodes are counted separately."
+    },
+    {
+      "input": "root = [1,2,null,3,null,4,null,5], targetSum = 9",
+      "output": "2",
+      "description": "Deep skewed tree counts both an internal subpath and a suffix path."
+    },
+    {
+      "input": "root = [1000000000,-1000000000,1000000000], targetSum = 0",
+      "output": "1",
+      "description": "Large node values require long prefix sums to avoid overflow during accumulation."
+    },
+    {
+      "input": "root = [1,2,3,4,5], targetSum = 7",
+      "output": "2",
+      "description": "Valid paths may start at the root or at an internal node, but always move downward."
     }
   ],
   "solutions": [
@@ -50,16 +88,32 @@
       "name": "Prefix Sum + HashMap",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use a prefix sum and a HashMap to count how many times each prefix sum has occurred. At each node, check if (currentSum - targetSum) exists in the map — that means there's a subpath summing to targetSum.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int pathSum(TreeNode root, int targetSum) {\n        Map<Long, Integer> prefixMap = new HashMap<>();\n        prefixMap.put(0L, 1);\n        return dfs(root, 0L, targetSum, prefixMap);\n    }\n    \n    private int dfs(TreeNode node, long currentSum, int target, Map<Long, Integer> prefixMap) {\n        if (node == null) return 0;\n        \n        currentSum += node.val;\n        int count = prefixMap.getOrDefault(currentSum - target, 0);\n        \n        prefixMap.merge(currentSum, 1, Integer::sum);\n        \n        count += dfs(node.left, currentSum, target, prefixMap);\n        count += dfs(node.right, currentSum, target, prefixMap);\n        \n        prefixMap.merge(currentSum, -1, Integer::sum);\n        \n        return count;\n    }\n}",
+      "description": "## Approach\n\nRun DFS while maintaining prefix sums for the current root-to-node route. If the current sum is `S`, every previous prefix sum equal to `S - targetSum` defines a downward path ending at the current node.\n\n## Key Insight\n\nThe map must store counts, not only whether a prefix sum exists, because duplicate prefix sums can create multiple valid starts. Backtracking removes the current prefix before DFS returns to a sibling branch.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int pathSum(TreeNode root, int targetSum) {\n        Map<Long, Integer> prefixMap = new HashMap<>();\n        prefixMap.put(0L, 1);\n        return dfs(root, 0L, targetSum, prefixMap);\n    }\n    \n    private int dfs(TreeNode node, long currentSum, int target, Map<Long, Integer> prefixMap) {\n        if (node == null) return 0;\n        \n        currentSum += node.val;\n        int count = prefixMap.getOrDefault(currentSum - target, 0);\n        \n        prefixMap.merge(currentSum, 1, Integer::sum);\n        \n        count += dfs(node.left, currentSum, target, prefixMap);\n        count += dfs(node.right, currentSum, target, prefixMap);\n        \n        prefixMap.merge(currentSum, -1, Integer::sum);\n        if (prefixMap.get(currentSum) == 0) {\n            prefixMap.remove(currentSum);\n        }\n        \n        return count;\n    }\n}",
       "language": "java"
     },
     {
       "name": "Brute Force DFS from Each Node",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(h)",
-      "description": "For each node, run a DFS counting paths starting from that node that sum to targetSum. Total paths = sum of counts from all starting nodes.",
+      "description": "## Approach\n\nTreat every node as a possible path start. For each start node, run a second DFS that keeps the remaining target and counts downward paths beginning exactly there.\n\n## Key Insight\n\nThis slower baseline is valuable for teaching because it separates the two freedoms in the prompt: the start can be anywhere, but once chosen, the path can only move from parent to child.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(h)",
       "code": "class Solution {\n    public int pathSum(TreeNode root, int targetSum) {\n        if (root == null) return 0;\n        \n        return countFrom(root, targetSum)\n            + pathSum(root.left, targetSum)\n            + pathSum(root.right, targetSum);\n    }\n    \n    private int countFrom(TreeNode node, long remain) {\n        if (node == null) return 0;\n        \n        int count = (node.val == remain) ? 1 : 0;\n        count += countFrom(node.left, remain - node.val);\n        count += countFrom(node.right, remain - node.val);\n        \n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Path Suffix Sum Scan",
+      "timeComplexity": "O(nh)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nKeep the current root-to-node path in a list. When DFS visits a node, scan suffix sums of that list from the current node upward and count every suffix equal to `targetSum`.\n\n## Key Insight\n\nEvery valid downward path that ends at the current node is exactly one suffix of the current root-to-node path. This avoids choosing starts explicitly while still showing why paths may begin below the root.\n\n## Complexity Analysis\n- Time Complexity: O(nh)\n- Space Complexity: O(h)",
+      "code": "import java.util.*;\n\nclass Solution {\n    private int count = 0;\n\n    public int pathSum(TreeNode root, int targetSum) {\n        dfs(root, targetSum, new ArrayList<>());\n        return count;\n    }\n\n    private void dfs(TreeNode node, int targetSum, List<Integer> path) {\n        if (node == null) {\n            return;\n        }\n\n        path.add(node.val);\n        long suffixSum = 0;\n        for (int i = path.size() - 1; i >= 0; i--) {\n            suffixSum += path.get(i);\n            if (suffixSum == targetSum) {\n                count++;\n            }\n        }\n\n        dfs(node.left, targetSum, path);\n        dfs(node.right, targetSum, path);\n        path.remove(path.size() - 1);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative Prefix Sum DFS",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSimulate recursive prefix-sum backtracking with a stack of enter and exit frames. Entering a node adds its prefix sum and counts paths ending there; the matching exit frame removes that prefix after both children have been processed.\n\n## Key Insight\n\nThe exit frame is the iterative replacement for recursive backtracking. Without it, prefix sums from one branch would leak into a sibling branch and count paths that do not exist in the tree.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final class Frame {\n        final TreeNode node;\n        final long prefix;\n        final boolean exit;\n\n        Frame(TreeNode node, long prefix, boolean exit) {\n            this.node = node;\n            this.prefix = prefix;\n            this.exit = exit;\n        }\n    }\n\n    public int pathSum(TreeNode root, int targetSum) {\n        if (root == null) {\n            return 0;\n        }\n\n        Map<Long, Integer> prefixCounts = new HashMap<>();\n        prefixCounts.put(0L, 1);\n        Deque<Frame> stack = new ArrayDeque<>();\n        stack.push(new Frame(root, 0L, false));\n        int total = 0;\n\n        while (!stack.isEmpty()) {\n            Frame frame = stack.pop();\n            TreeNode node = frame.node;\n            if (frame.exit) {\n                prefixCounts.merge(frame.prefix, -1, Integer::sum);\n                if (prefixCounts.get(frame.prefix) == 0) {\n                    prefixCounts.remove(frame.prefix);\n                }\n                continue;\n            }\n\n            long current = frame.prefix + node.val;\n            total += prefixCounts.getOrDefault(current - targetSum, 0);\n            prefixCounts.merge(current, 1, Integer::sum);\n\n            stack.push(new Frame(node, current, true));\n            if (node.right != null) {\n                stack.push(new Frame(node.right, current, false));\n            }\n            if (node.left != null) {\n                stack.push(new Frame(node.left, current, false));\n            }\n        }\n\n        return total;\n    }\n}",
       "language": "java"
     }
   ],
@@ -67,7 +121,7 @@
     {
       "id": "example1",
       "file": "p99_example1.png",
-      "caption": "Example 1: Tree [10,5,-3,3,2,null,11,3,-2,null,1]"
+      "caption": "Input tree and target sum"
     }
   ]
 }

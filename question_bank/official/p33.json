@@ -1,19 +1,41 @@
 {
   "id": "33",
   "title": "Longest Repeating Character Replacement",
-  "description": "# Longest Repeating Character Replacement\n\nYou are given a string `s` and an integer `k`. You can choose any character of the string and change it to any other uppercase English character. You can perform this operation at most `k` times.\n\nReturn *the length of the longest substring containing the same letter you can get after performing the above operations*.\n\n## Example 1:\n\n**Input:** s = \"ABAB\", k = 2\n**Output:** 4\n**Explanation:** Replace the two 'A's with two 'B's or vice versa.\n\n## Example 2:\n\n**Input:** s = \"AABABBA\", k = 1\n**Output:** 4\n**Explanation:** Replace the one 'A' in the middle with 'B' and form \"AABBBBA\".\nThe substring \"BBBB\" has the longest repeating letters, which is 4.\nThere may exists other ways to achieve this answer too.\n\n## Constraints:\n\n*   `1 <= s.length <= 10^5`\n*   `s` consists of only uppercase English letters.\n*   `0 <= k <= s.length`",
+  "description": "# Longest Repeating Character Replacement\n\nYou are given a string `s` and an integer `k`. You may choose any character in the string and change it to any other uppercase English character. You may perform this operation at most `k` times.\n\nReturn the length of the longest contiguous substring that can be made of one repeated letter after those replacements.\n\n## Example 1:\n\n**Input:** s = \"ABAB\", k = 2\n**Output:** 4\n**Explanation:** Replace the two 'A's with 'B's, or replace the two 'B's with 'A's.\n\n## Example 2:\n\n**Input:** s = \"AABABBA\", k = 1\n**Output:** 4\n**Explanation:** Replace the middle 'A' with 'B' to form \"AABBBBA\". The substring \"BBBB\" has length 4. Other replacement choices may also reach length 4.\n\n## Constraints:\n\n*   `1 <= s.length <= 10^5`\n*   `s` consists only of uppercase English letters.\n*   `0 <= k <= s.length`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int characterReplacement(String s, int k) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Hash Table", "String", "Sliding Window"],
+  "tags": [
+    "Hash Table",
+    "String",
+    "Sliding Window"
+  ],
   "examples": [
-    { "input": "s = \"ABAB\", k = 2", "output": "4" },
-    { "input": "s = \"AABABBA\", k = 1", "output": "4" }
+    {
+      "input": "s = \"ABAB\", k = 2",
+      "output": "4"
+    },
+    {
+      "input": "s = \"AABABBA\", k = 1",
+      "output": "4"
+    }
   ],
   "tests": [
-    { "input": "s = \"ABAB\", k = 2", "output": "4" },
-    { "input": "s = \"AABABBA\", k = 1", "output": "4" },
-    { "input": "s = \"AAAA\", k = 2", "output": "4" },
-    { "input": "s = \"ABBB\", k = 2", "output": "4" },
+    {
+      "input": "s = \"ABAB\", k = 2",
+      "output": "4"
+    },
+    {
+      "input": "s = \"AABABBA\", k = 1",
+      "output": "4"
+    },
+    {
+      "input": "s = \"AAAA\", k = 2",
+      "output": "4"
+    },
+    {
+      "input": "s = \"ABBB\", k = 2",
+      "output": "4"
+    },
     {
       "input": "s = \"ABCD\", k = 0",
       "output": "1",
@@ -23,6 +45,36 @@
       "input": "s = \"A\", k = 0",
       "output": "1",
       "description": "Single character"
+    },
+    {
+      "input": "s = \"ABCDE\", k = 10",
+      "output": "5",
+      "description": "Replacement budget covers entire string"
+    },
+    {
+      "input": "s = \"BAAAB\", k = 2",
+      "output": "5",
+      "description": "Both ends can be replaced to keep the middle run"
+    },
+    {
+      "input": "s = \"ABAA\", k = 0",
+      "output": "2",
+      "description": "No replacements but repeated run exists"
+    },
+    {
+      "input": "s = \"ABCDE\", k = 1",
+      "output": "2",
+      "description": "One replacement can only form a pair among all distinct letters"
+    },
+    {
+      "input": "s = \"ABCDEFFFG\", k = 2",
+      "output": "5",
+      "description": "Longer window must be rejected when it needs three replacements"
+    },
+    {
+      "input": "s = \"AAABBC\", k = 2",
+      "output": "5",
+      "description": "Best window is internal and uses the full replacement budget"
     }
   ],
   "solutions": [
@@ -30,15 +82,29 @@
       "name": "Sliding Window - Track Max Count",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use sliding window tracking the count of each character. Valid window: windowSize - maxCount <= k. Shrink window when invalid.",
+      "description": "## Approach\n\nUse a sliding window with character counts and track the maximum frequency inside the window. A window of length `L` can be made uniform if `L - maxCount <= k`. If not, shrink from the left.\n\n## Key Insight\n\nThe most frequent character is the one we keep; every other character in the window must be replaced. This turns the replacement question into a window-validity inequality.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
       "code": "class Solution {\n    public int characterReplacement(String s, int k) {\n        int[] count = new int[26];\n        int maxCount = 0; // Max frequency of any single character in window\n        int maxLen = 0;\n        int left = 0;\n        \n        for (int right = 0; right < s.length(); right++) {\n            count[s.charAt(right) - 'A']++;\n            maxCount = Math.max(maxCount, count[s.charAt(right) - 'A']);\n            \n            // If window invalid (need more than k replacements), shrink\n            while (right - left + 1 - maxCount > k) {\n                count[s.charAt(left) - 'A']--;\n                left++;\n            }\n            \n            maxLen = Math.max(maxLen, right - left + 1);\n        }\n        \n        return maxLen;\n    }\n}"
     },
     {
       "name": "Sliding Window - Optimized (No Shrink)",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Optimization: never shrink window, only slide. maxCount never needs to decrease since we only care about max length.",
+      "description": "## Approach\n\nUse the optimized sliding-window variant where `maxCount` is allowed to be stale and the left boundary advances only when the current window is definitely too large.\n\n## Key Insight\n\nA stale `maxCount` may make a window look valid longer than it currently is, but it never causes the recorded maximum length to be too small. This is a subtle but common optimization for this problem.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
       "code": "class Solution {\n    public int characterReplacement(String s, int k) {\n        int[] count = new int[26];\n        int maxCount = 0;\n        int left = 0;\n        int maxLen = 0;\n        \n        for (int right = 0; right < s.length(); right++) {\n            count[s.charAt(right) - 'A']++;\n            maxCount = Math.max(maxCount, count[s.charAt(right) - 'A']);\n            \n            // Window size = right - left + 1\n            // Characters to replace = windowSize - maxCount\n            if (right - left + 1 - maxCount > k) {\n                // Slide window (don't shrink)\n                count[s.charAt(left) - 'A']--;\n                left++;\n            }\n            \n            maxLen = right - left + 1;\n        }\n        \n        return maxLen;\n    }\n}"
+    },
+    {
+      "name": "Enumerate Target Character Windows",
+      "timeComplexity": "O(26 * n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nTry each uppercase letter as the character we plan to keep. For that fixed target, run a sliding window that counts how many characters inside the window are not the target. If that mismatch count exceeds `k`, move the left boundary until the window is feasible again.\n\n## Key Insight\n\nOnce the target letter is fixed, the problem no longer needs a frequency table: every non-target character is exactly one required replacement. This slower linear route is a useful teaching baseline for the optimized max-count windows.\n\n## Complexity Analysis\n- Time Complexity: O(26 * n), which is O(n) for uppercase English letters\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int characterReplacement(String s, int k) {\n        int answer = 0;\n\n        for (char target = 'A'; target <= 'Z'; target++) {\n            int left = 0;\n            int replacementsNeeded = 0;\n\n            for (int right = 0; right < s.length(); right++) {\n                if (s.charAt(right) != target) {\n                    replacementsNeeded++;\n                }\n\n                while (replacementsNeeded > k) {\n                    if (s.charAt(left) != target) {\n                        replacementsNeeded--;\n                    }\n                    left++;\n                }\n\n                answer = Math.max(answer, right - left + 1);\n            }\n        }\n\n        return answer;\n    }\n}"
+    },
+    {
+      "name": "Binary Search on Window Length",
+      "timeComplexity": "O(26 * n log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nBinary search the answer length. For a candidate length, scan every fixed-size window and check whether any window can be made uniform with at most `k` replacements.\n\n## Key Insight\n\nFeasibility is monotonic: if some length works, every shorter length also works. This solution teaches the binary-search-on-answer pattern for window problems.\n\n## Complexity Analysis\n- Time Complexity: O(26 * n * log n), simplified to O(n log n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int characterReplacement(String s, int k) {\n        int left = 1;\n        int right = s.length();\n        int answer = 0;\n\n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            if (hasValidWindow(s, k, mid)) {\n                answer = mid;\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n\n        return answer;\n    }\n\n    private boolean hasValidWindow(String s, int k, int length) {\n        int[] count = new int[26];\n        for (int right = 0; right < s.length(); right++) {\n            count[s.charAt(right) - 'A']++;\n            if (right >= length) {\n                count[s.charAt(right - length) - 'A']--;\n            }\n            if (right >= length - 1) {\n                int maxCount = 0;\n                for (int value : count) {\n                    maxCount = Math.max(maxCount, value);\n                }\n                if (length - maxCount <= k) {\n                    return true;\n                }\n            }\n        }\n        return false;\n    }\n}"
     }
   ]
 }

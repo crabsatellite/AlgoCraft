@@ -1,9 +1,9 @@
 {
   "id": "395",
   "title": "Recover a Tree From Preorder Traversal",
-  "description": "# Recover a Tree From Preorder Traversal\n\nWe run a preorder depth-first search (DFS) on the `root` of a binary tree.\n\nAt each node in this traversal, we output `D` dashes (where `D` is the depth of this node), then we output the value of this node.  If the depth of a node is `D`, the depth of its immediate child is `D + 1`.  The depth of the `root` node is `0`.\n\nIf a node has only one child, that child is guaranteed to be the left child.\n\nGiven the output `traversal` of this traversal, recover the tree and return its `root`.\n\n## Example 1:\n\n**Input:** traversal = \"1-2--3--4-5--6--7\"\n**Output:** [1,2,5,3,4,6,7]\n\n## Example 2:\n\n**Input:** traversal = \"1-2--3---4-5--6---7\"\n**Output:** [1,2,5,3,null,6,null,4,null,7]\n\n## Example 3:\n\n**Input:** traversal = \"1-401--349---90--88\"\n**Output:** [1,401,null,349,88,90]\n\n## Constraints:\n\n*   The number of nodes in the original tree is in the range `[1, 1000]`.\n*   `1 <= Node.val <= 10^9`",
+  "description": "# Recover a Tree From Preorder Traversal\n\nWe run a preorder depth-first search on the root of a binary tree. For each visited node, the traversal writes `D` dashes followed by the node value, where `D` is the depth of that node. The root has depth `0`.\n\nIf a node has depth `D`, each direct child has depth `D + 1`. If a node has only one child, that child is guaranteed to be its left child.\n\nGiven the traversal string, reconstruct the original binary tree and return its root. The answer is serialized in level order in the examples and tests.\n\nPreorder visits the root, then the entire left subtree, then the entire right subtree, recursively applying that order. Dashes mark depth, not negative signs.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** traversal = \"1-2--3--4-5--6--7\"\n**Output:** [1,2,5,3,4,6,7]\n**Explanation:** The dash counts identify depths 0, 1, 2, 2, 1, 2, 2.\n\n## Example 2:\n\n**Input:** traversal = \"1-2--3---4-5--6---7\"\n**Output:** [1,2,5,3,null,6,null,4,null,7]\n**Explanation:** After reading node 4, the next depth-1 node is a right child of the root, so the parser must move back up several levels.\n\n## Example 3:\n\n**Input:** traversal = \"1-401--349---90--88\"\n**Output:** [1,401,null,349,88,90]\n\n## Constraints:\n\n* The number of nodes is in the range `[1, 1000]`.\n* `1 <= Node.val <= 10^9`\n* The input traversal is generated from a valid binary tree.\n* If a node has only one child, that child is the left child.",
   "difficulty": "HARD",
-  "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public TreeNode recoverFromPreorder(String traversal) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public TreeNode recoverFromPreorder(String traversal) {\n        return null;\n    }\n}",
   "tags": [
     "String",
     "Tree",
@@ -26,41 +26,113 @@
   ],
   "solutions": [
     {
-      "name": "Stack-Based Iterative",
+      "name": "Stack-Based Iterative Ancestor Path",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Parse the string character by character. Count dashes for depth, then parse the number. Use a stack to track ancestors. Pop until stack size equals depth, then attach as left or right child.",
-      "code": "class Solution {\n    public TreeNode recoverFromPreorder(String traversal) {\n        java.util.Deque<TreeNode> stack = new java.util.ArrayDeque<>();\n        int i = 0, n = traversal.length();\n        while (i < n) {\n            int depth = 0;\n            while (i < n && traversal.charAt(i) == '-') { depth++; i++; }\n            int val = 0;\n            while (i < n && traversal.charAt(i) != '-') { val = val * 10 + (traversal.charAt(i) - '0'); i++; }\n            TreeNode node = new TreeNode(val);\n            while (stack.size() > depth) stack.pop();\n            if (!stack.isEmpty()) {\n                if (stack.peek().left == null) stack.peek().left = node;\n                else stack.peek().right = node;\n            }\n            stack.push(node);\n        }\n        while (stack.size() > 1) stack.pop();\n        return stack.peek();\n    }\n}",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\nScan the traversal string once. For each node, count its leading dashes to get the depth, then parse its value. Keep a stack representing the current root-to-node path. Before attaching a new node, pop until the stack size equals the new node's depth, so the stack top is exactly its parent.\n\n## Key Insight\nPreorder visits a parent before its children, and the dash count tells how far the traversal moved back up the ancestor path. Once the path is trimmed to the target depth, the first empty child slot of the parent is the correct attachment point.\n\n## Complexity Analysis\nEach character is parsed once, and each node is pushed and popped at most once, so the time complexity is O(n), where n is the traversal string length. The stack stores at most the tree height h, so the extra space is O(h).",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\nclass Solution {\n    public TreeNode recoverFromPreorder(String traversal) {\n        Deque<TreeNode> stack = new ArrayDeque<>();\n        int index = 0;\n        while (index < traversal.length()) {\n            int depth = 0;\n            while (index < traversal.length() && traversal.charAt(index) == '-') {\n                depth++;\n                index++;\n            }\n\n            int value = 0;\n            while (index < traversal.length() && traversal.charAt(index) != '-') {\n                value = value * 10 + traversal.charAt(index) - '0';\n                index++;\n            }\n\n            TreeNode node = new TreeNode(value);\n            while (stack.size() > depth) {\n                stack.pop();\n            }\n            if (!stack.isEmpty()) {\n                TreeNode parent = stack.peek();\n                if (parent.left == null) {\n                    parent.left = node;\n                } else {\n                    parent.right = node;\n                }\n            }\n            stack.push(node);\n        }\n\n        while (stack.size() > 1) {\n            stack.pop();\n        }\n        return stack.peek();\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Recursive DFS Parsing",
+      "name": "Direct Recursive String Parser",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\nUse one shared index into the string and write a recursive `build(expectedDepth)` function. The function first counts dashes at the current index. If that count is not the expected depth, it returns null without consuming anything. Otherwise it consumes the value and recursively builds the left and right children at the next depth.\n\n## Key Insight\nThe valid input guarantee means that when a node has only one child, that child is the left child. Therefore the recursive parser can always try the left child first and then the right child with the same expected depth.\n\n## Complexity Analysis\nThe parser advances over each dash and digit a constant number of times, so the time complexity is O(n). The recursion stack follows the current root-to-leaf path and uses O(h) space.",
+      "code": "class Solution {\n    private int index;\n\n    public TreeNode recoverFromPreorder(String traversal) {\n        index = 0;\n        return build(traversal, 0);\n    }\n\n    private TreeNode build(String traversal, int expectedDepth) {\n        int scan = index;\n        int depth = 0;\n        while (scan < traversal.length() && traversal.charAt(scan) == '-') {\n            depth++;\n            scan++;\n        }\n        if (depth != expectedDepth) {\n            return null;\n        }\n\n        int value = 0;\n        index = scan;\n        while (index < traversal.length() && traversal.charAt(index) != '-') {\n            value = value * 10 + traversal.charAt(index) - '0';\n            index++;\n        }\n\n        TreeNode node = new TreeNode(value);\n        node.left = build(traversal, expectedDepth + 1);\n        node.right = build(traversal, expectedDepth + 1);\n        return node;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Depth Indexed Parent Array",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\nParse each node's depth and value, and keep `lastAtDepth[d]` as the most recent node seen at depth `d`. For a new node at depth `d`, the parent is `lastAtDepth[d - 1]`. Attach to the parent's left child if it is empty, otherwise attach to the right child, then replace `lastAtDepth[d]` with the new node.\n\n## Key Insight\nPreorder guarantees that the most recently seen node at depth `d - 1` is the parent of the next node at depth `d`. This avoids popping a stack and makes the depth relationship explicit.\n\n## Complexity Analysis\nThe string is parsed once, so the time complexity is O(n). The depth array stores one node per active depth, so the extra space is O(h); the fixed upper bound is safe because the node count is at most 1000.",
+      "code": "class Solution {\n    public TreeNode recoverFromPreorder(String traversal) {\n        TreeNode[] lastAtDepth = new TreeNode[1001];\n        TreeNode root = null;\n        int index = 0;\n\n        while (index < traversal.length()) {\n            int depth = 0;\n            while (index < traversal.length() && traversal.charAt(index) == '-') {\n                depth++;\n                index++;\n            }\n\n            int value = 0;\n            while (index < traversal.length() && Character.isDigit(traversal.charAt(index))) {\n                value = value * 10 + traversal.charAt(index) - '0';\n                index++;\n            }\n\n            TreeNode node = new TreeNode(value);\n            lastAtDepth[depth] = node;\n            if (depth == 0) {\n                root = node;\n            } else {\n                TreeNode parent = lastAtDepth[depth - 1];\n                if (parent.left == null) {\n                    parent.left = node;\n                } else {\n                    parent.right = node;\n                }\n            }\n        }\n        return root;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Token List Then Stack Reconstruction",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Parse the string recursively. Track current index globally. At each level, count dashes to determine depth. If depth matches expected level, create node and recurse for left and right children.",
-      "code": "class Solution {\n    private int idx = 0;\n    public TreeNode recoverFromPreorder(String traversal) {\n        idx = 0;\n        return build(traversal, 0);\n    }\n    private TreeNode build(String s, int depth) {\n        int n = s.length();\n        int dashes = 0;\n        int tempIdx = idx;\n        while (tempIdx < n && s.charAt(tempIdx) == '-') {\n            dashes++;\n            tempIdx++;\n        }\n        if (dashes != depth) return null;\n        idx = tempIdx;\n        int val = 0;\n        while (idx < n && s.charAt(idx) != '-') {\n            val = val * 10 + (s.charAt(idx) - '0');\n            idx++;\n        }\n        TreeNode node = new TreeNode(val);\n        node.left = build(s, depth + 1);\n        node.right = build(s, depth + 1);\n        return node;\n    }\n}",
+      "description": "## Approach\nFirst tokenize the string into `(depth, value)` records. Then run the same ancestor-stack reconstruction over those records. Separating lexical parsing from tree construction makes it easier to test the dash-count parsing independently from the parent attachment logic.\n\n## Key Insight\nThe difficult part of this problem is not only building the tree; it is also reading multi-digit values after an arbitrary number of dashes. A token list makes the two responsibilities explicit for teaching and debugging.\n\n## Complexity Analysis\nTokenization and reconstruction are both linear, so the time complexity is O(n). The token list stores every node and the stack stores the active path, for O(n) extra space.",
+      "code": "import java.util.ArrayDeque;\nimport java.util.ArrayList;\nimport java.util.Deque;\nimport java.util.List;\n\nclass Solution {\n    private static final class Token {\n        final int depth;\n        final int value;\n        Token(int depth, int value) {\n            this.depth = depth;\n            this.value = value;\n        }\n    }\n\n    public TreeNode recoverFromPreorder(String traversal) {\n        List<Token> tokens = tokenize(traversal);\n        Deque<TreeNode> stack = new ArrayDeque<>();\n        TreeNode root = null;\n\n        for (Token token : tokens) {\n            TreeNode node = new TreeNode(token.value);\n            while (stack.size() > token.depth) {\n                stack.pop();\n            }\n            if (stack.isEmpty()) {\n                root = node;\n            } else if (stack.peek().left == null) {\n                stack.peek().left = node;\n            } else {\n                stack.peek().right = node;\n            }\n            stack.push(node);\n        }\n        return root;\n    }\n\n    private List<Token> tokenize(String traversal) {\n        List<Token> tokens = new ArrayList<>();\n        int index = 0;\n        while (index < traversal.length()) {\n            int depth = 0;\n            while (index < traversal.length() && traversal.charAt(index) == '-') {\n                depth++;\n                index++;\n            }\n            int value = 0;\n            while (index < traversal.length() && Character.isDigit(traversal.charAt(index))) {\n                value = value * 10 + traversal.charAt(index) - '0';\n                index++;\n            }\n            tokens.add(new Token(depth, value));\n        }\n        return tokens;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Token Stream Recursive Descent",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nTokenize the traversal into parallel depth and value arrays, then recursively consume that token stream. A recursive call for depth `d` accepts the next token only when its recorded depth is exactly `d`; otherwise it leaves the token for an ancestor's right subtree.\n\n## Key Insight\nAfter tokenization, the problem becomes a preorder grammar: `node(depth) = token(depth) node(depth+1) node(depth+1)`. This grammar view explains why trying left before right is sufficient under the one-child-is-left rule.\n\n## Complexity Analysis\nBuilding the token arrays and consuming them are linear in the traversal length. The arrays use O(m) space for m nodes, and the recursion stack uses O(h), so the total extra space is O(n).",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    private List<Integer> depths;\n    private List<Integer> values;\n    private int tokenIndex;\n\n    public TreeNode recoverFromPreorder(String traversal) {\n        depths = new ArrayList<>();\n        values = new ArrayList<>();\n        tokenize(traversal);\n        tokenIndex = 0;\n        return build(0);\n    }\n\n    private TreeNode build(int expectedDepth) {\n        if (tokenIndex == values.size() || depths.get(tokenIndex) != expectedDepth) {\n            return null;\n        }\n        TreeNode node = new TreeNode(values.get(tokenIndex));\n        tokenIndex++;\n        node.left = build(expectedDepth + 1);\n        node.right = build(expectedDepth + 1);\n        return node;\n    }\n\n    private void tokenize(String traversal) {\n        int index = 0;\n        while (index < traversal.length()) {\n            int depth = 0;\n            while (index < traversal.length() && traversal.charAt(index) == '-') {\n                depth++;\n                index++;\n            }\n            int value = 0;\n            while (index < traversal.length() && Character.isDigit(traversal.charAt(index))) {\n                value = value * 10 + traversal.charAt(index) - '0';\n                index++;\n            }\n            depths.add(depth);\n            values.add(value);\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "traversal = \"1-2--3--4-5--6--7\"",
-      "output": "[1,2,5,3,4,6,7]"
+      "output": "[1,2,5,3,4,6,7]",
+      "description": "canonical two-child subtrees at both depth one branches"
     },
     {
       "input": "traversal = \"1-2--3---4-5--6---7\"",
-      "output": "[1,2,5,3,null,6,null,4,null,7]"
+      "output": "[1,2,5,3,null,6,null,4,null,7]",
+      "description": "left chains under both major branches"
     },
     {
       "input": "traversal = \"1-401--349---90--88\"",
-      "output": "[1,401,null,349,88,90]"
+      "output": "[1,401,null,349,88,90]",
+      "description": "multi-digit node values and a right child after a deeper left chain"
+    },
+    {
+      "input": "traversal = \"1\"",
+      "output": "[1]",
+      "description": "single root boundary"
+    },
+    {
+      "input": "traversal = \"10-7--8-12\"",
+      "output": "[10,7,12,8]",
+      "description": "multi-digit root with left grandchild and right child"
+    },
+    {
+      "input": "traversal = \"1-2--3---4----5\"",
+      "output": "[1,2,null,3,null,4,null,5]",
+      "description": "pure left chain from repeated one-child nodes"
+    },
+    {
+      "input": "traversal = \"1-2\"",
+      "output": "[1,2]",
+      "description": "one child must be attached as the left child"
+    },
+    {
+      "input": "traversal = \"1-2--3---4--5-6--7\"",
+      "output": "[1,2,6,3,5,7,null,4]",
+      "description": "parser must pop multiple depths before attaching siblings"
+    },
+    {
+      "input": "traversal = \"1000000000-999999999--123456789---42-8\"",
+      "output": "[1000000000,999999999,8,123456789,null,null,null,42]",
+      "description": "large values near the constraint boundary"
+    },
+    {
+      "input": "traversal = \"10-20--30--40-50--60--70\"",
+      "output": "[10,20,50,30,40,60,70]",
+      "description": "multi-digit sibling pairs on both sides"
+    },
+    {
+      "input": "traversal = \"8-5--1---2----3--6-9--10---11\"",
+      "output": "[8,5,9,1,6,10,null,2,null,null,null,11,null,3]",
+      "description": "uneven tree with several depth resets"
+    },
+    {
+      "input": "traversal = \"1-2--3---4----5--6-7\"",
+      "output": "[1,2,7,3,6,null,null,4,null,null,null,5]",
+      "description": "deep left subtree followed by shallower right siblings"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p395_example1.png",
-      "caption": "Recovered Tree [1,2,5,3,4,6,7]"
+      "caption": "Preorder traversal string with depth dashes"
     }
   ]
 }

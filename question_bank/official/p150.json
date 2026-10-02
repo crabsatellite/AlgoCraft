@@ -1,7 +1,7 @@
 {
   "id": "150",
   "title": "Is Graph Bipartite?",
-  "description": "# Is Graph Bipartite?\n\nThere is an **undirected** graph with `n` nodes, where each node is numbered between `0` and `n - 1`. You are given a 2D array `graph`, where `graph[u]` is an array of nodes that node `u` is adjacent to. More formally, for each `v` in `graph[u]`, there is an undirected edge between node `u` and node `v`. The graph has the following properties:\n\n*   There are no self-edges (`graph[u]` does not contain `u`).\n*   There are no parallel edges (`graph[u]` does not contain duplicate values).\n*   If `v` is in `graph[u]`, then `u` is in `graph[v]` (the graph is undirected).\n*   The graph may not be connected, meaning there may be two nodes `u` and `v` such that there is no path between them.\n\nA graph is **bipartite** if the nodes can be partitioned into two independent sets `A` and `B` such that every edge in the graph connects a node in set `A` and a node in set `B`.\n\nReturn `true` *if and only if it is **bipartite***.\n\n## Example 1:\n\n**Input:** graph = [[1,2,3],[0,2],[0,1,3],[0,2]]\n**Output:** false\n**Explanation:** There is no way to partition the nodes into two independent sets such that every edge connects a node in one and a node in the other.\n\n## Example 2:\n\n**Input:** graph = [[1,3],[0,2],[1,3],[0,2]]\n**Output:** true\n**Explanation:** We can partition the nodes into two sets: {0, 2} and {1, 3}.\n\n## Constraints:\n\n*   `graph.length == n`\n*   `1 <= n <= 100`\n*   `0 <= graph[u].length < n`\n*   `0 <= graph[u][i] <= n - 1`\n*   `graph[u]` does not contain `u`.\n*   All the values of `graph[u]` are **unique**.\n*   If `graph[u]` contains `v`, then `graph[v]` contains `u`.",
+  "description": "# Is Graph Bipartite?\n\nYou are given an **undirected** graph with `n` nodes numbered from `0` to `n - 1`. The graph is represented by an adjacency list `graph`, where `graph[u]` contains every node directly connected to node `u`.\n\nThe input satisfies these graph rules:\n\n- There are no self-edges, so `graph[u]` never contains `u`.\n- There are no parallel edges, so `graph[u]` has no duplicate values.\n- The graph is undirected: if `v` is in `graph[u]`, then `u` is in `graph[v]`.\n- The graph may be disconnected. Some nodes can be isolated, and different connected components do not have to touch each other.\n\nA graph is **bipartite** if every node can be assigned to one of two groups, `A` or `B`, so that every edge connects one node in `A` and one node in `B`. Equivalently, the graph can be colored with two colors without any edge joining two nodes of the same color.\n\nReturn `true` if such a division into two groups exists; otherwise return `false`.\n\n## Example 1\n\n**Input:** `graph = [[1,2,3],[0,2],[0,1,3],[0,2]]`\n\n**Output:** `false`\n\n**Explanation:** Nodes `0`, `1`, and `2` form a triangle. A triangle is an odd cycle, so two adjacent nodes would have to share the same group.\n\n## Example 2\n\n**Input:** `graph = [[1,3],[0,2],[1,3],[0,2]]`\n\n**Output:** `true`\n\n**Explanation:** One valid partition is `{0, 2}` and `{1, 3}`. Every edge goes between the two groups.\n\n## Example 3\n\n**Input:** `graph = [[],[2],[1],[]]`\n\n**Output:** `true`\n\n**Explanation:** Isolated nodes do not create conflicts, and the only edge connects nodes `1` and `2`, which can be placed in opposite groups.\n\n## Constraints\n\n- `graph.length == n`\n- `1 <= n <= 100`\n- `0 <= graph[u].length < n`\n- `0 <= graph[u][i] <= n - 1`\n- `graph[u]` does not contain `u`.\n- All values of `graph[u]` are unique.\n- If `graph[u]` contains `v`, then `graph[v]` contains `u`.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public boolean isBipartite(int[][] graph) {\n        // Write your code here\n        return false;\n    }\n}",
   "tags": [
@@ -18,45 +18,98 @@
     {
       "input": "graph = [[1,3],[0,2],[1,3],[0,2]]",
       "output": "true"
+    },
+    {
+      "input": "graph = [[],[2],[1],[]]",
+      "output": "true"
     }
   ],
   "solutions": [
     {
-      "name": "BFS Coloring",
+      "name": "BFS Coloring by Component",
       "timeComplexity": "O(V + E)",
       "spaceComplexity": "O(V)",
-      "description": "Try to 2-color the graph using BFS. Assign color 0 to start node, color 1 to neighbors. If a neighbor already has the same color, the graph is not bipartite. Handle disconnected components.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isBipartite(int[][] graph) {\n        int n = graph.length;\n        int[] color = new int[n];\n        Arrays.fill(color, -1);\n        for (int i = 0; i < n; i++) {\n            if (color[i] != -1) continue;\n            Queue<Integer> queue = new LinkedList<>();\n            queue.offer(i);\n            color[i] = 0;\n            while (!queue.isEmpty()) {\n                int node = queue.poll();\n                for (int neighbor : graph[node]) {\n                    if (color[neighbor] == -1) {\n                        color[neighbor] = 1 - color[node];\n                        queue.offer(neighbor);\n                    } else if (color[neighbor] == color[node]) {\n                        return false;\n                    }\n                }\n            }\n        }\n        return true;\n    }\n}",
+      "description": "## Approach\n\nKeep a color array initialized to `-1`. For every uncolored node, start a BFS for that connected component, assign the start color `0`, and give every uncolored neighbor the opposite color. If an edge ever connects two nodes with the same color, return `false`.\n\n## Key Insight\n\nBipartite checking is exactly two-coloring. The graph can be disconnected, so the outer loop is not optional: each component needs its own BFS seed, including components after isolated nodes.\n\n## Complexity Analysis\n\nEach node is colored once and each adjacency-list entry is inspected once. The time complexity is `O(V + E)`, and the color array plus queue use `O(V)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isBipartite(int[][] graph) {\n        int n = graph.length;\n        int[] color = new int[n];\n        Arrays.fill(color, -1);\n\n        for (int start = 0; start < n; start++) {\n            if (color[start] != -1) {\n                continue;\n            }\n            Queue<Integer> queue = new ArrayDeque<>();\n            color[start] = 0;\n            queue.offer(start);\n\n            while (!queue.isEmpty()) {\n                int node = queue.poll();\n                for (int neighbor : graph[node]) {\n                    if (color[neighbor] == -1) {\n                        color[neighbor] = 1 - color[node];\n                        queue.offer(neighbor);\n                    } else if (color[neighbor] == color[node]) {\n                        return false;\n                    }\n                }\n            }\n        }\n        return true;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "DFS Coloring",
+      "name": "Recursive DFS Coloring",
       "timeComplexity": "O(V + E)",
       "spaceComplexity": "O(V)",
-      "description": "DFS-based 2-coloring. Assign color 0 to start node. For each neighbor, if uncolored, assign opposite color and recurse. If already colored with same color, not bipartite. Handle disconnected components.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isBipartite(int[][] graph) {\n        int n = graph.length;\n        int[] color = new int[n];\n        Arrays.fill(color, -1);\n        for (int i = 0; i < n; i++) {\n            if (color[i] == -1) {\n                if (!dfs(graph, color, i, 0)) return false;\n            }\n        }\n        return true;\n    }\n\n    private boolean dfs(int[][] graph, int[] color, int node, int c) {\n        color[node] = c;\n        for (int neighbor : graph[node]) {\n            if (color[neighbor] == -1) {\n                if (!dfs(graph, color, neighbor, 1 - c)) return false;\n            } else if (color[neighbor] == c) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
+      "description": "## Approach\n\nUse DFS to force a color on each visited node. If a node has already been colored, the call succeeds only when the existing color matches the requested color. Otherwise, color the node and recursively require every neighbor to use the opposite color.\n\n## Key Insight\n\nDFS expresses the invariant as a contract: entering a node means this node must have a specific side of the partition. Any later path that asks for the opposite side exposes an odd cycle or another contradiction.\n\n## Complexity Analysis\n\nEvery node and edge is processed a constant number of times, so the time complexity is `O(V + E)`. The color array and recursion stack use `O(V)` space in the worst case.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isBipartite(int[][] graph) {\n        int n = graph.length;\n        int[] color = new int[n];\n        Arrays.fill(color, -1);\n\n        for (int node = 0; node < n; node++) {\n            if (color[node] == -1 && !dfs(graph, color, node, 0)) {\n                return false;\n            }\n        }\n        return true;\n    }\n\n    private boolean dfs(int[][] graph, int[] color, int node, int expectedColor) {\n        if (color[node] != -1) {\n            return color[node] == expectedColor;\n        }\n        color[node] = expectedColor;\n        for (int neighbor : graph[node]) {\n            if (!dfs(graph, color, neighbor, 1 - expectedColor)) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Union-Find Neighbor Partition",
+      "timeComplexity": "O((V + E) * alpha(V))",
+      "spaceComplexity": "O(V)",
+      "description": "## Approach\n\nFor every node, all of its neighbors must be on the opposite side from the node, which means those neighbors must be on the same side as each other. For each node, first reject any neighbor already connected with the node, then union that neighbor with the first neighbor of the node.\n\n## Key Insight\n\nThis method checks the same two-partition rule without explicitly storing colors. A conflict appears when a node is forced into the same union-find set as one of its own neighbors.\n\n## Complexity Analysis\n\nEach adjacency-list entry performs a constant number of union-find operations. With path compression and union by size, the time complexity is `O((V + E) * alpha(V))`, and the parent and size arrays use `O(V)` space.",
+      "code": "class Solution {\n    public boolean isBipartite(int[][] graph) {\n        UnionFind uf = new UnionFind(graph.length);\n        for (int node = 0; node < graph.length; node++) {\n            int[] neighbors = graph[node];\n            for (int neighbor : neighbors) {\n                if (uf.connected(node, neighbor)) {\n                    return false;\n                }\n                uf.union(neighbors[0], neighbor);\n            }\n        }\n        return true;\n    }\n\n    static class UnionFind {\n        private final int[] parent;\n        private final int[] size;\n\n        UnionFind(int n) {\n            parent = new int[n];\n            size = new int[n];\n            for (int i = 0; i < n; i++) {\n                parent[i] = i;\n                size[i] = 1;\n            }\n        }\n\n        int find(int x) {\n            while (parent[x] != x) {\n                parent[x] = parent[parent[x]];\n                x = parent[x];\n            }\n            return x;\n        }\n\n        void union(int a, int b) {\n            int rootA = find(a);\n            int rootB = find(b);\n            if (rootA == rootB) {\n                return;\n            }\n            if (size[rootA] < size[rootB]) {\n                int tmp = rootA;\n                rootA = rootB;\n                rootB = tmp;\n            }\n            parent[rootB] = rootA;\n            size[rootA] += size[rootB];\n        }\n\n        boolean connected(int a, int b) {\n            return find(a) == find(b);\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Parity Union-Find with Opposite Slots",
+      "timeComplexity": "O((V + E) * alpha(V))",
+      "spaceComplexity": "O(V)",
+      "description": "## Approach\n\nCreate two union-find slots for each node: slot `u` means node `u` is in one side, and slot `u + n` means node `u` is in the opposite side. For every edge `(u, v)`, require `u` to be opposite from `v` by unioning `u` with `v + n` and `u + n` with `v`. If `u` is ever already connected with `v`, return `false`.\n\n## Key Insight\n\nEach edge is a parity constraint: its endpoints must have different colors. The doubled union-find structure stores a node and its logical opposite, which makes contradictions explicit even across long paths in the same component.\n\n## Complexity Analysis\n\nEvery adjacency-list entry performs two unions and one connectivity check. With path compression and union by size, the time complexity is `O((V + E) * alpha(V))`, and the doubled parent structure still uses `O(V)` space.",
+      "code": "class Solution {\n    public boolean isBipartite(int[][] graph) {\n        int n = graph.length;\n        UnionFind uf = new UnionFind(2 * n);\n\n        for (int u = 0; u < n; u++) {\n            for (int v : graph[u]) {\n                if (uf.connected(u, v)) {\n                    return false;\n                }\n                uf.union(u, v + n);\n                uf.union(u + n, v);\n            }\n        }\n        return true;\n    }\n\n    static class UnionFind {\n        private final int[] parent;\n        private final int[] size;\n\n        UnionFind(int n) {\n            parent = new int[n];\n            size = new int[n];\n            for (int i = 0; i < n; i++) {\n                parent[i] = i;\n                size[i] = 1;\n            }\n        }\n\n        int find(int x) {\n            while (parent[x] != x) {\n                parent[x] = parent[parent[x]];\n                x = parent[x];\n            }\n            return x;\n        }\n\n        void union(int a, int b) {\n            int rootA = find(a);\n            int rootB = find(b);\n            if (rootA == rootB) {\n                return;\n            }\n            if (size[rootA] < size[rootB]) {\n                int tmp = rootA;\n                rootA = rootB;\n                rootB = tmp;\n            }\n            parent[rootB] = rootA;\n            size[rootA] += size[rootB];\n        }\n\n        boolean connected(int a, int b) {\n            return find(a) == find(b);\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "graph = [[1,2,3],[0,2],[0,1,3],[0,2]]",
-      "output": "false"
+      "output": "false",
+      "description": "Canonical false case: nodes 0, 1, and 2 form an odd cycle."
     },
     {
       "input": "graph = [[1,3],[0,2],[1,3],[0,2]]",
-      "output": "true"
+      "output": "true",
+      "description": "Even cycle can be colored by alternating the two partitions."
+    },
+    {
+      "input": "graph = [[],[2],[1],[]]",
+      "output": "true",
+      "description": "Disconnected graph with isolated nodes and one simple edge."
+    },
+    {
+      "input": "graph = [[]]",
+      "output": "true",
+      "description": "A single isolated node is bipartite."
+    },
+    {
+      "input": "graph = [[1,2],[0,2],[0,1]]",
+      "output": "false",
+      "description": "Triangle is the smallest odd cycle."
+    },
+    {
+      "input": "graph = [[1,4],[0,2],[1,3],[2,4],[0,3]]",
+      "output": "false",
+      "description": "Five-cycle catches implementations that only test the canonical triangle."
+    },
+    {
+      "input": "graph = [[1,2,3],[0],[0],[0]]",
+      "output": "true",
+      "description": "Star graph has many neighbors on the same opposite side and is bipartite."
     },
     {
       "input": "graph = [[],[2,4,6],[1,4,8,9],[7,8],[1,2,8,9],[6,9],[1,5,7,8,9],[3,6,9],[2,3,4,6,9],[2,4,5,6,7,8]]",
-      "output": "false"
+      "output": "false",
+      "description": "Larger disconnected graph contains a hidden odd-cycle conflict."
+    },
+    {
+      "input": "graph = [[1],[0,2],[1,3],[2]]",
+      "output": "true",
+      "description": "A path component should not be rejected just because the graph is not a cycle."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p150_example1.png",
-      "caption": "Example 1"
+      "caption": "All undirected edges of Example 1; partition all nodes into two groups so every edge crosses between groups"
     }
   ]
 }

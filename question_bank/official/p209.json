@@ -1,35 +1,126 @@
 {
   "id": "209",
   "title": "Implement strStr()",
-  "description": "# Implement strStr()\n\nGiven two strings `haystack` and `needle`, return *the index of the first occurrence of* `needle` *in* `haystack`, *or* `-1` *if* `needle` *is not part of* `haystack`.\n\n## Example 1:\n\n**Input:** haystack = \"sadbutsad\", needle = \"sad\"\n**Output:** 0\n**Explanation:** \"sad\" occurs at index 0 and 6. The first occurrence is at index 0, so we return 0.\n\n## Example 2:\n\n**Input:** haystack = \"leetcode\", needle = \"leeto\"\n**Output:** -1\n**Explanation:** \"leeto\" did not occur in \"leetcode\", so we return -1.\n\n## Constraints:\n\n*   `1 <= haystack.length, needle.length <= 10^4`\n*   `haystack` and `needle` consist of only lowercase English characters.",
+  "description": "# Implement strStr()\n\nGiven two strings `haystack` and `needle`, return the zero-based index of the first occurrence of `needle` in `haystack`. If `needle` does not occur as a contiguous substring of `haystack`, return `-1`.\n\nIndices start at `0`. If several occurrences match, return the leftmost one. For `haystack = \"aaaa\"` and `needle = \"aa\"`, return `0`.\n\n## Example 1:\n\n**Input:** haystack = \"sadbutsad\", needle = \"sad\"\n**Output:** 0\n**Explanation:** \"sad\" occurs at index 0 and index 6. The first occurrence is index 0.\n\n## Example 2:\n\n**Input:** haystack = \"leetcode\", needle = \"leeto\"\n**Output:** -1\n**Explanation:** \"leeto\" does not occur in \"leetcode\".\n\n## Constraints:\n\n* `1 <= haystack.length, needle.length <= 10000`\n* `haystack` and `needle` consist only of lowercase English letters.\n* Return the first matching index, not just any matching index.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int strStr(String haystack, String needle) {\n        // Write your code here\n        return -1;\n    }\n}",
-  "tags": ["Two Pointers", "String", "String Matching"],
+  "tags": [
+    "Two Pointers",
+    "String",
+    "String Matching"
+  ],
   "examples": [
-    { "input": "haystack = \"sadbutsad\", needle = \"sad\"", "output": "0" },
-    { "input": "haystack = \"leetcode\", needle = \"leeto\"", "output": "-1" }
+    {
+      "input": "haystack = \"sadbutsad\", needle = \"sad\"",
+      "output": "0"
+    },
+    {
+      "input": "haystack = \"leetcode\", needle = \"leeto\"",
+      "output": "-1"
+    }
   ],
   "solutions": [
     {
-      "name": "KMP Algorithm",
+      "name": "KMP Prefix Function",
       "timeComplexity": "O(m + n)",
       "spaceComplexity": "O(n)",
-      "description": "Build a failure/prefix function for the needle. Then scan the haystack, using the prefix function to skip unnecessary comparisons.",
-      "code": "class Solution {\n    public int strStr(String haystack, String needle) {\n        int m = haystack.length(), n = needle.length();\n        if (n == 0) return 0;\n        int[] lps = new int[n];\n        for (int i = 1, len = 0; i < n; ) {\n            if (needle.charAt(i) == needle.charAt(len)) {\n                lps[i++] = ++len;\n            } else if (len > 0) {\n                len = lps[len - 1];\n            } else {\n                lps[i++] = 0;\n            }\n        }\n        for (int i = 0, j = 0; i < m; ) {\n            if (haystack.charAt(i) == needle.charAt(j)) {\n                i++; j++;\n                if (j == n) return i - n;\n            } else if (j > 0) {\n                j = lps[j - 1];\n            } else {\n                i++;\n            }\n        }\n        return -1;\n    }\n}",
+      "description": "## Approach\n\nBuild the `lps` table for `needle`, where `lps[i]` is the length of the longest proper prefix of `needle[0..i]` that is also a suffix. Scan `haystack` with pointer `i` and `needle` with pointer `j`. On a mismatch after matching `j` characters, fall back to `lps[j - 1]` instead of moving `i` backward.\n\n## Key Insight\n\nKMP reuses the overlap structure inside the pattern. A mismatch does not erase all previous information; the longest prefix that is also a suffix can remain matched, which gives linear time on repeated-prefix inputs.\n\n## Complexity Analysis\n\n- Time Complexity: O(m + n), where `m = haystack.length()` and `n = needle.length()`\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int strStr(String haystack, String needle) {\n        int m = haystack.length();\n        int n = needle.length();\n        if (n == 0) {\n            return 0;\n        }\n        if (n > m) {\n            return -1;\n        }\n\n        int[] lps = new int[n];\n        for (int i = 1, len = 0; i < n; ) {\n            if (needle.charAt(i) == needle.charAt(len)) {\n                lps[i++] = ++len;\n            } else if (len > 0) {\n                len = lps[len - 1];\n            } else {\n                lps[i++] = 0;\n            }\n        }\n\n        for (int i = 0, j = 0; i < m; ) {\n            if (haystack.charAt(i) == needle.charAt(j)) {\n                i++;\n                j++;\n                if (j == n) {\n                    return i - n;\n                }\n            } else if (j > 0) {\n                j = lps[j - 1];\n            } else {\n                i++;\n            }\n        }\n        return -1;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Sliding Window (Brute Force)",
+      "name": "Sliding Window Character Check",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(1)",
-      "description": "Try every possible starting position in haystack. For each position, compare character by character with needle. Return the first match.",
-      "code": "class Solution {\n    public int strStr(String haystack, String needle) {\n        int m = haystack.length(), n = needle.length();\n        if (n == 0) return 0;\n        for (int i = 0; i <= m - n; i++) {\n            int j = 0;\n            while (j < n && haystack.charAt(i + j) == needle.charAt(j)) {\n                j++;\n            }\n            if (j == n) return i;\n        }\n        return -1;\n    }\n}",
+      "description": "## Approach\n\nTry every possible start index from `0` through `m - n`. For each start, compare `needle` character by character against the same-length window in `haystack`. Return the first start whose entire window matches.\n\n## Key Insight\n\nThis is the direct definition of substring search. It is intentionally simple and useful as a correctness baseline, but repeated partial matches can make it quadratic.\n\n## Complexity Analysis\n\n- Time Complexity: O(m * n) in the worst case\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int strStr(String haystack, String needle) {\n        int m = haystack.length();\n        int n = needle.length();\n        if (n == 0) {\n            return 0;\n        }\n        if (n > m) {\n            return -1;\n        }\n\n        for (int i = 0; i <= m - n; i++) {\n            int j = 0;\n            while (j < n && haystack.charAt(i + j) == needle.charAt(j)) {\n                j++;\n            }\n            if (j == n) {\n                return i;\n            }\n        }\n        return -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Rabin-Karp Rolling Hash with Verification",
+      "timeComplexity": "O(m + n) average, O(m * n) worst case",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCompute a rolling hash for `needle` and for each length-`n` window of `haystack`. When the hashes match, compare the actual characters before returning the window start. Slide the window by removing the left character and adding the next right character.\n\n## Key Insight\n\nHashing can quickly rule out most windows, but a hash match is only a candidate because collisions are possible. The explicit verification step is what preserves exact correctness.\n\n## Complexity Analysis\n\n- Time Complexity: O(m + n) on average; O(m * n) in the worst case if many hash collisions force verification\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int strStr(String haystack, String needle) {\n        int m = haystack.length();\n        int n = needle.length();\n        if (n == 0) {\n            return 0;\n        }\n        if (n > m) {\n            return -1;\n        }\n\n        long mod = 1_000_000_007L;\n        long base = 256L;\n        long power = 1L;\n        long needleHash = 0L;\n        long windowHash = 0L;\n\n        for (int i = 0; i < n; i++) {\n            needleHash = (needleHash * base + needle.charAt(i)) % mod;\n            windowHash = (windowHash * base + haystack.charAt(i)) % mod;\n            if (i + 1 < n) {\n                power = (power * base) % mod;\n            }\n        }\n\n        for (int start = 0; start <= m - n; start++) {\n            if (needleHash == windowHash && matchesAt(haystack, needle, start)) {\n                return start;\n            }\n            if (start < m - n) {\n                windowHash = (windowHash - haystack.charAt(start) * power) % mod;\n                if (windowHash < 0) {\n                    windowHash += mod;\n                }\n                windowHash = (windowHash * base + haystack.charAt(start + n)) % mod;\n            }\n        }\n        return -1;\n    }\n\n    private boolean matchesAt(String haystack, String needle, int start) {\n        for (int i = 0; i < needle.length(); i++) {\n            if (haystack.charAt(start + i) != needle.charAt(i)) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Z-Algorithm Combined String",
+      "timeComplexity": "O(m + n)",
+      "spaceComplexity": "O(m + n)",
+      "description": "## Approach\n\nBuild `combined = needle + \"#\" + haystack`, using a delimiter that cannot appear in the lowercase inputs. Compute the Z-array, where `z[i]` is the longest prefix of `combined` that starts at `i`. Any position after the delimiter with `z[i] == needle.length()` is a match in `haystack`.\n\n## Key Insight\n\nThe Z-array converts pattern matching into repeated prefix matching on one combined string. The first full-length prefix match after the delimiter gives the first occurrence in the original haystack.\n\n## Complexity Analysis\n\n- Time Complexity: O(m + n)\n- Space Complexity: O(m + n)",
+      "code": "class Solution {\n    public int strStr(String haystack, String needle) {\n        int m = haystack.length();\n        int n = needle.length();\n        if (n == 0) {\n            return 0;\n        }\n        if (n > m) {\n            return -1;\n        }\n\n        String combined = needle + \"#\" + haystack;\n        int[] z = new int[combined.length()];\n        int left = 0;\n        int right = 0;\n\n        for (int i = 1; i < combined.length(); i++) {\n            if (i <= right) {\n                z[i] = Math.min(right - i + 1, z[i - left]);\n            }\n            while (i + z[i] < combined.length()\n                    && combined.charAt(z[i]) == combined.charAt(i + z[i])) {\n                z[i]++;\n            }\n            if (i + z[i] - 1 > right) {\n                left = i;\n                right = i + z[i] - 1;\n            }\n            if (z[i] == n) {\n                return i - n - 1;\n            }\n        }\n        return -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Boyer-Moore-Horspool Bad-Character Shift",
+      "timeComplexity": "O(m * n) worst case",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nPrecompute a bad-character shift table from the needle. Compare each candidate window from right to left. If a mismatch happens, shift the window according to the character aligned with the needle's last position.\n\n## Key Insight\n\nBoyer-Moore-Horspool often skips several impossible starts after one comparison, especially when the last window character is rare in the pattern. The worst case is still quadratic, but it teaches a different practical string-matching strategy from KMP and hashing.\n\n## Complexity Analysis\n\n- Time Complexity: O(m * n) worst case, often sublinear in practice\n- Space Complexity: O(1), because the alphabet is fixed-size ASCII/lowercase letters",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int strStr(String haystack, String needle) {\n        int m = haystack.length();\n        int n = needle.length();\n        if (n == 0) {\n            return 0;\n        }\n        if (n > m) {\n            return -1;\n        }\n\n        int[] shift = new int[256];\n        Arrays.fill(shift, n);\n        for (int i = 0; i < n - 1; i++) {\n            shift[needle.charAt(i)] = n - 1 - i;\n        }\n\n        int start = 0;\n        while (start <= m - n) {\n            int j = n - 1;\n            while (j >= 0 && haystack.charAt(start + j) == needle.charAt(j)) {\n                j--;\n            }\n            if (j < 0) {\n                return start;\n            }\n            start += shift[haystack.charAt(start + n - 1)];\n        }\n        return -1;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "haystack = \"sadbutsad\", needle = \"sad\"", "output": "0" },
-    { "input": "haystack = \"leetcode\", needle = \"leeto\"", "output": "-1" },
-    { "input": "haystack = \"hello\", needle = \"ll\"", "output": "2" }
+    {
+      "input": "haystack = \"sadbutsad\", needle = \"sad\"",
+      "output": "0",
+      "description": "Needle appears multiple times and the first index must be returned."
+    },
+    {
+      "input": "haystack = \"leetcode\", needle = \"leeto\"",
+      "output": "-1",
+      "description": "Near match with wrong trailing character is not a valid occurrence."
+    },
+    {
+      "input": "haystack = \"hello\", needle = \"ll\"",
+      "output": "2",
+      "description": "Needle occurs in the middle of the haystack."
+    },
+    {
+      "input": "haystack = \"aaaaa\", needle = \"bba\"",
+      "output": "-1",
+      "description": "Repeated haystack characters should not create a false match."
+    },
+    {
+      "input": "haystack = \"mississippi\", needle = \"issip\"",
+      "output": "4",
+      "description": "Overlapping partial matches require correct fallback behavior."
+    },
+    {
+      "input": "haystack = \"abc\", needle = \"c\"",
+      "output": "2",
+      "description": "Needle can occur at the final position."
+    },
+    {
+      "input": "haystack = \"aaa\", needle = \"aaaa\"",
+      "output": "-1",
+      "description": "Needle longer than haystack cannot match."
+    },
+    {
+      "input": "haystack = \"abc\", needle = \"abc\"",
+      "output": "0",
+      "description": "Needle may be the entire haystack."
+    },
+    {
+      "input": "haystack = \"aaaaa\", needle = \"aaa\"",
+      "output": "0",
+      "description": "Overlapping matches should still return the first start."
+    },
+    {
+      "input": "haystack = \"ababababca\", needle = \"abababca\"",
+      "output": "2",
+      "description": "Long repeated prefix requires KMP-style fallback or equivalent careful search."
+    },
+    {
+      "input": "haystack = \"abcdef\", needle = \"def\"",
+      "output": "3",
+      "description": "A multi-character needle can start at the suffix."
+    },
+    {
+      "input": "haystack = \"abcabcabcd\", needle = \"abcabcd\"",
+      "output": "3",
+      "description": "A false partial match before the real occurrence must not hide the later answer."
+    }
   ]
 }

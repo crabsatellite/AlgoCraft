@@ -1,0 +1,32 @@
+{
+  "title": "设计 SQL",
+  "description": "# 设计 SQL\n\n给定 `n` 张表，用两个数组 `names` 和 `columns` 描述。`names[i]` 是第 `i` 张表的表名，`columns[i]` 是这张表的列数。\n\n请实现 `SQL` 类。每张表都有独立的自增 `rowId`。行号从 `1` 开始；即使某一行后来被删除，已经用过的行号也不会被复用。\n\n需要支持以下操作：\n\n* `SQL(List<String> names, List<Integer> columns)` 初始化所有表。\n* `void insertRow(String name, List<String> row)` 向表 `name` 插入一行，并分配该表的下一个行号。\n* `void deleteRow(String name, int rowId)` 删除表 `name` 中行号为 `rowId` 的行。\n* `String selectCell(String name, int rowId, int columnId)` 返回表 `name` 中第 `rowId` 行、第 `columnId` 列的字符串。\n\n`columnId` 从 `1` 开始计数。输入保证每次操作的表名都存在；插入行的长度等于该表列数；`deleteRow` 只会删除存在的行；`selectCell` 只会查询存在的行和合法列。\n\n操作示例中，第一组数组是操作名，第二组是对应参数，按同一下标配对并从左到右执行。第一项创建对象，之后都操作同一个对象。输出数组也逐项对应：构造和没有返回值的方法写作 `null`；`[]` 作为参数表示无参数调用。\n\n## 示例 1：\n\n**输入：**\n[\"SQL\", \"insertRow\", \"selectCell\", \"insertRow\", \"deleteRow\", \"selectCell\"]\n[[[\"one\", \"two\", \"three\"], [2, 3, 1]], [\"two\", [\"first\", \"second\", \"third\"]], [\"two\", 1, 3], [\"two\", [\"fourth\", \"fifth\", \"sixth\"]], [\"two\", 1], [\"two\", 2, 2]]\n\n**输出：**\n[null, null, \"third\", null, null, \"fifth\"]\n\n**解释：**\n`SQL sql = new SQL([\"one\", \"two\", \"three\"], [2, 3, 1]);`\n`sql.insertRow(\"two\", [\"first\", \"second\", \"third\"]);` 将这一行作为表 `two` 的第 `1` 行。\n`sql.selectCell(\"two\", 1, 3);` 返回 `\"third\"`。\n`sql.insertRow(\"two\", [\"fourth\", \"fifth\", \"sixth\"]);` 将这一行作为表 `two` 的第 `2` 行。\n`sql.deleteRow(\"two\", 1);` 删除第 `1` 行，但第 `2` 行仍然保持自己的行号。\n`sql.selectCell(\"two\", 2, 2);` 返回 `\"fifth\"`。\n\n## 约束条件：\n\n* `n == names.length == columns.length`\n* `1 <= n <= 10^4`\n* `1 <= names[i].length, row[i].length, name.length <= 10`\n* `names[i]`、`row[i]` 和 `name` 只包含小写英文字母。\n* `1 <= columns[i] <= 10`\n* `names` 中的所有表名互不相同。\n* `insertRow`、`deleteRow` 和 `selectCell` 的总调用次数最多为 `2000` 次。\n",
+  "diagrams": [
+    {
+      "id": "row_ids_after_delete",
+      "caption": "删除一行后保留空行号，下一次插入使用新的行号"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "每张表使用稀疏行映射",
+      "description": "## 思路\n\n把每张表封装成一个小对象，内部维护下一个可分配行号，以及从 `rowId` 到整行数据的哈希表。插入时使用当前行号并递增；删除时只移除这个行号；查询时先定位表，再定位行和列。\n\n## 关键点\n\n`rowId` 是逻辑地址，删除一行不能影响其他行的行号。稀疏映射天然保留这种空洞。\n\n## 复杂度分析\n\n插入、删除、查询平均都是 `O(1)`；空间复杂度为存储的单元格总数。"
+    },
+    {
+      "name": "带墓碑的行数组",
+      "description": "## 思路\n\n由于行号从 `1` 开始连续增长，可以让 `rowId - 1` 对应数组位置。插入时追加新行；删除时把对应位置设为 `null`，而不是把元素移走。\n\n## 关键点\n\n数组方案只有在保留删除空洞时才正确。如果真的删除数组元素，后续行会整体前移，行号就被破坏了。\n\n## 复杂度分析\n\n插入、删除、查询都是 `O(1)`；空间复杂度为历史插入过的单元格数量，包括已经被标记删除的位置。"
+    },
+    {
+      "name": "扁平单元格映射",
+      "description": "## 思路\n\n把 `(表名, rowId, columnId)` 拼成唯一键，直接映射到单元格字符串。额外记录每张表的下一个行号和列数。插入时写入一行的所有单元格；删除时按列数删除这一行的所有键；查询时读取一个键。\n\n## 关键点\n\n题目的查询目标本来就是单元格地址，扁平化以后可以把查询变成一次哈希表读取。\n\n## 复杂度分析\n\n若表有 `c` 列，插入和删除为 `O(c)`，查询平均为 `O(1)`；空间复杂度为存储的单元格总数。"
+    },
+    {
+      "name": "嵌套行数组映射",
+      "description": "## 思路\n\n外层哈希表从表名映射到内层哈希表，内层保存 `rowId -> String[]`。插入时把列表复制成数组并保存；删除时移除对应行号；查询时直接访问数组中的列下标。\n\n## 关键点\n\n它仍然是按行号稀疏存储，但行本身用数组表示，适合插入后行内容不再改变、查询较多的场景。\n\n## 复杂度分析\n\n插入需要复制一行，时间为 `O(c)`；删除和查询平均为 `O(1)`；空间复杂度为存储的单元格总数。"
+    },
+    {
+      "name": "按列存储表",
+      "description": "## 思路\n\n把每张表表示成若干个列映射。第 `j` 列的映射记录 `rowId` 到该列字符串。插入时把新行号写入每一列；删除时从每一列移除该行号；查询时选择指定列，再读取行号。\n\n## 关键点\n\n按列存储和按行存储是不同的建模方式。对于单元格查询，列也可以作为第一层索引。\n\n## 复杂度分析\n\n若表有 `c` 列，插入和删除为 `O(c)`，查询平均为 `O(1)`；空间复杂度为存储的单元格总数。"
+    }
+  ]
+}

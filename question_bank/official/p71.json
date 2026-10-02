@@ -1,7 +1,7 @@
 {
   "id": "71",
   "title": "Linked List Cycle",
-  "description": "# Linked List Cycle\n\nGiven `head`, the head of a linked list, determine if the linked list has a cycle in it.\n\nThere is a cycle in a linked list if there is some node in the list that can be reached again by continuously following the `next` pointer. Internally, `pos` is used to denote the index of the node that tail's `next` pointer is connected to. **Note that `pos` is not passed as a parameter**.\n\nReturn `true` *if there is a cycle in the linked list*. Otherwise, return `false`.\n\n## Example 1:\n\n**Input:** head = [3,2,0,-4], pos = 1\n**Output:** true\n**Explanation:** There is a cycle in the linked list, where the tail connects to the 1st node (0-indexed).\n\n## Example 2:\n\n**Input:** head = [1,2], pos = 0\n**Output:** true\n**Explanation:** There is a cycle in the linked list, where the tail connects to the 0th node.\n\n## Example 3:\n\n**Input:** head = [1], pos = -1\n**Output:** false\n**Explanation:** There is no cycle in the linked list.\n\n## Constraints:\n\n*   The number of the nodes in the list is in the range `[0, 10^4]`.\n*   `-10^5 <= Node.val <= 10^5`\n*   `pos` is `-1` or a valid index in the linked-list.",
+  "description": "# Linked List Cycle\n\nGiven the head of a linked list, determine whether the list contains a cycle.\n\nA cycle exists if following `next` pointers can eventually reach a node that has already been visited. In the serialized tests, `pos` is the zero-based index of the node that the tail points to. `pos = -1` means the tail points to `null`.\n\nImportant: `pos` is only part of the test input format. The method receives only `head`, so your algorithm must detect the cycle from node references, not from an index value.\n\nReturn `true` if the linked list contains a cycle, otherwise return `false`.\n\nExample field `pos` is the node index targeted by the tail; `-1` means no cycle. It describes the evaluation environment; the method receives only `head`. Return the cycle entry node itself, or `null` if no cycle exists.\n\nExample arrays display values in `next` order; `[]` denotes an empty list (`null`). A node stores its value in `val` and its next node in `next`. Use node objects for list parameters and results as shown in the initial code.\n\n## Example 1\n\nInput: head = [3,2,0,-4], pos = 1\n\nOutput: true\n\nExplanation: The tail node points back to the node with value `2` at index `1`.\n\n## Example 2\n\nInput: head = [1,2], pos = 0\n\nOutput: true\n\nExplanation: The tail node points back to the head.\n\n## Example 3\n\nInput: head = [1], pos = -1\n\nOutput: false\n\n## Constraints\n\n- The number of nodes in the list is in the range `[0, 10000]`.\n- `-100000 <= Node.val <= 100000`.\n- `pos` is `-1` or a valid node index in the list.\n- Node values are not unique; cycle detection must use node identity, not node value.",
   "difficulty": "EASY",
   "initialCode": "/**\n * Definition for singly-linked list.\n * class ListNode {\n *     int val;\n *     ListNode next;\n *     ListNode(int x) {\n *         val = x;\n *         next = null;\n *     }\n * }\n */\npublic class Solution {\n    public boolean hasCycle(ListNode head) {\n        // Write your code here\n        return false;\n    }\n}",
   "tags": [
@@ -26,26 +26,70 @@
   "tests": [
     {
       "input": "head = [3,2,0,-4], pos = 1",
-      "output": "true"
+      "output": "true",
+      "description": "Canonical cycle begins at index one"
     },
     {
       "input": "head = [1,2], pos = 0",
-      "output": "true"
+      "output": "true",
+      "description": "Two-node list cycles back to head"
     },
     {
       "input": "head = [1], pos = -1",
-      "output": "false"
+      "output": "false",
+      "description": "Single node without cycle"
     },
     {
       "input": "head = [], pos = -1",
-      "output": "false"
+      "output": "false",
+      "description": "Empty list without cycle"
+    },
+    {
+      "input": "head = [1,2], pos = -1",
+      "output": "false",
+      "description": "Two nodes without cycle"
+    },
+    {
+      "input": "head = [1], pos = 0",
+      "output": "true",
+      "description": "Single node points to itself"
+    },
+    {
+      "input": "head = [1,2,3,4], pos = 2",
+      "output": "true",
+      "description": "Cycle starts in the middle"
+    },
+    {
+      "input": "head = [1,2,3,4,5], pos = -1",
+      "output": "false",
+      "description": "Longer acyclic list"
+    },
+    {
+      "input": "head = [1,2,3], pos = 0",
+      "output": "true",
+      "description": "Tail points back to head in a three-node list"
+    },
+    {
+      "input": "head = [1,2,3,4,5], pos = 4",
+      "output": "true",
+      "description": "Tail points to itself"
+    },
+    {
+      "input": "head = [0,0,0], pos = 1",
+      "output": "true",
+      "description": "Duplicate values still form a cycle by node identity"
+    },
+    {
+      "input": "head = [-1,-2,-3], pos = -1",
+      "output": "false",
+      "description": "Negative values without a cycle"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p71_example1.png",
-      "caption": "Example 1"
+      "caption": "Input list where the tail points back to an earlier node"
     }
   ],
   "solutions": [
@@ -53,16 +97,32 @@
       "name": "Floyd's Tortoise and Hare",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use two pointers: slow moves one step, fast moves two steps. If they meet, there is a cycle.",
-      "code": "public class Solution {\n    public boolean hasCycle(ListNode head) {\n        ListNode slow = head, fast = head;\n        \n        while (fast != null && fast.next != null) {\n            slow = slow.next;\n            fast = fast.next.next;\n            \n            if (slow == fast) {\n                return true;\n            }\n        }\n        \n        return false;\n    }\n}",
+      "description": "## Approach\n\nMove `slow` one step at a time and `fast` two steps at a time. If the list has a cycle, the faster pointer must eventually catch the slower pointer inside that cycle. If there is no cycle, `fast` reaches `null`.\n\n## Key Insight\n\nInside a cycle, the distance between the two pointers changes by one on every iteration modulo the cycle length, so they cannot avoid meeting forever.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "public class Solution {\n    public boolean hasCycle(ListNode head) {\n        ListNode slow = head;\n        ListNode fast = head;\n\n        while (fast != null && fast.next != null) {\n            slow = slow.next;\n            fast = fast.next.next;\n            if (slow == fast) {\n                return true;\n            }\n        }\n\n        return false;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "HashSet",
+      "name": "HashSet of Visited Nodes",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use a HashSet to store visited nodes. If we encounter a node already in the set, there is a cycle.",
-      "code": "import java.util.*;\n\npublic class Solution {\n    public boolean hasCycle(ListNode head) {\n        Set<ListNode> visited = new HashSet<>();\n        ListNode curr = head;\n        \n        while (curr != null) {\n            if (!visited.add(curr)) {\n                return true;\n            }\n            curr = curr.next;\n        }\n        \n        return false;\n    }\n}",
+      "description": "## Approach\n\nTraverse the list and store each visited node object in a `HashSet`. If adding the current node fails, the same object has been seen before, so traversal has entered a cycle.\n\n## Key Insight\n\nThe set must store node objects, not node values. Different nodes can have the same value, and duplicate values do not imply a cycle.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\npublic class Solution {\n    public boolean hasCycle(ListNode head) {\n        Set<ListNode> visited = new HashSet<>();\n        ListNode curr = head;\n\n        while (curr != null) {\n            if (!visited.add(curr)) {\n                return true;\n            }\n            curr = curr.next;\n        }\n\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Brent's Cycle Detection",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nKeep a checkpoint pointer fixed while a runner pointer advances. When the runner has moved through the current power-of-two window without meeting the checkpoint, move the checkpoint to the runner and double the window size.\n\n## Key Insight\n\nLike Floyd's algorithm, Brent's method detects repeated node identity with O(1) memory, but it compares the runner against a checkpoint instead of moving two pointers every iteration.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "public class Solution {\n    public boolean hasCycle(ListNode head) {\n        if (head == null) {\n            return false;\n        }\n\n        ListNode checkpoint = head;\n        ListNode runner = head.next;\n        int power = 1;\n        int steps = 1;\n\n        while (runner != null) {\n            if (runner == checkpoint) {\n                return true;\n            }\n            if (steps == power) {\n                checkpoint = runner;\n                power *= 2;\n                steps = 0;\n            }\n            runner = runner.next;\n            steps++;\n        }\n\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Destructive Sentinel Marking",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCreate a private sentinel node. While traversing, replace each visited node's `next` pointer with the sentinel after saving the original next node. Reaching a node whose `next` already points to the sentinel proves the node was visited before.\n\n## Key Insight\n\nThis route turns node identity into an in-place mark. It is useful for understanding cycle detection, but it mutates the input list and should not be used when callers expect the list structure to remain intact.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "public class Solution {\n    public boolean hasCycle(ListNode head) {\n        ListNode sentinel = new ListNode(0);\n        ListNode curr = head;\n\n        while (curr != null) {\n            if (curr.next == sentinel) {\n                return true;\n            }\n            ListNode next = curr.next;\n            curr.next = sentinel;\n            curr = next;\n        }\n\n        return false;\n    }\n}",
       "language": "java"
     }
   ]

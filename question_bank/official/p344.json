@@ -1,34 +1,139 @@
 {
   "id": "344",
   "title": "Russian Doll Envelopes",
-  "description": "# Russian Doll Envelopes\n\nYou are given a 2D array of integers `envelopes` where `envelopes[i] = [wi, hi]` represents the width and the height of an envelope.\n\nOne envelope can fit into another if and only if both the width and height of one envelope are greater than the other envelope's width and height.\n\nReturn *the maximum number of envelopes you can Russian doll (i.e., put one inside the other)*.\n\n**Note:** You cannot rotate an envelope.\n\n## Example 1:\n\n**Input:** envelopes = [[5,4],[6,4],[6,7],[2,3]]\n**Output:** 3\n**Explanation:** The maximum number of envelopes you can Russian doll is 3 ([2,3] => [5,4] => [6,7]).\n\n## Example 2:\n\n**Input:** envelopes = [[1,1],[1,1],[1,1]]\n**Output:** 1\n\n## Constraints:\n\n*   `1 <= envelopes.length <= 10^5`\n*   `envelopes[i].length == 2`\n*   `1 <= wi, hi <= 10^5`",
+  "description": "# Russian Doll Envelopes\n\nYou are given a 2D integer array `envelopes`, where `envelopes[i] = [wi, hi]` represents the width and height of the `i`th envelope.\n\nOne envelope can fit into another envelope if and only if both its width and height are strictly smaller than the other envelope's width and height.\n\nReturn the maximum number of envelopes you can nest one inside another.\n\nYou cannot rotate an envelope.\n\n## Example 1:\n\n**Input:** envelopes = [[5,4],[6,4],[6,7],[2,3]]\n\n**Output:** 3\n\n**Explanation:** One optimal chain is [2,3] -> [5,4] -> [6,7]. The two width-6 envelopes cannot contain each other because widths must be strictly different.\n\n## Example 2:\n\n**Input:** envelopes = [[1,1],[1,1],[1,1]]\n\n**Output:** 1\n\n**Explanation:** Equal envelopes cannot be nested because both dimensions must be strictly larger.\n\n## Constraints:\n\n* `1 <= envelopes.length <= 10^5`\n* `envelopes[i].length == 2`\n* `1 <= wi, hi <= 10^5`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int maxEnvelopes(int[][] envelopes) {\n        \n    }\n}",
-  "tags": ["Array", "Binary Search", "Dynamic Programming", "Sorting"],
+  "initialCode": "class Solution {\n    public int maxEnvelopes(int[][] envelopes) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Binary Search",
+    "Dynamic Programming",
+    "Sorting",
+    "Binary Indexed Tree",
+    "Segment Tree"
+  ],
   "examples": [
-    { "input": "envelopes = [[5,4],[6,4],[6,7],[2,3]]", "output": "3" },
-    { "input": "envelopes = [[1,1],[1,1],[1,1]]", "output": "1" }
+    {
+      "input": "envelopes = [[5,4],[6,4],[6,7],[2,3]]",
+      "output": "3"
+    },
+    {
+      "input": "envelopes = [[1,1],[1,1],[1,1]]",
+      "output": "1"
+    }
   ],
   "solutions": [
     {
-      "name": "Sort + LIS with Binary Search",
+      "name": "Sort and Height LIS with Binary Search",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Sort envelopes by width ascending, then by height descending (to avoid using two envelopes with the same width). Then find the Longest Increasing Subsequence on heights using patience sorting with binary search.",
-      "code": "class Solution {\n    public int maxEnvelopes(int[][] envelopes) {\n        java.util.Arrays.sort(envelopes, (a, b) -> a[0] != b[0] ? a[0] - b[0] : b[1] - a[1]);\n        int[] tails = new int[envelopes.length];\n        int size = 0;\n        for (int[] e : envelopes) {\n            int lo = 0, hi = size;\n            while (lo < hi) {\n                int mid = lo + (hi - lo) / 2;\n                if (tails[mid] < e[1]) lo = mid + 1;\n                else hi = mid;\n            }\n            tails[lo] = e[1];\n            if (lo == size) size++;\n        }\n        return size;\n    }\n}",
+      "description": "## Approach\n\nSort envelopes by width ascending. For equal widths, sort height descending. After that ordering, run the classic patience-sorting Longest Increasing Subsequence algorithm on the heights.\n\n## Key Insight\n\nThe descending tie-break is the whole trick. It prevents two envelopes with the same width from appearing as an increasing height subsequence, so a strict LIS on heights now represents a valid two-dimensional nesting chain.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int maxEnvelopes(int[][] envelopes) {\n        java.util.Arrays.sort(envelopes, (a, b) -> a[0] != b[0]\n                ? Integer.compare(a[0], b[0])\n                : Integer.compare(b[1], a[1]));\n        int[] tails = new int[envelopes.length];\n        int size = 0;\n        for (int[] envelope : envelopes) {\n            int position = lowerBound(tails, size, envelope[1]);\n            tails[position] = envelope[1];\n            if (position == size) {\n                size++;\n            }\n        }\n        return size;\n    }\n\n    private int lowerBound(int[] values, int length, int target) {\n        int left = 0;\n        int right = length;\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (values[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Sort + O(n^2) LIS DP",
+      "name": "Quadratic Chain Dynamic Programming",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n)",
-      "description": "Sort envelopes by width ascending, then height ascending. Use classic O(n^2) LIS DP where dp[i] = longest chain ending at envelope i, checking all previous envelopes for strict width AND height containment.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int maxEnvelopes(int[][] envelopes) {\n        Arrays.sort(envelopes, (a, b) -> a[0] != b[0] ? a[0] - b[0] : a[1] - b[1]);\n        int n = envelopes.length;\n        int[] dp = new int[n];\n        Arrays.fill(dp, 1);\n        int max = 1;\n        for (int i = 1; i < n; i++) {\n            for (int j = 0; j < i; j++) {\n                if (envelopes[j][0] < envelopes[i][0] && envelopes[j][1] < envelopes[i][1]) {\n                    dp[i] = Math.max(dp[i], dp[j] + 1);\n                }\n            }\n            max = Math.max(max, dp[i]);\n        }\n        return max;\n    }\n}",
+      "description": "## Approach\n\nSort by width ascending and height ascending, then let `dp[i]` be the longest valid chain ending at envelope `i`. Check every earlier envelope and extend only when both width and height are strictly smaller.\n\n## Key Insight\n\nThis baseline keeps the original two-dimensional rule visible. It is too slow for the largest constraint, but it is the clearest correctness model for why both dimensions, not just height, must be checked.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int maxEnvelopes(int[][] envelopes) {\n        java.util.Arrays.sort(envelopes, (a, b) -> a[0] != b[0]\n                ? Integer.compare(a[0], b[0])\n                : Integer.compare(a[1], b[1]));\n        int n = envelopes.length;\n        int[] dp = new int[n];\n        java.util.Arrays.fill(dp, 1);\n        int answer = 1;\n        for (int i = 0; i < n; i++) {\n            for (int j = 0; j < i; j++) {\n                if (envelopes[j][0] < envelopes[i][0] && envelopes[j][1] < envelopes[i][1]) {\n                    dp[i] = Math.max(dp[i], dp[j] + 1);\n                }\n            }\n            answer = Math.max(answer, dp[i]);\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Fenwick Tree Maximum DP",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort by width ascending and equal-width height descending, then coordinate-compress heights. A Fenwick tree stores the best chain length ending at each compressed height prefix. For every envelope, query strictly smaller heights and update its own height.\n\n## Key Insight\n\nAfter the same-width descending tie-break, every processed envelope has width no greater than the current one, and the height prefix query excludes equal or taller envelopes. The data structure computes the same recurrence as LIS while exposing it as range maximum DP.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int maxEnvelopes(int[][] envelopes) {\n        java.util.Arrays.sort(envelopes, (a, b) -> a[0] != b[0]\n                ? Integer.compare(a[0], b[0])\n                : Integer.compare(b[1], a[1]));\n        int[] heights = compressedHeights(envelopes);\n        Fenwick fenwick = new Fenwick(heights.length + 2);\n        int answer = 0;\n        for (int[] envelope : envelopes) {\n            int rank = lowerBound(heights, envelope[1]) + 1;\n            int best = fenwick.query(rank - 1) + 1;\n            fenwick.update(rank, best);\n            answer = Math.max(answer, best);\n        }\n        return answer;\n    }\n\n    private int[] compressedHeights(int[][] envelopes) {\n        int[] heights = new int[envelopes.length];\n        for (int i = 0; i < envelopes.length; i++) {\n            heights[i] = envelopes[i][1];\n        }\n        java.util.Arrays.sort(heights);\n        int unique = 0;\n        for (int height : heights) {\n            if (unique == 0 || heights[unique - 1] != height) {\n                heights[unique++] = height;\n            }\n        }\n        return java.util.Arrays.copyOf(heights, unique);\n    }\n\n    private int lowerBound(int[] values, int target) {\n        int left = 0;\n        int right = values.length;\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (values[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n\n    private static class Fenwick {\n        private final int[] tree;\n\n        Fenwick(int size) {\n            tree = new int[size + 1];\n        }\n\n        void update(int index, int value) {\n            for (int i = index; i < tree.length; i += i & -i) {\n                tree[i] = Math.max(tree[i], value);\n            }\n        }\n\n        int query(int index) {\n            int best = 0;\n            for (int i = index; i > 0; i -= i & -i) {\n                best = Math.max(best, tree[i]);\n            }\n            return best;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Segment Tree Maximum DP",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse the same width ordering and height compression as the Fenwick route, but keep maximum chain lengths in an iterative segment tree. Query the range of ranks strictly below the current height and point-update the current height with the new chain length.\n\n## Key Insight\n\nThe segment tree makes the DP interval explicit: every valid predecessor must have a smaller height rank. This route is useful when the range aggregate later needs to be changed or extended beyond a simple prefix maximum.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private int[] tree;\n    private int size;\n\n    public int maxEnvelopes(int[][] envelopes) {\n        java.util.Arrays.sort(envelopes, (a, b) -> a[0] != b[0]\n                ? Integer.compare(a[0], b[0])\n                : Integer.compare(b[1], a[1]));\n        int[] heights = compressedHeights(envelopes);\n        size = 1;\n        while (size < heights.length + 2) {\n            size <<= 1;\n        }\n        tree = new int[size * 2];\n        int answer = 0;\n        for (int[] envelope : envelopes) {\n            int rank = lowerBound(heights, envelope[1]) + 1;\n            int best = query(1, rank - 1) + 1;\n            update(rank, best);\n            answer = Math.max(answer, best);\n        }\n        return answer;\n    }\n\n    private int[] compressedHeights(int[][] envelopes) {\n        int[] heights = new int[envelopes.length];\n        for (int i = 0; i < envelopes.length; i++) {\n            heights[i] = envelopes[i][1];\n        }\n        java.util.Arrays.sort(heights);\n        int unique = 0;\n        for (int height : heights) {\n            if (unique == 0 || heights[unique - 1] != height) {\n                heights[unique++] = height;\n            }\n        }\n        return java.util.Arrays.copyOf(heights, unique);\n    }\n\n    private int lowerBound(int[] values, int target) {\n        int left = 0;\n        int right = values.length;\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (values[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n\n    private void update(int rank, int value) {\n        int index = rank + size - 1;\n        tree[index] = Math.max(tree[index], value);\n        index >>= 1;\n        while (index > 0) {\n            tree[index] = Math.max(tree[index * 2], tree[index * 2 + 1]);\n            index >>= 1;\n        }\n    }\n\n    private int query(int left, int right) {\n        if (left > right) {\n            return 0;\n        }\n        int best = 0;\n        int l = left + size - 1;\n        int r = right + size - 1;\n        while (l <= r) {\n            if ((l & 1) == 1) {\n                best = Math.max(best, tree[l++]);\n            }\n            if ((r & 1) == 0) {\n                best = Math.max(best, tree[r--]);\n            }\n            l >>= 1;\n            r >>= 1;\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Width-Grouped Fenwick DP",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort by width ascending and height ascending, then process all envelopes with the same width as one batch. Compute each batch member's best value from previously completed widths first, and only then write the batch updates into a Fenwick tree.\n\n## Key Insight\n\nBatching is another way to enforce the strict width rule. Envelopes with equal width are never allowed to feed one another, so delaying their updates until the whole width group has been queried prevents accidental same-width chains without needing the descending height tie-break.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int maxEnvelopes(int[][] envelopes) {\n        java.util.Arrays.sort(envelopes, (a, b) -> a[0] != b[0]\n                ? Integer.compare(a[0], b[0])\n                : Integer.compare(a[1], b[1]));\n        int[] heights = compressedHeights(envelopes);\n        Fenwick fenwick = new Fenwick(heights.length + 2);\n        int answer = 0;\n        int index = 0;\n        while (index < envelopes.length) {\n            int next = index;\n            while (next < envelopes.length && envelopes[next][0] == envelopes[index][0]) {\n                next++;\n            }\n            int[] ranks = new int[next - index];\n            int[] values = new int[next - index];\n            for (int i = index; i < next; i++) {\n                int rank = lowerBound(heights, envelopes[i][1]) + 1;\n                ranks[i - index] = rank;\n                values[i - index] = fenwick.query(rank - 1) + 1;\n                answer = Math.max(answer, values[i - index]);\n            }\n            for (int i = 0; i < ranks.length; i++) {\n                fenwick.update(ranks[i], values[i]);\n            }\n            index = next;\n        }\n        return answer;\n    }\n\n    private int[] compressedHeights(int[][] envelopes) {\n        int[] heights = new int[envelopes.length];\n        for (int i = 0; i < envelopes.length; i++) {\n            heights[i] = envelopes[i][1];\n        }\n        java.util.Arrays.sort(heights);\n        int unique = 0;\n        for (int height : heights) {\n            if (unique == 0 || heights[unique - 1] != height) {\n                heights[unique++] = height;\n            }\n        }\n        return java.util.Arrays.copyOf(heights, unique);\n    }\n\n    private int lowerBound(int[] values, int target) {\n        int left = 0;\n        int right = values.length;\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (values[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n\n    private static class Fenwick {\n        private final int[] tree;\n\n        Fenwick(int size) {\n            tree = new int[size + 1];\n        }\n\n        void update(int index, int value) {\n            for (int i = index; i < tree.length; i += i & -i) {\n                tree[i] = Math.max(tree[i], value);\n            }\n        }\n\n        int query(int index) {\n            int best = 0;\n            for (int i = index; i > 0; i -= i & -i) {\n                best = Math.max(best, tree[i]);\n            }\n            return best;\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "envelopes = [[5,4],[6,4],[6,7],[2,3]]", "output": "3" },
-    { "input": "envelopes = [[1,1],[1,1],[1,1]]", "output": "1" }
+    {
+      "input": "envelopes = [[5,4],[6,4],[6,7],[2,3]]",
+      "output": "3",
+      "description": "sample with same-width envelopes that cannot both be used"
+    },
+    {
+      "input": "envelopes = [[1,1],[1,1],[1,1]]",
+      "output": "1",
+      "description": "duplicate envelopes do not nest"
+    },
+    {
+      "input": "envelopes = [[1,1]]",
+      "output": "1",
+      "description": "single envelope"
+    },
+    {
+      "input": "envelopes = [[1,2],[2,3],[3,4],[4,5]]",
+      "output": "4",
+      "description": "fully increasing chain"
+    },
+    {
+      "input": "envelopes = [[4,5],[4,6],[6,7],[2,3],[1,1]]",
+      "output": "4",
+      "description": "same width requires strict width handling"
+    },
+    {
+      "input": "envelopes = [[2,100],[3,200],[4,300],[5,500],[5,400],[5,250],[6,370],[6,360],[7,380]]",
+      "output": "5",
+      "description": "classic equal-width height tie-ordering trap"
+    },
+    {
+      "input": "envelopes = [[2,2],[2,3],[3,4]]",
+      "output": "2",
+      "description": "ascending equal-width heights must not create a false length-3 chain"
+    },
+    {
+      "input": "envelopes = [[1,3],[2,3],[3,3]]",
+      "output": "1",
+      "description": "equal heights cannot be nested even as width grows"
+    },
+    {
+      "input": "envelopes = [[8,9],[5,4],[6,4],[6,7],[2,3],[7,8]]",
+      "output": "5",
+      "description": "unsorted input with one distracting same-width envelope"
+    },
+    {
+      "input": "envelopes = [[5,1],[4,2],[3,3],[2,4],[1,5]]",
+      "output": "1",
+      "description": "width and height move in opposite directions"
+    },
+    {
+      "input": "envelopes = [[1,10],[2,2],[3,3],[4,4],[5,1],[6,7]]",
+      "output": "4",
+      "description": "large early height and small late height should not break the optimal middle chain"
+    },
+    {
+      "input": "envelopes = [[1,1],[2,2],[3,2],[4,3]]",
+      "output": "3",
+      "description": "duplicate middle heights are not strictly increasing"
+    },
+    {
+      "input": "envelopes = [[100000,100000],[1,1],[99999,99999],[50000,50000],[50000,60000]]",
+      "output": "4",
+      "description": "constraint-bound values with equal width alternatives"
+    },
+    {
+      "input": "envelopes = [[3,4],[2,3],[3,3],[4,5],[5,5],[6,6]]",
+      "output": "4",
+      "description": "equal width and equal height both appear in one chain decision"
+    }
   ]
 }

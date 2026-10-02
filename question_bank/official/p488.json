@@ -1,7 +1,7 @@
 {
   "id": "488",
   "title": "Two Sum IV - Input is a BST",
-  "description": "# Two Sum IV - Input is a BST\n\nGiven the `root` of a Binary Search Tree and a target number `k`, return `true` if there exist two elements in the BST such that their sum is equal to `k`, or `false` otherwise.\n\n## Example 1:\n\n**Input:** root = [5,3,6,2,4,null,7], k = 9\n**Output:** true\n\n## Example 2:\n\n**Input:** root = [5,3,6,2,4,null,7], k = 28\n**Output:** false\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[1, 10^4]`.\n*   `-10^4 <= Node.val <= 10^4`\n*   `root` is guaranteed to be a **valid** binary search tree.\n*   `-10^5 <= k <= 10^5`",
+  "description": "# Two Sum IV - Input is a BST\n\nGiven the `root` of a valid binary search tree and an integer `k`, return `true` if there are **two different nodes** whose values add up to `k`. Return `false` otherwise.\n\nA node cannot be used twice. For example, a single node with value `2` does not make `k = 4` possible by itself.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [5,3,6,2,4,null,7], k = 9\n**Output:** true\n**Explanation:** The values `2` and `7` add up to `9`.\n\n## Example 2:\n\n**Input:** root = [5,3,6,2,4,null,7], k = 28\n**Output:** false\n\n## Constraints:\n\n* The number of nodes in the tree is in the range `[1, 10^4]`.\n* `-10^4 <= Node.val <= 10^4`\n* `root` is guaranteed to be a valid binary search tree.\n* `-10^5 <= k <= 10^5`",
   "difficulty": "EASY",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public boolean findTarget(TreeNode root, int k) {\n        \n    }\n}",
   "tags": [
@@ -25,19 +25,43 @@
   ],
   "solutions": [
     {
-      "name": "DFS with HashSet",
+      "name": "DFS HashSet Complements",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Traverse the BST with DFS, maintaining a HashSet of visited values. For each node, check if (k - node.val) exists in the set. If so, return true; otherwise add node.val to the set.",
-      "code": "class Solution {\n    Set<Integer> set = new HashSet<>();\n    \n    public boolean findTarget(TreeNode root, int k) {\n        if (root == null) return false;\n        if (set.contains(k - root.val)) return true;\n        set.add(root.val);\n        return findTarget(root.left, k) || findTarget(root.right, k);\n    }\n}",
+      "description": "## Approach\n\nTraverse the tree with DFS while storing values that have already been visited. At a node with value `x`, the only value that can complete the pair is `k - x`; if that complement is already in the set, the answer is immediately true.\n\n## Key Insight\n\nCheck the complement before inserting the current value. That ordering guarantees that a single node is never paired with itself, including the important case `k = 2 * x`.\n\n## Complexity Analysis\n\nEvery node is processed once and each hash lookup is expected O(1).\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private final java.util.Set<Integer> seen = new java.util.HashSet<>();\n\n    public boolean findTarget(TreeNode root, int k) {\n        return dfs(root, k);\n    }\n\n    private boolean dfs(TreeNode node, int k) {\n        if (node == null) {\n            return false;\n        }\n        if (seen.contains(k - node.val)) {\n            return true;\n        }\n        seen.add(node.val);\n        return dfs(node.left, k) || dfs(node.right, k);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Inorder Traversal with Two Pointers",
+      "name": "BFS HashSet Complements",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Flatten the BST into a sorted list via inorder traversal. Then use two pointers from both ends to find if any pair sums to k, like the classic two-sum on sorted array.",
-      "code": "class Solution {\n    public boolean findTarget(TreeNode root, int k) {\n        java.util.List<Integer> sorted = new java.util.ArrayList<>();\n        inorder(root, sorted);\n        int left = 0, right = sorted.size() - 1;\n        while (left < right) {\n            int sum = sorted.get(left) + sorted.get(right);\n            if (sum == k) return true;\n            else if (sum < k) left++;\n            else right--;\n        }\n        return false;\n    }\n\n    private void inorder(TreeNode node, java.util.List<Integer> list) {\n        if (node == null) return;\n        inorder(node.left, list);\n        list.add(node.val);\n        inorder(node.right, list);\n    }\n}",
+      "description": "## Approach\n\nUse a queue to scan the tree level by level. The same complement set idea from DFS applies: before inserting the current node value, ask whether the matching value has already appeared.\n\n## Key Insight\n\nThis route is algorithmically the same invariant as the DFS hash-set solution, but it avoids recursive call depth and makes the traversal order explicit. It is useful when teaching that the two-sum invariant is independent of DFS versus BFS.\n\n## Complexity Analysis\n\nEach node enters and leaves the queue once.\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public boolean findTarget(TreeNode root, int k) {\n        if (root == null) {\n            return false;\n        }\n        java.util.Set<Integer> seen = new java.util.HashSet<>();\n        java.util.Queue<TreeNode> queue = new java.util.ArrayDeque<>();\n        queue.add(root);\n\n        while (!queue.isEmpty()) {\n            TreeNode node = queue.remove();\n            if (seen.contains(k - node.val)) {\n                return true;\n            }\n            seen.add(node.val);\n            if (node.left != null) {\n                queue.add(node.left);\n            }\n            if (node.right != null) {\n                queue.add(node.right);\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Inorder List and Two Pointers",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nAn inorder traversal of a BST produces values in sorted order. Store those values in a list, then run the ordinary two-pointer two-sum algorithm from the two ends of the sorted list.\n\n## Key Insight\n\nThe movement rule is justified by sorted order: if the current sum is too small, increasing the left pointer is the only way to make it larger; if the sum is too large, decreasing the right pointer is the only way to make it smaller.\n\n## Complexity Analysis\n\nThe traversal and the two-pointer pass are both linear.\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public boolean findTarget(TreeNode root, int k) {\n        java.util.List<Integer> values = new java.util.ArrayList<>();\n        inorder(root, values);\n\n        int left = 0;\n        int right = values.size() - 1;\n        while (left < right) {\n            int sum = values.get(left) + values.get(right);\n            if (sum == k) {\n                return true;\n            }\n            if (sum < k) {\n                left++;\n            } else {\n                right--;\n            }\n        }\n        return false;\n    }\n\n    private void inorder(TreeNode node, java.util.List<Integer> values) {\n        if (node == null) {\n            return;\n        }\n        inorder(node.left, values);\n        values.add(node.val);\n        inorder(node.right, values);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Dual BST Iterators",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nBuild two lazy iterators over the same BST: one yields nodes in ascending order and the other in descending order. Compare their current values exactly like two pointers over a sorted array, but without materializing the full inorder list.\n\n## Key Insight\n\nThe loop must compare node identity, not only values. The search stops when both iterators point to the same node, which prevents using one node twice while still allowing equal values from two different nodes if the tree permits them.\n\n## Complexity Analysis\n\nEach iterator advances through each node at most once, and each stack stores one root-to-leaf path.\n\n- Time Complexity: O(n)\n- Space Complexity: O(h)",
+      "code": "class Solution {\n    public boolean findTarget(TreeNode root, int k) {\n        if (root == null) {\n            return false;\n        }\n\n        BstIterator low = new BstIterator(root, false);\n        BstIterator high = new BstIterator(root, true);\n        TreeNode left = low.next();\n        TreeNode right = high.next();\n\n        while (left != right) {\n            int sum = left.val + right.val;\n            if (sum == k) {\n                return true;\n            }\n            if (sum < k) {\n                if (!low.hasNext()) {\n                    return false;\n                }\n                left = low.next();\n            } else {\n                if (!high.hasNext()) {\n                    return false;\n                }\n                right = high.next();\n            }\n        }\n        return false;\n    }\n\n    private static class BstIterator {\n        private final java.util.Deque<TreeNode> stack = new java.util.ArrayDeque<>();\n        private final boolean reverse;\n\n        BstIterator(TreeNode root, boolean reverse) {\n            this.reverse = reverse;\n            pushPath(root);\n        }\n\n        boolean hasNext() {\n            return !stack.isEmpty();\n        }\n\n        TreeNode next() {\n            TreeNode node = stack.pop();\n            if (reverse) {\n                pushPath(node.left);\n            } else {\n                pushPath(node.right);\n            }\n            return node;\n        }\n\n        private void pushPath(TreeNode node) {\n            while (node != null) {\n                stack.push(node);\n                node = reverse ? node.right : node.left;\n            }\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Search Each Complement in the BST",
+      "timeComplexity": "O(n * h)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nFor every node value `x`, search the BST for `k - x`. The search receives the current node as an excluded node so that a value is accepted only if it belongs to a different node.\n\n## Key Insight\n\nThis route is not the fastest, but it explains how the BST ordering can be used directly. It also makes the self-pairing rule explicit, which is a common source of wrong answers on single-node and `k = 2 * value` cases.\n\n## Complexity Analysis\n\nThere are `n` starting nodes, and each complement search costs O(h), where `h` is the tree height.\n\n- Time Complexity: O(n * h), O(n^2) in the worst skewed tree\n- Space Complexity: O(h)",
+      "code": "class Solution {\n    public boolean findTarget(TreeNode root, int k) {\n        return scan(root, root, k);\n    }\n\n    private boolean scan(TreeNode node, TreeNode root, int k) {\n        if (node == null) {\n            return false;\n        }\n        if (containsDifferentNode(root, k - node.val, node)) {\n            return true;\n        }\n        return scan(node.left, root, k) || scan(node.right, root, k);\n    }\n\n    private boolean containsDifferentNode(TreeNode node, int target, TreeNode excluded) {\n        if (node == null) {\n            return false;\n        }\n        if (target < node.val) {\n            return containsDifferentNode(node.left, target, excluded);\n        }\n        if (target > node.val) {\n            return containsDifferentNode(node.right, target, excluded);\n        }\n        if (node != excluded) {\n            return true;\n        }\n        return containsDifferentNode(node.left, target, excluded)\n                || containsDifferentNode(node.right, target, excluded);\n    }\n}",
       "language": "java"
     }
   ],
@@ -49,13 +73,53 @@
     {
       "input": "root = [5,3,6,2,4,null,7], k = 28",
       "output": "false"
+    },
+    {
+      "input": "root = [1], k = 2",
+      "output": "false"
+    },
+    {
+      "input": "root = [0,-2,3,-3,-1,2,4], k = -4",
+      "output": "true"
+    },
+    {
+      "input": "root = [0,-2,3,-3,-1,2,4], k = 1",
+      "output": "true"
+    },
+    {
+      "input": "root = [2,1,4], k = 4",
+      "output": "false"
+    },
+    {
+      "input": "root = [2,1,3], k = 5",
+      "output": "true"
+    },
+    {
+      "input": "root = [1,null,2,null,3,null,4], k = 7",
+      "output": "true"
+    },
+    {
+      "input": "root = [4,3,null,2,null,1], k = 8",
+      "output": "false"
+    },
+    {
+      "input": "root = [0,-10000,10000], k = 0",
+      "output": "true"
+    },
+    {
+      "input": "root = [1,null,3], k = 5",
+      "output": "false"
+    },
+    {
+      "input": "root = [0,-3,9,-4,-1,5,12], k = 8",
+      "output": "true"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p488_example1.png",
-      "caption": "Example 1: BST [5,3,6,2,4,null,7], k=9"
+      "caption": "BST input with target value shown below"
     }
   ]
 }

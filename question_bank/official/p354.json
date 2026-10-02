@@ -1,9 +1,9 @@
 {
   "id": "354",
   "title": "Freedom Trail",
-  "description": "# Freedom Trail\n\nIn the video game Fallout 4, the quest \"Road to Freedom\" requires players to reach a metal dial called the \"Freedom Trail Ring\" and use the dial to spell a specific keyword to open the door.\n\nGiven a string `ring` that represents the code engraved on the outer ring and another string `key` that represents the keyword that needs to be spelled, return *the minimum number of steps to spell all the characters in the keyword*.\n\nInitially, the first character of the ring is aligned at the `12:00` direction. You need to spell all the characters in the string `key` one by one by rotating the ring clockwise or anticlockwise to make each character of the string key aligned at the `12:00` direction and then by pressing the center button.\n\nAt the stage of rotating the ring to spell the key character `key[i]`:\n\n1.  You can rotate the ring clockwise or anticlockwise by one place, which counts as **1 step**. The final purpose of the rotation is to align one of `ring`'s characters at the `12:00` direction, where this character must equal `key[i]`.\n2.  If the character `key[i]` has been aligned at the `12:00` direction, you need to press the center button to spell, which also counts as **1 step**. After the pressing, you could begin to spell the next character `key[i + 1]` (next stage). Otherwise, you have finished all the spelling.\n\n## Example 1:\n\n**Input:** ring = \"godding\", key = \"gd\"\n**Output:** 4\n**Explanation:**\nFor the first key character 'g', since it is already in place, we just need 1 step to spell this character.\nFor the second key character 'd', we need to rotate the ring \"godding\" anticlockwise by two steps to make it become \"ddinggo\".\nAlso, we need 1 more step for spelling.\nSo the final output is 4.\n\n## Example 2:\n\n**Input:** ring = \"godding\", key = \"godding\"\n**Output:** 13\n\n## Constraints:\n\n*   `1 <= ring.length, key.length <= 100`\n*   `ring` and `key` consist of only lowercase English letters.\n*   It is guaranteed that `key` could always be spelled by rotating `ring`.",
+  "description": "# Freedom Trail\n\nA circular ring has lowercase letters engraved around it. The character at index `0` is initially aligned at the `12:00` position.\n\nGiven the ring string `ring` and a target string `key`, return the minimum number of steps needed to spell every character in `key`.\n\nFor each character in `key`, you may rotate the ring clockwise or counterclockwise. Rotating by one position costs `1` step. After a matching character is aligned at `12:00`, pressing the center button to spell that character also costs `1` step.\n\nThe same letter can appear many times in `ring`; for each key character you may choose any matching ring position.\n\n## Example 1:\n\n**Input:** ring = \"godding\", key = \"gd\"\n**Output:** 4\n**Explanation:** Spell `g` with one press. Then rotate two steps to a `d` and press again, for `1 + 2 + 1 = 4` steps.\n\n## Example 2:\n\n**Input:** ring = \"godding\", key = \"godding\"\n**Output:** 13\n\n## Constraints:\n\n* `1 <= ring.length, key.length <= 100`\n* `ring` and `key` consist only of lowercase English letters.\n* Every character in `key` appears in `ring`.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int findRotateSteps(String ring, String key) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int findRotateSteps(String ring, String key) {\n        return 0;\n    }\n}",
   "tags": [
     "String",
     "Dynamic Programming",
@@ -11,29 +11,132 @@
     "Breadth-First Search"
   ],
   "examples": [
-    { "input": "ring = \"godding\", key = \"gd\"", "output": "4" },
-    { "input": "ring = \"godding\", key = \"godding\"", "output": "13" }
+    {
+      "input": "ring = \"godding\", key = \"gd\"",
+      "output": "4"
+    },
+    {
+      "input": "ring = \"godding\", key = \"godding\"",
+      "output": "13"
+    }
   ],
   "solutions": [
     {
-      "name": "DP on Ring Position",
+      "name": "Dense Bottom-Up DP over Ring Positions",
       "timeComplexity": "O(m * n^2)",
       "spaceComplexity": "O(m * n)",
-      "description": "dp[i][j] = minimum steps to spell key[i..end] when ring position j is at 12:00. For each key character, try all matching positions on the ring and take the minimum rotation distance plus 1 for pressing.",
-      "code": "class Solution {\n    public int findRotateSteps(String ring, String key) {\n        int n = ring.length(), m = key.length();\n        int[][] dp = new int[m + 1][n];\n        for (int i = m - 1; i >= 0; i--) {\n            java.util.Arrays.fill(dp[i], Integer.MAX_VALUE);\n            for (int j = 0; j < n; j++) {\n                for (int k = 0; k < n; k++) {\n                    if (ring.charAt(k) == key.charAt(i)) {\n                        int diff = Math.abs(j - k);\n                        int step = Math.min(diff, n - diff);\n                        dp[i][j] = Math.min(dp[i][j], step + 1 + dp[i + 1][k]);\n                    }\n                }\n            }\n        }\n        return dp[0][0];\n    }\n}",
+      "description": "## Approach\n\nLet `dp[i][pos]` be the minimum cost to spell `key[i..]` when ring index `pos` is currently at 12:00. Fill the table from the end of `key` toward the front, and for each state try every ring index that matches the current key character.\n\n## Key Insight\n\nThe ring distance between two positions is `min(abs(a - b), n - abs(a - b))`, and every chosen character also costs one button press. The DP state must remember the current ring position because repeated letters can lead to different future costs.\n\n## Complexity Analysis\n- Time Complexity: O(m * n^2)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public int findRotateSteps(String ring, String key) {\n        int n = ring.length();\n        int m = key.length();\n        int[][] dp = new int[m + 1][n];\n        for (int keyIndex = m - 1; keyIndex >= 0; keyIndex--) {\n            java.util.Arrays.fill(dp[keyIndex], 1_000_000);\n            for (int current = 0; current < n; current++) {\n                for (int target = 0; target < n; target++) {\n                    if (ring.charAt(target) != key.charAt(keyIndex)) continue;\n                    int clockwise = Math.abs(current - target);\n                    int rotate = Math.min(clockwise, n - clockwise);\n                    dp[keyIndex][current] = Math.min(dp[keyIndex][current], rotate + 1 + dp[keyIndex + 1][target]);\n                }\n            }\n        }\n        return dp[0][0];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Top-Down DFS with Memoization",
-      "timeComplexity": "O(m * n^2)",
+      "name": "Top-Down DFS with Position Map",
+      "timeComplexity": "O(m * n * a)",
       "spaceComplexity": "O(m * n)",
-      "description": "Recursive DFS approach: for each character in key, try all positions on ring that match and recursively solve. Memoize on (keyIndex, ringPosition) to avoid recomputation.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int findRotateSteps(String ring, String key) {\n        int n = ring.length();\n        int m = key.length();\n        Map<Character, List<Integer>> posMap = new HashMap<>();\n        for (int i = 0; i < n; i++) {\n            char c = ring.charAt(i);\n            if (!posMap.containsKey(c)) posMap.put(c, new ArrayList<>());\n            posMap.get(c).add(i);\n        }\n        int[][] memo = new int[m][n];\n        for (int[] row : memo) Arrays.fill(row, -1);\n        return dfs(ring, key, 0, 0, posMap, memo);\n    }\n    private int dfs(String ring, String key, int ki, int ri, Map<Character, List<Integer>> posMap, int[][] memo) {\n        if (ki == key.length()) return 0;\n        if (memo[ki][ri] != -1) return memo[ki][ri];\n        int n = ring.length();\n        int best = Integer.MAX_VALUE;\n        for (int pos : posMap.get(key.charAt(ki))) {\n            int diff = Math.abs(ri - pos);\n            int step = Math.min(diff, n - diff) + 1;\n            best = Math.min(best, step + dfs(ring, key, ki + 1, pos, posMap, memo));\n        }\n        memo[ki][ri] = best;\n        return best;\n    }\n}",
+      "description": "## Approach\n\nPrecompute the list of ring positions for every character. Recursively solve `(keyIndex, ringIndex)`: choose one matching position for the next key character, pay the circular distance plus one press, and memoize the best result.\n\n## Key Insight\n\nOnly positions containing the needed character are relevant for the next transition. Memoization prevents the same suffix and ring position from being recomputed through different earlier choices.\n\n## Complexity Analysis\n- Time Complexity: O(m * n * a), where `a` is the maximum number of occurrences of one character\n- Space Complexity: O(m * n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int findRotateSteps(String ring, String key) {\n        Map<Character, List<Integer>> positions = new HashMap<>();\n        for (int i = 0; i < ring.length(); i++) {\n            positions.computeIfAbsent(ring.charAt(i), ignored -> new ArrayList<>()).add(i);\n        }\n        int[][] memo = new int[key.length()][ring.length()];\n        for (int[] row : memo) Arrays.fill(row, -1);\n        return dfs(ring, key, 0, 0, positions, memo);\n    }\n\n    private int dfs(String ring, String key, int keyIndex, int ringIndex,\n            Map<Character, List<Integer>> positions, int[][] memo) {\n        if (keyIndex == key.length()) return 0;\n        if (memo[keyIndex][ringIndex] != -1) return memo[keyIndex][ringIndex];\n        int n = ring.length();\n        int best = Integer.MAX_VALUE;\n        for (int target : positions.get(key.charAt(keyIndex))) {\n            int clockwise = Math.abs(ringIndex - target);\n            int rotate = Math.min(clockwise, n - clockwise);\n            best = Math.min(best, rotate + 1 + dfs(ring, key, keyIndex + 1, target, positions, memo));\n        }\n        memo[keyIndex][ringIndex] = best;\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sparse Rolling DP on Matching Positions",
+      "timeComplexity": "O(m * a^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nKeep only the reachable ring positions after spelling the processed prefix of `key`. For each next character, build a new map from matching target positions to their best cost by trying all previous positions.\n\n## Key Insight\n\nThe dense DP spends time on ring positions that cannot be the current pointer after spelling a prefix. Sparse rolling DP stores only positions that actually match the last spelled character, which is often much smaller.\n\n## Complexity Analysis\n- Time Complexity: O(m * a^2), where `a` is the maximum occurrence count of a character in `ring`\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int findRotateSteps(String ring, String key) {\n        int n = ring.length();\n        Map<Character, List<Integer>> positions = new HashMap<>();\n        for (int i = 0; i < n; i++) {\n            positions.computeIfAbsent(ring.charAt(i), ignored -> new ArrayList<>()).add(i);\n        }\n\n        Map<Integer, Integer> previous = new HashMap<>();\n        previous.put(0, 0);\n        for (int keyIndex = 0; keyIndex < key.length(); keyIndex++) {\n            Map<Integer, Integer> nextCosts = new HashMap<>();\n            for (int target : positions.get(key.charAt(keyIndex))) {\n                int best = Integer.MAX_VALUE;\n                for (Map.Entry<Integer, Integer> entry : previous.entrySet()) {\n                    int current = entry.getKey();\n                    int clockwise = Math.abs(current - target);\n                    int rotate = Math.min(clockwise, n - clockwise);\n                    best = Math.min(best, entry.getValue() + rotate + 1);\n                }\n                nextCosts.put(target, best);\n            }\n            previous = nextCosts;\n        }\n        return previous.values().stream().min(Integer::compareTo).orElse(0);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Dijkstra over Spelling States",
+      "timeComplexity": "O(m * n^2 * log(mn))",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nTreat each state as `(number of key characters already spelled, current ring index)`. From a state, move to every position matching the next key character with edge cost equal to circular rotation distance plus one press. Run Dijkstra from `(0, 0)`.\n\n## Key Insight\n\nThe problem is a shortest-path graph with nonnegative edge weights. Dijkstra is not the shortest implementation, but it makes the cost model explicit and is useful when explaining why every press and every rotation must be counted.\n\n## Complexity Analysis\n- Time Complexity: O(m * n^2 * log(mn))\n- Space Complexity: O(m * n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int findRotateSteps(String ring, String key) {\n        int n = ring.length();\n        int m = key.length();\n        Map<Character, List<Integer>> positions = new HashMap<>();\n        for (int i = 0; i < n; i++) {\n            positions.computeIfAbsent(ring.charAt(i), ignored -> new ArrayList<>()).add(i);\n        }\n\n        int[][] dist = new int[m + 1][n];\n        for (int[] row : dist) Arrays.fill(row, Integer.MAX_VALUE);\n        PriorityQueue<int[]> queue = new PriorityQueue<>(Comparator.comparingInt(state -> state[0]));\n        dist[0][0] = 0;\n        queue.offer(new int[]{0, 0, 0});\n\n        while (!queue.isEmpty()) {\n            int[] state = queue.poll();\n            int cost = state[0];\n            int keyIndex = state[1];\n            int ringIndex = state[2];\n            if (cost != dist[keyIndex][ringIndex]) continue;\n            if (keyIndex == m) return cost;\n            for (int target : positions.get(key.charAt(keyIndex))) {\n                int clockwise = Math.abs(ringIndex - target);\n                int rotate = Math.min(clockwise, n - clockwise);\n                int nextCost = cost + rotate + 1;\n                if (nextCost < dist[keyIndex + 1][target]) {\n                    dist[keyIndex + 1][target] = nextCost;\n                    queue.offer(new int[]{nextCost, keyIndex + 1, target});\n                }\n            }\n        }\n        return -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Precomputed Distance Matrix DP",
+      "timeComplexity": "O(n^2 + m * n^2)",
+      "spaceComplexity": "O(n^2 + m * n)",
+      "description": "## Approach\n\nPrecompute the circular distance between every pair of ring positions. Then run bottom-up DP over key index and current ring position, using the distance matrix for each transition to a matching target position.\n\n## Key Insight\n\nThe same pairwise ring distances are reused many times across DP states. Precomputing them makes the recurrence focus on the spelling choice rather than recalculating circular distance on every transition.\n\n## Complexity Analysis\n- Time Complexity: O(n^2 + m * n^2)\n- Space Complexity: O(n^2 + m * n)",
+      "code": "class Solution {\n    public int findRotateSteps(String ring, String key) {\n        int n = ring.length();\n        int m = key.length();\n        int[][] distance = buildDistanceMatrix(n);\n        int[][] dp = new int[m + 1][n];\n        for (int keyIndex = m - 1; keyIndex >= 0; keyIndex--) {\n            java.util.Arrays.fill(dp[keyIndex], 1_000_000);\n            for (int from = 0; from < n; from++) {\n                for (int to = 0; to < n; to++) {\n                    if (ring.charAt(to) == key.charAt(keyIndex)) {\n                        dp[keyIndex][from] = Math.min(dp[keyIndex][from], distance[from][to] + 1 + dp[keyIndex + 1][to]);\n                    }\n                }\n            }\n        }\n        return dp[0][0];\n    }\n\n    private int[][] buildDistanceMatrix(int n) {\n        int[][] distance = new int[n][n];\n        for (int from = 0; from < n; from++) {\n            for (int to = 0; to < n; to++) {\n                int diff = Math.abs(from - to);\n                distance[from][to] = Math.min(diff, n - diff);\n            }\n        }\n        return distance;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "ring = \"godding\", key = \"gd\"", "output": "4" },
-    { "input": "ring = \"godding\", key = \"godding\"", "output": "13" }
+    {
+      "input": "ring = \"godding\", key = \"gd\"",
+      "output": "4",
+      "description": "canonical repeated-letter example"
+    },
+    {
+      "input": "ring = \"godding\", key = \"godding\"",
+      "output": "13",
+      "description": "spell every character in order"
+    },
+    {
+      "input": "ring = \"abcde\", key = \"ade\"",
+      "output": "6",
+      "description": "chooses shortest clockwise or counterclockwise rotation"
+    },
+    {
+      "input": "ring = \"aaa\", key = \"aaaa\"",
+      "output": "4",
+      "description": "same position can be pressed repeatedly"
+    },
+    {
+      "input": "ring = \"ababcab\", key = \"acba\"",
+      "output": "9",
+      "description": "repeated letters create multiple candidate positions"
+    },
+    {
+      "input": "ring = \"abcde\", key = \"e\"",
+      "output": "2",
+      "description": "one counterclockwise move plus one press"
+    },
+    {
+      "input": "ring = \"abcde\", key = \"edcba\"",
+      "output": "10",
+      "description": "longer path using both directions around the ring"
+    },
+    {
+      "input": "ring = \"abca\", key = \"caa\"",
+      "output": "6",
+      "description": "chooses between duplicate a positions after reaching c"
+    },
+    {
+      "input": "ring = \"bba\", key = \"ab\"",
+      "output": "4",
+      "description": "target starts away from index zero and returns to a duplicate"
+    },
+    {
+      "input": "ring = \"abcabc\", key = \"ccba\"",
+      "output": "7",
+      "description": "duplicate target positions make the future cost matter"
+    },
+    {
+      "input": "ring = \"pqwcx\", key = \"cpqwx\"",
+      "output": "13",
+      "description": "single occurrence characters require full ring-distance accounting"
+    },
+    {
+      "input": "ring = \"caabc\", key = \"abcac\"",
+      "output": "12",
+      "description": "repeated a and c positions affect optimal routing"
+    },
+    {
+      "input": "ring = \"azazaz\", key = \"zzaa\"",
+      "output": "6",
+      "description": "alternating duplicates with repeated key characters"
+    },
+    {
+      "input": "ring = \"leetcode\", key = \"code\"",
+      "output": "11",
+      "description": "nontrivial repeated letters in a realistic word"
+    },
+    {
+      "input": "ring = \"iotfo\", key = \"fioot\"",
+      "output": "11",
+      "description": "requires choosing among repeated o positions"
+    }
   ]
 }

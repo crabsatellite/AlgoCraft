@@ -1,9 +1,9 @@
 {
   "id": "402",
   "title": "Design HashSet",
-  "description": "# Design HashSet\n\nDesign a HashSet without using any built-in hash table libraries.\n\nImplement the `MyHashSet` class:\n\n*   `void add(key)` Inserts the value `key` into the HashSet.\n*   `bool contains(key)` Returns whether the value `key` exists in the HashSet or not.\n*   `void remove(key)` Removes the value `key` in the HashSet. If `key` does not exist in the HashSet, do nothing.\n\n## Example 1:\n\n**Input:**\n[\"MyHashSet\", \"add\", \"add\", \"contains\", \"contains\", \"add\", \"contains\", \"remove\", \"contains\"]\n[[], [1], [2], [1], [3], [2], [2], [2], [2]]\n**Output:**\n[null, null, null, true, false, null, true, null, false]\n**Explanation:**\nMyHashSet myHashSet = new MyHashSet();\nmyHashSet.add(1);      // set = [1]\nmyHashSet.add(2);      // set = [1, 2]\nmyHashSet.contains(1); // return True\nmyHashSet.contains(3); // return False, (not found)\nmyHashSet.add(2);      // set = [1, 2]\nmyHashSet.contains(2); // return True\nmyHashSet.remove(2);   // set = [1]\nmyHashSet.contains(2); // return False, (already removed)\n\n## Constraints:\n\n*   `0 <= key <= 10^6`\n*   At most `10^4` calls will be made to `add`, `remove`, and `contains`.",
+  "description": "# Design HashSet\n\nDesign a HashSet without using any built-in hash table libraries.\n\nImplement the `MyHashSet` class:\n\n* `MyHashSet()` initializes an empty set.\n* `void add(int key)` inserts `key` into the set. Adding a key that is already present must leave the set unchanged.\n* `void remove(int key)` removes `key` when it exists and does nothing otherwise.\n* `boolean contains(int key)` returns whether `key` is currently in the set.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1\n\n**Input:**\n[\"MyHashSet\", \"add\", \"add\", \"contains\", \"contains\", \"add\", \"contains\", \"remove\", \"contains\"]\n[[], [1], [2], [1], [3], [2], [2], [2], [2]]\n\n**Output:**\n[null, null, null, true, false, null, true, null, false]\n\n**Explanation:** Adding `2` twice still stores one key. After `remove(2)`, `contains(2)` returns `false`.\n\n## Notes\n\nFor collision-based implementations, deleting one key must not hide another key that collided with it. For direct-address implementations, both boundary keys `0` and `1,000,000` must be valid.\n\n## Constraints\n\n* `0 <= key <= 10^6`\n* At most `10^4` calls will be made to `add`, `remove`, and `contains`.\n* Do not use built-in hash table libraries such as `HashSet`, `HashMap`, `Hashtable`, or `LinkedHashMap`.",
   "difficulty": "EASY",
-  "initialCode": "class MyHashSet {\n\n    public MyHashSet() {\n        \n    }\n    \n    public void add(int key) {\n        \n    }\n    \n    public void remove(int key) {\n        \n    }\n    \n    public boolean contains(int key) {\n        \n    }\n}",
+  "initialCode": "class MyHashSet {\n\n    public MyHashSet() {\n    }\n\n    public void add(int key) {\n    }\n\n    public void remove(int key) {\n    }\n\n    public boolean contains(int key) {\n        return false;\n    }\n}",
   "tags": [
     "Array",
     "Hash Table",
@@ -14,38 +14,89 @@
   "examples": [
     {
       "input": "[\"MyHashSet\", \"add\", \"add\", \"contains\", \"contains\", \"add\", \"contains\", \"remove\", \"contains\"]\n[[], [1], [2], [1], [3], [2], [2], [2], [2]]",
-      "output": "[null, null, null, true, false, null, true, null, false]"
+      "output": "[null, null, null, true, false, null, true, null, false]",
+      "explanation": "The second add(2) is idempotent; after remove(2), contains(2) returns false."
     }
   ],
   "solutions": [
     {
-      "name": "Boolean Array",
-      "timeComplexity": "O(1) per operation",
-      "spaceComplexity": "O(maxKey)",
-      "description": "Since key range is 0 to 10^6, use a boolean array of size 10^6+1. Direct index access for add, remove, and contains.",
-      "code": "class MyHashSet {\n    private boolean[] set;\n    public MyHashSet() {\n        set = new boolean[1000001];\n    }\n    public void add(int key) {\n        set[key] = true;\n    }\n    public void remove(int key) {\n        set[key] = false;\n    }\n    public boolean contains(int key) {\n        return set[key];\n    }\n}",
-      "language": "java"
+      "name": "Direct Address Boolean Array",
+      "description": "## Approach\n\nUse the key itself as an array index. A boolean array of length `1_000_001` records whether each key is currently present.\n\n## Key Insight\n\nThe key range is fixed and small enough for direct addressing. Duplicate `add` and repeated `remove` operations naturally become idempotent assignments.\n\n## Complexity Analysis\n- Time Complexity: O(1) per operation.\n- Space Complexity: O(M), where M = 1,000,001.",
+      "code": "class MyHashSet {\n    private static final int MAX_KEY = 1_000_000;\n    private final boolean[] present;\n\n    public MyHashSet() {\n        present = new boolean[MAX_KEY + 1];\n    }\n\n    public void add(int key) {\n        present[key] = true;\n    }\n\n    public void remove(int key) {\n        present[key] = false;\n    }\n\n    public boolean contains(int key) {\n        return present[key];\n    }\n}"
     },
     {
-      "name": "Hash Table with Chaining (Linked List Buckets)",
-      "timeComplexity": "O(n/k) per operation",
-      "spaceComplexity": "O(k + n)",
-      "description": "Use an array of linked list buckets with a prime-sized hash function. Each bucket stores keys in a list. Hash collisions are resolved by chaining.",
-      "code": "import java.util.*;\n\nclass MyHashSet {\n    private static final int SIZE = 769;\n    private List<Integer>[] buckets;\n    public MyHashSet() {\n        buckets = new ArrayList[SIZE];\n        for (int i = 0; i < SIZE; i++) {\n            buckets[i] = new ArrayList();\n        }\n    }\n    private int hash(int key) {\n        return key % SIZE;\n    }\n    public void add(int key) {\n        int h = hash(key);\n        List<Integer> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i).intValue() == key) return;\n        }\n        bucket.add(key);\n    }\n    public void remove(int key) {\n        int h = hash(key);\n        List<Integer> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i).intValue() == key) {\n                bucket.remove(i);\n                return;\n            }\n        }\n    }\n    public boolean contains(int key) {\n        int h = hash(key);\n        List<Integer> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i).intValue() == key) return true;\n        }\n        return false;\n    }\n}",
-      "language": "java"
+      "name": "Direct Address BitSet",
+      "description": "## Approach\n\nUse Java's `BitSet` as a compact direct-address table. `set(key)`, `clear(key)`, and `get(key)` map directly to add, remove, and contains.\n\n## Key Insight\n\nThis is still direct addressing, but it stores one bit per key instead of one boolean per key. It is useful for teaching how sets over a bounded integer universe can be represented as bitmaps.\n\n## Complexity Analysis\n- Time Complexity: O(1) per operation.\n- Space Complexity: O(M / wordSize) machine words for the key universe.",
+      "code": "import java.util.BitSet;\n\nclass MyHashSet {\n    private static final int MAX_KEY = 1_000_000;\n    private final BitSet bits;\n\n    public MyHashSet() {\n        bits = new BitSet(MAX_KEY + 1);\n    }\n\n    public void add(int key) {\n        bits.set(key);\n    }\n\n    public void remove(int key) {\n        bits.clear(key);\n    }\n\n    public boolean contains(int key) {\n        return bits.get(key);\n    }\n}"
+    },
+    {
+      "name": "Lazy Paged Bitset",
+      "description": "## Approach\n\nSplit the bounded key space into fixed-size pages. Allocate a `long[]` page only when a key inside that page is first added, and then use bit operations inside the page.\n\n## Key Insight\n\nThe operation count is far smaller than the key universe, so lazy pages avoid committing memory for unused ranges. Bit operations also make repeated add/remove naturally idempotent.\n\n## Complexity Analysis\n- Time Complexity: O(1) per operation.\n- Space Complexity: O(P + A), where P is the page directory size and A is the number of allocated page words.",
+      "code": "class MyHashSet {\n    private static final int PAGE_BITS = 1024;\n    private static final int WORD_BITS = 64;\n    private static final int PAGE_COUNT = 978;\n    private final long[][] pages;\n\n    public MyHashSet() {\n        pages = new long[PAGE_COUNT][];\n    }\n\n    public void add(int key) {\n        ensurePage(key);\n        int page = key / PAGE_BITS;\n        int offset = key % PAGE_BITS;\n        pages[page][offset / WORD_BITS] |= 1L << (offset % WORD_BITS);\n    }\n\n    public void remove(int key) {\n        int page = key / PAGE_BITS;\n        if (pages[page] == null) {\n            return;\n        }\n        int offset = key % PAGE_BITS;\n        pages[page][offset / WORD_BITS] &= ~(1L << (offset % WORD_BITS));\n    }\n\n    public boolean contains(int key) {\n        int page = key / PAGE_BITS;\n        if (pages[page] == null) {\n            return false;\n        }\n        int offset = key % PAGE_BITS;\n        return (pages[page][offset / WORD_BITS] & (1L << (offset % WORD_BITS))) != 0;\n    }\n\n    private void ensurePage(int key) {\n        int page = key / PAGE_BITS;\n        if (pages[page] == null) {\n            pages[page] = new long[PAGE_BITS / WORD_BITS];\n        }\n    }\n}"
+    },
+    {
+      "name": "Separate Chaining with Linked Nodes",
+      "description": "## Approach\n\nCreate a fixed array of buckets. Each bucket is a linked list of keys with the same hash. Add scans only its bucket to avoid duplicates, remove unlinks one node, and contains scans that same bucket.\n\n## Key Insight\n\nSeparate chaining is the standard collision strategy for a general hash set. Removing one key from a bucket must not remove or hide another key with the same hash.\n\n## Complexity Analysis\n- Time Complexity: O(1) average per operation, O(n) worst case for one overloaded bucket.\n- Space Complexity: O(B + n), where B is the bucket count and n is the number of stored keys.",
+      "code": "class MyHashSet {\n    private static final int BUCKET_COUNT = 769;\n    private final Node[] buckets;\n\n    public MyHashSet() {\n        buckets = new Node[BUCKET_COUNT];\n    }\n\n    public void add(int key) {\n        int index = hash(key);\n        for (Node node = buckets[index]; node != null; node = node.next) {\n            if (node.key == key) {\n                return;\n            }\n        }\n        buckets[index] = new Node(key, buckets[index]);\n    }\n\n    public void remove(int key) {\n        int index = hash(key);\n        Node previous = null;\n        Node node = buckets[index];\n        while (node != null) {\n            if (node.key == key) {\n                if (previous == null) {\n                    buckets[index] = node.next;\n                } else {\n                    previous.next = node.next;\n                }\n                return;\n            }\n            previous = node;\n            node = node.next;\n        }\n    }\n\n    public boolean contains(int key) {\n        int index = hash(key);\n        for (Node node = buckets[index]; node != null; node = node.next) {\n            if (node.key == key) {\n                return true;\n            }\n        }\n        return false;\n    }\n\n    private int hash(int key) {\n        return key % BUCKET_COUNT;\n    }\n\n    private static class Node {\n        final int key;\n        Node next;\n\n        Node(int key, Node next) {\n            this.key = key;\n            this.next = next;\n        }\n    }\n}"
+    },
+    {
+      "name": "Open Addressing with Linear Probing",
+      "description": "## Approach\n\nStore keys directly inside a fixed table and keep a state array for empty, occupied, and deleted slots. On collision, probe the next slot until the key, an empty slot, or the first reusable tombstone is found.\n\n## Key Insight\n\nOpen addressing avoids node allocation, but deletion must use tombstones. Marking a deleted slot as empty would break the probe chain for later colliding keys.\n\n## Complexity Analysis\n- Time Complexity: O(1) average per operation, O(C) worst case for capacity C.\n- Space Complexity: O(C).",
+      "code": "class MyHashSet {\n    private static final int CAPACITY = 20011;\n    private final int[] keys;\n    private final byte[] state; // 0 = empty, 1 = occupied, 2 = deleted\n\n    public MyHashSet() {\n        keys = new int[CAPACITY];\n        state = new byte[CAPACITY];\n    }\n\n    public void add(int key) {\n        int slot = findSlotForInsert(key);\n        keys[slot] = key;\n        state[slot] = 1;\n    }\n\n    public void remove(int key) {\n        int slot = findExistingSlot(key);\n        if (slot != -1) {\n            state[slot] = 2;\n        }\n    }\n\n    public boolean contains(int key) {\n        return findExistingSlot(key) != -1;\n    }\n\n    private int findSlotForInsert(int key) {\n        int hash = key % CAPACITY;\n        int firstDeleted = -1;\n        for (int step = 0; step < CAPACITY; step++) {\n            int index = (hash + step) % CAPACITY;\n            if (state[index] == 1 && keys[index] == key) {\n                return index;\n            }\n            if (state[index] == 2 && firstDeleted == -1) {\n                firstDeleted = index;\n            }\n            if (state[index] == 0) {\n                return firstDeleted == -1 ? index : firstDeleted;\n            }\n        }\n        if (firstDeleted != -1) {\n            return firstDeleted;\n        }\n        throw new IllegalStateException(\"hash set is full\");\n    }\n\n    private int findExistingSlot(int key) {\n        int hash = key % CAPACITY;\n        for (int step = 0; step < CAPACITY; step++) {\n            int index = (hash + step) % CAPACITY;\n            if (state[index] == 0) {\n                return -1;\n            }\n            if (state[index] == 1 && keys[index] == key) {\n                return index;\n            }\n        }\n        return -1;\n    }\n}"
     }
   ],
   "tests": [
     {
       "input": "[\"MyHashSet\", \"add\", \"add\", \"contains\", \"contains\", \"add\", \"contains\", \"remove\", \"contains\"]\n[[], [1], [2], [1], [3], [2], [2], [2], [2]]",
-      "output": "[null, null, null, true, false, null, true, null, false]"
+      "output": "[null, null, null, true, false, null, true, null, false]",
+      "description": "canonical add, contains, duplicate add, remove sequence"
+    },
+    {
+      "input": "[\"MyHashSet\",\"add\",\"add\",\"contains\",\"remove\",\"contains\",\"remove\",\"add\",\"contains\"]\n[[],[0],[1000000],[0],[0],[0],[42],[0],[1000000]]",
+      "output": "[null,null,null,true,null,false,null,null,true]",
+      "description": "minimum and maximum keys, absent remove, and re-add after removal"
+    },
+    {
+      "input": "[\"MyHashSet\",\"add\",\"add\",\"contains\",\"remove\",\"contains\",\"contains\"]\n[[],[1],[770],[770],[1],[1],[770]]",
+      "output": "[null,null,null,true,null,false,true]",
+      "description": "two keys colliding under 769 buckets stay independent"
+    },
+    {
+      "input": "[\"MyHashSet\",\"add\",\"add\",\"add\",\"contains\",\"remove\",\"contains\"]\n[[],[8],[8],[8],[8],[8],[8]]",
+      "output": "[null,null,null,null,true,null,false]",
+      "description": "duplicate add does not require multiple removals"
+    },
+    {
+      "input": "[\"MyHashSet\",\"remove\",\"contains\",\"add\",\"remove\",\"remove\",\"add\",\"contains\"]\n[[],[123],[123],[123],[123],[123],[123],[123]]",
+      "output": "[null,null,false,null,null,null,null,true]",
+      "description": "remove is idempotent and reinsertion after removal works"
+    },
+    {
+      "input": "[\"MyHashSet\",\"add\",\"add\",\"add\",\"contains\",\"contains\",\"contains\",\"remove\",\"contains\",\"add\",\"contains\",\"contains\",\"contains\"]\n[[],[1],[20012],[40023],[1],[20012],[40023],[20012],[40023],[60034],[60034],[1],[20012]]",
+      "output": "[null,null,null,null,true,true,true,null,true,null,true,true,false]",
+      "description": "linear-probing collision chain survives a middle tombstone and reuses deleted slots"
+    },
+    {
+      "input": "[\"MyHashSet\",\"add\",\"add\",\"add\",\"add\",\"remove\",\"contains\",\"contains\",\"contains\",\"contains\",\"add\",\"contains\"]\n[[],[2],[771],[1540],[2309],[1540],[2],[771],[1540],[2309],[1540],[1540]]",
+      "output": "[null,null,null,null,null,null,true,true,false,true,null,true]",
+      "description": "multi-key chaining bucket removes only the requested key"
+    },
+    {
+      "input": "[\"MyHashSet\",\"add\",\"add\",\"contains\",\"contains\",\"remove\",\"contains\",\"contains\"]\n[[],[999999],[1024],[999999],[1024],[999999],[999999],[1024]]",
+      "output": "[null,null,null,true,true,null,false,true]",
+      "description": "sparse high keys and separate lazy pages remain independent"
+    },
+    {
+      "input": "[\"MyHashSet\",\"add\",\"add\",\"remove\",\"contains\",\"contains\",\"add\",\"contains\"]\n[[],[0],[1000000],[1000000],[0],[1000000],[1000000],[1000000]]",
+      "output": "[null,null,null,null,true,false,null,true]",
+      "description": "maximum key can be removed and re-added without affecting key zero"
     }
   ],
   "diagrams": [
     {
       "id": "design",
       "file": "p402_design.png",
-      "caption": "HashSet: Bucket Array"
+      "caption": "Example 1: add(1) and add(2) store keys 1 and 2; another add(2) does not add a duplicate"
     }
   ]
 }

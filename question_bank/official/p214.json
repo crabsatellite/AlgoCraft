@@ -1,36 +1,129 @@
 {
   "id": "214",
   "title": "Pascal's Triangle II",
-  "description": "# Pascal's Triangle II\n\nGiven an integer `rowIndex`, return the `rowIndex`-th (**0-indexed**) row of the **Pascal's triangle**.\n\nIn **Pascal's triangle**, each number is the sum of the two numbers directly above it as shown:\n\n```\n    1\n   1 1\n  1 2 1\n 1 3 3 1\n1 4 6 4 1\n```\n\n## Example 1:\n\n**Input:** rowIndex = 3\n**Output:** [1,3,3,1]\n\n## Example 2:\n\n**Input:** rowIndex = 0\n**Output:** [1]\n\n## Example 3:\n\n**Input:** rowIndex = 1\n**Output:** [1,1]\n\n## Constraints:\n\n*   `0 <= rowIndex <= 33`",
+  "description": "# Pascal's Triangle II\n\nGiven an integer `rowIndex`, return the `rowIndex`-th row of Pascal's triangle. The row is **0-indexed**, so `rowIndex = 0` returns `[1]` and `rowIndex = 3` returns `[1,3,3,1]`.\n\nIn Pascal's triangle, each row starts and ends with `1`. Every middle value is the sum of the two adjacent values directly above it in the previous row.\n\n```\n    1\n   1 1\n  1 2 1\n 1 3 3 1\n1 4 6 4 1\n```\n\n## Example 1:\n\n**Input:** rowIndex = 3\n**Output:** [1,3,3,1]\n**Explanation:** The fourth row, using zero-based indexing, is `[1,3,3,1]`.\n\n## Example 2:\n\n**Input:** rowIndex = 0\n**Output:** [1]\n\n## Example 3:\n\n**Input:** rowIndex = 1\n**Output:** [1,1]\n\n## Constraints:\n\n*   `0 <= rowIndex <= 33`",
   "difficulty": "EASY",
   "initialCode": "import java.util.List;\n\nclass Solution {\n    public List<Integer> getRow(int rowIndex) {\n        // Write your code here\n        return null;\n    }\n}",
-  "tags": ["Array", "Dynamic Programming"],
+  "tags": [
+    "Array",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "rowIndex = 3", "output": "[1,3,3,1]" },
-    { "input": "rowIndex = 0", "output": "[1]" },
-    { "input": "rowIndex = 1", "output": "[1,1]" }
+    {
+      "input": "rowIndex = 3",
+      "output": "[1,3,3,1]"
+    },
+    {
+      "input": "rowIndex = 0",
+      "output": "[1]"
+    },
+    {
+      "input": "rowIndex = 1",
+      "output": "[1,1]"
+    }
   ],
   "solutions": [
     {
-      "name": "In-Place DP",
-      "timeComplexity": "O(rowIndex²)",
-      "spaceComplexity": "O(rowIndex)",
-      "description": "Build row iteratively. Update from right to left to avoid overwriting values needed for computation.",
-      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> getRow(int rowIndex) {\n        List<Integer> row = new ArrayList<>();\n        row.add(1);\n        for (int i = 1; i <= rowIndex; i++) {\n            for (int j = row.size() - 1; j > 0; j--)\n                row.set(j, row.get(j) + row.get(j - 1));\n            row.add(1);\n        }\n        return row;\n    }\n}",
+      "name": "One-Row Backward Dynamic Programming",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nKeep only one list for the current row. For each new row, append the right boundary `1`, then update the middle values from right to left so each entry still reads the previous row's value before it is overwritten.\n\n## Key Insight\n\nThe update order is the whole trick. If we update left to right, `row[j - 1]` has already become the current-row value; updating right to left preserves the previous-row data needed by Pascal's recurrence.\n\n## Complexity Analysis\n\nLet n be `rowIndex`. Time Complexity: O(n^2). Space Complexity: O(n), excluding the returned row.",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> getRow(int rowIndex) {\n        List<Integer> row = new ArrayList<>();\n        for (int i = 0; i <= rowIndex; i++) {\n            row.add(1);\n            for (int j = i - 1; j > 0; j--) {\n                row.set(j, row.get(j) + row.get(j - 1));\n            }\n        }\n        return row;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Combinatorial Formula",
-      "timeComplexity": "O(rowIndex)",
-      "spaceComplexity": "O(rowIndex)",
-      "description": "Use the combinatorial identity C(n,k) = C(n,k-1) * (n-k+1) / k to compute each element of the row directly.",
-      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> getRow(int rowIndex) {\n        List<Integer> row = new ArrayList<>();\n        long val = 1;\n        for (int k = 0; k <= rowIndex; k++) {\n            row.add((int) val);\n            val = val * (rowIndex - k) / (k + 1);\n        }\n        return row;\n    }\n}",
+      "name": "Rolling Previous Row",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nBuild rows from top to bottom, but keep only the previous row and the current row. Each current middle value is `previous[col - 1] + previous[col]`, while the two ends are `1`.\n\n## Key Insight\n\nThis route follows the triangle definition directly while avoiding storage for every earlier row. It is easier to reason about than in-place updates because the previous row remains unchanged during construction.\n\n## Complexity Analysis\n\nLet n be `rowIndex`. Time Complexity: O(n^2). Space Complexity: O(n), excluding the returned row.",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> getRow(int rowIndex) {\n        List<Integer> previous = new ArrayList<>();\n        previous.add(1);\n\n        for (int row = 1; row <= rowIndex; row++) {\n            List<Integer> current = new ArrayList<>();\n            current.add(1);\n            for (int col = 1; col < row; col++) {\n                current.add(previous.get(col - 1) + previous.get(col));\n            }\n            current.add(1);\n            previous = current;\n        }\n        return previous;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Combinatorial Coefficient Recurrence",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nGenerate the row as binomial coefficients. Start with `C(n,0) = 1`, then compute each next value from the previous one using `C(n,k + 1) = C(n,k) * (n - k) / (k + 1)`.\n\n## Key Insight\n\nPascal's triangle row `n` is exactly the sequence of coefficients in `(a + b)^n`. The recurrence avoids factorials and stays integral at every step; using `long` for the intermediate product handles row 33 safely.\n\n## Complexity Analysis\n\nLet n be `rowIndex`. Time Complexity: O(n). Space Complexity: O(n), excluding the returned row.",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> getRow(int rowIndex) {\n        List<Integer> row = new ArrayList<>();\n        long value = 1;\n        for (int k = 0; k <= rowIndex; k++) {\n            row.add((int) value);\n            value = value * (rowIndex - k) / (k + 1);\n        }\n        return row;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Symmetric Coefficient Fill",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCreate an output list of size `rowIndex + 1`, compute coefficients from the left edge through the middle, and write each computed value into both symmetric positions `k` and `rowIndex - k`.\n\n## Key Insight\n\nPascal rows are symmetric because `C(n,k) = C(n,n-k)`. Filling mirrored positions teaches that property explicitly and cuts the number of coefficient updates roughly in half.\n\n## Complexity Analysis\n\nLet n be `rowIndex`. Time Complexity: O(n). Space Complexity: O(n), which is the returned row.",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> getRow(int rowIndex) {\n        List<Integer> row = new ArrayList<>();\n        for (int i = 0; i <= rowIndex; i++) {\n            row.add(0);\n        }\n\n        long value = 1;\n        for (int k = 0; k <= rowIndex / 2; k++) {\n            int coefficient = (int) value;\n            row.set(k, coefficient);\n            row.set(rowIndex - k, coefficient);\n            value = value * (rowIndex - k) / (k + 1);\n        }\n        return row;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Build Full Triangle",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nConstruct Pascal's triangle row by row from row 0 until `rowIndex`. Each row is stored in a triangle list, and each middle value reads the two adjacent values from the previous stored row.\n\n## Key Insight\n\nThis method is not the most memory efficient, but it is the direct definition of Pascal's triangle. It is useful as a teaching baseline before optimizing to rolling rows or one-row dynamic programming.\n\n## Complexity Analysis\n\nLet n be `rowIndex`. Time Complexity: O(n^2). Space Complexity: O(n^2).",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> getRow(int rowIndex) {\n        List<List<Integer>> triangle = new ArrayList<>();\n        for (int row = 0; row <= rowIndex; row++) {\n            List<Integer> current = new ArrayList<>();\n            for (int col = 0; col <= row; col++) {\n                if (col == 0 || col == row) {\n                    current.add(1);\n                } else {\n                    current.add(triangle.get(row - 1).get(col - 1)\n                            + triangle.get(row - 1).get(col));\n                }\n            }\n            triangle.add(current);\n        }\n        return triangle.get(rowIndex);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "rowIndex = 3", "output": "[1,3,3,1]" },
-    { "input": "rowIndex = 0", "output": "[1]" },
-    { "input": "rowIndex = 1", "output": "[1,1]" }
+    {
+      "input": "rowIndex = 0",
+      "output": "[1]",
+      "description": "Top row contains only one value."
+    },
+    {
+      "input": "rowIndex = 1",
+      "output": "[1,1]",
+      "description": "Second row has two boundary ones."
+    },
+    {
+      "input": "rowIndex = 2",
+      "output": "[1,2,1]",
+      "description": "First row with a middle value checks the recurrence."
+    },
+    {
+      "input": "rowIndex = 3",
+      "output": "[1,3,3,1]",
+      "description": "Canonical sample using zero-based indexing."
+    },
+    {
+      "input": "rowIndex = 4",
+      "output": "[1,4,6,4,1]",
+      "description": "Even-length construction path with a single center."
+    },
+    {
+      "input": "rowIndex = 5",
+      "output": "[1,5,10,10,5,1]",
+      "description": "Odd row length has two equal central values."
+    },
+    {
+      "input": "rowIndex = 6",
+      "output": "[1,6,15,20,15,6,1]",
+      "description": "Checks another middle coefficient after repeated updates."
+    },
+    {
+      "input": "rowIndex = 10",
+      "output": "[1,10,45,120,210,252,210,120,45,10,1]",
+      "description": "Larger row checks combinatorial growth and symmetry."
+    },
+    {
+      "input": "rowIndex = 15",
+      "output": "[1,15,105,455,1365,3003,5005,6435,6435,5005,3003,1365,455,105,15,1]",
+      "description": "Mid-sized row checks the paired central maximum."
+    },
+    {
+      "input": "rowIndex = 20",
+      "output": "[1,20,190,1140,4845,15504,38760,77520,125970,167960,184756,167960,125970,77520,38760,15504,4845,1140,190,20,1]",
+      "description": "Large row verifies exact integer coefficient recurrence."
+    },
+    {
+      "input": "rowIndex = 30",
+      "output": "[1,30,435,4060,27405,142506,593775,2035800,5852925,14307150,30045015,54627300,86493225,119759850,145422675,155117520,145422675,119759850,86493225,54627300,30045015,14307150,5852925,2035800,593775,142506,27405,4060,435,30,1]",
+      "description": "Near-boundary row catches overflow-prone implementations early."
+    },
+    {
+      "input": "rowIndex = 33",
+      "output": "[1,33,528,5456,40920,237336,1107568,4272048,13884156,38567100,92561040,193536720,354817320,573166440,818809200,1037158320,1166803110,1166803110,1037158320,818809200,573166440,354817320,193536720,92561040,38567100,13884156,4272048,1107568,237336,40920,5456,528,33,1]",
+      "description": "Maximum allowed rowIndex keeps every returned coefficient in signed int range."
+    }
   ]
 }

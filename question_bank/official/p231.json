@@ -1,37 +1,135 @@
 {
   "id": "231",
   "title": "Maximum Product of Three Numbers",
-  "description": "# Maximum Product of Three Numbers\n\nGiven an integer array `nums`, *find three numbers whose product is maximum and return the maximum product*.\n\n## Example 1:\n\n**Input:** nums = [1,2,3]\n**Output:** 6\n\n## Example 2:\n\n**Input:** nums = [1,2,3,4]\n**Output:** 24\n\n## Example 3:\n\n**Input:** nums = [-1,-2,-3]\n**Output:** -6\n\n## Constraints:\n\n*   `3 <= nums.length <= 10^4`\n*   `-1000 <= nums[i] <= 1000`",
+  "description": "# Maximum Product of Three Numbers\n\nGiven an integer array `nums`, choose three numbers from the array so that their product is as large as possible. Return that maximum product.\n\nSelect three different indices; equal values are allowed when the input contains enough occurrences.\n\n## Example 1:\n\n**Input:** nums = [1,2,3]\n**Output:** 6\n\n## Example 2:\n\n**Input:** nums = [1,2,3,4]\n**Output:** 24\n\n## Example 3:\n\n**Input:** nums = [-1,-2,-3]\n**Output:** -6\n\n## Constraints:\n\n* `3 <= nums.length <= 10^4`\n* `-1000 <= nums[i] <= 1000`",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public int maximumProduct(int[] nums) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Math", "Sorting"],
+  "initialCode": "class Solution {\n    public int maximumProduct(int[] nums) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Math",
+    "Sorting"
+  ],
   "examples": [
-    { "input": "nums = [1,2,3]", "output": "6" },
-    { "input": "nums = [1,2,3,4]", "output": "24" },
-    { "input": "nums = [-1,-2,-3]", "output": "-6" }
+    {
+      "input": "nums = [1,2,3]",
+      "output": "6"
+    },
+    {
+      "input": "nums = [1,2,3,4]",
+      "output": "24"
+    },
+    {
+      "input": "nums = [-1,-2,-3]",
+      "output": "-6"
+    }
   ],
   "solutions": [
     {
-      "name": "Linear Scan",
+      "name": "One-Pass Five-Extrema Scan",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Track the three largest and two smallest values. The max product is either the product of the three largest, or the product of the two smallest (most negative) and the largest.",
-      "code": "class Solution {\n    public int maximumProduct(int[] nums) {\n        int max1 = Integer.MIN_VALUE, max2 = Integer.MIN_VALUE, max3 = Integer.MIN_VALUE;\n        int min1 = Integer.MAX_VALUE, min2 = Integer.MAX_VALUE;\n        for (int n : nums) {\n            if (n > max1) { max3 = max2; max2 = max1; max1 = n; }\n            else if (n > max2) { max3 = max2; max2 = n; }\n            else if (n > max3) { max3 = n; }\n            if (n < min1) { min2 = min1; min1 = n; }\n            else if (n < min2) { min2 = n; }\n        }\n        return Math.max(max1 * max2 * max3, min1 * min2 * max1);\n    }\n}",
+      "description": "## Approach\n\nScan the array once while maintaining the three largest values and the two smallest values. At the end, compare `max1 * max2 * max3` with `min1 * min2 * max1`.\n\n## Key Insight\n\nAny maximum product of three numbers must use the largest positive factor available. The only way smaller numbers can help is when the two smallest values are both negative and become a large positive multiplier.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int maximumProduct(int[] nums) {\n        int max1 = Integer.MIN_VALUE;\n        int max2 = Integer.MIN_VALUE;\n        int max3 = Integer.MIN_VALUE;\n        int min1 = Integer.MAX_VALUE;\n        int min2 = Integer.MAX_VALUE;\n\n        for (int value : nums) {\n            if (value > max1) {\n                max3 = max2;\n                max2 = max1;\n                max1 = value;\n            } else if (value > max2) {\n                max3 = max2;\n                max2 = value;\n            } else if (value > max3) {\n                max3 = value;\n            }\n\n            if (value < min1) {\n                min2 = min1;\n                min1 = value;\n            } else if (value < min2) {\n                min2 = value;\n            }\n        }\n\n        return Math.max(max1 * max2 * max3, min1 * min2 * max1);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Sort and Compare",
+      "name": "Sort and Compare End Candidates",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(1)",
-      "description": "Sort the array. The max product is either the product of the three largest, or the two smallest (most negative) times the largest.",
-      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int maximumProduct(int[] nums) {\n        Arrays.sort(nums);\n        int n = nums.length;\n        int option1 = nums[n - 1] * nums[n - 2] * nums[n - 3];\n        int option2 = nums[0] * nums[1] * nums[n - 1];\n        return Math.max(option1, option2);\n    }\n}",
+      "description": "## Approach\n\nSort the array. Then the only two candidate products are the last three values, or the first two values with the last value.\n\n## Key Insight\n\nSorting makes the extreme values visible. The maximum product either takes the largest three numbers directly, or uses the two most negative numbers to create a positive factor before multiplying by the largest number.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n)\n- Space Complexity: O(1) extra space, ignoring the sorting implementation",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int maximumProduct(int[] nums) {\n        Arrays.sort(nums);\n        int n = nums.length;\n        int threeLargest = nums[n - 1] * nums[n - 2] * nums[n - 3];\n        int twoSmallestAndLargest = nums[0] * nums[1] * nums[n - 1];\n        return Math.max(threeLargest, twoSmallestAndLargest);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Fixed-Size Heaps for Extremes",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nKeep a min-heap of the three largest values and a max-heap of the two smallest values. Each heap is capped at constant size while scanning the array.\n\n## Key Insight\n\nThe problem only needs five extreme values, not a full sorted order. Small fixed-size heaps are a useful online pattern when a stream must retain a few largest and smallest elements.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because heap sizes are constant\n- Space Complexity: O(1)",
+      "code": "import java.util.ArrayList;\nimport java.util.Collections;\nimport java.util.List;\nimport java.util.PriorityQueue;\n\nclass Solution {\n    public int maximumProduct(int[] nums) {\n        PriorityQueue<Integer> largest = new PriorityQueue<>();\n        PriorityQueue<Integer> smallest = new PriorityQueue<>(Collections.reverseOrder());\n\n        for (int value : nums) {\n            largest.offer(value);\n            if (largest.size() > 3) {\n                largest.poll();\n            }\n            smallest.offer(value);\n            if (smallest.size() > 2) {\n                smallest.poll();\n            }\n        }\n\n        List<Integer> hi = new ArrayList<>(largest);\n        List<Integer> lo = new ArrayList<>(smallest);\n        Collections.sort(hi);\n        Collections.sort(lo);\n        int threeLargest = hi.get(0) * hi.get(1) * hi.get(2);\n        int twoSmallestAndLargest = lo.get(0) * lo.get(1) * hi.get(2);\n        return Math.max(threeLargest, twoSmallestAndLargest);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bounded Value Counting Buckets",
+      "timeComplexity": "O(n + V)",
+      "spaceComplexity": "O(V)",
+      "description": "## Approach\n\nUse the constraint `-1000 <= nums[i] <= 1000` to count occurrences of each value. Sweep the bucket range from high to low to collect the three largest values, and from low to high to collect the two smallest values.\n\n## Key Insight\n\nWhen the value range is small and fixed, counting sort ideas can recover the needed extremes without comparison sorting. Here `V = 2001`, so the bucket cost is effectively constant for this problem's constraints.\n\n## Complexity Analysis\n\n- Time Complexity: O(n + V), where `V = 2001`\n- Space Complexity: O(V)",
+      "code": "class Solution {\n    public int maximumProduct(int[] nums) {\n        int[] counts = new int[2001];\n        for (int value : nums) {\n            counts[value + 1000]++;\n        }\n\n        int[] largest = new int[3];\n        int hi = 0;\n        for (int value = 1000; value >= -1000 && hi < 3; value--) {\n            int repeat = counts[value + 1000];\n            while (repeat > 0 && hi < 3) {\n                largest[hi++] = value;\n                repeat--;\n            }\n        }\n\n        int[] smallest = new int[2];\n        int lo = 0;\n        for (int value = -1000; value <= 1000 && lo < 2; value++) {\n            int repeat = counts[value + 1000];\n            while (repeat > 0 && lo < 2) {\n                smallest[lo++] = value;\n                repeat--;\n            }\n        }\n\n        int threeLargest = largest[0] * largest[1] * largest[2];\n        int twoSmallestAndLargest = smallest[0] * smallest[1] * largest[0];\n        return Math.max(threeLargest, twoSmallestAndLargest);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Max-Min Product Dynamic Programming",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nBuild a small dynamic program for choosing exactly three numbers. For each pick count, track both the maximum product and the minimum product seen so far, because multiplying by a negative value can swap best and worst.\n\n## Key Insight\n\nThis generalizes the sign-handling idea behind the five-extrema solution. The maximum product after choosing `k` numbers may come from the previous maximum or previous minimum, depending on the sign of the current number.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1), since there are only four pick counts",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int maximumProduct(int[] nums) {\n        long negInf = Long.MIN_VALUE / 4;\n        long posInf = Long.MAX_VALUE / 4;\n        long[] best = new long[4];\n        long[] worst = new long[4];\n        Arrays.fill(best, negInf);\n        Arrays.fill(worst, posInf);\n        best[0] = 1;\n        worst[0] = 1;\n\n        for (int value : nums) {\n            for (int picks = 3; picks >= 1; picks--) {\n                if (best[picks - 1] == negInf) {\n                    continue;\n                }\n                long fromBest = best[picks - 1] * value;\n                long fromWorst = worst[picks - 1] * value;\n                best[picks] = Math.max(best[picks], Math.max(fromBest, fromWorst));\n                worst[picks] = Math.min(worst[picks], Math.min(fromBest, fromWorst));\n            }\n        }\n\n        return (int) best[3];\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [1,2,3]", "output": "6" },
-    { "input": "nums = [1,2,3,4]", "output": "24" },
-    { "input": "nums = [-1,-2,-3]", "output": "-6" },
-    { "input": "nums = [-100,-98,-1,2,3,4]", "output": "39200" }
+    {
+      "input": "nums = [1,2,3]",
+      "output": "6",
+      "description": "Exactly three positive numbers multiply directly."
+    },
+    {
+      "input": "nums = [1,2,3,4]",
+      "output": "24",
+      "description": "The three largest positives form the maximum."
+    },
+    {
+      "input": "nums = [-1,-2,-3]",
+      "output": "-6",
+      "description": "With exactly three negatives, all must be used."
+    },
+    {
+      "input": "nums = [-100,-98,-1,2,3,4]",
+      "output": "39200",
+      "description": "Two large negatives and the largest positive beat the three largest values."
+    },
+    {
+      "input": "nums = [0,0,0]",
+      "output": "0",
+      "description": "All zeros produce zero."
+    },
+    {
+      "input": "nums = [0,0,-1,-2,-3]",
+      "output": "0",
+      "description": "Zero is better than every negative product."
+    },
+    {
+      "input": "nums = [-5,-4,-3,-2,-1]",
+      "output": "-6",
+      "description": "All-negative arrays maximize by using the three values closest to zero."
+    },
+    {
+      "input": "nums = [-10,-10,5,2]",
+      "output": "500",
+      "description": "Two equal negative extremes with the largest positive form the answer."
+    },
+    {
+      "input": "nums = [-10,-10,0,1,2]",
+      "output": "200",
+      "description": "Two negatives and the largest positive beat products involving zero."
+    },
+    {
+      "input": "nums = [-4,-3,-2,-1,60]",
+      "output": "720",
+      "description": "A single large positive can pair with two most negative values."
+    },
+    {
+      "input": "nums = [1,2,3,4,5]",
+      "output": "60",
+      "description": "A longer all-positive array uses the top three values."
+    },
+    {
+      "input": "nums = [-1000,-1000,1000,1000,0]",
+      "output": "1000000000",
+      "description": "Constraint-bound positive and negative extremes remain within the 32-bit result range."
+    },
+    {
+      "input": "nums = [-1000,-1000,-1000,-999]",
+      "output": "-999000000",
+      "description": "At the negative boundary, the least negative valid triple is still the maximum."
+    }
   ]
 }

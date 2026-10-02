@@ -1,36 +1,131 @@
 {
   "id": "224",
   "title": "Third Maximum Number",
-  "description": "# Third Maximum Number\n\nGiven an integer array `nums`, return *the **third distinct maximum** number in this array. If the third maximum does not exist, return the **maximum** number*.\n\n## Example 1:\n\n**Input:** nums = [3,2,1]\n**Output:** 1\n**Explanation:**\nThe first distinct maximum is 3.\nThe second distinct maximum is 2.\nThe third distinct maximum is 1.\n\n## Example 2:\n\n**Input:** nums = [1,2]\n**Output:** 2\n**Explanation:**\nThe first distinct maximum is 2.\nThe second distinct maximum is 1.\nThe third distinct maximum does not exist, so the maximum (2) is returned.\n\n## Example 3:\n\n**Input:** nums = [2,2,3,1]\n**Output:** 1\n**Explanation:**\nThe first distinct maximum is 3.\nThe second distinct maximum is 2 (both 2's are counted together since they have the same value).\nThe third distinct maximum is 1.\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^4`\n*   `-2^31 <= nums[i] <= 2^31 - 1`\n\n**Follow up:** Can you find an `O(n)` solution?",
+  "description": "# Third Maximum Number\n\nGiven an integer array `nums`, return the third distinct maximum number in the array.\n\nIf fewer than three distinct values exist, return the maximum value instead.\n\nCount each distinct value once when ranking. For example, the third distinct maximum in `[5,5,4,3]` is `3`.\n\nValues may span the entire signed 32-bit range, including `-2147483648`.\n\n## Example 1:\n\n**Input:** nums = [3,2,1]\n**Output:** 1\n**Explanation:** The distinct values in descending order are `3`, `2`, and `1`, so the third maximum is `1`.\n\n## Example 2:\n\n**Input:** nums = [1,2]\n**Output:** 2\n**Explanation:** Only two distinct values exist, so the maximum value `2` is returned.\n\n## Example 3:\n\n**Input:** nums = [2,2,3,1]\n**Output:** 1\n**Explanation:** The two copies of `2` share one rank. The distinct descending values are `3`, `2`, and `1`.\n\n## Constraints:\n\n* `1 <= nums.length <= 10^4`\n* `-2^31 <= nums[i] <= 2^31 - 1`\n\n## Follow-up:\n\nCan you solve it in `O(n)` time?",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int thirdMax(int[] nums) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Sorting"],
+  "tags": [
+    "Array",
+    "Sorting",
+    "Heap (Priority Queue)",
+    "Ordered Set"
+  ],
   "examples": [
-    { "input": "nums = [3,2,1]", "output": "1" },
-    { "input": "nums = [1,2]", "output": "2" },
-    { "input": "nums = [2,2,3,1]", "output": "1" }
+    {
+      "input": "nums = [3,2,1]",
+      "output": "1"
+    },
+    {
+      "input": "nums = [1,2]",
+      "output": "2"
+    },
+    {
+      "input": "nums = [2,2,3,1]",
+      "output": "1"
+    }
   ],
   "solutions": [
     {
-      "name": "Three Variables O(n)",
+      "name": "Long Sentinel Rank Slots",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Track the top three distinct maximums using Long variables (to handle Integer.MIN_VALUE edge case). Single pass through the array.",
-      "code": "class Solution {\n    public int thirdMax(int[] nums) {\n        long first = Long.MIN_VALUE, second = Long.MIN_VALUE, third = Long.MIN_VALUE;\n        for (int n : nums) {\n            if (n == first || n == second || n == third) continue;\n            if (n > first) {\n                third = second;\n                second = first;\n                first = n;\n            } else if (n > second) {\n                third = second;\n                second = n;\n            } else if (n > third) {\n                third = n;\n            }\n        }\n        return (int) (third == Long.MIN_VALUE ? first : third);\n    }\n}",
+      "description": "## Approach\n\nMaintain three `long` slots for the largest, second largest, and third largest distinct values. Skip a number if it already equals one of the occupied ranks; otherwise insert it into the correct rank and shift smaller ranks down.\n\n## Key Insight\n\nUsing `Long.MIN_VALUE` as the empty marker keeps the marker outside the valid `int` range. That means a real `Integer.MIN_VALUE` can still become the third maximum.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int thirdMax(int[] nums) {\n        long first = Long.MIN_VALUE;\n        long second = Long.MIN_VALUE;\n        long third = Long.MIN_VALUE;\n\n        for (int num : nums) {\n            if (num == first || num == second || num == third) {\n                continue;\n            }\n            if (num > first) {\n                third = second;\n                second = first;\n                first = num;\n            } else if (num > second) {\n                third = second;\n                second = num;\n            } else if (num > third) {\n                third = num;\n            }\n        }\n\n        return third == Long.MIN_VALUE ? (int) first : (int) third;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "TreeSet Approach",
+      "name": "Nullable Integer Rank Slots",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse three nullable `Integer` slots instead of numeric sentinels. A `null` slot means that rank has not been filled yet; otherwise the insertion and shifting rules are the same as the one-pass rank-slot method.\n\n## Key Insight\n\nRepresenting emptiness with `null` avoids every sentinel collision, including `Integer.MIN_VALUE`. It also makes the distinction between absent rank and present value explicit.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int thirdMax(int[] nums) {\n        Integer first = null;\n        Integer second = null;\n        Integer third = null;\n\n        for (int num : nums) {\n            if ((first != null && num == first)\n                    || (second != null && num == second)\n                    || (third != null && num == third)) {\n                continue;\n            }\n            if (first == null || num > first) {\n                third = second;\n                second = first;\n                first = num;\n            } else if (second == null || num > second) {\n                third = second;\n                second = num;\n            } else if (third == null || num > third) {\n                third = num;\n            }\n        }\n\n        return third == null ? first : third;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "TreeSet Top Three Trim",
+      "timeComplexity": "O(n log 3)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nInsert values into a `TreeSet`, which automatically removes duplicates and keeps values ordered. Whenever the set grows beyond three values, remove the smallest value so only the three largest distinct values remain.\n\n## Key Insight\n\nAfter trimming, a three-element set contains exactly the top three distinct values, so its smallest element is the third maximum. If fewer than three distinct values exist, the set maximum is the answer.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log 3), which is linear with a constant-size set\n- Space Complexity: O(1)",
+      "code": "import java.util.TreeSet;\n\nclass Solution {\n    public int thirdMax(int[] nums) {\n        TreeSet<Integer> top = new TreeSet<>();\n        for (int num : nums) {\n            top.add(num);\n            if (top.size() > 3) {\n                top.pollFirst();\n            }\n        }\n        return top.size() == 3 ? top.first() : top.last();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sort and Scan Distinct Values",
       "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nSort the array in ascending order. Scan from right to left, count a rank only when the value changes, and return the value when the third distinct rank is reached.\n\n## Key Insight\n\nSorting groups equal values together and places larger values at the end. A reverse scan makes the distinct ranking rule direct and easy to audit, even though it is not the optimal follow-up solution.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n)\n- Space Complexity: O(1), ignoring the library sort stack",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int thirdMax(int[] nums) {\n        Arrays.sort(nums);\n        int distinct = 0;\n        Integer previous = null;\n        for (int i = nums.length - 1; i >= 0; i--) {\n            if (previous != null && nums[i] == previous) {\n                continue;\n            }\n            distinct++;\n            previous = nums[i];\n            if (distinct == 3) {\n                return nums[i];\n            }\n        }\n        return nums[nums.length - 1];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "HashSet and Min-Heap Top Three",
+      "timeComplexity": "O(n log 3)",
       "spaceComplexity": "O(n)",
-      "description": "Use a TreeSet to maintain sorted unique elements. If set size exceeds 3, remove the smallest. Return the smallest if size is 3, otherwise the largest.",
-      "code": "import java.util.TreeSet;\n\nclass Solution {\n    public int thirdMax(int[] nums) {\n        TreeSet<Integer> set = new TreeSet<>();\n        for (int n : nums) {\n            set.add(n);\n            if (set.size() > 3) set.pollFirst();\n        }\n        return set.size() == 3 ? set.first() : set.last();\n    }\n}",
+      "description": "## Approach\n\nUse a `HashSet` to ignore duplicate values. Push each new distinct value into a min-heap, and whenever the heap grows beyond three values, remove its smallest value. At the end, a three-item heap exposes the third maximum at its root.\n\n## Key Insight\n\nThe heap keeps only the best three distinct candidates, while the set enforces distinctness across the whole input. If there are fewer than three distinct values, compute the maximum from the set instead.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log 3), which is linear up to a constant heap size\n- Space Complexity: O(n) for the duplicate filter",
+      "code": "import java.util.HashSet;\nimport java.util.PriorityQueue;\nimport java.util.Set;\n\nclass Solution {\n    public int thirdMax(int[] nums) {\n        Set<Integer> seen = new HashSet<>();\n        PriorityQueue<Integer> top = new PriorityQueue<>();\n        for (int num : nums) {\n            if (!seen.add(num)) {\n                continue;\n            }\n            top.offer(num);\n            if (top.size() > 3) {\n                top.poll();\n            }\n        }\n\n        if (top.size() == 3) {\n            return top.peek();\n        }\n        int maximum = Integer.MIN_VALUE;\n        for (int num : seen) {\n            maximum = Math.max(maximum, num);\n        }\n        return maximum;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [3,2,1]", "output": "1" },
-    { "input": "nums = [1,2]", "output": "2" },
-    { "input": "nums = [2,2,3,1]", "output": "1" }
+    {
+      "input": "nums = [3,2,1]",
+      "output": "1",
+      "description": "Three distinct values return the third largest."
+    },
+    {
+      "input": "nums = [1,2]",
+      "output": "2",
+      "description": "Fewer than three distinct values returns the maximum."
+    },
+    {
+      "input": "nums = [2,2,3,1]",
+      "output": "1",
+      "description": "Duplicate values count only once when ranking maximums."
+    },
+    {
+      "input": "nums = [1,2,2,5,3,5]",
+      "output": "2",
+      "description": "The third distinct maximum is below duplicated top values."
+    },
+    {
+      "input": "nums = [1,2,-2147483648]",
+      "output": "-2147483648",
+      "description": "Integer.MIN_VALUE is a valid third maximum and must not be confused with an uninitialized sentinel."
+    },
+    {
+      "input": "nums = [1,1,2]",
+      "output": "2",
+      "description": "Two distinct values with duplicates still return the maximum."
+    },
+    {
+      "input": "nums = [-1,-2,-3,-4]",
+      "output": "-3",
+      "description": "Negative numbers are ordered by numeric value, not absolute value."
+    },
+    {
+      "input": "nums = [2,2,2]",
+      "output": "2",
+      "description": "A single distinct value returns itself."
+    },
+    {
+      "input": "nums = [5,2,4,1,3,6,0]",
+      "output": "4",
+      "description": "Unsorted input with more than three distinct values returns the third rank."
+    },
+    {
+      "input": "nums = [5,5,4,4,3,3,2]",
+      "output": "3",
+      "description": "Grouped duplicates should not consume extra ranks."
+    },
+    {
+      "input": "nums = [2147483647,2147483647,-2147483648,0]",
+      "output": "-2147483648",
+      "description": "Both integer extremes can appear while duplicates still collapse to distinct ranks."
+    },
+    {
+      "input": "nums = [1,2,3,4,5,6]",
+      "output": "4",
+      "description": "A sorted ascending array still ranks by value, not by input position."
+    }
   ]
 }

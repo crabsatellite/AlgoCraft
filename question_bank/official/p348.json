@@ -1,15 +1,17 @@
 {
   "id": "348",
   "title": "Concatenated Words",
-  "description": "# Concatenated Words\n\nGiven an array of strings `words` (**without duplicates**), return *all the **concatenated words** in the given list of* `words`.\n\nA **concatenated word** is defined as a string that is comprised entirely of at least two shorter words in the given array.\n\n## Example 1:\n\n**Input:** words = [\"cat\",\"cats\",\"catsdogcats\",\"dog\",\"dogcatsdog\",\"hippopotamuses\",\"rat\",\"ratcatdogcat\"]\n**Output:** [\"catsdogcats\",\"dogcatsdog\",\"ratcatdogcat\"]\n**Explanation:** \"catsdogcats\" can be concatenated by \"cats\", \"dog\" and \"cats\"; \n\"dogcatsdog\" can be concatenated by \"dog\", \"cats\" and \"dog\"; \n\"ratcatdogcat\" can be concatenated by \"rat\", \"cat\", \"dog\" and \"cat\".\n\n## Example 2:\n\n**Input:** words = [\"cat\",\"dog\",\"catdog\"]\n**Output:** [\"catdog\"]\n\n## Constraints:\n\n*   `1 <= words.length <= 10^4`\n*   `1 <= words[i].length <= 30`\n*   `words[i]` consists of only lowercase English letters.\n*   All the strings of `words` are **unique**.\n*   `1 <= sum(words[i].length) <= 10^5`",
+  "description": "# Concatenated Words\n\nYou are given an array `words` with no duplicate strings.\n\nA concatenated word is a word that can be formed by joining at least two shorter words from the same array. The shorter words may themselves also be concatenated words, as long as they appear in `words`.\n\nReturn all concatenated words in any order. The same shorter word may be reused within a concatenation.\n\n## Example 1:\n\n**Input:** words = [\"cat\",\"cats\",\"catsdogcats\",\"dog\",\"dogcatsdog\",\"hippopotamuses\",\"rat\",\"ratcatdogcat\"]\n\n**Output:** [\"catsdogcats\",\"dogcatsdog\",\"ratcatdogcat\"]\n\n**Explanation:** `catsdogcats` can be formed as `cats + dog + cats`; `dogcatsdog` can be formed as `dog + cats + dog`; `ratcatdogcat` can be formed as `rat + cat + dog + cat`.\n\n## Example 2:\n\n**Input:** words = [\"cat\",\"dog\",\"catdog\"]\n\n**Output:** [\"catdog\"]\n\n## Constraints:\n\n* `1 <= words.length <= 10^4`\n* `1 <= words[i].length <= 30`\n* `words[i]` consists only of lowercase English letters.\n* All strings in `words` are unique.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public List<String> findAllConcatenatedWordsInADict(String[] words) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public java.util.List<String> findAllConcatenatedWordsInADict(String[] words) {\n        return new java.util.ArrayList<>();\n    }\n}",
   "tags": [
     "Array",
     "String",
     "Dynamic Programming",
     "Depth-First Search",
-    "Trie"
+    "Breadth-First Search",
+    "Trie",
+    "Hash Table"
   ],
   "examples": [
     {
@@ -23,30 +25,116 @@
   ],
   "solutions": [
     {
-      "name": "Word Break DP for Each Word",
+      "name": "Length-Ordered Word Break DP",
       "timeComplexity": "O(n * L^3)",
       "spaceComplexity": "O(n * L)",
-      "description": "Sort words by length. For each word, use Word Break DP to check if it can be formed by concatenating shorter words already in the set. Add each word to the set after checking.",
-      "code": "class Solution {\n    public List<String> findAllConcatenatedWordsInADict(String[] words) {\n        java.util.Arrays.sort(words, (a, b) -> a.length() - b.length());\n        List<String> result = new java.util.ArrayList<>();\n        java.util.Set<String> dict = new java.util.HashSet<>();\n        for (String word : words) {\n            if (word.isEmpty()) { dict.add(word); continue; }\n            if (canForm(word, dict)) result.add(word);\n            dict.add(word);\n        }\n        return result;\n    }\n    private boolean canForm(String word, java.util.Set<String> dict) {\n        if (dict.isEmpty()) return false;\n        int n = word.length();\n        boolean[] dp = new boolean[n + 1];\n        dp[0] = true;\n        for (int i = 1; i <= n; i++) {\n            for (int j = 0; j < i; j++) {\n                if (dp[j] && dict.contains(word.substring(j, i))) { dp[i] = true; break; }\n            }\n        }\n        return dp[n];\n    }\n}",
+      "description": "## Approach\n\nSort a copy of the words by length. Before adding a word to the dictionary, run a Word Break dynamic program against only the shorter words already seen. Store every word that passes, then emit results by scanning the original input order.\n\n## Key Insight\n\nA concatenated word must be built from shorter words, so checking a word before inserting it prevents the word from using itself as its only piece.\n\n## Complexity Analysis\n- Time Complexity: O(n * L^3), where L is the maximum word length and substring creation costs O(L)\n- Space Complexity: O(n * L)",
+      "code": "class Solution {\n    public java.util.List<String> findAllConcatenatedWordsInADict(String[] words) {\n        String[] sorted = java.util.Arrays.copyOf(words, words.length);\n        java.util.Arrays.sort(sorted, java.util.Comparator.comparingInt(String::length));\n        java.util.Set<String> dictionary = new java.util.HashSet<>();\n        java.util.Set<String> concatenated = new java.util.HashSet<>();\n        for (String word : sorted) {\n            if (canFormWithShorterWords(word, dictionary)) {\n                concatenated.add(word);\n            }\n            dictionary.add(word);\n        }\n        java.util.List<String> result = new java.util.ArrayList<>();\n        for (String word : words) {\n            if (concatenated.contains(word)) {\n                result.add(word);\n            }\n        }\n        return result;\n    }\n\n    private boolean canFormWithShorterWords(String word, java.util.Set<String> dictionary) {\n        if (dictionary.isEmpty()) {\n            return false;\n        }\n        int n = word.length();\n        boolean[] dp = new boolean[n + 1];\n        dp[0] = true;\n        for (int end = 1; end <= n; end++) {\n            for (int start = 0; start < end; start++) {\n                if (dp[start] && dictionary.contains(word.substring(start, end))) {\n                    dp[end] = true;\n                    break;\n                }\n            }\n        }\n        return dp[n];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "DFS with HashSet Lookup",
+      "name": "HashSet DFS with Piece Count",
       "timeComplexity": "O(n * L^3)",
       "spaceComplexity": "O(n * L)",
-      "description": "Put all words in a HashSet. For each word, use DFS to check if it can be split into 2+ parts that are all in the set. Use early termination when a valid split is found.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> findAllConcatenatedWordsInADict(String[] words) {\n        Set<String> dict = new HashSet<>();\n        for (String w : words) dict.add(w);\n        List<String> result = new ArrayList<>();\n        for (String word : words) {\n            if (word.length() == 0) continue;\n            if (canBreak(word, dict, 0, 0)) {\n                result.add(word);\n            }\n        }\n        return result;\n    }\n    private boolean canBreak(String word, Set<String> dict, int start, int count) {\n        if (start == word.length()) return count >= 2;\n        for (int end = start + 1; end <= word.length(); end++) {\n            String sub = word.substring(start, end);\n            if (end - start < word.length() && dict.contains(sub)) {\n                if (canBreak(word, dict, end, count + 1)) return true;\n            } else if (end == word.length() && count >= 1 && dict.contains(sub)) {\n                return true;\n            }\n        }\n        return false;\n    }\n}",
+      "description": "## Approach\n\nPut every word into a hash set. For each word, run DFS over split positions. The state includes the current index and whether we have already used zero, one, or at least two pieces; memoization prevents repeated suffix work.\n\n## Key Insight\n\nUsing the whole word as one dictionary piece is not enough. Tracking the number of pieces, capped at two, makes the at-least-two requirement explicit.\n\n## Complexity Analysis\n- Time Complexity: O(n * L^3)\n- Space Complexity: O(n * L)",
+      "code": "class Solution {\n    public java.util.List<String> findAllConcatenatedWordsInADict(String[] words) {\n        java.util.Set<String> dictionary = new java.util.HashSet<>(java.util.Arrays.asList(words));\n        java.util.List<String> result = new java.util.ArrayList<>();\n        for (String word : words) {\n            Boolean[][] memo = new Boolean[word.length() + 1][3];\n            if (canBuild(word, 0, 0, dictionary, memo)) {\n                result.add(word);\n            }\n        }\n        return result;\n    }\n\n    private boolean canBuild(String word, int index, int pieces,\n                             java.util.Set<String> dictionary, Boolean[][] memo) {\n        if (index == word.length()) {\n            return pieces >= 2;\n        }\n        int cappedPieces = Math.min(pieces, 2);\n        if (memo[index][cappedPieces] != null) {\n            return memo[index][cappedPieces];\n        }\n        for (int end = index + 1; end <= word.length(); end++) {\n            if (index == 0 && end == word.length()) {\n                continue;\n            }\n            if (dictionary.contains(word.substring(index, end))\n                    && canBuild(word, end, Math.min(2, pieces + 1), dictionary, memo)) {\n                memo[index][cappedPieces] = true;\n                return true;\n            }\n        }\n        memo[index][cappedPieces] = false;\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Trie-Guided Prefix DFS",
+      "timeComplexity": "O(n * L^2)",
+      "spaceComplexity": "O(n * L)",
+      "description": "## Approach\n\nInsert all words into a trie. For each candidate word, walk trie prefixes from the current index; whenever a word-ending node is found, recursively solve the suffix while counting how many pieces have been used.\n\n## Key Insight\n\nThe trie avoids constructing every possible prefix string. It explores only prefixes that exist in the dictionary and still enforces that at least two dictionary pieces are used.\n\n## Complexity Analysis\n- Time Complexity: O(n * L^2)\n- Space Complexity: O(n * L)",
+      "code": "class Solution {\n    public java.util.List<String> findAllConcatenatedWordsInADict(String[] words) {\n        TrieNode root = new TrieNode();\n        for (String word : words) {\n            insert(root, word);\n        }\n        java.util.List<String> result = new java.util.ArrayList<>();\n        for (String word : words) {\n            Boolean[][] memo = new Boolean[word.length() + 1][3];\n            if (dfs(root, word, 0, 0, memo)) {\n                result.add(word);\n            }\n        }\n        return result;\n    }\n\n    private boolean dfs(TrieNode root, String word, int index, int pieces, Boolean[][] memo) {\n        if (index == word.length()) {\n            return pieces >= 2;\n        }\n        int cappedPieces = Math.min(pieces, 2);\n        if (memo[index][cappedPieces] != null) {\n            return memo[index][cappedPieces];\n        }\n        TrieNode node = root;\n        for (int end = index; end < word.length(); end++) {\n            node = node.children[word.charAt(end) - 'a'];\n            if (node == null) {\n                break;\n            }\n            if (node.word && dfs(root, word, end + 1, Math.min(2, pieces + 1), memo)) {\n                memo[index][cappedPieces] = true;\n                return true;\n            }\n        }\n        memo[index][cappedPieces] = false;\n        return false;\n    }\n\n    private void insert(TrieNode root, String word) {\n        TrieNode node = root;\n        for (int i = 0; i < word.length(); i++) {\n            int index = word.charAt(i) - 'a';\n            if (node.children[index] == null) {\n                node.children[index] = new TrieNode();\n            }\n            node = node.children[index];\n        }\n        node.word = true;\n    }\n\n    private static class TrieNode {\n        private final TrieNode[] children = new TrieNode[26];\n        private boolean word;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "BFS over Split Positions",
+      "timeComplexity": "O(n * L^3)",
+      "spaceComplexity": "O(n * L)",
+      "description": "## Approach\n\nFor each word, treat every index as a node in a graph. There is an edge from `start` to `end` when `word.substring(start, end)` is in the dictionary. Run BFS from index 0 and track whether zero, one, or at least two pieces have been used.\n\n## Key Insight\n\nWord Break can be viewed as reachability in a split-position graph. The answer is true only when the terminal index is reachable after at least two edges.\n\n## Complexity Analysis\n- Time Complexity: O(n * L^3)\n- Space Complexity: O(n * L)",
+      "code": "class Solution {\n    public java.util.List<String> findAllConcatenatedWordsInADict(String[] words) {\n        java.util.Set<String> dictionary = new java.util.HashSet<>(java.util.Arrays.asList(words));\n        java.util.List<String> result = new java.util.ArrayList<>();\n        for (String word : words) {\n            if (reachableWithBfs(word, dictionary)) {\n                result.add(word);\n            }\n        }\n        return result;\n    }\n\n    private boolean reachableWithBfs(String word, java.util.Set<String> dictionary) {\n        int n = word.length();\n        boolean[][] seen = new boolean[n + 1][3];\n        java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();\n        queue.addLast(new int[] {0, 0});\n        seen[0][0] = true;\n        while (!queue.isEmpty()) {\n            int[] state = queue.removeFirst();\n            int start = state[0];\n            int pieces = state[1];\n            for (int end = start + 1; end <= n; end++) {\n                if (start == 0 && end == n) {\n                    continue;\n                }\n                if (!dictionary.contains(word.substring(start, end))) {\n                    continue;\n                }\n                int nextPieces = Math.min(2, pieces + 1);\n                if (end == n && nextPieces >= 2) {\n                    return true;\n                }\n                if (!seen[end][nextPieces]) {\n                    seen[end][nextPieces] = true;\n                    queue.addLast(new int[] {end, nextPieces});\n                }\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Minimum Piece Count DP",
+      "timeComplexity": "O(n * L^3)",
+      "spaceComplexity": "O(n * L)",
+      "description": "## Approach\n\nFor each word, compute `pieces[i]`, the minimum number of dictionary words needed to build the prefix ending at index `i`. The transition skips the whole word as a single first piece. A word is concatenated when `pieces[length] >= 2`.\n\n## Key Insight\n\nInstead of only asking whether a prefix is reachable, this DP records the fewest pieces needed. That directly separates one-piece self matches from valid concatenations.\n\n## Complexity Analysis\n- Time Complexity: O(n * L^3)\n- Space Complexity: O(n * L)",
+      "code": "class Solution {\n    public java.util.List<String> findAllConcatenatedWordsInADict(String[] words) {\n        java.util.Set<String> dictionary = new java.util.HashSet<>(java.util.Arrays.asList(words));\n        java.util.List<String> result = new java.util.ArrayList<>();\n        for (String word : words) {\n            if (minimumPieces(word, dictionary) >= 2) {\n                result.add(word);\n            }\n        }\n        return result;\n    }\n\n    private int minimumPieces(String word, java.util.Set<String> dictionary) {\n        int n = word.length();\n        int unreachable = 1_000_000;\n        int[] pieces = new int[n + 1];\n        java.util.Arrays.fill(pieces, unreachable);\n        pieces[0] = 0;\n        for (int start = 0; start < n; start++) {\n            if (pieces[start] == unreachable) {\n                continue;\n            }\n            for (int end = start + 1; end <= n; end++) {\n                if (start == 0 && end == n) {\n                    continue;\n                }\n                if (dictionary.contains(word.substring(start, end))) {\n                    pieces[end] = Math.min(pieces[end], pieces[start] + 1);\n                }\n            }\n        }\n        return pieces[n] == unreachable ? 0 : pieces[n];\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "words = [\"cat\",\"cats\",\"catsdogcats\",\"dog\",\"dogcatsdog\",\"hippopotamuses\",\"rat\",\"ratcatdogcat\"]",
-      "output": "[\"catsdogcats\",\"dogcatsdog\",\"ratcatdogcat\"]"
+      "output": "[\"catsdogcats\",\"dogcatsdog\",\"ratcatdogcat\"]",
+      "description": "canonical sample with three concatenated words"
     },
     {
       "input": "words = [\"cat\",\"dog\",\"catdog\"]",
-      "output": "[\"catdog\"]"
+      "output": "[\"catdog\"]",
+      "description": "two base words form one concatenated word"
+    },
+    {
+      "input": "words = [\"a\",\"b\",\"ab\",\"abc\"]",
+      "output": "[\"ab\"]",
+      "description": "single letters can form a shorter concatenation but not abc"
+    },
+    {
+      "input": "words = [\"a\",\"aa\",\"aaa\",\"aaaa\"]",
+      "output": "[\"aa\",\"aaa\",\"aaaa\"]",
+      "description": "reusing the same shorter word is allowed"
+    },
+    {
+      "input": "words = [\"rat\",\"cat\",\"dog\",\"ratcat\",\"catdog\",\"ratcatdog\"]",
+      "output": "[\"ratcat\",\"catdog\",\"ratcatdog\"]",
+      "description": "concatenated words may later be used as pieces too"
+    },
+    {
+      "input": "words = [\"cat\",\"cats\",\"dog\",\"catsdog\",\"dogcats\",\"catsdogcats\"]",
+      "output": "[\"catsdog\",\"dogcats\",\"catsdogcats\"]",
+      "description": "several valid segment orders in one dictionary"
+    },
+    {
+      "input": "words = [\"a\",\"b\",\"c\",\"abc\",\"ab\",\"bc\",\"abcabc\"]",
+      "output": "[\"abc\",\"ab\",\"bc\",\"abcabc\"]",
+      "description": "output follows input order, not length order"
+    },
+    {
+      "input": "words = [\"blue\",\"berry\",\"blueberry\",\"blueberrypie\",\"pie\"]",
+      "output": "[\"blueberry\",\"blueberrypie\"]",
+      "description": "a concatenated word can be reused in a longer concatenation"
+    },
+    {
+      "input": "words = [\"x\",\"xx\",\"xxx\",\"xxxx\",\"xxxxx\"]",
+      "output": "[\"xx\",\"xxx\",\"xxxx\",\"xxxxx\"]",
+      "description": "many repeated uses of one single-letter word"
+    },
+    {
+      "input": "words = [\"he\",\"llo\",\"hello\",\"world\",\"helloworld\",\"helloworldhe\"]",
+      "output": "[\"hello\",\"helloworld\",\"helloworldhe\"]",
+      "description": "multi-stage concatenations from earlier longer words"
+    },
+    {
+      "input": "words = [\"cat\",\"dog\",\"mouse\"]",
+      "output": "[]",
+      "description": "no concatenated words"
+    },
+    {
+      "input": "words = [\"ab\",\"cd\",\"abcd\",\"ef\",\"abcdef\",\"cdef\"]",
+      "output": "[\"abcd\",\"abcdef\",\"cdef\"]",
+      "description": "different valid decompositions share middle pieces"
+    },
+    {
+      "input": "words = [\"aa\",\"aaa\",\"aaaaa\"]",
+      "output": "[\"aaaaa\"]",
+      "description": "a word can be formed by two unequal shorter words"
+    },
+    {
+      "input": "words = [\"rock\",\"star\",\"rockstar\",\"rockstarrock\",\"starrock\"]",
+      "output": "[\"rockstar\",\"rockstarrock\",\"starrock\"]",
+      "description": "prefix and suffix concatenations both count"
     }
   ]
 }

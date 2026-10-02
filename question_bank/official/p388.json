@@ -1,36 +1,112 @@
 {
   "id": "388",
   "title": "Least Operators to Express Number",
-  "description": "# Least Operators to Express Number\n\nGiven a single positive integer `x`, we will write an expression of the form `x (op1) x (op2) x (op3) x ...` where each operator `op1`, `op2`, etc. is either addition, subtraction, multiplication, or division (`+`, `-`, `*`, or `/`). For example, with `x = 3`, we might write `3 * 3 / 3 + 3 - 3` which is a value of 3.\n\nWhen writing such an expression, we adhere to the following conventions:\n\n*   The division operator (`/`) returns rational numbers.\n*   There are no parentheses placed anywhere.\n*   We use the usual order of operations: multiplication and division happen before addition and subtraction.\n*   It's not allowed to use the unary negation operator (negating a number).\n\nWe would like to write an expression with the least number of operators such that the expression equals the given `target`. Return the least number of operators used.\n\n## Example 1:\n\n**Input:** x = 3, target = 19\n**Output:** 5\n**Explanation:** 3 * 3 + 3 * 3 + 3 / 3. The expression contains 5 operators.\n\n## Example 2:\n\n**Input:** x = 5, target = 501\n**Output:** 8\n**Explanation:** 5 * 5 * 5 * 5 - 5 * 5 * 5 + 5 / 5. The expression contains 8 operators.\n\n## Example 3:\n\n**Input:** x = 100, target = 100000000\n**Output:** 3\n**Explanation:** 100 * 100 * 100 * 100. The expression contains 3 operators.\n\n## Constraints:\n\n*   `2 <= x <= 100`\n*   `1 <= target <= 2 * 10^8`",
+  "description": "# Least Operators to Express Number\n\nYou are given two positive integers `x` and `target`. Build an expression that uses only the number `x` and binary operators `+`, `-`, `*`, and `/`. Every number token in the expression must be exactly `x`.\n\nThe expression is evaluated with the usual precedence rules: multiplication and division happen before addition and subtraction. You may not place parentheses anywhere, and you may not use unary negation. Division produces rational values, so `x / x` is a valid way to make `1`.\n\nReturn the minimum number of operators needed for an expression whose value is exactly `target`.\n\n## Example 1\n\n**Input:** x = 3, target = 19\n**Output:** 5\n**Explanation:** `3 * 3 + 3 * 3 + 3 / 3` uses 5 operators.\n\n## Example 2\n\n**Input:** x = 5, target = 501\n**Output:** 8\n**Explanation:** `5 * 5 * 5 * 5 - 5 * 5 * 5 + 5 / 5` uses 8 operators.\n\n## Example 3\n\n**Input:** x = 100, target = 100000000\n**Output:** 3\n**Explanation:** `100 * 100 * 100 * 100` uses 3 operators.\n\n## Constraints\n\n* `2 <= x <= 100`\n* `1 <= target <= 2 * 10^8`\n* The expression may contain rational intermediate values from division.\n* Parentheses and unary negation are not allowed.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int leastOpsExpressTarget(int x, int target) {\n        \n    }\n}",
-  "tags": ["Math", "Dynamic Programming"],
+  "initialCode": "class Solution {\n    public int leastOpsExpressTarget(int x, int target) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Math",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "x = 3, target = 19", "output": "5" },
-    { "input": "x = 5, target = 501", "output": "8" },
-    { "input": "x = 100, target = 100000000", "output": "3" }
+    {
+      "input": "x = 3, target = 19",
+      "output": "5"
+    },
+    {
+      "input": "x = 5, target = 501",
+      "output": "8"
+    },
+    {
+      "input": "x = 100, target = 100000000",
+      "output": "3"
+    }
   ],
   "solutions": [
     {
-      "name": "DFS on Base-x Representation",
+      "name": "Top-Down Remainder DP",
       "timeComplexity": "O(log_x(target)^2)",
       "spaceComplexity": "O(log_x(target))",
-      "description": "Express target in base x. At each digit position, decide to use that many x^i terms (cost = digit * cost_of_x^i) or round up to next power (cost = (x-digit) * cost_of_x^i + carry). The cost of x^i is i operators for i >= 1, and 2 operators for i=0 (x/x).",
-      "code": "class Solution {\n    java.util.Map<String, Integer> memo = new java.util.HashMap<>();\n    int X;\n    public int leastOpsExpressTarget(int x, int target) {\n        X = x;\n        return dfs(target, 0) - 1;\n    }\n    private int dfs(int target, int pos) {\n        if (target == 0) return 0;\n        if (target == 1) return pos == 0 ? 2 : pos;\n        String key = target + \",\" + pos;\n        if (memo.containsKey(key)) return memo.get(key);\n        int digit = target % X;\n        int rest = target / X;\n        int costPer = pos == 0 ? 2 : pos;\n        int useCost = digit * costPer + dfs(rest, pos + 1);\n        int roundCost = (X - digit) * costPer + dfs(rest + 1, pos + 1);\n        int res = Math.min(useCost, roundCost);\n        memo.put(key, res);\n        return res;\n    }\n}",
-      "language": "java"
+      "description": "## Approach\nRecursively process `target` from the least significant base-`x` digit. For digit position `pos`, either pay for the current digit directly or round it up to the next power and carry one into the remaining higher digits.\n\n## Key Insight\nThe expression can be treated as a signed sum of powers of `x`. A copy of `x^pos` costs `pos` operators for `pos >= 1`, while `x^0` costs 2 in the internal DP because it is written as `x / x` and still needs a sign. Subtracting 1 at the end removes the unnecessary leading sign.\n\n## Complexity Analysis\nThere are `O(log_x(target))` digit levels and each level can branch to a carry state. Memoization keeps the number of states logarithmic; integer division at each state gives `O(log_x(target)^2)` time in the conservative bound and `O(log_x(target))` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private final Map<String, Integer> memo = new HashMap<>();\n    private int base;\n\n    public int leastOpsExpressTarget(int x, int target) {\n        base = x;\n        return dfs(target, 0) - 1;\n    }\n\n    private int dfs(int target, int pos) {\n        if (target == 0) {\n            return 0;\n        }\n        if (target == 1) {\n            return pos == 0 ? 2 : pos;\n        }\n        String key = target + \":\" + pos;\n        Integer cached = memo.get(key);\n        if (cached != null) {\n            return cached;\n        }\n\n        int digit = target % base;\n        int rest = target / base;\n        int costPerPower = pos == 0 ? 2 : pos;\n        int useDigit = digit * costPerPower + dfs(rest, pos + 1);\n        int roundUp = Integer.MAX_VALUE / 4;\n        if (digit != 0) {\n            roundUp = (base - digit) * costPerPower + dfs(rest + 1, pos + 1);\n        }\n        int best = Math.min(useDigit, roundUp);\n        memo.put(key, best);\n        return best;\n    }\n}"
     },
     {
-      "name": "Iterative DP on Base-x Digits",
+      "name": "Iterative Carry DP on Base-x Digits",
       "timeComplexity": "O(log_x(target))",
       "spaceComplexity": "O(1)",
-      "description": "Process target digit by digit in base x. For each digit, compute cost of representing it directly vs rounding up. Track two options (no carry and carry) through each digit position. The cost of x^0 is 2 (x/x), cost of x^i is i for i >= 1.",
-      "code": "class Solution {\n    public int leastOpsExpressTarget(int x, int target) {\n        int pos = 0;\n        int curNoCar = Integer.MAX_VALUE;\n        int curCar = Integer.MAX_VALUE;\n        int noCar = 0;\n        int car = 0;\n        while (target > 0) {\n            int digit = target % x;\n            target /= x;\n            int costPer = pos == 0 ? 2 : pos;\n            if (pos == 0) {\n                noCar = digit * costPer;\n                car = (x - digit) * costPer;\n            } else {\n                int newNoCar = Math.min(noCar + digit * costPer, car + (digit + 1) * costPer);\n                int newCar = Math.min(noCar + (x - digit) * costPer, car + (x - digit - 1) * costPer);\n                noCar = newNoCar;\n                car = newCar;\n            }\n            pos++;\n        }\n        return Math.min(noCar, car + pos) - 1;\n    }\n}",
-      "language": "java"
+      "description": "## Approach\nScan the base-`x` digits from low to high. Maintain two costs: `noCarry` means lower digits have been resolved exactly, and `carry` means they were rounded up and one unit must be added to the current digit.\n\n## Key Insight\nFor each digit, the optimal choice is local once the carry state is known: either pay for the digit itself or pay for its complement to `x` and carry one. The special `x^0` cost is handled by using cost 2 at position 0 and subtracting 1 from the final signed-sum cost.\n\n## Complexity Analysis\nOnly one pass over the base-`x` digits is needed, so the time is `O(log_x(target))`. The two running costs use `O(1)` space.",
+      "code": "class Solution {\n    public int leastOpsExpressTarget(int x, int target) {\n        int pos = 0;\n        int noCarry = 0;\n        int carry = 0;\n        while (target > 0) {\n            int digit = target % x;\n            target /= x;\n            int costPerPower = pos == 0 ? 2 : pos;\n            if (pos == 0) {\n                noCarry = digit * costPerPower;\n                carry = (x - digit) * costPerPower;\n            } else {\n                int nextNoCarry = Math.min(\n                        noCarry + digit * costPerPower,\n                        carry + (digit + 1) * costPerPower);\n                int nextCarry = Math.min(\n                        noCarry + (x - digit) * costPerPower,\n                        carry + (x - digit - 1) * costPerPower);\n                noCarry = nextNoCarry;\n                carry = nextCarry;\n            }\n            pos++;\n        }\n        return Math.min(noCarry, carry + pos) - 1;\n    }\n}"
+    },
+    {
+      "name": "Largest Power Overshoot Recursion",
+      "timeComplexity": "O(log_x(target)^2)",
+      "spaceComplexity": "O(log_x(target))",
+      "description": "## Approach\nFor each remaining target, find the largest power `x^k` not exceeding it. Either use that power positively and solve the remainder, or use the next power `x^(k+1)` positively and subtract the overshoot.\n\n## Key Insight\nThe optimal expression can be viewed as choosing whether the leading term is the nearest lower power or the nearest higher power of `x`. The overshoot option is what captures compact expressions like `10^8 - 1`.\n\n## Complexity Analysis\nEach recursion reduces the target to a smaller remainder or overshoot and memoizes it. Finding the largest power costs logarithmic time per state, with a logarithmic number of states in practice, so the conservative time bound is `O(log_x(target)^2)` and the memo/stack use `O(log_x(target))` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private int x;\n    private Map<Integer, Integer> memo;\n\n    public int leastOpsExpressTarget(int x, int target) {\n        this.x = x;\n        this.memo = new HashMap<>();\n        return solve(target);\n    }\n\n    private int solve(int target) {\n        if (target == 0) {\n            return 0;\n        }\n        if (target < x) {\n            return Math.min(2 * target - 1, 2 * (x - target));\n        }\n        Integer cached = memo.get(target);\n        if (cached != null) {\n            return cached;\n        }\n\n        long power = x;\n        int exponent = 1;\n        while (power * x <= target) {\n            power *= x;\n            exponent++;\n        }\n        if (power == target) {\n            return exponent - 1;\n        }\n\n        int best = exponent + solve((int) (target - power));\n        long nextPower = power * x;\n        if (nextPower - target < target) {\n            best = Math.min(best, exponent + 1 + solve((int) (nextPower - target)));\n        }\n        memo.put(target, best);\n        return best;\n    }\n}"
+    },
+    {
+      "name": "Memoized Carry-State Digit DP",
+      "timeComplexity": "O(log_x(target))",
+      "spaceComplexity": "O(log_x(target))",
+      "description": "## Approach\nFirst store all base-`x` digits of `target`. Then solve `dp(pos, carry)`, the minimum signed-sum cost for digits from `pos` upward when the lower positions have produced either no carry or one carry.\n\n## Key Insight\nThis version exposes the two-state recurrence directly. At every digit `digit + carry`, paying that many copies clears the carry; paying the complement to `x` keeps a carry into the next digit.\n\n## Complexity Analysis\nThere are two states for every base digit plus one terminal carry state, so both time and space are `O(log_x(target))`.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private int x;\n    private List<Integer> digits;\n    private int[][] memo;\n\n    public int leastOpsExpressTarget(int x, int target) {\n        this.x = x;\n        digits = new ArrayList<>();\n        while (target > 0) {\n            digits.add(target % x);\n            target /= x;\n        }\n        memo = new int[digits.size() + 1][2];\n        for (int[] row : memo) {\n            Arrays.fill(row, -1);\n        }\n        return dp(0, 0) - 1;\n    }\n\n    private int dp(int pos, int carry) {\n        if (pos == digits.size()) {\n            return carry == 0 ? 0 : costOfPower(pos);\n        }\n        if (memo[pos][carry] != -1) {\n            return memo[pos][carry];\n        }\n        int digit = digits.get(pos) + carry;\n        int costPerPower = costOfPower(pos);\n        int clearCarry = digit * costPerPower + dp(pos + 1, 0);\n        int keepCarry = (x - digit) * costPerPower + dp(pos + 1, 1);\n        memo[pos][carry] = Math.min(clearCarry, keepCarry);\n        return memo[pos][carry];\n    }\n\n    private int costOfPower(int pos) {\n        return pos == 0 ? 2 : pos;\n    }\n}"
+    },
+    {
+      "name": "Dijkstra over Digit Carry States",
+      "timeComplexity": "O(log_x(target) log log_x(target))",
+      "spaceComplexity": "O(log_x(target))",
+      "description": "## Approach\nModel each pair `(position, carry)` as a graph state. Edges either clear the carry by paying for the current digit or round up by paying for its complement. Run Dijkstra from the low digit with no carry to the terminal state.\n\n## Key Insight\nThe digit DP is a shortest-path problem on a tiny acyclic graph. Presenting it this way makes the cost model explicit and is a useful bridge from dynamic programming to graph shortest paths.\n\n## Complexity Analysis\nThere are `O(log_x(target))` states and two outgoing edges per state. The priority queue gives `O(log_x(target) log log_x(target))` time and `O(log_x(target))` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int leastOpsExpressTarget(int x, int target) {\n        List<Integer> digits = new ArrayList<>();\n        while (target > 0) {\n            digits.add(target % x);\n            target /= x;\n        }\n        int n = digits.size();\n        int[][] dist = new int[n + 1][2];\n        for (int[] row : dist) {\n            Arrays.fill(row, Integer.MAX_VALUE / 4);\n        }\n        PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(a -> a[0]));\n        dist[0][0] = 0;\n        pq.offer(new int[] {0, 0, 0});\n\n        int best = Integer.MAX_VALUE;\n        while (!pq.isEmpty()) {\n            int[] state = pq.poll();\n            int cost = state[0];\n            int pos = state[1];\n            int carry = state[2];\n            if (cost != dist[pos][carry]) {\n                continue;\n            }\n            if (pos == n) {\n                int total = cost + (carry == 0 ? 0 : costOfPower(pos));\n                best = Math.min(best, total);\n                continue;\n            }\n\n            int digit = digits.get(pos) + carry;\n            int costPerPower = costOfPower(pos);\n            relax(dist, pq, pos + 1, 0, cost + digit * costPerPower);\n            relax(dist, pq, pos + 1, 1, cost + (x - digit) * costPerPower);\n        }\n        return best - 1;\n    }\n\n    private void relax(int[][] dist, PriorityQueue<int[]> pq, int pos, int carry, int cost) {\n        if (cost < dist[pos][carry]) {\n            dist[pos][carry] = cost;\n            pq.offer(new int[] {cost, pos, carry});\n        }\n    }\n\n    private int costOfPower(int pos) {\n        return pos == 0 ? 2 : pos;\n    }\n}"
     }
   ],
   "tests": [
-    { "input": "x = 3, target = 19", "output": "5" },
-    { "input": "x = 5, target = 501", "output": "8" },
-    { "input": "x = 100, target = 100000000", "output": "3" }
+    {
+      "input": "x = 3, target = 19",
+      "output": "5"
+    },
+    {
+      "input": "x = 5, target = 501",
+      "output": "8"
+    },
+    {
+      "input": "x = 100, target = 100000000",
+      "output": "3"
+    },
+    {
+      "input": "x = 3, target = 3",
+      "output": "0"
+    },
+    {
+      "input": "x = 5, target = 25",
+      "output": "1"
+    },
+    {
+      "input": "x = 3, target = 1",
+      "output": "1"
+    },
+    {
+      "input": "x = 3, target = 2",
+      "output": "2"
+    },
+    {
+      "input": "x = 2, target = 31",
+      "output": "6"
+    },
+    {
+      "input": "x = 5, target = 26",
+      "output": "3"
+    },
+    {
+      "input": "x = 100, target = 99",
+      "output": "2"
+    },
+    {
+      "input": "x = 10, target = 99999999",
+      "output": "9"
+    },
+    {
+      "input": "x = 2, target = 200000000",
+      "output": "113"
+    }
   ]
 }

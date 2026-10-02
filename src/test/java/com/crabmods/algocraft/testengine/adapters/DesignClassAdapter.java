@@ -90,8 +90,8 @@ public class DesignClassAdapter {
                 return TestResult.pass();
             }
 
-            // Try element-by-element comparison (with float tolerance and non-deterministic method handling)
-            if (compareElementWise(actualResults, expectedResults, methodNames)) {
+            // Try element-by-element comparison with problem-specific randomized design semantics.
+            if (compareElementWise(actualResults, expectedResults, methodNames, allArgs)) {
                 return TestResult.pass();
             }
 
@@ -267,22 +267,17 @@ public class DesignClassAdapter {
         return s.replaceAll("\\s+", "").replace("\"", "").toLowerCase();
     }
 
-    /** Methods whose output is non-deterministic (e.g., getRandom). */
-    private static final Set<String> NON_DETERMINISTIC_METHODS = Set.of(
-            "getRandom", "pickIndex", "rand7", "shuffle"
-    );
-
-    private static boolean compareElementWise(List<String> actual, JsonArray expected, JsonArray methodNames) {
+    private static boolean compareElementWise(List<String> actual, JsonArray expected,
+                                              JsonArray methodNames, JsonArray allArgs) {
         if (actual.size() != expected.size()) return false;
+        RandomizedDesignState randomizedState = RandomizedDesignState.fromConstructor(methodNames);
+        if (randomizedState != null && containsMethod(methodNames, "getRandom")) {
+            return compareRandomizedDesignOutput(actual, expected, methodNames, allArgs, randomizedState);
+        }
+
         for (int i = 0; i < actual.size(); i++) {
             String a = actual.get(i).trim();
             JsonElement e = expected.get(i);
-
-            // Skip non-deterministic methods (getRandom, shuffle, etc.)
-            if (i < methodNames.size()) {
-                String methodName = methodNames.get(i).getAsString();
-                if (NON_DETERMINISTIC_METHODS.contains(methodName)) continue;
-            }
 
             if (a.equals("null") && e.isJsonNull()) continue;
             if (e.isJsonNull() && a.equals("null")) continue;
@@ -301,5 +296,111 @@ public class DesignClassAdapter {
             if (!normalizedA.equals(normalizedE)) return false;
         }
         return true;
+    }
+
+    private static boolean compareRandomizedDesignOutput(List<String> actual, JsonArray expected,
+                                                         JsonArray methodNames, JsonArray allArgs,
+                                                         RandomizedDesignState state) {
+        if (methodNames.size() != allArgs.size()) return false;
+        for (int i = 0; i < actual.size(); i++) {
+            String methodName = methodNames.get(i).getAsString();
+            if ("getRandom".equals(methodName)) {
+                if (!state.containsActualRandomValue(actual.get(i).trim())) {
+                    return false;
+                }
+                continue;
+            }
+
+            if (!singleOutputMatches(actual.get(i), expected.get(i))) {
+                return false;
+            }
+            state.applyDeterministicOperation(methodName, allArgs.get(i).getAsJsonArray());
+        }
+        return true;
+    }
+
+    private static boolean singleOutputMatches(String actual, JsonElement expected) {
+        String a = actual.trim();
+        if (a.equals("null") && expected.isJsonNull()) return true;
+        if (expected.isJsonNull() && a.equals("null")) return true;
+
+        if (expected.isJsonPrimitive() && expected.getAsJsonPrimitive().isNumber()) {
+            try {
+                double aVal = Double.parseDouble(a);
+                double eVal = expected.getAsDouble();
+                return Math.abs(aVal - eVal) < 1e-5;
+            } catch (NumberFormatException ignored) {
+                return false;
+            }
+        }
+
+        String normalizedA = a.replaceAll("\\s+", "").replace("\"", "").toLowerCase();
+        String normalizedE = expected.toString().replaceAll("\\s+", "").replace("\"", "").toLowerCase();
+        return normalizedA.equals(normalizedE);
+    }
+
+    private static boolean containsMethod(JsonArray methodNames, String expectedMethodName) {
+        for (JsonElement methodName : methodNames) {
+            if (expectedMethodName.equals(methodName.getAsString())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static final class RandomizedDesignState {
+        private final boolean allowsDuplicates;
+        private final Map<Integer, Integer> counts = new HashMap<>();
+
+        private RandomizedDesignState(boolean allowsDuplicates) {
+            this.allowsDuplicates = allowsDuplicates;
+        }
+
+        static RandomizedDesignState fromConstructor(JsonArray methodNames) {
+            if (methodNames.isEmpty()) {
+                return null;
+            }
+            String constructorName = methodNames.get(0).getAsString();
+            if ("RandomizedSet".equals(constructorName)) {
+                return new RandomizedDesignState(false);
+            }
+            if ("RandomizedCollection".equals(constructorName)) {
+                return new RandomizedDesignState(true);
+            }
+            return null;
+        }
+
+        void applyDeterministicOperation(String methodName, JsonArray args) {
+            if (args.isEmpty()) {
+                return;
+            }
+            int value = args.get(0).getAsInt();
+            if ("insert".equals(methodName)) {
+                if (allowsDuplicates) {
+                    counts.merge(value, 1, Integer::sum);
+                } else {
+                    counts.putIfAbsent(value, 1);
+                }
+            } else if ("remove".equals(methodName)) {
+                int count = counts.getOrDefault(value, 0);
+                if (count <= 1) {
+                    counts.remove(value);
+                } else {
+                    counts.put(value, count - 1);
+                }
+            }
+        }
+
+        boolean containsActualRandomValue(String actual) {
+            if (actual == null || actual.equals("null") || actual.startsWith("ERROR:")) {
+                return false;
+            }
+            try {
+                int value = Integer.parseInt(actual);
+                return counts.getOrDefault(value, 0) > 0;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
     }
 }

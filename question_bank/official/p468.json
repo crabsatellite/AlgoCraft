@@ -1,7 +1,7 @@
 {
   "id": "468",
   "title": "Reshape the Matrix",
-  "description": "# Reshape the Matrix\n\nIn MATLAB, there is a handy function called `reshape` which can reshape an `m x n` matrix into a new one with a different size `r x c` keeping its original data.\n\nYou are given an `m x n` matrix `mat` and two integers `r` and `c` representing the number of rows and the number of columns of the wanted reshaped matrix.\n\nThe reshaped matrix should be filled with all the elements of the original matrix in the same row-traversing order as they were.\n\nIf the `reshape` operation with given parameters is possible and legal, output the new reshaped matrix; Otherwise, output the original matrix.\n\n## Example 1:\n\n**Input:** mat = [[1,2],[3,4]], r = 1, c = 4\n**Output:** [[1,2,3,4]]\n\n## Example 2:\n\n**Input:** mat = [[1,2],[3,4]], r = 2, c = 4\n**Output:** [[1,2],[3,4]]\n\n## Constraints:\n\n*   `m == mat.length`\n*   `n == mat[i].length`\n*   `1 <= m, n <= 100`\n*   `-1000 <= mat[i][j] <= 1000`\n*   `1 <= r, c <= 300`",
+  "description": "# Reshape the Matrix\n\nGiven an `m x n` matrix `mat` and two integers `r` and `c`, reshape the matrix into `r` rows and `c` columns while preserving the original row-major order of all elements.\n\nIf `m * n != r * c`, the reshape is impossible because the element count would change. In that case, return the original matrix `mat` unchanged.\n\nRow-major order reads row `0` left to right, then row `1`, and so on.\n\n## Example 1:\n\n**Input:** mat = [[1,2],[3,4]], r = 1, c = 4\n**Output:** [[1,2,3,4]]\n**Explanation:** The row-major sequence is `[1,2,3,4]`, so a `1 x 4` matrix contains one row with those values.\n\n## Example 2:\n\n**Input:** mat = [[1,2],[3,4]], r = 2, c = 4\n**Output:** [[1,2],[3,4]]\n**Explanation:** The original matrix has `4` elements, but the requested shape has `8` cells, so the original matrix is returned.\n\n## Constraints:\n\n* `m == mat.length`\n* `n == mat[i].length`\n* `1 <= m, n <= 100`\n* `-1000 <= mat[i][j] <= 1000`\n* `1 <= r, c <= 300`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int[][] matrixReshape(int[][] mat, int r, int c) {\n        \n    }\n}",
   "tags": [
@@ -12,11 +12,13 @@
   "examples": [
     {
       "input": "mat = [[1,2],[3,4]], r = 1, c = 4",
-      "output": "[[1,2,3,4]]"
+      "output": "[[1,2,3,4]]",
+      "explanation": "The row-major sequence [1,2,3,4] becomes one row."
     },
     {
       "input": "mat = [[1,2],[3,4]], r = 2, c = 4",
-      "output": "[[1,2],[3,4]]"
+      "output": "[[1,2],[3,4]]",
+      "explanation": "The requested shape has too many cells, so reshape is impossible."
     }
   ],
   "solutions": [
@@ -24,16 +26,32 @@
       "name": "Linear Index Mapping",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(r * c)",
-      "description": "Check if total elements match. Then map each linear index to (row, col) in both old and new dimensions using division and modulo.",
-      "code": "class Solution {\n    public int[][] matrixReshape(int[][] mat, int r, int c) {\n        int m = mat.length, n = mat[0].length;\n        if (m * n != r * c) return mat;\n        int[][] result = new int[r][c];\n        for (int i = 0; i < m * n; i++) {\n            result[i / c][i % c] = mat[i / n][i % n];\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nFirst check whether the total number of cells matches. Then treat both matrices as one row-major sequence and use one linear index to read from the old coordinates and write to the new coordinates.\n\n## Key Insight\n\nFor a matrix with `cols` columns, linear index `k` maps to row `k / cols` and column `k % cols`. The value order is preserved when the same `k` is used for both source and target shapes.\n\n## Complexity Analysis\n\n- Time Complexity: O(m * n), because every element is copied once.\n- Space Complexity: O(r * c), for the reshaped matrix.",
+      "code": "class Solution {\n    public int[][] matrixReshape(int[][] mat, int r, int c) {\n        int rows = mat.length;\n        int cols = mat[0].length;\n        if (rows * cols != r * c) {\n            return mat;\n        }\n\n        int[][] reshaped = new int[r][c];\n        for (int index = 0; index < rows * cols; index++) {\n            reshaped[index / c][index % c] = mat[index / cols][index % cols];\n        }\n        return reshaped;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Row-Column Counter",
+      "name": "Source Scan with Target Counter",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(r * c)",
-      "description": "Iterate through the original matrix row by row, keeping a running counter. Use the counter to compute the target row and column using division and modulo by c.",
-      "code": "class Solution {\n    public int[][] matrixReshape(int[][] mat, int r, int c) {\n        int m = mat.length, n = mat[0].length;\n        if (m * n != r * c) return mat;\n        int[][] result = new int[r][c];\n        int row = 0, col = 0;\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                result[row][col] = mat[i][j];\n                col++;\n                if (col == c) {\n                    col = 0;\n                    row++;\n                }\n            }\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nScan the source matrix row by row. Keep the current write position in the target matrix, advance the target column after each write, and wrap to the next target row when the column reaches `c`.\n\n## Key Insight\n\nThis version avoids division and modulo inside the copy loop. The target counter is just the write cursor for the row-major sequence.\n\n## Complexity Analysis\n\n- Time Complexity: O(m * n), because every source cell is visited once.\n- Space Complexity: O(r * c), for the result matrix.",
+      "code": "class Solution {\n    public int[][] matrixReshape(int[][] mat, int r, int c) {\n        int rows = mat.length;\n        int cols = mat[0].length;\n        if (rows * cols != r * c) {\n            return mat;\n        }\n\n        int[][] reshaped = new int[r][c];\n        int targetRow = 0;\n        int targetCol = 0;\n        for (int i = 0; i < rows; i++) {\n            for (int j = 0; j < cols; j++) {\n                reshaped[targetRow][targetCol] = mat[i][j];\n                targetCol++;\n                if (targetCol == c) {\n                    targetCol = 0;\n                    targetRow++;\n                }\n            }\n        }\n        return reshaped;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Flatten Array Then Rebuild",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nCopy the source matrix into a one-dimensional array in row-major order. Then rebuild the requested target shape by reading that array from left to right.\n\n## Key Insight\n\nThis makes the row-major sequence an explicit intermediate artifact. It is less memory-efficient than direct mapping, but it cleanly separates flattening from shaping.\n\n## Complexity Analysis\n\n- Time Complexity: O(m * n), because each value is written to the flat array and then copied into the result.\n- Space Complexity: O(m * n), for the flat array in addition to the result matrix.",
+      "code": "class Solution {\n    public int[][] matrixReshape(int[][] mat, int r, int c) {\n        int rows = mat.length;\n        int cols = mat[0].length;\n        if (rows * cols != r * c) {\n            return mat;\n        }\n\n        int[] flat = new int[rows * cols];\n        int write = 0;\n        for (int i = 0; i < rows; i++) {\n            for (int j = 0; j < cols; j++) {\n                flat[write++] = mat[i][j];\n            }\n        }\n\n        int[][] reshaped = new int[r][c];\n        int read = 0;\n        for (int i = 0; i < r; i++) {\n            for (int j = 0; j < c; j++) {\n                reshaped[i][j] = flat[read++];\n            }\n        }\n        return reshaped;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Flatten Queue Then Fill",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nIf the reshape is possible, first enqueue all original values in row-major order. Then fill the target matrix by removing values from the queue in the same order.\n\n## Key Insight\n\nThis route makes the abstract operation explicit: reshape means flatten to a one-dimensional row-major stream, then rebuild a different rectangular view of that stream.\n\n## Complexity Analysis\n\n- Time Complexity: O(m * n), because each value is enqueued and dequeued once.\n- Space Complexity: O(m * n), for the queue in addition to the result matrix.",
+      "code": "class Solution {\n    public int[][] matrixReshape(int[][] mat, int r, int c) {\n        int rows = mat.length;\n        int cols = mat[0].length;\n        if (rows * cols != r * c) {\n            return mat;\n        }\n\n        java.util.ArrayDeque<Integer> values = new java.util.ArrayDeque<>();\n        for (int i = 0; i < rows; i++) {\n            for (int j = 0; j < cols; j++) {\n                values.addLast(mat[i][j]);\n            }\n        }\n\n        int[][] reshaped = new int[r][c];\n        for (int i = 0; i < r; i++) {\n            for (int j = 0; j < c; j++) {\n                reshaped[i][j] = values.removeFirst();\n            }\n        }\n        return reshaped;\n    }\n}",
       "language": "java"
     }
   ],
@@ -45,13 +63,53 @@
     {
       "input": "mat = [[1,2],[3,4]], r = 2, c = 4",
       "output": "[[1,2],[3,4]]"
+    },
+    {
+      "input": "mat = [[1,2,3]], r = 3, c = 1",
+      "output": "[[1],[2],[3]]"
+    },
+    {
+      "input": "mat = [[1]], r = 1, c = 1",
+      "output": "[[1]]"
+    },
+    {
+      "input": "mat = [[1,2,3,4]], r = 2, c = 2",
+      "output": "[[1,2],[3,4]]"
+    },
+    {
+      "input": "mat = [[1],[2],[3],[4]], r = 2, c = 2",
+      "output": "[[1,2],[3,4]]"
+    },
+    {
+      "input": "mat = [[1,2],[3,4]], r = 4, c = 1",
+      "output": "[[1],[2],[3],[4]]"
+    },
+    {
+      "input": "mat = [[1,2,3],[4,5,6]], r = 3, c = 2",
+      "output": "[[1,2],[3,4],[5,6]]"
+    },
+    {
+      "input": "mat = [[-1,-2,3],[4,0,-5]], r = 1, c = 6",
+      "output": "[[-1,-2,3,4,0,-5]]"
+    },
+    {
+      "input": "mat = [[1,2,3],[4,5,6]], r = 4, c = 2",
+      "output": "[[1,2,3],[4,5,6]]"
+    },
+    {
+      "input": "mat = [[7,8],[9,10],[11,12]], r = 2, c = 3",
+      "output": "[[7,8,9],[10,11,12]]"
+    },
+    {
+      "input": "mat = [[5,6,7],[8,9,10]], r = 2, c = 3",
+      "output": "[[5,6,7],[8,9,10]]"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p468_example1.png",
-      "caption": "2x2 Matrix to reshape"
+      "caption": "Input matrix and requested shape"
     }
   ]
 }

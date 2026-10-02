@@ -1,48 +1,114 @@
 {
   "id": "433",
-  "title": "Design Skiplist",
-  "description": "# Design Skiplist\n\nDesign a **Skiplist** without using any built-in libraries.\n\nA skiplist is a data structure that takes `O(log(n))` time to add, erase and search. Comparing with treap and red-black tree which has the same function and performance, the code length of Skiplist can be comparatively short and the idea behind Skiplists is just simple linked lists.\n\nImplement the `Skiplist` class:\n\n*   `Skiplist()` Initializes the object of the skiplist.\n*   `bool search(int target)` Returns `true` if the integer `target` exists in the Skiplist or `false` otherwise.\n*   `void add(int num)` Inserts the value `num` into the Skiplist.\n*   `bool erase(int num)` Removes the value `num` from the Skiplist and returns `true`. If `num` does not exist in the Skiplist, do nothing and return `false`. If there exist multiple `num` values, removing any one of them is fine.\n\n## Example 1:\n\n**Input**\n[\"Skiplist\", \"add\", \"add\", \"add\", \"search\", \"add\", \"search\", \"erase\", \"erase\", \"search\"]\n[[], [1], [2], [3], [0], [4], [1], [0], [1], [1]]\n**Output**\n[null, null, null, null, false, null, true, false, true, false]\n**Explanation**\nSkiplist skiplist = new Skiplist();\nskiplist.add(1);\nskiplist.add(2);\nskiplist.add(3);\nskiplist.search(0); // return False\nskiplist.add(4);\nskiplist.search(1); // return True\nskiplist.erase(0);  // return False, 0 is not in skiplist.\nskiplist.erase(1);  // return True\nskiplist.search(1); // return False, 1 has already been erased.\n\n## Constraints:\n\n*   `0 <= num, target <= 2 * 10^4`\n*   At most `5 * 10^4` calls will be made to `search`, `add`, and `erase`.",
-  "difficulty": "HARD",
-  "initialCode": "class Skiplist {\n\n    public Skiplist() {\n        \n    }\n    \n    public boolean search(int target) {\n        \n    }\n    \n    public void add(int num) {\n        \n    }\n    \n    public boolean erase(int num) {\n        \n    }\n}",
+  "title": "Append Characters to Make Subsequence",
+  "description": "# Append Characters to Make Subsequence\n\nGiven two strings `s` and `t`, append characters only to the end of `s` so that `t` becomes a subsequence of the resulting string. Return the minimum number of characters that must be appended.\n\nA subsequence deletes characters without reordering. For example, `\"ac\"` is a subsequence of `\"abc\"`; `\"ca\"` is not.\n\n## Example 1:\n\n**Input:** s = \"coaching\", t = \"coding\"\n**Output:** 4\n**Explanation:** The prefix `\"co\"` of `t` is already a subsequence of `s`; append `\"ding\"`.\n\n## Example 2:\n\n**Input:** s = \"abcde\", t = \"a\"\n**Output:** 0\n**Explanation:** `t` is already a subsequence of `s`.\n\n## Constraints:\n\n*   `0 <= s.length, t.length <= 10^5`\n*   `s` and `t` contain lowercase English letters.",
+  "difficulty": "MEDIUM",
+  "initialCode": "class Solution {\n    public int appendCharacters(String s, String t) {\n        // Write your code here\n    }\n}",
   "tags": [
-    "Linked List",
-    "Design"
+    "String",
+    "Two Pointers",
+    "Binary Search"
   ],
   "examples": [
     {
-      "input": "[\"Skiplist\", \"add\", \"add\", \"add\", \"search\", \"add\", \"search\", \"erase\", \"erase\", \"search\"]\n[[], [1], [2], [3], [0], [4], [1], [0], [1], [1]]",
-      "output": "[null, null, null, null, false, null, true, false, true, false]"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "Multi-Level Linked List with Random Promotion",
-      "timeComplexity": "O(log n) average",
-      "spaceComplexity": "O(n)",
-      "description": "Implement a skiplist with multiple levels. Each node may appear in several levels. Search starts from the top level and moves down. New nodes are promoted to higher levels with probability 0.5.",
-      "code": "class Skiplist {\n    private static final int MAX_LEVEL = 16;\n    private static final double P = 0.5;\n    private int[] head;\n    private int[][] next;\n    private int[] val;\n    private int[] level;\n    private int size;\n    private int curLevel;\n    private java.util.Random rand;\n\n    public Skiplist() {\n        head = new int[MAX_LEVEL];\n        java.util.Arrays.fill(head, -1);\n        next = new int[80001][MAX_LEVEL];\n        val = new int[80001];\n        level = new int[80001];\n        size = 0;\n        curLevel = 0;\n        rand = new java.util.Random();\n    }\n\n    private int randomLevel() {\n        int lvl = 1;\n        while (lvl < MAX_LEVEL && rand.nextDouble() < P) lvl++;\n        return lvl;\n    }\n\n    public boolean search(int target) {\n        int cur = -1;\n        for (int i = curLevel - 1; i >= 0; i--) {\n            int nxt = (cur == -1) ? head[i] : next[cur][i];\n            while (nxt != -1 && val[nxt] < target) {\n                cur = nxt;\n                nxt = next[cur][i];\n            }\n            if (nxt != -1 && val[nxt] == target) return true;\n        }\n        return false;\n    }\n\n    public void add(int num) {\n        int[] update = new int[MAX_LEVEL];\n        java.util.Arrays.fill(update, -1);\n        int cur = -1;\n        for (int i = curLevel - 1; i >= 0; i--) {\n            int nxt = (cur == -1) ? head[i] : next[cur][i];\n            while (nxt != -1 && val[nxt] < num) {\n                cur = nxt;\n                nxt = next[cur][i];\n            }\n            update[i] = cur;\n        }\n        int lvl = randomLevel();\n        if (lvl > curLevel) curLevel = lvl;\n        int idx = size++;\n        val[idx] = num;\n        level[idx] = lvl;\n        for (int i = 0; i < lvl; i++) {\n            if (update[i] == -1) {\n                next[idx][i] = head[i];\n                head[i] = idx;\n            } else {\n                next[idx][i] = next[update[i]][i];\n                next[update[i]][i] = idx;\n            }\n        }\n    }\n\n    public boolean erase(int num) {\n        int[] update = new int[MAX_LEVEL];\n        java.util.Arrays.fill(update, -1);\n        int cur = -1;\n        int target = -1;\n        for (int i = curLevel - 1; i >= 0; i--) {\n            int nxt = (cur == -1) ? head[i] : next[cur][i];\n            while (nxt != -1 && val[nxt] < num) {\n                cur = nxt;\n                nxt = next[cur][i];\n            }\n            if (nxt != -1 && val[nxt] == num) target = nxt;\n            update[i] = cur;\n        }\n        if (target == -1) return false;\n        for (int i = 0; i < level[target]; i++) {\n            if (update[i] == -1) {\n                head[i] = next[target][i];\n            } else {\n                next[update[i]][i] = next[target][i];\n            }\n        }\n        while (curLevel > 0 && head[curLevel - 1] == -1) curLevel--;\n        return true;\n    }\n}",
-      "language": "java"
+      "input": "s = \"coaching\", t = \"coding\"",
+      "output": "4"
     },
     {
-      "name": "Sorted ArrayList Skiplist Simulation",
-      "timeComplexity": "O(log n) search, O(n) add/erase",
-      "spaceComplexity": "O(n)",
-      "description": "Use a sorted ArrayList. Search uses binary search for O(log n). Add inserts at the correct position to maintain sort order. Erase finds and removes the first occurrence using binary search.",
-      "code": "import java.util.*;\n\nclass Skiplist {\n    private List<Integer> list;\n    public Skiplist() {\n        list = new ArrayList();\n    }\n    public boolean search(int target) {\n        int idx = Collections.binarySearch(list, target);\n        return idx >= 0;\n    }\n    public void add(int num) {\n        int idx = Collections.binarySearch(list, num);\n        if (idx < 0) idx = -(idx + 1);\n        list.add(idx, num);\n    }\n    public boolean erase(int num) {\n        int idx = Collections.binarySearch(list, num);\n        if (idx < 0) return false;\n        list.remove(idx);\n        return true;\n    }\n}",
-      "language": "java"
+      "input": "s = \"abcde\", t = \"a\"",
+      "output": "0"
     }
   ],
   "tests": [
     {
-      "input": "[\"Skiplist\", \"add\", \"add\", \"add\", \"search\", \"add\", \"search\", \"erase\", \"erase\", \"search\"]\n[[], [1], [2], [3], [0], [4], [1], [0], [1], [1]]",
-      "output": "[null, null, null, null, false, null, true, false, true, false]"
+      "input": "s = \"coaching\", t = \"coding\"",
+      "output": "4"
+    },
+    {
+      "input": "s = \"abcde\", t = \"a\"",
+      "output": "0"
+    },
+    {
+      "description": "No character of t can be matched.",
+      "input": "s = \"z\", t = \"abcde\"",
+      "output": "5"
+    },
+    {
+      "description": "An exact subsequence needs no appended characters.",
+      "input": "s = \"abc\", t = \"abc\"",
+      "output": "0"
+    },
+    {
+      "description": "Only the final missing suffix character must be appended.",
+      "input": "s = \"abc\", t = \"abcd\"",
+      "output": "1"
+    },
+    {
+      "description": "An empty target is already a subsequence.",
+      "input": "s = \"abc\", t = \"\"",
+      "output": "0"
+    },
+    {
+      "description": "A nonempty target must be appended completely when s is empty.",
+      "input": "s = \"\", t = \"abc\"",
+      "output": "3"
+    },
+    {
+      "description": "Order matters: a character that appears before the previous match cannot be reused later.",
+      "input": "s = \"abdc\", t = \"abcde\"",
+      "output": "2"
+    },
+    {
+      "description": "Repeated target characters require repeated matched occurrences.",
+      "input": "s = \"aaaa\", t = \"aaaaaa\"",
+      "output": "2"
+    },
+    {
+      "description": "A later partial prefix match can stop before an unavailable suffix.",
+      "input": "s = \"abcxyz\", t = \"axbycz\"",
+      "output": "4"
     }
   ],
-  "diagrams": [
+  "solutions": [
     {
-      "id": "design",
-      "file": "p403_design.png",
-      "caption": "Skiplist: Multi-level Linked List"
+      "name": "Two Pointer Prefix Scan",
+      "timeComplexity": "O(|s| + |t|)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan `s` once while keeping `matched`, the length of the prefix of `t` already matched. Whenever the current character of `s` equals `t.charAt(matched)`, advance `matched`. After the scan, append the unmatched suffix of `t`.\n\n## Key Insight\n\nOnly a prefix of `t` can be matched before appending, because all new characters are added after the existing `s`. The minimum number of appended characters is therefore `t.length() - matched`.\n\n## Complexity Analysis\n- Time Complexity: O(|s| + |t|)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int appendCharacters(String s, String t) {\n        int matched = 0;\n        for (int i = 0; i < s.length() && matched < t.length(); i++) {\n            if (s.charAt(i) == t.charAt(matched)) {\n                matched++;\n            }\n        }\n        return t.length() - matched;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "IndexOf From Previous Match",
+      "timeComplexity": "O(|s| + |t|)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nMaintain the last matched position in `s`. For each next character of `t`, call `s.indexOf(character, position + 1)`. If the search succeeds, update the position; otherwise the current character and the rest of `t` must be appended.\n\n## Key Insight\n\nSearching from one past the previous match preserves subsequence order. Since the search position only moves forward, this is a compact way to express the same greedy prefix matching rule.\n\n## Complexity Analysis\n- Time Complexity: O(|s| + |t|) with monotonic search progress\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int appendCharacters(String s, String t) {\n        int position = -1;\n        int matched = 0;\n        while (matched < t.length()) {\n            position = s.indexOf(t.charAt(matched), position + 1);\n            if (position == -1) {\n                break;\n            }\n            matched++;\n        }\n        return t.length() - matched;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Position Lists Binary Search",
+      "timeComplexity": "O(|s| + |t| log |s|)",
+      "spaceComplexity": "O(|s|)",
+      "description": "## Approach\n\nBuild a sorted list of positions for each lowercase letter in `s`. For each character of `t`, binary-search that character's position list for the first index greater than the previously matched index. If no such position exists, the remaining suffix of `t` must be appended.\n\n## Key Insight\n\nThis is the standard subsequence-query preprocessing pattern. It separates character availability from the greedy order constraint and is useful when many target strings would be tested against the same source string.\n\n## Complexity Analysis\n- Time Complexity: O(|s| + |t| log |s|)\n- Space Complexity: O(|s|)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int appendCharacters(String s, String t) {\n        List<Integer>[] positions = new ArrayList[26];\n        for (int i = 0; i < 26; i++) {\n            positions[i] = new ArrayList<>();\n        }\n        for (int i = 0; i < s.length(); i++) {\n            positions[s.charAt(i) - 'a'].add(i);\n        }\n\n        int previous = -1;\n        for (int matched = 0; matched < t.length(); matched++) {\n            List<Integer> list = positions[t.charAt(matched) - 'a'];\n            int index = firstGreaterThan(list, previous);\n            if (index == list.size()) {\n                return t.length() - matched;\n            }\n            previous = list.get(index);\n        }\n        return 0;\n    }\n\n    private int firstGreaterThan(List<Integer> list, int value) {\n        int left = 0;\n        int right = list.size();\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (list.get(mid) <= value) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Character Index Queues",
+      "timeComplexity": "O(|s| + |t|)",
+      "spaceComplexity": "O(|s|)",
+      "description": "## Approach\n\nPut every index of `s` into a queue for its character. Then process `t` from left to right. For the current character, discard queued indices that are not after the previous match. If the queue becomes empty, the remaining suffix of `t` must be appended; otherwise consume the next usable index.\n\n## Key Insight\n\nThe queues make each character's future usable positions explicit. Each index of `s` is removed at most once, so the method stays linear while teaching the same increasing-index invariant.\n\n## Complexity Analysis\n- Time Complexity: O(|s| + |t|)\n- Space Complexity: O(|s|)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int appendCharacters(String s, String t) {\n        ArrayDeque<Integer>[] positions = new ArrayDeque[26];\n        for (int i = 0; i < 26; i++) {\n            positions[i] = new ArrayDeque<>();\n        }\n        for (int i = 0; i < s.length(); i++) {\n            positions[s.charAt(i) - 'a'].offer(i);\n        }\n\n        int previous = -1;\n        for (int matched = 0; matched < t.length(); matched++) {\n            ArrayDeque<Integer> queue = positions[t.charAt(matched) - 'a'];\n            while (!queue.isEmpty() && queue.peek() <= previous) {\n                queue.poll();\n            }\n            if (queue.isEmpty()) {\n                return t.length() - matched;\n            }\n            previous = queue.poll();\n        }\n        return 0;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Next Occurrence Table",
+      "timeComplexity": "O(26 * |s| + |t|)",
+      "spaceComplexity": "O(26 * |s|)",
+      "description": "## Approach\n\nPrecompute `next[position][letter]`, the first index at or after `position` where `letter` appears in `s`, or `-1` if it never appears. Then scan `t`, jumping through this table. The first failed jump identifies the suffix that must be appended.\n\n## Key Insight\n\nThis turns each next-character search into an O(1) transition, like a small deterministic automaton over the source string. It is heavier than two pointers for one query, but it is a useful preprocessing technique to teach.\n\n## Complexity Analysis\n- Time Complexity: O(26 * |s| + |t|)\n- Space Complexity: O(26 * |s|)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int appendCharacters(String s, String t) {\n        int n = s.length();\n        int[][] next = new int[n + 1][26];\n        Arrays.fill(next[n], -1);\n        for (int i = n - 1; i >= 0; i--) {\n            System.arraycopy(next[i + 1], 0, next[i], 0, 26);\n            next[i][s.charAt(i) - 'a'] = i;\n        }\n\n        int position = 0;\n        for (int matched = 0; matched < t.length(); matched++) {\n            int found = next[position][t.charAt(matched) - 'a'];\n            if (found == -1) {\n                return t.length() - matched;\n            }\n            position = found + 1;\n        }\n        return 0;\n    }\n}",
+      "language": "java"
     }
   ]
 }

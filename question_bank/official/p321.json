@@ -1,48 +1,105 @@
 {
   "id": "321",
-  "title": "Interleaving String",
-  "description": "# Interleaving String\n\nGiven strings `s1`, `s2`, and `s3`, find whether `s3` is formed by an **interleaving** of `s1` and `s2`.\n\nAn **interleaving** of two strings `s` and `t` is a configuration where `s` and `t` are divided into `n` and `m` substrings respectively, such that:\n\n*   `s = s1 + s2 + ... + sn`\n*   `t = t1 + t2 + ... + tm`\n*   `|n - m| <= 1`\n*   The **interleaving** is `s1 + t1 + s2 + t2 + s3 + t3 + ...` or `t1 + s1 + t2 + s2 + t3 + s3 + ...`\n\nNote: `a + b` is the concatenation of strings `a` and `b`.\n\n## Example 1:\n\n**Input:** s1 = \"aabcc\", s2 = \"dbbca\", s3 = \"aadbbcbcac\"\n**Output:** true\n**Explanation:** One way to obtain s3 is:\nSplit s1 into s1 = \"aa\" + \"bc\" + \"c\", and s2 into s2 = \"dbbc\" + \"a\".\nInterleaving the two splits, we get \"aa\" + \"dbbc\" + \"bc\" + \"a\" + \"c\" = \"aadbbcbcac\".\nSince s3 can be obtained by interleaving s1 and s2, we return true.\n\n## Example 2:\n\n**Input:** s1 = \"aabcc\", s2 = \"dbbca\", s3 = \"aadbbbaccc\"\n**Output:** false\n**Explanation:** Notice how it is impossible to interleave s2 with any other string to obtain s3.\n\n## Example 3:\n\n**Input:** s1 = \"\", s2 = \"\", s3 = \"\"\n**Output:** true\n\n## Constraints:\n\n*   `0 <= s1.length, s2.length <= 100`\n*   `0 <= s3.length <= 200`\n*   `s1`, `s2`, and `s3` consist of lowercase English letters.",
-  "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public boolean isInterleave(String s1, String s2, String s3) {\n        \n    }\n}",
-  "tags": ["String", "Dynamic Programming"],
+  "title": "Laser Beams Between Security Rows",
+  "description": "# Laser Beams Between Security Rows\n\nA bank is represented by binary strings, where `1` means a security device and `0` means an empty cell. A beam is formed between every device in one non-empty row and every device in the next non-empty row below it; empty rows between them are ignored. Return the total number of beams.\n\n## Example 1:\n\n**Input:** bank = [\"011001\",\"000000\",\"010100\",\"001000\"]\n**Output:** 8\n\n## Example 2:\n\n**Input:** bank = [\"000\",\"111\",\"000\"]\n**Output:** 0\n\n## Constraints:\n\n*   `1 <= bank.length <= 500`\n*   `1 <= bank[i].length <= 500`\n*   Every row has the same length and contains only `0` and `1`.",
+  "difficulty": "MEDIUM",
+  "initialCode": "class Solution {\n    public int numberOfBeams(String[] bank) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "String",
+    "Counting"
+  ],
   "examples": [
     {
-      "input": "s1 = \"aabcc\", s2 = \"dbbca\", s3 = \"aadbbcbcac\"",
-      "output": "true"
+      "input": "bank = [\"011001\",\"000000\",\"010100\",\"001000\"]",
+      "output": "8"
     },
     {
-      "input": "s1 = \"aabcc\", s2 = \"dbbca\", s3 = \"aadbbbaccc\"",
-      "output": "false"
-    },
-    { "input": "s1 = \"\", s2 = \"\", s3 = \"\"", "output": "true" }
-  ],
-  "solutions": [
-    {
-      "name": "Dynamic Programming",
-      "timeComplexity": "O(m * n)",
-      "spaceComplexity": "O(m * n)",
-      "description": "dp[i][j] = true if s3[0..i+j-1] can be formed by interleaving s1[0..i-1] and s2[0..j-1]. Transition: take from s1 or s2 if characters match.",
-      "code": "class Solution {\n    public boolean isInterleave(String s1, String s2, String s3) {\n        int m = s1.length(), n = s2.length();\n        if (m + n != s3.length()) return false;\n        boolean[][] dp = new boolean[m + 1][n + 1];\n        dp[0][0] = true;\n        for (int i = 1; i <= m; i++) dp[i][0] = dp[i - 1][0] && s1.charAt(i - 1) == s3.charAt(i - 1);\n        for (int j = 1; j <= n; j++) dp[0][j] = dp[0][j - 1] && s2.charAt(j - 1) == s3.charAt(j - 1);\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                dp[i][j] = (dp[i - 1][j] && s1.charAt(i - 1) == s3.charAt(i + j - 1)) ||\n                            (dp[i][j - 1] && s2.charAt(j - 1) == s3.charAt(i + j - 1));\n            }\n        }\n        return dp[m][n];\n    }\n}",
-      "language": "java"
-    },
-    {
-      "name": "Space-Optimized DP (1D Array)",
-      "timeComplexity": "O(m * n)",
-      "spaceComplexity": "O(n)",
-      "description": "Optimize space by using a single 1D dp array of size n+1. Process row by row, updating dp[j] based on whether the current character comes from s1 or s2.",
-      "code": "class Solution {\n    public boolean isInterleave(String s1, String s2, String s3) {\n        int m = s1.length(), n = s2.length();\n        if (m + n != s3.length()) return false;\n        boolean[] dp = new boolean[n + 1];\n        for (int i = 0; i <= m; i++) {\n            for (int j = 0; j <= n; j++) {\n                if (i == 0 && j == 0) {\n                    dp[j] = true;\n                } else if (i == 0) {\n                    dp[j] = dp[j - 1] && s2.charAt(j - 1) == s3.charAt(j - 1);\n                } else if (j == 0) {\n                    dp[j] = dp[j] && s1.charAt(i - 1) == s3.charAt(i - 1);\n                } else {\n                    dp[j] = (dp[j] && s1.charAt(i - 1) == s3.charAt(i + j - 1)) ||\n                            (dp[j - 1] && s2.charAt(j - 1) == s3.charAt(i + j - 1));\n                }\n            }\n        }\n        return dp[n];\n    }\n}",
-      "language": "java"
+      "input": "bank = [\"000\",\"111\",\"000\"]",
+      "output": "0"
     }
   ],
   "tests": [
     {
-      "input": "s1 = \"aabcc\", s2 = \"dbbca\", s3 = \"aadbbcbcac\"",
-      "output": "true"
+      "input": "bank = [\"011001\",\"000000\",\"010100\",\"001000\"]",
+      "output": "8",
+      "description": "empty row is skipped between two non-empty security rows"
     },
     {
-      "input": "s1 = \"aabcc\", s2 = \"dbbca\", s3 = \"aadbbbaccc\"",
-      "output": "false"
+      "input": "bank = [\"000\",\"111\",\"000\"]",
+      "output": "0",
+      "description": "a single non-empty row cannot form a beam with another row"
     },
-    { "input": "s1 = \"\", s2 = \"\", s3 = \"\"", "output": "true" }
+    {
+      "input": "bank = [\"1\",\"1\",\"1\"]",
+      "output": "2",
+      "description": "three one-device rows form two adjacent non-empty row products"
+    },
+    {
+      "input": "bank = [\"101\",\"111\",\"000\",\"010\"]",
+      "output": "9",
+      "description": "the row after an empty row multiplies with the previous non-empty row"
+    },
+    {
+      "input": "bank = [\"0\"]",
+      "output": "0",
+      "description": "minimum bank with no devices"
+    },
+    {
+      "input": "bank = [\"1\"]",
+      "output": "0",
+      "description": "minimum bank with one device still has no pair of rows"
+    },
+    {
+      "input": "bank = [\"10\",\"01\"]",
+      "output": "1",
+      "description": "two one-device rows form exactly one beam"
+    },
+    {
+      "input": "bank = [\"111\",\"000\",\"101\",\"110\"]",
+      "output": "10",
+      "description": "multiple non-empty rows contribute products 3*2 and 2*2"
+    },
+    {
+      "input": "bank = [\"000\",\"000\"]",
+      "output": "0",
+      "description": "all rows can be empty without producing beams"
+    },
+    {
+      "input": "bank = [\"1001\",\"0000\",\"1111\",\"0000\",\"0101\"]",
+      "output": "16",
+      "description": "several empty rows are ignored between three non-empty rows"
+    },
+    {
+      "input": "bank = [\"000\",\"101\",\"000\",\"000\",\"011\",\"000\",\"100\"]",
+      "output": "6",
+      "description": "leading, trailing, and repeated empty rows do not break non-empty row pairing"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Previous Nonempty Row",
+      "timeComplexity": "O(rows * cols)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan the bank row by row and count the devices in the current row. If the current row is non-empty, multiply its device count by the previous non-empty row's count, add that product to the answer, and update the previous count.\n\n## Key Insight\n\nEmpty rows are ignored by the beam definition, so the only state needed is the number of devices in the most recent non-empty row. Every new non-empty row forms beams only with that previous non-empty row.\n\n## Complexity Analysis\n- Time Complexity: O(rows * cols)\n- Space Complexity: O(1)",
+      "code": "class Solution { public int numberOfBeams(String[] bank) { int prev = 0, ans = 0; for (String row : bank) { int cur = 0; for (char ch : row.toCharArray()) if (ch == '1') cur++; if (cur > 0) { ans += prev * cur; prev = cur; } } return ans; } }",
+      "language": "java"
+    },
+    {
+      "name": "Collect Device Counts",
+      "timeComplexity": "O(nm)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFirst count devices in every row and store only the counts from non-empty rows. Then walk the filtered list and add the product of each adjacent pair.\n\n## Key Insight\n\nRemoving empty rows from the bank does not change which rows can communicate. After filtering, the problem becomes summing adjacent products in a simple list of row device counts.\n\n## Complexity Analysis\n- Time Complexity: O(rows * cols)\n- Space Complexity: O(rows)",
+      "code": "class Solution { public int numberOfBeams(String[] bank) { List<Integer> counts = new ArrayList<>(); for (String row : bank) { int c = 0; for (int i = 0; i < row.length(); i++) if (row.charAt(i) == '1') c++; if (c != 0) counts.add(c); } int beams = 0; for (int i = 1; i < counts.size(); i++) beams += counts.get(i - 1) * counts.get(i); return beams; } }",
+      "language": "java"
+    },
+    {
+      "name": "Two Pointer Nonempty Rows",
+      "timeComplexity": "O(rows * cols)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse one pointer to locate the current non-empty row and a second pointer to search downward for the next non-empty row. Multiply their counts, then continue from the second row.\n\n## Key Insight\n\nThis directly simulates the phrase \"next non-empty row below it\". The search pointer skips any number of empty rows, so no extra filtered list is required.\n\n## Complexity Analysis\n- Time Complexity: O(rows * cols)\n- Space Complexity: O(1)",
+      "code": "class Solution { public int numberOfBeams(String[] bank) { int ans = 0; int row = 0; while (row < bank.length) { int first = count(bank[row]); if (first == 0) { row++; continue; } int next = row + 1; int second = 0; while (next < bank.length && second == 0) { second = count(bank[next]); next++; } if (second == 0) break; ans += first * second; row = next - 1; } return ans; } private int count(String row) { int devices = 0; for (int i = 0; i < row.length(); i++) if (row.charAt(i) == '1') devices++; return devices; } }",
+      "language": "java"
+    }
   ]
 }

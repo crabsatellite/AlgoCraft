@@ -1,7 +1,7 @@
 {
   "id": "129",
   "title": "Max Area of Island",
-  "description": "# Max Area of Island\n\nYou are given an `m x n` binary matrix `grid`. An island is a group of `1`'s (representing land) connected **4-directionally** (horizontal or vertical). You may assume all four edges of the grid are surrounded by water.\n\nThe **area** of an island is the number of cells with a value `1` in the island.\n\nReturn *the maximum **area** of an island in* `grid`. If there is no island, return `0`.\n\n## Example 1:\n\n**Input:** grid = [[0,0,1,0,0,0,0,1,0,0,0,0,0],[0,0,0,0,0,0,0,1,1,1,0,0,0],[0,1,1,0,1,0,0,0,0,0,0,0,0],[0,1,0,0,1,1,0,0,1,0,1,0,0],[0,1,0,0,1,1,0,0,1,1,1,0,0],[0,0,0,0,0,0,0,0,0,0,1,0,0],[0,0,0,0,0,0,0,1,1,1,0,0,0],[0,0,0,0,0,0,0,1,1,0,0,0,0]]\n**Output:** 6\n**Explanation:** The answer is not 11, because the island must be connected 4-directionally.\n\n## Example 2:\n\n**Input:** grid = [[0,0,0,0,0,0,0,0]]\n**Output:** 0\n\n## Constraints:\n\n*   `m == grid.length`\n*   `n == grid[i].length`\n*   `1 <= m, n <= 50`\n*   `grid[i][j]` is either `0` or `1`.",
+  "description": "# Max Area of Island\n\nGiven an `m x n` binary matrix `grid`, where `1` represents land and `0` represents water, return the maximum area of any island in the grid.\n\nAll land cells reachable from one land cell through side-adjacent land form one island. Diagonal contact does not count. An isolated land cell is also an island; outside the grid is water. Area counts its land cells; return `0` if there is no land.\n\n## Example 1:\n\n**Input:** grid = [[0,0,1,0,0,0,0,1,0,0,0,0,0],[0,0,0,0,0,0,0,1,1,1,0,0,0],[0,1,1,0,1,0,0,0,0,0,0,0,0],[0,1,0,0,1,1,0,0,1,0,1,0,0],[0,1,0,0,1,1,0,0,1,1,1,0,0],[0,0,0,0,0,0,0,0,0,0,1,0,0],[0,0,0,0,0,0,0,1,1,1,0,0,0],[0,0,0,0,0,0,0,1,1,0,0,0,0]]\n**Output:** 6\n**Explanation:** The largest island has area `6`. The answer is not `11` because land cells must be connected by horizontal or vertical steps.\n\n## Example 2:\n\n**Input:** grid = [[0,0,0,0,0,0,0,0]]\n**Output:** 0\n**Explanation:** The grid has no land.\n\n## Constraints:\n\n* `m == grid.length`\n* `n == grid[i].length`\n* `1 <= m, n <= 50`\n* `grid[i][j]` is either `0` or `1`.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int maxAreaOfIsland(int[][] grid) {\n        // Write your code here\n        return 0;\n    }\n}",
   "tags": [
@@ -23,38 +23,78 @@
   ],
   "solutions": [
     {
-      "name": "DFS",
+      "name": "Recursive DFS Area Flood Fill",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "For each unvisited land cell, run DFS to compute the island area. Track the global maximum area.",
-      "code": "class Solution {\n    public int maxAreaOfIsland(int[][] grid) {\n        int maxArea = 0;\n        for (int i = 0; i < grid.length; i++) {\n            for (int j = 0; j < grid[0].length; j++) {\n                if (grid[i][j] == 1) {\n                    maxArea = Math.max(maxArea, dfs(grid, i, j));\n                }\n            }\n        }\n        return maxArea;\n    }\n\n    private int dfs(int[][] grid, int i, int j) {\n        if (i < 0 || i >= grid.length || j < 0 || j >= grid[0].length || grid[i][j] != 1) return 0;\n        grid[i][j] = 0;\n        return 1 + dfs(grid, i + 1, j) + dfs(grid, i - 1, j) + dfs(grid, i, j + 1) + dfs(grid, i, j - 1);\n    }\n}",
+      "description": "## Approach\n\nScan every cell. When a land cell is found, recursively flood-fill its entire four-direction connected component. The recursive function returns the number of cells it consumed. Track the largest returned area over the full scan.\n\n## Key Insight\n\nThe maximum island area is the maximum connected-component size among land cells. If each flood fill mutates visited land to water, every land cell contributes to exactly one component count.\n\n## Complexity Analysis\n- Time Complexity: O(m * n), because each cell is inspected and each land cell is consumed once\n- Space Complexity: O(m * n) in the worst case for the recursion stack",
+      "code": "class Solution {\n    public int maxAreaOfIsland(int[][] grid) {\n        int best = 0;\n        for (int row = 0; row < grid.length; row++) {\n            for (int col = 0; col < grid[0].length; col++) {\n                if (grid[row][col] == 1) {\n                    best = Math.max(best, area(grid, row, col));\n                }\n            }\n        }\n        return best;\n    }\n\n    private int area(int[][] grid, int row, int col) {\n        if (row < 0 || row >= grid.length || col < 0 || col >= grid[0].length || grid[row][col] != 1) {\n            return 0;\n        }\n\n        grid[row][col] = 0;\n        return 1\n                + area(grid, row + 1, col)\n                + area(grid, row - 1, col)\n                + area(grid, row, col + 1)\n                + area(grid, row, col - 1);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "BFS Iterative",
+      "name": "Iterative BFS Area Count",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "Use BFS instead of DFS to compute each island's area. For each unvisited land cell, use a queue to explore all connected cells and count the area.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int maxAreaOfIsland(int[][] grid) {\n        int m = grid.length, n = grid[0].length;\n        int maxArea = 0;\n        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (grid[i][j] == 1) {\n                    int area = 0;\n                    Queue<int[]> queue = new LinkedList<>();\n                    queue.offer(new int[]{i, j});\n                    grid[i][j] = 0;\n                    while (!queue.isEmpty()) {\n                        int[] cell = queue.poll();\n                        area++;\n                        for (int[] d : dirs) {\n                            int ni = cell[0] + d[0], nj = cell[1] + d[1];\n                            if (ni >= 0 && ni < m && nj >= 0 && nj < n && grid[ni][nj] == 1) {\n                                grid[ni][nj] = 0;\n                                queue.offer(new int[]{ni, nj});\n                            }\n                        }\n                    }\n                    maxArea = Math.max(maxArea, area);\n                }\n            }\n        }\n        return maxArea;\n    }\n}",
+      "description": "## Approach\n\nUse the same outer scan, but count a component with an explicit queue. When a new land cell is discovered, mark it as water, enqueue it, and increment the current area for each dequeued cell while adding unvisited four-direction land neighbors.\n\n## Key Insight\n\nBFS computes the same component size as DFS while avoiding recursive call depth. Marking a cell when it is enqueued prevents the same land cell from being counted twice through different neighbors.\n\n## Complexity Analysis\n- Time Complexity: O(m * n), because every cell is enqueued at most once\n- Space Complexity: O(m * n) in the worst case for the queue",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxAreaOfIsland(int[][] grid) {\n        int rows = grid.length;\n        int cols = grid[0].length;\n        int best = 0;\n        int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (grid[row][col] != 1) {\n                    continue;\n                }\n\n                int area = 0;\n                Queue<int[]> queue = new ArrayDeque<>();\n                grid[row][col] = 0;\n                queue.offer(new int[]{row, col});\n\n                while (!queue.isEmpty()) {\n                    int[] cell = queue.poll();\n                    area++;\n                    for (int[] direction : directions) {\n                        int nextRow = cell[0] + direction[0];\n                        int nextCol = cell[1] + direction[1];\n                        if (nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols) {\n                            continue;\n                        }\n                        if (grid[nextRow][nextCol] != 1) {\n                            continue;\n                        }\n                        grid[nextRow][nextCol] = 0;\n                        queue.offer(new int[]{nextRow, nextCol});\n                    }\n                }\n                best = Math.max(best, area);\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Union-Find with Component Sizes",
+      "timeComplexity": "O(m * n * alpha(mn))",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nCreate a disjoint-set node for each land cell and initialize its size to `1`. Scan the grid and union each land cell with only its right and lower land neighbors. Each successful union combines component sizes; the largest component size seen is the answer.\n\n## Key Insight\n\nFor this problem, the island area is exactly the size of a land connected component. Union-Find keeps component sizes as metadata, so the maximum area can be updated while connectivity is merged.\n\n## Complexity Analysis\n- Time Complexity: O(m * n * alpha(mn)), from near-constant disjoint-set operations\n- Space Complexity: O(m * n), for parent and size arrays",
+      "code": "import java.util.*;\n\nclass Solution {\n    private int[] parent;\n    private int[] size;\n\n    public int maxAreaOfIsland(int[][] grid) {\n        int rows = grid.length;\n        int cols = grid[0].length;\n        parent = new int[rows * cols];\n        size = new int[rows * cols];\n        Arrays.fill(parent, -1);\n        int best = 0;\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (grid[row][col] == 1) {\n                    int id = row * cols + col;\n                    parent[id] = id;\n                    size[id] = 1;\n                    best = 1;\n                }\n            }\n        }\n\n        int[][] directions = {{1, 0}, {0, 1}};\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (grid[row][col] != 1) {\n                    continue;\n                }\n                int id = row * cols + col;\n                for (int[] direction : directions) {\n                    int nextRow = row + direction[0];\n                    int nextCol = col + direction[1];\n                    if (nextRow < rows && nextCol < cols && grid[nextRow][nextCol] == 1) {\n                        best = Math.max(best, union(id, nextRow * cols + nextCol));\n                    }\n                }\n            }\n        }\n        return best;\n    }\n\n    private int find(int node) {\n        if (parent[node] != node) {\n            parent[node] = find(parent[node]);\n        }\n        return parent[node];\n    }\n\n    private int union(int first, int second) {\n        int rootFirst = find(first);\n        int rootSecond = find(second);\n        if (rootFirst == rootSecond) {\n            return size[rootFirst];\n        }\n        if (size[rootFirst] < size[rootSecond]) {\n            int temp = rootFirst;\n            rootFirst = rootSecond;\n            rootSecond = temp;\n        }\n        parent[rootSecond] = rootFirst;\n        size[rootFirst] += size[rootSecond];\n        return size[rootFirst];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two-Pass Component Labels with Area Table",
+      "timeComplexity": "O(m * n * alpha(mn))",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nAssign a provisional label to each land cell during a first scan. If the current land cell touches labeled land above and to the left, record those labels as equivalent. During the second pass, resolve every label to its canonical root and count how many cells belong to each root.\n\n## Key Insight\n\nComponent labeling separates local discovery from final area aggregation. It is useful when thinking about grid problems as image-processing connected-component problems instead of as search trees.\n\n## Complexity Analysis\n- Time Complexity: O(m * n * alpha(mn)), from label scans and disjoint-set label merges\n- Space Complexity: O(m * n), for the label grid and label metadata",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxAreaOfIsland(int[][] grid) {\n        int rows = grid.length;\n        int cols = grid[0].length;\n        int[][] labels = new int[rows][cols];\n        int[] parent = new int[rows * cols + 1];\n        int[] rank = new int[rows * cols + 1];\n        int nextLabel = 1;\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (grid[row][col] == 0) {\n                    continue;\n                }\n\n                int up = row > 0 ? labels[row - 1][col] : 0;\n                int left = col > 0 ? labels[row][col - 1] : 0;\n                if (up == 0 && left == 0) {\n                    labels[row][col] = nextLabel;\n                    parent[nextLabel] = nextLabel;\n                    nextLabel++;\n                } else if (up == 0 || left == 0) {\n                    labels[row][col] = up == 0 ? left : up;\n                } else {\n                    labels[row][col] = Math.min(up, left);\n                    union(parent, rank, up, left);\n                }\n            }\n        }\n\n        Map<Integer, Integer> areaByRoot = new HashMap<>();\n        int best = 0;\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (labels[row][col] == 0) {\n                    continue;\n                }\n                int root = find(parent, labels[row][col]);\n                int area = areaByRoot.getOrDefault(root, 0) + 1;\n                areaByRoot.put(root, area);\n                best = Math.max(best, area);\n            }\n        }\n        return best;\n    }\n\n    private int find(int[] parent, int label) {\n        if (parent[label] != label) {\n            parent[label] = find(parent, parent[label]);\n        }\n        return parent[label];\n    }\n\n    private void union(int[] parent, int[] rank, int first, int second) {\n        int rootFirst = find(parent, first);\n        int rootSecond = find(parent, second);\n        if (rootFirst == rootSecond) {\n            return;\n        }\n        if (rank[rootFirst] < rank[rootSecond]) {\n            parent[rootFirst] = rootSecond;\n        } else if (rank[rootFirst] > rank[rootSecond]) {\n            parent[rootSecond] = rootFirst;\n        } else {\n            parent[rootSecond] = rootFirst;\n            rank[rootFirst]++;\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "grid = [[0,0,1,0,0,0,0,1,0,0,0,0,0],[0,0,0,0,0,0,0,1,1,1,0,0,0],[0,1,1,0,1,0,0,0,0,0,0,0,0],[0,1,0,0,1,1,0,0,1,0,1,0,0],[0,1,0,0,1,1,0,0,1,1,1,0,0],[0,0,0,0,0,0,0,0,0,0,1,0,0],[0,0,0,0,0,0,0,1,1,1,0,0,0],[0,0,0,0,0,0,0,1,1,0,0,0,0]]",
-      "output": "6"
+      "output": "6",
+      "description": "Canonical grid where the largest four-direction island has area six."
     },
     {
       "input": "grid = [[0,0,0,0,0,0,0,0]]",
-      "output": "0"
+      "output": "0",
+      "description": "All-water grid has maximum area zero."
     },
-    { "input": "grid = [[1]]", "output": "1" }
-  ],
-  "diagrams": [
     {
-      "id": "example1",
-      "file": "p129_example1.png",
-      "caption": "Example 1"
+      "input": "grid = [[1]]",
+      "output": "1",
+      "description": "A single land cell has area one."
+    },
+    {
+      "input": "grid = [[1,0,1],[0,1,0],[1,0,1]]",
+      "output": "1",
+      "description": "Diagonal land cells do not connect, so each island has area one."
+    },
+    {
+      "input": "grid = [[1,1,0,1,1,1,0,1]]",
+      "output": "3",
+      "description": "Single-row gaps separate horizontal islands; the largest run has length three."
+    },
+    {
+      "input": "grid = [[1],[1],[0],[1],[1],[1]]",
+      "output": "3",
+      "description": "Single-column gaps separate vertical islands; the largest run has length three."
+    },
+    {
+      "input": "grid = [[1,1,1],[1,0,1],[1,1,1]]",
+      "output": "8",
+      "description": "A ring of land around water is one connected island with area eight."
+    },
+    {
+      "input": "grid = [[1,1,0,0],[1,0,0,1],[0,0,1,1],[1,0,1,1]]",
+      "output": "5",
+      "description": "Several components are present; the lower-right component is the largest."
     }
   ]
 }

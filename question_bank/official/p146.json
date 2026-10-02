@@ -1,7 +1,7 @@
 {
   "id": "146",
   "title": "Alien Dictionary",
-  "description": "# Alien Dictionary\n\nThere is a new alien language that uses the English alphabet. However, the order among the letters is unknown to you.\n\nYou are given a list of strings `words` from the alien language's dictionary, where the strings in `words` are **sorted lexicographically** by the rules of this new language.\n\nReturn *a string of the unique letters in the new alien language sorted in **lexicographically increasing order** by the new language's rules. If there is no solution, return* `\"\"`*. If there are multiple solutions, return **any of them**.*\n\n## Example 1:\n\n**Input:** words = [\"wrt\",\"wrf\",\"er\",\"ett\",\"rftt\"]\n**Output:** \"wertf\"\n\n## Example 2:\n\n**Input:** words = [\"z\",\"x\"]\n**Output:** \"zx\"\n\n## Example 3:\n\n**Input:** words = [\"z\",\"x\",\"z\"]\n**Output:** \"\"\n**Explanation:** The order is invalid, so return \"\".\n\n## Constraints:\n\n*   `1 <= words.length <= 100`\n*   `1 <= words[i].length <= 100`\n*   `words[i]` consists of only lowercase English letters.",
+  "description": "# Alien Dictionary\n\nAn alien language uses lowercase English letters in an unknown alphabet order. The array `words` is already sorted lexicographically in that language. Return one alphabet order consistent with the input, containing every distinct input letter exactly once.\n\nCompare two words at their first differing letter, using the unknown alphabet order. If one word is the complete beginning of the other, the shorter word comes first: `\"ab\"` must precede `\"abc\"`. Equal words may appear consecutively.\n\nReturn any valid order if several exist. Return `\"\"` if no alphabet order can make the input sorted.\n\n## Example 1\n\n**Input:** `words = [\"wrt\",\"wrf\",\"er\",\"ett\",\"rftt\"]`\n\n**Output:** `\"wertf\"`\n\n**Explanation:** Adjacent comparisons imply `w < e`, `e < r`, `r < t`, and `t < f`.\n\n## Example 2\n\n**Input:** `words = [\"z\",\"x\"]`\n\n**Output:** `\"zx\"`\n\n## Example 3\n\n**Input:** `words = [\"z\",\"x\",\"z\"]`\n\n**Output:** `\"\"`\n\n**Explanation:** The rules require both `z < x` and `x < z`, so the alphabet order is cyclic.\n\n## Constraints\n\n- `1 <= words.length <= 100`\n- `1 <= words[i].length <= 100`\n- `words[i]` contains only lowercase English letters.\n- The answer must include exactly the distinct characters that appear in `words`.",
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public String alienOrder(String[] words) {\n        // Write your code here\n        return \"\";\n    }\n}",
   "tags": [
@@ -28,46 +28,95 @@
   ],
   "solutions": [
     {
-      "name": "Topological Sort (BFS)",
-      "timeComplexity": "O(C) where C = total chars in words",
-      "spaceComplexity": "O(1) (26 letters max)",
-      "description": "Compare adjacent words to extract ordering constraints. Build a directed graph and in-degree map. Topological sort via BFS. If result length != unique char count, invalid.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public String alienOrder(String[] words) {\n        Map<Character, Set<Character>> adj = new HashMap<>();\n        Map<Character, Integer> indegree = new HashMap<>();\n        for (String w : words)\n            for (char c : w.toCharArray()) {\n                adj.putIfAbsent(c, new HashSet<>());\n                indegree.putIfAbsent(c, 0);\n            }\n        for (int i = 0; i < words.length - 1; i++) {\n            String w1 = words[i], w2 = words[i + 1];\n            if (w1.length() > w2.length() && w1.startsWith(w2)) return \"\";\n            for (int j = 0; j < Math.min(w1.length(), w2.length()); j++) {\n                if (w1.charAt(j) != w2.charAt(j)) {\n                    if (adj.get(w1.charAt(j)).add(w2.charAt(j)))\n                        indegree.merge(w2.charAt(j), 1, Integer::sum);\n                    break;\n                }\n            }\n        }\n        Queue<Character> queue = new LinkedList<>();\n        for (char c : indegree.keySet())\n            if (indegree.get(c) == 0) queue.offer(c);\n        StringBuilder sb = new StringBuilder();\n        while (!queue.isEmpty()) {\n            char c = queue.poll();\n            sb.append(c);\n            for (char next : adj.get(c))\n                if (indegree.merge(next, -1, Integer::sum) == 0) queue.offer(next);\n        }\n        return sb.length() == indegree.size() ? sb.toString() : \"\";\n    }\n}",
+      "name": "Kahn BFS Topological Sort",
+      "timeComplexity": "O(S + U + E), where S is the total input length and U <= 26",
+      "spaceComplexity": "O(U + E)",
+      "description": "## Approach\n\nCollect every character into an indegree table and an adjacency set. Compare each adjacent word pair, reject the invalid prefix case, and add only the first differing character pair as a directed edge. Then run Kahn's algorithm from all zero-indegree characters.\n\n## Key Insight\n\nThe dictionary order gives pairwise precedence constraints, not the final alphabet directly. Deduplicating edges is necessary because the same rule can be discovered more than once; otherwise indegrees become too large and a valid graph can look cyclic.\n\n## Complexity Analysis\n\nBuilding constraints scans the input once, so it costs O(S). Topological sorting costs O(U + E). The graph stores at most U characters and E directed rules.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String alienOrder(String[] words) {\n        Map<Character, Set<Character>> adj = new HashMap<>();\n        Map<Character, Integer> indegree = new HashMap<>();\n        for (String word : words) {\n            for (char ch : word.toCharArray()) {\n                adj.putIfAbsent(ch, new HashSet<>());\n                indegree.putIfAbsent(ch, 0);\n            }\n        }\n\n        for (int i = 0; i + 1 < words.length; i++) {\n            String first = words[i];\n            String second = words[i + 1];\n            if (first.length() > second.length() && first.startsWith(second)) {\n                return \"\";\n            }\n            int limit = Math.min(first.length(), second.length());\n            for (int j = 0; j < limit; j++) {\n                char from = first.charAt(j);\n                char to = second.charAt(j);\n                if (from != to) {\n                    if (adj.get(from).add(to)) {\n                        indegree.merge(to, 1, Integer::sum);\n                    }\n                    break;\n                }\n            }\n        }\n\n        Queue<Character> queue = new ArrayDeque<>();\n        for (char ch : indegree.keySet()) {\n            if (indegree.get(ch) == 0) {\n                queue.offer(ch);\n            }\n        }\n\n        StringBuilder order = new StringBuilder();\n        while (!queue.isEmpty()) {\n            char ch = queue.poll();\n            order.append(ch);\n            for (char next : adj.get(ch)) {\n                indegree.merge(next, -1, Integer::sum);\n                if (indegree.get(next) == 0) {\n                    queue.offer(next);\n                }\n            }\n        }\n        return order.length() == indegree.size() ? order.toString() : \"\";\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Topological Sort (DFS)",
-      "timeComplexity": "O(C) where C = total chars in words",
-      "spaceComplexity": "O(1) (26 letters max)",
-      "description": "Build a directed graph from adjacent word comparisons. Use DFS with cycle detection (3-state coloring: unvisited, visiting, visited). Post-order DFS gives reverse topological order, then reverse the result.",
-      "code": "import java.util.*;\n\nclass Solution {\n    private Map<Character, List<Character>> adj = new HashMap<>();\n    private Map<Character, Integer> color = new HashMap<>();\n    private StringBuilder sb = new StringBuilder();\n    private boolean hasCycle = false;\n\n    public String alienOrder(String[] words) {\n        for (String w : words)\n            for (char c : w.toCharArray()) {\n                adj.putIfAbsent(c, new ArrayList<>());\n                color.putIfAbsent(c, 0);\n            }\n        for (int i = 0; i < words.length - 1; i++) {\n            String w1 = words[i], w2 = words[i + 1];\n            if (w1.length() > w2.length() && w1.startsWith(w2)) return \"\";\n            for (int j = 0; j < Math.min(w1.length(), w2.length()); j++) {\n                if (w1.charAt(j) != w2.charAt(j)) {\n                    adj.get(w1.charAt(j)).add(w2.charAt(j));\n                    break;\n                }\n            }\n        }\n        List<Character> keys = new ArrayList<>(color.keySet()); Collections.sort(keys, Collections.reverseOrder()); for (char c : keys) {\n            if (color.get(c) == 0) dfs(c);\n            if (hasCycle) return \"\";\n        }\n        return sb.reverse().toString();\n    }\n\n    private void dfs(char c) {\n        if (hasCycle) return;\n        color.put(c, 1);\n        for (char next : adj.get(c)) {\n            if (color.get(next) == 1) { hasCycle = true; return; }\n            if (color.get(next) == 0) dfs(next);\n            if (hasCycle) return;\n        }\n        color.put(c, 2);\n        sb.append(c);\n    }\n}",
+      "name": "Three-Color DFS Topological Sort",
+      "timeComplexity": "O(S + U + E)",
+      "spaceComplexity": "O(U + E)",
+      "description": "## Approach\n\nBuild the same deduplicated precedence graph. Use DFS states: 0 for unseen, 1 for currently visiting, and 2 for finished. Append a character after all of its outgoing neighbors are finished, then reverse the postorder.\n\n## Key Insight\n\nA back edge to a visiting character is exactly a contradiction in the alien alphabet. DFS also makes the cycle proof explicit, while still producing a valid topological order when no cycle exists.\n\n## Complexity Analysis\n\nThe adjacent-word scan is O(S). Each character and directed rule is visited at most once during DFS, giving O(U + E) graph traversal time and O(U + E) storage.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private final Map<Character, Set<Character>> graph = new HashMap<>();\n    private final Map<Character, Integer> state = new HashMap<>();\n    private final StringBuilder order = new StringBuilder();\n\n    public String alienOrder(String[] words) {\n        for (String word : words) {\n            for (char ch : word.toCharArray()) {\n                graph.putIfAbsent(ch, new HashSet<>());\n                state.putIfAbsent(ch, 0);\n            }\n        }\n\n        for (int i = 0; i + 1 < words.length; i++) {\n            String first = words[i];\n            String second = words[i + 1];\n            if (first.length() > second.length() && first.startsWith(second)) {\n                return \"\";\n            }\n            int limit = Math.min(first.length(), second.length());\n            for (int j = 0; j < limit; j++) {\n                char from = first.charAt(j);\n                char to = second.charAt(j);\n                if (from != to) {\n                    graph.get(from).add(to);\n                    break;\n                }\n            }\n        }\n\n        List<Character> nodes = new ArrayList<>(state.keySet());\n        for (char node : nodes) {\n            if (state.get(node) == 0 && !dfs(node)) {\n                return \"\";\n            }\n        }\n        return order.reverse().toString();\n    }\n\n    private boolean dfs(char node) {\n        state.put(node, 1);\n        for (char next : graph.get(node)) {\n            int nextState = state.get(next);\n            if (nextState == 1) {\n                return false;\n            }\n            if (nextState == 0 && !dfs(next)) {\n                return false;\n            }\n        }\n        state.put(node, 2);\n        order.append(node);\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Lexicographic Priority-Queue Kahn",
+      "timeComplexity": "O(S + (U + E) log U)",
+      "spaceComplexity": "O(U + E)",
+      "description": "## Approach\n\nBuild the indegree graph exactly as in Kahn's algorithm, but store currently available zero-indegree characters in a min-heap. Each step emits the smallest currently legal character and releases its neighbors.\n\n## Key Insight\n\nThe original problem accepts any valid order, but deterministic output is useful for examples, teaching, and debugging. The priority queue is a small variation that turns the family of valid topological orders into the lexicographically smallest one among choices available at each step.\n\n## Complexity Analysis\n\nConstraint extraction is O(S). Every character can enter the heap once and every edge is relaxed once, so the topological phase is O((U + E) log U) with O(U + E) memory.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String alienOrder(String[] words) {\n        Map<Character, Set<Character>> adj = new HashMap<>();\n        Map<Character, Integer> indegree = new HashMap<>();\n        for (String word : words) {\n            for (char ch : word.toCharArray()) {\n                adj.putIfAbsent(ch, new HashSet<>());\n                indegree.putIfAbsent(ch, 0);\n            }\n        }\n\n        for (int i = 0; i + 1 < words.length; i++) {\n            String first = words[i];\n            String second = words[i + 1];\n            if (first.length() > second.length() && first.startsWith(second)) {\n                return \"\";\n            }\n            int limit = Math.min(first.length(), second.length());\n            for (int j = 0; j < limit; j++) {\n                char from = first.charAt(j);\n                char to = second.charAt(j);\n                if (from != to) {\n                    if (adj.get(from).add(to)) {\n                        indegree.merge(to, 1, Integer::sum);\n                    }\n                    break;\n                }\n            }\n        }\n\n        PriorityQueue<Character> ready = new PriorityQueue<>();\n        for (char ch : indegree.keySet()) {\n            if (indegree.get(ch) == 0) {\n                ready.offer(ch);\n            }\n        }\n\n        StringBuilder order = new StringBuilder();\n        while (!ready.isEmpty()) {\n            char ch = ready.poll();\n            order.append(ch);\n            for (char next : adj.get(ch)) {\n                indegree.put(next, indegree.get(next) - 1);\n                if (indegree.get(next) == 0) {\n                    ready.offer(next);\n                }\n            }\n        }\n        return order.length() == indegree.size() ? order.toString() : \"\";\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Transitive Closure Rank Ordering",
+      "timeComplexity": "O(S + U^3), where U <= 26",
+      "spaceComplexity": "O(U^2)",
+      "description": "## Approach\n\nRecord direct character precedence in a 26 by 26 boolean matrix, run transitive closure, and reject any character that can reach itself. For an acyclic relation, sort characters by how many predecessors they have.\n\n## Key Insight\n\nIf `u` must appear before `v`, then after closure the predecessor set of `v` contains every predecessor of `u` plus `u` itself. Therefore sorting by predecessor count respects every directed rule, while first-seen order breaks ties between unrelated characters.\n\n## Complexity Analysis\n\nScanning adjacent words costs O(S). The closure over at most 26 letters costs O(U^3), and the matrix stores O(U^2) relationship bits.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String alienOrder(String[] words) {\n        boolean[] present = new boolean[26];\n        int[] firstSeen = new int[26];\n        Arrays.fill(firstSeen, -1);\n        List<Character> chars = new ArrayList<>();\n        for (String word : words) {\n            for (char ch : word.toCharArray()) {\n                int id = ch - 'a';\n                if (!present[id]) {\n                    present[id] = true;\n                    firstSeen[id] = chars.size();\n                    chars.add(ch);\n                }\n            }\n        }\n\n        boolean[][] before = new boolean[26][26];\n        for (int i = 0; i + 1 < words.length; i++) {\n            String first = words[i];\n            String second = words[i + 1];\n            int limit = Math.min(first.length(), second.length());\n            int j = 0;\n            while (j < limit && first.charAt(j) == second.charAt(j)) {\n                j++;\n            }\n            if (j == limit) {\n                if (first.length() > second.length()) {\n                    return \"\";\n                }\n            } else {\n                before[first.charAt(j) - 'a'][second.charAt(j) - 'a'] = true;\n            }\n        }\n\n        for (int k = 0; k < 26; k++) {\n            for (int i = 0; i < 26; i++) {\n                if (!before[i][k]) {\n                    continue;\n                }\n                for (int j = 0; j < 26; j++) {\n                    if (before[k][j]) {\n                        before[i][j] = true;\n                    }\n                }\n            }\n        }\n\n        for (int i = 0; i < 26; i++) {\n            if (before[i][i]) {\n                return \"\";\n            }\n        }\n\n        chars.sort((left, right) -> {\n            int leftPredecessors = predecessorCount(before, left - 'a');\n            int rightPredecessors = predecessorCount(before, right - 'a');\n            if (leftPredecessors != rightPredecessors) {\n                return Integer.compare(leftPredecessors, rightPredecessors);\n            }\n            return Integer.compare(firstSeen[left - 'a'], firstSeen[right - 'a']);\n        });\n\n        StringBuilder order = new StringBuilder();\n        for (char ch : chars) {\n            order.append(ch);\n        }\n        return order.toString();\n    }\n\n    private static int predecessorCount(boolean[][] before, int node) {\n        int count = 0;\n        for (int i = 0; i < 26; i++) {\n            if (before[i][node]) {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "words = [\"wrt\",\"wrf\",\"er\",\"ett\",\"rftt\"]",
-      "output": "\"wertf\""
+      "output": "\"wertf\"",
+      "description": "Canonical chain of adjacent-word constraints."
     },
     {
       "input": "words = [\"z\",\"x\"]",
-      "output": "\"zx\""
+      "output": "\"zx\"",
+      "description": "Smallest direct ordering constraint."
     },
     {
       "input": "words = [\"z\",\"x\",\"z\"]",
-      "output": "\"\""
+      "output": "\"\"",
+      "description": "Two adjacent comparisons create a cycle."
     },
     {
       "input": "words = [\"abc\"]",
-      "output": "\"abc\""
+      "output": "\"abc\"",
+      "description": "A single word contributes characters but no ordering edges."
+    },
+    {
+      "input": "words = [\"abc\",\"ab\"]",
+      "output": "\"\"",
+      "description": "A longer word before its exact prefix is invalid."
+    },
+    {
+      "input": "words = [\"ab\",\"abc\"]",
+      "output": "\"abc\"",
+      "description": "A shorter prefix before a longer word is legal and creates no edge."
+    },
+    {
+      "input": "words = [\"za\",\"zb\",\"ca\",\"cb\"]",
+      "output": "\"azbc\"",
+      "description": "Independent components and repeated edge discovery are both valid."
+    },
+    {
+      "input": "words = [\"baa\",\"abcd\",\"abca\",\"cab\",\"cad\"]",
+      "output": "\"bdac\"",
+      "description": "Only first differing characters should be used for constraints."
+    },
+    {
+      "input": "words = [\"abc\",\"bca\",\"cab\",\"abc\"]",
+      "output": "\"\"",
+      "description": "A three-character cycle is invalid."
+    },
+    {
+      "input": "words = [\"x\",\"y\",\"z\",\"za\"]",
+      "output": "\"xyza\"",
+      "description": "A forced chain can coexist with an unconstrained character from a prefix extension."
     }
   ],
-  "diagram": "images/p146_alien_order.png",
   "diagrams": [
     {
       "id": "graph",
       "file": "p146_graph.png",
-      "caption": "Character ordering graph from words"
+      "caption": "All five Example 1 words in the given order; words use the unknown letter order, with complete prefixes first"
     }
   ]
 }

@@ -1,0 +1,28 @@
+{
+  "title": "单词接龙 II",
+  "description": "# 单词接龙 II\n\n使用字典 `wordList` 将单词 `beginWord` 转换为单词 `endWord` 的**转换序列**，是形如 `beginWord -> s1 -> s2 -> ... -> sk` 的单词序列，并且满足：\n\n*   `s1` 在 `wordList` 中。\n*   `sk == endWord`。\n*   每一对相邻单词都恰好只相差一个字母。\n*   `beginWord` 之后出现的每个单词，包括 `endWord`，都必须在 `wordList` 中。\n\n给定两个单词 `beginWord` 和 `endWord`，以及字典 `wordList`，返回从 `beginWord` 到 `endWord` 的**所有最短转换序列**。每个序列都应以单词列表 `[beginWord, s1, s2, ..., sk]` 的形式返回。如果不存在有效转换序列，返回空列表。\n\n只能返回单词数量最少的序列。如果存在多条不同的最短序列，需要全部返回；不要返回更长的有效序列。返回列表中各个序列的顺序不重要。\n\n## 示例 1：\n\n**输入：** beginWord = \"hit\", endWord = \"cog\", wordList = [\"hot\",\"dot\",\"dog\",\"lot\",\"log\",\"cog\"]\n**输出：** [[\"hit\",\"hot\",\"dot\",\"dog\",\"cog\"],[\"hit\",\"hot\",\"lot\",\"log\",\"cog\"]]\n**解释：** 存在两条最短转换序列，并且都包含 5 个单词：\n\"hit\" -> \"hot\" -> \"dot\" -> \"dog\" -> \"cog\"\n\"hit\" -> \"hot\" -> \"lot\" -> \"log\" -> \"cog\"\n\n## 示例 2：\n\n**输入：** beginWord = \"hit\", endWord = \"cog\", wordList = [\"hot\",\"dot\",\"dog\",\"lot\",\"log\"]\n**输出：** []\n**解释：** 结束单词 \"cog\" 不在 `wordList` 中，因此没有有效转换序列能以它结尾。\n\n## 约束：\n\n*   `1 <= beginWord.length <= 5`\n*   `endWord.length == beginWord.length`\n*   `1 <= wordList.length <= 500`\n*   `wordList[i].length == beginWord.length`\n*   `beginWord`、`endWord` 和 `wordList[i]` 都由小写英文字母组成。\n*   `beginWord != endWord`\n*   `wordList` 中的所有单词互不相同。\n*   所有最短转换序列的总长度不超过 `10^5`。",
+  "solutions": [
+    {
+      "name": "BFS 父节点表回溯",
+      "description": "## 思路\n\n先从 `beginWord` 做广度优先搜索，但不只记录一个前驱，而是为每个在当前最短层首次到达的单词记录所有父节点。等包含 `endWord` 的这一层处理完后，再从 `endWord` 沿父节点表反向回溯到 `beginWord`，构造所有最短序列。\n\n## 关键点\n\n同一个单词可能在同一 BFS 层拥有多个最短父节点。不能在第一次看见它时就立刻阻断同层的其他父节点，因此需要按层收集访问状态，等整层结束后再合并到全局 visited。\n\n## 复杂度分析\n- 时间复杂度：O(N * L * 26 + A)，其中 A 是所有输出序列中的单词总数。\n- 空间复杂度：O(N * L + A)"
+    },
+    {
+      "name": "距离 DAG 正向 DFS",
+      "description": "## 思路\n\n用 BFS 计算从 `beginWord` 到每个可达单词的最短距离，同时只保留从距离 d 指向距离 d+1 的有向边，形成只包含最短路径边的 DAG。之后从 `beginWord` 沿这个 DAG 做 DFS，收集所有到达 `endWord` 的路径。\n\n## 关键点\n\nDAG 把“找最短层”和“枚举答案”分开。只有距离严格增加一层的边才被保留，因此 DFS 不会走进更长路径或环。\n\n## 复杂度分析\n- 时间复杂度：O(N * L * 26 + A)\n- 空间复杂度：O(N * L + E + A)，其中 E 是保留下来的最短层边数。"
+    },
+    {
+      "name": "通配桶父节点回溯",
+      "description": "## 思路\n\n预处理类似 `h*t`、`*og` 的通配模式桶，让每个单词可以通过模式直接找到只差一个字母的邻居。然后使用和父节点表方案相同的按层 BFS 记录父节点，最后通过回溯输出所有最短序列。\n\n## 关键点\n\n通配桶能加快找邻居，但本题不能像只求长度的版本那样在层内随意清空桶。同一层的多个单词可能需要同一个桶来记录不同的最短父节点。\n\n## 复杂度分析\n- 时间复杂度：O(N * L^2 + A)\n- 空间复杂度：O(N * L^2 + A)"
+    },
+    {
+      "name": "双向 BFS 建边再 DFS",
+      "description": "## 思路\n\n同时从 `beginWord` 和 `endWord` 两端扩展，每轮选择较小的一侧作为当前边界。即使搜索方向发生交换，记录边时仍统一保存为从起点指向终点的方向。两侧相遇后，再沿这些有向边 DFS 输出所有最短序列。\n\n## 关键点\n\n双向搜索可以减少分支数量，但建图时仍必须保留相遇层中的所有同深度连接。只求长度时遇到第一条连接就能返回；本题要返回全部最短序列，不能漏掉同层的其他连接。\n\n## 复杂度分析\n- 时间复杂度：O(N * L * 26 + A)\n- 空间复杂度：O(N * L + A)"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "example1",
+      "caption": "不展示任何答案路径的单词接龙 II 题面变量"
+    }
+  ]
+}

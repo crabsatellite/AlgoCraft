@@ -1,0 +1,32 @@
+{
+  "title": "设计链表",
+  "description": "# 设计链表\n\n设计一个 `MyLinkedList` 类，用来存储整数，并支持按下标读取、插入和删除。链表下标从 0 开始：头节点是下标 `0`，下一个节点是下标 `1`，依此类推。\n\n实现 `MyLinkedList` 类：\n\n* `MyLinkedList()` 初始化一个空链表。\n* `int get(int index)` 返回下标 `index` 处的值；如果下标越界，返回 `-1`。\n* `void addAtHead(int val)` 把 `val` 插入到当前第一个元素之前。\n* `void addAtTail(int val)` 把 `val` 追加到当前最后一个元素之后。\n* `void addAtIndex(int index, int val)` 把 `val` 插入到当前下标 `index` 的节点之前。如果 `index == length`，追加到尾部；如果 `index > length`，不做任何操作。\n* `void deleteAtIndex(int index)` 如果下标 `index` 存在，则删除对应节点。\n\n你可以实现单链表、双链表，或者其他手写的顺序结构。不要使用 Java 内置的 `LinkedList`。\n\n操作示例中，第一组数组是操作名，第二组是对应参数，按同一下标配对并从左到右执行。第一项创建对象，之后都操作同一个对象。输出数组也逐项对应：构造和没有返回值的方法写作 `null`；`[]` 作为参数表示无参数调用。\n\n## 示例 1\n\n**输入：**\n[\"MyLinkedList\", \"addAtHead\", \"addAtTail\", \"addAtIndex\", \"get\", \"deleteAtIndex\", \"get\"]\n[[], [1], [3], [1, 2], [1], [1], [1]]\n\n**输出：**\n[null, null, null, null, 2, null, 3]\n\n**解释：**\n`addAtHead(1)` 得到 `[1]`；`addAtTail(3)` 得到 `[1,3]`；`addAtIndex(1,2)` 得到 `[1,2,3]`；`get(1)` 返回 `2`；删除下标 `1` 后链表为 `[1,3]`，所以 `get(1)` 返回 `3`。\n\n## 约束条件\n\n* `0 <= index, val <= 1000`\n* `get`、`addAtHead`、`addAtTail`、`addAtIndex` 和 `deleteAtIndex` 的调用总次数不超过 `2000`。\n* 不要使用 Java 内置的 `LinkedList` 类。",
+  "solutions": [
+    {
+      "name": "单链表虚拟头节点",
+      "description": "## 思路\n\n在第一个真实节点之前放一个虚拟头节点，并维护 `size`。按下标插入或删除时，先走到目标位置的前驱节点，然后只修改一条 `next` 指针。\n\n## 关键点\n\n虚拟头节点让下标 `0` 的操作和中间位置操作统一起来：要修改的位置前面永远存在一个前驱节点。\n\n## 复杂度分析\n\n`get`、`addAtIndex` 和 `deleteAtIndex` 为 O(n)；`addAtHead` 为 O(1)；`addAtTail` 通过下标 `size` 插入，因此为 O(n)。空间复杂度 O(n)。"
+    },
+    {
+      "name": "双链表头尾哨兵",
+      "description": "## 思路\n\n在所有真实节点外侧维护 head 和 tail 两个哨兵节点。每个节点保存 `prev` 和 `next`，按下标访问时从更近的一端开始走。\n\n## 关键点\n\n双哨兵能消除空链表、删除头节点、插入尾部等特殊分支；反向指针让靠近尾部的下标不必从头遍历。\n\n## 复杂度分析\n\n按下标访问、插入、删除为 O(min(index, n-index))；头插和尾插为 O(1)。空间复杂度 O(n)。"
+    },
+    {
+      "name": "带尾指针的单链表",
+      "description": "## 思路\n\n使用虚拟头节点和 `tail` 指针。尾插可以直接接到 `tail` 后面；删除时如果删掉的是最后一个真实节点，需要把 `tail` 更新为前驱节点。\n\n## 关键点\n\n单链表不能向前走，所以尾指针只能让追加变成 O(1)；按下标删除仍然必须先找到前驱。\n\n## 复杂度分析\n\n`addAtHead` 和 `addAtTail` 为 O(1)；按下标读取、插入和删除为 O(n)。空间复杂度 O(n)。"
+    },
+    {
+      "name": "动态数组序列",
+      "description": "## 思路\n\n用可扩容 `int[]` 存储所有值。`get` 直接按下标读取；插入时把后缀右移一格，删除时把后缀左移一格。\n\n## 关键点\n\n这不是链表结构，但它是一个有用的手写对照：数组读取下标很快，中间插入删除要搬移元素；链表插入删除节点容易，但按下标查找要遍历。\n\n## 复杂度分析\n\n`get` 为 O(1)；插入和删除为 O(n)。空间复杂度 O(n)。"
+    },
+    {
+      "name": "数组游标链表",
+      "description": "## 思路\n\n不用对象分配节点，而是用整数槽位表示节点：`value[slot]`、`prev[slot]` 和 `next[slot]`。槽位 `0` 和 `1` 分别作为头尾哨兵，每次插入分配一个新的 `nextFree++` 槽位。\n\n## 关键点\n\n链表的本质是链接关系，不一定必须用对象。数组游标可以用紧凑的整数数组表达前驱和后继，适合讲解底层内存模型。\n\n## 复杂度分析\n\n按下标操作为 O(min(index, n-index))；头插和尾插为 O(1)。空间复杂度为 O(插入过的节点数)。"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "design",
+      "caption": "示例 1 中 addAtHead(1)、addAtTail(3)、addAtIndex(1,2) 后的节点；head 和 tail 标注真实首尾节点"
+    }
+  ]
+}

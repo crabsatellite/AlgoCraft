@@ -1,10 +1,13 @@
 {
   "id": "168",
   "title": "Interleaving String",
-  "description": "# Interleaving String\n\nGiven strings `s1`, `s2`, and `s3`, find whether `s3` is formed by an **interleaving** of `s1` and `s2`.\n\nAn **interleaving** of two strings `s` and `t` is a configuration where `s` and `t` are divided into `n` and `m` **substrings** respectively, such that:\n\n*   `s = s1 + s2 + ... + sn`\n*   `t = t1 + t2 + ... + tm`\n*   `|n - m| <= 1`\n*   The **interleaving** is `s1 + t1 + s2 + t2 + s3 + t3 + ...` or `t1 + s1 + t2 + s2 + t3 + s3 + ...`\n\nNote: `a + b` is the concatenation of strings `a` and `b`.\n\n## Example 1:\n\n**Input:** s1 = \"aabcc\", s2 = \"dbbca\", s3 = \"aadbbcbcac\"\n**Output:** true\n**Explanation:** One way to obtain s3 is:\nSplit s1 into s1 = \"aa\" + \"bc\" + \"c\", and s2 into s2 = \"dbbc\" + \"a\".\nInterleaving the two splits, we get \"aa\" + \"dbbc\" + \"bc\" + \"a\" + \"c\" = \"aadbbcbcac\".\nSince s3 can be obtained by interleaving s1 and s2, we return true.\n\n## Example 2:\n\n**Input:** s1 = \"aabcc\", s2 = \"dbbca\", s3 = \"aadbbbaccc\"\n**Output:** false\n**Explanation:** Notice how it is impossible to interleave s2 with any other string to obtain s3.\n\n## Example 3:\n\n**Input:** s1 = \"\", s2 = \"\", s3 = \"\"\n**Output:** true\n\n## Constraints:\n\n*   `0 <= s1.length, s2.length <= 100`\n*   `0 <= s3.length <= 200`\n*   `s1`, `s2`, and `s3` consist of lowercase English letters.",
+  "description": "# Interleaving String\n\nGiven strings `s1`, `s2`, and `s3`, return whether `s3` can be formed by interleaving all characters of `s1` and `s2`.\n\nAn interleaving keeps the relative order of characters from each source string. At every step, the next character of `s3` must be taken from the next unused character of either `s1` or `s2`. Every character from both source strings must be used exactly once.\n\n## Example 1:\n\n**Input:** s1 = \"aabcc\", s2 = \"dbbca\", s3 = \"aadbbcbcac\"\n**Output:** true\n**Explanation:** `s3` can be built while preserving the order of both `s1` and `s2`.\n\n## Example 2:\n\n**Input:** s1 = \"aabcc\", s2 = \"dbbca\", s3 = \"aadbbbaccc\"\n**Output:** false\n**Explanation:** The character counts are compatible, but the required order of one source string is violated.\n\n## Example 3:\n\n**Input:** s1 = \"\", s2 = \"\", s3 = \"\"\n**Output:** true\n\n## Constraints:\n\n* `0 <= s1.length, s2.length <= 100`\n* `0 <= s3.length <= 200`\n* `s1`, `s2`, and `s3` consist of lowercase English letters.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public boolean isInterleave(String s1, String s2, String s3) {\n        // Write your code here\n        return false;\n    }\n}",
-  "tags": ["String", "Dynamic Programming"],
+  "tags": [
+    "String",
+    "Dynamic Programming"
+  ],
   "examples": [
     {
       "input": "s1 = \"aabcc\", s2 = \"dbbca\", s3 = \"aadbbcbcac\"",
@@ -14,36 +17,135 @@
       "input": "s1 = \"aabcc\", s2 = \"dbbca\", s3 = \"aadbbbaccc\"",
       "output": "false"
     },
-    { "input": "s1 = \"\", s2 = \"\", s3 = \"\"", "output": "true" }
+    {
+      "input": "s1 = \"\", s2 = \"\", s3 = \"\"",
+      "output": "true"
+    }
   ],
   "solutions": [
     {
-      "name": "2D Dynamic Programming",
+      "name": "Prefix Table Dynamic Programming",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "dp[i][j] = true if s3[0..i+j-1] is formed by interleaving s1[0..i-1] and s2[0..j-1]. Check if current char of s3 matches s1 or s2.",
-      "code": "class Solution {\n    public boolean isInterleave(String s1, String s2, String s3) {\n        int m = s1.length(), n = s2.length();\n        if (m + n != s3.length()) return false;\n        boolean[][] dp = new boolean[m + 1][n + 1];\n        dp[0][0] = true;\n        for (int i = 1; i <= m; i++)\n            dp[i][0] = dp[i - 1][0] && s1.charAt(i - 1) == s3.charAt(i - 1);\n        for (int j = 1; j <= n; j++)\n            dp[0][j] = dp[0][j - 1] && s2.charAt(j - 1) == s3.charAt(j - 1);\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                dp[i][j] = (dp[i - 1][j] && s1.charAt(i - 1) == s3.charAt(i + j - 1))\n                         || (dp[i][j - 1] && s2.charAt(j - 1) == s3.charAt(i + j - 1));\n            }\n        }\n        return dp[m][n];\n    }\n}",
+      "description": "## Approach\n\nLet `dp[i][j]` mean that `s3[0..i+j)` can be formed from `s1[0..i)` and `s2[0..j)`. Each state can be reached by taking the next `s3` character from the end of the `s1` prefix or from the end of the `s2` prefix.\n\n## Key Insight\n\nThe third index is always `i + j - 1`, so two prefix lengths fully describe the state. The length check must happen first; otherwise no interleaving can use all characters exactly once.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public boolean isInterleave(String s1, String s2, String s3) {\n        int m = s1.length();\n        int n = s2.length();\n        if (m + n != s3.length()) {\n            return false;\n        }\n\n        boolean[][] dp = new boolean[m + 1][n + 1];\n        dp[0][0] = true;\n        for (int i = 0; i <= m; i++) {\n            for (int j = 0; j <= n; j++) {\n                if (i == 0 && j == 0) {\n                    continue;\n                }\n                int k = i + j - 1;\n                boolean fromS1 = i > 0 && dp[i - 1][j] && s1.charAt(i - 1) == s3.charAt(k);\n                boolean fromS2 = j > 0 && dp[i][j - 1] && s2.charAt(j - 1) == s3.charAt(k);\n                dp[i][j] = fromS1 || fromS2;\n            }\n        }\n        return dp[m][n];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Space-Optimized DP",
+      "name": "One-Row Rolling Dynamic Programming",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(n)",
-      "description": "Optimize to 1D array since each row only depends on the previous row and current row's left neighbor.",
-      "code": "class Solution {\n    public boolean isInterleave(String s1, String s2, String s3) {\n        int m = s1.length(), n = s2.length();\n        if (m + n != s3.length()) return false;\n        boolean[] dp = new boolean[n + 1];\n        for (int i = 0; i <= m; i++) {\n            for (int j = 0; j <= n; j++) {\n                if (i == 0 && j == 0) {\n                    dp[j] = true;\n                } else if (i == 0) {\n                    dp[j] = dp[j - 1] && s2.charAt(j - 1) == s3.charAt(j - 1);\n                } else if (j == 0) {\n                    dp[j] = dp[j] && s1.charAt(i - 1) == s3.charAt(i - 1);\n                } else {\n                    dp[j] = (dp[j] && s1.charAt(i - 1) == s3.charAt(i + j - 1))\n                          || (dp[j - 1] && s2.charAt(j - 1) == s3.charAt(i + j - 1));\n                }\n            }\n        }\n        return dp[n];\n    }\n}",
+      "description": "## Approach\n\nCompress the prefix table to one row indexed by how many characters of `s2` have been used. Before updating `dp[j]`, it still represents the previous row; after updating, it represents the current row.\n\n## Key Insight\n\nThe recurrence only needs the state directly above and the state directly to the left. This keeps the same correctness proof as the full table while reducing memory.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public boolean isInterleave(String s1, String s2, String s3) {\n        int m = s1.length();\n        int n = s2.length();\n        if (m + n != s3.length()) {\n            return false;\n        }\n\n        boolean[] dp = new boolean[n + 1];\n        dp[0] = true;\n        for (int j = 1; j <= n; j++) {\n            dp[j] = dp[j - 1] && s2.charAt(j - 1) == s3.charAt(j - 1);\n        }\n        for (int i = 1; i <= m; i++) {\n            dp[0] = dp[0] && s1.charAt(i - 1) == s3.charAt(i - 1);\n            for (int j = 1; j <= n; j++) {\n                char needed = s3.charAt(i + j - 1);\n                boolean fromS1 = dp[j] && s1.charAt(i - 1) == needed;\n                boolean fromS2 = dp[j - 1] && s2.charAt(j - 1) == needed;\n                dp[j] = fromS1 || fromS2;\n            }\n        }\n        return dp[n];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Prefix Memoization",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nRecursively consume the next character of `s3` from either `s1` or `s2` when the character matches. Memoize the pair `(i, j)`, where `i` and `j` are the consumed prefix lengths.\n\n## Key Insight\n\nRepeated characters can create many equivalent branches. Since `k = i + j`, memoizing two indices is enough to collapse the exponential search tree into a grid of states.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public boolean isInterleave(String s1, String s2, String s3) {\n        if (s1.length() + s2.length() != s3.length()) {\n            return false;\n        }\n        Boolean[][] memo = new Boolean[s1.length() + 1][s2.length() + 1];\n        return dfs(s1, s2, s3, 0, 0, memo);\n    }\n\n    private boolean dfs(String s1, String s2, String s3, int i, int j, Boolean[][] memo) {\n        if (i == s1.length() && j == s2.length()) {\n            return true;\n        }\n        if (memo[i][j] != null) {\n            return memo[i][j];\n        }\n\n        int k = i + j;\n        boolean ok = false;\n        if (i < s1.length() && s1.charAt(i) == s3.charAt(k)) {\n            ok = dfs(s1, s2, s3, i + 1, j, memo);\n        }\n        if (!ok && j < s2.length() && s2.charAt(j) == s3.charAt(k)) {\n            ok = dfs(s1, s2, s3, i, j + 1, memo);\n        }\n        memo[i][j] = ok;\n        return ok;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Breadth-First Prefix State Graph",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nView each pair `(i, j)` as a node in a graph. From a node, move to `(i + 1, j)` if the next character can come from `s1`, or to `(i, j + 1)` if it can come from `s2`. BFS searches this graph while marking visited states.\n\n## Key Insight\n\nThe graph view teaches the same state space without table-filling order. It is also a useful guard against greedy choices, because both possible next sources remain in the frontier.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public boolean isInterleave(String s1, String s2, String s3) {\n        int m = s1.length();\n        int n = s2.length();\n        if (m + n != s3.length()) {\n            return false;\n        }\n\n        boolean[][] seen = new boolean[m + 1][n + 1];\n        java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();\n        queue.add(new int[] {0, 0});\n        seen[0][0] = true;\n\n        while (!queue.isEmpty()) {\n            int[] state = queue.removeFirst();\n            int i = state[0];\n            int j = state[1];\n            if (i == m && j == n) {\n                return true;\n            }\n            int k = i + j;\n            if (i < m && !seen[i + 1][j] && s1.charAt(i) == s3.charAt(k)) {\n                seen[i + 1][j] = true;\n                queue.addLast(new int[] {i + 1, j});\n            }\n            if (j < n && !seen[i][j + 1] && s2.charAt(j) == s3.charAt(k)) {\n                seen[i][j + 1] = true;\n                queue.addLast(new int[] {i, j + 1});\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Backward Suffix Dynamic Programming",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nFill a table from the ends of the strings. `suffix[i][j]` means `s1[i..]` and `s2[j..]` can form `s3[i+j..]`. The answer is the state before consuming any characters.\n\n## Key Insight\n\nThe suffix direction is the same recurrence seen backward. It is useful for showing that interleaving is about preserving order, not about a particular left-to-right table traversal.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public boolean isInterleave(String s1, String s2, String s3) {\n        int m = s1.length();\n        int n = s2.length();\n        if (m + n != s3.length()) {\n            return false;\n        }\n\n        boolean[][] suffix = new boolean[m + 1][n + 1];\n        suffix[m][n] = true;\n        for (int i = m; i >= 0; i--) {\n            for (int j = n; j >= 0; j--) {\n                if (i == m && j == n) {\n                    continue;\n                }\n                int k = i + j;\n                boolean takeS1 = i < m && s1.charAt(i) == s3.charAt(k) && suffix[i + 1][j];\n                boolean takeS2 = j < n && s2.charAt(j) == s3.charAt(k) && suffix[i][j + 1];\n                suffix[i][j] = takeS1 || takeS2;\n            }\n        }\n        return suffix[0][0];\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s1 = \"aabcc\", s2 = \"dbbca\", s3 = \"aadbbcbcac\"", "output": "true" },
-    { "input": "s1 = \"aabcc\", s2 = \"dbbca\", s3 = \"aadbbbaccc\"", "output": "false" },
-    { "input": "s1 = \"\", s2 = \"\", s3 = \"\"", "output": "true" },
-    { "input": "s1 = \"a\", s2 = \"\", s3 = \"a\"", "output": "true" },
-    { "input": "s1 = \"\", s2 = \"b\", s3 = \"b\"", "output": "true" },
-    { "input": "s1 = \"a\", s2 = \"b\", s3 = \"ab\"", "output": "true" },
-    { "input": "s1 = \"a\", s2 = \"b\", s3 = \"ba\"", "output": "true" },
-    { "input": "s1 = \"abc\", s2 = \"def\", s3 = \"abcdef\"", "output": "true" },
-    { "input": "s1 = \"aaa\", s2 = \"aaa\", s3 = \"aaaaaa\"", "output": "true" }
+    {
+      "input": "s1 = \"aabcc\", s2 = \"dbbca\", s3 = \"aadbbcbcac\"",
+      "output": "true",
+      "description": "Canonical positive interleaving preserves the order of both source strings."
+    },
+    {
+      "input": "s1 = \"aabcc\", s2 = \"dbbca\", s3 = \"aadbbbaccc\"",
+      "output": "false",
+      "description": "Near miss has compatible characters but violates a required source order."
+    },
+    {
+      "input": "s1 = \"\", s2 = \"\", s3 = \"\"",
+      "output": "true",
+      "description": "All three strings empty is a valid interleaving boundary."
+    },
+    {
+      "input": "s1 = \"a\", s2 = \"\", s3 = \"a\"",
+      "output": "true",
+      "description": "Second source empty reduces the problem to matching the first string."
+    },
+    {
+      "input": "s1 = \"\", s2 = \"b\", s3 = \"b\"",
+      "output": "true",
+      "description": "First source empty reduces the problem to matching the second string."
+    },
+    {
+      "input": "s1 = \"a\", s2 = \"b\", s3 = \"ab\"",
+      "output": "true",
+      "description": "One character from each source can interleave as s1 followed by s2."
+    },
+    {
+      "input": "s1 = \"a\", s2 = \"b\", s3 = \"ba\"",
+      "output": "true",
+      "description": "One character from each source can also interleave as s2 followed by s1."
+    },
+    {
+      "input": "s1 = \"a\", s2 = \"\", s3 = \"\"",
+      "output": "false",
+      "description": "Length mismatch cannot be an interleaving."
+    },
+    {
+      "input": "s1 = \"abc\", s2 = \"def\", s3 = \"adbcef\"",
+      "output": "true",
+      "description": "Alternating chunks from both strings while preserving each order."
+    },
+    {
+      "input": "s1 = \"abc\", s2 = \"def\", s3 = \"abdfec\"",
+      "output": "false",
+      "description": "Same characters but the order of s2 would require f before e."
+    },
+    {
+      "input": "s1 = \"aa\", s2 = \"ab\", s3 = \"aaba\"",
+      "output": "true",
+      "description": "Repeated a characters require the algorithm to avoid greedy commitment."
+    },
+    {
+      "input": "s1 = \"aaaa\", s2 = \"bbbb\", s3 = \"abababab\"",
+      "output": "true",
+      "description": "Strict alternation between two uniform strings."
+    },
+    {
+      "input": "s1 = \"aaaa\", s2 = \"bbbb\", s3 = \"bbbbaaaa\"",
+      "output": "true",
+      "description": "Taking all of s2 before all of s1 is still a valid interleaving."
+    },
+    {
+      "input": "s1 = \"abc\", s2 = \"xyz\", s3 = \"axbycz\"",
+      "output": "true",
+      "description": "Character-by-character weave with different alphabets."
+    },
+    {
+      "input": "s1 = \"aaaaaaaaaa\", s2 = \"aaaaaaaaaa\", s3 = \"aaaaaaaaaaaaaaaaaaaa\"",
+      "output": "true",
+      "description": "Large repeated-character ambiguity should not explode exponentially."
+    }
   ],
-  "diagram": "images/p168_interleave.png"
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p168_interleave.png",
+      "caption": "Two ordered source strings feeding a target interleaving string"
+    }
+  ]
 }

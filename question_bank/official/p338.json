@@ -1,34 +1,127 @@
 {
   "id": "338",
   "title": "Shortest Palindrome",
-  "description": "# Shortest Palindrome\n\nYou are given a string `s`. You can convert `s` to a palindrome by adding characters in front of it.\n\nReturn *the shortest palindrome you can find by performing this transformation*.\n\n## Example 1:\n\n**Input:** s = \"aacecaaa\"\n**Output:** \"aaacecaaa\"\n\n## Example 2:\n\n**Input:** s = \"abcd\"\n**Output:** \"dcbabcd\"\n\n## Constraints:\n\n*   `0 <= s.length <= 5 * 10^4`\n*   `s` consists of lowercase English letters only.",
+  "description": "# Shortest Palindrome\n\nGiven a string `s`, add characters only to the front of `s` so that the final string is a palindrome.\n\nReturn the shortest palindrome that can be obtained this way.\n\nA palindrome reads the same forward and backward, such as `\"aba\"` or `\"aa\"`. A single character is also a palindrome.\n\n## Example 1:\n\n**Input:** s = \"aacecaaa\"\n**Output:** \"aaacecaaa\"\n\n## Example 2:\n\n**Input:** s = \"abcd\"\n**Output:** \"dcbabcd\"\n\n## Important Details\n\nReturn `s` unchanged if it is already a palindrome. An empty input returns an empty string. Do not remove or reorder original characters or insert characters within them.\n\n## Constraints:\n\n* `0 <= s.length <= 5 * 10^4`\n* `s` consists of lowercase English letters only.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public String shortestPalindrome(String s) {\n        \n    }\n}",
-  "tags": ["String", "Rolling Hash", "String Matching", "Hash Function"],
+  "initialCode": "class Solution {\n    public String shortestPalindrome(String s) {\n        return s;\n    }\n}",
+  "tags": [
+    "String",
+    "String Matching"
+  ],
   "examples": [
-    { "input": "s = \"aacecaaa\"", "output": "\"aaacecaaa\"" },
-    { "input": "s = \"abcd\"", "output": "\"dcbabcd\"" }
+    {
+      "input": "s = \"aacecaaa\"",
+      "output": "\"aaacecaaa\""
+    },
+    {
+      "input": "s = \"abcd\"",
+      "output": "\"dcbabcd\""
+    }
   ],
   "solutions": [
     {
       "name": "KMP Failure Function",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Build string s + '#' + reverse(s). Compute KMP failure array. The last value tells the length of the longest palindrome prefix. Prepend the remaining suffix (reversed) to s.",
-      "code": "class Solution {\n    public String shortestPalindrome(String s) {\n        String rev = new StringBuilder(s).reverse().toString();\n        String combined = s + \"#\" + rev;\n        int[] fail = new int[combined.length()];\n        for (int i = 1; i < combined.length(); i++) {\n            int j = fail[i - 1];\n            while (j > 0 && combined.charAt(i) != combined.charAt(j)) j = fail[j - 1];\n            if (combined.charAt(i) == combined.charAt(j)) j++;\n            fail[i] = j;\n        }\n        int palLen = fail[combined.length() - 1];\n        return rev.substring(0, s.length() - palLen) + s;\n    }\n}",
+      "description": "## Approach\n\nReverse the string and build `s + separator + reverse(s)`, where the separator is a character that cannot appear in `s`. Compute the KMP failure function on that combined string. The final failure value is the length of the longest prefix of `s` that also matches a suffix of `reverse(s)`, which is exactly the longest palindromic prefix of `s`.\n\n## Key Insight\n\nA prefix of `s` is a palindrome exactly when it equals its own reverse. In `s + separator + reverse(s)`, the final KMP border can only connect the beginning of `s` with the end of `reverse(s)`, so it identifies the longest palindromic prefix without checking every prefix separately.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String shortestPalindrome(String s) {\n        String reversed = new StringBuilder(s).reverse().toString();\n        String combined = s + \"{\" + reversed;\n        int[] failure = new int[combined.length()];\n        for (int i = 1; i < combined.length(); i++) {\n            int matched = failure[i - 1];\n            while (matched > 0 && combined.charAt(i) != combined.charAt(matched)) {\n                matched = failure[matched - 1];\n            }\n            if (combined.charAt(i) == combined.charAt(matched)) {\n                matched++;\n            }\n            failure[i] = matched;\n        }\n        int prefixLength = combined.isEmpty() ? 0 : failure[combined.length() - 1];\n        return reversed.substring(0, s.length() - prefixLength) + s;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Rolling Hash (Rabin-Karp)",
+      "name": "Z-Function Border Search",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Compute rolling hash forward and backward simultaneously. Find the longest prefix palindrome by checking where forward hash equals backward hash. Prepend the remaining reversed suffix.",
-      "code": "class Solution {\n    public String shortestPalindrome(String s) {\n        if (s.length() <= 1) return s;\n        long MOD = 1000000007L;\n        long BASE = 31L;\n        long forwardHash = 0, backwardHash = 0;\n        long power = 1;\n        int bestLen = 0;\n        for (int i = 0; i < s.length(); i++) {\n            int c = s.charAt(i) - 'a' + 1;\n            forwardHash = (forwardHash * BASE + c) % MOD;\n            backwardHash = (backwardHash + c * power) % MOD;\n            power = (power * BASE) % MOD;\n            if (forwardHash == backwardHash) {\n                bestLen = i + 1;\n            }\n        }\n        String suffix = s.substring(bestLen);\n        String reversed = new StringBuilder(suffix).reverse().toString();\n        return reversed + s;\n    }\n}",
+      "description": "## Approach\n\nBuild the same combined string `s + separator + reverse(s)`, but compute the Z-function instead of the KMP failure function. For every position inside the reversed half, `z[i]` tells how many characters from the start of `s` match there. If `i + z[i]` reaches the end of the combined string, that match aligns a prefix of `s` with the corresponding reversed prefix, so it is a palindromic prefix candidate.\n\n## Key Insight\n\nThe Z-function reports prefix matches starting at every position. A match that reaches the very end of the reversed half means the original prefix and its reverse line up completely, so the matched length is a valid palindromic prefix.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String shortestPalindrome(String s) {\n        String reversed = new StringBuilder(s).reverse().toString();\n        String combined = s + \"{\" + reversed;\n        int[] z = zFunction(combined);\n        int best = 0;\n        for (int i = s.length() + 1; i < combined.length(); i++) {\n            if (i + z[i] == combined.length()) {\n                best = Math.max(best, z[i]);\n            }\n        }\n        return reversed.substring(0, s.length() - best) + s;\n    }\n\n    private int[] zFunction(String text) {\n        int[] z = new int[text.length()];\n        int left = 0;\n        int right = 0;\n        for (int i = 1; i < text.length(); i++) {\n            if (i <= right) {\n                z[i] = Math.min(right - i + 1, z[i - left]);\n            }\n            while (i + z[i] < text.length()\n                    && text.charAt(z[i]) == text.charAt(i + z[i])) {\n                z[i]++;\n            }\n            if (i + z[i] - 1 > right) {\n                left = i;\n                right = i + z[i] - 1;\n            }\n        }\n        return z;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Manacher Prefix Radius",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nRun Manacher's algorithm on a transformed string with separators between every character. Each radius describes a palindrome around one center. Among the palindromes whose left boundary touches the beginning of `s`, take the largest original length; that is the longest palindromic prefix. Reverse the remaining suffix and prepend it.\n\n## Key Insight\n\nManacher normally finds palindromes centered anywhere. Restricting the candidates to radii that start at the first transformed character converts it into a longest-palindromic-prefix finder while keeping the linear-time expansion guarantees.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String shortestPalindrome(String s) {\n        String transformed = transform(s);\n        int[] radius = new int[transformed.length()];\n        int center = 0;\n        int right = 0;\n        int best = 0;\n        for (int i = 1; i < transformed.length() - 1; i++) {\n            int mirror = 2 * center - i;\n            if (i < right) {\n                radius[i] = Math.min(right - i, radius[mirror]);\n            }\n            while (transformed.charAt(i + 1 + radius[i])\n                    == transformed.charAt(i - 1 - radius[i])) {\n                radius[i]++;\n            }\n            if (i + radius[i] > right) {\n                center = i;\n                right = i + radius[i];\n            }\n            if (i - radius[i] == 1) {\n                best = Math.max(best, radius[i]);\n            }\n        }\n        String suffix = s.substring(best);\n        return new StringBuilder(suffix).reverse().toString() + s;\n    }\n\n    private String transform(String s) {\n        StringBuilder builder = new StringBuilder(\"^\");\n        for (int i = 0; i < s.length(); i++) {\n            builder.append('#').append(s.charAt(i));\n        }\n        builder.append(\"#$\");\n        return builder.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Check Palindrome Prefixes",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nTry prefix lengths from longest to shortest. For each length, use two pointers to test whether `s[0..len)` is a palindrome. The first successful prefix is the longest palindromic prefix, so reverse the suffix after it and prepend that reversed suffix to the original string.\n\n## Key Insight\n\nThis baseline states the core reduction directly: only the longest palindromic prefix matters. It is not the optimal method for the full constraint, but it is useful as a reference point for why KMP, Z-function, and Manacher all search for the same prefix more efficiently.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String shortestPalindrome(String s) {\n        for (int len = s.length(); len >= 0; len--) {\n            if (isPalindromePrefix(s, len)) {\n                return new StringBuilder(s.substring(len)).reverse().toString() + s;\n            }\n        }\n        return s;\n    }\n\n    private boolean isPalindromePrefix(String s, int len) {\n        int left = 0;\n        int right = len - 1;\n        while (left < right) {\n            if (s.charAt(left) != s.charAt(right)) {\n                return false;\n            }\n            left++;\n            right--;\n        }\n        return true;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"aacecaaa\"", "output": "\"aaacecaaa\"" },
-    { "input": "s = \"abcd\"", "output": "\"dcbabcd\"" }
+    {
+      "input": "s = \"aacecaaa\"",
+      "output": "\"aaacecaaa\"",
+      "description": "sample where the longest palindrome prefix has length seven"
+    },
+    {
+      "input": "s = \"abcd\"",
+      "output": "\"dcbabcd\"",
+      "description": "only the first character is a palindrome prefix"
+    },
+    {
+      "input": "s = \"\"",
+      "output": "\"\"",
+      "description": "empty string is already a palindrome"
+    },
+    {
+      "input": "s = \"a\"",
+      "output": "\"a\"",
+      "description": "single character is already a palindrome"
+    },
+    {
+      "input": "s = \"abbacd\"",
+      "output": "\"dcabbacd\"",
+      "description": "longest palindrome prefix is abba"
+    },
+    {
+      "input": "s = \"ababbbabbaba\"",
+      "output": "\"ababbabbbababbbabbaba\"",
+      "description": "longer case with a nontrivial palindrome prefix"
+    },
+    {
+      "input": "s = \"adcba\"",
+      "output": "\"abcdadcba\"",
+      "description": "only the leading a is the palindrome prefix"
+    },
+    {
+      "input": "s = \"racecar\"",
+      "output": "\"racecar\"",
+      "description": "whole string is already an odd-length palindrome"
+    },
+    {
+      "input": "s = \"aaaaa\"",
+      "output": "\"aaaaa\"",
+      "description": "whole string is already a repeated-character palindrome"
+    },
+    {
+      "input": "s = \"aaab\"",
+      "output": "\"baaab\"",
+      "description": "long repeated-character palindrome prefix with one trailing character"
+    },
+    {
+      "input": "s = \"ba\"",
+      "output": "\"aba\"",
+      "description": "two-character string with only the first character as prefix"
+    },
+    {
+      "input": "s = \"aabba\"",
+      "output": "\"abbaabba\"",
+      "description": "even palindrome prefix followed by a suffix"
+    },
+    {
+      "input": "s = \"abcbaef\"",
+      "output": "\"feabcbaef\"",
+      "description": "long odd palindrome prefix followed by two characters"
+    },
+    {
+      "input": "s = \"abb\"",
+      "output": "\"bbabb\"",
+      "description": "short string where the longest prefix is one character"
+    }
   ]
 }

@@ -1,37 +1,120 @@
 {
   "id": "206",
-  "title": "Valid Parentheses",
-  "description": "# Valid Parentheses\n\nGiven a string `s` containing just the characters `'('`, `')'`, `'{'`, `'}'`, `'['` and `']'`, determine if the input string is valid.\n\nAn input string is valid if:\n\n1.  Open brackets must be closed by the same type of brackets.\n2.  Open brackets must be closed in the correct order.\n3.  Every close bracket has a corresponding open bracket of the same type.\n\n## Example 1:\n\n**Input:** s = \"()\"\n**Output:** true\n\n## Example 2:\n\n**Input:** s = \"()[]{}\"\n**Output:** true\n\n## Example 3:\n\n**Input:** s = \"(]\"\n**Output:** false\n\n## Constraints:\n\n*   `1 <= s.length <= 10^4`\n*   `s` consists of parentheses only `()[]{}`.",
-  "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public boolean isValid(String s) {\n        // Write your code here\n        return false;\n    }\n}",
-  "tags": ["String", "Stack"],
-  "examples": [
-    { "input": "s = \"()\"", "output": "true" },
-    { "input": "s = \"()[]{}\"", "output": "true" },
-    { "input": "s = \"(]\"", "output": "false" }
+  "title": "Maximum Width Ramp",
+  "description": "# Maximum Width Ramp\n\nGiven an integer array `nums`, a width ramp is a pair of indices `(i, j)` such that:\n\n* `i < j`\n* `nums[i] <= nums[j]`\n\nThe width of the ramp is `j - i`. Return the maximum width among all valid ramps. If no valid pair exists, return `0`.\n\n## Example 1:\n\n**Input:** nums = [6,0,8,2,1,5]\n**Output:** 4\n**Explanation:** The maximum width ramp is `(i, j) = (1, 5)` because `nums[1] = 0 <= 5 = nums[5]`, and `5 - 1 = 4`.\n\n## Example 2:\n\n**Input:** nums = [9,8,1,0,1,9,4,0,4,1]\n**Output:** 7\n**Explanation:** The maximum width ramp is `(2, 9)` because `nums[2] = 1 <= 1 = nums[9]`, and `9 - 2 = 7`.\n\n## Constraints:\n\n* `1 <= nums.length <= 100000`\n* `-1000000000 <= nums[i] <= 1000000000`\n* Equal values are allowed in a ramp because the condition is `<=`, not `<`.",
+  "difficulty": "MEDIUM",
+  "initialCode": "class Solution {\n    public int maxWidthRamp(int[] nums) {\n        // Write your code here\n    }\n}",
+  "tags": [
+    "Array",
+    "Monotonic Stack"
   ],
-  "solutions": [
+  "examples": [
     {
-      "name": "Stack",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Push opening brackets onto stack. For closing brackets, check if the stack top matches. If not, invalid.",
-      "code": "class Solution {\n    public boolean isValid(String s) {\n        java.util.Deque<Character> stack = new java.util.ArrayDeque<>();\n        for (char c : s.toCharArray()) {\n            if (c == '(') stack.push(')');\n            else if (c == '{') stack.push('}');\n            else if (c == '[') stack.push(']');\n            else if (stack.isEmpty() || stack.pop() != c) return false;\n        }\n        return stack.isEmpty();\n    }\n}",
-      "language": "java"
+      "input": "nums = [6,0,8,2,1,5]",
+      "output": "4"
     },
     {
-      "name": "Replace Matching Pairs",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Use a map to store expected closing brackets. Push the expected closer when seeing an opener. For closers, check if it matches the top of stack.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isValid(String s) {\n        Deque<Character> stack = new ArrayDeque<>();\n        Map<Character, Character> map = new HashMap<>();\n        map.put(')', '(');\n        map.put('}', '{');\n        map.put(']', '[');\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (map.containsKey(c)) {\n                if (stack.isEmpty() || !stack.pop().equals(map.get(c))) {\n                    return false;\n                }\n            } else {\n                stack.push(c);\n            }\n        }\n        return stack.isEmpty();\n    }\n}",
-      "language": "java"
+      "input": "nums = [9,8,1,0,1,9,4,0,4,1]",
+      "output": "7"
     }
   ],
   "tests": [
-    { "input": "s = \"()\"", "output": "true" },
-    { "input": "s = \"()[]{}\"", "output": "true" },
-    { "input": "s = \"(]\"", "output": "false" },
-    { "input": "s = \"([)]\"", "output": "false" }
+    {
+      "input": "nums = [6,0,8,2,1,5]",
+      "output": "4",
+      "description": "Canonical ramp uses a low value near the front and a later larger value."
+    },
+    {
+      "input": "nums = [9,8,1,0,1,9,4,0,4,1]",
+      "output": "7",
+      "description": "Wide ramp can begin at a small middle value and end near the back."
+    },
+    {
+      "input": "nums = [1,2,3,4]",
+      "output": "3",
+      "description": "Already increasing array gives the full width from first to last index."
+    },
+    {
+      "input": "nums = [4,3,2,1]",
+      "output": "0",
+      "description": "Strictly decreasing array has no valid ramp."
+    },
+    {
+      "input": "nums = [2,2,2]",
+      "output": "2",
+      "description": "Equal values are allowed by the non-strict ramp condition."
+    },
+    {
+      "input": "nums = [5]",
+      "output": "0",
+      "description": "Single element cannot form a pair, so the width is zero."
+    },
+    {
+      "input": "nums = [-3,-2,-1]",
+      "output": "2",
+      "description": "Negative values still follow normal numeric ordering."
+    },
+    {
+      "input": "nums = [5,1,5,0,5]",
+      "output": "4",
+      "description": "The widest valid ramp can start at the first element when a later equal value exists."
+    },
+    {
+      "input": "nums = [3,1,2]",
+      "output": "1",
+      "description": "A small middle value may form the best ramp even when the first value is too large."
+    },
+    {
+      "input": "nums = [9,1,2,3,0,10]",
+      "output": "5",
+      "description": "The best ramp may span nearly the whole array despite noisy middle values."
+    },
+    {
+      "input": "nums = [1,0,1,0,1]",
+      "output": "4",
+      "description": "Repeated low and high values should preserve the widest endpoint pair."
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Monotonic Candidate Stack",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nBuild a stack of candidate left indices whose values are strictly decreasing as the indices move right. Then scan `j` from right to left. Whenever `nums[stackTop] <= nums[j]`, pop that left index and record the width.\n\n## Key Insight\n\nIf an earlier index has a value no larger than a later candidate, the later candidate can never produce a wider ramp. The decreasing stack keeps only useful left endpoints, and scanning from the far right guarantees the first successful match for each popped index is its widest possible match.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxWidthRamp(int[] nums) {\n        Deque<Integer> stack = new ArrayDeque<>();\n        for (int i = 0; i < nums.length; i++) {\n            if (stack.isEmpty() || nums[i] < nums[stack.peek()]) {\n                stack.push(i);\n            }\n        }\n\n        int best = 0;\n        for (int j = nums.length - 1; j >= 0; j--) {\n            while (!stack.isEmpty() && nums[stack.peek()] <= nums[j]) {\n                best = Math.max(best, j - stack.pop());\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Prefix Minimum and Suffix Maximum Two Pointers",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCreate `leftMin`, where `leftMin[i]` is the minimum value in `nums[0..i]`, and `rightMax`, where `rightMax[j]` is the maximum value in `nums[j..n-1]`. Then use two pointers `i` and `j`: if `leftMin[i] <= rightMax[j]`, a ramp of width `j - i` is possible, so move `j` right; otherwise move `i` right.\n\n## Key Insight\n\nFor any left boundary `i`, only the smallest value seen up to `i` matters. For any right boundary `j`, only the largest value available from `j` onward matters. These two monotonic summaries make the width search a linear merge.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int maxWidthRamp(int[] nums) {\n        int n = nums.length;\n        int[] leftMin = new int[n];\n        int[] rightMax = new int[n];\n\n        leftMin[0] = nums[0];\n        for (int i = 1; i < n; i++) {\n            leftMin[i] = Math.min(leftMin[i - 1], nums[i]);\n        }\n        rightMax[n - 1] = nums[n - 1];\n        for (int j = n - 2; j >= 0; j--) {\n            rightMax[j] = Math.max(rightMax[j + 1], nums[j]);\n        }\n\n        int best = 0;\n        int i = 0;\n        int j = 0;\n        while (i < n && j < n) {\n            if (leftMin[i] <= rightMax[j]) {\n                best = Math.max(best, j - i);\n                j++;\n            } else {\n                i++;\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Indices Sweep",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort indices by `nums[index]`, breaking ties by index. Sweep that order from smallest value to largest value. For each current index, every previously seen index has a value no greater than the current value, so the best ramp ending here uses the smallest index seen so far.\n\n## Key Insight\n\nThe condition `nums[i] <= nums[j]` becomes automatic once indices are processed in nondecreasing value order. The only remaining question is how far left the best compatible index can be.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxWidthRamp(int[] nums) {\n        Integer[] order = new Integer[nums.length];\n        for (int i = 0; i < nums.length; i++) {\n            order[i] = i;\n        }\n        Arrays.sort(order, (a, b) -> nums[a] != nums[b]\n                ? Integer.compare(nums[a], nums[b])\n                : Integer.compare(a, b));\n\n        int minIndex = nums.length;\n        int best = 0;\n        for (int index : order) {\n            best = Math.max(best, index - minIndex);\n            minIndex = Math.min(minIndex, index);\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Binary Search on Answer Width",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nBinary search the answer width. To test whether some ramp has width at least `w`, scan possible right endpoints `j >= w` while maintaining the minimum value among indices `0..j-w`. If that minimum is at most `nums[j]`, a ramp of width at least `w` exists.\n\n## Key Insight\n\nThe predicate “there exists a ramp of width at least `w`” is monotonic. If a large width works, every smaller width works; if a width fails, every larger width fails. The feasibility scan must check width at least `w`, not exactly `w`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int maxWidthRamp(int[] nums) {\n        int low = 0;\n        int high = nums.length - 1;\n        while (low < high) {\n            int mid = low + (high - low + 1) / 2;\n            if (hasRampAtLeast(nums, mid)) {\n                low = mid;\n            } else {\n                high = mid - 1;\n            }\n        }\n        return low;\n    }\n\n    private boolean hasRampAtLeast(int[] nums, int width) {\n        int minLeft = nums[0];\n        for (int j = width; j < nums.length; j++) {\n            minLeft = Math.min(minLeft, nums[j - width]);\n            if (minLeft <= nums[j]) {\n                return true;\n            }\n        }\n        return width == 0;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Brute Force Pair Enumeration",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCheck every pair `(i, j)` with `i < j`. Whenever `nums[i] <= nums[j]`, update the best width. This directly implements the definition of a ramp.\n\n## Key Insight\n\nThe brute force method is too slow for the full constraint size, but it is the clearest correctness baseline: every optimized method must produce the same maximum over exactly these valid pairs.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int maxWidthRamp(int[] nums) {\n        int best = 0;\n        for (int i = 0; i < nums.length; i++) {\n            for (int j = i + 1; j < nums.length; j++) {\n                if (nums[i] <= nums[j]) {\n                    best = Math.max(best, j - i);\n                }\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

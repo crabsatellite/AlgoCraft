@@ -1,34 +1,137 @@
 {
   "id": "375",
   "title": "Reach a Number",
-  "description": "# Reach a Number\n\nYou are standing at position `0` on an infinite number line. There is a destination at position `target`.\n\nYou can make some number of moves `numMoves` so that:\n\n*   On each move, you can either go left or right.\n*   During the `i-th` move (starting from `i == 1` to `i == numMoves`), you take `i` steps in the chosen direction.\n\nGiven the integer `target`, return the minimum number of moves required (i.e., the minimum `numMoves`) to reach the destination.\n\n## Example 1:\n\n**Input:** target = 3\n**Output:** 2\n**Explanation:**\nOn the first move, we step from 0 to 1 (1 step).\nOn the second move, we step from 1 to 3 (2 steps).\n\n## Example 2:\n\n**Input:** target = 2\n**Output:** 3\n**Explanation:**\nOn the first move, we step from 0 to 1 (1 step).\nOn the second move, we step from 1 to -1 (2 steps).\nOn the third move, we step from -1 to 2 (3 steps).\n\n## Constraints:\n\n*   `-10^9 <= target <= 10^9`\n*   `target != 0`",
-  "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int reachNumber(int target) {\n        \n    }\n}",
-  "tags": ["Math", "Binary Search"],
+  "description": "# Reach a Number\n\nYou start at position `0` on an infinite number line. On move `i`, where moves are numbered from `1`, you must move exactly `i` steps either left or right.\n\nGiven a nonzero integer `target`, return the minimum number of moves needed to land exactly on `target`.\n\nThe sign of `target` does not change the answer: any path to `target` can be mirrored to reach `-target`.\n\n## Example 1\n\n**Input:** target = 3\n\n**Output:** 2\n\n**Explanation:** Move right by 1, then right by 2: `0 -> 1 -> 3`.\n\n## Example 2\n\n**Input:** target = 2\n\n**Output:** 3\n\n**Explanation:** Move right by 1, left by 2, then right by 3: `0 -> 1 -> -1 -> 2`.\n\n## Constraints\n\n* `-10^9 <= target <= 10^9`\n* `target != 0`",
+  "difficulty": "MEDIUM",
+  "initialCode": "class Solution {\n    public int reachNumber(int target) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Math",
+    "Binary Search"
+  ],
   "examples": [
-    { "input": "target = 3", "output": "2" },
-    { "input": "target = 2", "output": "3" }
+    {
+      "input": "target = 3",
+      "output": "2"
+    },
+    {
+      "input": "target = 2",
+      "output": "3"
+    }
   ],
   "solutions": [
     {
-      "name": "Math - Sum and Parity",
-      "timeComplexity": "O(sqrt(target))",
+      "name": "Running Sum and Parity Loop",
+      "timeComplexity": "O(sqrt(|target|))",
       "spaceComplexity": "O(1)",
-      "description": "Use absolute value of target (symmetric). Keep adding steps until sum >= target and (sum - target) is even. When sum - target is even, we can flip one step's direction to exactly reach target.",
-      "code": "class Solution {\n    public int reachNumber(int target) {\n        target = Math.abs(target);\n        int step = 0, sum = 0;\n        while (sum < target || (sum - target) % 2 != 0) {\n            step++;\n            sum += step;\n        }\n        return step;\n    }\n}",
+      "description": "## Approach\n\nUse symmetry and work with |target|. Add move lengths 1, 2, 3, ... until the triangular sum is at least target and the overshoot has even parity.\n\n## Key Insight\n\nChoosing all moves to the right reaches sum = 1 + ... + k. Reversing a move of length x changes the final position by 2x, so only an even overshoot can be corrected.\n\n## Complexity Analysis\n\nThe loop stops around sqrt(2 * |target|), so the time complexity is O(sqrt(|target|)). It stores only the running sum and step count, so the space complexity is O(1).",
+      "code": "class Solution {\n    public int reachNumber(int target) {\n        long t = Math.abs((long) target);\n        long sum = 0;\n        int step = 0;\n        while (sum < t || ((sum - t) & 1L) == 1L) {\n            step++;\n            sum += step;\n        }\n        return step;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Binary Search for Starting Step",
-      "timeComplexity": "O(sqrt(target))",
+      "name": "Exponential Bound Binary Search",
+      "timeComplexity": "O(log |target|)",
       "spaceComplexity": "O(1)",
-      "description": "Use the formula sum = k*(k+1)/2 to binary search for the smallest k where sum >= |target|. Then check parity: if (sum - target) is even, k is the answer. Otherwise, increment k by 1 or 2 to make the difference even.",
-      "code": "class Solution {\n    public int reachNumber(int target) {\n        target = Math.abs(target);\n        long lo = 1, hi = 2 * (long) Math.ceil(Math.sqrt(2.0 * target));\n        while (lo < hi) {\n            long mid = lo + (hi - lo) / 2;\n            long sum = mid * (mid + 1) / 2;\n            if (sum >= target) hi = mid;\n            else lo = mid + 1;\n        }\n        long k = lo;\n        long sum = k * (k + 1) / 2;\n        while ((sum - target) % 2 != 0) {\n            k++;\n            sum += k;\n        }\n        return (int) k;\n    }\n}",
+      "description": "## Approach\n\nFind an upper bound for the first triangular number at least |target| by doubling, then binary search that first feasible step count. After that, add steps until the overshoot parity becomes even.\n\n## Key Insight\n\nThe triangular sums are monotonic, so binary search can find the first k with k(k+1)/2 >= target. The same even-overshoot invariant decides whether k, k+1, or k+2 is needed.\n\n## Complexity Analysis\n\nThe bound search and binary search each take O(log |target|) time. The parity correction adds at most two more moves, and the method uses O(1) space.",
+      "code": "class Solution {\n    public int reachNumber(int target) {\n        long t = Math.abs((long) target);\n        long hi = 1;\n        while (triangular(hi) < t) {\n            hi *= 2;\n        }\n        long lo = 0;\n        while (lo < hi) {\n            long mid = lo + (hi - lo) / 2;\n            if (triangular(mid) >= t) {\n                hi = mid;\n            } else {\n                lo = mid + 1;\n            }\n        }\n        long step = lo;\n        long sum = triangular(step);\n        while (((sum - t) & 1L) == 1L) {\n            step++;\n            sum += step;\n        }\n        return (int) step;\n    }\n\n    private long triangular(long step) {\n        return step * (step + 1) / 2;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Quadratic Seed with Exact Correction",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nInvert k(k+1)/2 >= |target| with the quadratic formula to get a candidate step count. Correct possible floating-point rounding by checking the triangular sum exactly, then apply the parity rule.\n\n## Key Insight\n\nThe square-root formula gives the first place where the all-right path can reach or pass the target. Exact integer correction keeps the method reliable at the 1e9 boundary.\n\n## Complexity Analysis\n\nThe method performs a constant number of arithmetic checks and at most a couple of correction increments, so the time complexity is O(1). It uses O(1) space.",
+      "code": "class Solution {\n    public int reachNumber(int target) {\n        long t = Math.abs((long) target);\n        long step = (long) Math.ceil((Math.sqrt(8.0 * t + 1.0) - 1.0) / 2.0);\n        long sum = step * (step + 1) / 2;\n        while (sum < t) {\n            step++;\n            sum += step;\n        }\n        while (((sum - t) & 1L) == 1L) {\n            step++;\n            sum += step;\n        }\n        return (int) step;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "At-Most-Two Extra Moves Case Analysis",
+      "timeComplexity": "O(sqrt(|target|))",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFirst walk to the smallest triangular sum that is at least |target|. If the overshoot is odd, decide directly whether one extra move or two extra moves fixes the parity.\n\n## Key Insight\n\nAfter reaching the first sufficient triangular sum, adding the next move changes the overshoot by k+1. If k+1 is odd it flips parity immediately; otherwise one more move must flip it.\n\n## Complexity Analysis\n\nThe initial triangular search takes O(sqrt(|target|)) time. The parity case analysis is constant time and the space usage is O(1).",
+      "code": "class Solution {\n    public int reachNumber(int target) {\n        long t = Math.abs((long) target);\n        long sum = 0;\n        int step = 0;\n        while (sum < t) {\n            step++;\n            sum += step;\n        }\n        long overshoot = sum - t;\n        if ((overshoot & 1L) == 0L) {\n            return step;\n        }\n        return ((step + 1) & 1) == 1 ? step + 1 : step + 2;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Triangular Parity Residue Table",
+      "timeComplexity": "O(log |target|)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nBinary search the first triangular sum not below |target|, then use the repeating parity pattern of triangular numbers to advance to the first step count with matching parity.\n\n## Key Insight\n\nA triangular number is odd exactly when k mod 4 is 1 or 2. The target can be reached when the triangular sum and target have the same parity, because their difference is the even amount produced by flipping moves.\n\n## Complexity Analysis\n\nBinary search over step counts takes O(log |target|) time. The residue adjustment checks at most the next two counts and uses O(1) space.",
+      "code": "class Solution {\n    public int reachNumber(int target) {\n        long t = Math.abs((long) target);\n        long lo = 0, hi = 100000;\n        while (lo < hi) {\n            long mid = lo + (hi - lo) / 2;\n            if (mid * (mid + 1) / 2 >= t) {\n                hi = mid;\n            } else {\n                lo = mid + 1;\n            }\n        }\n        long step = lo;\n        while (triangularParity(step) != (t & 1L)) {\n            step++;\n        }\n        return (int) step;\n    }\n\n    private long triangularParity(long step) {\n        long residue = step & 3L;\n        return (residue == 1L || residue == 2L) ? 1L : 0L;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "target = 3", "output": "2" },
-    { "input": "target = 2", "output": "3" }
+    {
+      "input": "target = 3",
+      "output": "2",
+      "description": "sample: two positive moves hit exactly"
+    },
+    {
+      "input": "target = 2",
+      "output": "3",
+      "description": "sample: flip the second move after overshooting"
+    },
+    {
+      "input": "target = 1",
+      "output": "1",
+      "description": "single move"
+    },
+    {
+      "input": "target = -2",
+      "output": "3",
+      "description": "negative target uses symmetry"
+    },
+    {
+      "input": "target = -3",
+      "output": "2",
+      "description": "negative triangular target"
+    },
+    {
+      "input": "target = 4",
+      "output": "3",
+      "description": "overshoot 6 - 4 is even"
+    },
+    {
+      "input": "target = 5",
+      "output": "5",
+      "description": "first sufficient sums have odd overshoot until step 5"
+    },
+    {
+      "input": "target = 6",
+      "output": "3",
+      "description": "exact triangular sum"
+    },
+    {
+      "input": "target = 7",
+      "output": "5",
+      "description": "requires two more moves after step 4"
+    },
+    {
+      "input": "target = 8",
+      "output": "4",
+      "description": "one parity-compatible overshoot"
+    },
+    {
+      "input": "target = 12",
+      "output": "7",
+      "description": "larger nontrivial parity delay"
+    },
+    {
+      "input": "target = 999999999",
+      "output": "44721",
+      "description": "large positive value near the constraint edge"
+    },
+    {
+      "input": "target = -1000000000",
+      "output": "44723",
+      "description": "large negative value at the constraint edge"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "example2",
+      "file": "p375_example1.png",
+      "caption": "Three moves can reach target 2 by flipping the second move"
+    }
   ]
 }

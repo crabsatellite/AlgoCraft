@@ -1,10 +1,14 @@
 {
   "id": "140",
   "title": "Word Ladder",
-  "description": "# Word Ladder\n\nA **transformation sequence** from word `beginWord` to word `endWord` using a dictionary `wordList` is a sequence of words `beginWord -> s1 -> s2 -> ... -> sk` such that:\n\n*   `s1` is in `wordList`.\n*   `sk == endWord`\n*   Every adjacent pair of words differs by a single letter.\n\nGiven two words, `beginWord` and `endWord`, and a dictionary `wordList`, return *the **number of words** in the **shortest transformation sequence** from* `beginWord` *to* `endWord`, *or* `0` *if no such sequence exists*.\n\n## Example 1:\n\n**Input:** beginWord = \"hit\", endWord = \"cog\", wordList = [\"hot\",\"dot\",\"dog\",\"lot\",\"log\",\"cog\"]\n**Output:** 5\n**Explanation:** One shortest transformation sequence is \"hit\" -> \"hot\" -> \"dot\" -> \"dog\" -> \"cog\", which is 5 words long.\n\n## Example 2:\n\n**Input:** beginWord = \"hit\", endWord = \"cog\", wordList = [\"hot\",\"dot\",\"dog\",\"lot\",\"log\"]\n**Output:** 0\n**Explanation:** The endWord \"cog\" is not in wordList, therefore there is no valid transformation sequence.\n\n## Constraints:\n\n*   `1 <= beginWord.length <= 10`\n*   `endWord.length == beginWord.length`\n*   `1 <= wordList.length <= 5000`\n*   `wordList[i].length == beginWord.length`\n*   `beginWord`, `endWord`, and `wordList[i]` consist of lowercase English letters.\n*   `beginWord != endWord`\n*   All the words in `wordList` are **unique**.",
+  "description": "# Word Ladder\n\nA **transformation sequence** from word `beginWord` to word `endWord` using a dictionary `wordList` is a sequence of words `beginWord -> s1 -> s2 -> ... -> sk` such that:\n\n*   `s1` is in `wordList`.\n*   `sk == endWord`.\n*   Every adjacent pair of words differs by exactly one letter.\n*   Every intermediate word after `beginWord` must be in `wordList`.\n\nGiven two words, `beginWord` and `endWord`, and a dictionary `wordList`, return the **number of words** in the shortest transformation sequence from `beginWord` to `endWord`. Return `0` if no such sequence exists.\n\nThe answer counts both the starting word and the ending word. For example, `hit -> hot -> dot -> dog -> cog` has length `5`, not `4`.\n\n## Example 1:\n\n**Input:** beginWord = \"hit\", endWord = \"cog\", wordList = [\"hot\",\"dot\",\"dog\",\"lot\",\"log\",\"cog\"]\n**Output:** 5\n**Explanation:** One shortest transformation sequence is \"hit\" -> \"hot\" -> \"dot\" -> \"dog\" -> \"cog\", which contains 5 words.\n\n## Example 2:\n\n**Input:** beginWord = \"hit\", endWord = \"cog\", wordList = [\"hot\",\"dot\",\"dog\",\"lot\",\"log\"]\n**Output:** 0\n**Explanation:** The end word \"cog\" is not in `wordList`, so no valid transformation sequence can end at it.\n\n## Constraints:\n\n*   `1 <= beginWord.length <= 10`\n*   `endWord.length == beginWord.length`\n*   `1 <= wordList.length <= 5000`\n*   `wordList[i].length == beginWord.length`\n*   `beginWord`, `endWord`, and `wordList[i]` consist of lowercase English letters.\n*   `beginWord != endWord`\n*   All words in `wordList` are unique.",
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public int ladderLength(String beginWord, String endWord, List<String> wordList) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Hash Table", "String", "Breadth-First Search"],
+  "tags": [
+    "Hash Table",
+    "String",
+    "Breadth-First Search"
+  ],
   "examples": [
     {
       "input": "beginWord = \"hit\", endWord = \"cog\", wordList = [\"hot\",\"dot\",\"dog\",\"lot\",\"log\",\"cog\"]",
@@ -17,45 +21,95 @@
   ],
   "solutions": [
     {
-      "name": "BFS",
-      "timeComplexity": "O(M * 26 * L) where M = wordList size, L = word length",
-      "spaceComplexity": "O(M * L)",
-      "description": "Put all words in a set. BFS from beginWord, trying all 26 letter replacements at each position. If a valid word is found in the set, add to queue and remove from set.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int ladderLength(String beginWord, String endWord, List<String> wordList) {\n        Set<String> wordSet = new HashSet<>(wordList);\n        if (!wordSet.contains(endWord)) return 0;\n        Queue<String> queue = new LinkedList<>();\n        queue.offer(beginWord);\n        int level = 1;\n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            for (int i = 0; i < size; i++) {\n                char[] word = queue.poll().toCharArray();\n                for (int j = 0; j < word.length; j++) {\n                    char orig = word[j];\n                    for (char c = 'a'; c <= 'z'; c++) {\n                        if (c == orig) continue;\n                        word[j] = c;\n                        String next = new String(word);\n                        if (next.equals(endWord)) return level + 1;\n                        if (wordSet.contains(next)) {\n                            wordSet.remove(next);\n                            queue.offer(next);\n                        }\n                    }\n                    word[j] = orig;\n                }\n            }\n            level++;\n        }\n        return 0;\n    }\n}",
+      "name": "Single-Ended Mutation BFS",
+      "timeComplexity": "O(N * L * 26)",
+      "spaceComplexity": "O(N * L)",
+      "description": "## Approach\n\nPut all dictionary words into a hash set, then run BFS from `beginWord`. For each popped word, try changing every character position to every lowercase letter. If the generated word is in the dictionary, remove it from the dictionary and push it into the next BFS layer.\n\n## Key Insight\n\nEach BFS layer represents one more word in the transformation sequence. The first time BFS generates `endWord`, that layer count is the shortest possible number of words. Removing a word when it is enqueued prevents repeated visits without losing a shorter path.\n\n## Complexity Analysis\n- Time Complexity: O(N * L * 26)\n- Space Complexity: O(N * L)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int ladderLength(String beginWord, String endWord, List<String> wordList) {\n        Set<String> dictionary = new HashSet<>(wordList);\n        if (!dictionary.contains(endWord)) {\n            return 0;\n        }\n\n        Queue<String> queue = new ArrayDeque<>();\n        queue.offer(beginWord);\n        dictionary.remove(beginWord);\n        int steps = 1;\n\n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            for (int levelIndex = 0; levelIndex < size; levelIndex++) {\n                String word = queue.poll();\n                char[] chars = word.toCharArray();\n                for (int i = 0; i < chars.length; i++) {\n                    char original = chars[i];\n                    for (char letter = 'a'; letter <= 'z'; letter++) {\n                        if (letter == original) {\n                            continue;\n                        }\n                        chars[i] = letter;\n                        String next = new String(chars);\n                        if (next.equals(endWord)) {\n                            return steps + 1;\n                        }\n                        if (dictionary.remove(next)) {\n                            queue.offer(next);\n                        }\n                    }\n                    chars[i] = original;\n                }\n            }\n            steps++;\n        }\n        return 0;\n    }\n}",
       "language": "java"
     },
     {
       "name": "Bidirectional BFS",
-      "timeComplexity": "O(M * 26 * L)",
-      "spaceComplexity": "O(M * L)",
-      "description": "BFS from both ends simultaneously. Maintain two frontier sets (from begin and from end). Always expand the smaller frontier. When frontiers overlap, the shortest path is found.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int ladderLength(String beginWord, String endWord, List<String> wordList) {\n        Set<String> wordSet = new HashSet<>(wordList);\n        if (!wordSet.contains(endWord)) return 0;\n        Set<String> beginSet = new HashSet<>();\n        Set<String> endSet = new HashSet<>();\n        beginSet.add(beginWord);\n        endSet.add(endWord);\n        int level = 1;\n        Set<String> visited = new HashSet<>();\n        visited.add(beginWord);\n        visited.add(endWord);\n        while (!beginSet.isEmpty() && !endSet.isEmpty()) {\n            if (beginSet.size() > endSet.size()) {\n                Set<String> temp = beginSet;\n                beginSet = endSet;\n                endSet = temp;\n            }\n            Set<String> nextSet = new HashSet<>();\n            for (String word : beginSet) {\n                char[] chars = word.toCharArray();\n                for (int i = 0; i < chars.length; i++) {\n                    char orig = chars[i];\n                    for (char c = 'a'; c <= 'z'; c++) {\n                        if (c == orig) continue;\n                        chars[i] = c;\n                        String next = new String(chars);\n                        if (endSet.contains(next)) return level + 1;\n                        if (wordSet.contains(next) && !visited.contains(next)) {\n                            nextSet.add(next);\n                            visited.add(next);\n                        }\n                    }\n                    chars[i] = orig;\n                }\n            }\n            beginSet = nextSet;\n            level++;\n        }\n        return 0;\n    }\n}",
+      "timeComplexity": "O(N * L * 26)",
+      "spaceComplexity": "O(N * L)",
+      "description": "## Approach\n\nKeep one frontier growing from `beginWord` and another from `endWord`. On every round, expand the smaller frontier by one-letter mutations. If a generated word appears in the opposite frontier, the two searches have met and the current sequence length is the answer.\n\n## Key Insight\n\nWord Ladder graphs can branch heavily. Bidirectional BFS keeps the shortest-path guarantee of ordinary BFS, but it often explores far fewer words because it searches from both ends and always expands the smaller side.\n\n## Complexity Analysis\n- Time Complexity: O(N * L * 26)\n- Space Complexity: O(N * L)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int ladderLength(String beginWord, String endWord, List<String> wordList) {\n        Set<String> dictionary = new HashSet<>(wordList);\n        if (!dictionary.contains(endWord)) {\n            return 0;\n        }\n\n        Set<String> beginFrontier = new HashSet<>();\n        Set<String> endFrontier = new HashSet<>();\n        beginFrontier.add(beginWord);\n        endFrontier.add(endWord);\n        dictionary.remove(beginWord);\n        dictionary.remove(endWord);\n        int steps = 1;\n\n        while (!beginFrontier.isEmpty() && !endFrontier.isEmpty()) {\n            if (beginFrontier.size() > endFrontier.size()) {\n                Set<String> temp = beginFrontier;\n                beginFrontier = endFrontier;\n                endFrontier = temp;\n            }\n\n            Set<String> nextFrontier = new HashSet<>();\n            for (String word : beginFrontier) {\n                char[] chars = word.toCharArray();\n                for (int i = 0; i < chars.length; i++) {\n                    char original = chars[i];\n                    for (char letter = 'a'; letter <= 'z'; letter++) {\n                        if (letter == original) {\n                            continue;\n                        }\n                        chars[i] = letter;\n                        String candidate = new String(chars);\n                        if (endFrontier.contains(candidate)) {\n                            return steps + 1;\n                        }\n                        if (dictionary.remove(candidate)) {\n                            nextFrontier.add(candidate);\n                        }\n                    }\n                    chars[i] = original;\n                }\n            }\n            beginFrontier = nextFrontier;\n            steps++;\n        }\n        return 0;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Wildcard Pattern BFS",
+      "timeComplexity": "O(N * L^2)",
+      "spaceComplexity": "O(N * L^2)",
+      "description": "## Approach\n\nPrecompute wildcard buckets. For each word and each position, replace that position with `*`; words sharing the same wildcard pattern are one letter apart. BFS then moves from a word to every word in its wildcard buckets, clearing each bucket after it is used.\n\n## Key Insight\n\nThe expensive part of Word Ladder is finding neighbors. Wildcard buckets turn neighbor discovery from trying every possible mutation into a lookup by shared pattern, while BFS still supplies the shortest transformation length.\n\n## Complexity Analysis\n- Time Complexity: O(N * L^2)\n- Space Complexity: O(N * L^2)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int ladderLength(String beginWord, String endWord, List<String> wordList) {\n        Set<String> dictionary = new HashSet<>(wordList);\n        if (!dictionary.contains(endWord)) {\n            return 0;\n        }\n\n        List<String> words = new ArrayList<>(wordList);\n        if (!dictionary.contains(beginWord)) {\n            words.add(beginWord);\n        }\n\n        Map<String, List<String>> patternMap = new HashMap<>();\n        for (String word : words) {\n            addPatterns(word, patternMap);\n        }\n\n        Queue<String> queue = new ArrayDeque<>();\n        Set<String> visited = new HashSet<>();\n        queue.offer(beginWord);\n        visited.add(beginWord);\n        int steps = 1;\n\n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            for (int levelIndex = 0; levelIndex < size; levelIndex++) {\n                String word = queue.poll();\n                for (int i = 0; i < word.length(); i++) {\n                    String pattern = word.substring(0, i) + \"*\" + word.substring(i + 1);\n                    List<String> bucket = patternMap.getOrDefault(pattern, Collections.emptyList());\n                    for (String next : bucket) {\n                        if (next.equals(endWord)) {\n                            return steps + 1;\n                        }\n                        if (visited.add(next)) {\n                            queue.offer(next);\n                        }\n                    }\n                    bucket.clear();\n                }\n            }\n            steps++;\n        }\n        return 0;\n    }\n\n    private void addPatterns(String word, Map<String, List<String>> patternMap) {\n        for (int i = 0; i < word.length(); i++) {\n            String pattern = word.substring(0, i) + \"*\" + word.substring(i + 1);\n            patternMap.computeIfAbsent(pattern, key -> new ArrayList<>()).add(word);\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Pairwise Graph BFS Baseline",
+      "timeComplexity": "O(N^2 * L)",
+      "spaceComplexity": "O(N^2)",
+      "description": "## Approach\n\nBuild the implicit Word Ladder graph explicitly. Add `beginWord` as node 0, add every dictionary word once, connect two nodes if their words differ by exactly one letter, and then run ordinary BFS from node 0 to the node holding `endWord`.\n\n## Key Insight\n\nThis baseline is slower, but it makes the graph model completely explicit: words are nodes, one-letter changes are edges, and the answer is the shortest unweighted path length counted in nodes. It is useful for understanding why the optimized routes are still BFS problems.\n\n## Complexity Analysis\n- Time Complexity: O(N^2 * L)\n- Space Complexity: O(N^2)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int ladderLength(String beginWord, String endWord, List<String> wordList) {\n        List<String> words = new ArrayList<>();\n        words.add(beginWord);\n        int target = -1;\n        for (String word : wordList) {\n            if (!word.equals(beginWord)) {\n                if (word.equals(endWord)) {\n                    target = words.size();\n                }\n                words.add(word);\n            }\n        }\n        if (target == -1) {\n            return 0;\n        }\n\n        List<List<Integer>> graph = new ArrayList<>();\n        for (int i = 0; i < words.size(); i++) {\n            graph.add(new ArrayList<>());\n        }\n        for (int i = 0; i < words.size(); i++) {\n            for (int j = i + 1; j < words.size(); j++) {\n                if (differsByOne(words.get(i), words.get(j))) {\n                    graph.get(i).add(j);\n                    graph.get(j).add(i);\n                }\n            }\n        }\n\n        int[] distance = new int[words.size()];\n        Queue<Integer> queue = new ArrayDeque<>();\n        queue.offer(0);\n        distance[0] = 1;\n        while (!queue.isEmpty()) {\n            int node = queue.poll();\n            if (node == target) {\n                return distance[node];\n            }\n            for (int next : graph.get(node)) {\n                if (distance[next] == 0) {\n                    distance[next] = distance[node] + 1;\n                    queue.offer(next);\n                }\n            }\n        }\n        return 0;\n    }\n\n    private boolean differsByOne(String a, String b) {\n        int differences = 0;\n        for (int i = 0; i < a.length(); i++) {\n            if (a.charAt(i) != b.charAt(i)) {\n                differences++;\n                if (differences > 1) {\n                    return false;\n                }\n            }\n        }\n        return differences == 1;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "beginWord = \"hit\", endWord = \"cog\", wordList = [\"hot\",\"dot\",\"dog\",\"lot\",\"log\",\"cog\"]",
-      "output": "5"
+      "output": "5",
+      "description": "Canonical ladder from hit to cog has length five."
     },
     {
       "input": "beginWord = \"hit\", endWord = \"cog\", wordList = [\"hot\",\"dot\",\"dog\",\"lot\",\"log\"]",
-      "output": "0"
+      "output": "0",
+      "description": "End word missing from dictionary makes transformation impossible."
     },
     {
       "input": "beginWord = \"a\", endWord = \"c\", wordList = [\"a\",\"b\",\"c\"]",
-      "output": "2"
+      "output": "2",
+      "description": "One-character words can transform directly, and the answer counts both words."
     },
     {
       "input": "beginWord = \"hot\", endWord = \"dog\", wordList = [\"hot\",\"dog\"]",
-      "output": "0"
+      "output": "0",
+      "description": "The end word exists, but no one-letter path connects the words."
+    },
+    {
+      "input": "beginWord = \"lost\", endWord = \"cost\", wordList = [\"most\",\"fist\",\"lost\",\"cost\",\"fish\"]",
+      "output": "2",
+      "description": "A direct one-letter transformation should return two words."
+    },
+    {
+      "input": "beginWord = \"toon\", endWord = \"plea\", wordList = [\"poon\",\"plee\",\"same\",\"poie\",\"plea\",\"plie\",\"poin\"]",
+      "output": "7",
+      "description": "A longer chain requires several dictionary intermediates."
+    },
+    {
+      "input": "beginWord = \"red\", endWord = \"tax\", wordList = [\"ted\",\"tex\",\"red\",\"tax\",\"tad\",\"den\",\"rex\",\"pee\"]",
+      "output": "4",
+      "description": "Multiple shortest ladders may exist; only the length is returned."
+    },
+    {
+      "input": "beginWord = \"game\", endWord = \"math\", wordList = [\"gave\",\"gath\",\"gamh\",\"math\",\"gate\",\"mate\",\"gale\"]",
+      "output": "4",
+      "description": "The search must choose a valid four-word route among distracting words."
+    },
+    {
+      "input": "beginWord = \"talk\", endWord = \"tail\", wordList = [\"tall\",\"tail\",\"bail\",\"talk\"]",
+      "output": "3",
+      "description": "The starting word may appear in the word list and must not cause a revisit loop."
+    },
+    {
+      "input": "beginWord = \"same\", endWord = \"cost\", wordList = [\"came\",\"case\",\"cose\",\"cost\"]",
+      "output": "5",
+      "description": "A path can require changing different positions across several steps."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p140_word_ladder.png",
-      "caption": "BFS finding shortest transformation path"
+      "caption": "Word Ladder prompt variables without revealing the shortest path"
     }
   ]
 }

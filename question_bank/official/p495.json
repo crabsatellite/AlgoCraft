@@ -1,7 +1,7 @@
 {
   "id": "495",
   "title": "Image Smoother",
-  "description": "# Image Smoother\n\nAn **image smoother** is a filter of the size `3 x 3` that can be applied to each cell of an image by rounding down the average of the cell and the eight surrounding cells (i.e., the average of the nine cells in the blue smoother). If one or more of the surrounding cells of a cell is not present, we do not consider it in the average (i.e., the average of the four cells in the red smoother).\n\nGiven an `m x n` integer matrix `img` representing the grayscale of an image, return *the image after applying the smoother on each cell of it*.\n\n## Example 1:\n\n**Input:** img = [[1,1,1],[1,0,1],[1,1,1]]\n**Output:** [[0,0,0],[0,0,0],[0,0,0]]\n**Explanation:**\nFor the points (0,0), (0,2), (2,0), (2,2): floor(3/4) = floor(0.75) = 0\nFor the points (0,1), (1,0), (1,2), (2,1): floor(5/6) = floor(0.83333333) = 0\nFor the point (1,1): floor(8/9) = floor(0.88888889) = 0\n\n## Example 2:\n\n**Input:** img = [[100,200,100],[200,50,200],[100,200,100]]\n**Output:** [[137,141,137],[141,138,141],[137,141,137]]\n**Explanation:**\nFor the points (0,0), (0,2), (2,0), (2,2): floor((100+200+200+50)/4) = floor(137.5) = 137\nFor the points (0,1), (1,0), (1,2), (2,1): floor((200+200+50+200+100+100)/6) = floor(141.666667) = 141\nFor the point (1,1): floor((50+200+200+200+200+100+100+100+100)/9) = floor(138.888889) = 138\n\n## Constraints:\n\n*   `m == img.length`\n*   `n == img[i].length`\n*   `1 <= m, n <= 200`\n*   `0 <= img[i][j] <= 255`",
+  "description": "# Image Smoother\n\nAn image smoother replaces each cell by the floor of the average grayscale value in its local `3 x 3` neighborhood. The neighborhood includes the cell itself and every surrounding cell whose row and column differ by at most `1`.\n\nCells outside the image do not exist and must not be counted. All output cells are computed from the original image, not from values that have already been smoothed.\n\nGiven an `m x n` integer matrix `img`, where `img[i][j]` is a grayscale value, return the matrix after applying the smoother to every cell.\n\n## Example 1:\n\n**Input:** img = [[1,1,1],[1,0,1],[1,1,1]]\n**Output:** [[0,0,0],[0,0,0],[0,0,0]]\n**Explanation:** The corner cells average 4 original cells, edge cells average 6 original cells, and the center averages all 9 original cells. Every floor average is 0.\n\n## Example 2:\n\n**Input:** img = [[100,200,100],[200,50,200],[100,200,100]]\n**Output:** [[137,141,137],[141,138,141],[137,141,137]]\n**Explanation:** For the top-left corner, floor((100+200+200+50)/4) = 137. The same boundary rule is applied to every other cell.\n\n## Constraints:\n\n* `m == img.length`\n* `n == img[i].length`\n* `1 <= m, n <= 200`\n* `0 <= img[i][j] <= 255`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int[][] imageSmoother(int[][] img) {\n        \n    }\n}",
   "tags": [
@@ -23,16 +23,32 @@
       "name": "Brute Force Neighbors",
       "timeComplexity": "O(m*n)",
       "spaceComplexity": "O(m*n)",
-      "description": "For each cell, iterate over all 9 neighbors (including itself). Sum valid neighbors and divide by the count of valid neighbors to get the floor average.",
-      "code": "class Solution {\n    public int[][] imageSmoother(int[][] img) {\n        int m = img.length, n = img[0].length;\n        int[][] res = new int[m][n];\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                int sum = 0, count = 0;\n                for (int di = -1; di <= 1; di++) {\n                    for (int dj = -1; dj <= 1; dj++) {\n                        int ni = i + di, nj = j + dj;\n                        if (ni >= 0 && ni < m && nj >= 0 && nj < n) {\n                            sum += img[ni][nj];\n                            count++;\n                        }\n                    }\n                }\n                res[i][j] = sum / count;\n            }\n        }\n        return res;\n    }\n}",
+      "description": "## Approach\n\nFor each output cell, scan the at most nine positions in the `3 x 3` neighborhood centered at that cell. Add only coordinates that are inside the matrix, count how many valid cells were used, and write `sum / count` into a separate result matrix.\n\n## Key Insight\n\nEvery output value must be based on the original image. Writing into a separate matrix avoids accidentally using a smoothed neighbor while computing a later cell.\n\n## Complexity Analysis\n\nEach of the `m*n` cells checks at most nine neighbors, which is still `O(m*n)` time. The result matrix uses `O(m*n)` space.",
+      "code": "class Solution {\n    public int[][] imageSmoother(int[][] img) {\n        int rows = img.length;\n        int cols = img[0].length;\n        int[][] result = new int[rows][cols];\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                int sum = 0;\n                int count = 0;\n                for (int dr = -1; dr <= 1; dr++) {\n                    for (int dc = -1; dc <= 1; dc++) {\n                        int nr = r + dr;\n                        int nc = c + dc;\n                        if (0 <= nr && nr < rows && 0 <= nc && nc < cols) {\n                            sum += img[nr][nc];\n                            count++;\n                        }\n                    }\n                }\n                result[r][c] = sum / count;\n            }\n        }\n        return result;\n    }\n}",
       "language": "java"
     },
     {
       "name": "Prefix Sum 2D",
       "timeComplexity": "O(m*n)",
       "spaceComplexity": "O(m*n)",
-      "description": "Build a 2D prefix sum array. For each cell, compute the sum of its 3x3 neighborhood using the prefix sum in O(1). Divide by the valid neighbor count to get the floor average.",
-      "code": "class Solution {\n    public int[][] imageSmoother(int[][] img) {\n        int m = img.length, n = img[0].length;\n        int[][] prefix = new int[m + 1][n + 1];\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                prefix[i][j] = img[i - 1][j - 1] + prefix[i - 1][j] + prefix[i][j - 1] - prefix[i - 1][j - 1];\n            }\n        }\n        int[][] res = new int[m][n];\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                int r1 = Math.max(0, i - 1), c1 = Math.max(0, j - 1);\n                int r2 = Math.min(m - 1, i + 1), c2 = Math.min(n - 1, j + 1);\n                int sum = prefix[r2 + 1][c2 + 1] - prefix[r1][c2 + 1] - prefix[r2 + 1][c1] + prefix[r1][c1];\n                int count = (r2 - r1 + 1) * (c2 - c1 + 1);\n                res[i][j] = sum / count;\n            }\n        }\n        return res;\n    }\n}",
+      "description": "## Approach\n\nBuild a two-dimensional prefix sum table with one extra row and column. For each cell, clamp the neighborhood bounds to the matrix, query the rectangular sum in `O(1)`, and divide by the number of cells in that rectangle.\n\n## Key Insight\n\nThe smoother is a small rectangle-sum query repeated for every center. Prefix sums make this version easy to generalize if the smoothing radius grows beyond one cell.\n\n## Complexity Analysis\n\nBuilding the prefix table and filling the output each take `O(m*n)` time. The prefix table and output matrix each use `O(m*n)` space.",
+      "code": "class Solution {\n    public int[][] imageSmoother(int[][] img) {\n        int rows = img.length;\n        int cols = img[0].length;\n        int[][] prefix = new int[rows + 1][cols + 1];\n        for (int r = 1; r <= rows; r++) {\n            for (int c = 1; c <= cols; c++) {\n                prefix[r][c] = img[r - 1][c - 1]\n                        + prefix[r - 1][c]\n                        + prefix[r][c - 1]\n                        - prefix[r - 1][c - 1];\n            }\n        }\n\n        int[][] result = new int[rows][cols];\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                int top = Math.max(0, r - 1);\n                int left = Math.max(0, c - 1);\n                int bottom = Math.min(rows - 1, r + 1);\n                int right = Math.min(cols - 1, c + 1);\n                int sum = prefix[bottom + 1][right + 1]\n                        - prefix[top][right + 1]\n                        - prefix[bottom + 1][left]\n                        + prefix[top][left];\n                int count = (bottom - top + 1) * (right - left + 1);\n                result[r][c] = sum / count;\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Column Rolling Window Sums",
+      "timeComplexity": "O(m*n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nMaintain, for the current row, the vertical sum and vertical count for each column over rows `r-1` through `r+1`. Slide this vertical window down one row at a time. Inside each row, slide a horizontal window over three adjacent columns to obtain the full `3 x 3` sum and count.\n\n## Key Insight\n\nThe smoother window changes only slightly as the center moves. Reusing column sums avoids a full prefix table while still avoiding repeated neighbor scans.\n\n## Complexity Analysis\n\nEach image value is added to and removed from a column accumulator a constant number of times, and each output cell is produced once. The algorithm runs in `O(m*n)` time and uses `O(n)` auxiliary space besides the output.",
+      "code": "class Solution {\n    public int[][] imageSmoother(int[][] img) {\n        int rows = img.length;\n        int cols = img[0].length;\n        int[][] result = new int[rows][cols];\n        int[] columnSums = new int[cols];\n        int[] columnCounts = new int[cols];\n\n        for (int r = 0; r < rows; r++) {\n            if (r == 0) {\n                addRow(img, 0, columnSums, columnCounts);\n                if (rows > 1) {\n                    addRow(img, 1, columnSums, columnCounts);\n                }\n            } else {\n                int rowToRemove = r - 2;\n                if (rowToRemove >= 0) {\n                    removeRow(img, rowToRemove, columnSums, columnCounts);\n                }\n                int rowToAdd = r + 1;\n                if (rowToAdd < rows) {\n                    addRow(img, rowToAdd, columnSums, columnCounts);\n                }\n            }\n\n            int windowSum = 0;\n            int windowCount = 0;\n            for (int c = 0; c < cols; c++) {\n                if (c == 0) {\n                    windowSum = columnSums[0];\n                    windowCount = columnCounts[0];\n                    if (cols > 1) {\n                        windowSum += columnSums[1];\n                        windowCount += columnCounts[1];\n                    }\n                } else {\n                    int leftColumn = c - 2;\n                    if (leftColumn >= 0) {\n                        windowSum -= columnSums[leftColumn];\n                        windowCount -= columnCounts[leftColumn];\n                    }\n                    int rightColumn = c + 1;\n                    if (rightColumn < cols) {\n                        windowSum += columnSums[rightColumn];\n                        windowCount += columnCounts[rightColumn];\n                    }\n                }\n                result[r][c] = windowSum / windowCount;\n            }\n        }\n        return result;\n    }\n\n    private void addRow(int[][] img, int row, int[] columnSums, int[] columnCounts) {\n        for (int c = 0; c < img[0].length; c++) {\n            columnSums[c] += img[row][c];\n            columnCounts[c]++;\n        }\n    }\n\n    private void removeRow(int[][] img, int row, int[] columnSums, int[] columnCounts) {\n        for (int c = 0; c < img[0].length; c++) {\n            columnSums[c] -= img[row][c];\n            columnCounts[c]--;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "In-place Encoded Values",
+      "timeComplexity": "O(m*n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nBecause every original grayscale value is between `0` and `255`, store the smoothed value in higher bits while keeping the original value in the lower eight bits. During neighbor reads, use `value & 255` to recover the original. A final pass shifts each cell down to reveal the smoothed image.\n\n## Key Insight\n\nThe main hazard in in-place smoothing is contamination from cells already updated earlier in the scan. Bit encoding keeps both the old and new value available until all smoothing computations are complete.\n\n## Complexity Analysis\n\nEvery cell checks at most nine neighbors, so the running time is `O(m*n)`. The method mutates the input matrix and uses only constant extra state.",
+      "code": "class Solution {\n    public int[][] imageSmoother(int[][] img) {\n        int rows = img.length;\n        int cols = img[0].length;\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                int sum = 0;\n                int count = 0;\n                for (int dr = -1; dr <= 1; dr++) {\n                    for (int dc = -1; dc <= 1; dc++) {\n                        int nr = r + dr;\n                        int nc = c + dc;\n                        if (0 <= nr && nr < rows && 0 <= nc && nc < cols) {\n                            sum += img[nr][nc] & 255;\n                            count++;\n                        }\n                    }\n                }\n                img[r][c] |= (sum / count) << 8;\n            }\n        }\n\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                img[r][c] >>= 8;\n            }\n        }\n        return img;\n    }\n}",
       "language": "java"
     }
   ],
@@ -44,13 +60,57 @@
     {
       "input": "img = [[100,200,100],[200,50,200],[100,200,100]]",
       "output": "[[137,141,137],[141,138,141],[137,141,137]]"
+    },
+    {
+      "input": "img = [[1]]",
+      "output": "[[1]]"
+    },
+    {
+      "input": "img = [[1,2,3]]",
+      "output": "[[1,2,2]]"
+    },
+    {
+      "input": "img = [[1],[2],[3]]",
+      "output": "[[1],[2],[2]]"
+    },
+    {
+      "input": "img = [[0,0],[0,0]]",
+      "output": "[[0,0],[0,0]]"
+    },
+    {
+      "input": "img = [[1,2],[3,4]]",
+      "output": "[[2,2],[2,2]]"
+    },
+    {
+      "input": "img = [[10,20,30],[40,50,60]]",
+      "output": "[[30,35,40],[30,35,40]]"
+    },
+    {
+      "input": "img = [[255,0,255],[0,255,0],[255,0,255]]",
+      "output": "[[127,127,127],[127,141,127],[127,127,127]]"
+    },
+    {
+      "input": "img = [[0,255,255,0]]",
+      "output": "[[127,170,170,127]]"
+    },
+    {
+      "input": "img = [[0],[255],[255],[0]]",
+      "output": "[[127],[170],[170],[127]]"
+    },
+    {
+      "input": "img = [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]",
+      "output": "[[3,4,5,5],[5,6,7,7],[9,10,11,11],[11,12,13,13]]"
+    },
+    {
+      "input": "img = [[5,10],[15,20],[25,30]]",
+      "output": "[[12,12],[17,17],[22,22]]"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p495_example1.png",
-      "caption": "3x3 Image Grid"
+      "caption": "Example 1 neighborhoods: the center uses 9 cells, while the top-left pixel uses only the 4 cells inside the image"
     }
   ]
 }

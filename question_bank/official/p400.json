@@ -1,42 +1,131 @@
 {
   "id": "400",
   "title": "Longest Chunked Palindrome Decomposition",
-  "description": "# Longest Chunked Palindrome Decomposition\n\nYou are given a string `text`. You should split it to `k` substrings `(subtext1, subtext2, ..., subtextk)` such that:\n\n*   `subtexti` is a non-empty string.\n*   The concatenation of all the substrings is equal to `text` (i.e., `subtext1 + subtext2 + ... + subtextk == text`).\n*   `subtexti == subtextk - i + 1` for all valid values of `i` (i.e., `1 <= i <= k`).\n\nReturn the largest possible value of `k`.\n\n## Example 1:\n\n**Input:** text = \"ghiabcdefhelloadamhelloabcdefghi\"\n**Output:** 7\n**Explanation:** We can split the string on \"(ghi)(abcdef)(hello)(adam)(hello)(abcdef)(ghi)\".\n\n## Example 2:\n\n**Input:** text = \"merchant\"\n**Output:** 1\n**Explanation:** We can split the string on \"(merchant)\".\n\n## Example 3:\n\n**Input:** text = \"antaprezatepzapreanta\"\n**Output:** 11\n**Explanation:** We can split the string on \"(a)(nt)(a)(pre)(za)(tpe)(za)(pre)(a)(nt)(a)\".\n\n## Constraints:\n\n*   `1 <= text.length <= 1000`\n*   `text` consists only of lowercase English characters.",
+  "description": "# Longest Chunked Palindrome Decomposition\n\nYou are given a string `text`. Split it into `k` non-empty substrings `(subtext1, subtext2, ..., subtextk)` such that:\n\n* The substrings concatenate back to the original string.\n* For every valid `i`, `subtext_i == subtext_{k - i + 1}`.\n\nReturn the largest possible value of `k`.\n\nMatching outer blocks must contain identical text, not reversed text. For example, `(ab)(c)(ab)` is valid; `(ab)(c)(ba)` is not.\n\n## Example 1\n\n**Input:** text = \"ghiabcdefhelloadamhelloabcdefghi\"\n\n**Output:** 7\n\n**Explanation:** One optimal split is `(ghi)(abcdef)(hello)(adam)(hello)(abcdef)(ghi)`.\n\n## Example 2\n\n**Input:** text = \"merchant\"\n\n**Output:** 1\n\n**Explanation:** There is no matching non-empty prefix and suffix chunk, so the whole string is one chunk.\n\n## Example 3\n\n**Input:** text = \"antaprezatepzapreanta\"\n\n**Output:** 11\n\n**Explanation:** One optimal split is `(a)(nt)(a)(pre)(za)(tpe)(za)(pre)(a)(nt)(a)`.\n\n## Constraints\n\n* `1 <= text.length <= 1000`\n* `text` consists only of lowercase English letters.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int longestDecomposition(String text) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int longestDecomposition(String text) {\n        return 0;\n    }\n}",
   "tags": [
-    "Two Pointers",
     "String",
-    "Dynamic Programming",
+    "Two Pointers",
     "Greedy",
-    "Rolling Hash"
+    "Dynamic Programming",
+    "Rolling Hash",
+    "String Matching"
   ],
   "examples": [
-    { "input": "text = \"ghiabcdefhelloadamhelloabcdefghi\"", "output": "7" },
-    { "input": "text = \"merchant\"", "output": "1" },
-    { "input": "text = \"antaprezatepzapreanta\"", "output": "11" }
+    {
+      "input": "text = \"ghiabcdefhelloadamhelloabcdefghi\"",
+      "output": "7",
+      "explanation": "One optimal split is (ghi)(abcdef)(hello)(adam)(hello)(abcdef)(ghi)."
+    },
+    {
+      "input": "text = \"merchant\"",
+      "output": "1",
+      "explanation": "No non-empty prefix equals a suffix before the whole string, so the answer is 1."
+    },
+    {
+      "input": "text = \"antaprezatepzapreanta\"",
+      "output": "11",
+      "explanation": "One optimal split uses eleven symmetric chunks."
+    }
   ],
   "solutions": [
     {
-      "name": "Greedy Two Pointers",
-      "timeComplexity": "O(n^2)",
-      "spaceComplexity": "O(n)",
-      "description": "Use two pointers from both ends. Greedily match the shortest prefix from left with suffix from right. Each match adds 2 to the count. If a middle portion remains, add 1.",
-      "code": "class Solution {\n    public int longestDecomposition(String text) {\n        int n = text.length(), res = 0;\n        int lo = 0, hi = n - 1;\n        String left = \"\", right = \"\";\n        while (lo < hi) {\n            left += text.charAt(lo);\n            right = text.charAt(hi) + right;\n            if (left.equals(right)) {\n                res += 2;\n                left = \"\";\n                right = \"\";\n            }\n            lo++;\n            hi--;\n        }\n        if (lo == hi || !left.isEmpty()) res++;\n        return res;\n    }\n}",
-      "language": "java"
+      "name": "Greedy Shortest Border Scan",
+      "description": "## Approach\n\nScan from both ends and build the current left chunk and right chunk. As soon as the two chunks are equal, commit them as a pair and restart inside the remaining middle. If one unmatched middle piece remains, count it once.\n\n## Key Insight\n\nThe earliest equal non-overlapping prefix and suffix should be cut immediately. Using the shortest possible matching border leaves the largest remaining middle, so it cannot reduce the maximum number of future chunks.\n\n## Complexity Analysis\n- Time Complexity: O(n^2) in Java because repeatedly comparing and building chunk strings can revisit characters.\n- Space Complexity: O(n) for the temporary chunk builders.",
+      "code": "class Solution {\n    public int longestDecomposition(String text) {\n        int n = text.length();\n        int leftEnd = 0;\n        int rightStart = n - 1;\n        int answer = 0;\n        StringBuilder left = new StringBuilder();\n        StringBuilder right = new StringBuilder();\n\n        while (leftEnd < rightStart) {\n            left.append(text.charAt(leftEnd++));\n            right.insert(0, text.charAt(rightStart--));\n            if (left.toString().equals(right.toString())) {\n                answer += 2;\n                left.setLength(0);\n                right.setLength(0);\n            }\n        }\n\n        if (leftEnd == rightStart || left.length() > 0) {\n            answer++;\n        }\n        return answer;\n    }\n}"
     },
     {
-      "name": "Rolling Hash Two Pointers",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(1)",
-      "description": "Use rolling hash to compare prefixes and suffixes efficiently. From both ends, build hash values incrementally. When the hashes and lengths match, verify equality and count chunks. This achieves O(n) expected time.",
-      "code": "class Solution {\n    public int longestDecomposition(String text) {\n        int n = text.length();\n        int count = 0;\n        long MOD = 1000000007L;\n        long BASE = 31L;\n        int lo = 0, hi = n - 1;\n        long leftHash = 0, rightHash = 0;\n        long power = 1;\n        int len = 0;\n        while (lo < hi) {\n            leftHash = (leftHash * BASE + (text.charAt(lo) - 'a' + 1)) % MOD;\n            rightHash = (rightHash + (text.charAt(hi) - 'a' + 1) * power) % MOD;\n            power = power * BASE % MOD;\n            len++;\n            if (leftHash == rightHash) {\n                boolean match = true;\n                for (int k = 0; k < len; k++) {\n                    if (text.charAt(lo - len + 1 + k) != text.charAt(hi + k)) {\n                        match = false;\n                        break;\n                    }\n                }\n                if (match) {\n                    count += 2;\n                    leftHash = 0;\n                    rightHash = 0;\n                    power = 1;\n                    len = 0;\n                }\n            }\n            lo++;\n            hi--;\n        }\n        if (lo == hi || len > 0) count++;\n        return count;\n    }\n}",
-      "language": "java"
+      "name": "Rolling Hash Greedy Scan",
+      "description": "## Approach\n\nKeep two rolling hashes for the currently growing left and right chunks. When both hash pairs and lengths match, verify the characters to avoid collision risk, then commit the pair and reset the hashes.\n\n## Key Insight\n\nThe greedy boundary decision is still the same shortest-border rule, but hashes make equality checks cheap. Exact verification keeps the reference solution deterministic instead of relying on probability alone.\n\n## Complexity Analysis\n- Time Complexity: O(n) expected for ordinary inputs, with exact verification only when hashes match.\n- Space Complexity: O(1) beyond the input string.",
+      "code": "class Solution {\n    private static final long MOD1 = 1_000_000_007L;\n    private static final long MOD2 = 1_000_000_009L;\n    private static final long BASE = 911_382_323L;\n\n    public int longestDecomposition(String text) {\n        int n = text.length();\n        int i = 0;\n        int j = n - 1;\n        int leftStart = 0;\n        int count = 0;\n        int length = 0;\n        long leftHash1 = 0, leftHash2 = 0;\n        long rightHash1 = 0, rightHash2 = 0;\n        long power1 = 1, power2 = 1;\n\n        while (i < j) {\n            int leftValue = text.charAt(i) - 'a' + 1;\n            int rightValue = text.charAt(j) - 'a' + 1;\n            leftHash1 = (leftHash1 * BASE + leftValue) % MOD1;\n            leftHash2 = (leftHash2 * BASE + leftValue) % MOD2;\n            rightHash1 = (rightHash1 + rightValue * power1) % MOD1;\n            rightHash2 = (rightHash2 + rightValue * power2) % MOD2;\n            power1 = power1 * BASE % MOD1;\n            power2 = power2 * BASE % MOD2;\n            int currentLength = length + 1;\n\n            if (leftHash1 == rightHash1 && leftHash2 == rightHash2\n                    && matches(text, leftStart, j, currentLength)) {\n                count += 2;\n                i++;\n                j--;\n                leftStart = i;\n                length = 0;\n                leftHash1 = leftHash2 = rightHash1 = rightHash2 = 0;\n                power1 = power2 = 1;\n            } else {\n                i++;\n                j--;\n                length = currentLength;\n            }\n        }\n\n        if (i == j || length > 0) {\n            count++;\n        }\n        return count;\n    }\n\n    private boolean matches(String text, int left, int right, int length) {\n        for (int offset = 0; offset < length; offset++) {\n            if (text.charAt(left + offset) != text.charAt(right + offset)) {\n                return false;\n            }\n        }\n        return true;\n    }\n}"
+    },
+    {
+      "name": "Recursive Shortest Border Match",
+      "description": "## Approach\n\nOn the current interval, try border lengths from shortest to longest. The first non-overlapping equal prefix and suffix become two chunks, and the method recurses on the middle. If no border matches, the whole interval is one chunk.\n\n## Key Insight\n\nTrying lengths in increasing order is the recursive form of the greedy proof: the shortest valid outside pair maximizes how much text remains available for additional chunks.\n\n## Complexity Analysis\n- Time Complexity: O(n^2) in the worst case because each recursive level can compare several candidate borders.\n- Space Complexity: O(n) for recursion depth in highly decomposable strings.",
+      "code": "class Solution {\n    public int longestDecomposition(String text) {\n        return solve(text, 0, text.length() - 1);\n    }\n\n    private int solve(String text, int left, int right) {\n        if (left > right) {\n            return 0;\n        }\n\n        int maxLength = (right - left + 1) / 2;\n        for (int length = 1; length <= maxLength; length++) {\n            if (matches(text, left, right - length + 1, length)) {\n                return 2 + solve(text, left + length, right - length);\n            }\n        }\n        return 1;\n    }\n\n    private boolean matches(String text, int a, int b, int length) {\n        for (int i = 0; i < length; i++) {\n            if (text.charAt(a + i) != text.charAt(b + i)) {\n                return false;\n            }\n        }\n        return true;\n    }\n}"
+    },
+    {
+      "name": "Memoized Interval DP with LCP Table",
+      "description": "## Approach\n\nPrecompute an LCP table so any prefix/suffix equality check inside the string is O(1). Then use memoized interval DP: `dp(left, right)` tries every legal matching border and keeps the largest chunk count for the remaining middle.\n\n## Key Insight\n\nThe greedy answer can also be verified as an optimization DP over intervals. The LCP table separates string comparison cost from the recurrence, making the exhaustive teaching route practical for length 1000.\n\n## Complexity Analysis\n- Time Complexity: O(n^2), because the reachable centered intervals each try O(n) border lengths after O(n^2) LCP preprocessing.\n- Space Complexity: O(n^2) for the LCP and memo tables.",
+      "code": "class Solution {\n    private String text;\n    private int[][] lcp;\n    private int[][] memo;\n\n    public int longestDecomposition(String text) {\n        this.text = text;\n        int n = text.length();\n        lcp = new int[n + 1][n + 1];\n        for (int i = n - 1; i >= 0; i--) {\n            for (int j = n - 1; j >= 0; j--) {\n                if (text.charAt(i) == text.charAt(j)) {\n                    lcp[i][j] = lcp[i + 1][j + 1] + 1;\n                }\n            }\n        }\n        memo = new int[n][n];\n        return dp(0, n - 1);\n    }\n\n    private int dp(int left, int right) {\n        if (left > right) {\n            return 0;\n        }\n        if (memo[left][right] != 0) {\n            return memo[left][right];\n        }\n\n        int best = 1;\n        int maxLength = (right - left + 1) / 2;\n        for (int length = 1; length <= maxLength; length++) {\n            int suffixStart = right - length + 1;\n            if (lcp[left][suffixStart] >= length) {\n                best = Math.max(best, 2 + dp(left + length, right - length));\n            }\n        }\n        memo[left][right] = best;\n        return best;\n    }\n}"
+    },
+    {
+      "name": "KMP Prefix-Function Border Peeling",
+      "description": "## Approach\n\nFor the current remaining substring, compute its prefix-function table and walk the border chain to find the shortest legal non-overlapping border. Peel that border pair and repeat on the middle substring.\n\n## Key Insight\n\nA border of a string is exactly a prefix that is also a suffix. KMP's prefix function exposes all border lengths, so the same shortest-border greedy rule can be implemented through a classic string preprocessing tool.\n\n## Complexity Analysis\n- Time Complexity: O(n^2) in the worst case because a prefix table may be rebuilt for many nested substrings.\n- Space Complexity: O(n) for the current prefix-function table.",
+      "code": "class Solution {\n    public int longestDecomposition(String text) {\n        int answer = 0;\n        int left = 0;\n        int right = text.length() - 1;\n        while (left <= right) {\n            String segment = text.substring(left, right + 1);\n            int border = shortestLegalBorder(segment);\n            if (border == 0) {\n                return answer + 1;\n            }\n            answer += 2;\n            left += border;\n            right -= border;\n        }\n        return answer;\n    }\n\n    private int shortestLegalBorder(String segment) {\n        int[] pi = prefixFunction(segment);\n        int best = 0;\n        for (int length = pi[segment.length() - 1]; length > 0; length = pi[length - 1]) {\n            if (length * 2 <= segment.length()) {\n                best = length;\n            }\n        }\n        return best;\n    }\n\n    private int[] prefixFunction(String s) {\n        int[] pi = new int[s.length()];\n        for (int i = 1; i < s.length(); i++) {\n            int j = pi[i - 1];\n            while (j > 0 && s.charAt(i) != s.charAt(j)) {\n                j = pi[j - 1];\n            }\n            if (s.charAt(i) == s.charAt(j)) {\n                j++;\n            }\n            pi[i] = j;\n        }\n        return pi;\n    }\n}"
     }
   ],
   "tests": [
-    { "input": "text = \"ghiabcdefhelloadamhelloabcdefghi\"", "output": "7" },
-    { "input": "text = \"merchant\"", "output": "1" },
-    { "input": "text = \"antaprezatepzapreanta\"", "output": "11" }
+    {
+      "input": "text = \"ghiabcdefhelloadamhelloabcdefghi\"",
+      "output": "7",
+      "description": "canonical long decomposition"
+    },
+    {
+      "input": "text = \"merchant\"",
+      "output": "1",
+      "description": "no matching border chunks"
+    },
+    {
+      "input": "text = \"antaprezatepzapreanta\"",
+      "output": "11",
+      "description": "many small symmetric chunks"
+    },
+    {
+      "input": "text = \"aaa\"",
+      "output": "3",
+      "description": "every character can be its own chunk"
+    },
+    {
+      "input": "text = \"volvo\"",
+      "output": "3",
+      "description": "two matching outer chunks and one center"
+    },
+    {
+      "input": "text = \"abc\"",
+      "output": "1",
+      "description": "non-palindromic text with no chunk match"
+    },
+    {
+      "input": "text = \"aaaaaa\"",
+      "output": "6",
+      "description": "shortest matching border beats longest-border greediness"
+    },
+    {
+      "input": "text = \"abcxyzcba\"",
+      "output": "7",
+      "description": "nested single-character chunks around a center"
+    },
+    {
+      "input": "text = \"leetcodeleet\"",
+      "output": "3",
+      "description": "matching word border with an unmatched middle"
+    },
+    {
+      "input": "text = \"elvtoelvto\"",
+      "output": "2",
+      "description": "entire left half matches the entire right half"
+    },
+    {
+      "input": "text = \"ghiabcdefhellohelloabcdefghi\"",
+      "output": "6",
+      "description": "even number of word-sized chunks"
+    },
+    {
+      "input": "text = \"abcddcba\"",
+      "output": "8",
+      "description": "palindromic text can decompose to single characters"
+    },
+    {
+      "input": "text = \"abacabadabacaba\"",
+      "output": "15",
+      "description": "deep recursive character-level palindrome"
+    },
+    {
+      "input": "text = \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"",
+      "output": "1000",
+      "description": "maximum length all-single-character chunks"
+    }
   ]
 }

@@ -1,9 +1,9 @@
 {
   "id": "306",
   "title": "Longest Valid Parentheses",
-  "description": "# Longest Valid Parentheses\n\nGiven a string containing just the characters `'('` and `')'`, return *the length of the longest valid (well-formed) parentheses substring*.\n\n## Example 1:\n\n**Input:** s = \"(()\"\n**Output:** 2\n**Explanation:** The longest valid parentheses substring is \"()\".\n\n## Example 2:\n\n**Input:** s = \")()())\"\n**Output:** 4\n**Explanation:** The longest valid parentheses substring is \"()()\".\n\n## Example 3:\n\n**Input:** s = \"\"\n**Output:** 0\n\n## Constraints:\n\n*   `0 <= s.length <= 3 * 10^4`\n*   `s[i]` is `'('`, or `')'`.",
+  "description": "# Longest Valid Parentheses\n\nGiven a string `s` containing only the characters `'('` and `')'`, return the length of the longest contiguous substring that is a valid parentheses string.\n\nA valid parentheses string is well formed: every opening parenthesis is matched by a later closing parenthesis, and every prefix has at least as many opening parentheses as closing parentheses.\n\n## Example 1:\n\n**Input:** s = \"(()\"\n**Output:** 2\n**Explanation:** The longest valid parentheses substring is \"()\".\n\n## Example 2:\n\n**Input:** s = \")()())\"\n**Output:** 4\n**Explanation:** The longest valid parentheses substring is \"()()\".\n\n## Example 3:\n\n**Input:** s = \"\"\n**Output:** 0\n\n## Constraints:\n\n*   `0 <= s.length <= 3 * 10^4`\n*   `s[i]` is `'('` or `')'`.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int longestValidParentheses(String s) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int longestValidParentheses(String s) {\n        return 0;\n    }\n}",
   "tags": [
     "String",
     "Dynamic Programming",
@@ -23,43 +23,107 @@
       "output": "0"
     }
   ],
-  "solutions": [
-    {
-      "name": "Stack with Indices",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Use a stack storing indices. Push -1 as a base. For '(' push index. For ')' pop; if stack is empty push current index as new base, otherwise update max length as current index minus stack top.",
-      "code": "class Solution {\n    public int longestValidParentheses(String s) {\n        java.util.Deque<Integer> stack = new java.util.ArrayDeque<>();\n        stack.push(-1);\n        int max = 0;\n        for (int i = 0; i < s.length(); i++) {\n            if (s.charAt(i) == '(') {\n                stack.push(i);\n            } else {\n                stack.pop();\n                if (stack.isEmpty()) {\n                    stack.push(i);\n                } else {\n                    max = Math.max(max, i - stack.peek());\n                }\n            }\n        }\n        return max;\n    }\n}",
-      "language": "java"
-    },
-    {
-      "name": "Dynamic Programming",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Use dp[i] to store the length of the longest valid parentheses ending at index i. For ')' at i, check if s[i-1] is '(' (simple pair) or ')' (nested pair by looking back dp[i-1] positions).",
-      "code": "class Solution {\n    public int longestValidParentheses(String s) {\n        int n = s.length();\n        int[] dp = new int[n];\n        int max = 0;\n        for (int i = 1; i < n; i++) {\n            if (s.charAt(i) == ')') {\n                if (s.charAt(i - 1) == '(') {\n                    dp[i] = (i >= 2 ? dp[i - 2] : 0) + 2;\n                } else if (dp[i - 1] > 0) {\n                    int matchIdx = i - dp[i - 1] - 1;\n                    if (matchIdx >= 0 && s.charAt(matchIdx) == '(') {\n                        dp[i] = dp[i - 1] + 2 + (matchIdx >= 1 ? dp[matchIdx - 1] : 0);\n                    }\n                }\n                max = Math.max(max, dp[i]);\n            }\n        }\n        return max;\n    }\n}",
-      "language": "java"
-    }
-  ],
   "tests": [
     {
       "input": "s = \"(()\"",
-      "output": "2"
+      "output": "2",
+      "description": "only the last two characters form a valid pair"
     },
     {
       "input": "s = \")()())\"",
-      "output": "4"
+      "output": "4",
+      "description": "invalid prefix and suffix should not block the middle valid substring"
     },
     {
       "input": "s = \"\"",
-      "output": "0"
+      "output": "0",
+      "description": "empty string has no parentheses to match"
+    },
+    {
+      "input": "s = \"()(())\"",
+      "output": "6",
+      "description": "adjacent and nested valid parts merge into the whole string"
+    },
+    {
+      "input": "s = \"())(())\"",
+      "output": "4",
+      "description": "a reset is needed after an unmatched closing parenthesis"
+    },
+    {
+      "input": "s = \"))))\"",
+      "output": "0",
+      "description": "all closing parentheses are invalid"
+    },
+    {
+      "input": "s = \"(()())\"",
+      "output": "6",
+      "description": "nested balanced group spans the whole string"
+    },
+    {
+      "input": "s = \"()(()\"",
+      "output": "2",
+      "description": "unfinished opening parentheses at the end must be ignored"
+    },
+    {
+      "input": "s = \"((()))())\"",
+      "output": "8",
+      "description": "long valid prefix followed by one extra closing parenthesis"
+    },
+    {
+      "input": "s = \"())(()())\"",
+      "output": "6",
+      "description": "valid suffix after an early invalid close must still be found"
+    },
+    {
+      "input": "s = \"(((((\"",
+      "output": "0",
+      "description": "all opening parentheses are unfinished"
+    },
+    {
+      "input": "s = \"()()()\"",
+      "output": "6",
+      "description": "several adjacent pairs form one valid substring"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Stack with Sentinel Index",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse a stack of indices. Start with `-1` as the base before the current valid region. Push every `'('` index. For each `')'`, pop one index; if the stack becomes empty, push the current index as the new invalid base, otherwise update the answer with `i - stack.peek()`.\n\n## Key Insight\n\nThe top of the stack after a successful match is the index just before the current valid suffix. Subtracting it from the current index gives the length of the longest valid substring ending here.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\nclass Solution {\n    public int longestValidParentheses(String s) {\n        Deque<Integer> stack = new ArrayDeque<>();\n        stack.push(-1);\n        int best = 0;\n        for (int i = 0; i < s.length(); i++) {\n            if (s.charAt(i) == '(') {\n                stack.push(i);\n            } else {\n                stack.pop();\n                if (stack.isEmpty()) {\n                    stack.push(i);\n                } else {\n                    best = Math.max(best, i - stack.peek());\n                }\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Dynamic Programming Ending at Each Index",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nLet `dp[i]` be the length of the longest valid parentheses substring ending exactly at index `i`. Only a closing parenthesis can end a valid substring. Handle the simple `...()` case and the nested or chained `...))` case by jumping back over `dp[i - 1]`.\n\n## Key Insight\n\nWhen `s[i]` is `')'` and the character before the previous valid suffix is `'('`, that matching pair can wrap the previous suffix and also connect to a valid substring before it.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int longestValidParentheses(String s) {\n        int[] dp = new int[s.length()];\n        int best = 0;\n        for (int i = 1; i < s.length(); i++) {\n            if (s.charAt(i) != ')') {\n                continue;\n            }\n            if (s.charAt(i - 1) == '(') {\n                dp[i] = 2 + (i >= 2 ? dp[i - 2] : 0);\n            } else {\n                int match = i - dp[i - 1] - 1;\n                if (match >= 0 && s.charAt(match) == '(') {\n                    dp[i] = dp[i - 1] + 2 + (match >= 1 ? dp[match - 1] : 0);\n                }\n            }\n            best = Math.max(best, dp[i]);\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two-Pass Counter Scan",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan left to right while counting opening and closing parentheses. Reset when closing parentheses become too many. Then scan right to left and reset when opening parentheses become too many. Equal counts in either direction give a valid length.\n\n## Key Insight\n\nA single left-to-right pass misses suffixes with extra opening parentheses, and a single right-to-left pass misses prefixes with extra closing parentheses. The two directions cover both imbalance types without a stack.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int longestValidParentheses(String s) {\n        int best = 0;\n        int left = 0;\n        int right = 0;\n        for (int i = 0; i < s.length(); i++) {\n            if (s.charAt(i) == '(') {\n                left++;\n            } else {\n                right++;\n            }\n            if (left == right) {\n                best = Math.max(best, 2 * right);\n            } else if (right > left) {\n                left = 0;\n                right = 0;\n            }\n        }\n\n        left = 0;\n        right = 0;\n        for (int i = s.length() - 1; i >= 0; i--) {\n            if (s.charAt(i) == '(') {\n                left++;\n            } else {\n                right++;\n            }\n            if (left == right) {\n                best = Math.max(best, 2 * left);\n            } else if (left > right) {\n                left = 0;\n                right = 0;\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Mark Matched Pairs then Scan",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse a stack to match pairs of parentheses. Whenever a `')'` matches an earlier `'('`, mark both positions as valid in a boolean array. Finally scan the boolean array for the longest consecutive run of marked positions.\n\n## Key Insight\n\nA valid parentheses substring consists exactly of positions that can be partitioned into matched pairs with no gaps. Marking all matched positions turns the problem into finding the longest contiguous block of matched characters.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\nclass Solution {\n    public int longestValidParentheses(String s) {\n        boolean[] matched = new boolean[s.length()];\n        Deque<Integer> opens = new ArrayDeque<>();\n        for (int i = 0; i < s.length(); i++) {\n            if (s.charAt(i) == '(') {\n                opens.push(i);\n            } else if (!opens.isEmpty()) {\n                int open = opens.pop();\n                matched[open] = true;\n                matched[i] = true;\n            }\n        }\n\n        int best = 0;\n        int run = 0;\n        for (boolean ok : matched) {\n            if (ok) {\n                run++;\n                best = Math.max(best, run);\n            } else {\n                run = 0;\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p306_example1.png",
-      "caption": "Longest Valid Parentheses: s='(()'"
+      "caption": "Example 1 input string before identifying valid substrings"
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "id": "186",
   "title": "Meeting Rooms II",
-  "description": "# Meeting Rooms II\n\nGiven an array of meeting time intervals `intervals` where `intervals[i] = [starti, endi]`, return *the minimum number of conference rooms required*.\n\n## Example 1:\n\n**Input:** intervals = [[0,30],[5,10],[15,20]]\n**Output:** 2\n\n## Example 2:\n\n**Input:** intervals = [[7,10],[2,4]]\n**Output:** 1\n\n## Constraints:\n\n*   `1 <= intervals.length <= 10^4`\n*   `0 <= starti < endi <= 10^6`",
+  "description": "# Meeting Rooms II\n\nYou are given an array of meeting time intervals `intervals`, where `intervals[i] = [starti, endi]` means one meeting starts at `starti` and ends at `endi`.\n\nReturn the minimum number of conference rooms required so every meeting can be held.\n\nA room can be reused when one meeting ends exactly when another meeting starts. For example, `[1,5]` and `[5,8]` can use the same room. The input intervals are not guaranteed to be sorted.\n\n## Example 1:\n\n**Input:** intervals = [[0,30],[5,10],[15,20]]\n**Output:** 2\n**Explanation:** `[5,10]` and `[15,20]` can share one room, but `[0,30]` overlaps both of them, so a second room is required.\n\n## Example 2:\n\n**Input:** intervals = [[7,10],[2,4]]\n**Output:** 1\n**Explanation:** The two meetings do not overlap, so one room is enough.\n\n## Constraints:\n\n*   `1 <= intervals.length <= 10^4`\n*   `intervals[i].length == 2`\n*   `0 <= starti < endi <= 10^6`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int minMeetingRooms(int[][] intervals) {\n        // Write your code here\n        return 0;\n    }\n}",
   "tags": [
@@ -12,43 +12,144 @@
     "Heap (Priority Queue)"
   ],
   "examples": [
-    { "input": "intervals = [[0,30],[5,10],[15,20]]", "output": "2" },
-    { "input": "intervals = [[7,10],[2,4]]", "output": "1" }
+    {
+      "input": "intervals = [[0,30],[5,10],[15,20]]",
+      "output": "2"
+    },
+    {
+      "input": "intervals = [[7,10],[2,4]]",
+      "output": "1"
+    }
   ],
   "solutions": [
     {
-      "name": "Min Heap",
+      "name": "Min Heap Of Active Room End Times",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Sort by start time. Use a min-heap tracking end times of active rooms. If earliest ending room ends before current meeting starts, reuse it. Otherwise allocate a new room.",
-      "code": "class Solution {\n    public int minMeetingRooms(int[][] intervals) {\n        java.util.Arrays.sort(intervals, (a, b) -> a[0] - b[0]);\n        java.util.PriorityQueue<Integer> heap = new java.util.PriorityQueue<>();\n        for (int[] interval : intervals) {\n            if (!heap.isEmpty() && heap.peek() <= interval[0]) {\n                heap.poll();\n            }\n            heap.offer(interval[1]);\n        }\n        return heap.size();\n    }\n}",
+      "description": "## Approach\n\nSort meetings by start time and keep a min-heap containing the end times of rooms that are still occupied. Before adding the current meeting, remove every room whose end time is less than or equal to the current start. Add the current end time and track the largest heap size ever seen.\n\n## Key Insight\n\nAfter expired rooms are removed, the heap contains exactly the meetings active at the current start time. The maximum number of active meetings over the whole timeline is the minimum number of rooms required.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), from sorting and heap operations.\n- Space Complexity: O(n), for the heap in the worst case.",
+      "code": "class Solution {\n    public int minMeetingRooms(int[][] intervals) {\n        java.util.Arrays.sort(intervals, (a, b) -> {\n            int byStart = Integer.compare(a[0], b[0]);\n            return byStart != 0 ? byStart : Integer.compare(a[1], b[1]);\n        });\n        java.util.PriorityQueue<Integer> activeEnds = new java.util.PriorityQueue<>();\n        int rooms = 0;\n        for (int[] interval : intervals) {\n            while (!activeEnds.isEmpty() && activeEnds.peek() <= interval[0]) {\n                activeEnds.poll();\n            }\n            activeEnds.offer(interval[1]);\n            rooms = Math.max(rooms, activeEnds.size());\n        }\n        return rooms;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Chronological Ordering",
+      "name": "Separate Starts And Ends Sweep",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Separate start and end times, sort both. Use two pointers to simulate events. When a meeting starts before one ends, need an extra room.",
-      "code": "class Solution {\n    public int minMeetingRooms(int[][] intervals) {\n        int n = intervals.length;\n        int[] starts = new int[n], ends = new int[n];\n        for (int i = 0; i < n; i++) {\n            starts[i] = intervals[i][0];\n            ends[i] = intervals[i][1];\n        }\n        java.util.Arrays.sort(starts);\n        java.util.Arrays.sort(ends);\n        int rooms = 0, endPtr = 0;\n        for (int i = 0; i < n; i++) {\n            if (starts[i] < ends[endPtr]) rooms++;\n            else endPtr++;\n        }\n        return rooms;\n    }\n}",
+      "description": "## Approach\n\nCopy all start times and end times into separate arrays and sort them. Sweep starts from earliest to latest while an end pointer tracks the earliest room that can be freed. If the next start is before the next end, one more room is needed; otherwise, reuse a room and advance the end pointer.\n\n## Key Insight\n\nRoom identity does not matter. Only the count of currently active meetings matters, and endpoint equality must free a room before the new meeting starts.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), because both arrays are sorted.\n- Space Complexity: O(n), for the start and end arrays.",
+      "code": "class Solution {\n    public int minMeetingRooms(int[][] intervals) {\n        int n = intervals.length;\n        int[] starts = new int[n];\n        int[] ends = new int[n];\n        for (int i = 0; i < n; i++) {\n            starts[i] = intervals[i][0];\n            ends[i] = intervals[i][1];\n        }\n        java.util.Arrays.sort(starts);\n        java.util.Arrays.sort(ends);\n        int rooms = 0;\n        int active = 0;\n        int endPtr = 0;\n        for (int start : starts) {\n            if (start < ends[endPtr]) {\n                active++;\n            } else {\n                endPtr++;\n            }\n            rooms = Math.max(rooms, active);\n        }\n        return rooms;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Difference Map Sweep",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore timeline deltas in a sorted map: add `+1` at every meeting start and `-1` at every meeting end. Sweep coordinates in order and track the maximum active count.\n\n## Key Insight\n\nCombining all deltas at the same timestamp handles room reuse correctly. If a meeting ends at time `t` and another starts at `t`, their deltas cancel before the active count is checked for the next time segment.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), because each event is inserted into an ordered map.\n- Space Complexity: O(n), for the event map.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minMeetingRooms(int[][] intervals) {\n        TreeMap<Integer, Integer> diff = new TreeMap<>();\n        for (int[] interval : intervals) {\n            diff.merge(interval[0], 1, Integer::sum);\n            diff.merge(interval[1], -1, Integer::sum);\n        }\n        int active = 0;\n        int rooms = 0;\n        for (int delta : diff.values()) {\n            active += delta;\n            rooms = Math.max(rooms, active);\n        }\n        return rooms;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Event Sweep",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCreate two events for every meeting: an end event with delta `-1` and a start event with delta `+1`. Sort by time, and for equal times process end events before start events. Sweep the sorted list and record the maximum active count.\n\n## Key Insight\n\nThe tie-break is the whole rule: ending at time `t` frees a room before any meeting starting at `t` needs one.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), for sorting `2n` events.\n- Space Complexity: O(n), for the event list.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minMeetingRooms(int[][] intervals) {\n        int[][] events = new int[intervals.length * 2][2];\n        int index = 0;\n        for (int[] interval : intervals) {\n            events[index++] = new int[]{interval[0], 1};\n            events[index++] = new int[]{interval[1], -1};\n        }\n        java.util.Arrays.sort(events, (a, b) -> {\n            int byTime = Integer.compare(a[0], b[0]);\n            return byTime != 0 ? byTime : Integer.compare(a[1], b[1]);\n        });\n        int active = 0;\n        int rooms = 0;\n        for (int[] event : events) {\n            active += event[1];\n            rooms = Math.max(rooms, active);\n        }\n        return rooms;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bounded Timeline Difference Array",
+      "timeComplexity": "O(n + U)",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\n\nUse the constraint `endi <= 10^6` to allocate a difference array over the bounded timeline. Add `+1` at each start and `-1` at each end, then scan from time zero to the largest end time to find the maximum active count.\n\n## Key Insight\n\nWhen the coordinate range is small enough, a dense difference array replaces sorting. Endpoints still reuse rooms because the end delta is applied at the same coordinate as the next start delta.\n\n## Complexity Analysis\n\n- Time Complexity: O(n + U), where `U` is the largest end time scanned.\n- Space Complexity: O(U), for the timeline difference array.",
+      "code": "class Solution {\n    public int minMeetingRooms(int[][] intervals) {\n        int maxEnd = 0;\n        for (int[] interval : intervals) {\n            maxEnd = Math.max(maxEnd, interval[1]);\n        }\n        int[] diff = new int[maxEnd + 1];\n        for (int[] interval : intervals) {\n            diff[interval[0]]++;\n            diff[interval[1]]--;\n        }\n        int active = 0;\n        int rooms = 0;\n        for (int time = 0; time <= maxEnd; time++) {\n            active += diff[time];\n            rooms = Math.max(rooms, active);\n        }\n        return rooms;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "intervals = [[0,30],[5,10],[15,20]]", "output": "2" },
-    { "input": "intervals = [[7,10],[2,4]]", "output": "1" },
-    { "input": "intervals = [[1,5]]", "output": "1" },
-    { "input": "intervals = [[1,3],[4,6],[7,9]]", "output": "1" },
-    { "input": "intervals = [[1,10],[2,9],[3,8],[4,7]]", "output": "4" },
-    { "input": "intervals = [[1,5],[5,10],[10,15]]", "output": "1" },
-    { "input": "intervals = [[0,5],[1,6],[2,7],[3,8],[4,9]]", "output": "5" },
-    { "input": "intervals = [[1,3],[2,4],[3,5]]", "output": "2" },
-    { "input": "intervals = [[9,10],[4,9],[4,17]]", "output": "2" }
+    {
+      "input": "intervals = [[0,30],[5,10],[15,20]]",
+      "output": "2",
+      "description": "Canonical overlapping schedule needs two rooms."
+    },
+    {
+      "input": "intervals = [[7,10],[2,4]]",
+      "output": "1",
+      "description": "Separated meetings can reuse one room."
+    },
+    {
+      "input": "intervals = [[1,5]]",
+      "output": "1",
+      "description": "A single meeting needs one room."
+    },
+    {
+      "input": "intervals = [[1,3],[4,6],[7,9]]",
+      "output": "1",
+      "description": "Non-overlapping chain reuses the same room."
+    },
+    {
+      "input": "intervals = [[1,10],[2,9],[3,8],[4,7]]",
+      "output": "4",
+      "description": "Fully nested meetings require one room for each active meeting."
+    },
+    {
+      "input": "intervals = [[1,5],[5,10],[10,15]]",
+      "output": "1",
+      "description": "Meetings that touch at endpoints can reuse one room."
+    },
+    {
+      "input": "intervals = [[0,5],[1,6],[2,7],[3,8],[4,9]]",
+      "output": "5",
+      "description": "Maximum simultaneous overlap occurs when every meeting starts before any end."
+    },
+    {
+      "input": "intervals = [[1,3],[2,4],[3,5]]",
+      "output": "2",
+      "description": "Endpoint reuse with one active overlap needs two rooms."
+    },
+    {
+      "input": "intervals = [[9,10],[4,9],[4,17]]",
+      "output": "2",
+      "description": "Unsorted input with shared endpoints checks chronological ordering."
+    },
+    {
+      "input": "intervals = [[1,4],[2,5],[3,6],[4,7],[5,8]]",
+      "output": "3",
+      "description": "Staggered overlaps have a peak smaller than the number of intervals."
+    },
+    {
+      "input": "intervals = [[0,1],[1,2],[0,2]]",
+      "output": "2",
+      "description": "Two short meetings can share a room, but a broad meeting overlaps both."
+    },
+    {
+      "input": "intervals = [[5,10],[5,10],[5,10]]",
+      "output": "3",
+      "description": "Meetings with the same start require separate rooms."
+    },
+    {
+      "input": "intervals = [[0,1000000],[999999,1000000]]",
+      "output": "2",
+      "description": "Maximum endpoint values are still valid and can overlap."
+    },
+    {
+      "input": "intervals = [[10,20],[0,5],[5,10],[20,30]]",
+      "output": "1",
+      "description": "Unsorted chain of endpoint touches should still reuse one room."
+    },
+    {
+      "input": "intervals = [[2,11],[6,16],[11,17],[17,20],[0,3]]",
+      "output": "2",
+      "description": "Mixed overlaps and endpoint reuse need exactly two rooms."
+    },
+    {
+      "input": "intervals = [[0,10],[1,2],[2,3],[3,4],[4,5],[5,6]]",
+      "output": "2",
+      "description": "One long meeting overlaps a chain of short meetings, but the short meetings share another room."
+    }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p186_example1.png",
-      "caption": "Meeting Rooms Overlap Example"
+      "caption": "Meeting intervals on a timeline for minimum room counting"
     }
   ]
 }

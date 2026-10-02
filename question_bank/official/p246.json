@@ -1,36 +1,131 @@
 {
   "id": "246",
   "title": "How Many Numbers Are Smaller Than the Current Number",
-  "description": "# How Many Numbers Are Smaller Than the Current Number\n\nGiven the array `nums`, for each `nums[i]` find out how many numbers in the array are smaller than it. That is, for each `nums[i]` you have to count the number of valid `j`'s such that `j != i` and `nums[j] < nums[i]`.\n\nReturn the answer in an array.\n\n## Example 1:\n\n**Input:** nums = [8,1,2,2,3]\n**Output:** [4,0,1,1,3]\n**Explanation:** \nFor nums[0]=8 there exist four smaller numbers than it (1, 2, 2 and 3). \nFor nums[1]=1 does not exist any smaller number than it.\nFor nums[2]=2 there exist one smaller number than it (1). \nFor nums[3]=2 there exist one smaller number than it (1). \nFor nums[4]=3 there exist three smaller numbers than it (1, 2 and 2).\n\n## Example 2:\n\n**Input:** nums = [6,5,4,8]\n**Output:** [2,1,0,3]\n\n## Example 3:\n\n**Input:** nums = [7,7,7,7]\n**Output:** [0,0,0,0]\n\n## Constraints:\n\n*   `2 <= nums.length <= 500`\n*   `0 <= nums[i] <= 100`",
+  "description": "# How Many Numbers Are Smaller Than the Current Number\n\nGiven an integer array `nums`, return an array `answer` where `answer[i]` is the number of elements in `nums` that are strictly smaller than `nums[i]`.\n\nYou compare by value, not by position. Equal values are not smaller than each other, so duplicate values must receive the same answer.\n\n## Example 1:\n\n**Input:** nums = [8,1,2,2,3]\n**Output:** [4,0,1,1,3]\n**Explanation:** Four values are smaller than 8: 1, 2, 2, and 3. Each 2 has only one smaller value: 1.\n\n## Example 2:\n\n**Input:** nums = [6,5,4,8]\n**Output:** [2,1,0,3]\n\n## Example 3:\n\n**Input:** nums = [7,7,7,7]\n**Output:** [0,0,0,0]\n**Explanation:** Equal values are not counted as smaller.\n\n## Constraints:\n\n* `2 <= nums.length <= 500`\n* `0 <= nums[i] <= 100`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int[] smallerNumbersThanCurrent(int[] nums) {\n        // Write your code here\n        return new int[]{};\n    }\n}",
-  "tags": ["Array", "HashTable", "Sorting", "Counting"],
+  "tags": [
+    "Array",
+    "HashTable",
+    "Sorting",
+    "Counting"
+  ],
   "examples": [
-    { "input": "nums = [8,1,2,2,3]", "output": "[4,0,1,1,3]" },
-    { "input": "nums = [6,5,4,8]", "output": "[2,1,0,3]" },
-    { "input": "nums = [7,7,7,7]", "output": "[0,0,0,0]" }
+    {
+      "input": "nums = [8,1,2,2,3]",
+      "output": "[4,0,1,1,3]"
+    },
+    {
+      "input": "nums = [6,5,4,8]",
+      "output": "[2,1,0,3]"
+    },
+    {
+      "input": "nums = [7,7,7,7]",
+      "output": "[0,0,0,0]"
+    }
   ],
   "solutions": [
     {
-      "name": "Counting Array",
+      "name": "Counting Prefix Array",
       "timeComplexity": "O(n + k)",
       "spaceComplexity": "O(k)",
-      "description": "Since values are 0-100, use a counting array. Build prefix sums so count[v] = number of elements less than v. Then map each element to its count.",
-      "code": "class Solution {\n    public int[] smallerNumbersThanCurrent(int[] nums) {\n        int[] count = new int[102];\n        for (int n : nums) count[n + 1]++;\n        for (int i = 1; i <= 101; i++) count[i] += count[i - 1];\n        int[] res = new int[nums.length];\n        for (int i = 0; i < nums.length; i++) {\n            res[i] = count[nums[i]];\n        }\n        return res;\n    }\n}",
+      "description": "## Approach\n\nCount how often each value from 0 to 100 appears. Then build a prefix table where `smaller[value]` stores how many numbers are strictly less than `value`. Fill the answer by looking up each original value.\n\n## Key Insight\n\nFor a fixed small value range, the sorted order is encoded by frequencies. The count of smaller numbers for `value` is the total frequency of all buckets before `value`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n + k), where `k = 101` is the value range.\n- Space Complexity: O(k), for the frequency and prefix arrays.",
+      "code": "class Solution {\n    public int[] smallerNumbersThanCurrent(int[] nums) {\n        int[] counts = new int[101];\n        for (int value : nums) {\n            counts[value]++;\n        }\n\n        int[] smaller = new int[101];\n        for (int value = 1; value <= 100; value++) {\n            smaller[value] = smaller[value - 1] + counts[value - 1];\n        }\n\n        int[] answer = new int[nums.length];\n        for (int i = 0; i < nums.length; i++) {\n            answer[i] = smaller[nums[i]];\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Sort and Index Map",
+      "name": "Sorted Copy First Index Map",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Sort a copy of the array. Use a HashMap to map each value to its first occurrence index in the sorted array. Then look up each original element.",
-      "code": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.Map;\n\nclass Solution {\n    public int[] smallerNumbersThanCurrent(int[] nums) {\n        int[] sorted = nums.clone();\n        Arrays.sort(sorted);\n        Map<Integer, Integer> map = new HashMap<>();\n        for (int i = 0; i < sorted.length; i++) {\n            if (!map.containsKey(sorted[i])) {\n                map.put(sorted[i], i);\n            }\n        }\n        int[] res = new int[nums.length];\n        for (int i = 0; i < nums.length; i++) {\n            res[i] = map.get(nums[i]);\n        }\n        return res;\n    }\n}",
+      "description": "## Approach\n\nSort a copy of `nums`. In the sorted array, the first index of each value is exactly the number of elements smaller than that value. Store that first index in a map and look up each original value.\n\n## Key Insight\n\nSorting groups equal values together. Because equal values are not smaller, the answer for a value is the start position of its group, not the last position.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), dominated by sorting.\n- Space Complexity: O(n), for the sorted copy and map.",
+      "code": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.Map;\n\nclass Solution {\n    public int[] smallerNumbersThanCurrent(int[] nums) {\n        int[] sorted = nums.clone();\n        Arrays.sort(sorted);\n\n        Map<Integer, Integer> firstSmallerCount = new HashMap<>();\n        for (int i = 0; i < sorted.length; i++) {\n            firstSmallerCount.putIfAbsent(sorted[i], i);\n        }\n\n        int[] answer = new int[nums.length];\n        for (int i = 0; i < nums.length; i++) {\n            answer[i] = firstSmallerCount.get(nums[i]);\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Copy Lower Bound",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort a copy of `nums`. For each original value, binary-search the first position in the sorted copy where that value could appear. That lower-bound index is the number of strictly smaller elements.\n\n## Key Insight\n\nLower bound asks exactly the right question: how many sorted elements appear before the first equal value. It handles duplicates without any special case.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), from sorting plus one binary search per element.\n- Space Complexity: O(n), for the sorted copy and answer array.",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int[] smallerNumbersThanCurrent(int[] nums) {\n        int[] sorted = nums.clone();\n        Arrays.sort(sorted);\n\n        int[] answer = new int[nums.length];\n        for (int i = 0; i < nums.length; i++) {\n            answer[i] = lowerBound(sorted, nums[i]);\n        }\n        return answer;\n    }\n\n    private int lowerBound(int[] sorted, int target) {\n        int left = 0;\n        int right = sorted.length;\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (sorted[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Fenwick Frequency Prefix",
+      "timeComplexity": "O(n log k)",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nInsert every value into a Fenwick tree as a frequency count. To answer a value `x`, query the prefix ending before `x`, which counts all values strictly smaller than `x`.\n\n## Key Insight\n\nA Fenwick tree is a general prefix-frequency structure. It is heavier than a plain counting array for the 0..100 range, but it teaches how smaller-than-count queries scale when updates or larger value ranges are introduced.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log k), where `k = 101`.\n- Space Complexity: O(k), for the Fenwick tree.",
+      "code": "class Solution {\n    public int[] smallerNumbersThanCurrent(int[] nums) {\n        Fenwick tree = new Fenwick(101);\n        for (int value : nums) {\n            tree.add(value + 1, 1);\n        }\n\n        int[] answer = new int[nums.length];\n        for (int i = 0; i < nums.length; i++) {\n            answer[i] = tree.prefix(nums[i]);\n        }\n        return answer;\n    }\n\n    private static class Fenwick {\n        private final int[] tree;\n\n        Fenwick(int size) {\n            tree = new int[size + 1];\n        }\n\n        void add(int index, int delta) {\n            while (index < tree.length) {\n                tree[index] += delta;\n                index += index & -index;\n            }\n        }\n\n        int prefix(int index) {\n            int sum = 0;\n            while (index > 0) {\n                sum += tree[index];\n                index -= index & -index;\n            }\n            return sum;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Brute Force Pair Counting",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFor each index `i`, scan every value in `nums` and count how many values are strictly smaller than `nums[i]`.\n\n## Key Insight\n\nThis is the direct definition of the answer. It is slow, but the constraints are small enough for it to pass and it is useful for checking optimized approaches.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), because every element compares with every other element.\n- Space Complexity: O(1) beyond the output array.",
+      "code": "class Solution {\n    public int[] smallerNumbersThanCurrent(int[] nums) {\n        int[] answer = new int[nums.length];\n        for (int i = 0; i < nums.length; i++) {\n            int count = 0;\n            for (int value : nums) {\n                if (value < nums[i]) {\n                    count++;\n                }\n            }\n            answer[i] = count;\n        }\n        return answer;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [8,1,2,2,3]", "output": "[4,0,1,1,3]" },
-    { "input": "nums = [6,5,4,8]", "output": "[2,1,0,3]" },
-    { "input": "nums = [7,7,7,7]", "output": "[0,0,0,0]" }
+    {
+      "input": "nums = [8,1,2,2,3]",
+      "output": "[4,0,1,1,3]",
+      "description": "Canonical example where duplicates share the same smaller-count result."
+    },
+    {
+      "input": "nums = [6,5,4,8]",
+      "output": "[2,1,0,3]",
+      "description": "Strictly different values in unsorted order."
+    },
+    {
+      "input": "nums = [7,7,7,7]",
+      "output": "[0,0,0,0]",
+      "description": "All values equal, so no value is strictly smaller."
+    },
+    {
+      "input": "nums = [0,1,2,3]",
+      "output": "[0,1,2,3]",
+      "description": "Already increasing from the minimum boundary."
+    },
+    {
+      "input": "nums = [100,0,100]",
+      "output": "[1,0,1]",
+      "description": "Minimum and maximum value boundaries."
+    },
+    {
+      "input": "nums = [2,0,1,2,1]",
+      "output": "[3,0,1,3,1]",
+      "description": "Mixed duplicates across several ranks."
+    },
+    {
+      "input": "nums = [0,0,1,100,100]",
+      "output": "[0,0,2,3,3]",
+      "description": "Duplicate minimum and maximum values with one middle value."
+    },
+    {
+      "input": "nums = [5,4,3,2,1]",
+      "output": "[4,3,2,1,0]",
+      "description": "Strictly decreasing order."
+    },
+    {
+      "input": "nums = [1,2,2,2,3]",
+      "output": "[0,1,1,1,4]",
+      "description": "Large duplicate block in the middle."
+    },
+    {
+      "input": "nums = [10,10,9,9,8]",
+      "output": "[3,3,1,1,0]",
+      "description": "Descending duplicate groups."
+    },
+    {
+      "input": "nums = [50,50]",
+      "output": "[0,0]",
+      "description": "Minimum allowed length with equal values."
+    },
+    {
+      "input": "nums = [0,100,50,50,25]",
+      "output": "[0,4,2,2,1]",
+      "description": "Boundary values plus a duplicate middle value."
+    }
   ]
 }

@@ -1,33 +1,48 @@
 {
   "id": "45",
   "title": "Daily Temperatures",
-  "description": "# Daily Temperatures\n\nGiven an array of integers `temperatures` represents the daily temperatures, return *an array* `answer` *such that* `answer[i]` *is the number of days you have to wait after the* `i`th *day to get a warmer temperature*. If there is no future day for which this is possible, keep `answer[i] == 0`.\n\n## Example 1:\n\n**Input:** temperatures = [73,74,75,71,69,72,76,73]\n**Output:** [1,1,4,2,1,1,0,0]\n\n## Example 2:\n\n**Input:** temperatures = [30,40,50,60]\n**Output:** [1,1,1,0]\n\n## Example 3:\n\n**Input:** temperatures = [30,60,90]\n**Output:** [1,1,0]\n\n## Constraints:\n\n*   `1 <= temperatures.length <= 10^5`\n*   `30 <= temperatures[i] <= 100`",
+  "description": "# Daily Temperatures\n\nGiven an array of integers `temperatures`, where `temperatures[i]` is the temperature on day `i`, return an array `answer` where `answer[i]` is the number of days after day `i` you must wait to see a strictly warmer temperature. If no future day is warmer, keep `answer[i] == 0`.\n\nA future day with the same temperature does not count as warmer.\n\n## Example 1:\n\n**Input:** temperatures = [73,74,75,71,69,72,76,73]\n**Output:** [1,1,4,2,1,1,0,0]\n**Explanation:** Day 0 waits one day for 74, day 2 waits four days for 76, and the final two days have no warmer future day.\n\n## Example 2:\n\n**Input:** temperatures = [30,40,50,60]\n**Output:** [1,1,1,0]\n\n## Example 3:\n\n**Input:** temperatures = [100,90,80,70]\n**Output:** [0,0,0,0]\n\n## Constraints:\n\n*   `1 <= temperatures.length <= 10^5`\n*   `30 <= temperatures[i] <= 100`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int[] dailyTemperatures(int[] temperatures) {\n        // Write your code here\n        return new int[0];\n    }\n}",
-  "tags": ["Array", "Stack", "Monotonic Stack"],
+  "tags": [
+    "Array",
+    "Stack",
+    "Monotonic Stack"
+  ],
   "examples": [
     {
       "input": "temperatures = [73,74,75,71,69,72,76,73]",
       "output": "[1,1,4,2,1,1,0,0]"
     },
-    { "input": "temperatures = [30,40,50,60]", "output": "[1,1,1,0]" },
-    { "input": "temperatures = [30,60,90]", "output": "[1,1,0]" }
+    {
+      "input": "temperatures = [30,40,50,60]",
+      "output": "[1,1,1,0]"
+    },
+    {
+      "input": "temperatures = [100,90,80,70]",
+      "output": "[0,0,0,0]"
+    }
   ],
   "tests": [
     {
       "input": "temperatures = [73,74,75,71,69,72,76,73]",
-      "output": "[1,1,4,2,1,1,0,0]"
+      "output": "[1,1,4,2,1,1,0,0]",
+      "description": "Canonical mixed warm and cool days"
     },
-    { "input": "temperatures = [30,40,50,60]", "output": "[1,1,1,0]" },
-    { "input": "temperatures = [30,60,90]", "output": "[1,1,0]" },
     {
-      "input": "temperatures = [89,62,70,58,47,47,46,76,100,70]",
-      "output": "[8,1,5,4,3,2,1,1,0,0]"
+      "input": "temperatures = [30,40,50,60]",
+      "output": "[1,1,1,0]",
+      "description": "Strictly increasing temperatures"
     },
     {
       "input": "temperatures = [100,90,80,70]",
       "output": "[0,0,0,0]",
-      "description": "Decreasing temperatures - no warmer day"
+      "description": "Strictly decreasing temperatures, starting at the maximum allowed value"
+    },
+    {
+      "input": "temperatures = [89,62,70,58,47,47,46,76,100,70]",
+      "output": "[8,1,5,4,3,2,1,1,0,0]",
+      "description": "Late warmer day after a long dip"
     },
     {
       "input": "temperatures = [50]",
@@ -37,23 +52,57 @@
     {
       "input": "temperatures = [70,70,70,70]",
       "output": "[0,0,0,0]",
-      "description": "All same temperatures"
+      "description": "Equal temperatures are not warmer"
+    },
+    {
+      "input": "temperatures = [70,70,71,70,72]",
+      "output": "[2,1,2,1,0]",
+      "description": "Plateau before a warmer day"
+    },
+    {
+      "input": "temperatures = [70,71,71,70,72]",
+      "output": "[1,3,2,1,0]",
+      "description": "Repeated current maximum must wait for a strictly higher value"
+    },
+    {
+      "input": "temperatures = [99,100,99,100]",
+      "output": "[1,0,1,0]",
+      "description": "Boundary value 100 can never have a warmer future day"
+    },
+    {
+      "input": "temperatures = [30,30,31,30,32]",
+      "output": "[2,1,2,1,0]",
+      "description": "Boundary value 30 with duplicate lows"
     }
   ],
   "solutions": [
     {
-      "name": "Monotonic Stack - Decreasing",
+      "name": "Monotonic Decreasing Stack",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use monotonic decreasing stack storing indices. When warmer temp found, pop and calculate days.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int[] dailyTemperatures(int[] temperatures) {\n        int n = temperatures.length;\n        int[] result = new int[n];\n        Deque<Integer> stack = new ArrayDeque<>(); // Store indices\n        \n        for (int i = 0; i < n; i++) {\n            // Pop all colder temperatures\n            while (!stack.isEmpty() && \n                   temperatures[i] > temperatures[stack.peek()]) {\n                int prevIndex = stack.pop();\n                result[prevIndex] = i - prevIndex;\n            }\n            stack.push(i);\n        }\n        \n        // Remaining indices have no warmer day (default 0)\n        return result;\n    }\n}"
+      "description": "## Approach\n\nScan days from left to right and keep a stack of indices whose warmer day has not been found yet. The temperatures at those indices are non-increasing from the bottom of the stack to the top. When the current temperature is strictly warmer than the stack top, pop that older day and write the distance.\n\n## Key Insight\n\nAn older day can stay unresolved only while every day seen after it is less than or equal to its temperature. The first future day that breaks this condition is exactly its answer, and each index is pushed and popped at most once.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] dailyTemperatures(int[] temperatures) {\n        int n = temperatures.length;\n        int[] result = new int[n];\n        Deque<Integer> stack = new ArrayDeque<>();\n\n        for (int i = 0; i < n; i++) {\n            while (!stack.isEmpty() && temperatures[i] > temperatures[stack.peek()]) {\n                int previousIndex = stack.pop();\n                result[previousIndex] = i - previousIndex;\n            }\n            stack.push(i);\n        }\n\n        return result;\n    }\n}"
     },
     {
-      "name": "Traverse from Right",
+      "name": "Right-to-Left Answer Jumping",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Traverse from right. For each day, use already computed answers to jump to potential warmer days.",
-      "code": "class Solution {\n    public int[] dailyTemperatures(int[] temperatures) {\n        int n = temperatures.length;\n        int[] result = new int[n];\n        \n        for (int i = n - 2; i >= 0; i--) {\n            int j = i + 1;\n            \n            while (j < n) {\n                if (temperatures[j] > temperatures[i]) {\n                    result[i] = j - i;\n                    break;\n                } else if (result[j] == 0) {\n                    // No warmer day after j\n                    result[i] = 0;\n                    break;\n                } else {\n                    // Jump to the next warmer day after j\n                    j = j + result[j];\n                }\n            }\n        }\n        \n        return result;\n    }\n}"
+      "description": "## Approach\n\nProcess the array from right to left. For day `i`, start at `i + 1`. If that day is not warmer, use the already computed answer for that later day to jump over a whole block of days that cannot be the answer for `i`.\n\n## Key Insight\n\nIf day `j` is not warmer than day `i`, then every day before `j + answer[j]` is also useless for `i`; otherwise `answer[j]` would have stopped earlier. A zero answer at `j` proves there is no warmer day after `j`, so day `i` is also unresolved.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1) excluding the output array",
+      "code": "class Solution {\n    public int[] dailyTemperatures(int[] temperatures) {\n        int n = temperatures.length;\n        int[] result = new int[n];\n\n        for (int i = n - 2; i >= 0; i--) {\n            int j = i + 1;\n            while (j < n) {\n                if (temperatures[j] > temperatures[i]) {\n                    result[i] = j - i;\n                    break;\n                }\n                if (result[j] == 0) {\n                    break;\n                }\n                j += result[j];\n            }\n        }\n\n        return result;\n    }\n}"
+    },
+    {
+      "name": "Next Index by Temperature Value",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan from right to left and remember the next index where each temperature value appears. For the current temperature, inspect only warmer values from `temperature + 1` through `100` and choose the nearest recorded index.\n\n## Key Insight\n\nThe problem has a tiny fixed value range: temperatures are only from 30 to 100. That bounded domain lets us replace a general stack with a direct lookup table while still respecting the strictly warmer condition.\n\n## Complexity Analysis\n- Time Complexity: O(n), because the 71 possible temperature values are a fixed constant\n- Space Complexity: O(1)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] dailyTemperatures(int[] temperatures) {\n        int n = temperatures.length;\n        int[] answer = new int[n];\n        int[] nextIndex = new int[101];\n        Arrays.fill(nextIndex, Integer.MAX_VALUE);\n\n        for (int i = n - 1; i >= 0; i--) {\n            int nearest = Integer.MAX_VALUE;\n            for (int t = temperatures[i] + 1; t <= 100; t++) {\n                nearest = Math.min(nearest, nextIndex[t]);\n            }\n            if (nearest != Integer.MAX_VALUE) {\n                answer[i] = nearest - i;\n            }\n            nextIndex[temperatures[i]] = i;\n        }\n\n        return answer;\n    }\n}"
+    },
+    {
+      "name": "Brute Force Baseline",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFor each day, scan all later days until finding the first strictly warmer temperature. Record that distance and immediately stop the inner loop. If the scan finishes without a warmer day, the default answer stays zero.\n\n## Key Insight\n\nThis route is intentionally simple and mirrors the definition of the answer exactly. It is too slow for the largest constraint, but it is useful as a correctness baseline before teaching why the stack removes repeated scanning.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(1) excluding the output array",
+      "code": "class Solution {\n    public int[] dailyTemperatures(int[] temperatures) {\n        int n = temperatures.length;\n        int[] answer = new int[n];\n\n        for (int i = 0; i < n; i++) {\n            for (int j = i + 1; j < n; j++) {\n                if (temperatures[j] > temperatures[i]) {\n                    answer[i] = j - i;\n                    break;\n                }\n            }\n        }\n\n        return answer;\n    }\n}"
     }
   ]
 }

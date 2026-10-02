@@ -1,10 +1,14 @@
 {
   "id": "473",
   "title": "Minimum Index Sum of Two Lists",
-  "description": "# Minimum Index Sum of Two Lists\n\nGiven two arrays of strings `list1` and `list2`, find the **common strings with the least index sum**.\n\nA **common string** is a string that appeared in both `list1` and `list2`.\n\nA **common string with the least index sum** is a common string such that if it appeared at `list1[i]` and `list2[j]` then `i + j` should be the minimum value among all the common strings.\n\nReturn *all the common strings with the least index sum*. Return the answer in any order.\n\n## Example 1:\n\n**Input:** list1 = [\"Shogun\",\"Tapioca Express\",\"Burger King\",\"KFC\"], list2 = [\"Piatti\",\"The Grill at Torrey Pines\",\"Hungry Hunter Steakhouse\",\"Shogun\"]\n**Output:** [\"Shogun\"]\n**Explanation:** The only common string is \"Shogun\".\n\n## Example 2:\n\n**Input:** list1 = [\"Shogun\",\"Tapioca Express\",\"Burger King\",\"KFC\"], list2 = [\"KFC\",\"Shogun\",\"Burger King\"]\n**Output:** [\"Shogun\"]\n**Explanation:** The common string with the least index sum is \"Shogun\" with index sum = (0 + 1) = 1.\n\n## Example 3:\n\n**Input:** list1 = [\"happy\",\"sad\",\"good\"], list2 = [\"sad\",\"happy\",\"good\"]\n**Output:** [\"sad\",\"happy\"]\n**Explanation:** There are three common strings:\n\"happy\" with index sum = (0 + 1) = 1.\n\"sad\" with index sum = (1 + 0) = 1.\n\"good\" with index sum = (2 + 2) = 4.\nThe strings with the least index sum are \"sad\" and \"happy\".\n\n## Constraints:\n\n*   `1 <= list1.length, list2.length <= 1000`\n*   `1 <= list1[i].length, list2[i].length <= 30`\n*   `list1[i]` and `list2[i]` consist of spaces `' '` and English letters.\n*   All the strings of `list1` are **unique**.\n*   All the strings of `list2` are **unique**.\n*   There is at least one common string between `list1` and `list2`.",
+  "description": "# Minimum Index Sum of Two Lists\n\nGiven two arrays of strings `list1` and `list2`, find the common strings with the least index sum.\n\nA common string is a string that appears in both arrays. If a common string appears at `list1[i]` and `list2[j]`, its index sum is `i + j`.\n\nReturn all common strings whose index sum is as small as possible. The answer may be returned in any order.\n\nEach input list contains unique strings, and the two lists are guaranteed to have at least one common string.\n\n## Example 1:\n\n**Input:** list1 = [\"Shogun\",\"Tapioca Express\",\"Burger King\",\"KFC\"], list2 = [\"Piatti\",\"The Grill at Torrey Pines\",\"Hungry Hunter Steakhouse\",\"Shogun\"]\n**Output:** [\"Shogun\"]\n**Explanation:** The only common string is \"Shogun\".\n\n## Example 2:\n\n**Input:** list1 = [\"Shogun\",\"Tapioca Express\",\"Burger King\",\"KFC\"], list2 = [\"KFC\",\"Shogun\",\"Burger King\"]\n**Output:** [\"Shogun\"]\n**Explanation:** \"Shogun\" has index sum `0 + 1 = 1`, which is smaller than every other common string.\n\n## Example 3:\n\n**Input:** list1 = [\"happy\",\"sad\",\"good\"], list2 = [\"sad\",\"happy\",\"good\"]\n**Output:** [\"sad\",\"happy\"]\n**Explanation:** \"happy\" and \"sad\" both have index sum `1`, while \"good\" has index sum `4`.\n\n## Constraints:\n\n* `1 <= list1.length, list2.length <= 1000`\n* `1 <= list1[i].length, list2[i].length <= 30`\n* `list1[i]` and `list2[i]` consist of spaces `' '` and English letters\n* All the strings of `list1` are unique\n* All the strings of `list2` are unique\n* There is at least one common string between `list1` and `list2`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public String[] findRestaurant(String[] list1, String[] list2) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "String"],
+  "tags": [
+    "Array",
+    "Hash Table",
+    "String"
+  ],
   "examples": [
     {
       "input": "list1 = [\"Shogun\",\"Tapioca Express\",\"Burger King\",\"KFC\"], list2 = [\"Piatti\",\"The Grill at Torrey Pines\",\"Hungry Hunter Steakhouse\",\"Shogun\"]",
@@ -24,16 +28,24 @@
       "name": "HashMap Index Lookup",
       "timeComplexity": "O(n + m)",
       "spaceComplexity": "O(n)",
-      "description": "Store list1 strings with their indices in a HashMap. Iterate list2, for common strings compute index sum. Track minimum index sum and collect results.",
-      "code": "class Solution {\n    public String[] findRestaurant(String[] list1, String[] list2) {\n        java.util.HashMap<String, Integer> map = new java.util.HashMap<>();\n        for (int i = 0; i < list1.length; i++) map.put(list1[i], i);\n        java.util.List<String> result = new java.util.ArrayList<>();\n        int minSum = Integer.MAX_VALUE;\n        for (int j = 0; j < list2.length; j++) {\n            if (map.containsKey(list2[j])) {\n                int sum = j + map.get(list2[j]);\n                if (sum < minSum) {\n                    minSum = sum;\n                    result.clear();\n                    result.add(list2[j]);\n                } else if (sum == minSum) {\n                    result.add(list2[j]);\n                }\n            }\n        }\n        return result.toArray(new String[0]);\n    }\n}",
+      "description": "## Approach\n\nStore every string in `list1` with its index. Then scan `list2`; whenever a string exists in the map, compute the index sum and update the current best answer list.\n\n## Key Insight\n\nThe expensive part is finding the matching index in `list1`. A hash map turns that lookup into constant average time, so every string is processed only once after the map is built.\n\n## Complexity Analysis\n\n- Time Complexity: O(n + m), where n and m are the two list lengths.\n- Space Complexity: O(n), for the index map of `list1`.",
+      "code": "class Solution {\n    public String[] findRestaurant(String[] list1, String[] list2) {\n        java.util.HashMap<String, Integer> indexInList1 = new java.util.HashMap<>();\n        for (int i = 0; i < list1.length; i++) {\n            indexInList1.put(list1[i], i);\n        }\n\n        int bestSum = Integer.MAX_VALUE;\n        java.util.List<String> answer = new java.util.ArrayList<>();\n        for (int j = 0; j < list2.length; j++) {\n            Integer i = indexInList1.get(list2[j]);\n            if (i == null) {\n                continue;\n            }\n            int sum = i + j;\n            if (sum < bestSum) {\n                bestSum = sum;\n                answer.clear();\n                answer.add(list2[j]);\n            } else if (sum == bestSum) {\n                answer.add(list2[j]);\n            }\n        }\n        return answer.toArray(new String[0]);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "HashMap with Linear Scan",
-      "timeComplexity": "O(n + m)",
-      "spaceComplexity": "O(n)",
-      "description": "Store list1 in a HashMap mapping string to index. Iterate list2 in order, for common strings compute index sum. Collect strings with the minimum sum.",
-      "code": "class Solution {\n    public String[] findRestaurant(String[] list1, String[] list2) {\n        java.util.HashMap<String, Integer> map1 = new java.util.HashMap<>();\n        for (int i = 0; i < list1.length; i++) map1.put(list1[i], i);\n        int minSum = Integer.MAX_VALUE;\n        java.util.List<String> result = new java.util.ArrayList<>();\n        for (int j = 0; j < list2.length; j++) {\n            if (map1.containsKey(list2[j])) {\n                int sum = map1.get(list2[j]) + j;\n                if (sum < minSum) {\n                    minSum = sum;\n                    result.clear();\n                    result.add(list2[j]);\n                } else if (sum == minSum) {\n                    result.add(list2[j]);\n                }\n            }\n        }\n        return result.toArray(new String[0]);\n    }\n}",
+      "name": "Index-Sum Layer Search",
+      "timeComplexity": "O(n * m)",
+      "spaceComplexity": "O(r)",
+      "description": "## Approach\n\nSearch possible index sums from small to large. For a fixed sum, only pairs `(i, j)` with `i + j == sum` need to be checked; the first sum that produces at least one common string is optimal.\n\n## Key Insight\n\nThe problem asks for the minimum index sum, so scanning sums in increasing order lets us stop as soon as any matching pair appears. This route follows the definition directly without building a hash map.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * m) in the worst case, because all valid index pairs may be checked before the first match.\n- Space Complexity: O(r), where r is the number of returned strings.",
+      "code": "class Solution {\n    public String[] findRestaurant(String[] list1, String[] list2) {\n        java.util.List<String> answer = new java.util.ArrayList<>();\n        int maxSum = list1.length + list2.length - 2;\n        for (int sum = 0; sum <= maxSum; sum++) {\n            int firstJ = Math.max(0, sum - (list1.length - 1));\n            int lastJ = Math.min(list2.length - 1, sum);\n            for (int j = firstJ; j <= lastJ; j++) {\n                int i = sum - j;\n                if (list1[i].equals(list2[j])) {\n                    answer.add(list2[j]);\n                }\n            }\n            if (!answer.isEmpty()) {\n                return answer.toArray(new String[0]);\n            }\n        }\n        return new String[0];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Brute Force Index Sum Baseline",
+      "timeComplexity": "O(n * m)",
+      "spaceComplexity": "O(r)",
+      "description": "## Approach\n\nCompare every string in `list2` with every string in `list1`. For each match, compute the index sum and maintain the smallest sum and every string that reaches it.\n\n## Key Insight\n\nThis is the direct definition of the task. It is slower than the hash-map route, but it is useful for validating how ties are handled before adding lookup optimization.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * m), because every cross-list pair may be compared.\n- Space Complexity: O(r), where r is the number of returned strings.",
+      "code": "class Solution {\n    public String[] findRestaurant(String[] list1, String[] list2) {\n        java.util.List<String> answer = new java.util.ArrayList<>();\n        int bestSum = Integer.MAX_VALUE;\n        for (int j = 0; j < list2.length; j++) {\n            for (int i = 0; i < list1.length; i++) {\n                if (!list2[j].equals(list1[i])) {\n                    continue;\n                }\n                int sum = i + j;\n                if (sum < bestSum) {\n                    bestSum = sum;\n                    answer.clear();\n                    answer.add(list2[j]);\n                } else if (sum == bestSum) {\n                    answer.add(list2[j]);\n                }\n            }\n        }\n        return answer.toArray(new String[0]);\n    }\n}",
       "language": "java"
     }
   ],
@@ -49,6 +61,42 @@
     {
       "input": "list1 = [\"happy\",\"sad\",\"good\"], list2 = [\"sad\",\"happy\",\"good\"]",
       "output": "[\"sad\",\"happy\"]"
+    },
+    {
+      "input": "list1 = [\"a\",\"b\",\"c\"], list2 = [\"c\",\"b\",\"a\"]",
+      "output": "[\"c\",\"b\",\"a\"]"
+    },
+    {
+      "input": "list1 = [\"a\",\"b\"], list2 = [\"c\",\"b\"]",
+      "output": "[\"b\"]"
+    },
+    {
+      "input": "list1 = [\"only\"], list2 = [\"only\"]",
+      "output": "[\"only\"]"
+    },
+    {
+      "input": "list1 = [\"New York Grill\",\"KFC\",\"Ramen House\"], list2 = [\"Taco Bell\",\"Ramen House\",\"New York Grill\"]",
+      "output": "[\"New York Grill\"]"
+    },
+    {
+      "input": "list1 = [\"x\",\"a\",\"b\",\"c\"], list2 = [\"z\",\"c\",\"b\",\"a\"]",
+      "output": "[\"c\",\"b\",\"a\"]"
+    },
+    {
+      "input": "list1 = [\"a\",\"b\",\"c\",\"d\"], list2 = [\"d\",\"c\",\"x\",\"b\"]",
+      "output": "[\"d\",\"c\"]"
+    },
+    {
+      "input": "list1 = [\"alpha\",\"beta\",\"gamma\"], list2 = [\"delta\",\"gamma\",\"beta\"]",
+      "output": "[\"gamma\",\"beta\"]"
+    },
+    {
+      "input": "list1 = [\"first\",\"second\",\"third\",\"fourth\"], list2 = [\"zero\",\"fourth\",\"third\",\"second\",\"first\"]",
+      "output": "[\"fourth\",\"third\",\"second\",\"first\"]"
+    },
+    {
+      "input": "list1 = [\"aa\",\"bb\",\"cc\"], list2 = [\"dd\",\"ee\",\"cc\",\"bb\"]",
+      "output": "[\"cc\",\"bb\"]"
     }
   ]
 }

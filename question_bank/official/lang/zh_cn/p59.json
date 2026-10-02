@@ -1,0 +1,22 @@
+{
+  "title": "搜索插入位置",
+  "description": "# 搜索插入位置\n\n给定一个由互不相同的整数组成的有序数组 `nums`，以及一个整数 `target`。如果 `target` 已经存在于数组中，返回它的下标。\n\n如果 `target` 不存在，返回它应当插入的位置，使得 `nums` 仍然保持升序。返回值可以是 `0`，表示目标值应当插入到所有元素之前；也可以是 `nums.length`，表示目标值应当插入到所有元素之后。\n\n你必须编写时间复杂度为 `O(log n)` 的算法。\n\n## 示例 1\n\n**输入：** nums = [1,3,5,6], target = 5\n\n**输出：** 2\n\n## 示例 2\n\n**输入：** nums = [1,3,5,6], target = 2\n\n**输出：** 1\n\n## 示例 3\n\n**输入：** nums = [1,3,5,6], target = 7\n\n**输出：** 4\n\n## 约束条件\n\n* `1 <= nums.length <= 10000`\n* `-10000 <= nums[i] <= 10000`\n* `nums` 按严格递增顺序排列。\n* `-10000 <= target <= 10000`",
+  "solutions": [
+    {
+      "name": "半开区间 lower_bound",
+      "description": "## 思路\n\n在半开区间 `[left, right)` 中寻找第一个大于等于 `target` 的下标。如果 `nums[mid] >= target`，插入位置在 `mid` 或它左侧，因此令 `right = mid`；否则令 `left = mid + 1`。\n\n## 关键点\n\n目标答案就是 Java/C++ 风格的 `lower_bound`：第一个可以放入 `target` 而不破坏排序的位置。半开区间让 `nums.length` 自然成为可能答案。\n\n## 复杂度分析\n- 时间复杂度：O(log n)\n- 空间复杂度：O(1)"
+    },
+    {
+      "name": "闭区间加答案变量",
+      "description": "## 思路\n\n使用闭区间，并用 `answer` 保存当前见过的最佳插入位置。当 `nums[mid] >= target` 时，更新 `answer = mid` 并继续向左查找；当 `nums[mid] < target` 时，向右查找。\n\n## 关键点\n\n`answer` 初始为 `nums.length`，覆盖所有元素都小于 `target` 的情况。每次找到一个大于等于目标的下标，它就成为候选答案，然后继续尝试找到更靠左的位置。\n\n## 复杂度分析\n- 时间复杂度：O(log n)\n- 空间复杂度：O(1)"
+    },
+    {
+      "name": "精确查找后返回插入点",
+      "description": "## 思路\n\n执行标准闭区间二分查找。如果 `nums[mid] == target`，立即返回 `mid`。如果循环结束仍未找到目标，`left` 已经移动到第一个大于 `target` 的位置，也就是插入位置。\n\n## 关键点\n\n失败的二分查找也会留下有意义的指针状态：结束时，`left` 之前的所有元素都小于 `target`，而剩余位置都在插入点右侧。\n\n## 复杂度分析\n- 时间复杂度：O(log n)\n- 空间复杂度：O(1)"
+    },
+    {
+      "name": "递归 lower_bound",
+      "description": "## 思路\n\n递归搜索半开区间 `[left, right)`，寻找第一个大于等于 `target` 的元素。当区间为空时，返回 `left`。\n\n## 关键点\n\n它和迭代 lower_bound 使用同一个不变量，只是写成了分治形式。递归写法适合讲清楚为什么可以丢弃一半区间，同时不丢失插入位置。\n\n## 复杂度分析\n- 时间复杂度：O(log n)\n- 空间复杂度：O(log n)"
+    }
+  ]
+}

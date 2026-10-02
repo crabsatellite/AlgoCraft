@@ -1,7 +1,7 @@
 {
   "id": "467",
   "title": "Binary Tree Tilt",
-  "description": "# Binary Tree Tilt\n\nGiven the `root` of a binary tree, return *the sum of every tree node's **tilt**.*\n\nThe **tilt** of a tree node is the **absolute difference** between the sum of all left subtree node values and all right subtree node values. If a node does not have a left child, then the sum of the left subtree node values is treated as `0`. The rule is similar if the node does not have a right child.\n\n## Example 1:\n\n**Input:** root = [1,2,3]\n**Output:** 1\n**Explanation:** \nTilt of node 2 : |0-0| = 0 (no children)\nTilt of node 3 : |0-0| = 0 (no children)\nTilt of node 1 : |2-3| = 1 (left sum = 2, right sum = 3)\nSum of every tilt : 0 + 0 + 1 = 1\n\n## Example 2:\n\n**Input:** root = [4,2,9,3,5,null,7]\n**Output:** 15\n**Explanation:** \nTilt of node 3 : |0-0| = 0\nTilt of node 5 : |0-0| = 0\nTilt of node 7 : |0-0| = 0\nTilt of node 2 : |3-5| = 2\nTilt of node 9 : |0-7| = 7\nTilt of node 4 : |(3+5+2)-(9+7)| = |10-16| = 6\nSum of every tilt : 0 + 0 + 0 + 2 + 7 + 6 = 15\n\n## Example 3:\n\n**Input:** root = [21,7,14,1,1,2,2,3,3]\n**Output:** 9\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[0, 10^4]`.\n*   `-1000 <= Node.val <= 1000`",
+  "description": "# Binary Tree Tilt\n\nGiven the `root` of a binary tree, return the sum of every node's **tilt**.\n\nThe **tilt** of a node is the absolute difference between the sum of all values in its left subtree and the sum of all values in its right subtree. If a subtree is missing, its sum is `0`.\n\nA node's own value is excluded from its tilt calculation. A leaf has two empty subtrees and tilt `0`.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [1,2,3]\n**Output:** 1\n**Explanation:** Node `2` has tilt `0`, node `3` has tilt `0`, and node `1` has tilt `|2 - 3| = 1`. The total tilt is `1`.\n\n## Example 2:\n\n**Input:** root = [4,2,9,3,5,null,7]\n**Output:** 15\n**Explanation:** Node `2` has tilt `|3 - 5| = 2`, node `9` has tilt `|0 - 7| = 7`, and node `4` has tilt `|(2 + 3 + 5) - (9 + 7)| = 6`. The total tilt is `2 + 7 + 6 = 15`.\n\n## Example 3:\n\n**Input:** root = [21,7,14,1,1,2,2,3,3]\n**Output:** 9\n\n## Constraints:\n\n* The number of nodes in the tree is in the range `[0, 10^4]`.\n* `-1000 <= Node.val <= 1000`",
   "difficulty": "EASY",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public int findTilt(TreeNode root) {\n        \n    }\n}",
   "tags": [
@@ -12,11 +12,13 @@
   "examples": [
     {
       "input": "root = [1,2,3]",
-      "output": "1"
+      "output": "1",
+      "explanation": "The root contributes |2 - 3| = 1; both leaves contribute 0."
     },
     {
       "input": "root = [4,2,9,3,5,null,7]",
-      "output": "15"
+      "output": "15",
+      "explanation": "The non-zero tilts are 2, 7, and 6."
     },
     {
       "input": "root = [21,7,14,1,1,2,2,3,3]",
@@ -25,19 +27,35 @@
   ],
   "solutions": [
     {
-      "name": "Post-order DFS",
+      "name": "Recursive Postorder Accumulator",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "Use post-order traversal. Each recursive call returns the subtree sum. The tilt at each node is |leftSum - rightSum|. Accumulate total tilt in a global variable.",
-      "code": "class Solution {\n    private int totalTilt = 0;\n\n    public int findTilt(TreeNode root) {\n        totalTilt = 0;\n        subtreeSum(root);\n        return totalTilt;\n    }\n\n    private int subtreeSum(TreeNode node) {\n        if (node == null) return 0;\n        int leftSum = subtreeSum(node.left);\n        int rightSum = subtreeSum(node.right);\n        totalTilt += Math.abs(leftSum - rightSum);\n        return node.val + leftSum + rightSum;\n    }\n}",
+      "description": "## Approach\n\nTraverse the tree in postorder. Each recursive call returns the sum of its subtree; after both child sums are known, add `abs(leftSum - rightSum)` to a running total.\n\n## Key Insight\n\nA node's tilt cannot be computed until both child subtree sums are known, so this is a natural postorder problem. The returned subtree sum is separate from the accumulated tilt.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because every node is visited once.\n- Space Complexity: O(h), where `h` is the recursion depth of the tree.",
+      "code": "class Solution {\n    private int totalTilt = 0;\n\n    public int findTilt(TreeNode root) {\n        totalTilt = 0;\n        subtreeSum(root);\n        return totalTilt;\n    }\n\n    private int subtreeSum(TreeNode node) {\n        if (node == null) {\n            return 0;\n        }\n\n        int leftSum = subtreeSum(node.left);\n        int rightSum = subtreeSum(node.right);\n        totalTilt += Math.abs(leftSum - rightSum);\n        return node.val + leftSum + rightSum;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Iterative Post-order with Stack",
+      "name": "Recursive Sum and Tilt Pair",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nLet each recursive call return two values: the subtree sum and the total tilt inside that subtree. The parent combines the two child results and adds its own tilt.\n\n## Key Insight\n\nThis is the same postorder recurrence without a global accumulator. Returning a small pair makes the data dependency explicit: parent nodes need both child sums and both child tilt totals.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each node contributes one combined result.\n- Space Complexity: O(h) for the recursion stack.",
+      "code": "class Solution {\n    public int findTilt(TreeNode root) {\n        return solve(root)[1];\n    }\n\n    private int[] solve(TreeNode node) {\n        if (node == null) {\n            return new int[]{0, 0};\n        }\n\n        int[] left = solve(node.left);\n        int[] right = solve(node.right);\n        int subtreeSum = node.val + left[0] + right[0];\n        int tiltTotal = left[1] + right[1] + Math.abs(left[0] - right[0]);\n        return new int[]{subtreeSum, tiltTotal};\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two-Stack Iterative Postorder",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use an iterative approach with a stack. Store each node alongside its subtree sum. Process nodes in post-order and accumulate the total tilt.",
-      "code": "class Solution {\n    public int findTilt(TreeNode root) {\n        if (root == null) return 0;\n        int totalTilt = 0;\n        java.util.Map<TreeNode, Integer> sumMap = new java.util.HashMap<>();\n        java.util.Deque<TreeNode> stack = new java.util.ArrayDeque<>();\n        java.util.Deque<TreeNode> output = new java.util.ArrayDeque<>();\n        stack.push(root);\n        while (!stack.isEmpty()) {\n            TreeNode node = stack.pop();\n            output.push(node);\n            if (node.left != null) stack.push(node.left);\n            if (node.right != null) stack.push(node.right);\n        }\n        while (!output.isEmpty()) {\n            TreeNode node = output.pop();\n            int leftSum = node.left != null ? sumMap.get(node.left) : 0;\n            int rightSum = node.right != null ? sumMap.get(node.right) : 0;\n            totalTilt += Math.abs(leftSum - rightSum);\n            sumMap.put(node, node.val + leftSum + rightSum);\n        }\n        return totalTilt;\n    }\n}",
+      "description": "## Approach\n\nBuild a postorder processing sequence with two stacks. Then process nodes from children to parent, reading child subtree sums from a map and storing the current subtree sum back into that map.\n\n## Key Insight\n\nThe recursive solution relies on the call stack to delay a parent until its children are done. Two explicit stacks reproduce that order without recursion.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because every node is pushed, popped, and processed once.\n- Space Complexity: O(n) for the stacks and subtree-sum map.",
+      "code": "class Solution {\n    public int findTilt(TreeNode root) {\n        if (root == null) {\n            return 0;\n        }\n\n        java.util.ArrayDeque<TreeNode> stack = new java.util.ArrayDeque<>();\n        java.util.ArrayDeque<TreeNode> postorder = new java.util.ArrayDeque<>();\n        stack.push(root);\n\n        while (!stack.isEmpty()) {\n            TreeNode node = stack.pop();\n            postorder.push(node);\n            if (node.left != null) {\n                stack.push(node.left);\n            }\n            if (node.right != null) {\n                stack.push(node.right);\n            }\n        }\n\n        java.util.HashMap<TreeNode, Integer> subtreeSums = new java.util.HashMap<>();\n        int totalTilt = 0;\n        while (!postorder.isEmpty()) {\n            TreeNode node = postorder.pop();\n            int leftSum = node.left == null ? 0 : subtreeSums.get(node.left);\n            int rightSum = node.right == null ? 0 : subtreeSums.get(node.right);\n            totalTilt += Math.abs(leftSum - rightSum);\n            subtreeSums.put(node, node.val + leftSum + rightSum);\n        }\n        return totalTilt;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Visited-Flag Iterative Postorder",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse one node stack and a parallel stack of visited flags. The first time a node is seen, push it back as visited and then push its children. The second time, both child sums are available.\n\n## Key Insight\n\nA visited flag is an explicit marker for the moment recursion would return to a node after finishing its children. That marker gives iterative code the same child-before-parent guarantee.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each node is pushed at most twice and processed once.\n- Space Complexity: O(n) for the stacks and subtree-sum map.",
+      "code": "class Solution {\n    public int findTilt(TreeNode root) {\n        if (root == null) {\n            return 0;\n        }\n\n        java.util.ArrayDeque<TreeNode> nodeStack = new java.util.ArrayDeque<>();\n        java.util.ArrayDeque<Boolean> visitedStack = new java.util.ArrayDeque<>();\n        java.util.HashMap<TreeNode, Integer> subtreeSums = new java.util.HashMap<>();\n        nodeStack.push(root);\n        visitedStack.push(false);\n        int totalTilt = 0;\n\n        while (!nodeStack.isEmpty()) {\n            TreeNode node = nodeStack.pop();\n            boolean visited = visitedStack.pop();\n            if (visited) {\n                int leftSum = node.left == null ? 0 : subtreeSums.get(node.left);\n                int rightSum = node.right == null ? 0 : subtreeSums.get(node.right);\n                totalTilt += Math.abs(leftSum - rightSum);\n                subtreeSums.put(node, node.val + leftSum + rightSum);\n            } else {\n                nodeStack.push(node);\n                visitedStack.push(true);\n                if (node.right != null) {\n                    nodeStack.push(node.right);\n                    visitedStack.push(false);\n                }\n                if (node.left != null) {\n                    nodeStack.push(node.left);\n                    visitedStack.push(false);\n                }\n            }\n        }\n\n        return totalTilt;\n    }\n}",
       "language": "java"
     }
   ],
@@ -53,13 +71,49 @@
     {
       "input": "root = [21,7,14,1,1,2,2,3,3]",
       "output": "9"
+    },
+    {
+      "input": "root = [1]",
+      "output": "0"
+    },
+    {
+      "input": "root = []",
+      "output": "0"
+    },
+    {
+      "input": "root = [1,2,null,3,null,4]",
+      "output": "20"
+    },
+    {
+      "input": "root = [1,null,2,null,3,null,4]",
+      "output": "20"
+    },
+    {
+      "input": "root = [0,-3,5,-2,-1,4,6]",
+      "output": "24"
+    },
+    {
+      "input": "root = [5,3,8,1,4,7,9]",
+      "output": "21"
+    },
+    {
+      "input": "root = [10,5,null,2,7]",
+      "output": "19"
+    },
+    {
+      "input": "root = [10,null,5,null,2,null,1]",
+      "output": "12"
+    },
+    {
+      "input": "root = [2,2,2,2,2,2,2]",
+      "output": "0"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p467_example1.png",
-      "caption": "Example 1: Tree [1,2,3]"
+      "caption": "Example input tree"
     }
   ]
 }

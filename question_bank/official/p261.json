@@ -1,10 +1,13 @@
 {
   "id": "261",
   "title": "Maximum Number of Words Found in Sentences",
-  "description": "# Maximum Number of Words Found in Sentences\n\nA **sentence** is a list of words that are separated by a single space with no leading or trailing spaces.\n\nYou are given an array of strings `sentences`, where each `sentences[i]` represents a single **sentence**.\n\nReturn *the **maximum number of words** that appear in a single sentence*.\n\n## Example 1:\n\n**Input:** sentences = [\"alice and bob love leetcode\", \"i think so too\", \"this is great thanks very much\"]\n**Output:** 6\n**Explanation:** \n- The first sentence, \"alice and bob love leetcode\", has 5 words.\n- The second sentence, \"i think so too\", has 4 words.\n- The third sentence, \"this is great thanks very much\", has 6 words.\nThus, the maximum number of words in a single sentence comes from the third sentence, which has 6 words.\n\n## Example 2:\n\n**Input:** sentences = [\"please wait\", \"continue to fight\", \"continue to win\"]\n**Output:** 3\n**Explanation:** It is possible that multiple sentences contain the same number of words. \nIn this example, the second and third sentences (underlined) have the same number of words.\n\n## Constraints:\n\n*   `1 <= sentences.length <= 100`\n*   `1 <= sentences[i].length <= 100`\n*   `sentences[i]` consists only of lowercase English letters and `' '` only.\n*   `sentences[i]` does not have leading or trailing spaces.\n*   All the words in `sentences[i]` are separated by a single space.",
+  "description": "# Maximum Number of Words Found in Sentences\n\nA **sentence** is a list of one or more words separated by single spaces. There are no leading spaces and no trailing spaces.\n\nYou are given an array of strings `sentences`, where each `sentences[i]` is one valid sentence. Return the maximum number of words that appears in any single sentence.\n\n## Example 1:\n\n**Input:** sentences = [\"alice and bob love leetcode\", \"i think so too\", \"this is great thanks very much\"]\n**Output:** 6\n**Explanation:** The three sentences contain 5, 4, and 6 words. The maximum is 6.\n\n## Example 2:\n\n**Input:** sentences = [\"please wait\", \"continue to fight\", \"continue to win\"]\n**Output:** 3\n**Explanation:** The second and third sentences both contain 3 words, so the maximum is 3.\n\n## Constraints:\n\n* `1 <= sentences.length <= 100`\n* `1 <= sentences[i].length <= 100`\n* `sentences[i]` consists only of lowercase English letters and spaces.\n* `sentences[i]` does not have leading or trailing spaces.\n* All words in `sentences[i]` are separated by a single space.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int mostWordsFound(String[] sentences) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "String"],
+  "tags": [
+    "Array",
+    "String"
+  ],
   "examples": [
     {
       "input": "sentences = [\"alice and bob love leetcode\", \"i think so too\", \"this is great thanks very much\"]",
@@ -17,30 +20,98 @@
   ],
   "solutions": [
     {
-      "name": "Count Spaces",
-      "timeComplexity": "O(n * m)",
-      "spaceComplexity": "O(1)",
-      "description": "The number of words in a sentence equals the number of spaces plus one. Count spaces in each sentence and track the maximum.",
-      "code": "class Solution {\n    public int mostWordsFound(String[] sentences) {\n        int max = 0;\n        for (String s : sentences) {\n            int words = s.split(\" \").length;\n            max = Math.max(max, words);\n        }\n        return max;\n    }\n}",
+      "name": "Split Each Sentence",
+      "timeComplexity": "O(n*m)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nSplit each sentence on its single spaces and take the length of the resulting word array. Track the largest length across all sentences.\n\n## Key Insight\n\nThis mirrors the problem definition directly: after splitting on spaces, each token is one word because the input guarantees no leading, trailing, or repeated spaces.\n\n## Complexity Analysis\n\nEvery character can be scanned while splitting, so the time complexity is O(n*m), where `m` is the maximum sentence length. Each split creates a temporary array for one sentence, so the space complexity is O(m).",
+      "code": "class Solution {\n    public int mostWordsFound(String[] sentences) {\n        int maxWords = 0;\n        for (String sentence : sentences) {\n            maxWords = Math.max(maxWords, sentence.split(\" \").length);\n        }\n        return maxWords;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Character Count",
-      "timeComplexity": "O(n * m)",
+      "name": "Manual Space Count",
+      "timeComplexity": "O(n*m)",
       "spaceComplexity": "O(1)",
-      "description": "Instead of using split, count space characters manually in each sentence. Words = spaces + 1. Track the maximum.",
-      "code": "class Solution {\n    public int mostWordsFound(String[] sentences) {\n        int max = 0;\n        for (String s : sentences) {\n            int spaces = 0;\n            for (int i = 0; i < s.length(); i++) {\n                if (s.charAt(i) == ' ') spaces++;\n            }\n            max = Math.max(max, spaces + 1);\n        }\n        return max;\n    }\n}",
+      "description": "## Approach\n\nFor each sentence, start the word count at 1 and scan its characters. Every space increases the word count by one.\n\n## Key Insight\n\nThe input contract makes spaces reliable separators. Since there are no leading, trailing, or repeated spaces, counting separators is enough and avoids allocating token arrays.\n\n## Complexity Analysis\n\nThe scan visits every character once, giving O(n*m) time. Only counters are stored, so the space complexity is O(1).",
+      "code": "class Solution {\n    public int mostWordsFound(String[] sentences) {\n        int maxWords = 0;\n        for (String sentence : sentences) {\n            int words = 1;\n            for (int i = 0; i < sentence.length(); i++) {\n                if (sentence.charAt(i) == ' ') {\n                    words++;\n                }\n            }\n            maxWords = Math.max(maxWords, words);\n        }\n        return maxWords;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "IndexOf Separator Search",
+      "timeComplexity": "O(n*m)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse `indexOf` to jump from one space separator to the next. Each found separator adds one word, and the search resumes after that separator.\n\n## Key Insight\n\nThis keeps the separator-counting model but delegates the inner character search to the standard library. It still uses the rule that words are exactly spaces plus one.\n\n## Complexity Analysis\n\nAcross one sentence the search advances through the string, so the total time is O(n*m). The algorithm keeps only a few indexes and counters, so the space complexity is O(1).",
+      "code": "class Solution {\n    public int mostWordsFound(String[] sentences) {\n        int maxWords = 0;\n        for (String sentence : sentences) {\n            int words = 1;\n            int start = 0;\n            int next = sentence.indexOf(' ', start);\n            while (next != -1) {\n                words++;\n                start = next + 1;\n                next = sentence.indexOf(' ', start);\n            }\n            maxWords = Math.max(maxWords, words);\n        }\n        return maxWords;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Length Difference Space Count",
+      "timeComplexity": "O(n*m)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nRemove spaces from each sentence and compare the original length with the no-space length. The difference is the number of spaces, so the word count is that difference plus one.\n\n## Key Insight\n\nThis is another way to count separators without manually iterating over characters in user code. The answer depends on the number of spaces, not on the lengths of the words themselves.\n\n## Complexity Analysis\n\nReplacing spaces scans each sentence, so the time complexity is O(n*m). The no-space string is temporary storage for one sentence, so the space complexity is O(m).",
+      "code": "class Solution {\n    public int mostWordsFound(String[] sentences) {\n        int maxWords = 0;\n        for (String sentence : sentences) {\n            int spaces = sentence.length() - sentence.replace(\" \", \"\").length();\n            maxWords = Math.max(maxWords, spaces + 1);\n        }\n        return maxWords;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "sentences = [\"alice and bob love leetcode\", \"i think so too\", \"this is great thanks very much\"]",
-      "output": "6"
+      "output": "6",
+      "description": "canonical sample with three different sentence lengths"
     },
     {
       "input": "sentences = [\"please wait\", \"continue to fight\", \"continue to win\"]",
-      "output": "3"
+      "output": "3",
+      "description": "two sentences tie for the maximum"
+    },
+    {
+      "input": "sentences = [\"hello\"]",
+      "output": "1",
+      "description": "one-word sentence has no spaces"
+    },
+    {
+      "input": "sentences = [\"a b c d\", \"x y\"]",
+      "output": "4",
+      "description": "space count must add one"
+    },
+    {
+      "input": "sentences = [\"leetcode is fun\", \"minecraft makes algorithms visible\", \"code\"]",
+      "output": "4",
+      "description": "maximum appears in the middle"
+    },
+    {
+      "input": "sentences = [\"a aa aaa aaaa\", \"bb cc dd ee ff\"]",
+      "output": "5",
+      "description": "word lengths do not affect word count"
+    },
+    {
+      "input": "sentences = [\"one two three four five six seven eight nine ten\", \"short\"]",
+      "output": "10",
+      "description": "longer valid sentence near the constraint scale"
+    },
+    {
+      "input": "sentences = [\"a\", \"b c\", \"d e f\", \"g h i j\"]",
+      "output": "4",
+      "description": "maximum appears at the end"
+    },
+    {
+      "input": "sentences = [\"red blue\", \"green yellow orange\", \"black white gray silver\"]",
+      "output": "4",
+      "description": "increasing word counts"
+    },
+    {
+      "input": "sentences = [\"aa bb cc\", \"d\", \"ee ff gg hh ii jj\"]",
+      "output": "6",
+      "description": "maximum with short and long word lengths mixed"
+    },
+    {
+      "input": "sentences = [\"z y x w v\", \"alpha beta\"]",
+      "output": "5",
+      "description": "single-letter words still count separately"
+    },
+    {
+      "input": "sentences = [\"one two\", \"three four\", \"five six\"]",
+      "output": "2",
+      "description": "all sentences tie"
     }
   ]
 }

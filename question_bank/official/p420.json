@@ -1,10 +1,22 @@
 {
   "id": "420",
   "title": "Range Sum Query - Mutable",
-  "description": "# Range Sum Query - Mutable\n\nGiven an integer array `nums`, handle multiple queries of the following types:\n\n1.  **Update** the value of an element in `nums`.\n2.  Calculate the **sum** of the elements of `nums` between indices `left` and `right` **inclusive** where `left <= right`.\n\nImplement the `NumArray` class:\n\n*   `NumArray(int[] nums)` Initializes the object with the integer array `nums`.\n*   `void update(int index, int val)` Updates the value of `nums[index]` to be `val`.\n*   `int sumRange(int left, int right)` Returns the sum of the elements of `nums` between indices `left` and `right` inclusive (i.e. `nums[left] + nums[left + 1] + ... + nums[right]`).\n\n## Example 1:\n\n**Input:**\n[\"NumArray\", \"sumRange\", \"update\", \"sumRange\"]\n[[[1, 3, 5]], [0, 2], [1, 2], [0, 2]]\n**Output:**\n[null, 9, null, 8]\n**Explanation:**\nNumArray numArray = new NumArray([1, 3, 5]);\nnumArray.sumRange(0, 2); // return 1 + 3 + 5 = 9\nnumArray.update(1, 2);   // nums = [1, 2, 5]\nnumArray.sumRange(0, 2); // return 1 + 2 + 5 = 8\n\n## Constraints:\n\n*   `1 <= nums.length <= 3 * 10^4`\n*   `-100 <= nums[i] <= 100`\n*   `0 <= index < nums.length`\n*   `-100 <= val <= 100`\n*   `0 <= left <= right < nums.length`\n*   At most `3 * 10^4` calls will be made to `update` and `sumRange`.",
+  "description": "# Range Sum Query - Mutable\n\nGiven an integer array `nums`, handle repeated operations on the same array:\n\n* Update one element to a new value.\n* Return the sum of an inclusive index range.\n\nImplement the `NumArray` class:\n\n* `NumArray(int[] nums)` initializes the object with the array `nums`.\n* `void update(int index, int val)` sets `nums[index]` to `val`.\n* `int sumRange(int left, int right)` returns `nums[left] + nums[left + 1] + ... + nums[right]`.\n\nUpdates are assignments, not additions. Every later `sumRange` call must use the most recent value at each updated index. Every query is guaranteed to satisfy `0 <= left <= right < nums.length`.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1:\n\n**Input:**\n[\"NumArray\", \"sumRange\", \"update\", \"sumRange\"]\n[[[1, 3, 5]], [0, 2], [1, 2], [0, 2]]\n\n**Output:**\n[null, 9, null, 8]\n\n**Explanation:**\n`sumRange(0, 2)` returns `1 + 3 + 5 = 9`.\n`update(1, 2)` changes the current array to `[1, 2, 5]`.\n`sumRange(0, 2)` now returns `1 + 2 + 5 = 8`.\n\n## Constraints:\n\n* `1 <= nums.length <= 3 * 10^4`\n* `-100 <= nums[i] <= 100`\n* `0 <= index < nums.length`\n* `-100 <= val <= 100`\n* `0 <= left <= right < nums.length`\n* At most `3 * 10^4` calls will be made to `update` and `sumRange`.\n",
   "difficulty": "MEDIUM",
   "initialCode": "class NumArray {\n\n    public NumArray(int[] nums) {\n        \n    }\n    \n    public void update(int index, int val) {\n        \n    }\n    \n    public int sumRange(int left, int right) {\n        \n    }\n}",
-  "tags": ["Array", "Design", "Binary Indexed Tree", "Segment Tree"],
+  "tags": [
+    "Array",
+    "Design",
+    "Binary Indexed Tree",
+    "Segment Tree"
+  ],
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p420_example1.png",
+      "caption": "Point update followed by an inclusive range query"
+    }
+  ],
   "examples": [
     {
       "input": "[\"NumArray\", \"sumRange\", \"update\", \"sumRange\"]\n[[[1, 3, 5]], [0, 2], [1, 2], [0, 2]]",
@@ -13,19 +25,43 @@
   ],
   "solutions": [
     {
-      "name": "Binary Indexed Tree (Fenwick Tree)",
-      "timeComplexity": "O(n) init, O(log n) update/query",
+      "name": "Fenwick Tree with Stored Values",
+      "timeComplexity": "O(n log n) init, O(log n) update/query",
       "spaceComplexity": "O(n)",
-      "description": "Use a Binary Indexed Tree for efficient point updates and prefix sum queries. Update computes delta and propagates. sumRange uses prefix sums difference.",
-      "code": "class NumArray {\n    private int[] bit, nums;\n    private int n;\n    public NumArray(int[] nums) {\n        this.n = nums.length; this.nums = new int[n]; bit = new int[n + 1];\n        for (int i = 0; i < n; i++) update(i, nums[i]);\n    }\n    public void update(int index, int val) {\n        int delta = val - nums[index]; nums[index] = val;\n        for (int i = index + 1; i <= n; i += i & (-i)) bit[i] += delta;\n    }\n    private int query(int i) {\n        int sum = 0;\n        for (i++; i > 0; i -= i & (-i)) sum += bit[i];\n        return sum;\n    }\n    public int sumRange(int left, int right) {\n        return query(right) - (left > 0 ? query(left - 1) : 0);\n    }\n}",
+      "description": "## Approach\n\nKeep a Binary Indexed Tree for prefix sums and a copy of the current array values. An update computes `delta = val - nums[index]`, stores the new value, and adds the delta to every Fenwick bucket that covers the index. A range sum is the difference of two prefix sums.\n\n## Key Insight\n\nThe operation assigns a new value, so the tree must receive only the change from the old value to the new value. Storing the current array prevents accidentally treating `val` as an increment.\n\n## Complexity Analysis\n\nBuilding with point additions takes O(n log n) time. Each update and range query takes O(log n) time. The tree and stored values use O(n) space.",
+      "code": "class NumArray {\n    private int[] bit;\n    private int[] nums;\n\n    public NumArray(int[] nums) {\n        this.nums = nums.clone();\n        bit = new int[nums.length + 1];\n        for (int i = 0; i < nums.length; i++) {\n            add(i + 1, nums[i]);\n        }\n    }\n\n    public void update(int index, int val) {\n        int delta = val - nums[index];\n        nums[index] = val;\n        add(index + 1, delta);\n    }\n\n    public int sumRange(int left, int right) {\n        return prefix(right + 1) - prefix(left);\n    }\n\n    private void add(int index, int delta) {\n        for (int i = index; i < bit.length; i += i & -i) {\n            bit[i] += delta;\n        }\n    }\n\n    private int prefix(int count) {\n        int sum = 0;\n        for (int i = count; i > 0; i -= i & -i) {\n            sum += bit[i];\n        }\n        return sum;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Segment Tree",
+      "name": "Recursive Segment Tree",
       "timeComplexity": "O(n) init, O(log n) update/query",
       "spaceComplexity": "O(n)",
-      "description": "Use a segment tree stored in an array of size 4*n. Build recursively. Point update and range sum query operate in O(log n) by traversing the tree.",
-      "code": "class NumArray {\n    private int[] tree;\n    private int n;\n    public NumArray(int[] nums) {\n        n = nums.length;\n        tree = new int[4 * n];\n        build(nums, 1, 0, n - 1);\n    }\n    private void build(int[] nums, int node, int start, int end) {\n        if (start == end) {\n            tree[node] = nums[start];\n            return;\n        }\n        int mid = (start + end) / 2;\n        build(nums, 2 * node, start, mid);\n        build(nums, 2 * node + 1, mid + 1, end);\n        tree[node] = tree[2 * node] + tree[2 * node + 1];\n    }\n    public void update(int index, int val) {\n        updateHelper(1, 0, n - 1, index, val);\n    }\n    private void updateHelper(int node, int start, int end, int idx, int val) {\n        if (start == end) {\n            tree[node] = val;\n            return;\n        }\n        int mid = (start + end) / 2;\n        if (idx <= mid) updateHelper(2 * node, start, mid, idx, val);\n        else updateHelper(2 * node + 1, mid + 1, end, idx, val);\n        tree[node] = tree[2 * node] + tree[2 * node + 1];\n    }\n    public int sumRange(int left, int right) {\n        return queryHelper(1, 0, n - 1, left, right);\n    }\n    private int queryHelper(int node, int start, int end, int l, int r) {\n        if (l > end || r < start) return 0;\n        if (l <= start && end <= r) return tree[node];\n        int mid = (start + end) / 2;\n        return queryHelper(2 * node, start, mid, l, r) + queryHelper(2 * node + 1, mid + 1, end, l, r);\n    }\n}",
+      "description": "## Approach\n\nBuild a segment tree where each node stores the sum of a subarray. A point update follows the path to one leaf, changes that leaf, and recomputes sums on the way back. A query recursively combines nodes that are fully inside the requested interval.\n\n## Key Insight\n\nThe segment tree stores exactly the aggregate information needed by the mutable range-sum problem. Only O(log n) nodes change after a point update, and only O(log n) boundary paths are explored for a range query.\n\n## Complexity Analysis\n\nBuilding the tree takes O(n) time. Each update and query takes O(log n) time. The tree array uses O(n) space.",
+      "code": "class NumArray {\n    private int n;\n    private int[] tree;\n\n    public NumArray(int[] nums) {\n        n = nums.length;\n        tree = new int[n * 4];\n        build(1, 0, n - 1, nums);\n    }\n\n    public void update(int index, int val) {\n        update(1, 0, n - 1, index, val);\n    }\n\n    public int sumRange(int left, int right) {\n        return query(1, 0, n - 1, left, right);\n    }\n\n    private void build(int node, int start, int end, int[] nums) {\n        if (start == end) {\n            tree[node] = nums[start];\n            return;\n        }\n        int mid = start + (end - start) / 2;\n        build(node * 2, start, mid, nums);\n        build(node * 2 + 1, mid + 1, end, nums);\n        tree[node] = tree[node * 2] + tree[node * 2 + 1];\n    }\n\n    private void update(int node, int start, int end, int index, int val) {\n        if (start == end) {\n            tree[node] = val;\n            return;\n        }\n        int mid = start + (end - start) / 2;\n        if (index <= mid) {\n            update(node * 2, start, mid, index, val);\n        } else {\n            update(node * 2 + 1, mid + 1, end, index, val);\n        }\n        tree[node] = tree[node * 2] + tree[node * 2 + 1];\n    }\n\n    private int query(int node, int start, int end, int left, int right) {\n        if (right < start || end < left) {\n            return 0;\n        }\n        if (left <= start && end <= right) {\n            return tree[node];\n        }\n        int mid = start + (end - start) / 2;\n        return query(node * 2, start, mid, left, right)\n                + query(node * 2 + 1, mid + 1, end, left, right);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative Segment Tree",
+      "timeComplexity": "O(n) init, O(log n) update/query",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore leaves in the second half of an array and parent sums in the first half. Updating an index changes one leaf and then walks upward recomputing parents. A range query moves two pointers inward and collects fully covered nodes.\n\n## Key Insight\n\nThe iterative tree has the same segment-tree idea but avoids recursion and usually has smaller constants. It also makes the inclusive range query mechanics very explicit.\n\n## Complexity Analysis\n\nBuilding the tree takes O(n) time. Each update and range query takes O(log n) time. The tree uses O(n) space.",
+      "code": "class NumArray {\n    private int n;\n    private int[] tree;\n\n    public NumArray(int[] nums) {\n        n = nums.length;\n        tree = new int[n * 2];\n        for (int i = 0; i < n; i++) {\n            tree[n + i] = nums[i];\n        }\n        for (int i = n - 1; i > 0; i--) {\n            tree[i] = tree[i * 2] + tree[i * 2 + 1];\n        }\n    }\n\n    public void update(int index, int val) {\n        int pos = index + n;\n        tree[pos] = val;\n        for (pos /= 2; pos > 0; pos /= 2) {\n            tree[pos] = tree[pos * 2] + tree[pos * 2 + 1];\n        }\n    }\n\n    public int sumRange(int left, int right) {\n        int sum = 0;\n        left += n;\n        right += n;\n        while (left <= right) {\n            if ((left & 1) == 1) {\n                sum += tree[left++];\n            }\n            if ((right & 1) == 0) {\n                sum += tree[right--];\n            }\n            left /= 2;\n            right /= 2;\n        }\n        return sum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Mutable Block Decomposition",
+      "timeComplexity": "O(n) init, O(1) update, O(sqrt n) query",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSplit the array into square-root sized blocks. Store the current value of each index and the sum of each block. An update adjusts one block sum by the value delta; a query scans partial edge blocks and adds full block sums in the middle.\n\n## Key Insight\n\nBlock decomposition is a practical middle ground between direct scanning and tree structures. It is slower than Fenwick or segment trees for long query streams, but it is simpler and still avoids scanning every cell of many long ranges.\n\n## Complexity Analysis\n\nInitialization takes O(n) time. Each update takes O(1) time. Each query takes O(sqrt n) time. The copied values and block sums use O(n) space.",
+      "code": "class NumArray {\n    private int[] nums;\n    private int[] blockSum;\n    private int blockSize;\n\n    public NumArray(int[] nums) {\n        this.nums = nums.clone();\n        blockSize = (int) Math.ceil(Math.sqrt(nums.length));\n        int blocks = (nums.length + blockSize - 1) / blockSize;\n        blockSum = new int[blocks];\n        for (int i = 0; i < nums.length; i++) {\n            blockSum[i / blockSize] += nums[i];\n        }\n    }\n\n    public void update(int index, int val) {\n        int block = index / blockSize;\n        blockSum[block] += val - nums[index];\n        nums[index] = val;\n    }\n\n    public int sumRange(int left, int right) {\n        int sum = 0;\n        int startBlock = left / blockSize;\n        int endBlock = right / blockSize;\n        if (startBlock == endBlock) {\n            for (int i = left; i <= right; i++) {\n                sum += nums[i];\n            }\n            return sum;\n        }\n        int endOfStartBlock = Math.min(nums.length - 1, (startBlock + 1) * blockSize - 1);\n        for (int i = left; i <= endOfStartBlock; i++) {\n            sum += nums[i];\n        }\n        for (int block = startBlock + 1; block < endBlock; block++) {\n            sum += blockSum[block];\n        }\n        for (int i = endBlock * blockSize; i <= right; i++) {\n            sum += nums[i];\n        }\n        return sum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Direct Scan Baseline",
+      "timeComplexity": "O(1) update, O(n) query",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore a copy of the current array. An update directly assigns `nums[index] = val`. Each range query loops from `left` to `right` and sums the current values.\n\n## Key Insight\n\nThis baseline is simple and useful for validating update semantics. It makes the assignment behavior obvious, especially when the same index is updated multiple times.\n\n## Complexity Analysis\n\nConstruction copies the array in O(n) time. Each update takes O(1) time, and each query takes O(n) time in the worst case. The copied array uses O(n) space.",
+      "code": "class NumArray {\n    private int[] nums;\n\n    public NumArray(int[] nums) {\n        this.nums = nums.clone();\n    }\n\n    public void update(int index, int val) {\n        nums[index] = val;\n    }\n\n    public int sumRange(int left, int right) {\n        int sum = 0;\n        for (int i = left; i <= right; i++) {\n            sum += nums[i];\n        }\n        return sum;\n    }\n}",
       "language": "java"
     }
   ],
@@ -33,6 +69,34 @@
     {
       "input": "[\"NumArray\", \"sumRange\", \"update\", \"sumRange\"]\n[[[1, 3, 5]], [0, 2], [1, 2], [0, 2]]",
       "output": "[null, 9, null, 8]"
+    },
+    {
+      "input": "[\"NumArray\", \"update\", \"sumRange\", \"update\", \"sumRange\"]\n[[[2, 4, 6]], [0, 5], [0, 2], [2, 1], [1, 2]]",
+      "output": "[null, null, 15, null, 5]"
+    },
+    {
+      "input": "[\"NumArray\",\"sumRange\",\"update\",\"sumRange\",\"update\",\"sumRange\"]\n[[[0,-1,2,-3]],[0,3],[1,4],[1,2],[3,5],[0,3]]",
+      "output": "[null,-2,null,6,null,11]"
+    },
+    {
+      "input": "[\"NumArray\",\"sumRange\",\"update\",\"sumRange\",\"update\",\"sumRange\"]\n[[[7]],[0,0],[0,-4],[0,0],[0,10],[0,0]]",
+      "output": "[null,7,null,-4,null,10]"
+    },
+    {
+      "input": "[\"NumArray\",\"update\",\"sumRange\",\"update\",\"sumRange\",\"sumRange\"]\n[[[5,5,5,5]],[2,5],[0,3],[2,-5],[2,2],[1,3]]",
+      "output": "[null,null,20,null,-5,5]"
+    },
+    {
+      "input": "[\"NumArray\",\"sumRange\",\"update\",\"sumRange\",\"update\",\"sumRange\"]\n[[[-2,-3,-4]],[0,1],[1,6],[0,2],[0,-5],[0,0]]",
+      "output": "[null,-5,null,0,null,-5]"
+    },
+    {
+      "input": "[\"NumArray\",\"sumRange\",\"update\",\"sumRange\",\"update\",\"sumRange\"]\n[[[1,-2,3,-4,5]],[0,4],[4,-5],[3,4],[0,10],[0,1]]",
+      "output": "[null,3,null,-9,null,8]"
+    },
+    {
+      "input": "[\"NumArray\",\"sumRange\",\"update\",\"sumRange\",\"update\",\"sumRange\",\"sumRange\"]\n[[[100,-100,100,-100,100]],[0,4],[1,100],[0,2],[3,100],[2,4],[1,3]]",
+      "output": "[null,100,null,300,null,300,300]"
     }
   ]
 }

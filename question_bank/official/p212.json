@@ -1,35 +1,129 @@
 {
   "id": "212",
   "title": "Add Binary",
-  "description": "# Add Binary\n\nGiven two binary strings `a` and `b`, return *their sum as a binary string*.\n\n## Example 1:\n\n**Input:** a = \"11\", b = \"1\"\n**Output:** \"100\"\n\n## Example 2:\n\n**Input:** a = \"1010\", b = \"1011\"\n**Output:** \"10101\"\n\n## Constraints:\n\n*   `1 <= a.length, b.length <= 10^4`\n*   `a` and `b` consist only of `'0'` or `'1'` characters.\n*   Each string does not contain leading zeros except for the zero itself.",
+  "description": "# Add Binary\n\nGiven binary strings `a` and `b`, return their integer sum as a binary string.\n\nBinary uses digits `0` and `1`, with place values `1,2,4,8,...` from right to left. For example, `\"11\"` means `3`, `\"1\"` means `1`, and their sum is `\"100\"` (decimal `4`). Omit leading zeroes, writing zero as `\"0\"`.\n\nInputs may exceed primitive integer ranges; do not convert the complete inputs to primitive integers for addition.\n\n## Example 1:\n\n**Input:** a = \"11\", b = \"1\"\n**Output:** \"100\"\n**Explanation:** `3 + 1 = 4`, and 4 is `\"100\"` in binary.\n\n## Example 2:\n\n**Input:** a = \"1010\", b = \"1011\"\n**Output:** \"10101\"\n**Explanation:** `10 + 11 = 21`, and 21 is `\"10101\"` in binary.\n\n## Constraints:\n\n* `1 <= a.length, b.length <= 10^4`\n* `a` and `b` consist only of `'0'` or `'1'` characters.\n* Each string does not contain leading zeros except for the string `\"0\"` itself.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public String addBinary(String a, String b) {\n        // Write your code here\n        return \"\";\n    }\n}",
-  "tags": ["Math", "String", "Bit Manipulation", "Simulation"],
+  "tags": [
+    "Math",
+    "String",
+    "Bit Manipulation",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "a = \"11\", b = \"1\"", "output": "\"100\"" },
-    { "input": "a = \"1010\", b = \"1011\"", "output": "\"10101\"" }
+    {
+      "input": "a = \"11\", b = \"1\"",
+      "output": "\"100\"",
+      "explanation": "Three plus one is four."
+    },
+    {
+      "input": "a = \"1010\", b = \"1011\"",
+      "output": "\"10101\"",
+      "explanation": "Ten plus eleven is twenty-one."
+    }
   ],
   "solutions": [
     {
-      "name": "Simulation with Carry",
+      "name": "Reverse Append Carry Simulation",
       "timeComplexity": "O(max(m, n))",
       "spaceComplexity": "O(max(m, n))",
-      "description": "Process both strings from right to left, adding digits and tracking carry. Build result in reverse.",
-      "code": "class Solution {\n    public String addBinary(String a, String b) {\n        StringBuilder sb = new StringBuilder();\n        int i = a.length() - 1, j = b.length() - 1, carry = 0;\n        while (i >= 0 || j >= 0 || carry > 0) {\n            int sum = carry;\n            if (i >= 0) sum += a.charAt(i--) - '0';\n            if (j >= 0) sum += b.charAt(j--) - '0';\n            sb.append(sum % 2);\n            carry = sum / 2;\n        }\n        return sb.reverse().toString();\n    }\n}",
+      "description": "## Approach\nScan both strings from right to left, adding the two current bits and the carry. Append each result bit to a builder, because the least significant result bit is produced first. Reverse the builder once all bits and the final carry are processed.\n\n## Key Insight\nBinary addition is column addition. Missing digits from the shorter string behave like zero, and the loop must continue while there is a remaining carry even after both strings are exhausted.\n\n## Complexity Analysis\n- Time Complexity: O(max(m, n)), where m and n are the input lengths.\n- Space Complexity: O(max(m, n)), for the returned string.",
+      "code": "class Solution {\n    public String addBinary(String a, String b) {\n        StringBuilder reversed = new StringBuilder();\n        int i = a.length() - 1;\n        int j = b.length() - 1;\n        int carry = 0;\n\n        while (i >= 0 || j >= 0 || carry > 0) {\n            int sum = carry;\n            if (i >= 0) {\n                sum += a.charAt(i--) - '0';\n            }\n            if (j >= 0) {\n                sum += b.charAt(j--) - '0';\n            }\n            reversed.append((char) ('0' + (sum & 1)));\n            carry = sum >> 1;\n        }\n\n        return reversed.reverse().toString();\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Recursive Addition",
+      "name": "Fixed Buffer from the Back",
       "timeComplexity": "O(max(m, n))",
       "spaceComplexity": "O(max(m, n))",
-      "description": "Recursively add binary strings by processing the last characters and carrying forward any overflow.",
-      "code": "class Solution {\n    public String addBinary(String a, String b) {\n        StringBuilder sb = new StringBuilder();\n        int i = a.length() - 1;\n        int j = b.length() - 1;\n        int carry = 0;\n        while (i >= 0 || j >= 0 || carry > 0) {\n            int sum = carry;\n            if (i >= 0) {\n                sum += a.charAt(i) - '0';\n                i--;\n            }\n            if (j >= 0) {\n                sum += b.charAt(j) - '0';\n                j--;\n            }\n            sb.insert(0, (char)('0' + sum % 2));\n            carry = sum / 2;\n        }\n        return sb.toString();\n    }\n}",
+      "description": "## Approach\nAllocate a character buffer of size `max(m, n) + 1`, then write result bits from the end of that buffer while scanning both inputs from right to left. After processing all columns, return only the suffix that was written.\n\n## Key Insight\nThe result can be at most one bit longer than the longer input. Writing from the back preserves the final order without using front insertion or reversing a builder.\n\n## Complexity Analysis\n- Time Complexity: O(max(m, n)), because every input bit is read once.\n- Space Complexity: O(max(m, n)), for the output buffer.",
+      "code": "class Solution {\n    public String addBinary(String a, String b) {\n        int i = a.length() - 1;\n        int j = b.length() - 1;\n        int carry = 0;\n        char[] buffer = new char[Math.max(a.length(), b.length()) + 1];\n        int write = buffer.length - 1;\n\n        while (i >= 0 || j >= 0 || carry > 0) {\n            int sum = carry;\n            if (i >= 0) {\n                sum += a.charAt(i--) - '0';\n            }\n            if (j >= 0) {\n                sum += b.charAt(j--) - '0';\n            }\n            buffer[write--] = (char) ('0' + (sum % 2));\n            carry = sum / 2;\n        }\n\n        return new String(buffer, write + 1, buffer.length - write - 1);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Deque Front Assembly",
+      "timeComplexity": "O(max(m, n))",
+      "spaceComplexity": "O(max(m, n))",
+      "description": "## Approach\nCompute bits from right to left, but push each result bit to the front of a deque. At the end, remove characters from the front to build the answer in correct order.\n\n## Key Insight\nA deque gives the clarity of front assembly without the repeated shifting cost of `StringBuilder.insert(0, ...)`. It is a useful bridge between the simple front-insertion idea and an efficient implementation.\n\n## Complexity Analysis\n- Time Complexity: O(max(m, n)), because each bit is added and removed once.\n- Space Complexity: O(max(m, n)), for the deque and output string.",
+      "code": "import java.util.ArrayDeque;\n\nclass Solution {\n    public String addBinary(String a, String b) {\n        ArrayDeque<Character> digits = new ArrayDeque<>();\n        int i = a.length() - 1;\n        int j = b.length() - 1;\n        int carry = 0;\n\n        while (i >= 0 || j >= 0 || carry != 0) {\n            int sum = carry;\n            if (i >= 0) {\n                sum += a.charAt(i--) - '0';\n            }\n            if (j >= 0) {\n                sum += b.charAt(j--) - '0';\n            }\n            digits.addFirst((char) ('0' + (sum & 1)));\n            carry = sum >> 1;\n        }\n\n        StringBuilder answer = new StringBuilder(digits.size());\n        while (!digits.isEmpty()) {\n            answer.append(digits.removeFirst());\n        }\n        return answer.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Truth Table Carry State",
+      "timeComplexity": "O(max(m, n))",
+      "spaceComplexity": "O(max(m, n))",
+      "description": "## Approach\nEncode the three input bits for each column as a number from 0 to 7: bit from `a`, bit from `b`, and carry. Two small lookup tables give the output bit and the next carry for that state.\n\n## Key Insight\nBinary addition has only eight possible column states. A truth table makes the carry transition explicit and helps learners connect bit manipulation with finite-state simulation.\n\n## Complexity Analysis\n- Time Complexity: O(max(m, n)), one table lookup is performed per output column.\n- Space Complexity: O(max(m, n)), for the returned string.",
+      "code": "class Solution {\n    private static final char[] OUT_BIT = {'0', '1', '1', '0', '1', '0', '0', '1'};\n    private static final int[] NEXT_CARRY = {0, 0, 0, 1, 0, 1, 1, 1};\n\n    public String addBinary(String a, String b) {\n        StringBuilder reversed = new StringBuilder();\n        int i = a.length() - 1;\n        int j = b.length() - 1;\n        int carry = 0;\n\n        while (i >= 0 || j >= 0 || carry != 0) {\n            int bitA = i >= 0 ? a.charAt(i--) - '0' : 0;\n            int bitB = j >= 0 ? b.charAt(j--) - '0' : 0;\n            int state = (bitA << 2) | (bitB << 1) | carry;\n            reversed.append(OUT_BIT[state]);\n            carry = NEXT_CARRY[state];\n        }\n\n        return reversed.reverse().toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Stack Pop Simulation",
+      "timeComplexity": "O(max(m, n))",
+      "spaceComplexity": "O(m + n)",
+      "description": "## Approach\nPush every bit of each input into a stack-like deque, so the least significant bits are popped first. Repeatedly pop one bit from each stack, add the carry, append the result bit, and reverse at the end.\n\n## Key Insight\nStacks make the right-to-left traversal explicit even if the original strings are only naturally read left to right. The arithmetic is the same as the index solution, but the data structure exposes why the last character is processed first.\n\n## Complexity Analysis\n- Time Complexity: O(max(m, n)), after the initial pushes each bit is popped once.\n- Space Complexity: O(m + n), because both input stacks are stored.",
+      "code": "import java.util.ArrayDeque;\n\nclass Solution {\n    public String addBinary(String a, String b) {\n        ArrayDeque<Integer> first = new ArrayDeque<>();\n        ArrayDeque<Integer> second = new ArrayDeque<>();\n        for (int i = 0; i < a.length(); i++) {\n            first.push(a.charAt(i) - '0');\n        }\n        for (int i = 0; i < b.length(); i++) {\n            second.push(b.charAt(i) - '0');\n        }\n\n        StringBuilder reversed = new StringBuilder();\n        int carry = 0;\n        while (!first.isEmpty() || !second.isEmpty() || carry != 0) {\n            int sum = carry;\n            if (!first.isEmpty()) {\n                sum += first.pop();\n            }\n            if (!second.isEmpty()) {\n                sum += second.pop();\n            }\n            reversed.append((char) ('0' + (sum % 2)));\n            carry = sum / 2;\n        }\n        return reversed.reverse().toString();\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "a = \"11\", b = \"1\"", "output": "\"100\"" },
-    { "input": "a = \"1010\", b = \"1011\"", "output": "\"10101\"" },
-    { "input": "a = \"0\", b = \"0\"", "output": "\"0\"" }
+    {
+      "input": "a = \"11\", b = \"1\"",
+      "output": "\"100\"",
+      "description": "Short addition with carry creates a new leading bit."
+    },
+    {
+      "input": "a = \"1010\", b = \"1011\"",
+      "output": "\"10101\"",
+      "description": "Canonical unequal bit patterns produce a five-bit sum."
+    },
+    {
+      "input": "a = \"0\", b = \"0\"",
+      "output": "\"0\"",
+      "description": "Zero plus zero remains zero."
+    },
+    {
+      "input": "a = \"1\", b = \"111\"",
+      "output": "\"1000\"",
+      "description": "Carry propagates through every bit of the longer string."
+    },
+    {
+      "input": "a = \"1111\", b = \"1111\"",
+      "output": "\"11110\"",
+      "description": "Adding equal all-one strings creates repeated carries."
+    },
+    {
+      "input": "a = \"0\", b = \"1\"",
+      "output": "\"1\"",
+      "description": "Zero identity works when only one input has a set bit."
+    },
+    {
+      "input": "a = \"101\", b = \"0\"",
+      "output": "\"101\"",
+      "description": "Adding zero preserves a longer binary string."
+    },
+    {
+      "input": "a = \"1\", b = \"1\"",
+      "output": "\"10\"",
+      "description": "Smallest carry-producing addition."
+    },
+    {
+      "input": "a = \"100\", b = \"110010\"",
+      "output": "\"110110\"",
+      "description": "Different lengths where the longer input has leading high bits."
+    },
+    {
+      "input": "a = \"11111111\", b = \"1\"",
+      "output": "\"100000000\"",
+      "description": "Carry propagates across eight one bits."
+    },
+    {
+      "input": "a = \"101010101010\", b = \"101010101010\"",
+      "output": "\"1010101010100\"",
+      "description": "Adding equal values doubles the binary number."
+    },
+    {
+      "input": "a = \"100000\", b = \"11111\"",
+      "output": "\"111111\"",
+      "description": "Length-different operands combine into all ones."
+    }
   ]
 }

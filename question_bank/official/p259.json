@@ -1,34 +1,117 @@
 {
   "id": "259",
   "title": "Build Array from Permutation",
-  "description": "# Build Array from Permutation\n\nGiven a **zero-based permutation** `nums` (**0-indexed**), build an array `ans` of the **same length** where `ans[i] = nums[nums[i]]` for each `0 <= i < nums.length` and return it.\n\nA **zero-based permutation** `nums` is an array of distinct integers from `0` to `nums.length - 1` (inclusive).\n\n## Example 1:\n\n**Input:** nums = [0,2,1,5,3,4]\n**Output:** [0,1,2,4,5,3]\n**Explanation:** The array ans is built as follows: \nans = [nums[nums[0]], nums[nums[1]], nums[nums[2]], nums[nums[3]], nums[nums[4]], nums[nums[5]]]\n    = [nums[0], nums[2], nums[1], nums[5], nums[3], nums[4]]\n    = [0, 1, 2, 4, 5, 3]\n\n## Example 2:\n\n**Input:** nums = [5,0,1,2,3,4]\n**Output:** [4,5,0,1,2,3]\n**Explanation:** The array ans is built as follows:\nans = [nums[nums[0]], nums[nums[1]], nums[nums[2]], nums[nums[3]], nums[nums[4]], nums[nums[5]]]\n    = [nums[5], nums[0], nums[1], nums[2], nums[3], nums[4]]\n    = [4, 5, 0, 1, 2, 3]\n\n## Constraints:\n\n*   `1 <= nums.length <= 1000`\n*   `0 <= nums[i] < nums.length`\n*   The elements in `nums` are **distinct**.\n\n**Follow-up:** Can you solve it without using an extra space (i.e., `O(1)` memory)?",
+  "description": "# Build Array from Permutation\n\nGiven a **zero-based permutation** `nums`, build and return an array `ans` of the same length where `ans[i] = nums[nums[i]]` for every valid index `i`.\n\nA zero-based permutation of length `n` contains every integer from `0` to `n - 1` exactly once. That means every value in `nums` is also a valid index into `nums`, so the nested lookup `nums[nums[i]]` is always defined.\n\n## Example 1:\n\n**Input:** nums = [0,2,1,5,3,4]\n**Output:** [0,1,2,4,5,3]\n**Explanation:** The answer reads the original array at indices [0,1,2,5,3,4], because those are the values selected by `nums[i]`.\n\n## Example 2:\n\n**Input:** nums = [5,0,1,2,3,4]\n**Output:** [4,5,0,1,2,3]\n**Explanation:** For index 0, the answer is `nums[nums[0]] = nums[5] = 4`; the same rule is applied to every index.\n\n## Constraints:\n\n* `1 <= nums.length <= 1000`\n* `0 <= nums[i] < nums.length`\n* The elements in `nums` are distinct.\n\n**Follow-up:** Can you solve it without using an extra array other than the returned array, using only `O(1)` extra working memory?",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int[] buildArray(int[] nums) {\n        // Write your code here\n        return new int[]{};\n    }\n}",
-  "tags": ["Array", "Simulation"],
+  "tags": [
+    "Array",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "nums = [0,2,1,5,3,4]", "output": "[0,1,2,4,5,3]" },
-    { "input": "nums = [5,0,1,2,3,4]", "output": "[4,5,0,1,2,3]" }
+    {
+      "input": "nums = [0,2,1,5,3,4]",
+      "output": "[0,1,2,4,5,3]"
+    },
+    {
+      "input": "nums = [5,0,1,2,3,4]",
+      "output": "[4,5,0,1,2,3]"
+    }
   ],
   "solutions": [
     {
-      "name": "Direct Build",
+      "name": "Direct Output Array",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Build result array where ans[i] = nums[nums[i]].",
+      "description": "## Approach\n\nAllocate a separate answer array and fill each position directly from the definition `ans[i] = nums[nums[i]]`.\n\n## Key Insight\n\nBecause `nums` is a permutation, `nums[i]` is always a valid index. Keeping the output separate is the clearest baseline because no write can corrupt a value that a later position still needs to read.\n\n## Complexity Analysis\n\nThe loop visits every index once, so the time complexity is O(n). The returned answer array stores n values, so the space complexity is O(n).",
       "code": "class Solution {\n    public int[] buildArray(int[] nums) {\n        int[] ans = new int[nums.length];\n        for (int i = 0; i < nums.length; i++) {\n            ans[i] = nums[nums[i]];\n        }\n        return ans;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "In-Place O(1) Space",
+      "name": "In-Place Modular Encoding",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Encode two values in each element using modular arithmetic. Since values are in [0, n), store ans[i] = nums[i] + n * (nums[nums[i]] % n). Then extract by dividing by n.",
+      "description": "## Approach\n\nEncode the original value and the new answer value in the same array cell. Since all values are smaller than `n`, store `old + n * new`, then divide by `n` in a second pass to extract the answer.\n\n## Key Insight\n\nWhen reading `nums[nums[i]]`, the target cell may already be encoded. Taking `% n` recovers its original value, so earlier writes cannot disturb later reads.\n\n## Complexity Analysis\n\nThere are two linear passes over the array, so the time complexity is O(n). Apart from the input array itself, only a few integer variables are used, giving O(1) extra working space.",
       "code": "class Solution {\n    public int[] buildArray(int[] nums) {\n        int n = nums.length;\n        for (int i = 0; i < n; i++) {\n            nums[i] = nums[i] + n * (nums[nums[i]] % n);\n        }\n        for (int i = 0; i < n; i++) {\n            nums[i] = nums[i] / n;\n        }\n        return nums;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Snapshot Then Rewrite Input",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nClone the original permutation first, then rewrite `nums[i]` using only values from that snapshot. The input array becomes the returned answer after the rewrite pass.\n\n## Key Insight\n\nThis route teaches the mutation hazard directly: if we overwrite `nums` while still reading from it, later nested lookups can read changed values. A snapshot separates the read source from the write target.\n\n## Complexity Analysis\n\nCloning and rewriting are both linear operations, so the time complexity is O(n). The snapshot stores n integers, giving O(n) extra space.",
+      "code": "class Solution {\n    public int[] buildArray(int[] nums) {\n        int[] original = nums.clone();\n        for (int i = 0; i < nums.length; i++) {\n            nums[i] = original[original[i]];\n        }\n        return nums;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Index Stream Mapping",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nGenerate the index range `0..n-1` and map each index to `nums[nums[i]]`, letting the stream collect the mapped values into the returned array.\n\n## Key Insight\n\nThe problem is a pure index transformation when the input is not mutated. A stream makes that transformation explicit: each output position depends only on the original permutation and its own index.\n\n## Complexity Analysis\n\nThe stream evaluates one mapping per index, so the time complexity is O(n). The produced array contains n values, so the space complexity is O(n).",
+      "code": "import java.util.stream.IntStream;\n\nclass Solution {\n    public int[] buildArray(int[] nums) {\n        return IntStream.range(0, nums.length)\n                .map(i -> nums[nums[i]])\n                .toArray();\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [0,2,1,5,3,4]", "output": "[0,1,2,4,5,3]" },
-    { "input": "nums = [5,0,1,2,3,4]", "output": "[4,5,0,1,2,3]" }
+    {
+      "input": "nums = [0,2,1,5,3,4]",
+      "output": "[0,1,2,4,5,3]",
+      "description": "canonical permutation with fixed points and swaps"
+    },
+    {
+      "input": "nums = [5,0,1,2,3,4]",
+      "output": "[4,5,0,1,2,3]",
+      "description": "left rotation cycle"
+    },
+    {
+      "input": "nums = [0]",
+      "output": "[0]",
+      "description": "single-element permutation"
+    },
+    {
+      "input": "nums = [1,0]",
+      "output": "[0,1]",
+      "description": "two-element swap"
+    },
+    {
+      "input": "nums = [2,0,1]",
+      "output": "[1,2,0]",
+      "description": "three-cycle permutation"
+    },
+    {
+      "input": "nums = [3,2,1,0]",
+      "output": "[0,1,2,3]",
+      "description": "reverse-like involution"
+    },
+    {
+      "input": "nums = [1,2,3,4,0]",
+      "output": "[2,3,4,0,1]",
+      "description": "five-cycle shifted twice"
+    },
+    {
+      "input": "nums = [4,3,2,1,0]",
+      "output": "[0,1,2,3,4]",
+      "description": "mirror permutation composing to identity"
+    },
+    {
+      "input": "nums = [2,3,4,0,1]",
+      "output": "[4,0,1,2,3]",
+      "description": "rotated cycle with no fixed starting point"
+    },
+    {
+      "input": "nums = [0,1,2,3,4]",
+      "output": "[0,1,2,3,4]",
+      "description": "identity permutation"
+    },
+    {
+      "input": "nums = [2,1,0,4,3]",
+      "output": "[0,1,2,3,4]",
+      "description": "mixed fixed point and two swaps"
+    },
+    {
+      "input": "nums = [6,0,2,1,5,3,4]",
+      "output": "[4,6,2,0,3,1,5]",
+      "description": "seven-element mixed cycle"
+    }
   ]
 }

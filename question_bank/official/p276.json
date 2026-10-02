@@ -1,10 +1,14 @@
 {
   "id": "276",
   "title": "Design Parking System",
-  "description": "# Design Parking System\n\nDesign a parking system for a parking lot. The parking lot has three kinds of parking spaces: big, medium, and small, with a fixed number of slots for each size.\n\nImplement the `ParkingSystem` class:\n\n*   `ParkingSystem(int big, int medium, int small)` Initializes object of the `ParkingSystem` class. The number of slots for each parking space are given as part of the constructor.\n*   `bool addCar(int carType)` Checks whether there is a parking space of `carType` for the car that wants to get into the parking lot. `carType` can be of three kinds: big, medium, or small, which are represented by `1`, `2`, and `3` respectively. **A car can only park in a parking space of its** `carType`. If there is no space available, return `false`, else park the car in that size space and return `true`.\n\n## Example 1:\n\n**Input**\n[\"ParkingSystem\", \"addCar\", \"addCar\", \"addCar\", \"addCar\"]\n[[1, 1, 0], [1], [2], [3], [1]]\n**Output**\n[null, true, true, false, false]\n\n**Explanation**\nParkingSystem parkingSystem = new ParkingSystem(1, 1, 0);\nparkingSystem.addCar(1); // return true because there is 1 available slot for a big car\nparkingSystem.addCar(2); // return true because there is 1 available slot for a medium car\nparkingSystem.addCar(3); // return false because there is no available slot for a small car\nparkingSystem.addCar(1); // return false because there is no available slot for a big car. It is already occupied.\n\n## Constraints:\n\n*   `0 <= big, medium, small <= 1000`\n*   `carType` is `1`, `2`, or `3`.\n*   At most `1000` calls will be made to `addCar`.",
+  "description": "# Design Parking System\n\nDesign a parking system for a parking lot. The parking lot has three kinds of parking spaces: big, medium, and small. The number of available spaces for each size is fixed when the object is created.\n\nImplement the `ParkingSystem` class:\n\n* `ParkingSystem(int big, int medium, int small)` initializes the number of big, medium, and small spaces.\n* `boolean addCar(int carType)` tries to park one car. `carType` is `1` for a big car, `2` for a medium car, and `3` for a small car.\n\nA car may only use the matching space type. If a matching space is available, occupy exactly one such space and return `true`. If no matching space remains, leave the system state unchanged and return `false`.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1\n\n**Input**\n[\"ParkingSystem\", \"addCar\", \"addCar\", \"addCar\", \"addCar\"]\n[[1, 1, 0], [1], [2], [3], [1]]\n\n**Output**\n[null, true, true, false, false]\n\n**Explanation**\n`ParkingSystem parkingSystem = new ParkingSystem(1, 1, 0);`\n`parkingSystem.addCar(1);` returns `true` because one big space is available.\n`parkingSystem.addCar(2);` returns `true` because one medium space is available.\n`parkingSystem.addCar(3);` returns `false` because there are no small spaces.\n`parkingSystem.addCar(1);` returns `false` because the only big space has already been occupied.\n\n## Constraints\n\n* `0 <= big, medium, small <= 1000`\n* `carType` is `1`, `2`, or `3`.\n* At most `1000` calls will be made to `addCar`.",
   "difficulty": "EASY",
-  "initialCode": "class ParkingSystem {\n\n    public ParkingSystem(int big, int medium, int small) {\n        \n    }\n    \n    public boolean addCar(int carType) {\n        \n    }\n}\n\n/**\n * Your ParkingSystem object will be instantiated and called as such:\n * ParkingSystem obj = new ParkingSystem(big, medium, small);\n * boolean param_1 = obj.addCar(carType);\n */",
-  "tags": ["Design", "Simulation", "Counting"],
+  "initialCode": "class ParkingSystem {\n\n    public ParkingSystem(int big, int medium, int small) {\n\n    }\n\n    public boolean addCar(int carType) {\n        return false;\n    }\n}\n\n/**\n * Your ParkingSystem object will be instantiated and called as such:\n * ParkingSystem obj = new ParkingSystem(big, medium, small);\n * boolean param_1 = obj.addCar(carType);\n */",
+  "tags": [
+    "Design",
+    "Simulation",
+    "Counting"
+  ],
   "examples": [
     {
       "input": "[\"ParkingSystem\", \"addCar\", \"addCar\", \"addCar\", \"addCar\"]\n[[1, 1, 0], [1], [2], [3], [1]]",
@@ -13,26 +17,78 @@
   ],
   "solutions": [
     {
-      "name": "Array Counter",
+      "name": "Array Remaining Slots",
       "timeComplexity": "O(1) per operation",
       "spaceComplexity": "O(1)",
-      "description": "Store available slots in an array of size 3. On addCar, check and decrement the slot for the given car type.",
-      "code": "class ParkingSystem {\n    private int[] slots;\n\n    public ParkingSystem(int big, int medium, int small) {\n        slots = new int[]{big, medium, small};\n    }\n    \n    public boolean addCar(int carType) {\n        if (slots[carType - 1] > 0) {\n            slots[carType - 1]--;\n            return true;\n        }\n        return false;\n    }\n}",
+      "description": "## Approach\nStore the remaining big, medium, and small slots in a three-element array. Because `carType` is `1`, `2`, or `3`, the matching index is always `carType - 1`.\n\n## Key Insight\nThe operation only changes one counter. Check the selected counter first; if it is zero, return `false` without touching any other type. Otherwise decrement that counter and return `true`.\n\n## Complexity Analysis\nEach `addCar` call performs a constant number of array operations, so the time complexity is O(1) per operation. The array always has length three, so the space complexity is O(1).",
+      "code": "class ParkingSystem {\n    private final int[] remaining;\n\n    public ParkingSystem(int big, int medium, int small) {\n        remaining = new int[]{big, medium, small};\n    }\n\n    public boolean addCar(int carType) {\n        int index = carType - 1;\n        if (remaining[index] == 0) {\n            return false;\n        }\n        remaining[index]--;\n        return true;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Individual Fields",
+      "name": "Explicit Fields And Branches",
       "timeComplexity": "O(1) per operation",
       "spaceComplexity": "O(1)",
-      "description": "Store the slot counts in three separate integer fields instead of an array. Use if-else to select the right field.",
-      "code": "class ParkingSystem {\n    private int big;\n    private int medium;\n    private int small;\n\n    public ParkingSystem(int big, int medium, int small) {\n        this.big = big;\n        this.medium = medium;\n        this.small = small;\n    }\n    \n    public boolean addCar(int carType) {\n        if (carType == 1) {\n            if (big > 0) { big--; return true; }\n        } else if (carType == 2) {\n            if (medium > 0) { medium--; return true; }\n        } else {\n            if (small > 0) { small--; return true; }\n        }\n        return false;\n    }\n}",
+      "description": "## Approach\nKeep three named fields: `big`, `medium`, and `small`. In `addCar`, branch on `carType` and update only the field that represents the requested space size.\n\n## Key Insight\nThis version favors readability over indexing. It makes the state transition for each car type explicit, which is useful when teaching design problems with a very small fixed set of states.\n\n## Complexity Analysis\nThe method checks at most three branches, so each operation runs in O(1) time. The object stores three integer counters, so the extra space is O(1).",
+      "code": "class ParkingSystem {\n    private int big;\n    private int medium;\n    private int small;\n\n    public ParkingSystem(int big, int medium, int small) {\n        this.big = big;\n        this.medium = medium;\n        this.small = small;\n    }\n\n    public boolean addCar(int carType) {\n        if (carType == 1) {\n            if (big == 0) return false;\n            big--;\n            return true;\n        }\n        if (carType == 2) {\n            if (medium == 0) return false;\n            medium--;\n            return true;\n        }\n        if (small == 0) return false;\n        small--;\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Map Backed Capacity",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nStore the remaining capacity for car types `1`, `2`, and `3` in a map. Each call reads the value for the requested `carType`, rejects zero capacity, and writes back one less slot after a successful park.\n\n## Key Insight\nA map models the car type as a key instead of as an array index. This is more general than needed for three types, but it teaches the common design pattern of mapping operation parameters to mutable state buckets.\n\n## Complexity Analysis\nThe map has only three entries, so each lookup and update is O(1) for this problem. The stored state is fixed-size, so the extra space is O(1).",
+      "code": "import java.util.HashMap;\nimport java.util.Map;\n\nclass ParkingSystem {\n    private final Map<Integer, Integer> remaining = new HashMap<>();\n\n    public ParkingSystem(int big, int medium, int small) {\n        remaining.put(1, big);\n        remaining.put(2, medium);\n        remaining.put(3, small);\n    }\n\n    public boolean addCar(int carType) {\n        int slots = remaining.get(carType);\n        if (slots == 0) {\n            return false;\n        }\n        remaining.put(carType, slots - 1);\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Capacity And Occupied Counters",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nStore the original capacity in one array and the number of occupied spaces in another array. A parking attempt succeeds only while `occupied[index]` is strictly smaller than `capacity[index]`.\n\n## Key Insight\nThis route uses the dual view of the state: instead of decreasing remaining slots, it increases used slots. It produces the same behavior but helps learners see that either remaining capacity or used capacity can represent the invariant.\n\n## Complexity Analysis\nEach call performs one index calculation, one comparison, and possibly one increment, so the time complexity is O(1). Both arrays have fixed length three, so the space complexity is O(1).",
+      "code": "class ParkingSystem {\n    private final int[] capacity;\n    private final int[] occupied;\n\n    public ParkingSystem(int big, int medium, int small) {\n        capacity = new int[]{big, medium, small};\n        occupied = new int[3];\n    }\n\n    public boolean addCar(int carType) {\n        int index = carType - 1;\n        if (occupied[index] == capacity[index]) {\n            return false;\n        }\n        occupied[index]++;\n        return true;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
-      "input": "[\"ParkingSystem\", \"addCar\", \"addCar\", \"addCar\", \"addCar\"]\n[[1, 1, 0], [1], [2], [3], [1]]",
-      "output": "[null, true, true, false, false]"
+      "input": "[\"ParkingSystem\",\"addCar\",\"addCar\",\"addCar\",\"addCar\"]\n[[1,1,0],[1],[2],[3],[1]]",
+      "output": "[null,true,true,false,false]",
+      "description": "sample checks successful parking and full-slot rejection"
+    },
+    {
+      "input": "[\"ParkingSystem\",\"addCar\",\"addCar\",\"addCar\"]\n[[0,0,0],[1],[2],[3]]",
+      "output": "[null,false,false,false]",
+      "description": "all capacities zero rejects every car type"
+    },
+    {
+      "input": "[\"ParkingSystem\",\"addCar\",\"addCar\",\"addCar\",\"addCar\",\"addCar\",\"addCar\",\"addCar\"]\n[[2,1,2],[1],[1],[1],[2],[2],[3],[3]]",
+      "output": "[null,true,true,false,true,false,true,true]",
+      "description": "each type has an independent capacity counter"
+    },
+    {
+      "input": "[\"ParkingSystem\",\"addCar\",\"addCar\",\"addCar\",\"addCar\"]\n[[0,2,1],[2],[3],[3],[2]]",
+      "output": "[null,true,true,false,true]",
+      "description": "failed small-car insert does not affect medium capacity"
+    },
+    {
+      "input": "[\"ParkingSystem\",\"addCar\",\"addCar\",\"addCar\",\"addCar\",\"addCar\",\"addCar\"]\n[[1,2,1],[3],[3],[2],[2],[2],[1]]",
+      "output": "[null,true,false,true,true,false,true]",
+      "description": "interleaved calls exhaust small and medium while big remains available"
+    },
+    {
+      "input": "[\"ParkingSystem\",\"addCar\",\"addCar\",\"addCar\",\"addCar\",\"addCar\"]\n[[2,0,0],[1],[1],[1],[2],[3]]",
+      "output": "[null,true,true,false,false,false]",
+      "description": "only big spaces exist and are exhausted after two successful calls"
+    },
+    {
+      "input": "[\"ParkingSystem\",\"addCar\",\"addCar\",\"addCar\",\"addCar\",\"addCar\"]\n[[0,1,1],[1],[2],[3],[2],[3]]",
+      "output": "[null,false,true,true,false,false]",
+      "description": "zero big capacity does not prevent medium and small from working"
+    },
+    {
+      "input": "[\"ParkingSystem\",\"addCar\",\"addCar\",\"addCar\",\"addCar\",\"addCar\",\"addCar\"]\n[[1000,1000,1000],[1],[2],[3],[1],[2],[3]]",
+      "output": "[null,true,true,true,true,true,true]",
+      "description": "upper-bound capacities behave like normal positive counters"
     }
   ]
 }

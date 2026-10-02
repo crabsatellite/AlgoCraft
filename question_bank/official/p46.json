@@ -1,16 +1,24 @@
 {
   "id": "46",
   "title": "Car Fleet",
-  "description": "# Car Fleet\n\nThere are `n` cars going to the same destination along a one-lane road. The destination is `target` miles away.\n\nYou are given two integer arrays `position` and `speed`, both of length `n`, where `position[i]` is the position of the `i`th car and `speed[i]` is the speed of the `i`th car (in miles per hour).\n\nA car can never pass another car ahead of it, but it can catch up to it and drive bumper to bumper at the same speed. The faster car will slow down to match the slower car's speed. The distance between these two cars is ignored (i.e., they are assumed to have the same position).\n\nA **car fleet** is some non-empty set of cars driving at the same position and same speed. Note that a single car is also a car fleet.\n\nIf a car catches up to a car fleet at the destination point, it will still be considered as one car fleet.\n\nReturn *the number of car fleets that will arrive at the destination*.\n\n## Example 1:\n\n**Input:** target = 12, position = [10,8,0,5,3], speed = [2,4,1,1,3]\n**Output:** 3\n**Explanation:**\nThe cars starting at 10 (speed 2) and 8 (speed 4) become a fleet, meeting each other at 12. The fleet moves at speed 2.\nThe car starting at 0 does not catch up to any other car, so it is a fleet by itself.\nThe cars starting at 5 (speed 1) and 3 (speed 3) become a fleet, meeting each other at 6. The fleet moves at speed 1.\nNote that no other cars meet these fleets before the destination, so the answer is 3.\n\n## Example 2:\n\n**Input:** target = 10, position = [3], speed = [3]\n**Output:** 1\n**Explanation:** There is only one car, hence there is only one fleet.\n\n## Example 3:\n\n**Input:** target = 100, position = [0,2,4], speed = [4,2,1]\n**Output:** 1\n**Explanation:**\nThe cars starting at 0 (speed 4) and 2 (speed 2) become a fleet, meeting each other at 4. The fleet moves at speed 2.\nThen, the fleet (speed 2) and the car starting at 4 (speed 1) become one fleet, meeting each other at 6. The fleet moves at speed 1.\n\n## Constraints:\n\n*   `n == position.length == speed.length`\n*   `1 <= n <= 10^5`\n*   `0 < target <= 10^6`\n*   `0 <= position[i] < target`\n*   All the values of `position` are **unique**.\n*   `0 < speed[i] <= 10^6`",
+  "description": "# Car Fleet\n\nThere are `n` cars driving toward the same destination on a one-lane road. The destination is `target` miles from the starting point.\n\nYou are given two integer arrays `position` and `speed`, both of length `n`. `position[i]` is the current position of the `i`th car, and `speed[i]` is its speed in miles per hour.\n\nCars only move forward. A car can never pass a car in front of it. If a faster car catches a slower car or a fleet ahead, it slows down and joins that fleet. Once joined, the cars keep the same position and speed for the rest of the trip; the distance between cars inside a fleet is ignored.\n\nA **car fleet** is a non-empty group of cars that arrives at the destination together. A single car is also a fleet. If a car catches a fleet exactly at the destination, they are still counted as one fleet.\n\nReturn the number of car fleets that will arrive at the destination.\n\n## Example 1:\n\n**Input:** target = 12, position = [10,8,0,5,3], speed = [2,4,1,1,3]\n**Output:** 3\n**Explanation:**\nThe cars at positions 10 and 8 both reach the destination at time 1, so they form one fleet.\nThe cars at positions 5 and 3 meet before the destination and form another fleet.\nThe car at position 0 cannot catch either fleet before the destination, so it remains a fleet by itself.\n\n## Example 2:\n\n**Input:** target = 10, position = [3], speed = [3]\n**Output:** 1\n**Explanation:** A single car is one fleet.\n\n## Example 3:\n\n**Input:** target = 100, position = [0,2,4], speed = [4,2,1]\n**Output:** 1\n**Explanation:**\nThe rear cars eventually catch the slower cars ahead, so all cars arrive as one fleet.\n\n## Constraints:\n\n*   `n == position.length == speed.length`\n*   `1 <= n <= 10^5`\n*   `0 < target <= 10^6`\n*   `0 <= position[i] < target`\n*   All values in `position` are unique.\n*   `0 < speed[i] <= 10^6`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int carFleet(int target, int[] position, int[] speed) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Stack", "Sorting", "Monotonic Stack"],
+  "tags": [
+    "Array",
+    "Stack",
+    "Sorting",
+    "Monotonic Stack"
+  ],
   "examples": [
     {
       "input": "target = 12, position = [10,8,0,5,3], speed = [2,4,1,1,3]",
       "output": "3"
     },
-    { "input": "target = 10, position = [3], speed = [3]", "output": "1" },
+    {
+      "input": "target = 10, position = [3], speed = [3]",
+      "output": "1"
+    },
     {
       "input": "target = 100, position = [0,2,4], speed = [4,2,1]",
       "output": "1"
@@ -19,38 +27,83 @@
   "tests": [
     {
       "input": "target = 12, position = [10,8,0,5,3], speed = [2,4,1,1,3]",
-      "output": "3"
+      "output": "3",
+      "description": "Canonical example with two merging groups and one solo fleet"
     },
-    { "input": "target = 10, position = [3], speed = [3]", "output": "1" },
+    {
+      "input": "target = 10, position = [3], speed = [3]",
+      "output": "1",
+      "description": "Single car is one fleet"
+    },
     {
       "input": "target = 100, position = [0,2,4], speed = [4,2,1]",
-      "output": "1"
+      "output": "1",
+      "description": "All cars eventually merge into one fleet"
     },
-    { "input": "target = 10, position = [6,8], speed = [3,2]", "output": "2" },
+    {
+      "input": "target = 10, position = [6,8], speed = [3,2]",
+      "output": "2",
+      "description": "Rear car arrives earlier only if it could pass, so the cars stay separate"
+    },
     {
       "input": "target = 10, position = [0,4,2], speed = [2,1,3]",
-      "output": "1"
+      "output": "1",
+      "description": "Rear cars catch the front fleet before the destination"
     },
     {
       "input": "target = 20, position = [5,10,15], speed = [5,5,5]",
       "output": "3",
-      "description": "All cars separate - same speed, never catch up"
+      "description": "Equal speeds with different positions never merge"
+    },
+    {
+      "input": "target = 10, position = [0,5], speed = [2,1]",
+      "output": "1",
+      "description": "Cars that meet exactly at the destination count as one fleet"
+    },
+    {
+      "input": "target = 10, position = [8,0,5,3], speed = [4,1,1,3]",
+      "output": "3",
+      "description": "Unsorted input with both merge and no-merge decisions"
+    },
+    {
+      "input": "target = 10, position = [0,2,4], speed = [5,4,3]",
+      "output": "1",
+      "description": "Multiple cars with the same arrival time form one fleet"
+    },
+    {
+      "input": "target = 100, position = [10,30,60,80], speed = [4,3,2,1]",
+      "output": "2",
+      "description": "A destination-time merge plus a separate slower rear fleet"
     }
   ],
   "solutions": [
     {
-      "name": "排序 + 栈思想",
+      "name": "Sorted Frontier Time",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "按位置从大到小排序，计算每辆车到达终点的时间。如果后面的车到达时间更短，说明会追上前面的车形成车队。使用栈思想统计独立车队数量。",
-      "code": "class Solution {\n    public int carFleet(int target, int[] position, int[] speed) {\n        int n = position.length;\n        int[][] cars = new int[n][2];\n        \n        for (int i = 0; i < n; i++) {\n            cars[i][0] = position[i];\n            cars[i][1] = speed[i];\n        }\n        \n        // 按位置从大到小排序（离终点最近的在前）\n        Arrays.sort(cars, (a, b) -> b[0] - a[0]);\n        \n        int fleets = 0;\n        double lastTime = 0;\n        \n        for (int[] car : cars) {\n            double time = (double) (target - car[0]) / car[1];\n            \n            // 如果当前车到达时间 > 前一辆车，说明无法追上，形成新车队\n            if (time > lastTime) {\n                fleets++;\n                lastTime = time;\n            }\n            // 否则会追上前车，合并到前面的车队\n        }\n        \n        return fleets;\n    }\n}"
+      "description": "## Approach\n\nPair each car's position and speed, then sort cars from closest to the target to farthest. For each car, compute its arrival time. A car forms a new fleet only when its arrival time is strictly greater than the slowest fleet time already seen ahead.\n\n## Key Insight\n\nScanning from the target backward turns all catch-up decisions into one comparison. If the rear car's arrival time is less than or equal to the fleet time ahead, it catches that fleet before or exactly at the destination and must merge.\n\n## Complexity Analysis\n\nSorting dominates the running time.\n\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int carFleet(int target, int[] position, int[] speed) {\n        int n = position.length;\n        int[][] cars = new int[n][2];\n\n        for (int i = 0; i < n; i++) {\n            cars[i][0] = position[i];\n            cars[i][1] = speed[i];\n        }\n\n        Arrays.sort(cars, (a, b) -> Integer.compare(b[0], a[0]));\n\n        int fleets = 0;\n        double slowestFleetTime = 0.0;\n\n        for (int[] car : cars) {\n            double arrivalTime = (double) (target - car[0]) / car[1];\n            if (arrivalTime > slowestFleetTime) {\n                fleets++;\n                slowestFleetTime = arrivalTime;\n            }\n        }\n\n        return fleets;\n    }\n}"
     },
     {
-      "name": "排序 + 显式栈",
+      "name": "Monotonic Arrival-Time Stack",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "显式使用栈存储到达时间，通过比较栈顶时间判断是否形成新车队。栈中的元素数量即为车队数量。",
-      "code": "class Solution {\n    public int carFleet(int target, int[] position, int[] speed) {\n        int n = position.length;\n        double[][] cars = new double[n][2];\n        \n        for (int i = 0; i < n; i++) {\n            cars[i][0] = position[i];\n            cars[i][1] = (double) (target - position[i]) / speed[i];\n        }\n        \n        // 按位置从大到小排序\n        Arrays.sort(cars, (a, b) -> Double.compare(b[0], a[0]));\n        \n        Deque<Double> stack = new ArrayDeque<>();\n        \n        for (double[] car : cars) {\n            double time = car[1];\n            \n            // 如果栈为空或当前车到达时间更长，压入栈\n            if (stack.isEmpty() || time > stack.peek()) {\n                stack.push(time);\n            }\n            // 否则当前车追上栈顶车队，不压入\n        }\n        \n        return stack.size();\n    }\n}"
+      "description": "## Approach\n\nSort cars by descending position and store the arrival time of each independent fleet in a stack. When the next car behind has an arrival time greater than the stack top, it cannot catch the fleet ahead and starts a new fleet. Otherwise it merges into the fleet represented by the stack top.\n\n## Key Insight\n\nThe stack is monotonic in fleet arrival time as we scan backward along the road. Equal arrival time is not a new fleet because the problem states that catching exactly at the destination still merges.\n\n## Complexity Analysis\n\nSorting costs O(n log n). Each car is inspected once after sorting.\n\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int carFleet(int target, int[] position, int[] speed) {\n        int n = position.length;\n        double[][] cars = new double[n][2];\n\n        for (int i = 0; i < n; i++) {\n            cars[i][0] = position[i];\n            cars[i][1] = (double) (target - position[i]) / speed[i];\n        }\n\n        Arrays.sort(cars, (a, b) -> Double.compare(b[0], a[0]));\n\n        Deque<Double> fleetTimes = new ArrayDeque<>();\n        for (double[] car : cars) {\n            double arrivalTime = car[1];\n            if (fleetTimes.isEmpty() || arrivalTime > fleetTimes.peek()) {\n                fleetTimes.push(arrivalTime);\n            }\n        }\n\n        return fleetTimes.size();\n    }\n}"
+    },
+    {
+      "name": "Bucket by Road Position",
+      "timeComplexity": "O(target + n)",
+      "spaceComplexity": "O(target)",
+      "description": "## Approach\n\nUse the bounded road coordinate as a bucket index. Store each car's arrival time at its starting position, then scan positions from `target - 1` down to zero. Whenever a car's arrival time is greater than the slowest fleet time ahead, count a new fleet.\n\n## Key Insight\n\nThe road positions are unique integers below `target`, so a coordinate table can replace comparison sorting. This is a real time-space tradeoff: it can be linear in `target`, but it spends memory proportional to the coordinate range rather than to the number of cars.\n\n## Complexity Analysis\n\nThe scan touches every coordinate before the destination.\n\n- Time Complexity: O(target + n)\n- Space Complexity: O(target)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int carFleet(int target, int[] position, int[] speed) {\n        double[] timeAtPosition = new double[target];\n        Arrays.fill(timeAtPosition, -1.0);\n\n        for (int i = 0; i < position.length; i++) {\n            timeAtPosition[position[i]] = (double) (target - position[i]) / speed[i];\n        }\n\n        int fleets = 0;\n        double slowestAhead = 0.0;\n\n        for (int pos = target - 1; pos >= 0; pos--) {\n            double arrivalTime = timeAtPosition[pos];\n            if (arrivalTime < 0.0) {\n                continue;\n            }\n            if (arrivalTime > slowestAhead) {\n                fleets++;\n                slowestAhead = arrivalTime;\n            }\n        }\n\n        return fleets;\n    }\n}"
+    },
+    {
+      "name": "Quadratic Ahead-Time Baseline",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort cars by increasing position so every car ahead of index `i` appears to its right. For each car, recompute the maximum raw arrival time among all cars ahead. The current car starts a new fleet exactly when its own arrival time is greater than that maximum.\n\n## Key Insight\n\nThis baseline exposes the invariant used by the faster scan: the only information a rear car needs about all cars ahead is the slowest arrival time among them. The optimized sorted scan keeps that maximum incrementally instead of recomputing it for every car.\n\n## Complexity Analysis\n\nThe nested loop is too slow for the largest constraint, but it is useful as a correctness baseline for the fleet-count rule.\n\n- Time Complexity: O(n^2)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int carFleet(int target, int[] position, int[] speed) {\n        int n = position.length;\n        double[][] cars = new double[n][2];\n\n        for (int i = 0; i < n; i++) {\n            cars[i][0] = position[i];\n            cars[i][1] = (double) (target - position[i]) / speed[i];\n        }\n\n        Arrays.sort(cars, Comparator.comparingDouble(car -> car[0]));\n\n        int fleets = 0;\n        for (int i = n - 1; i >= 0; i--) {\n            double maxAheadTime = 0.0;\n            for (int j = i + 1; j < n; j++) {\n                maxAheadTime = Math.max(maxAheadTime, cars[j][1]);\n            }\n            if (cars[i][1] > maxAheadTime) {\n                fleets++;\n            }\n        }\n\n        return fleets;\n    }\n}"
     }
   ]
 }

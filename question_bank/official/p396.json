@@ -1,10 +1,16 @@
 {
   "id": "396",
   "title": "Stream of Characters",
-  "description": "# Stream of Characters\n\nDesign an algorithm that accepts a stream of characters and checks if a suffix of these characters is a string of a given array of strings `words`.\n\nFor example, if `words = [\"abc\", \"xyz\"]` and the stream added the four characters (one by one) 'a', 'x', 'y', and 'z', your algorithm should detect that the suffix \"xyz\" of the characters \"axyz\" matches \"xyz\" from `words`.\n\nImplement the `StreamChecker` class:\n\n*   `StreamChecker(String[] words)` Initializes the object with the strings array `words`.\n*   `boolean query(char letter)` Accepts a new character from the stream and returns `true` if any non-empty suffix from the stream forms a word that is in `words`.\n\n## Example 1:\n\n**Input:**\n[\"StreamChecker\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\"]\n[[[\"cd\", \"f\", \"kl\"]], [\"a\"], [\"b\"], [\"c\"], [\"d\"], [\"e\"], [\"f\"], [\"g\"], [\"h\"], [\"i\"], [\"j\"], [\"k\"], [\"l\"]]\n**Output:**\n[null, false, false, false, true, false, true, false, false, false, false, false, true]\n**Explanation:**\nStreamChecker streamChecker = new StreamChecker([\"cd\", \"f\", \"kl\"]);\nstreamChecker.query('a'); // return False\nstreamChecker.query('b'); // return False\nstreamChecker.query('c'); // return False\nstreamChecker.query('d'); // return True, because 'cd' is in the wordlist\nstreamChecker.query('e'); // return False\nstreamChecker.query('f'); // return True, because 'f' is in the wordlist\nstreamChecker.query('g'); // return False\nstreamChecker.query('h'); // return False\nstreamChecker.query('i'); // return False\nstreamChecker.query('j'); // return False\nstreamChecker.query('k'); // return False\nstreamChecker.query('l'); // return True, because 'kl' is in the wordlist\n\n## Constraints:\n\n*   `1 <= words.length <= 2000`\n*   `1 <= words[i].length <= 200`\n*   `words[i]` consists of lowercase English letters.\n*   `letter` is a lowercase English letter.\n*   At most `4 * 10^4` calls will be made to query.",
+  "description": "# Stream of Characters\n\nDesign a data structure that receives a stream of lowercase characters one at a time. After each new character, it must answer whether **any suffix** of the complete stream is equal to one of the given dictionary words.\n\nFor example, if `words = [\"abc\", \"xyz\"]` and the stream receives `a`, `x`, `y`, `z`, then the final query returns `true` because the current stream `axyz` has suffix `xyz`.\n\nImplement the `StreamChecker` class:\n\n* `StreamChecker(String[] words)` initializes the structure with the dictionary words.\n* `boolean query(char letter)` appends `letter` to the stream and returns whether a dictionary word is now a suffix of the stream.\n\nThe stream is never reset between queries. A word can match even if it is shorter than another matching suffix, and duplicate words should not change the answers.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1:\n\n**Input:** [\"StreamChecker\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\"]\n[[[\"cd\", \"f\", \"kl\"]], [\"a\"], [\"b\"], [\"c\"], [\"d\"], [\"e\"], [\"f\"], [\"g\"], [\"h\"], [\"i\"], [\"j\"], [\"k\"], [\"l\"]]\n**Output:** [null, false, false, false, true, false, true, false, false, false, false, false, true]\n\n## Constraints:\n\n* `1 <= words.length <= 2000`\n* `1 <= words[i].length <= 200`\n* `words[i]` consists of lowercase English letters.\n* `letter` is a lowercase English letter.\n* At most `40000` calls will be made to `query`.",
   "difficulty": "HARD",
-  "initialCode": "class StreamChecker {\n\n    public StreamChecker(String[] words) {\n        \n    }\n    \n    public boolean query(char letter) {\n        \n    }\n}",
-  "tags": ["Array", "String", "Design", "Trie", "Data Stream"],
+  "initialCode": "class StreamChecker {\n    public StreamChecker(String[] words) {\n    }\n\n    public boolean query(char letter) {\n        return false;\n    }\n}",
+  "tags": [
+    "Array",
+    "String",
+    "Design",
+    "Trie",
+    "Data Stream"
+  ],
   "examples": [
     {
       "input": "[\"StreamChecker\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\"]\n[[[\"cd\", \"f\", \"kl\"]], [\"a\"], [\"b\"], [\"c\"], [\"d\"], [\"e\"], [\"f\"], [\"g\"], [\"h\"], [\"i\"], [\"j\"], [\"k\"], [\"l\"]]",
@@ -13,26 +19,106 @@
   ],
   "solutions": [
     {
-      "name": "Reverse Trie",
-      "timeComplexity": "O(W * L + Q * L)",
-      "spaceComplexity": "O(W * L + Q)",
-      "description": "Insert reversed words into a trie. Maintain a buffer of streamed characters. For each query, walk the trie from the latest character backwards. If we reach a word end, return true.",
-      "code": "class StreamChecker {\n    private int[][] trie;\n    private boolean[] end;\n    private int cnt = 0;\n    private StringBuilder sb = new StringBuilder();\n    public StreamChecker(String[] words) {\n        trie = new int[200 * 2000 + 1][26];\n        end = new boolean[200 * 2000 + 1];\n        for (int[] row : trie) java.util.Arrays.fill(row, -1);\n        for (String w : words) {\n            int node = 0;\n            for (int i = w.length() - 1; i >= 0; i--) {\n                int c = w.charAt(i) - 'a';\n                if (trie[node][c] == -1) trie[node][c] = ++cnt;\n                node = trie[node][c];\n            }\n            end[node] = true;\n        }\n    }\n    public boolean query(char letter) {\n        sb.append(letter);\n        int node = 0;\n        for (int i = sb.length() - 1; i >= 0; i--) {\n            int c = sb.charAt(i) - 'a';\n            if (trie[node][c] == -1) return false;\n            node = trie[node][c];\n            if (end[node]) return true;\n        }\n        return false;\n    }\n}",
+      "name": "Reverse Trie with Bounded Suffix Buffer",
+      "timeComplexity": "O(S + Q * L)",
+      "spaceComplexity": "O(S + L)",
+      "description": "## Approach\nInsert every dictionary word into a trie in reverse order. Keep only the last `maxWordLength` streamed characters. For each query, walk the trie from the newest character backward; reaching a terminal node means some dictionary word is a suffix of the stream.\n\n## Key Insight\nA suffix of the stream read from right to left is a prefix in the reversed-word trie. Trimming the buffer to the longest dictionary word is safe because longer history can never be part of a future match.\n\n## Complexity Analysis\nBuilding the trie costs O(S), where S is the total length of all words. Each query walks at most L characters, where L is the longest word length, so Q queries cost O(Q * L). The trie stores O(S) nodes and the buffer stores O(L) characters.",
+      "code": "class StreamChecker {\n    private final Node root = new Node();\n    private final StringBuilder suffix = new StringBuilder();\n    private int maxLength;\n\n    public StreamChecker(String[] words) {\n        for (String word : words) {\n            maxLength = Math.max(maxLength, word.length());\n            Node node = root;\n            for (int i = word.length() - 1; i >= 0; i--) {\n                int index = word.charAt(i) - 'a';\n                if (node.next[index] == null) {\n                    node.next[index] = new Node();\n                }\n                node = node.next[index];\n            }\n            node.word = true;\n        }\n    }\n\n    public boolean query(char letter) {\n        suffix.append(letter);\n        if (suffix.length() > maxLength) {\n            suffix.deleteCharAt(0);\n        }\n\n        Node node = root;\n        for (int i = suffix.length() - 1; i >= 0; i--) {\n            int index = suffix.charAt(i) - 'a';\n            node = node.next[index];\n            if (node == null) {\n                return false;\n            }\n            if (node.word) {\n                return true;\n            }\n        }\n        return false;\n    }\n\n    private static final class Node {\n        private final Node[] next = new Node[26];\n        private boolean word;\n    }\n}",
       "language": "java"
     },
     {
       "name": "Aho-Corasick Automaton",
-      "timeComplexity": "O(W * L + Q)",
-      "spaceComplexity": "O(W * L)",
-      "description": "Build an Aho-Corasick automaton from all words. Maintain a current state pointer. For each query character, advance the automaton state. Check if the current state or any of its suffix links marks a word end.",
-      "code": "import java.util.*;\n\nclass StreamChecker {\n    private int[][] go;\n    private int[] fail;\n    private boolean[] output;\n    private int size;\n    private int state;\n\n    public StreamChecker(String[] words) {\n        int maxNodes = 1;\n        for (String w : words) maxNodes += w.length();\n        go = new int[maxNodes][26];\n        fail = new int[maxNodes];\n        output = new boolean[maxNodes];\n        for (int[] row : go) Arrays.fill(row, -1);\n        size = 1;\n        for (String w : words) {\n            int cur = 0;\n            for (int i = 0; i < w.length(); i++) {\n                int c = w.charAt(i) - 'a';\n                if (go[cur][c] == -1) go[cur][c] = size++;\n                cur = go[cur][c];\n            }\n            output[cur] = true;\n        }\n        Queue<Integer> queue = new LinkedList<>();\n        for (int c = 0; c < 26; c++) {\n            if (go[0][c] == -1) go[0][c] = 0;\n            else { fail[go[0][c]] = 0; queue.offer(go[0][c]); }\n        }\n        while (!queue.isEmpty()) {\n            int u = queue.poll();\n            output[u] = output[u] || output[fail[u]];\n            for (int c = 0; c < 26; c++) {\n                if (go[u][c] == -1) {\n                    go[u][c] = go[fail[u]][c];\n                } else {\n                    fail[go[u][c]] = go[fail[u]][c];\n                    queue.offer(go[u][c]);\n                }\n            }\n        }\n        state = 0;\n    }\n\n    public boolean query(char letter) {\n        state = go[state][letter - 'a'];\n        return output[state];\n    }\n}",
+      "timeComplexity": "O(S + Q)",
+      "spaceComplexity": "O(S)",
+      "description": "## Approach\nBuild an Aho-Corasick automaton from the dictionary in normal order. Failure links point to the longest proper suffix state that is also a trie prefix. A query advances the current automaton state by one character and returns whether the current state or one of its failure ancestors is terminal.\n\n## Key Insight\nThe automaton maintains every dictionary prefix that is also a suffix of the stream inside one state pointer. Propagating terminal flags along failure links turns suffix detection into a constant-time state check after each character.\n\n## Complexity Analysis\nTrie construction and failure-link BFS cost O(S). Once missing transitions are filled, each query performs one array transition and one output check, so Q queries cost O(Q). The automaton arrays use O(S) space.",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Arrays;\nimport java.util.Queue;\n\nclass StreamChecker {\n    private final int[][] next;\n    private final int[] fail;\n    private final boolean[] output;\n    private int size;\n    private int state;\n\n    public StreamChecker(String[] words) {\n        int nodeLimit = 1;\n        for (String word : words) {\n            nodeLimit += word.length();\n        }\n        next = new int[nodeLimit][26];\n        fail = new int[nodeLimit];\n        output = new boolean[nodeLimit];\n        for (int[] row : next) {\n            Arrays.fill(row, -1);\n        }\n        size = 1;\n\n        for (String word : words) {\n            int node = 0;\n            for (int i = 0; i < word.length(); i++) {\n                int c = word.charAt(i) - 'a';\n                if (next[node][c] == -1) {\n                    next[node][c] = size++;\n                }\n                node = next[node][c];\n            }\n            output[node] = true;\n        }\n\n        Queue<Integer> queue = new ArrayDeque<>();\n        for (int c = 0; c < 26; c++) {\n            if (next[0][c] == -1) {\n                next[0][c] = 0;\n            } else {\n                queue.offer(next[0][c]);\n            }\n        }\n\n        while (!queue.isEmpty()) {\n            int node = queue.poll();\n            output[node] = output[node] || output[fail[node]];\n            for (int c = 0; c < 26; c++) {\n                int child = next[node][c];\n                if (child == -1) {\n                    next[node][c] = next[fail[node]][c];\n                } else {\n                    fail[child] = next[fail[node]][c];\n                    queue.offer(child);\n                }\n            }\n        }\n    }\n\n    public boolean query(char letter) {\n        state = next[state][letter - 'a'];\n        return output[state];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Forward Trie Active States",
+      "timeComplexity": "O(S + Q * A)",
+      "spaceComplexity": "O(S + A)",
+      "description": "## Approach\nInsert dictionary words in normal order. After each query character, start a new match from the root and also advance every currently active trie node. The active nodes represent dictionary prefixes that match suffixes ending at the current stream position.\n\n## Key Insight\nInstead of reading the stream backward, this route keeps all forward prefix matches alive. A terminal active node means the suffix ending at the newest character is exactly one dictionary word.\n\n## Complexity Analysis\nBuilding the trie costs O(S). Each query advances A active states, where A is the number of live prefix matches, so the query cost is O(A). The trie stores O(S) nodes and the active set stores O(A) nodes.",
+      "code": "import java.util.ArrayList;\nimport java.util.Collections;\nimport java.util.IdentityHashMap;\nimport java.util.List;\nimport java.util.Set;\n\nclass StreamChecker {\n    private final Node root = new Node();\n    private List<Node> active = new ArrayList<>();\n\n    public StreamChecker(String[] words) {\n        for (String word : words) {\n            Node node = root;\n            for (int i = 0; i < word.length(); i++) {\n                int c = word.charAt(i) - 'a';\n                if (node.next[c] == null) {\n                    node.next[c] = new Node();\n                }\n                node = node.next[c];\n            }\n            node.word = true;\n        }\n    }\n\n    public boolean query(char letter) {\n        int c = letter - 'a';\n        Set<Node> nextStates = Collections.newSetFromMap(new IdentityHashMap<>());\n        boolean matched = false;\n\n        Node fromRoot = root.next[c];\n        if (fromRoot != null) {\n            nextStates.add(fromRoot);\n            matched = matched || fromRoot.word;\n        }\n\n        for (Node node : active) {\n            Node child = node.next[c];\n            if (child != null && nextStates.add(child)) {\n                matched = matched || child.word;\n            }\n        }\n\n        active = new ArrayList<>(nextStates);\n        return matched;\n    }\n\n    private static final class Node {\n        private final Node[] next = new Node[26];\n        private boolean word;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Length-Bucket Exact Suffix Sets",
+      "timeComplexity": "O(S + Q * D * L)",
+      "spaceComplexity": "O(S + L)",
+      "description": "## Approach\nGroup dictionary words by length in hash sets and keep a bounded stream buffer. After each query, test only the distinct dictionary lengths that fit inside the buffer, extracting the corresponding suffix and checking it in the set for that length.\n\n## Key Insight\nThe prompt asks whether any dictionary word equals a suffix, so lengths are a useful first filter. This solution is deliberately simple and exact: it never relies on probabilistic hashing or trie traversal.\n\n## Complexity Analysis\nBuilding the length buckets costs O(S). Each query checks D distinct word lengths and may copy up to L characters per suffix, so the worst-case query cost is O(D * L). The dictionary buckets store O(S) characters and the stream buffer stores O(L).",
+      "code": "import java.util.HashMap;\nimport java.util.HashSet;\nimport java.util.Map;\nimport java.util.Set;\n\nclass StreamChecker {\n    private final Map<Integer, Set<String>> wordsByLength = new HashMap<>();\n    private final StringBuilder stream = new StringBuilder();\n    private int maxLength;\n\n    public StreamChecker(String[] words) {\n        for (String word : words) {\n            maxLength = Math.max(maxLength, word.length());\n            wordsByLength.computeIfAbsent(word.length(), ignored -> new HashSet<>()).add(word);\n        }\n    }\n\n    public boolean query(char letter) {\n        stream.append(letter);\n        if (stream.length() > maxLength) {\n            stream.deleteCharAt(0);\n        }\n\n        for (Map.Entry<Integer, Set<String>> entry : wordsByLength.entrySet()) {\n            int length = entry.getKey();\n            if (length <= stream.length()) {\n                String suffix = stream.substring(stream.length() - length);\n                if (entry.getValue().contains(suffix)) {\n                    return true;\n                }\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Rolling Hash Buckets with Exact Verification",
+      "timeComplexity": "O(S + Q * L + C)",
+      "spaceComplexity": "O(S + L)",
+      "description": "## Approach\nStore dictionary words by length and by a rolling hash of the reversed word. Keep the last `maxLength` stream characters. For each query, scan the buffer backward, updating the reversed suffix hash one character at a time. When a hash bucket matches the current suffix length, verify the candidate words exactly against the buffer.\n\n## Key Insight\nScanning backward computes the same orientation as reversed dictionary words, so every suffix length can be checked during one pass over the recent stream. Exact verification after a hash match keeps the method deterministic even if two strings collide under 64-bit overflow arithmetic.\n\n## Complexity Analysis\nPreprocessing costs O(S). Each query scans at most L recent characters; exact verification adds C total candidate-character comparisons only when a hash bucket matches. The hash buckets store O(S) data and the buffer stores O(L).",
+      "code": "import java.util.ArrayList;\nimport java.util.HashMap;\nimport java.util.List;\nimport java.util.Map;\n\nclass StreamChecker {\n    private static final long BASE = 911382323L;\n    private final Map<Integer, Map<Long, List<String>>> wordsByLengthAndHash = new HashMap<>();\n    private final StringBuilder stream = new StringBuilder();\n    private int maxLength;\n\n    public StreamChecker(String[] words) {\n        for (String word : words) {\n            maxLength = Math.max(maxLength, word.length());\n            long hash = reversedHash(word);\n            wordsByLengthAndHash\n                    .computeIfAbsent(word.length(), ignored -> new HashMap<>())\n                    .computeIfAbsent(hash, ignored -> new ArrayList<>())\n                    .add(word);\n        }\n    }\n\n    public boolean query(char letter) {\n        stream.append(letter);\n        if (stream.length() > maxLength) {\n            stream.deleteCharAt(0);\n        }\n\n        long hash = 0L;\n        for (int i = stream.length() - 1, length = 1; i >= 0; i--, length++) {\n            hash = hash * BASE + stream.charAt(i);\n            Map<Long, List<String>> bucket = wordsByLengthAndHash.get(length);\n            if (bucket == null) {\n                continue;\n            }\n            List<String> candidates = bucket.get(hash);\n            if (candidates != null && matchesAny(candidates, length)) {\n                return true;\n            }\n        }\n        return false;\n    }\n\n    private long reversedHash(String word) {\n        long hash = 0L;\n        for (int i = word.length() - 1; i >= 0; i--) {\n            hash = hash * BASE + word.charAt(i);\n        }\n        return hash;\n    }\n\n    private boolean matchesAny(List<String> candidates, int length) {\n        int start = stream.length() - length;\n        for (String word : candidates) {\n            boolean same = true;\n            for (int i = 0; i < length; i++) {\n                if (stream.charAt(start + i) != word.charAt(i)) {\n                    same = false;\n                    break;\n                }\n            }\n            if (same) {\n                return true;\n            }\n        }\n        return false;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "[\"StreamChecker\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\"]\n[[[\"cd\", \"f\", \"kl\"]], [\"a\"], [\"b\"], [\"c\"], [\"d\"], [\"e\"], [\"f\"], [\"g\"], [\"h\"], [\"i\"], [\"j\"], [\"k\"], [\"l\"]]",
-      "output": "[null, false, false, false, true, false, true, false, false, false, false, false, true]"
+      "output": "[null, false, false, false, true, false, true, false, false, false, false, false, true]",
+      "description": "canonical suffix stream"
+    },
+    {
+      "input": "[\"StreamChecker\", \"query\", \"query\", \"query\", \"query\"]\n[[[\"a\", \"aa\", \"aaa\"]], [\"a\"], [\"a\"], [\"a\"], [\"a\"]]",
+      "output": "[null, true, true, true, true]",
+      "description": "overlapping one, two, and three character words"
+    },
+    {
+      "input": "[\"StreamChecker\", \"query\", \"query\", \"query\"]\n[[[\"bc\", \"abc\"]], [\"a\"], [\"b\"], [\"c\"]]",
+      "output": "[null, false, false, true]",
+      "description": "short and long suffixes both become valid at the same character"
+    },
+    {
+      "input": "[\"StreamChecker\", \"query\", \"query\", \"query\", \"query\"]\n[[[\"ab\", \"ba\"]], [\"a\"], [\"b\"], [\"a\"], [\"a\"]]",
+      "output": "[null, false, true, true, false]",
+      "description": "different suffix words match at different times and then disappear"
+    },
+    {
+      "input": "[\"StreamChecker\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\"]\n[[[\"abcd\"]], [\"a\"], [\"b\"], [\"c\"], [\"x\"], [\"a\"], [\"b\"], [\"c\"], [\"d\"]]",
+      "output": "[null, false, false, false, false, false, false, false, true]",
+      "description": "partial prefix must not match until it is a suffix after a reset character"
+    },
+    {
+      "input": "[\"StreamChecker\", \"query\", \"query\", \"query\"]\n[[[\"x\", \"xy\", \"yz\", \"z\"]], [\"x\"], [\"y\"], [\"z\"]]",
+      "output": "[null, true, true, true]",
+      "description": "single-character and longer suffix words overlap"
+    },
+    {
+      "input": "[\"StreamChecker\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\"]\n[[[\"aaaa\", \"aa\"]], [\"a\"], [\"a\"], [\"a\"], [\"a\"], [\"b\"], [\"a\"], [\"a\"]]",
+      "output": "[null, false, true, true, true, false, false, true]",
+      "description": "repeated characters require bounded suffix state rather than one-shot matching"
+    },
+    {
+      "input": "[\"StreamChecker\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\"]\n[[[\"abcdefghij\"]], [\"a\"], [\"b\"], [\"c\"], [\"d\"], [\"e\"], [\"f\"], [\"g\"], [\"h\"], [\"i\"], [\"j\"]]",
+      "output": "[null, false, false, false, false, false, false, false, false, false, true]",
+      "description": "long word only matches after the complete suffix arrives"
+    },
+    {
+      "input": "[\"StreamChecker\", \"query\", \"query\", \"query\", \"query\"]\n[[[\"ab\", \"bab\", \"bbab\"]], [\"b\"], [\"b\"], [\"a\"], [\"b\"]]",
+      "output": "[null, false, false, false, true]",
+      "description": "nested suffix words with shared endings"
+    },
+    {
+      "input": "[\"StreamChecker\", \"query\", \"query\", \"query\", \"query\"]\n[[[\"abc\"]], [\"a\"], [\"b\"], [\"x\"], [\"c\"]]",
+      "output": "[null, false, false, false, false]",
+      "description": "prefix characters before a break must not be treated as a suffix"
+    },
+    {
+      "input": "[\"StreamChecker\", \"query\", \"query\"]\n[[[\"cd\", \"cd\", \"d\"]], [\"c\"], [\"d\"]]",
+      "output": "[null, false, true]",
+      "description": "duplicate dictionary words and a shorter suffix word"
+    },
+    {
+      "input": "[\"StreamChecker\", \"query\", \"query\", \"query\", \"query\", \"query\", \"query\"]\n[[[\"he\", \"she\", \"his\", \"hers\"]], [\"u\"], [\"s\"], [\"h\"], [\"e\"], [\"r\"], [\"s\"]]",
+      "output": "[null, false, false, false, true, false, true]",
+      "description": "classic automaton-style overlapping patterns"
     }
   ]
 }

@@ -1,10 +1,13 @@
 {
   "id": "293",
   "title": "Decode the Message",
-  "description": "# Decode the Message\n\nYou are given the strings `key` and `message`, which represent a cipher key and a secret message, respectively. The steps to decode `message` are as follows:\n\n1.  Use the **first** appearance of all 26 lowercase English letters in `key` as the **order** of the substitution table.\n2.  Align the substitution table with the regular English alphabet.\n3.  Each letter in `message` is then **substituted** using the table.\n4.  Spaces `' '` are transformed to themselves.\n\n*   For example, given `key = \"happy boy\"` (actual key would have at least one instance of each letter in the alphabet), we have the partial substitution table of (`'h' -> 'a'`, `'a' -> 'b'`, `'p' -> 'c'`, `'y' -> 'd'`, `'b' -> 'e'`, `'o' -> 'f'`).\n\nReturn *the decoded message*.\n\n## Example 1:\n\n**Input:** key = \"the quick brown fox jumps over the lazy dog\", message = \"vkbs bs t suepuv\"\n**Output:** \"this is a secret\"\n**Explanation:** The diagram above shows the substitution table.\nIt is obtained by taking the first appearance of each letter in \"the quick brown fox jumps over the lazy dog\".\n\n## Example 2:\n\n**Input:** key = \"eljuxhpwnyrdgtqkviszcfmabo\", message = \"zwx hnfx lqantp mnoeius ycgk vcnjrdb\"\n**Output:** \"the five boxing wizards jump quickly\"\n**Explanation:** The diagram above shows the substitution table.\n\n## Constraints:\n\n*   `26 <= key.length <= 2000`\n*   `key` consists of lowercase English letters and `' '`.\n*   `key` contains every letter in the English alphabet (`'a'` to `'z'`) at least once.\n*   `1 <= message.length <= 2000`\n*   `message` consists of lowercase English letters and `' '`.",
+  "description": "# Decode the Message\n\nYou are given two strings, `key` and `message`.\n\nThe `key` describes a substitution cipher:\n\n1. Ignore spaces in `key`.\n2. Read the remaining letters from left to right.\n3. The first distinct letter you see maps to plaintext `a`, the second distinct letter maps to plaintext `b`, and so on until all 26 lowercase English letters have been assigned.\n4. Repeated letters in `key` do not create a new mapping.\n5. Spaces in `message` stay as spaces.\n\nReturn the decoded version of `message`.\n\nFor example, if the first distinct letters of `key` begin with `h, a, p, y, b, o`, then the partial mapping is `h -> a`, `a -> b`, `p -> c`, `y -> d`, `b -> e`, and `o -> f`.\n\n## Example 1\n\n**Input:** key = \"the quick brown fox jumps over the lazy dog\", message = \"vkbs bs t suepuv\"\n**Output:** \"this is a secret\"\n**Explanation:** Taking first appearances from the key builds the substitution table used to decode every non-space character in the message.\n\n## Example 2\n\n**Input:** key = \"eljuxhpwnyrdgtqkviszcfmabo\", message = \"zwx hnfx lqantp mnoeius ycgk vcnjrdb\"\n**Output:** \"the five boxing wizards jump quickly\"\n**Explanation:** The key has no spaces, but its first-appearance order still defines the same kind of substitution table.\n\n## Constraints\n\n* `26 <= key.length <= 2000`\n* `key` consists of lowercase English letters and spaces.\n* `key` contains every lowercase English letter at least once.\n* `1 <= message.length <= 2000`\n* `message` consists of lowercase English letters and spaces.",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public String decodeMessage(String key, String message) {\n        \n    }\n}",
-  "tags": ["Hash Table", "String"],
+  "initialCode": "class Solution {\n    public String decodeMessage(String key, String message) {\n        // Write your code here\n        return \"\";\n    }\n}",
+  "tags": [
+    "Hash Table",
+    "String"
+  ],
   "examples": [
     {
       "input": "key = \"the quick brown fox jumps over the lazy dog\", message = \"vkbs bs t suepuv\"",
@@ -18,29 +21,77 @@
   "solutions": [
     {
       "name": "Substitution Table",
-      "timeComplexity": "O(n + m)",
+      "timeComplexity": "O(k + m)",
       "spaceComplexity": "O(1)",
-      "description": "Build a mapping array from key: iterate through key, assign each new letter to the next letter in 'a'-'z' order. Then decode message using the mapping.",
-      "code": "class Solution {\n    public String decodeMessage(String key, String message) {\n        char[] map = new char[26];\n        int idx = 0;\n        for (char c : key.toCharArray()) {\n            if (c != ' ' && map[c - 'a'] == 0) {\n                map[c - 'a'] = (char) ('a' + idx++);\n            }\n        }\n        StringBuilder sb = new StringBuilder();\n        for (char c : message.toCharArray()) {\n            sb.append(c == ' ' ? ' ' : map[c - 'a']);\n        }\n        return sb.toString();\n    }\n}",
+      "description": "## Approach\n\nScan `key` once and build a 26-entry array where `map[encoded - 'a']` stores the decoded plaintext letter. Skip spaces and only assign a key letter the first time it appears.\n\n## Key Insight\n\nThe key order is an encoded alphabet. Once that alphabet is converted into a direct lookup table, each message character can be decoded in constant time while spaces are copied unchanged.\n\n## Complexity Analysis\n- Time Complexity: O(k + m)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public String decodeMessage(String key, String message) {\n        char[] map = new char[26];\n        boolean[] seen = new boolean[26];\n        char next = 'a';\n\n        for (int i = 0; i < key.length(); i++) {\n            char c = key.charAt(i);\n            if (c == ' ') {\n                continue;\n            }\n            int index = c - 'a';\n            if (!seen[index]) {\n                seen[index] = true;\n                map[index] = next++;\n            }\n        }\n\n        StringBuilder ans = new StringBuilder(message.length());\n        for (int i = 0; i < message.length(); i++) {\n            char c = message.charAt(i);\n            ans.append(c == ' ' ? ' ' : map[c - 'a']);\n        }\n        return ans.toString();\n    }\n}",
       "language": "java"
     },
     {
       "name": "HashMap Mapping",
-      "timeComplexity": "O(n + m)",
+      "timeComplexity": "O(k + m)",
       "spaceComplexity": "O(1)",
-      "description": "Use a HashMap to store the mapping from cipher character to decoded character. Build the map from the key, then decode the message.",
-      "code": "import java.util.HashMap;\nimport java.util.Map;\n\nclass Solution {\n    public String decodeMessage(String key, String message) {\n        Map<Character, Character> map = new HashMap<>();\n        char nextChar = 'a';\n        for (int i = 0; i < key.length(); i++) {\n            char c = key.charAt(i);\n            if (c != ' ' && !map.containsKey(c)) {\n                map.put(c, nextChar);\n                nextChar++;\n            }\n        }\n        StringBuilder sb = new StringBuilder();\n        for (int i = 0; i < message.length(); i++) {\n            char c = message.charAt(i);\n            if (c == ' ') {\n                sb.append(' ');\n            } else {\n                sb.append(map.get(c));\n            }\n        }\n        return sb.toString();\n    }\n}",
+      "description": "## Approach\n\nUse a `HashMap<Character, Character>` from encoded letters to decoded letters. When a non-space key character is not already present, map it to the next plaintext letter.\n\n## Key Insight\n\nThe map version mirrors the substitution-cipher definition directly: each first-time key character receives exactly one decoded character, and future repeats are ignored by `containsKey`.\n\n## Complexity Analysis\n- Time Complexity: O(k + m)\n- Space Complexity: O(1)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String decodeMessage(String key, String message) {\n        Map<Character, Character> map = new HashMap<>();\n        char next = 'a';\n\n        for (int i = 0; i < key.length(); i++) {\n            char c = key.charAt(i);\n            if (c != ' ' && !map.containsKey(c)) {\n                map.put(c, next++);\n            }\n        }\n\n        StringBuilder ans = new StringBuilder(message.length());\n        for (int i = 0; i < message.length(); i++) {\n            char c = message.charAt(i);\n            ans.append(c == ' ' ? ' ' : map.get(c));\n        }\n        return ans.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "First Occurrence Alphabet Order",
+      "timeComplexity": "O(k + 26m)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCollect the first distinct non-space letters of `key` into a 26-character string. For each message letter, find its position in that string; the position is the decoded letter's offset from `a`.\n\n## Key Insight\n\nThis keeps the encoded alphabet itself instead of materializing an inverse table. Because the alphabet has only 26 letters, the `indexOf` lookup is still constant-bounded for this problem.\n\n## Complexity Analysis\n- Time Complexity: O(k + 26m)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public String decodeMessage(String key, String message) {\n        boolean[] seen = new boolean[26];\n        StringBuilder order = new StringBuilder(26);\n\n        for (int i = 0; i < key.length(); i++) {\n            char c = key.charAt(i);\n            if (c == ' ') {\n                continue;\n            }\n            int index = c - 'a';\n            if (!seen[index]) {\n                seen[index] = true;\n                order.append(c);\n            }\n        }\n\n        StringBuilder decoded = new StringBuilder(message.length());\n        for (int i = 0; i < message.length(); i++) {\n            char c = message.charAt(i);\n            if (c == ' ') {\n                decoded.append(' ');\n            } else {\n                decoded.append((char) ('a' + order.indexOf(String.valueOf(c))));\n            }\n        }\n        return decoded.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "ASCII Lookup Including Space",
+      "timeComplexity": "O(k + m)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCreate a small ASCII lookup table and set the space entry to map to itself. Then fill entries for first-time key letters and decode every message character through the same table.\n\n## Key Insight\n\nBy making space an ordinary table entry, the decode loop no longer needs a branch for spaces. This is useful when teaching how sentinel/default table values can simplify the second pass.\n\n## Complexity Analysis\n- Time Complexity: O(k + m)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public String decodeMessage(String key, String message) {\n        char[] decoder = new char[128];\n        decoder[' '] = ' ';\n        char next = 'a';\n\n        for (int i = 0; i < key.length(); i++) {\n            char c = key.charAt(i);\n            if (c != ' ' && decoder[c] == 0) {\n                decoder[c] = next++;\n            }\n        }\n\n        StringBuilder decoded = new StringBuilder(message.length());\n        for (int i = 0; i < message.length(); i++) {\n            decoded.append(decoder[message.charAt(i)]);\n        }\n        return decoded.toString();\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "key = \"the quick brown fox jumps over the lazy dog\", message = \"vkbs bs t suepuv\"",
-      "output": "\"this is a secret\""
+      "output": "\"this is a secret\"",
+      "description": "sample substitution from a pangram key with spaces"
     },
     {
       "input": "key = \"eljuxhpwnyrdgtqkviszcfmabo\", message = \"zwx hnfx lqantp mnoeius ycgk vcnjrdb\"",
-      "output": "\"the five boxing wizards jump quickly\""
+      "output": "\"the five boxing wizards jump quickly\"",
+      "description": "sample with a compact key and spaces in the message"
+    },
+    {
+      "input": "key = \"abcdefghijklmnopqrstuvwxyz\", message = \"leetcode\"",
+      "output": "\"leetcode\"",
+      "description": "identity key leaves letters unchanged"
+    },
+    {
+      "input": "key = \"abcdefghijklmnopqrstuvwxyz\", message = \"   \"",
+      "output": "\"   \"",
+      "description": "a message made only of spaces remains unchanged"
+    },
+    {
+      "input": "key = \"abcdefghijklmnopqrstuvwxyz\", message = \" a  b \"",
+      "output": "\" a  b \"",
+      "description": "leading, trailing, and repeated message spaces are preserved"
+    },
+    {
+      "input": "key = \"bcdefghijklmnopqrstuvwxyza\", message = \"abc z\"",
+      "output": "\"zab y\"",
+      "description": "rotated key maps b to a and a to z"
+    },
+    {
+      "input": "key = \"bbabcdefghijklmnopqrstuvwxyz\", message = \"abbc\"",
+      "output": "\"baac\"",
+      "description": "duplicate key letters do not consume another plaintext letter"
+    },
+    {
+      "input": "key = \"zyxwvutsrqponmlkjihgfedcba\", message = \"abc xyz\"",
+      "output": "\"zyx cba\"",
+      "description": "reverse alphabet key exercises both ends of the substitution table"
     }
   ]
 }

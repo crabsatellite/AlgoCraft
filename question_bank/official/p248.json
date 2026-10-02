@@ -1,42 +1,120 @@
 {
   "id": "248",
   "title": "Shuffle the Array",
-  "description": "# Shuffle the Array\n\nGiven the array `nums` consisting of `2n` elements in the form `[x1,x2,...,xn,y1,y2,...,yn]`.\n\n*Return the array in the form* `[x1,y1,x2,y2,...,xn,yn]`.\n\n## Example 1:\n\n**Input:** nums = [2,5,1,3,4,7], n = 3\n**Output:** [2,3,5,4,1,7] \n**Explanation:** Since x1=2, x2=5, x3=1, y1=3, y2=4, y3=7 then the answer is [2,3,5,4,1,7].\n\n## Example 2:\n\n**Input:** nums = [1,2,3,4,4,3,2,1], n = 4\n**Output:** [1,4,2,3,3,2,4,1]\n\n## Example 3:\n\n**Input:** nums = [1,1,2,2], n = 2\n**Output:** [1,2,1,2]\n\n## Constraints:\n\n*   `1 <= n <= 500`\n*   `nums.length == 2n`\n*   `1 <= nums[i] <= 10^3`",
+  "description": "# Shuffle the Array\n\nYou are given an array `nums` with `2n` elements arranged as two consecutive halves:\n\n`[x1, x2, ..., xn, y1, y2, ..., yn]`\n\nReturn a new ordering in the interleaved form:\n\n`[x1, y1, x2, y2, ..., xn, yn]`\n\nThe first half supplies every `x` value, and the second half supplies the matching `y` value at the same offset.\n\n## Example 1:\n\n**Input:** nums = [2,5,1,3,4,7], n = 3\n**Output:** [2,3,5,4,1,7]\n**Explanation:** The pairs are (2,3), (5,4), and (1,7).\n\n## Example 2:\n\n**Input:** nums = [1,2,3,4,4,3,2,1], n = 4\n**Output:** [1,4,2,3,3,2,4,1]\n\n## Example 3:\n\n**Input:** nums = [1,1,2,2], n = 2\n**Output:** [1,2,1,2]\n\n## Constraints:\n\n* `1 <= n <= 500`\n* `nums.length == 2 * n`\n* `1 <= nums[i] <= 1000`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int[] shuffle(int[] nums, int n) {\n        // Write your code here\n        return new int[]{};\n    }\n}",
-  "tags": ["Array"],
+  "tags": [
+    "Array"
+  ],
   "examples": [
-    { "input": "nums = [2,5,1,3,4,7], n = 3", "output": "[2,3,5,4,1,7]" },
+    {
+      "input": "nums = [2,5,1,3,4,7], n = 3",
+      "output": "[2,3,5,4,1,7]"
+    },
     {
       "input": "nums = [1,2,3,4,4,3,2,1], n = 4",
       "output": "[1,4,2,3,3,2,4,1]"
     },
-    { "input": "nums = [1,1,2,2], n = 2", "output": "[1,2,1,2]" }
+    {
+      "input": "nums = [1,1,2,2], n = 2",
+      "output": "[1,2,1,2]"
+    }
   ],
   "solutions": [
     {
-      "name": "Interleave",
+      "name": "Direct Index Mapping",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Create a result array. For each index i from 0 to n-1, place nums[i] and nums[i+n] in consecutive positions.",
-      "code": "class Solution {\n    public int[] shuffle(int[] nums, int n) {\n        int[] res = new int[2 * n];\n        for (int i = 0; i < n; i++) {\n            res[2 * i] = nums[i];\n            res[2 * i + 1] = nums[i + n];\n        }\n        return res;\n    }\n}",
+      "description": "## Approach\n\nCreate a result array of length `2n`. For every offset `i`, write `nums[i]` into position `2 * i` and `nums[i + n]` into position `2 * i + 1`.\n\n## Key Insight\n\nThe target layout is a direct index formula. The value at offset `i` in the first half always pairs with the value at offset `i` in the second half.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each pair is written once.\n- Space Complexity: O(n), because the answer array stores `2n` values.",
+      "code": "class Solution {\n    public int[] shuffle(int[] nums, int n) {\n        int[] answer = new int[2 * n];\n        for (int i = 0; i < n; i++) {\n            answer[2 * i] = nums[i];\n            answer[2 * i + 1] = nums[i + n];\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two Pointer Half Merge",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse one pointer at the start of the first half and one pointer at the start of the second half. Repeatedly append one value from the first pointer and one value from the second pointer to the answer.\n\n## Key Insight\n\nThis views the input as two streams that must be merged alternately. It is the same output order as direct indexing, but the pointer form generalizes to other two-sequence merge problems.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because both pointers advance exactly `n` times.\n- Space Complexity: O(n), because the merged array is newly allocated.",
+      "code": "class Solution {\n    public int[] shuffle(int[] nums, int n) {\n        int[] answer = new int[2 * n];\n        int left = 0;\n        int right = n;\n        int write = 0;\n\n        while (left < n) {\n            answer[write++] = nums[left++];\n            answer[write++] = nums[right++];\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
       "name": "In-Place Bit Packing",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Since values are at most 1000 (< 1024), pack two values into one int using bit shifting. Store y values in the upper bits of the first half, then unpack.",
-      "code": "class Solution {\n    public int[] shuffle(int[] nums, int n) {\n        for (int i = 0; i < n; i++) {\n            nums[i] = nums[i] | (nums[i + n] << 10);\n        }\n        int idx = 2 * n - 1;\n        for (int i = n - 1; i >= 0; i--) {\n            int y = nums[i] >> 10;\n            int x = nums[i] & 1023;\n            nums[idx--] = y;\n            nums[idx--] = x;\n        }\n        return nums;\n    }\n}",
+      "description": "## Approach\n\nUse the constraint `nums[i] <= 1000`, which fits in 10 bits. Pack each pair `(x, y)` into one value in the first half, then unpack pairs from right to left into their final positions.\n\n## Key Insight\n\nPacking preserves both values while the array is being overwritten. Writing from the end prevents an unpacked result from destroying a packed pair that has not been read yet.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each pair is packed and unpacked once.\n- Space Complexity: O(1), because the input array itself stores the temporary packed values.",
+      "code": "class Solution {\n    public int[] shuffle(int[] nums, int n) {\n        for (int i = 0; i < n; i++) {\n            nums[i] = nums[i] | (nums[i + n] << 10);\n        }\n\n        int write = 2 * n - 1;\n        for (int i = n - 1; i >= 0; i--) {\n            int y = nums[i] >> 10;\n            int x = nums[i] & 1023;\n            nums[write--] = y;\n            nums[write--] = x;\n        }\n        return nums;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Queue First Half",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nPut all first-half values into a queue. Then scan the second half; for each `y` value, remove the next queued `x` value and append the pair to the answer.\n\n## Key Insight\n\nA queue makes the first half behave like a stream while the second half is read in place. This reinforces that the shuffle is an alternating merge of two ordered sources.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because every value is enqueued or written a constant number of times.\n- Space Complexity: O(n), because the queue stores the first half.",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Queue;\n\nclass Solution {\n    public int[] shuffle(int[] nums, int n) {\n        Queue<Integer> firstHalf = new ArrayDeque<>();\n        for (int i = 0; i < n; i++) {\n            firstHalf.add(nums[i]);\n        }\n\n        int[] answer = new int[2 * n];\n        int write = 0;\n        for (int i = n; i < 2 * n; i++) {\n            answer[write++] = firstHalf.remove();\n            answer[write++] = nums[i];\n        }\n        return answer;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [2,5,1,3,4,7], n = 3", "output": "[2,3,5,4,1,7]" },
+    {
+      "input": "nums = [2,5,1,3,4,7], n = 3",
+      "output": "[2,3,5,4,1,7]",
+      "description": "canonical x/y halves interleaved"
+    },
     {
       "input": "nums = [1,2,3,4,4,3,2,1], n = 4",
-      "output": "[1,4,2,3,3,2,4,1]"
+      "output": "[1,4,2,3,3,2,4,1]",
+      "description": "longer example with mirrored second half"
     },
-    { "input": "nums = [1,1,2,2], n = 2", "output": "[1,2,1,2]" }
+    {
+      "input": "nums = [1,1,2,2], n = 2",
+      "output": "[1,2,1,2]",
+      "description": "duplicates across both halves"
+    },
+    {
+      "input": "nums = [9,8], n = 1",
+      "output": "[9,8]",
+      "description": "minimum n"
+    },
+    {
+      "input": "nums = [1000,1,999,2], n = 2",
+      "output": "[1000,999,1,2]",
+      "description": "value boundary for the bit-packing route"
+    },
+    {
+      "input": "nums = [4,5,6,1,2,3], n = 3",
+      "output": "[4,1,5,2,6,3]",
+      "description": "already separated increasing halves"
+    },
+    {
+      "input": "nums = [1,2,3,1000,999,998], n = 3",
+      "output": "[1,1000,2,999,3,998]",
+      "description": "small first half paired with descending high values"
+    },
+    {
+      "input": "nums = [5,5,5,5,5,5], n = 3",
+      "output": "[5,5,5,5,5,5]",
+      "description": "all values equal"
+    },
+    {
+      "input": "nums = [10,20,30,40], n = 2",
+      "output": "[10,30,20,40]",
+      "description": "short two-pair input"
+    },
+    {
+      "input": "nums = [6,5,4,3,2,1], n = 3",
+      "output": "[6,3,5,2,4,1]",
+      "description": "both halves descending"
+    },
+    {
+      "input": "nums = [1,1000], n = 1",
+      "output": "[1,1000]",
+      "description": "minimum length with maximum value"
+    },
+    {
+      "input": "nums = [7,8,9,10,11,12,1,2,3,4,5,6], n = 6",
+      "output": "[7,1,8,2,9,3,10,4,11,5,12,6]",
+      "description": "larger even input with six pairs"
+    }
   ]
 }

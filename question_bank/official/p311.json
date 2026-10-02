@@ -1,40 +1,116 @@
 {
   "id": "311",
-  "title": "N-Queens",
-  "description": "# N-Queens\n\nThe **n-queens** puzzle is the problem of placing `n` queens on an `n x n` chessboard such that no two queens attack each other.\n\nGiven an integer `n`, return *all distinct solutions to the **n-queens puzzle***. You may return the answer in **any order**.\n\nEach solution contains a distinct board configuration of the n-queens' placement, where `'Q'` and `'.'` both indicate a queen and an empty space, respectively.\n\n## Example 1:\n\n**Input:** n = 4\n**Output:** [[\".Q..\",\"...Q\",\"Q...\",\"..Q.\"],[\"..Q.\",\"Q...\",\"...Q\",\".Q..\"]]\n**Explanation:** There exist two distinct solutions to the 4-queens puzzle as shown above\n\n## Example 2:\n\n**Input:** n = 1\n**Output:** [[\"Q\"]]\n\n## Constraints:\n\n*   `1 <= n <= 9`",
-  "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public List<List<String>> solveNQueens(int n) {\n        \n    }\n}",
-  "tags": ["Array", "Backtracking"],
+  "title": "Count Good Binary Strings",
+  "description": "# Count Good Binary Strings\n\nA good binary string is built from the empty string by repeatedly appending either a block of `zero` zero characters or a block of `one` one characters. Count how many distinct construction sequences produce a final string whose length is between `low` and `high`, inclusive. Return the count modulo `1_000_000_007`.\n\nAppending a zero block and appending a one block are different choices even when `zero == one`, because they add different characters.\n\n## Example 1:\n\n**Input:** low = 3, high = 3, zero = 1, one = 1\n**Output:** 8\n**Explanation:** Every binary string of length 3 is reachable.\n\n## Example 2:\n\n**Input:** low = 2, high = 3, zero = 1, one = 2\n**Output:** 5\n\n## Constraints:\n\n*   `1 <= low <= high <= 10^5`\n*   `1 <= zero, one <= high`",
+  "difficulty": "MEDIUM",
+  "initialCode": "class Solution {\n    public int countGoodStrings(int low, int high, int zero, int one) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Dynamic Programming"
+  ],
   "examples": [
     {
-      "input": "n = 4",
-      "output": "[[\".Q..\",\"...Q\",\"Q...\",\"..Q.\"],[\"..Q.\",\"Q...\",\"...Q\",\".Q..\"]]"
-    },
-    { "input": "n = 1", "output": "[[\"Q\"]]" }
-  ],
-  "solutions": [
-    {
-      "name": "Backtracking",
-      "timeComplexity": "O(n!)",
-      "spaceComplexity": "O(n^2)",
-      "description": "Place queens row by row. Use boolean arrays for columns, main diagonals (row-col), and anti-diagonals (row+col) to check conflicts in O(1). Build board strings when a valid placement is found.",
-      "code": "class Solution {\n    public List<List<String>> solveNQueens(int n) {\n        List<List<String>> result = new java.util.ArrayList<>();\n        boolean[] cols = new boolean[n];\n        boolean[] d1 = new boolean[2 * n];\n        boolean[] d2 = new boolean[2 * n];\n        int[] queens = new int[n];\n        solve(0, n, cols, d1, d2, queens, result);\n        return result;\n    }\n    private void solve(int row, int n, boolean[] cols, boolean[] d1, boolean[] d2, int[] queens, List<List<String>> result) {\n        if (row == n) {\n            List<String> board = new java.util.ArrayList<>();\n            for (int q : queens) {\n                char[] r = new char[n];\n                java.util.Arrays.fill(r, '.');\n                r[q] = 'Q';\n                board.add(new String(r));\n            }\n            result.add(board);\n            return;\n        }\n        for (int col = 0; col < n; col++) {\n            if (!cols[col] && !d1[row - col + n] && !d2[row + col]) {\n                cols[col] = d1[row - col + n] = d2[row + col] = true;\n                queens[row] = col;\n                solve(row + 1, n, cols, d1, d2, queens, result);\n                cols[col] = d1[row - col + n] = d2[row + col] = false;\n            }\n        }\n    }\n}",
-      "language": "java"
+      "input": "low = 3, high = 3, zero = 1, one = 1",
+      "output": "8"
     },
     {
-      "name": "Backtracking with Bitmask",
-      "timeComplexity": "O(n!)",
-      "spaceComplexity": "O(n^2)",
-      "description": "Use bitmasks to track occupied columns, main diagonals, and anti-diagonals for O(1) conflict detection. Build solutions when all rows are filled.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> solveNQueens(int n) {\n        List<List<String>> result = new ArrayList<>();\n        int[] queens = new int[n];\n        solve(0, n, 0, 0, 0, queens, result);\n        return result;\n    }\n    private void solve(int row, int n, int colMask, int d1Mask, int d2Mask, int[] queens, List<List<String>> result) {\n        if (row == n) {\n            List<String> board = new ArrayList<>();\n            for (int q : queens) {\n                char[] r = new char[n];\n                Arrays.fill(r, '.');\n                r[q] = 'Q';\n                board.add(new String(r));\n            }\n            result.add(board);\n            return;\n        }\n        int available = ((1 << n) - 1) & ~(colMask | d1Mask | d2Mask);\n        while (available != 0) {\n            int bit = available & (-available);\n            available &= available - 1;\n            int col = Integer.numberOfTrailingZeros(bit);\n            queens[row] = col;\n            solve(row + 1, n, colMask | bit, (d1Mask | bit) << 1, (d2Mask | bit) >>> 1, queens, result);\n        }\n    }\n}",
-      "language": "java"
+      "input": "low = 2, high = 3, zero = 1, one = 2",
+      "output": "5"
     }
   ],
   "tests": [
     {
-      "input": "n = 4",
-      "output": "[[\".Q..\",\"...Q\",\"Q...\",\"..Q.\"],[\"..Q.\",\"Q...\",\"...Q\",\".Q..\"]]"
+      "input": "low = 3, high = 3, zero = 1, one = 1",
+      "output": "8",
+      "description": "all binary strings of length exactly three are valid"
     },
-    { "input": "n = 1", "output": "[[\"Q\"]]" }
+    {
+      "input": "low = 2, high = 3, zero = 1, one = 2",
+      "output": "5",
+      "description": "two append lengths create multiple ways to reach the range"
+    },
+    {
+      "input": "low = 1, high = 1, zero = 1, one = 1",
+      "output": "2",
+      "description": "one zero-block or one one-block"
+    },
+    {
+      "input": "low = 1, high = 2, zero = 2, one = 3",
+      "output": "1",
+      "description": "only the zero block reaches the valid length range"
+    },
+    {
+      "input": "low = 4, high = 4, zero = 2, one = 2",
+      "output": "4",
+      "description": "equal append lengths still create different zero and one choices"
+    },
+    {
+      "input": "low = 2, high = 2, zero = 1, one = 1",
+      "output": "4",
+      "description": "exact length two with unit append choices"
+    },
+    {
+      "input": "low = 1, high = 3, zero = 2, one = 1",
+      "output": "6",
+      "description": "different append lengths contribute to several target lengths"
+    },
+    {
+      "input": "low = 3, high = 5, zero = 2, one = 3",
+      "output": "4",
+      "description": "only lengths three through five are counted"
+    },
+    {
+      "input": "low = 5, high = 5, zero = 2, one = 4",
+      "output": "0",
+      "description": "unreachable exact length returns zero"
+    },
+    {
+      "input": "low = 10, high = 10, zero = 2, one = 5",
+      "output": "2",
+      "description": "different step sizes can create a small number of exact constructions"
+    },
+    {
+      "input": "low = 6, high = 8, zero = 2, one = 3",
+      "output": "9",
+      "description": "multi-length interval with overlapping construction counts"
+    },
+    {
+      "input": "low = 100000, high = 100000, zero = 1, one = 1",
+      "output": "607723520",
+      "description": "upper bound forces modulo arithmetic"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Forward Length Dynamic Programming",
+      "timeComplexity": "O(high)",
+      "spaceComplexity": "O(high)",
+      "description": "## Approach\n\nLet `dp[len]` be the number of strings with exact length `len`. The empty string contributes `dp[0] = 1`. For each length, add the ways from `len - zero` and `len - one`, then add `dp[len]` to the answer only when `len` lies in `[low, high]`.\n\n## Key Insight\n\nThe actual characters do not need to be stored. Once a construction reaches a length, the next choice is completely described by adding either `zero` or `one` to that length.\n\n## Complexity Analysis\n- Time Complexity: O(high)\n- Space Complexity: O(high)",
+      "code": "class Solution {\n    private static final int MOD = 1_000_000_007;\n\n    public int countGoodStrings(int low, int high, int zero, int one) {\n        int[] dp = new int[high + 1];\n        dp[0] = 1;\n        long answer = 0;\n        for (int len = 1; len <= high; len++) {\n            long ways = 0;\n            if (len >= zero) {\n                ways += dp[len - zero];\n            }\n            if (len >= one) {\n                ways += dp[len - one];\n            }\n            dp[len] = (int) (ways % MOD);\n            if (len >= low) {\n                answer = (answer + dp[len]) % MOD;\n            }\n        }\n        return (int) answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Explicit Stack Memoized Length DFS",
+      "timeComplexity": "O(high)",
+      "spaceComplexity": "O(high)",
+      "description": "## Approach\n\nUse the same top-down state `len`, but evaluate it with an explicit stack instead of Java recursion. Each length is first expanded toward `len + zero` and `len + one`; once both reachable successors are finished, compute and memoize the current length.\n\n## Key Insight\n\nThe recursive state graph is still useful for teaching, but `high` can be `100000`, so a direct recursive implementation can overflow the call stack. A small visitation state array keeps the DFS order while making the implementation safe for the full constraint range.\n\n## Complexity Analysis\n- Time Complexity: O(high)\n- Space Complexity: O(high)",
+      "code": "import java.util.ArrayDeque;\n\nclass Solution {\n    private static final int MOD = 1_000_000_007;\n\n    public int countGoodStrings(int low, int high, int zero, int one) {\n        int[] memo = new int[high + 1];\n        byte[] state = new byte[high + 1];\n        ArrayDeque<Integer> stack = new ArrayDeque<>();\n        stack.push(0);\n        state[0] = 1;\n        while (!stack.isEmpty()) {\n            int len = stack.peek();\n            int nextZero = len + zero;\n            if (nextZero <= high && state[nextZero] == 0) {\n                state[nextZero] = 1;\n                stack.push(nextZero);\n                continue;\n            }\n            int nextOne = len + one;\n            if (nextOne <= high && state[nextOne] == 0) {\n                state[nextOne] = 1;\n                stack.push(nextOne);\n                continue;\n            }\n            long total = len >= low ? 1 : 0;\n            if (nextZero <= high) {\n                total += memo[nextZero];\n            }\n            if (nextOne <= high) {\n                total += memo[nextOne];\n            }\n            memo[len] = (int) (total % MOD);\n            state[len] = 2;\n            stack.pop();\n        }\n        return memo[0];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Backward Continuation Dynamic Programming",
+      "timeComplexity": "O(high)",
+      "spaceComplexity": "O(high)",
+      "description": "## Approach\n\nFill `waysFrom[len]` from `high` down to `0`. Each state counts the current length if it is valid, plus the already-computed continuations from `len + zero` and `len + one`. The answer is `waysFrom[0]`.\n\n## Key Insight\n\nThis is the iterative version of the memoized DFS. Going backward makes every outgoing transition point to a larger length that has already been computed.\n\n## Complexity Analysis\n- Time Complexity: O(high)\n- Space Complexity: O(high)",
+      "code": "class Solution {\n    private static final int MOD = 1_000_000_007;\n\n    public int countGoodStrings(int low, int high, int zero, int one) {\n        int[] waysFrom = new int[high + 1];\n        for (int len = high; len >= 0; len--) {\n            long total = len >= low ? 1 : 0;\n            if (len + zero <= high) {\n                total += waysFrom[len + zero];\n            }\n            if (len + one <= high) {\n                total += waysFrom[len + one];\n            }\n            waysFrom[len] = (int) (total % MOD);\n        }\n        return waysFrom[0];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Rolling Length Dynamic Programming",
+      "timeComplexity": "O(high)",
+      "spaceComplexity": "O(max(zero, one))",
+      "description": "## Approach\n\nThe forward recurrence only reads lengths `zero` and `one` steps behind the current length. Store exact-length counts in a circular buffer of size `max(zero, one) + 1`, and add the current count to the answer when the length is inside the target interval.\n\n## Key Insight\n\nThe buffer is one slot larger than the largest backward jump, so writing the current length cannot overwrite a value that is still needed for this transition.\n\n## Complexity Analysis\n- Time Complexity: O(high)\n- Space Complexity: O(max(zero, one))",
+      "code": "class Solution {\n    private static final int MOD = 1_000_000_007;\n\n    public int countGoodStrings(int low, int high, int zero, int one) {\n        int window = Math.max(zero, one) + 1;\n        int[] dp = new int[window];\n        dp[0] = 1;\n        long answer = 0;\n        for (int len = 1; len <= high; len++) {\n            long ways = 0;\n            if (len >= zero) {\n                ways += dp[(len - zero) % window];\n            }\n            if (len >= one) {\n                ways += dp[(len - one) % window];\n            }\n            dp[len % window] = (int) (ways % MOD);\n            if (len >= low) {\n                answer = (answer + dp[len % window]) % MOD;\n            }\n        }\n        return (int) answer;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

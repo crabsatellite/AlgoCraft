@@ -1,44 +1,118 @@
 {
   "id": "32",
   "title": "Longest Substring Without Repeating Characters",
-  "description": "# Longest Substring Without Repeating Characters\n\nGiven a string `s`, find the length of the **longest substring** without repeating characters.\n\n## Example 1:\n\n**Input:** s = \"abcabcbb\"\n**Output:** 3\n**Explanation:** The answer is \"abc\", with the length of 3.\n\n## Example 2:\n\n**Input:** s = \"bbbbb\"\n**Output:** 1\n**Explanation:** The answer is \"b\", with the length of 1.\n\n## Example 3:\n\n**Input:** s = \"pwwkew\"\n**Output:** 3\n**Explanation:** The answer is \"wke\", with the length of 3.\nNotice that the answer must be a substring, \"pwke\" is a subsequence and not a substring.\n\n## Constraints:\n\n*   `0 <= s.length <= 5 * 10^4`\n*   `s` consists of English letters, digits, symbols and spaces.",
+  "description": "# Longest Substring Without Repeating Characters\n\nGiven a string `s`, return the length of the longest **substring** that contains no repeated characters.\n\nA substring must be contiguous. You cannot skip characters the way a subsequence can. Spaces, digits, and symbols are ordinary characters and count toward the window length.\n\n## Example 1:\n\n**Input:** s = \"abcabcbb\"\n**Output:** 3\n**Explanation:** The answer is \"abc\", with length 3.\n\n## Example 2:\n\n**Input:** s = \"bbbbb\"\n**Output:** 1\n**Explanation:** The answer is \"b\", with length 1.\n\n## Example 3:\n\n**Input:** s = \"pwwkew\"\n**Output:** 3\n**Explanation:** The answer is \"wke\", with length 3. \"pwke\" is a subsequence, not a substring.\n\n## Constraints:\n\n*   `0 <= s.length <= 5 * 10^4`\n*   `s` consists of English letters, digits, symbols, and spaces.\n\n## Follow-up:\n\n*   Can you maintain a sliding window whose characters are always unique?\n*   Why must the left boundary never move backward when an old duplicate is outside the current window?\n*   What changes when the character set is known to be ASCII?\n*   How does the brute-force baseline express the exact definition of the problem?",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int lengthOfLongestSubstring(String s) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Hash Table", "String", "Sliding Window"],
+  "tags": [
+    "Hash Table",
+    "String",
+    "Sliding Window"
+  ],
   "examples": [
-    { "input": "s = \"abcabcbb\"", "output": "3" },
-    { "input": "s = \"bbbbb\"", "output": "1" },
-    { "input": "s = \"pwwkew\"", "output": "3" }
+    {
+      "input": "s = \"abcabcbb\"",
+      "output": "3"
+    },
+    {
+      "input": "s = \"bbbbb\"",
+      "output": "1"
+    },
+    {
+      "input": "s = \"pwwkew\"",
+      "output": "3"
+    }
   ],
   "tests": [
-    { "input": "s = \"abcabcbb\"", "output": "3" },
-    { "input": "s = \"bbbbb\"", "output": "1" },
-    { "input": "s = \"pwwkew\"", "output": "3" },
-    { "input": "s = \"\"", "output": "0" },
-    { "input": "s = \" \"", "output": "1" },
-    { "input": "s = \"au\"", "output": "2" }
+    {
+      "input": "s = \"abcabcbb\"",
+      "output": "3",
+      "description": "Canonical repeated blocks"
+    },
+    {
+      "input": "s = \"bbbbb\"",
+      "output": "1",
+      "description": "All characters are the same"
+    },
+    {
+      "input": "s = \"pwwkew\"",
+      "output": "3",
+      "description": "Substring, not subsequence"
+    },
+    {
+      "input": "s = \"\"",
+      "output": "0",
+      "description": "Empty string"
+    },
+    {
+      "input": "s = \" \"",
+      "output": "1",
+      "description": "Single space counts as a character"
+    },
+    {
+      "input": "s = \"au\"",
+      "output": "2",
+      "description": "Two distinct characters"
+    },
+    {
+      "input": "s = \"dvdf\"",
+      "output": "3",
+      "description": "Left pointer must never move backward"
+    },
+    {
+      "input": "s = \"abba\"",
+      "output": "2",
+      "description": "Old duplicate outside the window must not rewind left"
+    },
+    {
+      "input": "s = \"tmmzuxt\"",
+      "output": "5",
+      "description": "Longest window appears after an early duplicate"
+    },
+    {
+      "input": "s = \"anviaj\"",
+      "output": "5",
+      "description": "Late duplicate with a long suffix window"
+    },
+    {
+      "input": "s = \"abcdef\"",
+      "output": "6",
+      "description": "All characters unique"
+    },
+    {
+      "input": "s = \"a b!a\"",
+      "output": "4",
+      "description": "Spaces and symbols are ordinary characters"
+    }
   ],
   "solutions": [
     {
       "name": "Sliding Window with HashMap",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(min(m, n))",
-      "description": "Use sliding window with HashMap to store character's last index. When duplicate found, move left pointer to max(left, lastIndex + 1).",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int lengthOfLongestSubstring(String s) {\n        Map<Character, Integer> map = new HashMap<>();\n        int maxLen = 0;\n        int left = 0;\n        \n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            \n            if (map.containsKey(c)) {\n                // Move left pointer past the duplicate\n                left = Math.max(left, map.get(c) + 1);\n            }\n            \n            map.put(c, right);\n            maxLen = Math.max(maxLen, right - left + 1);\n        }\n        \n        return maxLen;\n    }\n}"
+      "spaceComplexity": "O(min(n, k))",
+      "description": "## Approach\n\nUse a sliding window and a map from character to its most recent index. When a repeated character appears inside the current window, move the left boundary to one position after the previous occurrence.\n\n## Key Insight\n\nThe left boundary must only move forward. Taking `Math.max(left, previousIndex + 1)` prevents an older duplicate outside the current window from incorrectly shrinking the window.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(k), where k is the character set size",
+      "code": "import java.util.HashMap;\nimport java.util.Map;\n\nclass Solution {\n    public int lengthOfLongestSubstring(String s) {\n        Map<Character, Integer> lastSeen = new HashMap<>();\n        int left = 0;\n        int best = 0;\n\n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            if (lastSeen.containsKey(c)) {\n                left = Math.max(left, lastSeen.get(c) + 1);\n            }\n            lastSeen.put(c, right);\n            best = Math.max(best, right - left + 1);\n        }\n\n        return best;\n    }\n}"
     },
     {
       "name": "Sliding Window with HashSet",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(min(m, n))",
-      "description": "Use HashSet to track characters in current window. Shrink window from left when duplicate is found.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int lengthOfLongestSubstring(String s) {\n        Set<Character> set = new HashSet<>();\n        int maxLen = 0;\n        int left = 0;\n        \n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            \n            // Shrink window until no duplicate\n            while (set.contains(c)) {\n                set.remove(s.charAt(left));\n                left++;\n            }\n            \n            set.add(c);\n            maxLen = Math.max(maxLen, right - left + 1);\n        }\n        \n        return maxLen;\n    }\n}"
+      "spaceComplexity": "O(min(n, k))",
+      "description": "## Approach\n\nMaintain a set of the characters currently inside the window. Extend the right boundary while possible; when the next character is already present, remove characters from the left until the duplicate can be added.\n\n## Key Insight\n\nThis version makes the invariant explicit: every character in the current window is unique. Although the left boundary may move one step at a time, each character is added and removed at most once.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(k)",
+      "code": "import java.util.HashSet;\nimport java.util.Set;\n\nclass Solution {\n    public int lengthOfLongestSubstring(String s) {\n        Set<Character> window = new HashSet<>();\n        int left = 0;\n        int best = 0;\n\n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            while (window.contains(c)) {\n                window.remove(s.charAt(left));\n                left++;\n            }\n            window.add(c);\n            best = Math.max(best, right - left + 1);\n        }\n\n        return best;\n    }\n}"
     },
     {
-      "name": "Array as HashMap (ASCII)",
+      "name": "ASCII Last-Index Array",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use integer array of size 128 for ASCII characters. Faster than HashMap for character lookups.",
-      "code": "class Solution {\n    public int lengthOfLongestSubstring(String s) {\n        int[] lastIndex = new int[128]; // ASCII characters\n        java.util.Arrays.fill(lastIndex, -1);\n        \n        int maxLen = 0;\n        int left = 0;\n        \n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            \n            // Move left past the previous occurrence\n            if (lastIndex[c] >= left) {\n                left = lastIndex[c] + 1;\n            }\n            \n            lastIndex[c] = right;\n            maxLen = Math.max(maxLen, right - left + 1);\n        }\n        \n        return maxLen;\n    }\n}"
+      "description": "## Approach\n\nUse a fixed-size integer array as a direct-indexed map for ASCII characters. Store the last seen index of each character and update the left boundary exactly like the HashMap version.\n\n## Key Insight\n\nWhen the character set is known and small, an array gives the same last-occurrence logic with less overhead. The left-boundary invariant is unchanged.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int lengthOfLongestSubstring(String s) {\n        int[] lastIndex = new int[128];\n        Arrays.fill(lastIndex, -1);\n        int left = 0;\n        int best = 0;\n\n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            if (lastIndex[c] >= left) {\n                left = lastIndex[c] + 1;\n            }\n            lastIndex[c] = right;\n            best = Math.max(best, right - left + 1);\n        }\n\n        return best;\n    }\n}"
+    },
+    {
+      "name": "Brute Force Unique-Substring Baseline",
+      "timeComplexity": "O(n * k)",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nFor each start index, extend the end index until a repeated character is found. A fresh boolean table records which characters already appear in that candidate substring.\n\n## Key Insight\n\nThe brute-force route is slower, but it directly follows the definition: every candidate must be contiguous and must stop as soon as a duplicate enters the substring.\n\n## Complexity Analysis\n- Time Complexity: O(n * k), where k is the character set size\n- Space Complexity: O(k)",
+      "code": "class Solution {\n    public int lengthOfLongestSubstring(String s) {\n        int best = 0;\n\n        for (int start = 0; start < s.length(); start++) {\n            boolean[] seen = new boolean[128];\n            for (int end = start; end < s.length(); end++) {\n                char c = s.charAt(end);\n                if (seen[c]) {\n                    break;\n                }\n                seen[c] = true;\n                best = Math.max(best, end - start + 1);\n            }\n        }\n\n        return best;\n    }\n}"
     }
   ]
 }

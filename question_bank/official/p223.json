@@ -1,38 +1,121 @@
 {
   "id": "223",
   "title": "Fizz Buzz",
-  "description": "# Fizz Buzz\n\nGiven an integer `n`, return *a string array* `answer` *(**1-indexed**) where*:\n\n*   `answer[i] == \"FizzBuzz\"` if `i` is divisible by `3` and `5`.\n*   `answer[i] == \"Fizz\"` if `i` is divisible by `3`.\n*   `answer[i] == \"Buzz\"` if `i` is divisible by `5`.\n*   `answer[i] == i` (as a string) if none of the above conditions are true.\n\n## Example 1:\n\n**Input:** n = 3\n**Output:** [\"1\",\"2\",\"Fizz\"]\n\n## Example 2:\n\n**Input:** n = 5\n**Output:** [\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\"]\n\n## Example 3:\n\n**Input:** n = 15\n**Output:** [\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\",\"Fizz\",\"7\",\"8\",\"Fizz\",\"Buzz\",\"11\",\"Fizz\",\"13\",\"14\",\"FizzBuzz\"]\n\n## Constraints:\n\n*   `1 <= n <= 10^4`",
+  "description": "# Fizz Buzz\n\nGiven an integer `n`, return a list of strings for the integers from `1` through `n`.\n\nFor each integer `i`:\n\n* write `\"FizzBuzz\"` if `i` is divisible by both `3` and `5`;\n* write `\"Fizz\"` if `i` is divisible by `3` but not by `5`;\n* write `\"Buzz\"` if `i` is divisible by `5` but not by `3`;\n* otherwise write the decimal form of `i`.\n\nThe rule is based on the number `i`, not on the zero-based Java list index. In Java, `answer.get(i - 1)` stores the output for number `i`.\n\n## Example 1:\n\n**Input:** n = 3\n**Output:** [\"1\",\"2\",\"Fizz\"]\n**Explanation:** Only the number `3` is divisible by `3`.\n\n## Example 2:\n\n**Input:** n = 5\n**Output:** [\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\"]\n**Explanation:** `3` becomes `Fizz` and `5` becomes `Buzz`.\n\n## Example 3:\n\n**Input:** n = 15\n**Output:** [\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\",\"Fizz\",\"7\",\"8\",\"Fizz\",\"Buzz\",\"11\",\"Fizz\",\"13\",\"14\",\"FizzBuzz\"]\n**Explanation:** `15` is divisible by both `3` and `5`, so the combined word is used.\n\n## Constraints:\n\n* `1 <= n <= 10^4`",
   "difficulty": "EASY",
   "initialCode": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<String> fizzBuzz(int n) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["Math", "String", "Simulation"],
+  "tags": [
+    "Math",
+    "String",
+    "Simulation",
+    "Array"
+  ],
   "examples": [
-    { "input": "n = 3", "output": "[\"1\",\"2\",\"Fizz\"]" },
-    { "input": "n = 5", "output": "[\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\"]" }
+    {
+      "input": "n = 3",
+      "output": "[\"1\",\"2\",\"Fizz\"]"
+    },
+    {
+      "input": "n = 5",
+      "output": "[\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\"]"
+    },
+    {
+      "input": "n = 15",
+      "output": "[\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\",\"Fizz\",\"7\",\"8\",\"Fizz\",\"Buzz\",\"11\",\"Fizz\",\"13\",\"14\",\"FizzBuzz\"]"
+    }
   ],
   "solutions": [
     {
-      "name": "Modulo Check",
+      "name": "Combined Divisibility Branches",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Iterate 1 to n. Check divisibility by 15 first, then 3, then 5, otherwise use the number itself.",
-      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<String> fizzBuzz(int n) {\n        List<String> ans = new ArrayList<>();\n        for (int i = 1; i <= n; i++) {\n            if (i % 15 == 0) ans.add(\"FizzBuzz\");\n            else if (i % 3 == 0) ans.add(\"Fizz\");\n            else if (i % 5 == 0) ans.add(\"Buzz\");\n            else ans.add(String.valueOf(i));\n        }\n        return ans;\n    }\n}",
+      "description": "## Approach\n\nLoop through the actual numbers from `1` to `n`. Check divisibility by `15` first, then check `3`, then check `5`, and finally use the number itself.\n\n## Key Insight\n\nThe combined rule must be tested before the single rules. A number such as `15` is also divisible by `3`, so checking `3` first would incorrectly return only `Fizz`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1) extra space besides the returned list.",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<String> fizzBuzz(int n) {\n        List<String> answer = new ArrayList<>();\n        for (int i = 1; i <= n; i++) {\n            if (i % 15 == 0) {\n                answer.add(\"FizzBuzz\");\n            } else if (i % 3 == 0) {\n                answer.add(\"Fizz\");\n            } else if (i % 5 == 0) {\n                answer.add(\"Buzz\");\n            } else {\n                answer.add(String.valueOf(i));\n            }\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "String Concatenation (No Modulo 15)",
+      "name": "Independent Word Composition",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Build the string by concatenating Fizz and Buzz parts separately, avoiding the need to check divisibility by 15 explicitly.",
-      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<String> fizzBuzz(int n) {\n        List<String> ans = new ArrayList<>();\n        for (int i = 1; i <= n; i++) {\n            StringBuilder sb = new StringBuilder();\n            if (i % 3 == 0) sb.append(\"Fizz\");\n            if (i % 5 == 0) sb.append(\"Buzz\");\n            if (sb.length() == 0) sb.append(i);\n            ans.add(sb.toString());\n        }\n        return ans;\n    }\n}",
+      "description": "## Approach\n\nFor each number, start with an empty token. Append `Fizz` if the number is divisible by `3`, append `Buzz` if it is divisible by `5`, and use the number only when nothing was appended.\n\n## Key Insight\n\n`FizzBuzz` can be produced by combining two independent rules. This avoids a special combined branch and scales naturally if more divisor-word rules are added later.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1) extra space besides the returned list.",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<String> fizzBuzz(int n) {\n        List<String> answer = new ArrayList<>();\n        for (int i = 1; i <= n; i++) {\n            StringBuilder token = new StringBuilder();\n            if (i % 3 == 0) {\n                token.append(\"Fizz\");\n            }\n            if (i % 5 == 0) {\n                token.append(\"Buzz\");\n            }\n            if (token.length() == 0) {\n                token.append(i);\n            }\n            answer.add(token.toString());\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Divisor Rule Table",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nStore the two rules in parallel arrays: one array for divisors and one for words. For each number, scan the rule table, append every matching word, and fall back to the number if no rule matched.\n\n## Key Insight\n\nThis separates the rule data from the loop mechanics. The implementation teaches how a small table can replace hard-coded branches while preserving the same output contract.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because the rule table has constant size.\n- Space Complexity: O(1) extra space besides the returned list.",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<String> fizzBuzz(int n) {\n        int[] divisors = {3, 5};\n        String[] words = {\"Fizz\", \"Buzz\"};\n        List<String> answer = new ArrayList<>();\n        for (int i = 1; i <= n; i++) {\n            StringBuilder token = new StringBuilder();\n            for (int rule = 0; rule < divisors.length; rule++) {\n                if (i % divisors[rule] == 0) {\n                    token.append(words[rule]);\n                }\n            }\n            answer.add(token.length() == 0 ? String.valueOf(i) : token.toString());\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Next Multiple Counters",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nKeep the next number that should produce `Fizz` and the next number that should produce `Buzz`. When the loop reaches either next multiple, append the word and advance that next multiple by its period.\n\n## Key Insight\n\nThe problem is periodic. Tracking the next scheduled multiple avoids repeated modulo checks and shows that `FizzBuzz` occurs when both schedules fire on the same number.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1) extra space besides the returned list.",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<String> fizzBuzz(int n) {\n        List<String> answer = new ArrayList<>();\n        int nextFizz = 3;\n        int nextBuzz = 5;\n        for (int i = 1; i <= n; i++) {\n            StringBuilder token = new StringBuilder();\n            if (i == nextFizz) {\n                token.append(\"Fizz\");\n                nextFizz += 3;\n            }\n            if (i == nextBuzz) {\n                token.append(\"Buzz\");\n                nextBuzz += 5;\n            }\n            answer.add(token.length() == 0 ? String.valueOf(i) : token.toString());\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Fifteen Step Cycle Lookup",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nPrecompute the non-number outputs for one full cycle of length `15`. For number `i`, look up `(i - 1) % 15`; an empty cycle entry means the original number should be written.\n\n## Key Insight\n\nThe least common multiple of `3` and `5` is `15`, so the pattern of replacement positions repeats every fifteen numbers. A cycle table makes that repetition explicit.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1) extra space besides the returned list.",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<String> fizzBuzz(int n) {\n        String[] cycle = {\n            \"\", \"\", \"Fizz\", \"\", \"Buzz\",\n            \"Fizz\", \"\", \"\", \"Fizz\", \"Buzz\",\n            \"\", \"Fizz\", \"\", \"\", \"FizzBuzz\"\n        };\n        List<String> answer = new ArrayList<>();\n        for (int i = 1; i <= n; i++) {\n            String token = cycle[(i - 1) % 15];\n            answer.add(token.isEmpty() ? String.valueOf(i) : token);\n        }\n        return answer;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "n = 3", "output": "[\"1\",\"2\",\"Fizz\"]" },
-    { "input": "n = 5", "output": "[\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\"]" },
+    {
+      "input": "n = 1",
+      "output": "[\"1\"]",
+      "description": "The smallest input produces only the number itself."
+    },
+    {
+      "input": "n = 2",
+      "output": "[\"1\",\"2\"]",
+      "description": "Values before the first divisor remain numeric strings."
+    },
+    {
+      "input": "n = 3",
+      "output": "[\"1\",\"2\",\"Fizz\"]",
+      "description": "The first multiple of 3 becomes Fizz."
+    },
+    {
+      "input": "n = 5",
+      "output": "[\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\"]",
+      "description": "The first multiple of 5 becomes Buzz."
+    },
+    {
+      "input": "n = 6",
+      "output": "[\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\",\"Fizz\"]",
+      "description": "Fizz repeats before the first combined case."
+    },
+    {
+      "input": "n = 10",
+      "output": "[\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\",\"Fizz\",\"7\",\"8\",\"Fizz\",\"Buzz\"]",
+      "description": "Separate Fizz and Buzz replacements repeat independently."
+    },
+    {
+      "input": "n = 14",
+      "output": "[\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\",\"Fizz\",\"7\",\"8\",\"Fizz\",\"Buzz\",\"11\",\"Fizz\",\"13\",\"14\"]",
+      "description": "The item immediately before FizzBuzz remains numeric."
+    },
     {
       "input": "n = 15",
-      "output": "[\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\",\"Fizz\",\"7\",\"8\",\"Fizz\",\"Buzz\",\"11\",\"Fizz\",\"13\",\"14\",\"FizzBuzz\"]"
+      "output": "[\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\",\"Fizz\",\"7\",\"8\",\"Fizz\",\"Buzz\",\"11\",\"Fizz\",\"13\",\"14\",\"FizzBuzz\"]",
+      "description": "The first number divisible by both 3 and 5 becomes FizzBuzz."
+    },
+    {
+      "input": "n = 16",
+      "output": "[\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\",\"Fizz\",\"7\",\"8\",\"Fizz\",\"Buzz\",\"11\",\"Fizz\",\"13\",\"14\",\"FizzBuzz\",\"16\"]",
+      "description": "The sequence continues normally after a FizzBuzz position."
+    },
+    {
+      "input": "n = 30",
+      "output": "[\"1\",\"2\",\"Fizz\",\"4\",\"Buzz\",\"Fizz\",\"7\",\"8\",\"Fizz\",\"Buzz\",\"11\",\"Fizz\",\"13\",\"14\",\"FizzBuzz\",\"16\",\"17\",\"Fizz\",\"19\",\"Buzz\",\"Fizz\",\"22\",\"23\",\"Fizz\",\"Buzz\",\"26\",\"Fizz\",\"28\",\"29\",\"FizzBuzz\"]",
+      "description": "Two full fifteen-number cycles catch implementations that special-case only the first FizzBuzz."
     }
   ]
 }

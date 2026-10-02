@@ -1,38 +1,100 @@
 {
   "id": "428",
   "title": "Design a Stack With Increment Operation",
-  "description": "# Design a Stack With Increment Operation\n\nDesign a stack that supports increment operations on its elements.\n\nImplement the `CustomStack` class:\n\n*   `CustomStack(int maxSize)` Initializes the object with `maxSize` which is the maximum number of elements in the stack.\n*   `void push(int x)` Adds `x` to the top of the stack if the stack has not reached the `maxSize`.\n*   `int pop()` Pops and returns the top of the stack or `-1` if the stack is empty.\n*   `void increment(int k, int val)` Increments the bottom `k` elements of the stack by `val`. If there are less than `k` elements in the stack, increment all the elements in the stack.\n\n## Example 1:\n\n**Input:**\n[\"CustomStack\",\"push\",\"push\",\"pop\",\"push\",\"push\",\"push\",\"increment\",\"increment\",\"pop\",\"pop\",\"pop\",\"pop\"]\n[[3],[1],[2],[],[2],[3],[4],[5,100],[2,100],[],[],[],[]]\n**Output:**\n[null,null,null,2,null,null,null,null,null,103,202,201,-1]\n**Explanation:**\nCustomStack customStack = new CustomStack(3); // Stack is Empty []\ncustomStack.push(1);                          // stack becomes [1]\ncustomStack.push(2);                          // stack becomes [1, 2]\ncustomStack.pop();                            // return 2 --> Return top of the stack 2, stack becomes [1]\ncustomStack.push(2);                          // stack becomes [1, 2]\ncustomStack.push(3);                          // stack becomes [1, 2, 3]\ncustomStack.push(4);                          // stack still [1, 2, 3], Don't add another elements as size is 4\ncustomStack.increment(5, 100);                // stack becomes [101, 102, 103]\ncustomStack.increment(2, 100);                // stack becomes [201, 202, 103]\ncustomStack.pop();                            // return 103 --> Return top of the stack 103, stack becomes [201, 202]\ncustomStack.pop();                            // return 202 --> Return top of the stack 202, stack becomes [201]\ncustomStack.pop();                            // return 201 --> Return top of the stack 201, stack becomes []\ncustomStack.pop();                            // return -1 --> Stack is empty return -1.\n\n## Constraints:\n\n*   `1 <= maxSize, x, k <= 1000`\n*   `0 <= val <= 100`\n*   At most `1000` calls will be made to each method of `increment`, `push` and `pop` each.",
+  "description": "# Design a Stack With Increment Operation\n\nDesign a bounded stack that also supports incrementing a prefix from the bottom of the stack.\n\nImplement the `CustomStack` class:\n\n*   `CustomStack(int maxSize)` initializes the stack with capacity `maxSize`.\n*   `void push(int x)` pushes `x` onto the top of the stack if the stack is not full. If the stack is full, the operation does nothing.\n*   `int pop()` removes and returns the top element of the stack. If the stack is empty, return `-1`.\n*   `void increment(int k, int val)` adds `val` to the bottom `k` elements of the stack. If the stack currently has fewer than `k` elements, increment every current element.\n\nThe bottom of the stack is the oldest element that has not been popped. Increment operations must not affect elements that are pushed later after old elements have been popped.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1:\n\n**Input:**\n[\"CustomStack\",\"push\",\"push\",\"pop\",\"push\",\"push\",\"push\",\"increment\",\"increment\",\"pop\",\"pop\",\"pop\",\"pop\"]\n[[3],[1],[2],[],[2],[3],[4],[5,100],[2,100],[],[],[],[]]\n**Output:**\n[null,null,null,2,null,null,null,null,null,103,202,201,-1]\n\n**Explanation:**\nThe extra `push(4)` is ignored because the stack is already full. `increment(5, 100)` increments all three current elements, and `increment(2, 100)` increments only the two bottom elements.\n\n## Example 2:\n\n**Input:**\n[\"CustomStack\",\"push\",\"push\",\"increment\",\"pop\",\"push\",\"pop\",\"pop\"]\n[[2],[1],[2],[2,10],[],[3],[],[]]\n**Output:**\n[null,null,null,null,12,null,3,11]\n\n**Explanation:**\nAfter popping `12`, the newly pushed `3` must not inherit the previous increment that was applied to the old top slot.\n\n## Constraints:\n\n*   `1 <= maxSize, x, k <= 1000`\n*   `0 <= val <= 100`\n*   At most `1000` calls will be made to each method.",
   "difficulty": "MEDIUM",
   "initialCode": "class CustomStack {\n\n    public CustomStack(int maxSize) {\n        \n    }\n    \n    public void push(int x) {\n        \n    }\n    \n    public int pop() {\n        \n    }\n    \n    public void increment(int k, int val) {\n        \n    }\n}",
-  "tags": ["Array", "Stack", "Design"],
+  "tags": [
+    "Array",
+    "Stack",
+    "Design"
+  ],
   "examples": [
     {
       "input": "[\"CustomStack\",\"push\",\"push\",\"pop\",\"push\",\"push\",\"push\",\"increment\",\"increment\",\"pop\",\"pop\",\"pop\",\"pop\"]\n[[3],[1],[2],[],[2],[3],[4],[5,100],[2,100],[],[],[],[]]",
       "output": "[null,null,null,2,null,null,null,null,null,103,202,201,-1]"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "Lazy Increment with Array",
-      "timeComplexity": "O(1) per operation",
-      "spaceComplexity": "O(n)",
-      "description": "Use an array for stack and an increment array. Increment stores pending additions at each index. On pop, apply the pending increment and propagate it down to the element below.",
-      "code": "class CustomStack {\n    private int[] stack, inc;\n    private int top, maxSize;\n    public CustomStack(int maxSize) {\n        this.maxSize = maxSize; stack = new int[maxSize]; inc = new int[maxSize]; top = -1;\n    }\n    public void push(int x) { if (top < maxSize - 1) stack[++top] = x; }\n    public int pop() {\n        if (top < 0) return -1;\n        int val = stack[top] + inc[top];\n        if (top > 0) inc[top - 1] += inc[top];\n        inc[top] = 0; top--;\n        return val;\n    }\n    public void increment(int k, int val) {\n        int idx = Math.min(k - 1, top);\n        if (idx >= 0) inc[idx] += val;\n    }\n}",
-      "language": "java"
     },
     {
-      "name": "Direct Array Increment",
-      "timeComplexity": "O(k) for increment, O(1) for push/pop",
-      "spaceComplexity": "O(n)",
-      "description": "Use a simple array-based stack. Increment directly adds val to the bottom k elements. Push and pop are standard stack operations.",
-      "code": "class CustomStack {\n    private int[] stack;\n    private int top, maxSize;\n    public CustomStack(int maxSize) {\n        this.maxSize = maxSize;\n        stack = new int[maxSize];\n        top = -1;\n    }\n    public void push(int x) {\n        if (top < maxSize - 1) {\n            top++;\n            stack[top] = x;\n        }\n    }\n    public int pop() {\n        if (top < 0) return -1;\n        int val = stack[top];\n        top--;\n        return val;\n    }\n    public void increment(int k, int val) {\n        int limit = Math.min(k, top + 1);\n        for (int i = 0; i < limit; i++) {\n            stack[i] += val;\n        }\n    }\n}",
-      "language": "java"
+      "input": "[\"CustomStack\",\"push\",\"push\",\"increment\",\"pop\",\"push\",\"pop\",\"pop\"]\n[[2],[1],[2],[2,10],[],[3],[],[]]",
+      "output": "[null,null,null,null,12,null,3,11]"
     }
   ],
   "tests": [
     {
       "input": "[\"CustomStack\",\"push\",\"push\",\"pop\",\"push\",\"push\",\"push\",\"increment\",\"increment\",\"pop\",\"pop\",\"pop\",\"pop\"]\n[[3],[1],[2],[],[2],[3],[4],[5,100],[2,100],[],[],[],[]]",
       "output": "[null,null,null,2,null,null,null,null,null,103,202,201,-1]"
+    },
+    {
+      "description": "Overflow push is ignored and increment can cover more than the current size.",
+      "input": "[\"CustomStack\",\"pop\",\"push\",\"push\",\"push\",\"increment\",\"pop\",\"pop\",\"pop\"]\n[[2],[],[5],[6],[7],[5,10],[],[],[]]",
+      "output": "[null,-1,null,null,null,null,16,15,-1]"
+    },
+    {
+      "description": "Lazy increments accumulate and propagate when upper elements pop first.",
+      "input": "[\"CustomStack\",\"push\",\"push\",\"push\",\"increment\",\"pop\",\"increment\",\"pop\",\"pop\",\"pop\"]\n[[4],[1],[2],[3],[2,100],[],[2,10],[],[],[]]",
+      "output": "[null,null,null,null,null,3,null,112,111,-1]"
+    },
+    {
+      "description": "A new push after a pop must not inherit increment state from the old top slot.",
+      "input": "[\"CustomStack\",\"push\",\"push\",\"increment\",\"pop\",\"push\",\"pop\",\"pop\"]\n[[2],[1],[2],[2,10],[],[3],[],[]]",
+      "output": "[null,null,null,null,12,null,3,11]"
+    },
+    {
+      "description": "Incrementing an empty stack has no later effect.",
+      "input": "[\"CustomStack\",\"increment\",\"push\",\"pop\",\"pop\"]\n[[3],[2,7],[5],[],[]]",
+      "output": "[null,null,null,5,-1]"
+    },
+    {
+      "description": "Increment with k = 1 affects only the bottom element.",
+      "input": "[\"CustomStack\",\"push\",\"push\",\"push\",\"increment\",\"pop\",\"pop\",\"pop\"]\n[[3],[1],[2],[3],[1,5],[],[],[]]",
+      "output": "[null,null,null,null,null,3,2,6]"
+    },
+    {
+      "description": "A size-one stack ignores overflow pushes and can receive multiple increments.",
+      "input": "[\"CustomStack\",\"push\",\"push\",\"increment\",\"increment\",\"pop\",\"pop\"]\n[[1],[8],[9],[1,2],[5,3],[],[]]",
+      "output": "[null,null,null,null,null,13,-1]"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Lazy Increment Array",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore stack values in a fixed array and keep a second `inc` array of pending additions. `increment(k, val)` adds `val` only at the deepest affected index. When that index is popped, its pending value is applied to the popped element and propagated one level lower.\n\n## Key Insight\n\nA bottom-prefix increment affects a contiguous prefix of stack depths. Marking the topmost affected depth is enough because the mark can flow downward exactly when upper elements are removed.\n\n## Complexity Analysis\n- Time Complexity: O(1) per operation\n- Space Complexity: O(n)",
+      "code": "class CustomStack {\n    private int[] stack;\n    private int[] inc;\n    private int top;\n\n    public CustomStack(int maxSize) {\n        stack = new int[maxSize];\n        inc = new int[maxSize];\n        top = -1;\n    }\n\n    public void push(int x) {\n        if (top + 1 < stack.length) {\n            stack[++top] = x;\n        }\n    }\n\n    public int pop() {\n        if (top < 0) {\n            return -1;\n        }\n        int answer = stack[top] + inc[top];\n        if (top > 0) {\n            inc[top - 1] += inc[top];\n        }\n        inc[top] = 0;\n        top--;\n        return answer;\n    }\n\n    public void increment(int k, int val) {\n        int index = Math.min(k - 1, top);\n        if (index >= 0) {\n            inc[index] += val;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Direct Fixed Array Increment",
+      "timeComplexity": "O(k) for increment, O(1) for push/pop",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse a fixed array as the stack. Push and pop adjust the top pointer. For `increment`, walk from index zero through the smaller of `k` and the current stack size, adding `val` directly to each stored value.\n\n## Key Insight\n\nThis baseline keeps all state explicit. It is slower for large `increment` calls, but it is the easiest version to reason about and a useful correctness reference for optimized approaches.\n\n## Complexity Analysis\n- Time Complexity: O(k) for increment and O(1) for push/pop\n- Space Complexity: O(n)",
+      "code": "class CustomStack {\n    private int[] stack;\n    private int size;\n\n    public CustomStack(int maxSize) {\n        stack = new int[maxSize];\n        size = 0;\n    }\n\n    public void push(int x) {\n        if (size < stack.length) {\n            stack[size++] = x;\n        }\n    }\n\n    public int pop() {\n        if (size == 0) {\n            return -1;\n        }\n        return stack[--size];\n    }\n\n    public void increment(int k, int val) {\n        int limit = Math.min(k, size);\n        for (int i = 0; i < limit; i++) {\n            stack[i] += val;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "LinkedList Bottom Iterator",
+      "timeComplexity": "O(k) for increment, O(1) for push/pop",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nKeep the bottom of the stack at the head of a `LinkedList` and the top at the tail. Push appends to the tail, pop removes from the tail, and increment walks from the head with a list iterator to update the bottom `k` nodes.\n\n## Key Insight\n\nA linked representation makes the bottom-to-top order explicit. It trades the classic array layout for a direct traversal of the exact nodes that must be incremented.\n\n## Complexity Analysis\n- Time Complexity: O(k) for increment and O(1) for push/pop\n- Space Complexity: O(n)",
+      "code": "import java.util.LinkedList;\nimport java.util.ListIterator;\n\nclass CustomStack {\n    private int maxSize;\n    private LinkedList<Integer> values;\n\n    public CustomStack(int maxSize) {\n        this.maxSize = maxSize;\n        values = new LinkedList<>();\n    }\n\n    public void push(int x) {\n        if (values.size() < maxSize) {\n            values.addLast(x);\n        }\n    }\n\n    public int pop() {\n        if (values.isEmpty()) {\n            return -1;\n        }\n        return values.removeLast();\n    }\n\n    public void increment(int k, int val) {\n        ListIterator<Integer> iterator = values.listIterator();\n        int count = 0;\n        while (iterator.hasNext() && count < k) {\n            iterator.set(iterator.next() + val);\n            count++;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Fenwick Range Add Ledger",
+      "timeComplexity": "O(log n) per pop/increment, O(1) push",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore raw stack values in an array and use a Fenwick tree as a range-add, point-query ledger over stack depths. `increment` range-adds the bottom affected depths. On pop, query the current top depth and then clear that depth so a later push into the same slot does not inherit old increments.\n\n## Key Insight\n\nThe stack depth is an index line. Prefix increments are range additions, and each pop needs only the point value at the current top depth. Clearing the popped point preserves correctness after slots are reused.\n\n## Complexity Analysis\n- Time Complexity: O(log n) per pop/increment and O(1) push\n- Space Complexity: O(n)",
+      "code": "class CustomStack {\n    private int[] values;\n    private int[] bit;\n    private int size;\n\n    public CustomStack(int maxSize) {\n        values = new int[maxSize];\n        bit = new int[maxSize + 2];\n        size = 0;\n    }\n\n    public void push(int x) {\n        if (size < values.length) {\n            values[size++] = x;\n        }\n    }\n\n    public int pop() {\n        if (size == 0) {\n            return -1;\n        }\n        int index = --size;\n        int extra = pointQuery(index);\n        rangeAdd(index, index, -extra);\n        return values[index] + extra;\n    }\n\n    public void increment(int k, int val) {\n        int limit = Math.min(k, size);\n        if (limit > 0) {\n            rangeAdd(0, limit - 1, val);\n        }\n    }\n\n    private void rangeAdd(int left, int right, int delta) {\n        add(left, delta);\n        add(right + 1, -delta);\n    }\n\n    private void add(int index, int delta) {\n        for (int i = index + 1; i < bit.length; i += i & -i) {\n            bit[i] += delta;\n        }\n    }\n\n    private int pointQuery(int index) {\n        int sum = 0;\n        for (int i = index + 1; i > 0; i -= i & -i) {\n            sum += bit[i];\n        }\n        return sum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Segment Tree Range Add Ledger",
+      "timeComplexity": "O(log n) per pop/increment, O(1) push",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore raw stack values in an array and keep a lazy segment tree over stack depths. `increment` applies a range add to `[0, limit - 1]`. `pop` point-queries the current top depth, clears that one depth, and returns the raw value plus the pending increment.\n\n## Key Insight\n\nA segment tree is heavier than the specialized lazy increment array, but it models the operation as a general range update plus point query. It also makes the slot-reuse cleanup explicit.\n\n## Complexity Analysis\n- Time Complexity: O(log n) per pop/increment and O(1) push\n- Space Complexity: O(n)",
+      "code": "class CustomStack {\n    private int[] values;\n    private int[] lazy;\n    private int size;\n\n    public CustomStack(int maxSize) {\n        values = new int[maxSize];\n        lazy = new int[maxSize * 4 + 4];\n        size = 0;\n    }\n\n    public void push(int x) {\n        if (size < values.length) {\n            values[size++] = x;\n        }\n    }\n\n    public int pop() {\n        if (size == 0) {\n            return -1;\n        }\n        int index = --size;\n        int extra = query(1, 0, values.length - 1, index);\n        add(1, 0, values.length - 1, index, index, -extra);\n        return values[index] + extra;\n    }\n\n    public void increment(int k, int val) {\n        int limit = Math.min(k, size);\n        if (limit > 0) {\n            add(1, 0, values.length - 1, 0, limit - 1, val);\n        }\n    }\n\n    private void add(int node, int left, int right, int ql, int qr, int delta) {\n        if (qr < left || right < ql) {\n            return;\n        }\n        if (ql <= left && right <= qr) {\n            lazy[node] += delta;\n            return;\n        }\n        int mid = left + (right - left) / 2;\n        add(node * 2, left, mid, ql, qr, delta);\n        add(node * 2 + 1, mid + 1, right, ql, qr, delta);\n    }\n\n    private int query(int node, int left, int right, int index) {\n        if (left == right) {\n            return lazy[node];\n        }\n        int mid = left + (right - left) / 2;\n        if (index <= mid) {\n            return lazy[node] + query(node * 2, left, mid, index);\n        }\n        return lazy[node] + query(node * 2 + 1, mid + 1, right, index);\n    }\n}",
+      "language": "java"
     }
   ]
 }

@@ -1,35 +1,128 @@
 {
   "id": "210",
   "title": "Count and Say",
-  "description": "# Count and Say\n\nThe **count-and-say** sequence is a sequence of digit strings defined by the recursive formula:\n\n*   `countAndSay(1) = \"1\"`\n*   `countAndSay(n)` is the way you would \"say\" the digit string from `countAndSay(n-1)`, which is then converted into a different digit string.\n\nTo determine how you \"say\" a digit string, split it into the **minimal** number of substrings such that each substring contains exactly one unique digit. Then for each substring, say the number of digits, then say the digit. Finally, concatenate every said digit.\n\nFor example, the saying and conversion for digit string `\"3322251\"`:\n\n*   Two 3's, three 2's, one 5, and one 1.\n*   2 3 + 3 2 + 1 5 + 1 1\n*   \"23321511\"\n\nGiven a positive integer `n`, return *the* `n`-th *term of the **count-and-say** sequence*.\n\n## Example 1:\n\n**Input:** n = 1\n**Output:** \"1\"\n**Explanation:** This is the base case.\n\n## Example 2:\n\n**Input:** n = 4\n**Output:** \"1211\"\n**Explanation:**\ncountAndSay(1) = \"1\"\ncountAndSay(2) = say \"1\" = one 1 = \"11\"\ncountAndSay(3) = say \"11\" = two 1's = \"21\"\ncountAndSay(4) = say \"21\" = one 2 + one 1 = \"12\" + \"11\" = \"1211\"\n\n## Constraints:\n\n*   `1 <= n <= 30`",
+  "description": "# Count and Say\n\nThe **count-and-say** sequence is a sequence of digit strings. It starts with `\"1\"`, and each later term is created by reading the previous term from left to right.\n\nRead left to right, grouping adjacent equal digits together until the digit changes. For each group, write its count followed by its digit, then concatenate the results to obtain the next term.\n\nFor example, the string `\"3322251\"` has these runs:\n\n* `\"33\"` is two `3`s, so it becomes `\"23\"`.\n* `\"222\"` is three `2`s, so it becomes `\"32\"`.\n* `\"5\"` is one `5`, so it becomes `\"15\"`.\n* `\"1\"` is one `1`, so it becomes `\"11\"`.\n\nSo reading `\"3322251\"` produces `\"23321511\"`.\n\nGiven a positive integer `n`, return the `n`-th term of the count-and-say sequence.\n\n## Example 1:\n\n**Input:** n = 1\n**Output:** \"1\"\n**Explanation:** The first term is defined as `\"1\"`.\n\n## Example 2:\n\n**Input:** n = 4\n**Output:** \"1211\"\n**Explanation:**\ncountAndSay(1) = \"1\"\ncountAndSay(2) = read \"1\" as one 1 = \"11\"\ncountAndSay(3) = read \"11\" as two 1s = \"21\"\ncountAndSay(4) = read \"21\" as one 2, then one 1 = \"1211\"\n\n## Constraints:\n\n* `1 <= n <= 30`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public String countAndSay(int n) {\n        // Write your code here\n        return \"\";\n    }\n}",
-  "tags": ["String"],
+  "tags": [
+    "String",
+    "Simulation",
+    "Recursion"
+  ],
   "examples": [
-    { "input": "n = 1", "output": "\"1\"" },
-    { "input": "n = 4", "output": "\"1211\"" }
+    {
+      "input": "n = 1",
+      "output": "\"1\"",
+      "explanation": "The first term is defined directly."
+    },
+    {
+      "input": "n = 4",
+      "output": "\"1211\"",
+      "explanation": "The terms are 1, 11, 21, then 1211."
+    }
   ],
   "solutions": [
     {
-      "name": "Iterative Simulation",
-      "timeComplexity": "O(2^n)",
-      "spaceComplexity": "O(2^n)",
-      "description": "Build each term from the previous one by counting consecutive identical digits and appending count + digit.",
-      "code": "class Solution {\n    public String countAndSay(int n) {\n        String s = \"1\";\n        for (int i = 2; i <= n; i++) {\n            StringBuilder sb = new StringBuilder();\n            int count = 1;\n            for (int j = 1; j < s.length(); j++) {\n                if (s.charAt(j) == s.charAt(j - 1)) {\n                    count++;\n                } else {\n                    sb.append(count).append(s.charAt(j - 1));\n                    count = 1;\n                }\n            }\n            sb.append(count).append(s.charAt(s.length() - 1));\n            s = sb.toString();\n        }\n        return s;\n    }\n}",
+      "name": "Iterative Run Scanner",
+      "timeComplexity": "O(T_n)",
+      "spaceComplexity": "O(L_n)",
+      "description": "## Approach\nStart with the base term `1`. For every next step, scan the current string once and emit a count plus digit for each maximal run of equal characters. The emitted string replaces the current one.\n\n## Key Insight\nThe next term depends only on the immediately previous term, so there is no need to store the whole history. The only easy bug is forgetting to append the final run after the scan reaches the end of the string.\n\n## Complexity Analysis\n- Time Complexity: O(T_n), where T_n is the total number of characters generated while building terms 1 through n.\n- Space Complexity: O(L_n), where L_n is the length of the returned term.",
+      "code": "class Solution {\n    public String countAndSay(int n) {\n        String term = \"1\";\n        for (int step = 2; step <= n; step++) {\n            term = say(term);\n        }\n        return term;\n    }\n\n    private String say(String term) {\n        StringBuilder next = new StringBuilder();\n        int index = 0;\n        while (index < term.length()) {\n            char digit = term.charAt(index);\n            int count = 0;\n            while (index < term.length() && term.charAt(index) == digit) {\n                index++;\n                count++;\n            }\n            next.append(count).append(digit);\n        }\n        return next.toString();\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Recursive Simulation",
-      "timeComplexity": "O(2^n)",
-      "spaceComplexity": "O(2^n)",
-      "description": "Recursively generate the (n-1)th term, then build the nth term by counting consecutive digits in the result string.",
-      "code": "class Solution {\n    public String countAndSay(int n) {\n        if (n == 1) return \"1\";\n        String prev = countAndSay(n - 1);\n        StringBuilder sb = new StringBuilder();\n        int i = 0;\n        while (i < prev.length()) {\n            char ch = prev.charAt(i);\n            int count = 0;\n            while (i < prev.length() && prev.charAt(i) == ch) {\n                i++;\n                count++;\n            }\n            sb.append(count).append(ch);\n        }\n        return sb.toString();\n    }\n}",
+      "name": "Recursive Definition",
+      "timeComplexity": "O(T_n)",
+      "spaceComplexity": "O(T_n)",
+      "description": "## Approach\nUse the recurrence directly: the answer for n is produced by first asking for the answer to n - 1, then reading that previous term as runs. The helper that reads one term is the same linear run scan used in the iterative solution.\n\n## Key Insight\nThis version is useful pedagogically because the code mirrors the mathematical definition. It also makes clear where the base case belongs: only n = 1 returns without reading another term.\n\n## Complexity Analysis\n- Time Complexity: O(T_n), because every generated intermediate term must be scanned once.\n- Space Complexity: O(T_n), including recursive stack frames and the intermediate strings kept during unwinding.",
+      "code": "class Solution {\n    public String countAndSay(int n) {\n        if (n == 1) {\n            return \"1\";\n        }\n        return describe(countAndSay(n - 1));\n    }\n\n    private String describe(String previous) {\n        StringBuilder next = new StringBuilder();\n        int i = 0;\n        while (i < previous.length()) {\n            int j = i + 1;\n            while (j < previous.length() && previous.charAt(j) == previous.charAt(i)) {\n                j++;\n            }\n            next.append(j - i).append(previous.charAt(i));\n            i = j;\n        }\n        return next.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Regex Run Matcher",
+      "timeComplexity": "O(T_n)",
+      "spaceComplexity": "O(L_n)",
+      "description": "## Approach\nUse a regular expression to locate each maximal run of one repeated character: `(.)\\1*`. Each regex match is one run, so the next term is built from the match length and the matched digit.\n\n## Key Insight\nThe algorithm is still run-length encoding, but the run boundary detection is delegated to the regex engine. This is a concise teaching route for recognizing that count-and-say is repeated run-length encoding.\n\n## Complexity Analysis\n- Time Complexity: O(T_n), since each term is still scanned to find all runs.\n- Space Complexity: O(L_n), for the generated next term and regex matcher state.",
+      "code": "class Solution {\n    private static final java.util.regex.Pattern RUN = java.util.regex.Pattern.compile(\"(.)\\\\1*\");\n\n    public String countAndSay(int n) {\n        String term = \"1\";\n        for (int step = 2; step <= n; step++) {\n            java.util.regex.Matcher matcher = RUN.matcher(term);\n            StringBuilder next = new StringBuilder();\n            while (matcher.find()) {\n                String run = matcher.group();\n                next.append(run.length()).append(run.charAt(0));\n            }\n            term = next.toString();\n        }\n        return term;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Run-Length Token Pipeline",
+      "timeComplexity": "O(T_n)",
+      "spaceComplexity": "O(L_n)",
+      "description": "## Approach\nRepresent the current term as run-length tokens instead of a raw string. To produce the spoken term, expand each token into the decimal digits of its count followed by its digit, then compress that character stream back into tokens for the next round.\n\n## Key Insight\nThis separates two ideas that are often blended together: saying a run and compressing the resulting characters into the next term's runs. It also handles multi-digit counts without assuming that every count is a single character.\n\n## Complexity Analysis\n- Time Complexity: O(T_n), because every emitted character across all generated terms is processed.\n- Space Complexity: O(L_n), for the token list and temporary spoken character stream.",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public String countAndSay(int n) {\n        List<Run> runs = new ArrayList<>();\n        runs.add(new Run('1', 1));\n\n        for (int step = 2; step <= n; step++) {\n            List<Character> spoken = new ArrayList<>();\n            for (Run run : runs) {\n                String count = Integer.toString(run.count);\n                for (int i = 0; i < count.length(); i++) {\n                    spoken.add(count.charAt(i));\n                }\n                spoken.add(run.digit);\n            }\n            runs = compress(spoken);\n        }\n\n        StringBuilder answer = new StringBuilder();\n        for (Run run : runs) {\n            for (int i = 0; i < run.count; i++) {\n                answer.append(run.digit);\n            }\n        }\n        return answer.toString();\n    }\n\n    private List<Run> compress(List<Character> chars) {\n        List<Run> result = new ArrayList<>();\n        int index = 0;\n        while (index < chars.size()) {\n            char digit = chars.get(index);\n            int count = 0;\n            while (index < chars.size() && chars.get(index) == digit) {\n                index++;\n                count++;\n            }\n            result.add(new Run(digit, count));\n        }\n        return result;\n    }\n\n    private static class Run {\n        final char digit;\n        final int count;\n\n        Run(char digit, int count) {\n            this.digit = digit;\n            this.count = count;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Static Sequence Cache",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(T_30)",
+      "description": "## Approach\nBecause the constraint caps n at 30, build a static table containing every valid term once. A query then returns `CACHE[n]` directly, while the table itself is produced by the same correct run-reading helper.\n\n## Key Insight\nThis is the right route when the method may be called many times in the same runtime. It trades a small fixed amount of memory and class-initialization work for constant-time lookups after the cache exists.\n\n## Complexity Analysis\n- Time Complexity: O(1) per call after the static cache is initialized; building the cache costs O(T_30).\n- Space Complexity: O(T_30), because all terms from 1 through 30 are stored.",
+      "code": "class Solution {\n    private static final String[] CACHE = buildCache();\n\n    public String countAndSay(int n) {\n        return CACHE[n];\n    }\n\n    private static String[] buildCache() {\n        String[] cache = new String[31];\n        cache[1] = \"1\";\n        for (int n = 2; n <= 30; n++) {\n            cache[n] = say(cache[n - 1]);\n        }\n        return cache;\n    }\n\n    private static String say(String term) {\n        StringBuilder next = new StringBuilder();\n        int start = 0;\n        while (start < term.length()) {\n            int end = start + 1;\n            while (end < term.length() && term.charAt(end) == term.charAt(start)) {\n                end++;\n            }\n            next.append(end - start).append(term.charAt(start));\n            start = end;\n        }\n        return next.toString();\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "n = 1", "output": "\"1\"" },
-    { "input": "n = 4", "output": "\"1211\"" },
-    { "input": "n = 5", "output": "\"111221\"" }
+    {
+      "input": "n = 1",
+      "output": "\"1\"",
+      "description": "Base case with no generated transition."
+    },
+    {
+      "input": "n = 2",
+      "output": "\"11\"",
+      "description": "Reads the base term as one 1."
+    },
+    {
+      "input": "n = 3",
+      "output": "\"21\"",
+      "description": "Checks the first run with count greater than one."
+    },
+    {
+      "input": "n = 4",
+      "output": "\"1211\"",
+      "description": "Canonical example with two separate runs."
+    },
+    {
+      "input": "n = 5",
+      "output": "\"111221\"",
+      "description": "Creates three runs in the next term."
+    },
+    {
+      "input": "n = 6",
+      "output": "\"312211\"",
+      "description": "Checks a run of three followed by shorter runs."
+    },
+    {
+      "input": "n = 7",
+      "output": "\"13112221\"",
+      "description": "Exercises repeated transitions after the examples."
+    },
+    {
+      "input": "n = 8",
+      "output": "\"1113213211\"",
+      "description": "Checks alternating short and longer run descriptions."
+    },
+    {
+      "input": "n = 9",
+      "output": "\"31131211131221\"",
+      "description": "Catches implementations that stop one transition early."
+    },
+    {
+      "input": "n = 10",
+      "output": "\"13211311123113112211\"",
+      "description": "Longer term with several independent run groups."
+    },
+    {
+      "input": "n = 12",
+      "output": "\"3113112221232112111312211312113211\"",
+      "description": "Requires continuing beyond the common first ten terms."
+    },
+    {
+      "input": "n = 15",
+      "output": "\"311311222113111231131112132112311321322112111312211312111322212311322113212221\"",
+      "description": "A larger in-range term that rejects hardcoded short tables."
+    }
   ]
 }

@@ -1,44 +1,147 @@
 {
   "id": "193",
   "title": "Pow(x, n)",
-  "description": "# Pow(x, n)\n\nImplement [pow(x, n)](http://www.cplusplus.com/reference/valarray/pow/), which calculates `x` raised to the power `n` (i.e., `x^n`).\n\n## Example 1:\n\n**Input:** x = 2.00000, n = 10\n**Output:** 1024.00000\n\n## Example 2:\n\n**Input:** x = 2.10000, n = 3\n**Output:** 9.26100\n\n## Example 3:\n\n**Input:** x = 2.00000, n = -2\n**Output:** 0.25000\n**Explanation:** 2^-2 = 1/2^2 = 1/4 = 0.25\n\n## Constraints:\n\n*   `-100.0 < x < 100.0`\n*   `-2^31 <= n <= 2^31 - 1`\n*   `n` is an integer.\n*   Either `x` is not zero or `n > 0`.\n*   `-10^4 <= x^n <= 10^4`",
+  "description": "# Pow(x, n)\n\nImplement `myPow(double x, int n)` to return `x` raised to integer power `n`.\n\nFor positive `n`, multiply `n` copies of `x`. Power `0` gives `1`; a negative power gives the reciprocal, such as `2^-2 = 1 / (2 * 2) = 0.25`. Inputs guarantee nonzero `x` for negative exponents.\n\nDo not call `Math.pow`. Use `O(log(|n| + 1))` time.\n\n## Example 1:\n\n**Input:** x = 2.00000, n = 10\n**Output:** 1024.00000\n\n## Example 2:\n\n**Input:** x = 2.10000, n = 3\n**Output:** 9.26100\n\n## Example 3:\n\n**Input:** x = 2.00000, n = -2\n**Output:** 0.25000\n**Explanation:** 2^-2 = 1 / 2^2 = 1 / 4 = 0.25.\n\n## Constraints:\n\n* `-100.0 < x < 100.0`\n* `-2^31 <= n <= 2^31 - 1`\n* `n` is an integer.\n* Either `x` is not zero or `n > 0`.\n* `-10^4 <= x^n <= 10^4`.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public double myPow(double x, int n) {\n        // Write your code here\n        return 0.0;\n    }\n}",
-  "tags": ["Math", "Recursion"],
+  "tags": [
+    "Math",
+    "Recursion",
+    "Bit Manipulation"
+  ],
   "examples": [
-    { "input": "x = 2.00000, n = 10", "output": "1024.00000" },
-    { "input": "x = 2.10000, n = 3", "output": "9.26100" },
-    { "input": "x = 2.00000, n = -2", "output": "0.25000" }
+    {
+      "input": "x = 2.00000, n = 10",
+      "output": "1024.00000"
+    },
+    {
+      "input": "x = 2.10000, n = 3",
+      "output": "9.26100"
+    },
+    {
+      "input": "x = 2.00000, n = -2",
+      "output": "0.25000"
+    }
   ],
   "solutions": [
     {
-      "name": "Fast Exponentiation (Iterative)",
-      "timeComplexity": "O(log n)",
+      "name": "Right-to-Left Binary Exponentiation",
+      "timeComplexity": "O(log |n|)",
       "spaceComplexity": "O(1)",
-      "description": "Use binary exponentiation. Handle negative exponent by inverting x and negating n. Use long to handle Integer.MIN_VALUE.",
-      "code": "class Solution {\n    public double myPow(double x, int n) {\n        long N = n;\n        if (N < 0) {\n            x = 1 / x;\n            N = -N;\n        }\n        double result = 1.0;\n        while (N > 0) {\n            if ((N & 1) == 1) result *= x;\n            x *= x;\n            N >>= 1;\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nConvert `n` to `long`, turn a negative exponent into a reciprocal base, and then scan the exponent from low bit to high bit. When the current bit is 1, multiply the answer by the current base. After each bit, square the base and shift the exponent right.\n\n## Key Insight\n\nThe binary representation of the exponent writes `x^n` as a product of powers `x`, `x^2`, `x^4`, and so on. Widening to `long` before negation is what makes `Integer.MIN_VALUE` safe.\n\n## Complexity Analysis\n- Time Complexity: O(log |n|)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public double myPow(double x, int n) {\n        long exponent = n;\n        if (exponent < 0) {\n            x = 1.0 / x;\n            exponent = -exponent;\n        }\n\n        double answer = 1.0;\n        while (exponent > 0) {\n            if ((exponent & 1L) == 1L) {\n                answer *= x;\n            }\n            x *= x;\n            exponent >>= 1;\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Recursive Fast Exponentiation",
-      "timeComplexity": "O(log n)",
-      "spaceComplexity": "O(log n)",
-      "description": "Recursively compute x^n using divide and conquer: x^n = (x^(n/2))^2 if even, x * (x^(n/2))^2 if odd. Handle negative exponent by inverting.",
-      "code": "class Solution {\n    public double myPow(double x, int n) {\n        long N = n;\n        if (N < 0) {\n            x = 1.0 / x;\n            N = -N;\n        }\n        return helper(x, N);\n    }\n\n    private double helper(double x, long n) {\n        if (n == 0) return 1.0;\n        double half = helper(x, n / 2);\n        if (n % 2 == 0) {\n            return half * half;\n        } else {\n            return half * half * x;\n        }\n    }\n}",
+      "name": "Recursive Half-Power",
+      "timeComplexity": "O(log |n|)",
+      "spaceComplexity": "O(log |n|)",
+      "description": "## Approach\n\nNormalize the sign of the exponent in the public method, then recursively compute `base^exponent`. The helper computes the half power for `exponent / 2`, squares it, and multiplies one extra base when the exponent is odd.\n\n## Key Insight\n\nThe recurrence `x^n = (x^(n/2))^2` cuts the exponent in half at every level. The sign handling belongs outside the recurrence so the helper only reasons about nonnegative exponents.\n\n## Complexity Analysis\n- Time Complexity: O(log |n|)\n- Space Complexity: O(log |n|)",
+      "code": "class Solution {\n    public double myPow(double x, int n) {\n        long exponent = n;\n        if (exponent < 0) {\n            return 1.0 / power(x, -exponent);\n        }\n        return power(x, exponent);\n    }\n\n    private double power(double base, long exponent) {\n        if (exponent == 0) {\n            return 1.0;\n        }\n        double half = power(base, exponent / 2);\n        double squared = half * half;\n        return exponent % 2 == 0 ? squared : squared * base;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Binary Powers Table",
+      "timeComplexity": "O(log |n|)",
+      "spaceComplexity": "O(log |n|)",
+      "description": "## Approach\n\nPrecompute the sequence `x`, `x^2`, `x^4`, `x^8`, and so on by repeated squaring. Then scan the exponent bits and multiply only the table entries whose bits are set. Negative exponents are handled by inverting the final product.\n\n## Key Insight\n\nThis separates two ideas that are combined in the compact iterative version: first build every binary power, then assemble the answer from the selected powers.\n\n## Complexity Analysis\n- Time Complexity: O(log |n|)\n- Space Complexity: O(log |n|)",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public double myPow(double x, int n) {\n        long exponent = n;\n        boolean negative = exponent < 0;\n        if (negative) {\n            exponent = -exponent;\n        }\n\n        List<Double> powers = new ArrayList<>();\n        double current = x;\n        for (long value = exponent; value > 0; value >>= 1) {\n            powers.add(current);\n            current *= current;\n        }\n\n        double answer = 1.0;\n        int bit = 0;\n        while (exponent > 0) {\n            if ((exponent & 1L) == 1L) {\n                answer *= powers.get(bit);\n            }\n            bit++;\n            exponent >>= 1;\n        }\n        return negative ? 1.0 / answer : answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Left-to-Right Binary Exponentiation",
+      "timeComplexity": "O(log |n|)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nNormalize the exponent sign, find the highest set bit, and scan bits from high to low. At each step square the current answer; if the current bit is set, multiply by the original base. At the end, invert the answer if the original exponent was negative.\n\n## Key Insight\n\nLow-to-high binary exponentiation updates the base; high-to-low binary exponentiation updates the answer. Both are repeated squaring, but the high-to-low form mirrors reading the binary exponent from left to right.\n\n## Complexity Analysis\n- Time Complexity: O(log |n|)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public double myPow(double x, int n) {\n        long exponent = n;\n        boolean negative = exponent < 0;\n        if (negative) {\n            exponent = -exponent;\n        }\n        if (exponent == 0) {\n            return 1.0;\n        }\n\n        int highestBit = 63 - Long.numberOfLeadingZeros(exponent);\n        double answer = 1.0;\n        for (int bit = highestBit; bit >= 0; bit--) {\n            answer *= answer;\n            if (((exponent >> bit) & 1L) == 1L) {\n                answer *= x;\n            }\n        }\n        return negative ? 1.0 / answer : answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Explicit Stack Divide and Conquer",
+      "timeComplexity": "O(log |n|)",
+      "spaceComplexity": "O(log |n|)",
+      "description": "## Approach\n\nPush the chain of exponents `n`, `n/2`, `n/4`, ... down to 1 onto a stack. Then pop from smallest to largest, rebuilding the same values a recursive divide-and-conquer call would return: square the current value, and multiply by `x` when that exponent is odd.\n\n## Key Insight\n\nThe stack exposes the call stack of recursive fast exponentiation. It gives the same recurrence without using Java recursion, which is useful when teaching how divide and conquer can be simulated iteratively.\n\n## Complexity Analysis\n- Time Complexity: O(log |n|)\n- Space Complexity: O(log |n|)",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\nclass Solution {\n    public double myPow(double x, int n) {\n        long exponent = n;\n        boolean negative = exponent < 0;\n        if (negative) {\n            exponent = -exponent;\n        }\n\n        Deque<Long> stack = new ArrayDeque<>();\n        while (exponent > 0) {\n            stack.push(exponent);\n            exponent /= 2;\n        }\n\n        double current = 1.0;\n        while (!stack.isEmpty()) {\n            long value = stack.pop();\n            current *= current;\n            if ((value & 1L) == 1L) {\n                current *= x;\n            }\n        }\n        return negative ? 1.0 / current : current;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "x = 2.00000, n = 10", "output": "1024.00000" },
-    { "input": "x = 2.10000, n = 3", "output": "9.26100" },
-    { "input": "x = 2.00000, n = -2", "output": "0.25000" },
-    { "input": "x = 1.00000, n = 2147483647", "output": "1.00000" },
-    { "input": "x = 2.00000, n = 0", "output": "1.00000" },
-    { "input": "x = 0.00001, n = 2147483647", "output": "0.00000" },
-    { "input": "x = -1.00000, n = 2147483647", "output": "-1.00000" },
-    { "input": "x = -1.00000, n = 2", "output": "1.00000" },
-    { "input": "x = 0.44528, n = 0", "output": "1.00000" },
-    { "input": "x = 2.00000, n = -2147483648", "output": "0.00000" }
+    {
+      "input": "x = 2.00000, n = 10",
+      "output": "1024.00000",
+      "description": "Positive integer exponent uses repeated squaring to produce 1024."
+    },
+    {
+      "input": "x = 2.10000, n = 3",
+      "output": "9.26100",
+      "description": "Fractional base with positive exponent checks floating multiplication."
+    },
+    {
+      "input": "x = 2.00000, n = -2",
+      "output": "0.25000",
+      "description": "Negative exponent returns the reciprocal power."
+    },
+    {
+      "input": "x = 2.00000, n = 0",
+      "output": "1.00000",
+      "description": "Zero exponent returns one for any nonzero base."
+    },
+    {
+      "input": "x = 1.00000, n = 2147483647",
+      "output": "1.00000",
+      "description": "Base one remains one even for a huge positive exponent."
+    },
+    {
+      "input": "x = -1.00000, n = 2147483647",
+      "output": "-1.00000",
+      "description": "Negative one with an odd positive exponent remains negative."
+    },
+    {
+      "input": "x = -1.00000, n = -2147483648",
+      "output": "1.00000",
+      "description": "Minimum integer exponent is even, so negative one becomes positive."
+    },
+    {
+      "input": "x = 2.00000, n = -2147483648",
+      "output": "0.00000",
+      "description": "Minimum integer exponent must be handled without int negation overflow."
+    },
+    {
+      "input": "x = 0.50000, n = 3",
+      "output": "0.12500",
+      "description": "Fractional base below one with positive exponent remains exact."
+    },
+    {
+      "input": "x = -2.00000, n = 3",
+      "output": "-8.00000",
+      "description": "Negative base with odd positive exponent stays negative."
+    },
+    {
+      "input": "x = -2.00000, n = 4",
+      "output": "16.00000",
+      "description": "Negative base with even positive exponent becomes positive."
+    },
+    {
+      "input": "x = -2.00000, n = -3",
+      "output": "-0.12500",
+      "description": "Negative base with odd negative exponent returns a negative reciprocal."
+    },
+    {
+      "input": "x = 0.00001, n = 2147483647",
+      "output": "0.00000",
+      "description": "Very small base with huge exponent underflows toward zero."
+    },
+    {
+      "input": "x = 0.44528, n = 0",
+      "output": "1.00000",
+      "description": "Zero exponent ignores the fractional base value."
+    }
   ],
-  "diagrams": ["p193_example1"]
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p193_example1.png",
+      "caption": "Base and exponent prompt for fast exponentiation"
+    }
+  ]
 }

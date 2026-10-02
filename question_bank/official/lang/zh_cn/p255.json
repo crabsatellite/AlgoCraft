@@ -1,0 +1,22 @@
+{
+  "title": "统计匹配规则的物品数量",
+  "description": "# 统计匹配规则的物品数量\n\n给定一个列表 `items`。每个物品都恰好包含三个字符串，顺序固定为：\n\n`[type, color, name]`\n\n同时给定 `ruleKey` 和 `ruleValue`。请统计有多少个物品在 `ruleKey` 指定的字段上等于 `ruleValue`。\n\n只有被选中的字段参与比较。例如 `ruleKey` 是 `\"type\"` 时，即使某个物品的 color 或 name 等于 `ruleValue`，也不能计入答案。\n\n## 示例 1：\n\n**输入：** items = [[\"phone\",\"blue\",\"pixel\"],[\"computer\",\"silver\",\"lenovo\"],[\"phone\",\"gold\",\"iphone\"]], ruleKey = \"color\", ruleValue = \"silver\"\n**输出：** 1\n**解释：** 只有 [\"computer\",\"silver\",\"lenovo\"] 的颜色是 \"silver\"。\n\n## 示例 2：\n\n**输入：** items = [[\"phone\",\"blue\",\"pixel\"],[\"computer\",\"silver\",\"phone\"],[\"phone\",\"gold\",\"iphone\"]], ruleKey = \"type\", ruleValue = \"phone\"\n**输出：** 2\n**解释：** 第一个和第三个物品的 type 是 \"phone\"。第二个物品的 name 是 \"phone\"，但 type 是 \"computer\"，所以不匹配。\n\n## 约束条件：\n\n*   `1 <= items.length <= 10^4`\n*   `items[i].length == 3`\n*   `1 <= type_i.length, color_i.length, name_i.length, ruleValue.length <= 10`\n*   `ruleKey` 是 `\"type\"`、`\"color\"` 或 `\"name\"`\n*   所有字符串都只包含小写英文字母。",
+  "solutions": [
+    {
+      "name": "固定字段下标扫描",
+      "description": "## 思路\n\n把 `ruleKey` 转成固定字段下标：type 是 0，color 是 1，name 是 2。然后遍历所有物品，只检查这个下标上的字段是否等于 `ruleValue`。\n\n## 关键点\n\n每个物品的结构固定不变。只要先确定目标字段，剩下就是对这一列做一次线性计数。\n\n## 复杂度分析\n\n- 时间复杂度：O(n)\n- 空间复杂度：O(1)"
+    },
+    {
+      "name": "switch 选择字段",
+      "description": "## 思路\n\n对 `ruleKey` 使用 `switch`，显式选择目标下标。之后只需要扫描列表一次。\n\n## 关键点\n\n合法字段只有三个。switch 可以直接表达题目的字段约束，也不需要为了很小的固定结构创建额外映射。\n\n## 复杂度分析\n\n- 时间复杂度：O(n)\n- 空间复杂度：O(1)"
+    },
+    {
+      "name": "HashMap 查字段下标",
+      "description": "## 思路\n\n用 `HashMap` 保存字段名到下标的映射，查出目标下标后遍历所有物品。\n\n## 关键点\n\n映射表把“字段名查下标”和“遍历行计数”拆开。对于本题的三个字段有点重，但它展示了处理命名列数据时可扩展的写法。\n\n## 复杂度分析\n\n- 时间复杂度：O(n)\n- 空间复杂度：O(1)"
+    },
+    {
+      "name": "直接规则谓词 helper",
+      "description": "## 思路\n\n把字段相关的比较逻辑放进 helper 方法。主循环只负责统计 helper 返回 true 的物品。\n\n## 关键点\n\nhelper 可以避免把题目误写成“整行搜索”。每个分支都只比较 ruleKey 指定的那一个字段。\n\n## 复杂度分析\n\n- 时间复杂度：O(n)\n- 空间复杂度：O(1)"
+    }
+  ]
+}

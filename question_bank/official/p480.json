@@ -1,34 +1,101 @@
 {
   "id": "480",
   "title": "Maximum Average Subarray I",
-  "description": "# Maximum Average Subarray I\n\nYou are given an integer array `nums` consisting of `n` elements, and an integer `k`.\n\nFind a contiguous subarray whose length is equal to `k` that has the maximum average value and return *this value*. Any answer with a calculation error less than `10^-5` will be accepted.\n\n## Example 1:\n\n**Input:** nums = [1,12,-5,-6,50,3], k = 4\n**Output:** 12.75000\n**Explanation:** Maximum average is (12 - 5 - 6 + 50) / 4 = 51 / 4 = 12.75\n\n## Example 2:\n\n**Input:** nums = [5], k = 1\n**Output:** 5.00000\n\n## Constraints:\n\n*   `n == nums.length`\n*   `1 <= k <= n <= 10^5`\n*   `-10^4 <= nums[i] <= 10^4`",
+  "description": "# Maximum Average Subarray I\n\nYou are given an integer array `nums` with `n` elements and an integer `k`.\n\nA window is a contiguous subarray of `nums`. Find the maximum possible average among all windows whose length is exactly `k`, and return that average.\n\nAnswers within `10^-5` of the correct value are accepted.\n\n## Example 1:\n\n**Input:** nums = [1,12,-5,-6,50,3], k = 4\n**Output:** 12.75000\n**Explanation:** The best length-4 window is [12,-5,-6,50]. Its sum is 51, so its average is 51 / 4 = 12.75.\n\n## Example 2:\n\n**Input:** nums = [5], k = 1\n**Output:** 5.00000\n**Explanation:** The only valid window is the whole array.\n\n## Example 3:\n\n**Input:** nums = [-5,-10,-1,-2], k = 2\n**Output:** -1.50000\n**Explanation:** For negative numbers, the maximum average is the least negative valid window, here [-1,-2].\n\n## Constraints:\n\n* `n == nums.length`\n* `1 <= k <= n <= 10^5`\n* `-10^4 <= nums[i] <= 10^4`\n\nThe window length must be exactly `k`; do not search for shorter or longer subarrays.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public double findMaxAverage(int[] nums, int k) {\n        \n    }\n}",
-  "tags": ["Array", "Sliding Window"],
+  "tags": [
+    "Array",
+    "Sliding Window"
+  ],
   "examples": [
-    { "input": "nums = [1,12,-5,-6,50,3], k = 4", "output": "12.75000" },
-    { "input": "nums = [5], k = 1", "output": "5.00000" }
+    {
+      "input": "nums = [1,12,-5,-6,50,3], k = 4",
+      "output": "12.75000"
+    },
+    {
+      "input": "nums = [5], k = 1",
+      "output": "5.00000"
+    },
+    {
+      "input": "nums = [-5,-10,-1,-2], k = 2",
+      "output": "-1.50000"
+    }
   ],
   "solutions": [
     {
-      "name": "Sliding Window",
+      "name": "Sliding Window Running Sum",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Compute the sum of the first k elements. Slide the window: add the next element and remove the leftmost. Track the maximum sum and return max/k.",
-      "code": "class Solution {\n    public double findMaxAverage(int[] nums, int k) {\n        int sum = 0;\n        for (int i = 0; i < k; i++) sum += nums[i];\n        int maxSum = sum;\n        for (int i = k; i < nums.length; i++) {\n            sum += nums[i] - nums[i - k];\n            maxSum = Math.max(maxSum, sum);\n        }\n        return (double) maxSum / k;\n    }\n}",
+      "description": "## Approach\n\nCompute the sum of the first `k` elements, then slide the fixed-size window one position at a time. Each slide adds the new right element and subtracts the element that just left on the left.\n\n## Key Insight\n\nBecause every valid subarray has the same length, maximizing the average is the same as maximizing the window sum. Initialize the best sum from the first real window so all-negative arrays are handled correctly.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public double findMaxAverage(int[] nums, int k) {\n        long windowSum = 0;\n        for (int i = 0; i < k; i++) {\n            windowSum += nums[i];\n        }\n\n        long bestSum = windowSum;\n        for (int right = k; right < nums.length; right++) {\n            windowSum += nums[right];\n            windowSum -= nums[right - k];\n            bestSum = Math.max(bestSum, windowSum);\n        }\n\n        return (double) bestSum / k;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Prefix Sum Approach",
+      "name": "Prefix Sum Window Queries",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Build a prefix sum array. For each window ending at index i, the window sum is prefix[i+1] - prefix[i+1-k]. Track the maximum window sum and return max/k.",
-      "code": "class Solution {\n    public double findMaxAverage(int[] nums, int k) {\n        int n = nums.length;\n        long[] prefix = new long[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n        long maxSum = prefix[k] - prefix[0];\n        for (int i = k; i <= n; i++) {\n            long windowSum = prefix[i] - prefix[i - k];\n            if (windowSum > maxSum) maxSum = windowSum;\n        }\n        return (double) maxSum / k;\n    }\n}",
+      "description": "## Approach\n\nBuild `prefix`, where `prefix[i]` is the sum of the first `i` values. Then the sum of the length-`k` window ending at exclusive index `right` is `prefix[right] - prefix[right - k]`.\n\n## Key Insight\n\nPrefix sums turn every fixed-length window query into one subtraction. This is less memory efficient than the sliding window, but it exposes the same invariant in a form that generalizes to many range-sum problems.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public double findMaxAverage(int[] nums, int k) {\n        long[] prefix = new long[nums.length + 1];\n        for (int i = 0; i < nums.length; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n\n        long bestSum = Long.MIN_VALUE;\n        for (int right = k; right <= nums.length; right++) {\n            long windowSum = prefix[right] - prefix[right - k];\n            bestSum = Math.max(bestSum, windowSum);\n        }\n\n        return (double) bestSum / k;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Binary Search on the Average",
+      "timeComplexity": "O(n log R)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nBinary search the answer value. For a candidate average `target`, subtract `target` from every number and ask whether any length-`k` transformed window has non-negative sum.\n\n## Key Insight\n\nA window has average at least `target` exactly when the transformed sum `sum(nums[i] - target)` over that window is at least zero. This route is overkill for this easy problem, but it teaches the answer-space idea used by harder maximum-average variants.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log R), where the loop uses a fixed number of precision steps over the numeric range `R`.\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public double findMaxAverage(int[] nums, int k) {\n        double low = nums[0];\n        double high = nums[0];\n        for (int value : nums) {\n            low = Math.min(low, value);\n            high = Math.max(high, value);\n        }\n\n        for (int step = 0; step < 60; step++) {\n            double mid = low + (high - low) / 2.0;\n            if (hasWindowAtLeast(nums, k, mid)) {\n                low = mid;\n            } else {\n                high = mid;\n            }\n        }\n        return low;\n    }\n\n    private boolean hasWindowAtLeast(int[] nums, int k, double target) {\n        double transformedSum = 0.0;\n        for (int i = 0; i < k; i++) {\n            transformedSum += nums[i] - target;\n        }\n        if (transformedSum >= 0.0) {\n            return true;\n        }\n\n        for (int right = k; right < nums.length; right++) {\n            transformedSum += nums[right] - target;\n            transformedSum -= nums[right - k] - target;\n            if (transformedSum >= 0.0) {\n                return true;\n            }\n        }\n        return false;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [1,12,-5,-6,50,3], k = 4", "output": "12.75000" },
-    { "input": "nums = [5], k = 1", "output": "5.00000" }
+    {
+      "input": "nums = [1,12,-5,-6,50,3], k = 4",
+      "output": "12.75000"
+    },
+    {
+      "input": "nums = [5], k = 1",
+      "output": "5.00000"
+    },
+    {
+      "input": "nums = [-1], k = 1",
+      "output": "-1.00000"
+    },
+    {
+      "input": "nums = [0,4,0,3,2], k = 1",
+      "output": "4.00000"
+    },
+    {
+      "input": "nums = [1,2,3,4], k = 4",
+      "output": "2.50000"
+    },
+    {
+      "input": "nums = [-5,-10,-1,-2], k = 2",
+      "output": "-1.50000"
+    },
+    {
+      "input": "nums = [9,8,1,1,1], k = 2",
+      "output": "8.50000"
+    },
+    {
+      "input": "nums = [1,1,1,8,9], k = 2",
+      "output": "8.50000"
+    },
+    {
+      "input": "nums = [4,4,4,4], k = 2",
+      "output": "4.00000"
+    },
+    {
+      "input": "nums = [10000,10000,10000,-10000], k = 3",
+      "output": "10000.00000"
+    },
+    {
+      "input": "nums = [-10000,-10000,10000,10000], k = 2",
+      "output": "10000.00000"
+    },
+    {
+      "input": "nums = [7,4,5,8,8,3,9,8,7,6], k = 6",
+      "output": "7.16667"
+    }
   ]
 }

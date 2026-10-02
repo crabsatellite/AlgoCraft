@@ -1,43 +1,121 @@
 {
   "id": "118",
   "title": "Permutations",
-  "description": "# Permutations\n\nGiven an array `nums` of distinct integers, return *all the possible permutations*. You can return the answer in **any order**.\n\n## Example 1:\n\n**Input:** nums = [1,2,3]\n**Output:** [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]\n\n## Example 2:\n\n**Input:** nums = [0,1]\n**Output:** [[0,1],[1,0]]\n\n## Example 3:\n\n**Input:** nums = [1]\n**Output:** [[1]]\n\n## Constraints:\n\n*   `1 <= nums.length <= 6`\n*   `-10 <= nums[i] <= 10`\n*   All the integers of `nums` are **unique**.",
+  "description": "# Permutations\n\nGiven an array `nums` of **distinct** integers, return all possible permutations of the array.\n\nA permutation must contain every input value exactly once, but in a possible order. You may return the list of permutations in any order. The order **inside** each permutation matters, so `[1,2,3]` and `[1,3,2]` are different permutations.\n\n## Example 1:\n\n**Input:** nums = [1,2,3]\n**Output:** [[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]\n**Explanation:** There are `3! = 6` ways to arrange three distinct values.\n\n## Example 2:\n\n**Input:** nums = [0,1]\n**Output:** [[0,1],[1,0]]\n\n## Example 3:\n\n**Input:** nums = [1]\n**Output:** [[1]]\n\n## Constraints:\n\n*   `1 <= nums.length <= 6`\n*   `-10 <= nums[i] <= 10`\n*   All the integers of `nums` are **unique**.",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public List<List<Integer>> permute(int[] nums) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["Array", "Backtracking"],
+  "initialCode": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> permute(int[] nums) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
+  "tags": [
+    "Array",
+    "Backtracking"
+  ],
   "examples": [
     {
       "input": "nums = [1,2,3]",
       "output": "[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]"
     },
-    { "input": "nums = [0,1]", "output": "[[0,1],[1,0]]" },
-    { "input": "nums = [1]", "output": "[[1]]" }
+    {
+      "input": "nums = [0,1]",
+      "output": "[[0,1],[1,0]]"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "[[1]]"
+    }
   ],
   "solutions": [
     {
-      "name": "Backtracking with Swap",
+      "name": "In-place Swap Backtracking",
       "timeComplexity": "O(n * n!)",
-      "spaceComplexity": "O(n)",
-      "description": "Fix each position by swapping the current index with every index from current to end. Recurse for the next position. Swap back to restore state.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> permute(int[] nums) {\n        List<List<Integer>> result = new ArrayList<>();\n        backtrack(nums, 0, result);\n        return result;\n    }\n\n    private void backtrack(int[] nums, int start, List<List<Integer>> result) {\n        if (start == nums.length) {\n            List<Integer> perm = new ArrayList<>();\n            for (int n : nums) perm.add(n);\n            result.add(perm);\n            return;\n        }\n        for (int i = start; i < nums.length; i++) {\n            int temp = nums[start]; nums[start] = nums[i]; nums[i] = temp;\n            backtrack(nums, start + 1, result);\n            temp = nums[start]; nums[start] = nums[i]; nums[i] = temp;\n        }\n    }\n}",
+      "spaceComplexity": "O(n) excluding the returned answer",
+      "description": "## Approach\n\nTreat `nums` itself as the working permutation. At recursion position `start`, swap each remaining value into `start`, recurse on `start + 1`, then swap back to restore the array before trying the next candidate.\n\n## Key Insight\n\nThe prefix before `start` is fixed, and the suffix still contains all values that can be placed next. Swapping avoids a separate `used` array while still visiting every ordered arrangement exactly once.\n\n## Complexity Analysis\n- Time Complexity: O(n * n!), because there are n! permutations and each copied answer has length n\n- Space Complexity: O(n) for recursion depth, excluding the returned answer",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> permute(int[] nums) {\n        List<List<Integer>> answer = new ArrayList<>();\n        backtrack(nums, 0, answer);\n        return answer;\n    }\n\n    private void backtrack(int[] nums, int start, List<List<Integer>> answer) {\n        if (start == nums.length) {\n            answer.add(toList(nums));\n            return;\n        }\n        for (int i = start; i < nums.length; i++) {\n            swap(nums, start, i);\n            backtrack(nums, start + 1, answer);\n            swap(nums, start, i);\n        }\n    }\n\n    private List<Integer> toList(int[] nums) {\n        List<Integer> list = new ArrayList<>();\n        for (int value : nums) {\n            list.add(value);\n        }\n        return list;\n    }\n\n    private void swap(int[] nums, int a, int b) {\n        int temp = nums[a];\n        nums[a] = nums[b];\n        nums[b] = temp;\n    }\n}",
       "language": "java"
     },
     {
       "name": "Backtracking with Used Array",
       "timeComplexity": "O(n * n!)",
-      "spaceComplexity": "O(n)",
-      "description": "Use a boolean used[] array. Try each unused element at the current position, mark as used, recurse, then unmark.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> permute(int[] nums) {\n        List<List<Integer>> result = new ArrayList<>();\n        boolean[] used = new boolean[nums.length];\n        backtrack(nums, used, new ArrayList<>(), result);\n        return result;\n    }\n\n    private void backtrack(int[] nums, boolean[] used, List<Integer> path, List<List<Integer>> result) {\n        if (path.size() == nums.length) {\n            result.add(new ArrayList<>(path));\n            return;\n        }\n        for (int i = 0; i < nums.length; i++) {\n            if (used[i]) continue;\n            used[i] = true;\n            path.add(nums[i]);\n            backtrack(nums, used, path, result);\n            path.remove(path.size() - 1);\n            used[i] = false;\n        }\n    }\n}",
+      "spaceComplexity": "O(n) excluding the returned answer",
+      "description": "## Approach\n\nBuild a separate `path` list and keep a boolean `used` array. Each recursion level scans every index and chooses one value that is not already in the current path. After returning, remove the value and clear its `used` flag.\n\n## Key Insight\n\nThe `used` array makes the permutation rule explicit: each input index can appear at most once in the current ordered path. This version is often easiest to teach before moving to in-place swaps.\n\n## Complexity Analysis\n- Time Complexity: O(n * n!), because all permutations are copied into the answer\n- Space Complexity: O(n) for the path, used array, and recursion depth, excluding output",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> permute(int[] nums) {\n        List<List<Integer>> answer = new ArrayList<>();\n        boolean[] used = new boolean[nums.length];\n        backtrack(nums, used, new ArrayList<>(), answer);\n        return answer;\n    }\n\n    private void backtrack(int[] nums, boolean[] used, List<Integer> path,\n                           List<List<Integer>> answer) {\n        if (path.size() == nums.length) {\n            answer.add(new ArrayList<>(path));\n            return;\n        }\n        for (int i = 0; i < nums.length; i++) {\n            if (used[i]) {\n                continue;\n            }\n            used[i] = true;\n            path.add(nums[i]);\n            backtrack(nums, used, path, answer);\n            path.remove(path.size() - 1);\n            used[i] = false;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative Insertion",
+      "timeComplexity": "O(n * n!)",
+      "spaceComplexity": "O(n * n!)",
+      "description": "## Approach\n\nStart with one empty permutation. For each number, insert it into every possible position of every existing partial permutation. After processing `k` numbers, the list contains every length-`k` permutation of those values.\n\n## Key Insight\n\nA new value can occupy any of `k + 1` positions in an existing length-`k` permutation. This is a constructive view of why the count grows by multiplication until it reaches `n!`.\n\n## Complexity Analysis\n- Time Complexity: O(n * n!), because each generated permutation is copied and extended\n- Space Complexity: O(n * n!), because all partial and final permutations are materialized",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> permute(int[] nums) {\n        List<List<Integer>> answer = new ArrayList<>();\n        answer.add(new ArrayList<>());\n\n        for (int num : nums) {\n            List<List<Integer>> nextLevel = new ArrayList<>();\n            for (List<Integer> permutation : answer) {\n                for (int index = 0; index <= permutation.size(); index++) {\n                    List<Integer> copy = new ArrayList<>(permutation);\n                    copy.add(index, num);\n                    nextLevel.add(copy);\n                }\n            }\n            answer = nextLevel;\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Lexicographic Next Permutation Enumeration",
+      "timeComplexity": "O(n * n!)",
+      "spaceComplexity": "O(n) excluding the returned answer",
+      "description": "## Approach\n\nSort the array to get the first lexicographic permutation, copy it, then repeatedly transform the array to its next lexicographic permutation until no larger ordering exists. Each transformation finds a pivot, swaps it with the next larger suffix value, and reverses the suffix.\n\n## Key Insight\n\nBacktracking is not the only way to enumerate permutations. The next-permutation operation walks through the permutation space in sorted order and is useful when students have already learned the single-step Next Permutation problem.\n\n## Complexity Analysis\n- Time Complexity: O(n * n!), because there are n! permutations and each next step or copy costs O(n)\n- Space Complexity: O(n) for helper copying and call state, excluding output",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> permute(int[] nums) {\n        Arrays.sort(nums);\n        List<List<Integer>> answer = new ArrayList<>();\n        addCopy(nums, answer);\n        while (nextPermutation(nums)) {\n            addCopy(nums, answer);\n        }\n        return answer;\n    }\n\n    private boolean nextPermutation(int[] nums) {\n        int i = nums.length - 2;\n        while (i >= 0 && nums[i] >= nums[i + 1]) {\n            i--;\n        }\n        if (i < 0) {\n            return false;\n        }\n        int j = nums.length - 1;\n        while (nums[j] <= nums[i]) {\n            j--;\n        }\n        swap(nums, i, j);\n        reverse(nums, i + 1, nums.length - 1);\n        return true;\n    }\n\n    private void addCopy(int[] nums, List<List<Integer>> answer) {\n        List<Integer> copy = new ArrayList<>();\n        for (int value : nums) {\n            copy.add(value);\n        }\n        answer.add(copy);\n    }\n\n    private void reverse(int[] nums, int left, int right) {\n        while (left < right) {\n            swap(nums, left++, right--);\n        }\n    }\n\n    private void swap(int[] nums, int a, int b) {\n        int temp = nums[a];\n        nums[a] = nums[b];\n        nums[b] = temp;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "nums = [1,2,3]",
-      "output": "[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]"
+      "output": "[[1,2,3],[1,3,2],[2,1,3],[2,3,1],[3,1,2],[3,2,1]]",
+      "description": "Three distinct numbers produce all six ordered arrangements."
     },
-    { "input": "nums = [0,1]", "output": "[[0,1],[1,0]]" },
-    { "input": "nums = [1]", "output": "[[1]]" },
-    { "input": "nums = [-1,0]", "output": "[[-1,0],[0,-1]]" }
+    {
+      "input": "nums = [0,1]",
+      "output": "[[0,1],[1,0]]",
+      "description": "Two numbers produce two possible orders."
+    },
+    {
+      "input": "nums = [1]",
+      "output": "[[1]]",
+      "description": "Single-element boundary case."
+    },
+    {
+      "input": "nums = [-1,0]",
+      "output": "[[-1,0],[0,-1]]",
+      "description": "Negative values are treated like any other distinct values."
+    },
+    {
+      "input": "nums = [-1,0,1]",
+      "output": "[[-1,0,1],[-1,1,0],[0,-1,1],[0,1,-1],[1,-1,0],[1,0,-1]]",
+      "description": "Mixed negative, zero, and positive values still produce six permutations."
+    },
+    {
+      "input": "nums = [3,1,2]",
+      "output": "[[3,1,2],[3,2,1],[1,3,2],[1,2,3],[2,1,3],[2,3,1]]",
+      "description": "Unsorted input must not constrain the set of returned permutations."
+    },
+    {
+      "input": "nums = [-10,10]",
+      "output": "[[-10,10],[10,-10]]",
+      "description": "Constraint-boundary values in both possible orders."
+    },
+    {
+      "input": "nums = [4,5,6,7]",
+      "output": "[[4,5,6,7],[4,5,7,6],[4,6,5,7],[4,6,7,5],[4,7,5,6],[4,7,6,5],[5,4,6,7],[5,4,7,6],[5,6,4,7],[5,6,7,4],[5,7,4,6],[5,7,6,4],[6,4,5,7],[6,4,7,5],[6,5,4,7],[6,5,7,4],[6,7,4,5],[6,7,5,4],[7,4,5,6],[7,4,6,5],[7,5,4,6],[7,5,6,4],[7,6,4,5],[7,6,5,4]]",
+      "description": "Four values produce twenty-four permutations and catch partial-generation bugs."
+    },
+    {
+      "input": "nums = [2,1,0]",
+      "output": "[[2,1,0],[2,0,1],[1,2,0],[1,0,2],[0,2,1],[0,1,2]]",
+      "description": "Descending unsorted input with zero."
+    },
+    {
+      "input": "nums = [-2,-1,3]",
+      "output": "[[-2,-1,3],[-2,3,-1],[-1,-2,3],[-1,3,-2],[3,-2,-1],[3,-1,-2]]",
+      "description": "Two negative values and one positive value."
+    },
+    {
+      "input": "nums = [10,-10,0]",
+      "output": "[[10,-10,0],[10,0,-10],[-10,10,0],[-10,0,10],[0,10,-10],[0,-10,10]]",
+      "description": "Both numeric boundaries with zero."
+    },
+    {
+      "input": "nums = [6,5,4]",
+      "output": "[[6,5,4],[6,4,5],[5,6,4],[5,4,6],[4,6,5],[4,5,6]]",
+      "description": "Reverse-sorted three-value input."
+    }
   ]
 }

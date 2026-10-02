@@ -1,37 +1,143 @@
 {
   "id": "202",
   "title": "Reverse Integer",
-  "description": "# Reverse Integer\n\nGiven a signed 32-bit integer `x`, return `x` *with its digits reversed*. If reversing `x` causes the value to go outside the signed 32-bit integer range `[-2^31, 2^31 - 1]`, then return `0`.\n\n**Assume the environment does not allow you to store 64-bit integers (signed or unsigned).**\n\n## Example 1:\n\n**Input:** x = 123\n**Output:** 321\n\n## Example 2:\n\n**Input:** x = -123\n**Output:** -321\n\n## Example 3:\n\n**Input:** x = 120\n**Output:** 21\n\n## Constraints:\n\n*   `-2^31 <= x <= 2^31 - 1`",
+  "description": "# Reverse Integer\n\nGiven a signed 32-bit integer `x`, return the integer formed by reversing its decimal digits. Preserve the sign for negative inputs. If the reversed value is outside the signed 32-bit range `[-2^31, 2^31 - 1]`, return `0`.\n\nReversal is decimal digit reversal, not bit reversal. Trailing zeros in the original number become leading zeros after reversal and are dropped, so `120` becomes `21`.\n\nAssume the environment does not allow you to store a 64-bit integer, signed or unsigned, for the intermediate reversed value. The overflow decision must be made with 32-bit-safe logic.\n\n## Example 1:\n\n**Input:** x = 123\n**Output:** 321\n**Explanation:** The digits `1,2,3` become `3,2,1`.\n\n## Example 2:\n\n**Input:** x = -123\n**Output:** -321\n**Explanation:** Reverse the digits and keep the negative sign.\n\n## Example 3:\n\n**Input:** x = 120\n**Output:** 21\n**Explanation:** The reversed digits are `021`, which represents `21`.\n\n## Constraints:\n\n* `-2^31 <= x <= 2^31 - 1`\n* Do not store the intermediate reversed integer in a 64-bit type.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int reverse(int x) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Math"],
+  "tags": [
+    "Math"
+  ],
   "examples": [
-    { "input": "x = 123", "output": "321" },
-    { "input": "x = -123", "output": "-321" },
-    { "input": "x = 120", "output": "21" }
+    {
+      "input": "x = 123",
+      "output": "321"
+    },
+    {
+      "input": "x = -123",
+      "output": "-321"
+    },
+    {
+      "input": "x = 120",
+      "output": "21"
+    }
   ],
   "solutions": [
     {
-      "name": "Math with Overflow Check",
-      "timeComplexity": "O(log x)",
+      "name": "Digit Pop with Threshold Guard",
+      "timeComplexity": "O(log |x|)",
       "spaceComplexity": "O(1)",
-      "description": "Pop digits from x and push onto result. Check for overflow before each push by comparing with Integer.MAX_VALUE/10.",
-      "code": "class Solution {\n    public int reverse(int x) {\n        int result = 0;\n        while (x != 0) {\n            int digit = x % 10;\n            x /= 10;\n            if (result > Integer.MAX_VALUE / 10 || result < Integer.MIN_VALUE / 10)\n                return 0;\n            result = result * 10 + digit;\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nPop the last decimal digit with `% 10`, append it to `result` with `result * 10 + digit`, and shrink `x` with integer division. Before appending, compare `result` with `Integer.MAX_VALUE / 10` and `Integer.MIN_VALUE / 10`.\n\n## Key Insight\n\nOverflow can only happen at the next multiply-by-ten step. When `result` is already beyond the threshold, or exactly at the threshold with a final digit greater than `7` or less than `-8`, the next value cannot fit in a signed 32-bit integer.\n\n## Complexity Analysis\n\n- Time Complexity: O(log |x|)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int reverse(int x) {\n        int result = 0;\n        while (x != 0) {\n            int digit = x % 10;\n            x /= 10;\n            if (result > Integer.MAX_VALUE / 10\n                    || (result == Integer.MAX_VALUE / 10 && digit > 7)) {\n                return 0;\n            }\n            if (result < Integer.MIN_VALUE / 10\n                    || (result == Integer.MIN_VALUE / 10 && digit < -8)) {\n                return 0;\n            }\n            result = result * 10 + digit;\n        }\n        return result;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "String Reversal",
-      "timeComplexity": "O(log x)",
-      "spaceComplexity": "O(log x)",
-      "description": "Convert the absolute value to a string, reverse it, parse back to long, check for overflow, and restore the sign.",
-      "code": "class Solution {\n    public int reverse(int x) {\n        boolean negative = x < 0;\n        long num = Math.abs((long) x);\n        String s = new StringBuilder(String.valueOf(num)).reverse().toString();\n        long reversed = Long.parseLong(s);\n        if (negative) reversed = -reversed;\n        if (reversed > Integer.MAX_VALUE || reversed < Integer.MIN_VALUE) return 0;\n        return (int) reversed;\n    }\n}",
+      "name": "Negative Accumulator Boundary Guard",
+      "timeComplexity": "O(log |x|)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nConvert positive inputs to negative form and keep the reversed accumulator negative until the end. Each popped digit is also non-positive, so the update checks only whether `result * 10 + digit` would fall below `Integer.MIN_VALUE`.\n\n## Key Insight\n\nThe negative side of Java `int` has one extra value, `Integer.MIN_VALUE`, whose positive counterpart cannot be represented. Staying negative avoids taking `abs(Integer.MIN_VALUE)` and makes the tight lower-bound check explicit.\n\n## Complexity Analysis\n\n- Time Complexity: O(log |x|)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int reverse(int x) {\n        boolean originalNegative = x < 0;\n        if (!originalNegative) {\n            x = -x;\n        }\n\n        int result = 0;\n        while (x != 0) {\n            int digit = x % 10;\n            x /= 10;\n            if (result < (Integer.MIN_VALUE - digit) / 10) {\n                return 0;\n            }\n            result = result * 10 + digit;\n        }\n\n        if (!originalNegative) {\n            if (result == Integer.MIN_VALUE) {\n                return 0;\n            }\n            return -result;\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "String Reversal with Lexicographic Limit",
+      "timeComplexity": "O(log |x|)",
+      "spaceComplexity": "O(log |x|)",
+      "description": "## Approach\n\nTreat only the decimal digit portion as text, reverse that text, trim leading zeros created by reversal, and compare the reversed digit string with the appropriate 32-bit boundary string before rebuilding the integer.\n\n## Key Insight\n\nThe string route is a useful baseline, but it must not parse into a 64-bit type. Comparing equal-length decimal strings against `2147483647` or `2147483648` gives an exact overflow decision before any risky arithmetic.\n\n## Complexity Analysis\n\n- Time Complexity: O(log |x|)\n- Space Complexity: O(log |x|)",
+      "code": "class Solution {\n    public int reverse(int x) {\n        boolean negative = x < 0;\n        String raw = Integer.toString(x);\n        String digits = negative ? raw.substring(1) : raw;\n        String reversed = new StringBuilder(digits).reverse().toString();\n\n        int first = 0;\n        while (first < reversed.length() - 1 && reversed.charAt(first) == '0') {\n            first++;\n        }\n        reversed = reversed.substring(first);\n\n        String limit = negative ? \"2147483648\" : \"2147483647\";\n        if (reversed.length() > limit.length()\n                || (reversed.length() == limit.length() && reversed.compareTo(limit) > 0)) {\n            return 0;\n        }\n\n        int result = 0;\n        for (int i = 0; i < reversed.length(); i++) {\n            int digit = reversed.charAt(i) - '0';\n            result = negative ? result * 10 - digit : result * 10 + digit;\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Digit Buffer Boundary Comparison",
+      "timeComplexity": "O(log |x|)",
+      "spaceComplexity": "O(log |x|)",
+      "description": "## Approach\n\nStore the popped decimal digits in a small array, skip zeros that would become leading zeros, compare the resulting digit sequence with the digit array for the signed 32-bit limit, and then rebuild the answer.\n\n## Key Insight\n\nThis is the non-string version of boundary comparison. It separates three ideas clearly for learners: digit extraction, leading-zero removal, and exact lexicographic comparison against the maximum legal decimal digits.\n\n## Complexity Analysis\n\n- Time Complexity: O(log |x|)\n- Space Complexity: O(log |x|)",
+      "code": "class Solution {\n    public int reverse(int x) {\n        boolean negative = x < 0;\n        int value = x;\n        int[] digits = new int[10];\n        int count = 0;\n        while (value != 0) {\n            digits[count++] = Math.abs(value % 10);\n            value /= 10;\n        }\n        if (count == 0) {\n            return 0;\n        }\n\n        int start = 0;\n        while (start < count - 1 && digits[start] == 0) {\n            start++;\n        }\n\n        int[] limit = negative\n                ? new int[] {2, 1, 4, 7, 4, 8, 3, 6, 4, 8}\n                : new int[] {2, 1, 4, 7, 4, 8, 3, 6, 4, 7};\n        int length = count - start;\n        if (length > limit.length) {\n            return 0;\n        }\n        if (length == limit.length) {\n            for (int offset = 0; offset < length; offset++) {\n                int digit = digits[start + offset];\n                if (digit > limit[offset]) {\n                    return 0;\n                }\n                if (digit < limit[offset]) {\n                    break;\n                }\n            }\n        }\n\n        int result = 0;\n        for (int i = start; i < count; i++) {\n            result = negative ? result * 10 - digits[i] : result * 10 + digits[i];\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Post-Update Inverse Overflow Check",
+      "timeComplexity": "O(log |x|)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nAppend the next digit into a candidate `next` value, then immediately divide `next` by ten. If the division does not recover the previous accumulator, the multiply-and-add step overflowed and the answer must be zero.\n\n## Key Insight\n\nJava `int` overflow wraps predictably, but division by ten cannot hide a wrapped multiply-by-ten result. The inverse check is compact, yet it still teaches why the overflow decision must be attached to the digit append step.\n\n## Complexity Analysis\n\n- Time Complexity: O(log |x|)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int reverse(int x) {\n        int result = 0;\n        while (x != 0) {\n            int digit = x % 10;\n            x /= 10;\n            int next = result * 10 + digit;\n            if (next / 10 != result) {\n                return 0;\n            }\n            result = next;\n        }\n        return result;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "x = 123", "output": "321" },
-    { "input": "x = -123", "output": "-321" },
-    { "input": "x = 120", "output": "21" },
-    { "input": "x = 0", "output": "0" }
+    {
+      "input": "x = 123",
+      "output": "321",
+      "description": "Simple positive integer reverses without leading zeros."
+    },
+    {
+      "input": "x = -123",
+      "output": "-321",
+      "description": "Negative sign is preserved while digits reverse."
+    },
+    {
+      "input": "x = 120",
+      "output": "21",
+      "description": "Trailing zero becomes a leading zero and must be dropped."
+    },
+    {
+      "input": "x = 0",
+      "output": "0",
+      "description": "Zero remains zero after reversal."
+    },
+    {
+      "input": "x = 5",
+      "output": "5",
+      "description": "One-digit positive values are unchanged."
+    },
+    {
+      "input": "x = -10",
+      "output": "-1",
+      "description": "Negative values also drop zeros that become leading zeros."
+    },
+    {
+      "input": "x = 100",
+      "output": "1",
+      "description": "Multiple trailing zeros collapse after reversal."
+    },
+    {
+      "input": "x = 1534236469",
+      "output": "0",
+      "description": "Positive reversal overflows signed 32-bit range and returns zero."
+    },
+    {
+      "input": "x = 1000000003",
+      "output": "0",
+      "description": "Positive input with many zeros reverses to a value larger than Integer.MAX_VALUE."
+    },
+    {
+      "input": "x = -2147483648",
+      "output": "0",
+      "description": "Minimum int reversal overflows and must return zero."
+    },
+    {
+      "input": "x = 1463847412",
+      "output": "2147483641",
+      "description": "Large positive input reverses to a valid value near Integer.MAX_VALUE."
+    },
+    {
+      "input": "x = -1463847412",
+      "output": "-2147483641",
+      "description": "Large negative input reverses to a valid value near Integer.MIN_VALUE."
+    },
+    {
+      "input": "x = 1563847412",
+      "output": "0",
+      "description": "Positive boundary-adjacent input reverses just beyond Integer.MAX_VALUE."
+    },
+    {
+      "input": "x = -1563847412",
+      "output": "0",
+      "description": "Negative boundary-adjacent input reverses just below Integer.MIN_VALUE."
+    },
+    {
+      "input": "x = -2147483412",
+      "output": "-2143847412",
+      "description": "A large negative input can still reverse to a valid in-range value."
+    }
   ]
 }

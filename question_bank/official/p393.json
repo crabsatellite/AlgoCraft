@@ -1,36 +1,150 @@
 {
   "id": "393",
   "title": "Minimum Cost to Merge Stones",
-  "description": "# Minimum Cost to Merge Stones\n\nThere are `n` piles of stones arranged in a row. The `i-th` pile has `stones[i]` stones.\n\nA move consists of merging exactly `k` consecutive piles into one pile, and the cost of this move is equal to the total number of stones in these `k` piles.\n\nReturn the minimum cost to merge all piles of stones into one pile. If it is impossible, return -1.\n\n## Example 1:\n\n**Input:** stones = [3,2,4,1], k = 2\n**Output:** 20\n**Explanation:**\nWe start with [3, 2, 4, 1].\nWe merge [3, 2] for a cost of 5, and we are left with [5, 4, 1].\nWe merge [4, 1] for a cost of 5, and we are left with [5, 5].\nWe merge [5, 5] for a cost of 10, and we are left with [10].\nThe total cost was 20, and this is the minimum possible.\n\n## Example 2:\n\n**Input:** stones = [3,2,4,1], k = 3\n**Output:** -1\n**Explanation:** After any merge, we are left with 2 piles, and we can't merge 2 piles.\n\n## Example 3:\n\n**Input:** stones = [3,5,1,2,6], k = 3\n**Output:** 25\n**Explanation:**\nWe start with [3, 5, 1, 2, 6].\nWe merge [5, 1, 2] for a cost of 8, and we are left with [3, 8, 6].\nWe merge [3, 8, 6] for a cost of 17, and we are left with [17].\nThe total cost was 25, and this is the minimum possible.\n\n## Constraints:\n\n*   `n == stones.length`\n*   `1 <= n <= 30`\n*   `1 <= stones[i] <= 100`\n*   `2 <= k <= 30`",
+  "description": "# Minimum Cost to Merge Stones\n\nThere are `n` piles of stones in a row, where `stones[i]` is the number of stones in the `i-th` pile.\n\nIn one move, you must choose exactly `k` consecutive piles and merge them into one pile. The cost of that move is the total number of stones in those `k` piles.\n\nReturn the minimum total cost needed to merge all piles into one pile. If no sequence of legal moves can reduce the row to exactly one pile, return `-1`.\n\nThe merged pile stays where the selected contiguous group was, and other piles keep their relative order. You cannot merge nonadjacent piles.\n\n## Example 1:\n\n**Input:** stones = [3,2,4,1], k = 2\n**Output:** 20\n**Explanation:** Merge `[3,2]` for cost 5, merge `[4,1]` for cost 5, then merge `[5,5]` for cost 10. The total cost is 20.\n\n## Example 2:\n\n**Input:** stones = [3,2,4,1], k = 3\n**Output:** -1\n**Explanation:** Every move reduces the pile count by 2, so 4 piles can never become exactly 1 pile.\n\n## Example 3:\n\n**Input:** stones = [3,5,1,2,6], k = 3\n**Output:** 25\n**Explanation:** Merge `[5,1,2]` for cost 8, leaving `[3,8,6]`, then merge all remaining piles for cost 17.\n\n## Constraints:\n\n* `1 <= stones.length <= 30`\n* `1 <= stones[i] <= 100`\n* `2 <= k <= 30`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int mergeStones(int[] stones, int k) {\n        \n    }\n}",
-  "tags": ["Array", "Dynamic Programming", "Prefix Sum"],
+  "initialCode": "class Solution {\n    public int mergeStones(int[] stones, int k) {\n        return -1;\n    }\n}",
+  "tags": [
+    "Array",
+    "Dynamic Programming",
+    "Prefix Sum"
+  ],
   "examples": [
-    { "input": "stones = [3,2,4,1], k = 2", "output": "20" },
-    { "input": "stones = [3,2,4,1], k = 3", "output": "-1" },
-    { "input": "stones = [3,5,1,2,6], k = 3", "output": "25" }
+    {
+      "input": "stones = [3,2,4,1], k = 2",
+      "output": "20"
+    },
+    {
+      "input": "stones = [3,2,4,1], k = 3",
+      "output": "-1"
+    },
+    {
+      "input": "stones = [3,5,1,2,6], k = 3",
+      "output": "25"
+    }
   ],
   "solutions": [
     {
-      "name": "Interval DP",
-      "timeComplexity": "O(n^3)",
+      "name": "Optimized Two-Dimensional Interval DP",
+      "timeComplexity": "O(n^3 / k)",
       "spaceComplexity": "O(n^2)",
-      "description": "dp[i][j] = min cost to merge stones[i..j] into as few piles as possible. Merge k consecutive groups at a time. Only add prefix sum cost when (j-i) % (k-1) == 0 meaning we can merge to 1 pile.",
-      "code": "class Solution {\n    public int mergeStones(int[] stones, int k) {\n        int n = stones.length;\n        if ((n - 1) % (k - 1) != 0) return -1;\n        int[] prefix = new int[n + 1];\n        for (int i = 0; i < n; i++) prefix[i + 1] = prefix[i] + stones[i];\n        int[][] dp = new int[n][n];\n        for (int len = k; len <= n; len++) {\n            for (int i = 0; i + len - 1 < n; i++) {\n                int j = i + len - 1;\n                dp[i][j] = Integer.MAX_VALUE;\n                for (int mid = i; mid < j; mid += k - 1)\n                    dp[i][j] = Math.min(dp[i][j], dp[i][mid] + dp[mid + 1][j]);\n                if ((j - i) % (k - 1) == 0)\n                    dp[i][j] += prefix[j + 1] - prefix[i];\n            }\n        }\n        return dp[0][n - 1];\n    }\n}",
+      "description": "## Approach\nUse `dp[left][right]` for the minimum cost to reduce `stones[left..right]` to the smallest pile count that is reachable for that interval. Split points only need to move by `k - 1`, because each completed merge reduces the pile count by exactly `k - 1`. When an interval length can be reduced all the way to one pile, add the interval sum as the final merge cost.\n\n## Key Insight\nAn interval of length `len` can become one pile only when `(len - 1) % (k - 1) == 0`. The two-dimensional DP hides the exact pile count in this invariant: before the final sum is added, each interval has already been reduced as far as legally possible.\n\n## Complexity Analysis\nThere are O(n^2) intervals and about O(n / k) useful split points per interval after stepping by `k - 1`, so the time complexity is O(n^3 / k). The DP table uses O(n^2) space.",
+      "code": "class Solution {\n    private static final int INF = 1_000_000_000;\n\n    public int mergeStones(int[] stones, int k) {\n        int n = stones.length;\n        if ((n - 1) % (k - 1) != 0) {\n            return -1;\n        }\n\n        int[] prefix = new int[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + stones[i];\n        }\n\n        int[][] dp = new int[n][n];\n        for (int length = 2; length <= n; length++) {\n            for (int left = 0; left + length <= n; left++) {\n                int right = left + length - 1;\n                int best = INF;\n                for (int split = left; split < right; split += k - 1) {\n                    best = Math.min(best, dp[left][split] + dp[split + 1][right]);\n                }\n                if ((length - 1) % (k - 1) == 0) {\n                    best += prefix[right + 1] - prefix[left];\n                }\n                dp[left][right] = best;\n            }\n        }\n        return dp[0][n - 1];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Top-Down DP with Memoization",
-      "timeComplexity": "O(n^3)",
+      "name": "Explicit Three-Dimensional Pile DP",
+      "timeComplexity": "O(n^3 * k)",
+      "spaceComplexity": "O(n^2 * k)",
+      "description": "## Approach\nLet `dp[left][right][piles]` be the minimum cost to reduce the interval `left..right` into exactly `piles` piles. Combine a left interval that has become one pile with a right interval that has become `piles - 1` piles. After an interval can become exactly `k` piles, pay its total stone sum to merge those `k` piles into one.\n\n## Key Insight\nThe hard part is not choosing any `k` piles globally; the piles must stay consecutive. Keeping the target pile count in the state makes that constraint explicit and prevents illegal non-adjacent merge orders.\n\n## Complexity Analysis\nThe table has O(n^2 * k) states. Each state tries O(n) split points, so the time complexity is O(n^3 * k), and the space complexity is O(n^2 * k).",
+      "code": "class Solution {\n    private static final int INF = 1_000_000_000;\n\n    public int mergeStones(int[] stones, int k) {\n        int n = stones.length;\n        if ((n - 1) % (k - 1) != 0) {\n            return -1;\n        }\n\n        int[] prefix = new int[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + stones[i];\n        }\n\n        int[][][] dp = new int[n][n][k + 1];\n        for (int left = 0; left < n; left++) {\n            for (int right = 0; right < n; right++) {\n                java.util.Arrays.fill(dp[left][right], INF);\n            }\n            dp[left][left][1] = 0;\n        }\n\n        for (int length = 2; length <= n; length++) {\n            for (int left = 0; left + length <= n; left++) {\n                int right = left + length - 1;\n                for (int piles = 2; piles <= k; piles++) {\n                    for (int split = left; split < right; split++) {\n                        if (dp[left][split][1] == INF || dp[split + 1][right][piles - 1] == INF) {\n                            continue;\n                        }\n                        dp[left][right][piles] = Math.min(\n                                dp[left][right][piles],\n                                dp[left][split][1] + dp[split + 1][right][piles - 1]);\n                    }\n                }\n                if (dp[left][right][k] != INF) {\n                    dp[left][right][1] = dp[left][right][k] + prefix[right + 1] - prefix[left];\n                }\n            }\n        }\n        return dp[0][n - 1][1];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Exact Pile Count Memoization",
+      "timeComplexity": "O(n^3 * k)",
+      "spaceComplexity": "O(n^2 * k)",
+      "description": "## Approach\nUse a recursive function `cost(left, right, piles)` that returns the cheapest way to turn an interval into exactly `piles` piles. Impossible states are rejected by the modular feasibility rule before any split work is done. To make one pile, first make `k` piles and then pay the interval sum.\n\n## Key Insight\nThe feasibility condition `(length - piles) % (k - 1) == 0` applies to every subproblem, not only to the whole array. Using it inside the recursion removes illegal states early and makes the recurrence easier to audit.\n\n## Complexity Analysis\nThere are O(n^2 * k) reachable memo states and each can try O(n) split points. The time complexity is O(n^3 * k), and the memo table plus recursion stack use O(n^2 * k) space.",
+      "code": "class Solution {\n    private static final int INF = 1_000_000_000;\n    private int k;\n    private int[] prefix;\n    private int[][][] memo;\n\n    public int mergeStones(int[] stones, int k) {\n        int n = stones.length;\n        if ((n - 1) % (k - 1) != 0) {\n            return -1;\n        }\n        this.k = k;\n        prefix = new int[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + stones[i];\n        }\n\n        memo = new int[n][n][k + 1];\n        for (int left = 0; left < n; left++) {\n            for (int right = 0; right < n; right++) {\n                java.util.Arrays.fill(memo[left][right], -1);\n            }\n        }\n        return cost(0, n - 1, 1);\n    }\n\n    private int cost(int left, int right, int piles) {\n        int length = right - left + 1;\n        if (length < piles || (length - piles) % (k - 1) != 0) {\n            return INF;\n        }\n        if (left == right) {\n            return piles == 1 ? 0 : INF;\n        }\n        if (memo[left][right][piles] != -1) {\n            return memo[left][right][piles];\n        }\n\n        if (piles == 1) {\n            int beforeFinalMerge = cost(left, right, k);\n            memo[left][right][piles] = beforeFinalMerge + prefix[right + 1] - prefix[left];\n            return memo[left][right][piles];\n        }\n\n        int best = INF;\n        for (int split = left; split < right; split++) {\n            int first = cost(left, split, 1);\n            int rest = cost(split + 1, right, piles - 1);\n            if (first == INF || rest == INF) {\n                continue;\n            }\n            best = Math.min(best, first + rest);\n        }\n        memo[left][right][piles] = best;\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Memoized Implicit Pile Interval DP",
+      "timeComplexity": "O(n^3 / k)",
       "spaceComplexity": "O(n^2)",
-      "description": "Recursive approach with memoization. dp(i, j) = min cost to merge piles i..j into as few piles as possible. Split at intervals of (k-1). If the interval can be merged into 1 pile, add the prefix sum cost.",
-      "code": "class Solution {\n    private int[][] memo;\n    private int[] prefix;\n    public int mergeStones(int[] stones, int k) {\n        int n = stones.length;\n        if ((n - 1) % (k - 1) != 0) return -1;\n        prefix = new int[n + 1];\n        for (int i = 0; i < n; i++) prefix[i + 1] = prefix[i] + stones[i];\n        memo = new int[n][n];\n        for (int[] row : memo) java.util.Arrays.fill(row, -1);\n        return solve(0, n - 1, k);\n    }\n    private int solve(int i, int j, int k) {\n        if (i == j) return 0;\n        if (memo[i][j] != -1) return memo[i][j];\n        int res = Integer.MAX_VALUE;\n        for (int mid = i; mid < j; mid += k - 1) {\n            res = Math.min(res, solve(i, mid, k) + solve(mid + 1, j, k));\n        }\n        if ((j - i) % (k - 1) == 0) {\n            res += prefix[j + 1] - prefix[i];\n        }\n        memo[i][j] = res;\n        return res;\n    }\n}",
+      "description": "## Approach\nThis recursion mirrors the optimized two-dimensional DP but computes only the intervals that are requested. `solve(left, right)` reduces the interval as far as possible, tries split points separated by `k - 1`, and adds the interval sum exactly when the interval can become one final pile.\n\n## Key Insight\nThe exact number of piles after reducing an interval is determined by its length modulo `k - 1`. That means the recursion can keep one value per interval while still respecting the legal merge count.\n\n## Complexity Analysis\nThere are O(n^2) interval states. Each state checks O(n / k) useful split positions, giving O(n^3 / k) time. The memo table uses O(n^2) space.",
+      "code": "class Solution {\n    private static final int INF = 1_000_000_000;\n    private int k;\n    private int[] prefix;\n    private int[][] memo;\n\n    public int mergeStones(int[] stones, int k) {\n        int n = stones.length;\n        if ((n - 1) % (k - 1) != 0) {\n            return -1;\n        }\n        this.k = k;\n        prefix = new int[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + stones[i];\n        }\n\n        memo = new int[n][n];\n        for (int[] row : memo) {\n            java.util.Arrays.fill(row, -1);\n        }\n        return solve(0, n - 1);\n    }\n\n    private int solve(int left, int right) {\n        if (left == right) {\n            return 0;\n        }\n        if (memo[left][right] != -1) {\n            return memo[left][right];\n        }\n\n        int best = INF;\n        for (int split = left; split < right; split += k - 1) {\n            best = Math.min(best, solve(left, split) + solve(split + 1, right));\n        }\n        if ((right - left) % (k - 1) == 0) {\n            best += prefix[right + 1] - prefix[left];\n        }\n        memo[left][right] = best;\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sparse Reachable-Pile Map DP",
+      "timeComplexity": "O(n^3 * k^2)",
+      "spaceComplexity": "O(n^2 * k)",
+      "description": "## Approach\nFor each interval, store a map from reachable pile count to the best cost for that count. Combine the maps from two adjacent subintervals, keeping only totals up to `k`. Whenever `k` piles are reachable for the whole interval, also record the cost of merging them into one pile by adding the interval sum.\n\n## Key Insight\nThis version makes the state space visible: an interval can temporarily have several legal pile counts, and only exactly `k` piles may collapse into one. It is slower than the optimized recurrence but useful for teaching why the pile-count dimension exists.\n\n## Complexity Analysis\nThere are O(n^2) intervals, O(n) split points, and up to O(k^2) pile-count combinations per split. The time complexity is O(n^3 * k^2), and the stored maps use O(n^2 * k) space.",
+      "code": "import java.util.HashMap;\nimport java.util.Map;\n\nclass Solution {\n    public int mergeStones(int[] stones, int k) {\n        int n = stones.length;\n        if ((n - 1) % (k - 1) != 0) {\n            return -1;\n        }\n\n        int[] prefix = new int[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + stones[i];\n        }\n\n        @SuppressWarnings(\"unchecked\")\n        Map<Integer, Integer>[][] dp = new HashMap[n][n];\n        for (int i = 0; i < n; i++) {\n            dp[i][i] = new HashMap<>();\n            dp[i][i].put(1, 0);\n        }\n\n        for (int length = 2; length <= n; length++) {\n            for (int left = 0; left + length <= n; left++) {\n                int right = left + length - 1;\n                Map<Integer, Integer> current = new HashMap<>();\n                for (int split = left; split < right; split++) {\n                    Map<Integer, Integer> first = dp[left][split];\n                    Map<Integer, Integer> second = dp[split + 1][right];\n                    for (Map.Entry<Integer, Integer> a : first.entrySet()) {\n                        for (Map.Entry<Integer, Integer> b : second.entrySet()) {\n                            int piles = a.getKey() + b.getKey();\n                            if (piles > k) {\n                                continue;\n                            }\n                            int cost = a.getValue() + b.getValue();\n                            current.merge(piles, cost, Math::min);\n                        }\n                    }\n                }\n\n                Integer kPileCost = current.get(k);\n                if (kPileCost != null) {\n                    current.merge(1, kPileCost + prefix[right + 1] - prefix[left], Math::min);\n                }\n                dp[left][right] = current;\n            }\n        }\n        return dp[0][n - 1].get(1);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "stones = [3,2,4,1], k = 2", "output": "20" },
-    { "input": "stones = [3,2,4,1], k = 3", "output": "-1" },
-    { "input": "stones = [3,5,1,2,6], k = 3", "output": "25" }
+    {
+      "input": "stones = [3,2,4,1], k = 2",
+      "output": "20",
+      "description": "canonical binary adjacent merge sample"
+    },
+    {
+      "input": "stones = [3,2,4,1], k = 3",
+      "output": "-1",
+      "description": "four piles cannot reduce by groups of three"
+    },
+    {
+      "input": "stones = [3,5,1,2,6], k = 3",
+      "output": "25",
+      "description": "canonical ternary merge sample"
+    },
+    {
+      "input": "stones = [1], k = 2",
+      "output": "0",
+      "description": "one pile is already finished"
+    },
+    {
+      "input": "stones = [1,2,3], k = 3",
+      "output": "6",
+      "description": "all piles merge in one move"
+    },
+    {
+      "input": "stones = [6,4,4,6], k = 2",
+      "output": "40",
+      "description": "binary interval DP with symmetric costs"
+    },
+    {
+      "input": "stones = [1,1,1,1], k = 2",
+      "output": "8",
+      "description": "balanced binary merges"
+    },
+    {
+      "input": "stones = [4,1,1,4], k = 2",
+      "output": "18",
+      "description": "adjacent merge order beats end-first merges"
+    },
+    {
+      "input": "stones = [1,2,3,4,5], k = 3",
+      "output": "21",
+      "description": "ternary two-level merge with best first window"
+    },
+    {
+      "input": "stones = [7,7,7,7,7], k = 3",
+      "output": "56",
+      "description": "equal piles still need two paid merge layers"
+    },
+    {
+      "input": "stones = [1,2,3,4], k = 4",
+      "output": "10",
+      "description": "k equals n merges once"
+    },
+    {
+      "input": "stones = [1,2,3,4,5,6,7], k = 4",
+      "output": "38",
+      "description": "four-way merge with later final merge"
+    },
+    {
+      "input": "stones = [9,8,7], k = 2",
+      "output": "39",
+      "description": "binary adjacent order differs from arbitrary-pair thinking"
+    },
+    {
+      "input": "stones = [100,1,1,100], k = 2",
+      "output": "306",
+      "description": "small middle piles should merge before large edges"
+    },
+    {
+      "input": "stones = [1,2], k = 3",
+      "output": "-1",
+      "description": "k larger than n is impossible unless n is one"
+    },
+    {
+      "input": "stones = [2,2,2,2,2,2,2], k = 3",
+      "output": "26",
+      "description": "maximum reduction residue with repeated values"
+    }
   ]
 }

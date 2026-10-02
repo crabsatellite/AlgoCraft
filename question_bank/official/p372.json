@@ -1,34 +1,128 @@
 {
   "id": "372",
   "title": "24 Game",
-  "description": "# 24 Game\n\nYou are given an integer array `cards` of length 4. You have four cards, each containing a number in the range `[1, 9]`. You should arrange the numbers on these cards in a mathematical expression using the operators `['+', '-', '*', '/']` and the parentheses `('(' and ')')` to get the value 24.\n\nYou are restricted with the following rules:\n\n*   The division operator `/` represents real division, not integer division.\n    *   For example, `4 / (1 - 2 / 3) = 4 / (1 / 3) = 12`.\n*   Every operation done is between two numbers. In particular, we cannot use `-` as a unary operator.\n    *   For example, if `cards = [1, 1, 1, 1]`, the expression `-1 - 1 - 1 - 1` is not allowed.\n*   You cannot concatenate numbers together\n    *   For example, if `cards = [1, 2, 1, 2]`, the expression `12 + 12` is not valid.\n\nReturn `true` if you can get such expression that evaluates to 24, and `false` otherwise.\n\n## Example 1:\n\n**Input:** cards = [4,1,8,7]\n**Output:** true\n**Explanation:** (8-4) * (7-1) = 24\n\n## Example 2:\n\n**Input:** cards = [1,2,1,2]\n**Output:** false\n\n## Constraints:\n\n*   `cards.length == 4`\n*   `1 <= cards[i] <= 9`",
+  "description": "# 24 Game\n\nYou are given exactly four cards. Each card contains an integer from `1` to `9`.\n\nUse all four numbers exactly once, together with binary operators `+`, `-`, `*`, `/` and parentheses, to build an expression whose value is `24`. Return `true` if such an expression exists, or `false` otherwise.\n\nThe expression must follow these rules:\n\n* Division is real division rather than integer division.\n* Every operator combines two values; unary minus is forbidden.\n* Do not concatenate cards into multi-digit numbers: `[1,2,1,2]` cannot become `12 + 12`.\n* Parentheses may change the evaluation order.\n\n## Example 1\n\n**Input:** cards = [4,1,8,7]\n**Output:** true\n**Explanation:** `(8 - 4) * (7 - 1) = 24`.\n\n## Example 2\n\n**Input:** cards = [1,2,1,2]\n**Output:** false\n**Explanation:** `12 + 12` would make 24, but concatenating cards is not allowed.\n\n## Constraints\n\n* `cards.length == 4`\n* `1 <= cards[i] <= 9`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public boolean judgePoint24(int[] cards) {\n        \n    }\n}",
-  "tags": ["Array", "Math", "Backtracking"],
+  "initialCode": "class Solution {\n    public boolean judgePoint24(int[] cards) {\n        return false;\n    }\n}",
+  "tags": [
+    "Array",
+    "Math",
+    "Backtracking",
+    "Dynamic Programming",
+    "Bit Manipulation"
+  ],
   "examples": [
-    { "input": "cards = [4,1,8,7]", "output": "true" },
-    { "input": "cards = [1,2,1,2]", "output": "false" }
+    {
+      "input": "cards = [4,1,8,7]",
+      "output": "true"
+    },
+    {
+      "input": "cards = [1,2,1,2]",
+      "output": "false"
+    }
   ],
   "solutions": [
     {
-      "name": "Backtracking with All Operations",
+      "name": "Pair-Reduction Backtracking",
       "timeComplexity": "O(1)",
       "spaceComplexity": "O(1)",
-      "description": "Pick any two numbers, apply one of +, -, *, / to get a result. Replace the two with the result and recurse on 3 numbers, then 2, then 1. Check if final number equals 24. Use epsilon for floating point comparison.",
-      "code": "class Solution {\n    public boolean judgePoint24(int[] cards) {\n        List<Double> nums = new java.util.ArrayList<>();\n        for (int c : cards) nums.add((double) c);\n        return solve(nums);\n    }\n    private boolean solve(List<Double> nums) {\n        if (nums.size() == 1) return Math.abs(nums.get(0) - 24) < 1e-6;\n        for (int i = 0; i < nums.size(); i++) {\n            for (int j = 0; j < nums.size(); j++) {\n                if (i == j) continue;\n                List<Double> next = new java.util.ArrayList<>();\n                for (int k = 0; k < nums.size(); k++)\n                    if (k != i && k != j) next.add(nums.get(k));\n                double a = nums.get(i), b = nums.get(j);\n                double[] results = {a + b, a - b, a * b};\n                for (double r : results) { next.add(r); if (solve(next)) return true; next.remove(next.size() - 1); }\n                if (Math.abs(b) > 1e-6) { next.add(a / b); if (solve(next)) return true; next.remove(next.size() - 1); }\n            }\n        }\n        return false;\n    }\n}",
+      "description": "## Approach\nKeep the current multiset of numeric values. Pick two values, replace them with each possible result from `+`, `-`, `*`, and valid `/`, then recurse until only one value remains.\n\n## Key Insight\nEvery legal expression can be viewed backward as repeatedly combining two subexpressions into one value. Trying every pair and every binary operation therefore covers every parenthesization and every card order without explicitly building expression strings.\n\n## Complexity Analysis\nThere are always four cards, so the search tree has a fixed constant size. The time and auxiliary recursion space are both `O(1)` for this problem's constraints.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final double TARGET = 24.0;\n    private static final double EPS = 1e-6;\n\n    public boolean judgePoint24(int[] cards) {\n        List<Double> values = new ArrayList<>();\n        for (int card : cards) {\n            values.add((double) card);\n        }\n        return canReach(values);\n    }\n\n    private boolean canReach(List<Double> values) {\n        if (values.size() == 1) {\n            return Math.abs(values.get(0) - TARGET) < EPS;\n        }\n        int n = values.size();\n        for (int i = 0; i < n; i++) {\n            for (int j = i + 1; j < n; j++) {\n                List<Double> rest = new ArrayList<>();\n                for (int k = 0; k < n; k++) {\n                    if (k != i && k != j) {\n                        rest.add(values.get(k));\n                    }\n                }\n                double a = values.get(i);\n                double b = values.get(j);\n                for (double nextValue : combineAll(a, b)) {\n                    rest.add(nextValue);\n                    if (canReach(rest)) {\n                        return true;\n                    }\n                    rest.remove(rest.size() - 1);\n                }\n            }\n        }\n        return false;\n    }\n\n    private List<Double> combineAll(double a, double b) {\n        List<Double> results = new ArrayList<>();\n        results.add(a + b);\n        results.add(a - b);\n        results.add(b - a);\n        results.add(a * b);\n        if (Math.abs(b) > EPS) {\n            results.add(a / b);\n        }\n        if (Math.abs(a) > EPS) {\n            results.add(b / a);\n        }\n        return results;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Backtracking with Array Reduction",
+      "name": "Permutation and Parenthesization Enumeration",
       "timeComplexity": "O(1)",
       "spaceComplexity": "O(1)",
-      "description": "Use a double array and recursively pick two numbers, combine them with each operation, and reduce the array size. When one number remains, check if it equals 24. Uses explicit array manipulation instead of List.",
-      "code": "class Solution {\n    public boolean judgePoint24(int[] cards) {\n        double[] nums = new double[4];\n        for (int i = 0; i < 4; i++) nums[i] = cards[i];\n        return helper(nums, 4);\n    }\n    private boolean helper(double[] nums, int n) {\n        if (n == 1) return Math.abs(nums[0] - 24.0) < 1e-6;\n        for (int i = 0; i < n; i++) {\n            for (int j = i + 1; j < n; j++) {\n                double a = nums[i], b = nums[j];\n                double[] next = new double[n - 1];\n                int idx = 0;\n                for (int k = 0; k < n; k++) {\n                    if (k != i && k != j) next[idx++] = nums[k];\n                }\n                double[] ops = {a + b, a - b, b - a, a * b};\n                for (double op : ops) {\n                    next[idx] = op;\n                    if (helper(next, n - 1)) return true;\n                }\n                if (Math.abs(b) > 1e-6) {\n                    next[idx] = a / b;\n                    if (helper(next, n - 1)) return true;\n                }\n                if (Math.abs(a) > 1e-6) {\n                    next[idx] = b / a;\n                    if (helper(next, n - 1)) return true;\n                }\n            }\n        }\n        return false;\n    }\n}",
+      "description": "## Approach\nGenerate every permutation of the four cards. For each ordered tuple `(a, b, c, d)`, evaluate the five binary parenthesization patterns and all legal operations inside those patterns.\n\n## Key Insight\nWith four operands, there are only five binary expression tree shapes. Enumerating permutations plus these five shapes is a direct way to prove that no legal arrangement has been missed.\n\n## Complexity Analysis\nThe number of permutations, shapes, and operation choices is bounded by constants because there are exactly four cards. Time and space are `O(1)`.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final double TARGET = 24.0;\n    private static final double EPS = 1e-6;\n\n    public boolean judgePoint24(int[] cards) {\n        double[] ordered = new double[4];\n        boolean[] used = new boolean[4];\n        return permute(cards, used, ordered, 0);\n    }\n\n    private boolean permute(int[] cards, boolean[] used, double[] ordered, int depth) {\n        if (depth == 4) {\n            return evaluateFiveShapes(ordered[0], ordered[1], ordered[2], ordered[3]);\n        }\n        for (int i = 0; i < cards.length; i++) {\n            if (used[i]) {\n                continue;\n            }\n            used[i] = true;\n            ordered[depth] = cards[i];\n            if (permute(cards, used, ordered, depth + 1)) {\n                return true;\n            }\n            used[i] = false;\n        }\n        return false;\n    }\n\n    private boolean evaluateFiveShapes(double a, double b, double c, double d) {\n        for (double ab : results(a, b)) {\n            for (double abc : results(ab, c)) {\n                if (anyEquals24(results(abc, d))) {\n                    return true;\n                }\n            }\n            for (double cd : results(c, d)) {\n                if (anyEquals24(results(ab, cd))) {\n                    return true;\n                }\n            }\n        }\n        for (double bc : results(b, c)) {\n            for (double abc : results(a, bc)) {\n                if (anyEquals24(results(abc, d))) {\n                    return true;\n                }\n            }\n            for (double bcd : results(bc, d)) {\n                if (anyEquals24(results(a, bcd))) {\n                    return true;\n                }\n            }\n        }\n        for (double cd : results(c, d)) {\n            for (double bcd : results(b, cd)) {\n                if (anyEquals24(results(a, bcd))) {\n                    return true;\n                }\n            }\n        }\n        return false;\n    }\n\n    private boolean anyEquals24(List<Double> values) {\n        for (double value : values) {\n            if (Math.abs(value - TARGET) < EPS) {\n                return true;\n            }\n        }\n        return false;\n    }\n\n    private List<Double> results(double x, double y) {\n        List<Double> values = new ArrayList<>();\n        values.add(x + y);\n        values.add(x - y);\n        values.add(x * y);\n        if (Math.abs(y) > EPS) {\n            values.add(x / y);\n        }\n        return values;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Subset Dynamic Programming of Reachable Values",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nUse a bitmask to represent which cards are included in a subexpression. For each non-empty mask, store every value that can be produced from exactly those cards. Combine two disjoint submasks to fill larger masks.\n\n## Key Insight\nEvery expression tree has a root operator that splits the four leaves into a left subset and a right subset. Building all reachable values by subset covers those root splits systematically and reuses smaller computed sets.\n\n## Complexity Analysis\nThere are only `2^4` masks and a bounded number of values per mask under the problem constraints, so the time and space are `O(1)`.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final double TARGET = 24.0;\n    private static final double EPS = 1e-6;\n\n    public boolean judgePoint24(int[] cards) {\n        int n = cards.length;\n        List<Double>[] possible = new ArrayList[1 << n];\n        for (int mask = 0; mask < possible.length; mask++) {\n            possible[mask] = new ArrayList<>();\n        }\n        for (int i = 0; i < n; i++) {\n            possible[1 << i].add((double) cards[i]);\n        }\n\n        for (int mask = 1; mask < (1 << n); mask++) {\n            if ((mask & (mask - 1)) == 0) {\n                continue;\n            }\n            for (int left = (mask - 1) & mask; left > 0; left = (left - 1) & mask) {\n                int right = mask ^ left;\n                if (left > right) {\n                    continue;\n                }\n                for (double a : possible[left]) {\n                    for (double b : possible[right]) {\n                        addCombinations(possible[mask], a, b);\n                    }\n                }\n            }\n        }\n\n        for (double value : possible[(1 << n) - 1]) {\n            if (Math.abs(value - TARGET) < EPS) {\n                return true;\n            }\n        }\n        return false;\n    }\n\n    private void addCombinations(List<Double> values, double a, double b) {\n        values.add(a + b);\n        values.add(a - b);\n        values.add(b - a);\n        values.add(a * b);\n        if (Math.abs(b) > EPS) {\n            values.add(a / b);\n        }\n        if (Math.abs(a) > EPS) {\n            values.add(b / a);\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Exact Fraction Backtracking",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nRun the same pair-reduction search, but store each intermediate value as a reduced rational number instead of a floating-point number. The final check compares the numerator with `24 * denominator`.\n\n## Key Insight\nThe game uses exact arithmetic over small integers and real division. Rational values preserve exactness across subtraction and division, avoiding both false negatives and false positives from floating-point tolerance.\n\n## Complexity Analysis\nThe number of cards is fixed at four, so the search has constant size. The recursive stack and temporary fraction lists are also `O(1)`.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean judgePoint24(int[] cards) {\n        List<Fraction> values = new ArrayList<>();\n        for (int card : cards) {\n            values.add(new Fraction(card, 1));\n        }\n        return search(values);\n    }\n\n    private boolean search(List<Fraction> values) {\n        if (values.size() == 1) {\n            Fraction value = values.get(0);\n            return value.num == 24L * value.den;\n        }\n        int n = values.size();\n        for (int i = 0; i < n; i++) {\n            for (int j = i + 1; j < n; j++) {\n                List<Fraction> rest = new ArrayList<>();\n                for (int k = 0; k < n; k++) {\n                    if (k != i && k != j) {\n                        rest.add(values.get(k));\n                    }\n                }\n                Fraction a = values.get(i);\n                Fraction b = values.get(j);\n                for (Fraction next : rationalCandidates(a, b)) {\n                    rest.add(next);\n                    if (search(rest)) {\n                        return true;\n                    }\n                    rest.remove(rest.size() - 1);\n                }\n            }\n        }\n        return false;\n    }\n\n    private List<Fraction> rationalCandidates(Fraction a, Fraction b) {\n        List<Fraction> candidates = new ArrayList<>();\n        candidates.add(a.add(b));\n        candidates.add(a.subtract(b));\n        candidates.add(b.subtract(a));\n        candidates.add(a.multiply(b));\n        if (!b.isZero()) {\n            candidates.add(a.divide(b));\n        }\n        if (!a.isZero()) {\n            candidates.add(b.divide(a));\n        }\n        return candidates;\n    }\n\n    private static final class Fraction {\n        private final long num;\n        private final long den;\n\n        Fraction(long num, long den) {\n            if (den < 0) {\n                num = -num;\n                den = -den;\n            }\n            long g = gcd(Math.abs(num), den);\n            this.num = num / g;\n            this.den = den / g;\n        }\n\n        boolean isZero() {\n            return num == 0;\n        }\n\n        Fraction add(Fraction other) {\n            return new Fraction(num * other.den + other.num * den, den * other.den);\n        }\n\n        Fraction subtract(Fraction other) {\n            return new Fraction(num * other.den - other.num * den, den * other.den);\n        }\n\n        Fraction multiply(Fraction other) {\n            return new Fraction(num * other.num, den * other.den);\n        }\n\n        Fraction divide(Fraction other) {\n            return new Fraction(num * other.den, den * other.num);\n        }\n\n        private static long gcd(long a, long b) {\n            while (b != 0) {\n                long t = a % b;\n                a = b;\n                b = t;\n            }\n            return a == 0 ? 1 : a;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Canonical-State Memoized Search",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nUse pair-reduction DFS, but sort and round the current values into a canonical key. If a state has already been proven unable to reach 24, skip searching it again.\n\n## Key Insight\nDifferent operation orders can lead to the same remaining multiset of values. Because future possibilities depend only on that multiset, a canonical memo table safely prunes repeated failed states.\n\n## Complexity Analysis\nWith four cards, both the number of states and the memo table size are bounded constants. Time and space remain `O(1)` under the fixed input size.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final double TARGET = 24.0;\n    private static final double EPS = 1e-6;\n\n    public boolean judgePoint24(int[] cards) {\n        List<Double> values = new ArrayList<>();\n        for (int card : cards) {\n            values.add((double) card);\n        }\n        return search(values, new HashMap<>());\n    }\n\n    private boolean search(List<Double> values, Map<String, Boolean> memo) {\n        if (values.size() == 1) {\n            return Math.abs(values.get(0) - TARGET) < EPS;\n        }\n        String key = canonicalKey(values);\n        if (memo.containsKey(key)) {\n            return memo.get(key);\n        }\n\n        int n = values.size();\n        for (int i = 0; i < n; i++) {\n            for (int j = i + 1; j < n; j++) {\n                List<Double> nextValues = new ArrayList<>();\n                for (int k = 0; k < n; k++) {\n                    if (k != i && k != j) {\n                        nextValues.add(values.get(k));\n                    }\n                }\n                double a = values.get(i);\n                double b = values.get(j);\n                for (double next : nextResults(a, b)) {\n                    nextValues.add(next);\n                    if (search(nextValues, memo)) {\n                        memo.put(key, true);\n                        return true;\n                    }\n                    nextValues.remove(nextValues.size() - 1);\n                }\n            }\n        }\n        memo.put(key, false);\n        return false;\n    }\n\n    private String canonicalKey(List<Double> values) {\n        List<Long> rounded = new ArrayList<>();\n        for (double value : values) {\n            rounded.add(Math.round(value * 1_000_000));\n        }\n        Collections.sort(rounded);\n        return rounded.toString();\n    }\n\n    private List<Double> nextResults(double a, double b) {\n        List<Double> results = new ArrayList<>();\n        results.add(a + b);\n        results.add(a - b);\n        results.add(b - a);\n        results.add(a * b);\n        if (Math.abs(b) > EPS) {\n            results.add(a / b);\n        }\n        if (Math.abs(a) > EPS) {\n            results.add(b / a);\n        }\n        return results;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "cards = [4,1,8,7]", "output": "true" },
-    { "input": "cards = [1,2,1,2]", "output": "false" }
+    {
+      "input": "cards = [4,1,8,7]",
+      "output": "true",
+      "description": "canonical solvable hand"
+    },
+    {
+      "input": "cards = [1,2,1,2]",
+      "output": "false",
+      "description": "concatenation would work but is illegal"
+    },
+    {
+      "input": "cards = [3,3,8,8]",
+      "output": "true",
+      "description": "requires division and a fractional intermediate value"
+    },
+    {
+      "input": "cards = [1,1,1,1]",
+      "output": "false",
+      "description": "unary minus and concatenation are not allowed"
+    },
+    {
+      "input": "cards = [1,3,4,6]",
+      "output": "true",
+      "description": "uses parentheses to create a fractional denominator"
+    },
+    {
+      "input": "cards = [1,5,5,5]",
+      "output": "true",
+      "description": "solvable only by using repeated values asymmetrically"
+    },
+    {
+      "input": "cards = [9,9,9,9]",
+      "output": "false",
+      "description": "large repeated cards still cannot make 24"
+    },
+    {
+      "input": "cards = [7,7,3,3]",
+      "output": "true",
+      "description": "classic fractional solution with duplicate pairs"
+    },
+    {
+      "input": "cards = [2,2,2,2]",
+      "output": "false",
+      "description": "small repeated cards are impossible"
+    },
+    {
+      "input": "cards = [1,1,7,7]",
+      "output": "false",
+      "description": "near-miss duplicate pair that should not be accepted by tolerance drift"
+    },
+    {
+      "input": "cards = [2,3,4,5]",
+      "output": "true",
+      "description": "requires choosing a non-obvious grouping"
+    },
+    {
+      "input": "cards = [6,6,6,6]",
+      "output": "true",
+      "description": "all values equal but still solvable"
+    }
   ]
 }

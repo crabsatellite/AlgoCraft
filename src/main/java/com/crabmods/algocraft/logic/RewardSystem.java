@@ -33,7 +33,7 @@ public class RewardSystem {
         EARLY_GAME(1.0),      // No diamonds yet
         MID_GAME(1.5),        // Has diamonds, no netherite
         LATE_GAME(2.0),       // Has netherite
-        END_GAME(3.0);        // Has beaten dragon/wither
+        END_GAME(3.0);        // Has beaten the dragon or built a beacon
         
         public final double multiplier;
         
@@ -64,8 +64,9 @@ public class RewardSystem {
      * @param totalSolved Total problems solved by player
      * @return Description of rewards given
      */
-    public static RewardResult giveRewards(ServerPlayer player, String difficulty, 
-                                           boolean isFirstTime, int streakCount, int totalSolved) {
+    public static RewardResult giveRewards(ServerPlayer player, String difficulty,
+                                           boolean isFirstTime, boolean firstSolveToday,
+                                           int streakCount, int totalSolved) {
         RewardResult result = new RewardResult();
         PlayerTier tier = detectPlayerTier(player);
         Random random = new Random();
@@ -74,12 +75,14 @@ public class RewardSystem {
         giveBaseRewards(player, difficulty, isFirstTime, tier, result);
         
         // Streak bonus (3+ days)
-        if (streakCount >= 3) {
+        if (firstSolveToday && streakCount >= 3) {
             giveStreakBonus(player, streakCount, tier, result);
         }
         
         // Milestone rewards
-        checkMilestones(player, totalSolved, result);
+        if (isFirstTime) {
+            checkMilestones(player, totalSolved, result);
+        }
         
         // Random bonus (10% chance)
         if (random.nextDouble() < 0.10) {
@@ -98,6 +101,13 @@ public class RewardSystem {
      * Detect player's progression tier based on inventory.
      */
     public static PlayerTier detectPlayerTier(ServerPlayer player) {
+        for (String id : List.of("end/kill_dragon", "nether/create_beacon")) {
+            var advancement = player.getServer().getAdvancements()
+                    .getAdvancement(new ResourceLocation(id));
+            if (advancement != null && player.getAdvancements().getOrStartProgress(advancement).isDone()) {
+                return PlayerTier.END_GAME;
+            }
+        }
         boolean hasNetherite = false;
         boolean hasDiamond = false;
         
@@ -124,8 +134,6 @@ public class RewardSystem {
             }
         }
         
-        // Check for end game (simplified - could check advancements)
-        // For now, having netherite tools is considered late game
         if (hasNetherite) {
             return PlayerTier.LATE_GAME;
         } else if (hasDiamond) {
@@ -164,11 +172,7 @@ public class RewardSystem {
         
         // Give all rewards
         for (ItemStack stack : rewards) {
-            if (!player.getInventory().add(stack)) {
-                // If inventory full, drop on ground
-                player.drop(stack, false);
-            }
-            result.addItem(stack);
+            deliverItem(player, stack, result);
         }
     }
     
@@ -288,24 +292,29 @@ public class RewardSystem {
         player.giveExperiencePoints(bonusXp);
         result.addXp(bonusXp);
         result.setStreakBonus(true);
+
+        // A daily supply makes continued practice tangible between weekly milestones.
+        deliverItem(player, new ItemStack(Items.EXPERIENCE_BOTTLE, (int) (2 * tier.multiplier)), result);
+        deliverItem(player, new ItemStack(Items.EMERALD, (int) (2 * tier.multiplier)), result);
         
-        // Every 7 days, give special item
+        // Every seventh day delivers a whole bundle, once on the first rewarded solve.
         if (streak % 7 == 0) {
-            ItemStack weeklyBonus = getWeeklyStreakReward(streak / 7, tier);
-            if (!player.getInventory().add(weeklyBonus)) {
-                player.drop(weeklyBonus, false);
+            for (ItemStack bonus : getWeeklyStreakRewards(streak / 7, tier)) {
+                deliverItem(player, bonus, result);
             }
-            result.addItem(weeklyBonus);
         }
     }
     
-    private static ItemStack getWeeklyStreakReward(int weeks, PlayerTier tier) {
+    private static List<ItemStack> getWeeklyStreakRewards(int weeks, PlayerTier tier) {
         return switch (weeks) {
-            case 1 -> new ItemStack(Items.DIAMOND, (int)(3 * tier.multiplier));
-            case 2 -> new ItemStack(Items.EMERALD_BLOCK, (int)(1 * tier.multiplier));
-            case 3 -> new ItemStack(Items.GOLDEN_APPLE, (int)(3 * tier.multiplier));
-            case 4 -> new ItemStack(Items.ENCHANTED_GOLDEN_APPLE, 1);
-            default -> new ItemStack(Items.NETHERITE_SCRAP, Math.min(weeks - 3, 4));
+            case 1 -> List.of(new ItemStack(Items.DIAMOND, (int) (8 * tier.multiplier)),
+                    new ItemStack(Items.GOLD_INGOT, 16), new ItemStack(Items.EXPERIENCE_BOTTLE, 16));
+            case 2 -> List.of(new ItemStack(Items.NETHERITE_INGOT, 2),
+                    new ItemStack(Items.DIAMOND, 8), new ItemStack(Items.GOLDEN_APPLE, 4));
+            case 3 -> List.of(new ItemStack(Items.NETHERITE_INGOT, 3),
+                    new ItemStack(Items.TOTEM_OF_UNDYING), new ItemStack(Items.EXPERIENCE_BOTTLE, 16));
+            default -> List.of(new ItemStack(Items.NETHERITE_INGOT, 4),
+                    new ItemStack(Items.ENCHANTED_GOLDEN_APPLE), new ItemStack(Items.EXPERIENCE_BOTTLE, 24));
         };
     }
     
@@ -325,10 +334,7 @@ public class RewardSystem {
         };
         
         if (milestone != null) {
-            if (!player.getInventory().add(milestone)) {
-                player.drop(milestone, false);
-            }
-            result.addItem(milestone);
+            deliverItem(player, milestone, result);
             result.setMilestone(totalSolved);
         }
     }
@@ -343,17 +349,31 @@ public class RewardSystem {
             case 0, 1, 2 -> new ItemStack(Items.EMERALD, random.nextInt(5) + 1);
             case 3, 4 -> new ItemStack(Items.EXPERIENCE_BOTTLE, random.nextInt(10) + 5);
             case 5, 6 -> new ItemStack(Items.GOLDEN_APPLE, 1);
-            case 7 -> new ItemStack(Items.ENCHANTED_BOOK, 1); // Could add random enchant
+            case 7 -> createBonusEnchantedBook(player, random);
             case 8 -> new ItemStack(Items.NAME_TAG, 1);
             case 9 -> new ItemStack(Items.MUSIC_DISC_CAT, 1); // Rare!
             default -> new ItemStack(Items.EMERALD, 1);
         };
         
-        if (!player.getInventory().add(bonus)) {
-            player.drop(bonus, false);
-        }
-        result.addItem(bonus);
+        deliverItem(player, bonus, result);
         result.setRandomBonus(true);
+    }
+
+    private static void deliverItem(ServerPlayer player, ItemStack stack, RewardResult result) {
+        // Inventory insertion consumes the supplied stack. Record the award beforehand.
+        result.addItem(stack);
+        if (!player.getInventory().add(stack)) {
+            player.drop(stack, false);
+        }
+    }
+
+    public static ItemStack createBonusEnchantedBook(ServerPlayer player, Random random) {
+        var choices = List.of(Enchantments.UNBREAKING, Enchantments.BLOCK_EFFICIENCY, Enchantments.ALL_DAMAGE_PROTECTION);
+        Enchantment enchantment = choices.get(random.nextInt(choices.size()));
+        ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
+        net.minecraft.world.item.EnchantedBookItem.addEnchantment(book,
+                new net.minecraft.world.item.enchantment.EnchantmentInstance(enchantment, 1 + random.nextInt(3)));
+        return book;
     }
     
     /**

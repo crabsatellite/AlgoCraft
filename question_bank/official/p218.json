@@ -1,37 +1,128 @@
 {
   "id": "218",
   "title": "Factorial Trailing Zeroes",
-  "description": "# Factorial Trailing Zeroes\n\nGiven an integer `n`, return *the number of trailing zeroes in `n!`*.\n\nNote that `n! = n * (n - 1) * (n - 2) * ... * 3 * 2 * 1`.\n\n## Example 1:\n\n**Input:** n = 3\n**Output:** 0\n**Explanation:** 3! = 6, no trailing zero.\n\n## Example 2:\n\n**Input:** n = 5\n**Output:** 1\n**Explanation:** 5! = 120, one trailing zero.\n\n## Example 3:\n\n**Input:** n = 0\n**Output:** 0\n\n## Constraints:\n\n*   `0 <= n <= 10^4`\n\n**Follow up:** Could you write a solution that works in logarithmic time complexity?",
+  "description": "# Factorial Trailing Zeroes\n\nGiven an integer `n`, return the number of trailing zeroes in `n!`.\n\n`n!` is the factorial: the product of all integers from `1` to `n` for positive `n`, with `0! = 1`. Trailing zeroes are consecutive zero digits at the right end of its decimal representation. For example, `5! = 120` has one trailing zero; interior zeroes do not count.\n\n## Example 1:\n\n**Input:** n = 3\n**Output:** 0\n**Explanation:** `3! = 6`, so there is no trailing zero.\n\n## Example 2:\n\n**Input:** n = 5\n**Output:** 1\n**Explanation:** `5! = 120`, so there is one trailing zero.\n\n## Example 3:\n\n**Input:** n = 25\n**Output:** 6\n**Explanation:** Multiples of 5 contribute five factors of five, and 25 contributes one additional factor.\n\n## Constraints:\n\n*   `0 <= n <= 10^4`\n\n**Follow up:** Can you solve it in logarithmic time?",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int trailingZeroes(int n) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Math"],
+  "tags": [
+    "Math"
+  ],
   "examples": [
-    { "input": "n = 3", "output": "0" },
-    { "input": "n = 5", "output": "1" },
-    { "input": "n = 0", "output": "0" }
+    {
+      "input": "n = 3",
+      "output": "0"
+    },
+    {
+      "input": "n = 5",
+      "output": "1"
+    },
+    {
+      "input": "n = 25",
+      "output": "6"
+    }
   ],
   "solutions": [
     {
-      "name": "Count Factors of 5",
+      "name": "Repeated Quotient Accumulation",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(1)",
-      "description": "Trailing zeros come from factors of 10 = 2*5. Since factors of 2 are always more abundant, count factors of 5 in n!. Include 25, 125, etc.",
+      "description": "## Approach\n\nRepeatedly divide `n` by 5 and add each quotient to the answer. The first quotient counts numbers with at least one factor of five, the next quotient counts the extra factor from multiples of 25, and so on.\n\n## Key Insight\n\nTrailing zeroes come from pairs of `2 * 5`, and the factorial supplies enough twos automatically. Therefore each level `n / 5`, `n / 25`, `n / 125` counts one layer of factors of five.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n), because `n` is divided by 5 each iteration.\n- Space Complexity: O(1), because only the running count is stored.",
       "code": "class Solution {\n    public int trailingZeroes(int n) {\n        int count = 0;\n        while (n >= 5) {\n            n /= 5;\n            count += n;\n        }\n        return count;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Recursive Factor Counting",
+      "name": "Power-of-Five Sweep",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nKeep the original `n` fixed and enumerate powers of five: 5, 25, 125, and so on. Add `n / factor` for each power while the power is not larger than `n`.\n\n## Key Insight\n\nThis writes the formula directly as `floor(n / 5) + floor(n / 25) + floor(n / 125) + ...`. Each term counts how many numbers contribute at least that many factors of five.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n), because there are logarithmically many powers of five.\n- Space Complexity: O(1), because the loop uses only the current power and the answer.",
+      "code": "class Solution {\n    public int trailingZeroes(int n) {\n        int count = 0;\n        for (long factor = 5; factor <= n; factor *= 5) {\n            count += n / factor;\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Contribution Formula",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(log n)",
-      "description": "Recursively count factors of 5: base case is n < 5 returns 0, otherwise return n/5 plus the recursive call on n/5.",
-      "code": "class Solution {\n    public int trailingZeroes(int n) {\n        if (n < 5) return 0;\n        return n / 5 + trailingZeroes(n / 5);\n    }\n}",
+      "description": "## Approach\n\nUse the recurrence `zeroes(n) = n / 5 + zeroes(n / 5)`. The base case is any value below 5, which has no factor of five to contribute.\n\n## Key Insight\n\nAfter counting all numbers divisible by 5 once, the remaining work is the same question on `n / 5`: those quotients represent the extra factors from 25, 125, and higher powers.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n), because each recursive call divides the input by 5.\n- Space Complexity: O(log n), because the recursion stack has one frame per division.",
+      "code": "class Solution {\n    public int trailingZeroes(int n) {\n        if (n < 5) {\n            return 0;\n        }\n        return n / 5 + trailingZeroes(n / 5);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Count Factors on Multiples of Five",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nVisit only multiples of five. For each such number, repeatedly divide a temporary copy by 5 while it is still divisible, adding one for every factor found.\n\n## Key Insight\n\nThis is the direct definition of the answer: every individual factor of five in `1 * 2 * ... * n` creates one possible trailing zero. It is slower than the formula, but it makes the reason for the extra contribution from 25 and 125 concrete.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), because multiples of five may be divided several times.\n- Space Complexity: O(1), because the scan keeps only counters and a temporary value.",
+      "code": "class Solution {\n    public int trailingZeroes(int n) {\n        int count = 0;\n        for (int value = 5; value <= n; value += 5) {\n            int current = value;\n            while (current % 5 == 0) {\n                count++;\n                current /= 5;\n            }\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Prime Factor Balance Baseline",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan every number from 1 to `n` and count how many factors of 2 and how many factors of 5 appear in the whole factorial. Return the smaller of the two counts.\n\n## Key Insight\n\nA trailing zero needs one factor of 2 and one factor of 5. This baseline proves why optimized solutions are allowed to count only fives: for factorials, the count of twos is never the limiting side.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), because each number may be divided by small primes repeatedly.\n- Space Complexity: O(1), because only two factor counts are stored.",
+      "code": "class Solution {\n    public int trailingZeroes(int n) {\n        int twos = 0;\n        int fives = 0;\n        for (int value = 1; value <= n; value++) {\n            int current = value;\n            while (current % 2 == 0) {\n                twos++;\n                current /= 2;\n            }\n            current = value;\n            while (current % 5 == 0) {\n                fives++;\n                current /= 5;\n            }\n        }\n        return Math.min(twos, fives);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "n = 3", "output": "0" },
-    { "input": "n = 5", "output": "1" },
-    { "input": "n = 0", "output": "0" },
-    { "input": "n = 30", "output": "7" }
+    {
+      "input": "n = 0",
+      "output": "0",
+      "description": "Zero factorial is one and has no trailing zero."
+    },
+    {
+      "input": "n = 3",
+      "output": "0",
+      "description": "Factorials below five contain no factor of five."
+    },
+    {
+      "input": "n = 4",
+      "output": "0",
+      "description": "Four factorial still has no factor pair for ten."
+    },
+    {
+      "input": "n = 5",
+      "output": "1",
+      "description": "Five factorial contributes exactly one factor of five."
+    },
+    {
+      "input": "n = 10",
+      "output": "2",
+      "description": "Five and ten each contribute one factor of five."
+    },
+    {
+      "input": "n = 24",
+      "output": "4",
+      "description": "Boundary before 25 has only the four multiples of five."
+    },
+    {
+      "input": "n = 25",
+      "output": "6",
+      "description": "Twenty-five contributes a second factor of five."
+    },
+    {
+      "input": "n = 26",
+      "output": "6",
+      "description": "Adding a non-multiple after 25 does not change the answer."
+    },
+    {
+      "input": "n = 30",
+      "output": "7",
+      "description": "Thirty adds one more multiple of five after 25."
+    },
+    {
+      "input": "n = 100",
+      "output": "24",
+      "description": "One hundred checks repeated division by 5 and 25."
+    },
+    {
+      "input": "n = 125",
+      "output": "31",
+      "description": "A third power of five contributes an additional level."
+    },
+    {
+      "input": "n = 10000",
+      "output": "2499",
+      "description": "The upper constraint checks large logarithmic accumulation."
+    }
   ]
 }

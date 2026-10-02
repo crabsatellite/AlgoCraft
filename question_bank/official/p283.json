@@ -1,40 +1,104 @@
 {
   "id": "283",
-  "title": "Sorting the Sentence",
-  "description": "# Sorting the Sentence\n\nA **sentence** is a list of words that are separated by a single space with no leading or trailing spaces. Each word consists of lowercase and uppercase English letters.\n\nA sentence can be **shuffled** by appending the **1-indexed word position** to each word then rearranging the words in the sentence.\n\n*   For example, the sentence `\"This is a sentence\"` can be shuffled as `\"sentence4 a3 is2 This1\"` or `\"is2 sentence4 This1 a3\"`.\n\nGiven a **shuffled sentence** `s` containing no more than `9` words, reconstruct and return *the original sentence*.\n\n## Example 1:\n\n**Input:** s = \"is2 sentence4 This1 a3\"\n**Output:** \"This is a sentence\"\n**Explanation:** Sort the words in s to their original positions \"This1 is2 a3 sentence4\", then remove the numbers.\n\n## Example 2:\n\n**Input:** s = \"Myself2 Me1 I4 and3\"\n**Output:** \"Me Myself and I\"\n**Explanation:** Sort the words in s to their original positions \"Me1 Myself2 and3 I4\", then remove the numbers.\n\n## Constraints:\n\n*   `2 <= s.length <= 200`\n*   `s` consists of lowercase and uppercase English letters, spaces, and digits from `1` to `9`.\n*   The number of words in `s` is between `1` and `9`.\n*   The words in `s` are separated by a single space.\n*   `s` contains no leading or trailing spaces.",
+  "title": "Alternating Subarray Length",
+  "description": "# Alternating Subarray Length\n\nGiven an integer array `nums`, find the longest contiguous subarray of length at least two whose adjacent differences follow this exact pattern:\n\n* the first difference is `+1`;\n* the second difference is `-1`;\n* the differences continue alternating as `+1, -1, +1, -1, ...`.\n\nReturn the length of the longest such subarray. If no valid subarray of length at least two exists, return `-1`.\n\nA subarray that starts with a `-1` difference is not valid, even if the rest of its differences alternate.\n\n## Example 1\n\n**Input**\nnums = [2,3,4,3,4]\n\n**Output**\n4\n\n**Explanation**\nThe longest valid subarray is `[3,4,3,4]`. Its adjacent differences are `+1, -1, +1`.\n\n## Example 2\n\n**Input**\nnums = [4,5,6]\n\n**Output**\n2\n\n**Explanation**\nThe subarray `[4,5]` is valid, but `[4,5,6]` is not because the second difference is `+1` instead of `-1`.\n\n## Constraints\n\n* `1 <= nums.length <= 100`\n* `-10^4 <= nums[i] <= 10^4`",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public String sortSentence(String s) {\n        \n    }\n}",
-  "tags": ["String", "Sorting"],
+  "initialCode": "class Solution {\n    public int alternatingSubarray(int[] nums) {\n        // Write your code here\n        return -1;\n    }\n}",
+  "tags": [
+    "Array",
+    "Sliding Window"
+  ],
   "examples": [
     {
-      "input": "s = \"is2 sentence4 This1 a3\"",
-      "output": "\"This is a sentence\""
-    },
-    { "input": "s = \"Myself2 Me1 I4 and3\"", "output": "\"Me Myself and I\"" }
-  ],
-  "solutions": [
-    {
-      "name": "Array Placement",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Split by space, extract the trailing digit from each word to determine its position, place the word (without the digit) into the correct index.",
-      "code": "class Solution {\n    public String sortSentence(String s) {\n        String[] words = s.split(\" \");\n        String[] result = new String[words.length];\n        for (String w : words) {\n            int pos = w.charAt(w.length() - 1) - '0';\n            result[pos - 1] = w.substring(0, w.length() - 1);\n        }\n        return String.join(\" \", result);\n    }\n}",
-      "language": "java"
+      "input": "nums = [2,3,4,3,4]",
+      "output": "4"
     },
     {
-      "name": "StringBuilder Build",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Split words, then use StringBuilder to extract position and word separately. Place into result array and join.",
-      "code": "class Solution {\n    public String sortSentence(String s) {\n        String[] words = s.split(\" \");\n        String[] result = new String[words.length];\n        for (int i = 0; i < words.length; i++) {\n            int len = words[i].length();\n            int pos = words[i].charAt(len - 1) - '1';\n            result[pos] = words[i].substring(0, len - 1);\n        }\n        StringBuilder sb = new StringBuilder();\n        for (int i = 0; i < result.length; i++) {\n            if (i > 0) sb.append(' ');\n            sb.append(result[i]);\n        }\n        return sb.toString();\n    }\n}",
-      "language": "java"
+      "input": "nums = [4,5,6]",
+      "output": "2"
     }
   ],
   "tests": [
     {
-      "input": "s = \"is2 sentence4 This1 a3\"",
-      "output": "\"This is a sentence\""
+      "input": "nums = [2,3,4,3,4]",
+      "output": "4",
+      "description": "sample longest alternating subarray starts at index 1"
     },
-    { "input": "s = \"Myself2 Me1 I4 and3\"", "output": "\"Me Myself and I\"" }
+    {
+      "input": "nums = [4,5,6]",
+      "output": "2",
+      "description": "sample has only a length-two valid subarray"
+    },
+    {
+      "input": "nums = [1,2,1,2,1]",
+      "output": "5",
+      "description": "whole array alternates with +1 then -1"
+    },
+    {
+      "input": "nums = [1,1,1]",
+      "output": "-1",
+      "description": "equal adjacent values never start a valid subarray"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "-1",
+      "description": "one element cannot form a length-two subarray"
+    },
+    {
+      "input": "nums = [3,4]",
+      "output": "2",
+      "description": "minimum valid subarray has one +1 difference"
+    },
+    {
+      "input": "nums = [4,3,4,3]",
+      "output": "3",
+      "description": "a descending first step is invalid, so the answer starts later"
+    },
+    {
+      "input": "nums = [8,7]",
+      "output": "-1",
+      "description": "a length-two subarray still must start with +1"
+    },
+    {
+      "input": "nums = [9,10,9,10,11,10,11]",
+      "output": "4",
+      "description": "the scan must restart when the expected difference breaks"
+    },
+    {
+      "input": "nums = [-2,-1,-2,-1,-2]",
+      "output": "5",
+      "description": "negative values are allowed; only adjacent differences matter"
+    },
+    {
+      "input": "nums = [10,11,10,11,10,9]",
+      "output": "5",
+      "description": "the longest window can end right before a broken difference"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Start Each Window",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nTry every index as the start of the subarray. For each start, require the first adjacent difference to be `+1`, then flip the expected difference between `-1` and `+1` after every successful step.\n\n## Key Insight\nThe rule is about differences, not values. Once a candidate has started, the next required difference is completely determined by the previous step, so the first mismatch ends that candidate window.\n\n## Complexity Analysis\nFor each start index, the inner loop may scan the rest of the array, so the time complexity is O(n^2). Only counters are stored, so the space complexity is O(1).",
+      "code": "class Solution {\n    public int alternatingSubarray(int[] nums) {\n        int best = -1;\n        for (int start = 0; start < nums.length - 1; start++) {\n            int expected = 1;\n            for (int end = start + 1; end < nums.length; end++) {\n                if (nums[end] - nums[end - 1] != expected) {\n                    break;\n                }\n                best = Math.max(best, end - start + 1);\n                expected *= -1;\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Rolling Expected Difference",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nScan adjacent differences once while storing the start of the current candidate and the next required difference. A matching difference extends the candidate; a `+1` mismatch starts a new length-two candidate; every other mismatch resets the scan.\n\n## Key Insight\nA failed comparison can still be useful if the current difference is `+1`, because the pair `(i - 1, i)` is exactly the shortest valid alternating subarray. If the difference is not `+1`, no valid window can end at `i` and start before `i`.\n\n## Complexity Analysis\nEach adjacent pair is inspected once, so the time complexity is O(n). The algorithm keeps only the current start, expected difference, and best length, so the space complexity is O(1).",
+      "code": "class Solution {\n    public int alternatingSubarray(int[] nums) {\n        int best = -1;\n        int start = 0;\n        int expected = 1;\n        for (int i = 1; i < nums.length; i++) {\n            int diff = nums[i] - nums[i - 1];\n            if (diff == expected) {\n                best = Math.max(best, i - start + 1);\n                expected *= -1;\n            } else if (diff == 1) {\n                start = i - 1;\n                best = Math.max(best, 2);\n                expected = -1;\n            } else {\n                start = i;\n                expected = 1;\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Length Ending Here DP",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nMaintain the length of the valid alternating subarray that ends at the current index. A length-one state can only grow on a `+1` difference; a longer state knows its next required difference from the parity of its current length.\n\n## Key Insight\nWhen the current difference cannot extend the previous state, it may still create a new length-two state if it equals `+1`. This keeps the dynamic state local while still preserving the required starting direction.\n\n## Complexity Analysis\nThe scan updates one DP state per index, so the time complexity is O(n). The state is compressed to one integer length and the answer, so the space complexity is O(1).",
+      "code": "class Solution {\n    public int alternatingSubarray(int[] nums) {\n        int best = -1;\n        int length = 1;\n        for (int i = 1; i < nums.length; i++) {\n            int diff = nums[i] - nums[i - 1];\n            if (length == 1) {\n                length = diff == 1 ? 2 : 1;\n            } else {\n                int expected = length % 2 == 0 ? -1 : 1;\n                if (diff == expected) {\n                    length++;\n                } else {\n                    length = diff == 1 ? 2 : 1;\n                }\n            }\n            if (length >= 2) {\n                best = Math.max(best, length);\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

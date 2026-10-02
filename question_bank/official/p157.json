@@ -1,38 +1,137 @@
 {
   "id": "157",
   "title": "Decode Ways",
-  "description": "# Decode Ways\n\nA message containing letters from `A-Z` can be **encoded** into numbers using the following mapping:\n\n'A' -> \"1\"\n'B' -> \"2\"\n...\n'Z' -> \"26\"\n\nTo **decode** an encoded message, all the digits must be grouped then mapped back into letters using the reverse of the mapping above (there may be multiple ways). For example, `\"11106\"` can be mapped into:\n\n*   `\"AAJF\"` with the grouping `(1 1 10 6)`\n*   `\"KJF\"` with the grouping `(11 10 6)`\n\nNote that the grouping `(1 11 06)` is invalid because `\"06\"` cannot be mapped into `'F'` since `\"6\"` is different from `\"06\"`.\n\nGiven a string `s` containing only digits, return *the number of ways to **decode** it*.\n\nThe test cases are generated so that the answer fits in a **32-bit** integer.\n\n## Example 1:\n\n**Input:** s = \"12\"\n**Output:** 2\n**Explanation:** \"12\" could be decoded as \"AB\" (1 2) or \"L\" (12).\n\n## Example 2:\n\n**Input:** s = \"226\"\n**Output:** 3\n**Explanation:** \"226\" could be decoded as \"BZ\" (2 26), \"VF\" (22 6), or \"BBF\" (2 2 6).\n\n## Example 3:\n\n**Input:** s = \"06\"\n**Output:** 0\n**Explanation:** \"06\" cannot be mapped to \"F\" because of the leading zero (\"6\" is different from \"06\").\n\n## Constraints:\n\n*   `1 <= s.length <= 100`\n*   `s` contains only digits and may contain leading zero(s).",
+  "description": "# Decode Ways\n\nA message containing letters from `A` to `Z` is encoded with this mapping:\n\n- `A -> \"1\"`\n- `B -> \"2\"`\n- ...\n- `Z -> \"26\"`\n\nGiven a string `s` containing only digits, return the number of ways to decode it.\n\nEvery digit must belong to exactly one group. A one-digit group is valid only when it is `1` through `9`. A two-digit group is valid only when it is `10` through `26`. Groups with leading zero, such as `\"06\"`, are invalid.\n\nThe answer is guaranteed to fit in a 32-bit signed integer.\n\n## Example 1\n\n**Input:** `s = \"12\"`\n\n**Output:** `2`\n\n**Explanation:** The valid groupings are `(1, 2)` and `(12)`.\n\n## Example 2\n\n**Input:** `s = \"226\"`\n\n**Output:** `3`\n\n**Explanation:** The valid groupings are `(2, 2, 6)`, `(22, 6)`, and `(2, 26)`.\n\n## Example 3\n\n**Input:** `s = \"06\"`\n\n**Output:** `0`\n\n**Explanation:** `\"06\"` is not a valid code because it has a leading zero, and `0` cannot stand alone.\n\n## Constraints\n\n- `1 <= s.length <= 100`\n- `s` contains only digits and may contain leading zeroes.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int numDecodings(String s) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["String", "Dynamic Programming"],
+  "tags": [
+    "String",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "s = \"12\"", "output": "2" },
-    { "input": "s = \"226\"", "output": "3" },
-    { "input": "s = \"06\"", "output": "0" }
+    {
+      "input": "s = \"12\"",
+      "output": "2"
+    },
+    {
+      "input": "s = \"226\"",
+      "output": "3"
+    },
+    {
+      "input": "s = \"06\"",
+      "output": "0"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p157_decode_ways.png",
+      "alt": "Digit cells showing valid one-digit and two-digit code ranges and an invalid leading-zero group",
+      "caption": "Each group must be one digit from 1 to 9 or two digits from 10 to 26"
+    }
   ],
   "solutions": [
     {
-      "name": "Bottom-Up DP",
+      "name": "Forward Prefix DP Table",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "dp[i] = number of ways to decode s[0..i-1]. If s[i-1] != '0', dp[i] += dp[i-1] (single digit). If s[i-2..i-1] forms 10-26, dp[i] += dp[i-2] (two digits).",
-      "code": "class Solution {\n    public int numDecodings(String s) {\n        if (s.charAt(0) == '0') return 0;\n        int n = s.length();\n        int[] dp = new int[n + 1];\n        dp[0] = 1; dp[1] = 1;\n        for (int i = 2; i <= n; i++) {\n            int one = s.charAt(i - 1) - '0';\n            int two = Integer.parseInt(s.substring(i - 2, i));\n            if (one >= 1) dp[i] += dp[i - 1];\n            if (two >= 10 && two <= 26) dp[i] += dp[i - 2];\n        }\n        return dp[n];\n    }\n}",
+      "description": "## Approach\n\nLet `dp[i]` be the number of ways to decode the first `i` characters. For each position, add ways from the previous prefix if the last one-digit group is valid, and add ways from two positions back if the last two-digit group is valid.\n\n## Key Insight\n\nThe last group of any valid decoding has length one or two. Once that last group is chosen, the remaining prefix must itself be decoded validly, so the recurrence counts all choices without overlap.\n\n## Complexity Analysis\n\nThe string is scanned once and each position does constant work, so the time complexity is `O(n)`. The DP table stores one value per prefix, so the space complexity is `O(n)`.",
+      "code": "class Solution {\n    public int numDecodings(String s) {\n        int n = s.length();\n        int[] dp = new int[n + 1];\n        dp[0] = 1;\n        dp[1] = s.charAt(0) == '0' ? 0 : 1;\n\n        for (int i = 2; i <= n; i++) {\n            char current = s.charAt(i - 1);\n            if (current != '0') {\n                dp[i] += dp[i - 1];\n            }\n            int twoDigit = Integer.parseInt(s.substring(i - 2, i));\n            if (twoDigit >= 10 && twoDigit <= 26) {\n                dp[i] += dp[i - 2];\n            }\n        }\n        return dp[n];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Bottom-Up DP O(1) Space",
+      "name": "Backward Suffix DP Table",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nLet `dp[index]` be the number of ways to decode the suffix beginning at `index`. Work from right to left. A suffix beginning with `0` has zero ways; otherwise it can take the current digit alone and maybe the next two digits together.\n\n## Key Insight\n\nSuffix DP views the same decision from the front of the remaining string. This makes the invalid-zero rule explicit: no valid decoding can begin with `0`.\n\n## Complexity Analysis\n\nEvery index is processed once, so the time complexity is `O(n)`. The suffix table uses `O(n)` space.",
+      "code": "class Solution {\n    public int numDecodings(String s) {\n        int n = s.length();\n        int[] dp = new int[n + 2];\n        dp[n] = 1;\n\n        for (int index = n - 1; index >= 0; index--) {\n            if (s.charAt(index) == '0') {\n                dp[index] = 0;\n                continue;\n            }\n            dp[index] = dp[index + 1];\n            if (index + 1 < n && isValidPair(s, index)) {\n                dp[index] += dp[index + 2];\n            }\n        }\n        return dp[0];\n    }\n\n    private boolean isValidPair(String s, int index) {\n        char tens = s.charAt(index);\n        char ones = s.charAt(index + 1);\n        return tens == '1' || (tens == '2' && ones <= '6');\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Rolling Prefix DP",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use two variables instead of a DP array. prev2 and prev1 track dp[i-2] and dp[i-1] respectively.",
-      "code": "class Solution {\n    public int numDecodings(String s) {\n        if (s.charAt(0) == '0') return 0;\n        int prev2 = 1, prev1 = 1;\n        for (int i = 1; i < s.length(); i++) {\n            int curr = 0;\n            if (s.charAt(i) != '0') curr = prev1;\n            int two = Integer.parseInt(s.substring(i - 1, i + 1));\n            if (two >= 10 && two <= 26) curr += prev2;\n            prev2 = prev1;\n            prev1 = curr;\n        }\n        return prev1;\n    }\n}",
+      "description": "## Approach\n\nUse the prefix recurrence but keep only the previous two prefix counts. At each position, compute the current count from the valid one-digit and two-digit endings, then roll the two saved values forward.\n\n## Key Insight\n\n`dp[i]` depends only on `dp[i - 1]` and `dp[i - 2]`. The table is useful for teaching, but the recurrence itself needs only two numbers.\n\n## Complexity Analysis\n\nThe algorithm scans the string once, so the time complexity is `O(n)`. It stores only two previous counts and the current count, so the space complexity is `O(1)`.",
+      "code": "class Solution {\n    public int numDecodings(String s) {\n        int n = s.length();\n        int twoBack = 1;\n        int oneBack = s.charAt(0) == '0' ? 0 : 1;\n        for (int i = 2; i <= n; i++) {\n            int current = 0;\n            if (s.charAt(i - 1) != '0') {\n                current += oneBack;\n            }\n            int twoDigit = (s.charAt(i - 2) - '0') * 10 + (s.charAt(i - 1) - '0');\n            if (twoDigit >= 10 && twoDigit <= 26) {\n                current += twoBack;\n            }\n            twoBack = oneBack;\n            oneBack = current;\n        }\n        return oneBack;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Memoized Suffix Recursion",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nDefine `waysFrom(index)` as the number of valid decodings for the suffix starting at `index`. Recursively try one digit and, when valid, two digits. Cache each suffix result so every index is solved once.\n\n## Key Insight\n\nThe recursion mirrors the natural decision tree, while memoization prevents exponential recomputation. Returning `0` for a suffix beginning with `0` enforces the leading-zero rule locally.\n\n## Complexity Analysis\n\nThere are `n` suffix indices, and each does constant work after memoization, so the time complexity is `O(n)`. The memo table and recursion stack use `O(n)` space.",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int numDecodings(String s) {\n        int[] memo = new int[s.length()];\n        Arrays.fill(memo, -1);\n        return waysFrom(s, 0, memo);\n    }\n\n    private int waysFrom(String s, int index, int[] memo) {\n        if (index == s.length()) {\n            return 1;\n        }\n        if (s.charAt(index) == '0') {\n            return 0;\n        }\n        if (memo[index] != -1) {\n            return memo[index];\n        }\n\n        int ways = waysFrom(s, index + 1, memo);\n        if (index + 1 < s.length() && isValidPair(s, index)) {\n            ways += waysFrom(s, index + 2, memo);\n        }\n        memo[index] = ways;\n        return ways;\n    }\n\n    private boolean isValidPair(String s, int index) {\n        char tens = s.charAt(index);\n        char ones = s.charAt(index + 1);\n        return tens == '1' || (tens == '2' && ones <= '6');\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "DAG Path Counting",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nTreat positions `0..n` as nodes in a directed acyclic graph. Add an edge from `i` to `i + 1` for a valid one-digit code and from `i` to `i + 2` for a valid two-digit code. The answer is the number of paths from node `0` to node `n`.\n\n## Key Insight\n\nEvery valid decoding is exactly one path through the digit positions, and every path chooses a sequence of valid one- or two-digit groups. This graph view makes the recurrence a path-counting problem over a DAG.\n\n## Complexity Analysis\n\nThere are `n + 1` nodes and at most `2n` edges, so building and counting paths takes `O(n)` time. The adjacency lists and path counts use `O(n)` space.",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public int numDecodings(String s) {\n        int n = s.length();\n        List<List<Integer>> edges = new ArrayList<>();\n        for (int i = 0; i <= n; i++) {\n            edges.add(new ArrayList<>());\n        }\n\n        for (int position = 0; position < n; position++) {\n            if (s.charAt(position) == '0') {\n                continue;\n            }\n            edges.get(position).add(position + 1);\n            if (position + 1 < n && isValidPair(s, position)) {\n                edges.get(position).add(position + 2);\n            }\n        }\n\n        int[] ways = new int[n + 1];\n        ways[0] = 1;\n        for (int position = 0; position < n; position++) {\n            for (int next : edges.get(position)) {\n                ways[next] += ways[position];\n            }\n        }\n        return ways[n];\n    }\n\n    private boolean isValidPair(String s, int index) {\n        char tens = s.charAt(index);\n        char ones = s.charAt(index + 1);\n        return tens == '1' || (tens == '2' && ones <= '6');\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"12\"", "output": "2" },
-    { "input": "s = \"226\"", "output": "3" },
-    { "input": "s = \"06\"", "output": "0" },
-    { "input": "s = \"10\"", "output": "1" },
-    { "input": "s = \"2101\"", "output": "1" }
+    {
+      "input": "s = \"12\"",
+      "output": "2",
+      "description": "Canonical case with one single-single grouping and one two-digit grouping."
+    },
+    {
+      "input": "s = \"226\"",
+      "output": "3",
+      "description": "Two valid two-digit choices overlap with single-digit choices."
+    },
+    {
+      "input": "s = \"06\"",
+      "output": "0",
+      "description": "Leading zero invalidates the two-digit-looking group."
+    },
+    {
+      "input": "s = \"0\"",
+      "output": "0",
+      "description": "A zero cannot stand alone."
+    },
+    {
+      "input": "s = \"10\"",
+      "output": "1",
+      "description": "Zero is valid only as part of the code 10."
+    },
+    {
+      "input": "s = \"101\"",
+      "output": "1",
+      "description": "The only valid grouping is 10 followed by 1."
+    },
+    {
+      "input": "s = \"110\"",
+      "output": "1",
+      "description": "The trailing zero forces the last two digits to be 10."
+    },
+    {
+      "input": "s = \"27\"",
+      "output": "1",
+      "description": "27 is outside the 1..26 two-digit range."
+    },
+    {
+      "input": "s = \"11106\"",
+      "output": "2",
+      "description": "Classic mixed case with valid 10 and invalid 06 alternatives."
+    },
+    {
+      "input": "s = \"100\"",
+      "output": "0",
+      "description": "A leftover zero after 10 cannot be decoded."
+    },
+    {
+      "input": "s = \"2101\"",
+      "output": "1",
+      "description": "Valid 21 at the front is blocked by 01 later; only 2,10,1 works."
+    },
+    {
+      "input": "s = \"1111111111\"",
+      "output": "89",
+      "description": "Long run of ones exposes Fibonacci-style growth."
+    }
   ]
 }

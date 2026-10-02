@@ -1,36 +1,114 @@
 {
   "id": "302",
-  "title": "Regular Expression Matching",
-  "description": "# Regular Expression Matching\n\nGiven an input string `s` and a pattern `p`, implement regular expression matching with support for `'.'` and `'*'` where:\n\n*   `'.'` Matches any single character.​​​​\n*   `'*'` Matches zero or more of the preceding element.\n\nThe matching should cover the **entire** input string (not partial).\n\n## Example 1:\n\n**Input:** s = \"aa\", p = \"a\"\n**Output:** false\n**Explanation:** \"a\" does not match the entire string \"aa\".\n\n## Example 2:\n\n**Input:** s = \"aa\", p = \"a*\"\n**Output:** true\n**Explanation:** '*' means zero or more of the preceding element, 'a'. Therefore, by repeating 'a' once, it becomes \"aa\".\n\n## Example 3:\n\n**Input:** s = \"ab\", p = \".*\"\n**Output:** true\n**Explanation:** \".*\" means \"zero or more (*) of any character (.)\".\n\n## Constraints:\n\n*   `1 <= s.length <= 20`\n*   `1 <= p.length <= 20`\n*   `s` contains only lowercase English letters.\n*   `p` contains only lowercase English letters, `'.'`, and `'*'`.\n*   It is guaranteed for each appearance of the character `'*'`, there will be a previous valid character to match.",
-  "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public boolean isMatch(String s, String p) {\n        \n    }\n}",
-  "tags": ["String", "Dynamic Programming", "Recursion"],
-  "examples": [
-    { "input": "s = \"aa\", p = \"a\"", "output": "false" },
-    { "input": "s = \"aa\", p = \"a*\"", "output": "true" },
-    { "input": "s = \"ab\", p = \".*\"", "output": "true" }
+  "title": "Distinct Difference Array",
+  "description": "# Distinct Difference Array\n\nGiven a zero-indexed integer array `nums`, build an array `diff` of the same length. For each index `i`, `diff[i]` is the number of distinct values in the prefix `nums[0..i]` minus the number of distinct values in the suffix `nums[i+1..n-1]`.\n\nThe suffix after the last index is empty, so it has `0` distinct values. Values may be negative or very large; equality of values is the only thing that matters.\n\n## Example 1:\n\n**Input:** nums = [1,2,3,4,5]\n**Output:** [-3,-1,1,3,5]\n\n## Example 2:\n\n**Input:** nums = [3,2,3,4,2]\n**Output:** [-2,-1,0,2,3]\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^5`\n*   `-10^9 <= nums[i] <= 10^9`",
+  "difficulty": "EASY",
+  "initialCode": "class Solution {\n    public int[] distinctDifferenceArray(int[] nums) {\n        return new int[0];\n    }\n}",
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Prefix Sum",
+    "Sorting"
   ],
-  "solutions": [
+  "examples": [
     {
-      "name": "Dynamic Programming",
-      "timeComplexity": "O(m * n)",
-      "spaceComplexity": "O(m * n)",
-      "description": "Use a 2D DP table where dp[i][j] = true if s[0..i-1] matches p[0..j-1]. Handle '.' as single char match and '*' as zero or more of preceding element.",
-      "code": "class Solution {\n    public boolean isMatch(String s, String p) {\n        int m = s.length(), n = p.length();\n        boolean[][] dp = new boolean[m + 1][n + 1];\n        dp[0][0] = true;\n        for (int j = 2; j <= n; j++) {\n            if (p.charAt(j - 1) == '*') dp[0][j] = dp[0][j - 2];\n        }\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                char sc = s.charAt(i - 1), pc = p.charAt(j - 1);\n                if (pc == '.' || pc == sc) {\n                    dp[i][j] = dp[i - 1][j - 1];\n                } else if (pc == '*') {\n                    dp[i][j] = dp[i][j - 2];\n                    char prev = p.charAt(j - 2);\n                    if (prev == '.' || prev == sc) {\n                        dp[i][j] = dp[i][j] || dp[i - 1][j];\n                    }\n                }\n            }\n        }\n        return dp[m][n];\n    }\n}",
-      "language": "java"
+      "input": "nums = [1,2,3,4,5]",
+      "output": "[-3,-1,1,3,5]"
     },
     {
-      "name": "Recursive with Memoization",
-      "timeComplexity": "O(m * n)",
-      "spaceComplexity": "O(m * n)",
-      "description": "Use top-down recursion with a memo table. At each state (i, j), check if s[i:] matches p[j:]. Handle '*' by trying zero or more matches of the preceding element.",
-      "code": "class Solution {\n    private Boolean[][] memo;\n    public boolean isMatch(String s, String p) {\n        memo = new Boolean[s.length() + 1][p.length() + 1];\n        return dp(s, p, 0, 0);\n    }\n    private boolean dp(String s, String p, int i, int j) {\n        if (j == p.length()) return i == s.length();\n        if (memo[i][j] != null) return memo[i][j];\n        boolean firstMatch = i < s.length() && (p.charAt(j) == '.' || p.charAt(j) == s.charAt(i));\n        boolean result;\n        if (j + 1 < p.length() && p.charAt(j + 1) == '*') {\n            result = dp(s, p, i, j + 2) || (firstMatch && dp(s, p, i + 1, j));\n        } else {\n            result = firstMatch && dp(s, p, i + 1, j + 1);\n        }\n        memo[i][j] = result;\n        return result;\n    }\n}",
-      "language": "java"
+      "input": "nums = [3,2,3,4,2]",
+      "output": "[-2,-1,0,2,3]"
     }
   ],
   "tests": [
-    { "input": "s = \"aa\", p = \"a\"", "output": "false" },
-    { "input": "s = \"aa\", p = \"a*\"", "output": "true" },
-    { "input": "s = \"ab\", p = \".*\"", "output": "true" }
+    {
+      "input": "nums = [1,2,3,4,5]",
+      "output": "[-3,-1,1,3,5]",
+      "description": "all values are distinct, so each cut moves one value from suffix-only to prefix-only"
+    },
+    {
+      "input": "nums = [3,2,3,4,2]",
+      "output": "[-2,-1,0,2,3]",
+      "description": "duplicates must be counted once on each side"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "[1]",
+      "description": "a single prefix value minus an empty suffix"
+    },
+    {
+      "input": "nums = [1,1,1]",
+      "output": "[0,0,1]",
+      "description": "one value remains distinct on both sides until the final index"
+    },
+    {
+      "input": "nums = [1,1,2,2,3]",
+      "output": "[-2,-1,0,1,3]",
+      "description": "prefix distinct count increases only at first occurrences"
+    },
+    {
+      "input": "nums = [5,5,5,5]",
+      "output": "[0,0,0,1]",
+      "description": "all cuts before the end have the same single value on both sides"
+    },
+    {
+      "input": "nums = [1,2,1,3,2]",
+      "output": "[-2,-1,0,2,3]",
+      "description": "values disappear from the suffix only after their last occurrence"
+    },
+    {
+      "input": "nums = [-1,0,-1,2,0]",
+      "output": "[-2,-1,0,2,3]",
+      "description": "negative values and zero are ordinary distinct keys"
+    },
+    {
+      "input": "nums = [9,8,9,7,6,8]",
+      "output": "[-3,-2,-1,1,3,4]",
+      "description": "first and last occurrences are interleaved"
+    },
+    {
+      "input": "nums = [2,1,2,1,2,1]",
+      "output": "[-1,0,0,0,1,2]",
+      "description": "alternating duplicates keep both sides balanced for several cuts"
+    },
+    {
+      "input": "nums = [1000000000,-1000000000,1000000000]",
+      "output": "[-1,1,2]",
+      "description": "large positive and negative values require key-based counting, not small-value buckets"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Prefix and Suffix Distinct Arrays",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nScan from right to left and store `suffixDistinct[i]`, the number of distinct values in `nums[i..n-1]`. Then scan from left to right with a prefix set and compute `prefix.size() - suffixDistinct[i + 1]` for every cut.\n\n## Key Insight\n\nThe suffix in the formula starts after index `i`, so the precomputed value must be read from `i + 1`. Keeping a sentinel slot at `n` naturally represents the empty suffix as zero.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.HashSet;\nimport java.util.Set;\n\nclass Solution {\n    public int[] distinctDifferenceArray(int[] nums) {\n        int n = nums.length;\n        int[] answer = new int[n];\n        int[] suffixDistinct = new int[n + 1];\n\n        Set<Integer> seen = new HashSet<>();\n        for (int i = n - 1; i >= 0; i--) {\n            seen.add(nums[i]);\n            suffixDistinct[i] = seen.size();\n        }\n\n        seen.clear();\n        for (int i = 0; i < n; i++) {\n            seen.add(nums[i]);\n            answer[i] = seen.size() - suffixDistinct[i + 1];\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Rolling Suffix Frequency Map",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCount all values in a suffix frequency map first. Move the cut from left to right: add the current value to the prefix set, remove one copy from the suffix map, and subtract the live suffix distinct count.\n\n## Key Insight\n\nA value stops contributing to the suffix only when its remaining frequency becomes zero. Tracking that count directly avoids building a separate suffix array.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.HashMap;\nimport java.util.HashSet;\nimport java.util.Map;\nimport java.util.Set;\n\nclass Solution {\n    public int[] distinctDifferenceArray(int[] nums) {\n        Map<Integer, Integer> suffix = new HashMap<>();\n        for (int num : nums) {\n            suffix.put(num, suffix.getOrDefault(num, 0) + 1);\n        }\n\n        Set<Integer> prefix = new HashSet<>();\n        int suffixDistinct = suffix.size();\n        int[] answer = new int[nums.length];\n        for (int i = 0; i < nums.length; i++) {\n            prefix.add(nums[i]);\n\n            int remaining = suffix.get(nums[i]) - 1;\n            if (remaining == 0) {\n                suffix.remove(nums[i]);\n                suffixDistinct--;\n            } else {\n                suffix.put(nums[i], remaining);\n            }\n\n            answer[i] = prefix.size() - suffixDistinct;\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "First and Last Occurrence Sweep",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nRecord the first and last index of every value. A value increases the prefix distinct count at its first index, and it contributes to the suffix count for exactly the cuts before its last index. Sweep those boundary events to build the answer.\n\n## Key Insight\n\nThe formula depends only on whether a value has appeared on the left and whether it will appear again on the right. First and last occurrences encode those two facts without maintaining live sets during the final sweep.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.HashMap;\nimport java.util.Map;\n\nclass Solution {\n    public int[] distinctDifferenceArray(int[] nums) {\n        int n = nums.length;\n        Map<Integer, Integer> first = new HashMap<>();\n        Map<Integer, Integer> last = new HashMap<>();\n        for (int i = 0; i < n; i++) {\n            first.putIfAbsent(nums[i], i);\n            last.put(nums[i], i);\n        }\n\n        int[] prefixGain = new int[n];\n        int[] suffixDelta = new int[n + 1];\n        for (int value : first.keySet()) {\n            int firstIndex = first.get(value);\n            int lastIndex = last.get(value);\n            prefixGain[firstIndex]++;\n            if (lastIndex > 0) {\n                suffixDelta[0]++;\n                suffixDelta[lastIndex]--;\n            }\n        }\n\n        int prefixDistinct = 0;\n        int suffixDistinct = 0;\n        int[] answer = new int[n];\n        for (int i = 0; i < n; i++) {\n            prefixDistinct += prefixGain[i];\n            suffixDistinct += suffixDelta[i];\n            answer[i] = prefixDistinct - suffixDistinct;\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Coordinate Compression Counts",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort a copy of `nums` to assign each distinct value a compact id. Use two count arrays, one for values already seen on the left and one for values still present on the right, then update both distinct counters as the cut moves.\n\n## Key Insight\n\nHash maps are not required if arbitrary integer values are first compressed into the range `0..d-1`. The same rolling-frequency idea then becomes simple array indexing.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int[] distinctDifferenceArray(int[] nums) {\n        int[] sorted = nums.clone();\n        Arrays.sort(sorted);\n\n        int unique = 0;\n        for (int num : sorted) {\n            if (unique == 0 || sorted[unique - 1] != num) {\n                sorted[unique++] = num;\n            }\n        }\n\n        int[] left = new int[unique];\n        int[] right = new int[unique];\n        for (int num : nums) {\n            right[indexOf(sorted, unique, num)]++;\n        }\n\n        int leftDistinct = 0;\n        int rightDistinct = unique;\n        int[] answer = new int[nums.length];\n        for (int i = 0; i < nums.length; i++) {\n            int id = indexOf(sorted, unique, nums[i]);\n            if (left[id]++ == 0) {\n                leftDistinct++;\n            }\n            if (--right[id] == 0) {\n                rightDistinct--;\n            }\n            answer[i] = leftDistinct - rightDistinct;\n        }\n        return answer;\n    }\n\n    private int indexOf(int[] sorted, int unique, int target) {\n        int lo = 0;\n        int hi = unique - 1;\n        while (lo <= hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (sorted[mid] == target) {\n                return mid;\n            }\n            if (sorted[mid] < target) {\n                lo = mid + 1;\n            } else {\n                hi = mid - 1;\n            }\n        }\n        return -1;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

@@ -1,29 +1,93 @@
 {
   "id": "40",
   "title": "Fruit Into Baskets",
-  "description": "# Fruit Into Baskets\n\nYou are visiting a farm that has a single row of fruit trees arranged from left to right. The trees are represented by an integer array `fruits` where `fruits[i]` is the **type** of fruit the `i`th tree produces.\n\nYou want to collect as much fruit as possible. However, the owner has some strict rules that you must follow:\n\n*   You only have **two** baskets, and each basket can only hold a **single type** of fruit. There is no limit on the amount of fruit each basket can hold.\n*   Starting from any tree of your choice, you must pick **exactly one fruit** from **every** tree (including the start tree) while moving to the right. The picked fruits must fit in one of your baskets.\n*   Once you reach a tree with fruit that cannot fit in your baskets, you must stop.\n\nGiven the integer array `fruits`, return *the **maximum** number of fruits you can pick*.\n\n## Example 1:\n\n**Input:** fruits = [1,2,1]\n**Output:** 3\n**Explanation:** We can pick from all 3 trees.\n\n## Example 2:\n\n**Input:** fruits = [0,1,2,2]\n**Output:** 3\n**Explanation:** We can pick from trees [1,2,2].\nIf we had started at the first tree, we would only pick from trees [0,1].\n\n## Example 3:\n\n**Input:** fruits = [1,2,3,2,2]\n**Output:** 4\n**Explanation:** We can pick from trees [2,3,2,2].\nIf we had started at the first tree, we would only pick from trees [1,2].\n\n## Constraints:\n\n*   `1 <= fruits.length <= 10^5`\n*   `0 <= fruits[i] < fruits.length`",
+  "description": "# Fruit Into Baskets\n\nYou are visiting a farm with a single row of fruit trees from left to right. The integer array `fruits` describes the row: `fruits[i]` is the type of fruit produced by the `i`th tree.\n\nYou have exactly two baskets:\n\n* Each basket may contain only one fruit type.\n* Each basket can hold any number of fruits of its assigned type.\n* You may choose any starting tree.\n* Starting there, you must pick exactly one fruit from every tree while moving right.\n* You must stop before the first tree whose fruit type does not fit in either basket.\n\nReturn the maximum number of fruits you can pick.\n\nThis is equivalent to finding the longest contiguous subarray containing at most two distinct values.\n\n## Example 1\n\n**Input:** fruits = [1,2,1]\n**Output:** 3\n**Explanation:** All three trees contain only two fruit types, so the whole row can be collected.\n\n## Example 2\n\n**Input:** fruits = [0,1,2,2]\n**Output:** 3\n**Explanation:** Starting at the second tree collects [1,2,2]. Starting at the first tree would stop after [0,1].\n\n## Example 3\n\n**Input:** fruits = [1,2,3,2,2]\n**Output:** 4\n**Explanation:** The best choice is [2,3,2,2].\n\n## Constraints\n\n* `1 <= fruits.length <= 10^5`\n* `0 <= fruits[i] < fruits.length`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int totalFruit(int[] fruits) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Hash Table", "Sliding Window"],
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Sliding Window"
+  ],
   "examples": [
-    { "input": "fruits = [1,2,1]", "output": "3" },
-    { "input": "fruits = [0,1,2,2]", "output": "3" },
-    { "input": "fruits = [1,2,3,2,2]", "output": "4" }
+    {
+      "input": "fruits = [1,2,1]",
+      "output": "3"
+    },
+    {
+      "input": "fruits = [0,1,2,2]",
+      "output": "3"
+    },
+    {
+      "input": "fruits = [1,2,3,2,2]",
+      "output": "4"
+    }
   ],
   "tests": [
-    { "input": "fruits = [1,2,1]", "output": "3" },
-    { "input": "fruits = [0,1,2,2]", "output": "3" },
-    { "input": "fruits = [1,2,3,2,2]", "output": "4" },
-    { "input": "fruits = [3,3,3,1,2,1,1,2,3,3,4]", "output": "5" },
     {
-      "input": "fruits = [5,5,5,5,5]",
+      "input": "fruits = [1,2,1]",
+      "output": "3",
+      "description": "All trees fit in two baskets"
+    },
+    {
+      "input": "fruits = [0,1,2,2]",
+      "output": "3",
+      "description": "Best window starts after the first tree"
+    },
+    {
+      "input": "fruits = [1,2,3,2,2]",
+      "output": "4",
+      "description": "Third type forces the start to move"
+    },
+    {
+      "input": "fruits = [3,3,3,1,2,1,1,2,3,3,4]",
       "output": "5",
-      "description": "Only one type of fruit"
+      "description": "Classic case with a long middle window"
+    },
+    {
+      "input": "fruits = [4,4,4,4,4]",
+      "output": "5",
+      "description": "Only one fruit type"
     },
     {
       "input": "fruits = [1,2,1,2,1,2]",
       "output": "6",
-      "description": "Exactly two types of fruit"
+      "description": "Exactly two fruit types across the whole row"
+    },
+    {
+      "input": "fruits = [0]",
+      "output": "1",
+      "description": "Single tree"
+    },
+    {
+      "input": "fruits = [0,1]",
+      "output": "2",
+      "description": "Two trees and two baskets"
+    },
+    {
+      "input": "fruits = [0,1,2,3]",
+      "output": "2",
+      "description": "Every third tree forces a reset"
+    },
+    {
+      "input": "fruits = [0,0,1,1,2,2]",
+      "output": "4",
+      "description": "Best window is a run of two adjacent types"
+    },
+    {
+      "input": "fruits = [1,0,1,4,1,4,1,2,3]",
+      "output": "5",
+      "description": "Best window keeps a repeated non-adjacent pair"
+    },
+    {
+      "input": "fruits = [2,1,2,3,3,3,2,2]",
+      "output": "6",
+      "description": "Third type appears before a long suffix window"
+    },
+    {
+      "input": "fruits = [0,1,6,6,4,4,6]",
+      "output": "5",
+      "description": "Best answer begins after two early distinct types"
     }
   ],
   "solutions": [
@@ -31,22 +95,36 @@
       "name": "Sliding Window with HashMap",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "This is 'longest substring with at most 2 distinct characters'. Use sliding window with HashMap to track fruit type counts.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int totalFruit(int[] fruits) {\n        Map<Integer, Integer> count = new HashMap<>();\n        int maxLen = 0;\n        int left = 0;\n        \n        for (int right = 0; right < fruits.length; right++) {\n            count.put(fruits[right], count.getOrDefault(fruits[right], 0) + 1);\n            \n            // Shrink window if more than 2 types\n            while (count.size() > 2) {\n                int leftFruit = fruits[left];\n                count.put(leftFruit, count.get(leftFruit) - 1);\n                if (count.get(leftFruit) == 0) {\n                    count.remove(leftFruit);\n                }\n                left++;\n            }\n            \n            maxLen = Math.max(maxLen, right - left + 1);\n        }\n        \n        return maxLen;\n    }\n}"
+      "description": "## Approach\n\nTreat the two baskets as the condition \"the current subarray may contain at most two distinct fruit types.\" Expand the right boundary one tree at a time, store fruit counts in a HashMap, and shrink the left boundary while the map contains more than two keys.\n\n## Key Insight\n\nThe HashMap size is the number of basket types currently in use. Counts are needed because a fruit type should leave the map only after every copy of that type has moved out of the window.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1), because the map holds at most three fruit types before shrinking",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int totalFruit(int[] fruits) {\n        Map<Integer, Integer> count = new HashMap<>();\n        int left = 0;\n        int best = 0;\n\n        for (int right = 0; right < fruits.length; right++) {\n            int fruit = fruits[right];\n            count.put(fruit, count.getOrDefault(fruit, 0) + 1);\n\n            while (count.size() > 2) {\n                int outgoing = fruits[left];\n                int next = count.get(outgoing) - 1;\n                if (next == 0) {\n                    count.remove(outgoing);\n                } else {\n                    count.put(outgoing, next);\n                }\n                left++;\n            }\n\n            best = Math.max(best, right - left + 1);\n        }\n\n        return best;\n    }\n}"
     },
     {
-      "name": "Sliding Window - Optimized",
+      "name": "Sliding Window with Bounded Count Array",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(1)",
-      "description": "Use array to count fruit types since fruit[i] < fruits.length. Track distinct types count.",
-      "code": "class Solution {\n    public int totalFruit(int[] fruits) {\n        int n = fruits.length;\n        int max = 0;\n        for (int f : fruits) max = Math.max(max, f);\n        int[] count = new int[max + 1];\n        int distinct = 0;\n        int maxLen = 0;\n        int left = 0;\n        \n        for (int right = 0; right < n; right++) {\n            if (count[fruits[right]] == 0) distinct++;\n            count[fruits[right]]++;\n            \n            while (distinct > 2) {\n                count[fruits[left]]--;\n                if (count[fruits[left]] == 0) distinct--;\n                left++;\n            }\n            \n            maxLen = Math.max(maxLen, right - left + 1);\n        }\n        \n        return maxLen;\n    }\n}"
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse the prompt constraint `0 <= fruits[i] < fruits.length` to replace the HashMap with an integer count array indexed by fruit type. Maintain a distinct counter and shrink the same sliding window whenever that counter becomes three.\n\n## Key Insight\n\nThis route teaches the same invariant as the HashMap solution but makes the value-range tradeoff explicit: direct indexing is simple and fast only because the prompt bounds fruit type ids.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n), for the type-count array allowed by the value range",
+      "code": "class Solution {\n    public int totalFruit(int[] fruits) {\n        if (fruits.length == 0) {\n            return 0;\n        }\n\n        int[] count = new int[fruits.length];\n        int distinct = 0;\n        int left = 0;\n        int best = 0;\n\n        for (int right = 0; right < fruits.length; right++) {\n            int fruit = fruits[right];\n            if (count[fruit] == 0) {\n                distinct++;\n            }\n            count[fruit]++;\n\n            while (distinct > 2) {\n                int outgoing = fruits[left];\n                count[outgoing]--;\n                if (count[outgoing] == 0) {\n                    distinct--;\n                }\n                left++;\n            }\n\n            best = Math.max(best, right - left + 1);\n        }\n\n        return best;\n    }\n}"
     },
     {
-      "name": "Sliding Window - Last Seen Index",
+      "name": "Last Seen Eviction",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Track last seen index of each fruit type. When third type appears, remove the one with earliest last occurrence.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int totalFruit(int[] fruits) {\n        Map<Integer, Integer> lastSeen = new HashMap<>(); // fruit -> last index\n        int maxLen = 0;\n        int left = 0;\n        \n        for (int right = 0; right < fruits.length; right++) {\n            lastSeen.put(fruits[right], right);\n            \n            if (lastSeen.size() > 2) {\n                // Find fruit with earliest last occurrence\n                int minIdx = Integer.MAX_VALUE;\n                int toRemove = 0;\n                for (Map.Entry<Integer, Integer> entry : lastSeen.entrySet()) {\n                    if (entry.getValue() < minIdx) {\n                        minIdx = entry.getValue();\n                        toRemove = entry.getKey();\n                    }\n                }\n                left = minIdx + 1;\n                lastSeen.remove(toRemove);\n            }\n            \n            maxLen = Math.max(maxLen, right - left + 1);\n        }\n        \n        return maxLen;\n    }\n}"
+      "description": "## Approach\n\nTrack the last index where each fruit type appears inside the current window. When a third type appears, evict the type whose last occurrence is farthest left, then jump the window start just after that index.\n\n## Key Insight\n\nThe evicted type cannot remain in any valid window ending at the current tree, because its last copy is before both remaining types. This turns repeated left-shrinking into one explanatory jump.\n\n## Complexity Analysis\n- Time Complexity: O(n), with only up to three entries scanned on each eviction\n- Space Complexity: O(1), because only a constant number of fruit types are tracked",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int totalFruit(int[] fruits) {\n        Map<Integer, Integer> lastSeen = new HashMap<>();\n        int left = 0;\n        int best = 0;\n\n        for (int right = 0; right < fruits.length; right++) {\n            lastSeen.put(fruits[right], right);\n\n            if (lastSeen.size() > 2) {\n                int earliestIndex = fruits.length;\n                int typeToRemove = -1;\n                for (Map.Entry<Integer, Integer> entry : lastSeen.entrySet()) {\n                    if (entry.getValue() < earliestIndex) {\n                        earliestIndex = entry.getValue();\n                        typeToRemove = entry.getKey();\n                    }\n                }\n                lastSeen.remove(typeToRemove);\n                left = earliestIndex + 1;\n            }\n\n            best = Math.max(best, right - left + 1);\n        }\n\n        return best;\n    }\n}"
+    },
+    {
+      "name": "Last Run Constant Space",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nKeep only two active fruit types, the length of the current valid window, and the length of the final consecutive run of the most recent type. If a third type arrives, the new window is exactly the previous final run plus the new tree.\n\n## Key Insight\n\nAfter a third type appears, every older tree before the final run must be discarded. The final run is the only part of the previous window that can still pair with the new fruit type.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int totalFruit(int[] fruits) {\n        int lastType = -1;\n        int secondLastType = -1;\n        int lastRunLength = 0;\n        int currentWindow = 0;\n        int best = 0;\n\n        for (int fruit : fruits) {\n            if (fruit == lastType || fruit == secondLastType) {\n                currentWindow++;\n            } else {\n                currentWindow = lastRunLength + 1;\n            }\n\n            if (fruit == lastType) {\n                lastRunLength++;\n            } else {\n                secondLastType = lastType;\n                lastType = fruit;\n                lastRunLength = 1;\n            }\n\n            best = Math.max(best, currentWindow);\n        }\n\n        return best;\n    }\n}"
+    },
+    {
+      "name": "Quadratic Distinct-Type Baseline",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nTry every starting tree, extend right while collecting fruit types in a set, and stop that start as soon as a third type appears. Record the longest valid segment encountered.\n\n## Key Insight\n\nThis baseline follows the prompt literally: choose a start, move right, and stop when the baskets cannot fit the next fruit. It is too slow for the full constraint but useful as the definition-level model.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(1), because the set never needs to hold more than three types before breaking",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int totalFruit(int[] fruits) {\n        int best = 0;\n\n        for (int start = 0; start < fruits.length; start++) {\n            Set<Integer> types = new HashSet<>();\n            for (int end = start; end < fruits.length; end++) {\n                types.add(fruits[end]);\n                if (types.size() > 2) {\n                    break;\n                }\n                best = Math.max(best, end - start + 1);\n            }\n        }\n\n        return best;\n    }\n}"
     }
   ]
 }

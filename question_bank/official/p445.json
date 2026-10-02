@@ -1,10 +1,14 @@
 {
   "id": "445",
   "title": "Design ATM Machine",
-  "description": "# Design ATM Machine\n\nThere is an ATM machine that stores banknotes of 5 denominations: 20, 50, 100, 200, and 500 dollars. Initially the ATM is empty. The user can use the machine to deposit or withdraw any amount of money.\n\nWhen withdrawing, the machine prioritizes using banknotes of larger values.\n\n*   For example, if you want to withdraw $300 and there are 2 $50 banknotes, 1 $100 banknote, and 1 $200 banknote, then the machine will use the $100 and $200 banknotes.\n*   However, if you try to withdraw $600 and there are 3 $200 banknotes and 1 $500 banknote, then the withdraw request will be rejected because the machine will first try to use the $500 banknote and then be unable to use banknotes to complete the remaining $100. Note that the machine is not allowed to use the $200 banknotes instead of the $500 banknote.\n\nImplement the `ATM` class:\n\n*   `ATM()` Initializes the ATM object.\n*   `void deposit(int[] banknotesCount)` Deposits new banknotes in the order $20, $50, $100, $200, and $500.\n*   `int[] withdraw(int amount)` Returns an array of length 5 of the number of banknotes that will be handed to the user in the order $20, $50, $100, $200, and $500, and update the number of banknotes in the ATM after withdrawing. Returns `[-1]` if it is not possible (do not withdraw any banknotes in this case).\n\n## Example 1:\n\n**Input**\n[\"ATM\", \"deposit\", \"withdraw\", \"deposit\", \"withdraw\", \"withdraw\"]\n[[], [[0,0,1,2,1]], [600], [[0,1,0,1,1]], [600], [550]]\n**Output**\n[null, null, [0,0,1,0,1], null, [-1], [0,1,0,0,1]]\n**Explanation**\nATM atm = new ATM();\natm.deposit([0,0,1,2,1]); // Deposits 1 $100, 2 $200, and 1 $500 banknotes.\n                          // The banknotes in the ATM are [0,0,1,2,1].\natm.withdraw(600);        // Returns [0,0,1,0,1]. The machine uses 1 $100 and 1 $500 banknote.\n                          // The banknotes in the ATM are [0,0,0,2,0].\natm.deposit([0,1,0,1,1]); // Deposits 1 $50, 1 $200, and 1 $500 banknotes.\n                          // The banknotes in the ATM are [0,1,0,3,1].\natm.withdraw(600);        // Returns [-1]. The machine will try to use a $500 banknote and then be unable to complete the remaining $100,\n                          // so the withdraw request is rejected.\n                          // Since the request is rejected, the number of banknotes in the ATM is not modified.\natm.withdraw(550);        // Returns [0,1,0,0,1]. The machine uses 1 $50 and 1 $500 banknote.\n                          // The banknotes in the ATM are [0,0,0,3,0].\n\n## Constraints:\n\n*   `banknotesCount.length == 5`\n*   `0 <= banknotesCount[i] <= 10^9`\n*   `1 <= amount <= 10^9`\n*   At most `5000` calls will be made to `withdraw` and `deposit`.",
+  "description": "# Design ATM Machine\n\nDesign an ATM that stores banknotes of five denominations: `20`, `50`, `100`, `200`, and `500` dollars. The ATM is initially empty.\n\nThe ATM supports depositing banknotes and withdrawing a requested amount. During withdrawal, the ATM must always try to use as many larger-value banknotes as possible before moving to smaller values. It is not allowed to backtrack to a different combination with fewer large banknotes.\n\nFor example, if the ATM has three `200` banknotes and one `500` banknote, a request for `600` must fail: the ATM first chooses the `500`, then cannot complete the remaining `100`. It may not ignore the `500` and use three `200` banknotes instead.\n\nImplement the `ATM` class:\n\n*   `ATM()` initializes an empty ATM.\n*   `void deposit(int[] banknotesCount)` deposits banknotes in the order `[20, 50, 100, 200, 500]`.\n*   `int[] withdraw(int amount)` returns an array of length 5 with the banknotes handed out in the same denomination order, and subtracts those notes from the ATM. If the greedy withdrawal cannot complete the amount, return `[-1]` and leave the ATM unchanged.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1:\n\n**Input:**\n[\"ATM\", \"deposit\", \"withdraw\", \"deposit\", \"withdraw\", \"withdraw\"]\n[[], [[0,0,1,2,1]], [600], [[0,1,0,1,1]], [600], [550]]\n**Output:**\n[null, null, [0,0,1,0,1], null, [-1], [0,1,0,0,1]]\n**Explanation:**\nATM atm = new ATM();\natm.deposit([0,0,1,2,1]); // one 100, two 200, and one 500 banknote\natm.withdraw(600);        // returns [0,0,1,0,1]\natm.deposit([0,1,0,1,1]); // now the ATM has [0,1,0,3,1]\natm.withdraw(600);        // returns [-1]; greedy takes 500 first and cannot finish the remaining 100\natm.withdraw(550);        // returns [0,1,0,0,1]\n\n## Constraints:\n\n*   `banknotesCount.length == 5`\n*   `0 <= banknotesCount[i] <= 10^9`\n*   `1 <= amount <= 10^9`\n*   At most `5000` calls will be made to `withdraw` and `deposit`.",
   "difficulty": "MEDIUM",
   "initialCode": "class ATM {\n\n    public ATM() {\n        \n    }\n    \n    public void deposit(int[] banknotesCount) {\n        \n    }\n    \n    public int[] withdraw(int amount) {\n        \n    }\n}",
-  "tags": ["Array", "Greedy", "Design"],
+  "tags": [
+    "Array",
+    "Greedy",
+    "Design"
+  ],
   "examples": [
     {
       "input": "[\"ATM\", \"deposit\", \"withdraw\", \"deposit\", \"withdraw\", \"withdraw\"]\n[[], [[0,0,1,2,1]], [600], [[0,1,0,1,1]], [600], [550]]",
@@ -13,19 +17,43 @@
   ],
   "solutions": [
     {
-      "name": "Greedy from Largest Denomination",
+      "name": "Fixed Array Greedy Plan",
       "timeComplexity": "O(1) per operation",
       "spaceComplexity": "O(1)",
-      "description": "Store counts of each denomination. On withdraw, greedily use as many of the largest denomination as possible, working down. If the remaining amount is not zero, return [-1] without modifying counts.",
-      "code": "class ATM {\n    private long[] count;\n    private int[] denom;\n\n    public ATM() {\n        count = new long[5];\n        denom = new int[]{20, 50, 100, 200, 500};\n    }\n\n    public void deposit(int[] banknotesCount) {\n        for (int i = 0; i < 5; i++) {\n            count[i] += banknotesCount[i];\n        }\n    }\n\n    public int[] withdraw(int amount) {\n        int[] used = new int[5];\n        long remaining = amount;\n        for (int i = 4; i >= 0; i--) {\n            used[i] = (int) Math.min(count[i], remaining / denom[i]);\n            remaining -= (long) used[i] * denom[i];\n        }\n        if (remaining > 0) return new int[]{-1};\n        for (int i = 0; i < 5; i++) {\n            count[i] -= used[i];\n        }\n        return used;\n    }\n}",
+      "description": "## Approach\n\nStore the five denomination counts in a `long[]`. To withdraw, build a separate `int[] plan` greedily from the largest denomination to the smallest, and commit the plan only if the remaining amount reaches zero.\n\n## Key Insight\n\nThe withdrawal rule is not arbitrary coin change. The plan must take the maximum possible number of each larger denomination before smaller denominations are considered.\n\n## Complexity Analysis\n\n- Time Complexity: O(1), because there are always five denominations.\n- Space Complexity: O(1).",
+      "code": "class ATM {\n    private static final int[] VALUES = new int[] {20, 50, 100, 200, 500};\n    private final long[] stock = new long[5];\n\n    public ATM() {\n    }\n\n    public void deposit(int[] banknotesCount) {\n        for (int i = 0; i < VALUES.length; i++) {\n            stock[i] += banknotesCount[i];\n        }\n    }\n\n    public int[] withdraw(int amount) {\n        int[] plan = new int[VALUES.length];\n        long remaining = amount;\n        for (int i = VALUES.length - 1; i >= 0; i--) {\n            long take = Math.min(stock[i], remaining / VALUES[i]);\n            plan[i] = (int) take;\n            remaining -= take * VALUES[i];\n        }\n        if (remaining != 0) {\n            return new int[] {-1};\n        }\n        for (int i = 0; i < VALUES.length; i++) {\n            stock[i] -= plan[i];\n        }\n        return plan;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Greedy with Temporary Copy",
+      "name": "Temporary Inventory Copy",
       "timeComplexity": "O(1) per operation",
       "spaceComplexity": "O(1)",
-      "description": "Same greedy approach but use a temporary copy of counts for the withdrawal attempt. Only commit changes if the withdrawal succeeds.",
-      "code": "class ATM {\n    private long[] count;\n    private int[] denom;\n\n    public ATM() {\n        count = new long[5];\n        denom = new int[]{20, 50, 100, 200, 500};\n    }\n\n    public void deposit(int[] banknotesCount) {\n        for (int i = 0; i < 5; i++) {\n            count[i] += banknotesCount[i];\n        }\n    }\n\n    public int[] withdraw(int amount) {\n        long[] temp = new long[5];\n        for (int i = 0; i < 5; i++) temp[i] = count[i];\n        int[] result = new int[5];\n        long remaining = amount;\n        for (int i = 4; i >= 0; i--) {\n            long take = Math.min(temp[i], remaining / denom[i]);\n            result[i] = (int) take;\n            remaining -= take * denom[i];\n            temp[i] -= take;\n        }\n        if (remaining != 0) return new int[]{-1};\n        for (int i = 0; i < 5; i++) count[i] = temp[i];\n        return result;\n    }\n}",
+      "description": "## Approach\n\nCopy the current inventory into a temporary array for each withdrawal attempt. Greedily subtract from the temporary inventory, and replace the real inventory with the temporary copy only after success.\n\n## Key Insight\n\nA temporary copy makes rollback trivial. A failed withdrawal simply discards the attempted copy and returns `[-1]`.\n\n## Complexity Analysis\n\n- Time Complexity: O(1).\n- Space Complexity: O(1).",
+      "code": "class ATM {\n    private static final int[] VALUES = new int[] {20, 50, 100, 200, 500};\n    private long[] inventory = new long[5];\n\n    public ATM() {\n    }\n\n    public void deposit(int[] banknotesCount) {\n        for (int i = 0; i < VALUES.length; i++) {\n            inventory[i] += banknotesCount[i];\n        }\n    }\n\n    public int[] withdraw(int amount) {\n        long[] trial = inventory.clone();\n        int[] result = new int[VALUES.length];\n        long remaining = amount;\n        for (int i = VALUES.length - 1; i >= 0; i--) {\n            long take = Math.min(trial[i], remaining / VALUES[i]);\n            result[i] = (int) take;\n            trial[i] -= take;\n            remaining -= take * VALUES[i];\n        }\n        if (remaining != 0) {\n            return new int[] {-1};\n        }\n        inventory = trial;\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "In-Place Greedy with Rollback",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nDuring withdrawal, greedily subtract banknotes directly from the ATM and remember the notes used in an array. If the greedy attempt fails, add those notes back before returning `[-1]`.\n\n## Key Insight\n\nThis route teaches transaction rollback explicitly: mutation may happen during the attempt, but every partial mutation has a matching undo operation.\n\n## Complexity Analysis\n\n- Time Complexity: O(1).\n- Space Complexity: O(1).",
+      "code": "class ATM {\n    private static final int[] VALUES = new int[] {20, 50, 100, 200, 500};\n    private final long[] cash = new long[5];\n\n    public ATM() {\n    }\n\n    public void deposit(int[] banknotesCount) {\n        for (int i = 0; i < VALUES.length; i++) {\n            cash[i] += banknotesCount[i];\n        }\n    }\n\n    public int[] withdraw(int amount) {\n        int[] used = new int[VALUES.length];\n        long remaining = amount;\n        for (int i = VALUES.length - 1; i >= 0; i--) {\n            long take = Math.min(cash[i], remaining / VALUES[i]);\n            used[i] = (int) take;\n            cash[i] -= take;\n            remaining -= take * VALUES[i];\n        }\n        if (remaining != 0) {\n            for (int i = 0; i < VALUES.length; i++) {\n                cash[i] += used[i];\n            }\n            return new int[] {-1};\n        }\n        return used;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Denomination Planner",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse recursion over the fixed denomination indexes. At each denomination, choose the maximum number allowed by the greedy rule, then recurse to the next smaller denomination. Commit the resulting plan only on success.\n\n## Key Insight\n\nThe recursion is not backtracking over alternatives. It is just the greedy order written as a recursive planner, which keeps the largest-denomination priority explicit.\n\n## Complexity Analysis\n\n- Time Complexity: O(1), with recursion depth 5.\n- Space Complexity: O(1).",
+      "code": "class ATM {\n    private static final int[] VALUES = new int[] {20, 50, 100, 200, 500};\n    private final long[] notes = new long[5];\n\n    public ATM() {\n    }\n\n    public void deposit(int[] banknotesCount) {\n        for (int i = 0; i < VALUES.length; i++) {\n            notes[i] += banknotesCount[i];\n        }\n    }\n\n    public int[] withdraw(int amount) {\n        int[] plan = new int[VALUES.length];\n        if (!fillPlan(VALUES.length - 1, amount, plan)) {\n            return new int[] {-1};\n        }\n        for (int i = 0; i < VALUES.length; i++) {\n            notes[i] -= plan[i];\n        }\n        return plan;\n    }\n\n    private boolean fillPlan(int index, long remaining, int[] plan) {\n        if (remaining == 0) {\n            return true;\n        }\n        if (index < 0) {\n            return false;\n        }\n        long take = Math.min(notes[index], remaining / VALUES[index]);\n        plan[index] = (int) take;\n        return fillPlan(index - 1, remaining - take * VALUES[index], plan);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Denomination Object Ledger",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nRepresent each denomination as a small cassette object containing its value and current count. Withdrawal loops over the cassette array from high to low, builds a result plan, and commits by subtracting from each cassette.\n\n## Key Insight\n\nThe object ledger keeps denomination value and inventory together. This can make a design class easier to extend while preserving the same greedy transaction contract.\n\n## Complexity Analysis\n\n- Time Complexity: O(1).\n- Space Complexity: O(1).",
+      "code": "class ATM {\n    private static class Cassette {\n        final int value;\n        long count;\n\n        Cassette(int value) {\n            this.value = value;\n        }\n    }\n\n    private final Cassette[] cassettes = new Cassette[] {\n            new Cassette(20), new Cassette(50), new Cassette(100), new Cassette(200), new Cassette(500)\n    };\n\n    public ATM() {\n    }\n\n    public void deposit(int[] banknotesCount) {\n        for (int i = 0; i < cassettes.length; i++) {\n            cassettes[i].count += banknotesCount[i];\n        }\n    }\n\n    public int[] withdraw(int amount) {\n        int[] result = new int[cassettes.length];\n        long remaining = amount;\n        for (int i = cassettes.length - 1; i >= 0; i--) {\n            Cassette cassette = cassettes[i];\n            long take = Math.min(cassette.count, remaining / cassette.value);\n            result[i] = (int) take;\n            remaining -= take * cassette.value;\n        }\n        if (remaining != 0) {\n            return new int[] {-1};\n        }\n        for (int i = 0; i < cassettes.length; i++) {\n            cassettes[i].count -= result[i];\n        }\n        return result;\n    }\n}",
       "language": "java"
     }
   ],
@@ -33,6 +61,42 @@
     {
       "input": "[\"ATM\", \"deposit\", \"withdraw\", \"deposit\", \"withdraw\", \"withdraw\"]\n[[], [[0,0,1,2,1]], [600], [[0,1,0,1,1]], [600], [550]]",
       "output": "[null, null, [0,0,1,0,1], null, [-1], [0,1,0,0,1]]"
+    },
+    {
+      "input": "[\"ATM\", \"withdraw\", \"deposit\", \"withdraw\", \"withdraw\", \"deposit\", \"withdraw\"]\n[[], [20], [[1, 1, 0, 0, 0]], [70], [70], [[0, 0, 1, 0, 0]], [100]]",
+      "output": "[null, [-1], null, [1, 1, 0, 0, 0], [-1], null, [0, 0, 1, 0, 0]]"
+    },
+    {
+      "input": "[\"ATM\", \"deposit\", \"withdraw\", \"withdraw\", \"withdraw\"]\n[[], [[0,0,0,3,1]], [600], [500], [600]]",
+      "output": "[null, null, [-1], [0,0,0,0,1], [0,0,0,3,0]]"
+    },
+    {
+      "input": "[\"ATM\", \"deposit\", \"withdraw\", \"withdraw\"]\n[[], [[1,1,1,1,1]], [870], [20]]",
+      "output": "[null, null, [1,1,1,1,1], [-1]]"
+    },
+    {
+      "input": "[\"ATM\", \"deposit\", \"withdraw\", \"withdraw\"]\n[[], [[4,0,1,0,0]], [180], [20]]",
+      "output": "[null, null, [4,0,1,0,0], [-1]]"
+    },
+    {
+      "input": "[\"ATM\", \"deposit\", \"deposit\", \"withdraw\"]\n[[], [[0,1,0,0,0]], [[2,0,0,0,0]], [90]]",
+      "output": "[null, null, null, [2,1,0,0,0]]"
+    },
+    {
+      "input": "[\"ATM\", \"deposit\", \"withdraw\", \"withdraw\"]\n[[], [[0,0,1,0,1]], [620], [600]]",
+      "output": "[null, null, [-1], [0,0,1,0,1]]"
+    },
+    {
+      "input": "[\"ATM\", \"deposit\", \"withdraw\", \"withdraw\"]\n[[], [[50000000,0,0,0,2000000]], [1000000000], [1000000000]]",
+      "output": "[null, null, [0,0,0,0,2000000], [50000000,0,0,0,0]]"
+    },
+    {
+      "input": "[\"ATM\", \"deposit\", \"withdraw\", \"withdraw\"]\n[[], [[1,1,0,0,0]], [30], [70]]",
+      "output": "[null, null, [-1], [1,1,0,0,0]]"
+    },
+    {
+      "input": "[\"ATM\", \"deposit\", \"withdraw\", \"deposit\", \"withdraw\"]\n[[], [[0,1,0,0,1]], [520], [[1,0,0,0,0]], [520]]",
+      "output": "[null, null, [-1], null, [1,0,0,0,1]]"
     }
   ]
 }

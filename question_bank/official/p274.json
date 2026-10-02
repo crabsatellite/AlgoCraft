@@ -1,34 +1,117 @@
 {
   "id": "274",
   "title": "XOR Operation in an Array",
-  "description": "# XOR Operation in an Array\n\nYou are given an integer `n` and an integer `start`.\n\nDefine an array `nums` where `nums[i] = start + 2 * i` (0-indexed) and `n == nums.length`.\n\nReturn *the bitwise XOR of all elements of* `nums`.\n\n## Example 1:\n\n**Input:** n = 5, start = 0\n**Output:** 8\n**Explanation:** Array nums is equal to [0, 2, 4, 6, 8] where (0 ^ 2 ^ 4 ^ 6 ^ 8) = 8.\nWhere \"^\" corresponds to bitwise XOR operator.\n\n## Example 2:\n\n**Input:** n = 4, start = 3\n**Output:** 8\n**Explanation:** Array nums is equal to [3, 5, 7, 9] where (3 ^ 5 ^ 7 ^ 9) = 8.\n\n## Constraints:\n\n*   `1 <= n <= 1000`\n*   `0 <= start <= 1000`\n*   `n == nums.length`",
+  "description": "# XOR Operation in an Array\n\nYou are given two integers `n` and `start`. Build an array `nums` of length `n` where:\n\n* `nums[i] = start + 2 * i` for every `0 <= i < n`.\n* Therefore the values are `start`, `start + 2`, `start + 4`, and so on.\n\nReturn the bitwise XOR of all values in `nums`.\n\nThe symbol `^` means bitwise XOR in Java. You do not need to return the array itself.\n\nBitwise XOR produces `0` for equal corresponding bits and `1` for different bits. For example, `3 ^ 5 = 6`.\n\n## Example 1:\n\n**Input:** n = 5, start = 0\n**Output:** 8\n**Explanation:** nums = [0,2,4,6,8], and 0 ^ 2 ^ 4 ^ 6 ^ 8 = 8.\n\n## Example 2:\n\n**Input:** n = 4, start = 3\n**Output:** 8\n**Explanation:** nums = [3,5,7,9], and 3 ^ 5 ^ 7 ^ 9 = 8.\n\n## Constraints:\n\n*   `1 <= n <= 1000`\n*   `0 <= start <= 1000`\n*   `n == nums.length`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int xorOperation(int n, int start) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Math", "Bit Manipulation"],
+  "tags": [
+    "Math",
+    "Bit Manipulation"
+  ],
   "examples": [
-    { "input": "n = 5, start = 0", "output": "8" },
-    { "input": "n = 4, start = 3", "output": "8" }
+    {
+      "input": "n = 5, start = 0",
+      "output": "8"
+    },
+    {
+      "input": "n = 4, start = 3",
+      "output": "8"
+    }
   ],
   "solutions": [
     {
-      "name": "Iterate and XOR",
+      "name": "Direct Index Simulation",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Compute the XOR of all elements start + 2*i for i from 0 to n-1.",
-      "code": "class Solution {\n    public int xorOperation(int n, int start) {\n        int result = 0;\n        for (int i = 0; i < n; i++) {\n            result ^= start + 2 * i;\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nLoop over every valid index `i`, compute the value `start + 2 * i`, and XOR it into a running answer.\n\n## Key Insight\n\nThe statement already gives the formula for each array value. XOR can be accumulated one value at a time because it is associative and `0` is the neutral starting value.\n\n## Complexity Analysis\n- Time Complexity: O(n), because each generated value is visited once.\n- Space Complexity: O(1), because the conceptual array is not stored.",
+      "code": "class Solution {\n    public int xorOperation(int n, int start) {\n        int answer = 0;\n        for (int i = 0; i < n; i++) {\n            answer ^= start + 2 * i;\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Build Array Then XOR",
+      "name": "Incremental Term Scan",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nKeep the current generated value in a variable. XOR it into the answer, then add `2` to move to the next value in the sequence.\n\n## Key Insight\n\nThe array is an arithmetic progression with difference `2`. Carrying the current value avoids recomputing `start + 2 * i` and makes the progression explicit.\n\n## Complexity Analysis\n- Time Complexity: O(n), because the loop consumes one generated value per step.\n- Space Complexity: O(1), because only the current value and answer are stored.",
+      "code": "class Solution {\n    public int xorOperation(int n, int start) {\n        int answer = 0;\n        int current = start;\n        int remaining = n;\n        while (remaining > 0) {\n            answer ^= current;\n            current += 2;\n            remaining--;\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Build Then Reduce Array",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "First build the nums array explicitly, then XOR all its elements together.",
-      "code": "class Solution {\n    public int xorOperation(int n, int start) {\n        int[] nums = new int[n];\n        for (int i = 0; i < n; i++) {\n            nums[i] = start + 2 * i;\n        }\n        int result = 0;\n        for (int num : nums) {\n            result ^= num;\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nMaterialize the conceptual `nums` array first. After the array is built, perform a second pass that XORs every stored value.\n\n## Key Insight\n\nThis is not the most memory-efficient route, but it separates two ideas that beginners often mix together: generating the sequence and reducing it with XOR.\n\n## Complexity Analysis\n- Time Complexity: O(n), because each element is written once and read once.\n- Space Complexity: O(n), for the generated array.",
+      "code": "class Solution {\n    public int xorOperation(int n, int start) {\n        int[] nums = new int[n];\n        for (int i = 0; i < n; i++) {\n            nums[i] = start + 2 * i;\n        }\n\n        int answer = 0;\n        for (int value : nums) {\n            answer ^= value;\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Prefix XOR Closed Form",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nShift every generated value right by one bit. The high bits become the consecutive range from `start >> 1` to `(start >> 1) + n - 1`. Use the standard prefix XOR pattern for `0..x`, then restore the shifted result and the low parity bit.\n\n## Key Insight\n\nAll generated numbers have the same low bit because each step adds `2`. After removing that shared low bit, the remaining values are consecutive integers, so range XOR can be answered in constant time.\n\n## Complexity Analysis\n- Time Complexity: O(1), because the prefix pattern depends only on `x % 4`.\n- Space Complexity: O(1), because no array or loop over `n` is needed.",
+      "code": "class Solution {\n    public int xorOperation(int n, int start) {\n        int base = start >> 1;\n        int highBits = xorPrefix(base - 1) ^ xorPrefix(base + n - 1);\n        int lowBit = (n % 2) * (start & 1);\n        return (highBits << 1) | lowBit;\n    }\n\n    private int xorPrefix(int x) {\n        if (x < 0) {\n            return 0;\n        }\n        int pattern = x & 3;\n        if (pattern == 0) {\n            return x;\n        }\n        if (pattern == 1) {\n            return 1;\n        }\n        if (pattern == 2) {\n            return x + 1;\n        }\n        return 0;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "n = 5, start = 0", "output": "8" },
-    { "input": "n = 4, start = 3", "output": "8" }
+    {
+      "input": "n = 5, start = 0",
+      "output": "8",
+      "description": "sample with an even sequence starting at zero"
+    },
+    {
+      "input": "n = 4, start = 3",
+      "output": "8",
+      "description": "sample with odd values and even length"
+    },
+    {
+      "input": "n = 1, start = 7",
+      "output": "7",
+      "description": "single nonzero value returns start itself"
+    },
+    {
+      "input": "n = 1, start = 0",
+      "output": "0",
+      "description": "single zero value keeps the neutral XOR result"
+    },
+    {
+      "input": "n = 2, start = 0",
+      "output": "2",
+      "description": "two even values exercise the smallest pair"
+    },
+    {
+      "input": "n = 2, start = 1",
+      "output": "2",
+      "description": "two odd values cancel the shared low bit"
+    },
+    {
+      "input": "n = 3, start = 1",
+      "output": "7",
+      "description": "odd length preserves the shared low bit"
+    },
+    {
+      "input": "n = 6, start = 2",
+      "output": "14",
+      "description": "even start and even length exercise repeated XOR cancellation"
+    },
+    {
+      "input": "n = 7, start = 4",
+      "output": "18",
+      "description": "odd length with even start checks high-bit range XOR"
+    },
+    {
+      "input": "n = 10, start = 5",
+      "output": "2",
+      "description": "larger odd-start sequence checks the closed-form route"
+    },
+    {
+      "input": "n = 16, start = 1",
+      "output": "0",
+      "description": "power-of-two length can cancel the whole sequence"
+    },
+    {
+      "input": "n = 999, start = 999",
+      "output": "997",
+      "description": "near maximum odd inputs stress the prefix formula"
+    }
   ]
 }

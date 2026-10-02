@@ -1,34 +1,126 @@
 {
   "id": "486",
   "title": "2 Keys Keyboard",
-  "description": "# 2 Keys Keyboard\n\nThere is only one character `'A'` on the screen of a notepad. You can perform one of two operations on this notepad for each step:\n\n1.  **Copy All**: You can copy all the characters present on the screen (a partial copy is not allowed).\n2.  **Paste**: You can paste the characters which are copied last time.\n\nGiven an integer `n`, return *the minimum number of operations to get the character* `'A'` *exactly* `n` *times on the screen*.\n\n## Example 1:\n\n**Input:** n = 3\n**Output:** 3\n**Explanation:** Initially, we have one character 'A'.\nIn step 1, we use Copy All operation.\nIn step 2, we use Paste operation to get 'AA'.\nIn step 3, we use Paste operation to get 'AAA'.\n\n## Example 2:\n\n**Input:** n = 1\n**Output:** 0\n\n## Constraints:\n\n*   `1 <= n <= 1000`",
+  "description": "# 2 Keys Keyboard\n\nA notepad starts with exactly one character: `A`.\n\nYou may perform two operations:\n\n1. **Copy All**: copy every `A` currently on the screen. You cannot copy only part of the screen.\n2. **Paste**: paste the most recently copied block of `A` characters.\n\nGiven an integer `n`, return the minimum number of operations needed to display exactly `n` copies of `A`.\n\n## Key Clarification\n\nCopy replaces the previous copied content. Paste appends that whole content to the current text without consuming the copy.\n\n## Example 1:\n\n**Input:** n = 3\n**Output:** 3\n**Explanation:** Start with `A`, copy it once, then paste twice to reach `AAA`.\n\n## Example 2:\n\n**Input:** n = 1\n**Output:** 0\n**Explanation:** The notepad already contains exactly one `A`.\n\n## Constraints:\n\n* `1 <= n <= 1000`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int minSteps(int n) {\n        \n    }\n}",
-  "tags": ["Math", "Dynamic Programming"],
+  "tags": [
+    "Math",
+    "Dynamic Programming",
+    "Number Theory"
+  ],
   "examples": [
-    { "input": "n = 3", "output": "3" },
-    { "input": "n = 1", "output": "0" }
+    {
+      "input": "n = 3",
+      "output": "3"
+    },
+    {
+      "input": "n = 1",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
       "name": "Prime Factorization",
       "timeComplexity": "O(sqrt(n))",
       "spaceComplexity": "O(1)",
-      "description": "The minimum operations equals the sum of prime factors of n. Each prime factor p means: copy once + paste (p-1) times = p operations to multiply the count by p.",
-      "code": "class Solution {\n    public int minSteps(int n) {\n        int result = 0;\n        for (int d = 2; d * d <= n; d++) {\n            while (n % d == 0) {\n                result += d;\n                n /= d;\n            }\n        }\n        if (n > 1) result += n;\n        return result;\n    }\n}",
+      "description": "## Approach\n\nFactor `n` into prime factors and return their sum. When the current number of `A` characters is multiplied by a factor `p`, the cost is one copy plus `p - 1` pastes, or `p` operations.\n\n## Key Insight\n\nUsing a composite multiplier never beats splitting it into factors. Multiplying by `a * b` costs `a * b`, while multiplying by `a` and then by `b` costs only `a + b` for factors greater than one. Repeating this argument leaves only prime factors.\n\n## Complexity Analysis\n\nTrial division removes each discovered factor immediately.\n\n- Time Complexity: O(sqrt(n))\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int minSteps(int n) {\n        int answer = 0;\n        for (int factor = 2; factor * factor <= n; factor++) {\n            while (n % factor == 0) {\n                answer += factor;\n                n /= factor;\n            }\n        }\n        if (n > 1) {\n            answer += n;\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Bottom-Up DP",
+      "name": "Largest Divisor Recurrence",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n)",
-      "description": "Use dynamic programming where dp[i] is the minimum operations to get i A's. For each i, try all divisors d of i: dp[i] = min(dp[i/d] + d) because we can copy i/d A's and paste d-1 times.",
-      "code": "class Solution {\n    public int minSteps(int n) {\n        int[] dp = new int[n + 1];\n        for (int i = 2; i <= n; i++) {\n            dp[i] = i;\n            for (int j = 2; j * j <= i; j++) {\n                if (i % j == 0) {\n                    dp[i] = Math.min(dp[i], dp[i / j] + j);\n                }\n            }\n        }\n        return dp[n];\n    }\n}",
+      "description": "## Approach\n\nThink about the last Copy All operation. Immediately before that copy, the screen must have had a divisor `base` of `n`; after copying `base`, we paste it `n / base - 1` times. Choose the largest proper divisor first, because it gives the smallest final multiplier.\n\n## Key Insight\n\nThe largest proper divisor is `n` divided by the smallest prime factor. This recurrence is another way to reach the same prime-factor sum, but it explains the optimal structure from the final operation backward.\n\n## Complexity Analysis\n\nThe direct recursive version scans for a divisor on each recursive target.\n\n- Time Complexity: O(n^2)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int minSteps(int n) {\n        return solve(n);\n    }\n\n    private int solve(int target) {\n        if (target == 1) {\n            return 0;\n        }\n        for (int base = target / 2; base >= 1; base--) {\n            if (target % base == 0) {\n                return solve(base) + target / base;\n            }\n        }\n        return target;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bottom-Up Divisor DP",
+      "timeComplexity": "O(n sqrt n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nLet `dp[i]` be the minimum operations needed to display exactly `i` copies of `A`. For every divisor pair of `i`, try building one factor first and using the other factor as the final copy-paste multiplier.\n\n## Key Insight\n\nThe transition `dp[i] = min(dp[d] + i / d, dp[i / d] + d)` directly models the final growth phase. This route is slower than prime factorization, but it is a useful correctness bridge for students learning why divisors matter.\n\n## Complexity Analysis\n\nFor each target length, scan possible divisors up to its square root.\n\n- Time Complexity: O(n sqrt n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int minSteps(int n) {\n        int[] dp = new int[n + 1];\n        for (int i = 2; i <= n; i++) {\n            dp[i] = i;\n            for (int d = 2; d * d <= i; d++) {\n                if (i % d == 0) {\n                    dp[i] = Math.min(dp[i], dp[d] + i / d);\n                    dp[i] = Math.min(dp[i], dp[i / d] + d);\n                }\n            }\n        }\n        return dp[n];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Memoized Divisor DP",
+      "timeComplexity": "O(n sqrt n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse memoized recursion on the target length. For each divisor pair, recursively solve the smaller subproblem and add the cost of one final copy-paste growth phase.\n\n## Key Insight\n\nTop-down DP exposes the decision tree: each candidate divisor represents the screen length immediately before the last Copy All. Memoization keeps every target length from being recomputed.\n\n## Complexity Analysis\n\nEach memoized target scans divisors up to its square root once.\n\n- Time Complexity: O(n sqrt n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private int[] memo;\n\n    public int minSteps(int n) {\n        memo = new int[n + 1];\n        return solve(n);\n    }\n\n    private int solve(int target) {\n        if (target == 1) {\n            return 0;\n        }\n        if (memo[target] != 0) {\n            return memo[target];\n        }\n\n        int best = target;\n        for (int d = 2; d * d <= target; d++) {\n            if (target % d == 0) {\n                best = Math.min(best, solve(d) + target / d);\n                best = Math.min(best, solve(target / d) + d);\n            }\n        }\n        memo[target] = best;\n        return best;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "n = 3", "output": "3" },
-    { "input": "n = 1", "output": "0" }
+    {
+      "input": "n = 1",
+      "output": "0"
+    },
+    {
+      "input": "n = 2",
+      "output": "2"
+    },
+    {
+      "input": "n = 3",
+      "output": "3"
+    },
+    {
+      "input": "n = 4",
+      "output": "4"
+    },
+    {
+      "input": "n = 5",
+      "output": "5"
+    },
+    {
+      "input": "n = 6",
+      "output": "5"
+    },
+    {
+      "input": "n = 8",
+      "output": "6"
+    },
+    {
+      "input": "n = 9",
+      "output": "6"
+    },
+    {
+      "input": "n = 12",
+      "output": "7"
+    },
+    {
+      "input": "n = 16",
+      "output": "8"
+    },
+    {
+      "input": "n = 18",
+      "output": "8"
+    },
+    {
+      "input": "n = 27",
+      "output": "9"
+    },
+    {
+      "input": "n = 31",
+      "output": "31"
+    },
+    {
+      "input": "n = 64",
+      "output": "12"
+    },
+    {
+      "input": "n = 81",
+      "output": "12"
+    },
+    {
+      "input": "n = 997",
+      "output": "997"
+    },
+    {
+      "input": "n = 1000",
+      "output": "21"
+    }
   ]
 }

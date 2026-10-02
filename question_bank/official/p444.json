@@ -1,10 +1,15 @@
 {
   "id": "444",
   "title": "Simple Bank System",
-  "description": "# Simple Bank System\n\nYou have been tasked with writing a program for a popular bank that will automate all its incoming transactions (transfer, deposit, and withdraw). The bank has `n` accounts numbered from `1` to `n`. The initial balance of each account is stored in a 0-indexed integer array `balance`, where the `(i + 1)-th` account has an initial balance of `balance[i]`.\n\nExecute all the valid transactions. A transaction is valid if:\n\n*   The given account number(s) are between `1` and `n`, and\n*   The amount of money withdrawn or transferred from is less than or equal to the balance of the account.\n\nImplement the `Bank` class:\n\n*   `Bank(long[] balance)` Initializes the object with the 0-indexed integer array `balance`.\n*   `boolean transfer(int account1, int account2, long money)` Transfers `money` dollars from the account numbered `account1` to the account numbered `account2`. Returns `true` if the transaction was successful, `false` otherwise.\n*   `boolean deposit(int account, long money)` Deposit `money` dollars into the account numbered `account`. Returns `true` if the transaction was successful, `false` otherwise.\n*   `boolean withdraw(int account, long money)` Withdraw `money` dollars from the account numbered `account`. Returns `true` if the transaction was successful, `false` otherwise.\n\n## Example 1:\n\n**Input**\n[\"Bank\", \"withdraw\", \"transfer\", \"deposit\", \"transfer\", \"withdraw\"]\n[[[10, 100, 20, 50, 30]], [3, 10], [5, 1, 20], [5, 20], [3, 4, 15], [10, 50]]\n**Output**\n[null, true, true, true, false, false]\n**Explanation**\nBank bank = new Bank([10, 100, 20, 50, 30]);\nbank.withdraw(3, 10);    // return true, account 3 has a balance of 20, so it is valid to withdraw 10.\n                         // Account 3 has 20 - 10 = 10.\nbank.transfer(5, 1, 20); // return true, account 5 has a balance of 30, so it is valid to transfer 20.\n                         // Account 5 has 30 - 20 = 10, and account 1 has 10 + 20 = 30.\nbank.deposit(5, 20);     // return true, it is valid to deposit 20 to account 5.\n                         // Account 5 has 10 + 20 = 30.\nbank.transfer(3, 4, 15); // return false, the current balance of account 3 is 10,\n                         // so it is invalid to transfer 15 from it.\nbank.withdraw(10, 50);   // return false, it is invalid because account 10 does not exist.\n\n## Constraints:\n\n*   `n == balance.length`\n*   `1 <= n, account, account1, account2 <= 10^5`\n*   `0 <= balance[i], money <= 10^12`\n*   At most `10^4` calls will be made to each function `transfer`, `deposit`, `withdraw`.",
+  "description": "# Simple Bank System\n\nDesign a simple bank system with `n` accounts numbered from `1` to `n`. The initial balance of account `i` is `balance[i - 1]`.\n\nThe bank must support transfers, deposits, and withdrawals. A transaction succeeds only when every referenced account exists, and a withdrawal or transfer removes no more money than the source account currently owns. A failed transaction must leave every balance unchanged.\n\nImplement the `Bank` class:\n\n*   `Bank(long[] balance)` initializes the bank with the given account balances.\n*   `boolean transfer(int account1, int account2, long money)` transfers `money` from `account1` to `account2` and returns whether it succeeded.\n*   `boolean deposit(int account, long money)` deposits `money` into `account` and returns whether it succeeded.\n*   `boolean withdraw(int account, long money)` withdraws `money` from `account` and returns whether it succeeded.\n\nA transfer from an account to itself is valid if the account exists and has enough balance; it leaves the balance unchanged. A transaction with `money = 0` is still valid when the account checks pass.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1:\n\n**Input:**\n[\"Bank\", \"withdraw\", \"transfer\", \"deposit\", \"transfer\", \"withdraw\"]\n[[[10, 100, 20, 50, 30]], [3, 10], [5, 1, 20], [5, 20], [3, 4, 15], [10, 50]]\n**Output:**\n[null, true, true, true, false, false]\n**Explanation:**\nBank bank = new Bank([10, 100, 20, 50, 30]);\nbank.withdraw(3, 10);    // account 3 changes from 20 to 10\nbank.transfer(5, 1, 20); // account 5 changes from 30 to 10; account 1 changes from 10 to 30\nbank.deposit(5, 20);     // account 5 changes from 10 to 30\nbank.transfer(3, 4, 15); // false because account 3 has only 10\nbank.withdraw(10, 50);   // false because account 10 does not exist\n\n## Constraints:\n\n*   `n == balance.length`\n*   `1 <= n, account, account1, account2 <= 10^5`\n*   `0 <= balance[i], money <= 10^12`\n*   At most `10^4` calls will be made to each function `transfer`, `deposit`, and `withdraw`.",
   "difficulty": "MEDIUM",
   "initialCode": "class Bank {\n\n    public Bank(long[] balance) {\n        \n    }\n    \n    public boolean transfer(int account1, int account2, long money) {\n        \n    }\n    \n    public boolean deposit(int account, long money) {\n        \n    }\n    \n    public boolean withdraw(int account, long money) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Design", "Simulation"],
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Design",
+    "Simulation"
+  ],
   "examples": [
     {
       "input": "[\"Bank\", \"withdraw\", \"transfer\", \"deposit\", \"transfer\", \"withdraw\"]\n[[[10, 100, 20, 50, 30]], [3, 10], [5, 1, 20], [5, 20], [3, 4, 15], [10, 50]]",
@@ -13,19 +18,43 @@
   ],
   "solutions": [
     {
-      "name": "Array Simulation",
+      "name": "Zero-Indexed Array Simulation",
       "timeComplexity": "O(1) per operation",
       "spaceComplexity": "O(n)",
-      "description": "Store balances in a long array. Validate account bounds and sufficient balance before each operation.",
-      "code": "class Bank {\n    private long[] balance;\n    private int n;\n\n    public Bank(long[] balance) {\n        this.balance = balance;\n        this.n = balance.length;\n    }\n\n    private boolean validAccount(int account) {\n        return account >= 1 && account <= n;\n    }\n\n    public boolean transfer(int account1, int account2, long money) {\n        if (!validAccount(account1) || !validAccount(account2)) return false;\n        if (balance[account1 - 1] < money) return false;\n        balance[account1 - 1] -= money;\n        balance[account2 - 1] += money;\n        return true;\n    }\n\n    public boolean deposit(int account, long money) {\n        if (!validAccount(account)) return false;\n        balance[account - 1] += money;\n        return true;\n    }\n\n    public boolean withdraw(int account, long money) {\n        if (!validAccount(account)) return false;\n        if (balance[account - 1] < money) return false;\n        balance[account - 1] -= money;\n        return true;\n    }\n}",
+      "description": "## Approach\n\nStore the balances in the given zero-indexed `long[]`. Convert an account number to `account - 1` only after validating that the account is between `1` and `n`.\n\n## Key Insight\n\nEvery operation is constant time, but the order of checks matters: failed account or balance checks must happen before any balance mutation.\n\n## Complexity Analysis\n\n- Time Complexity: O(1) per operation.\n- Space Complexity: O(n).",
+      "code": "class Bank {\n    private final long[] balances;\n\n    public Bank(long[] balance) {\n        this.balances = balance;\n    }\n\n    public boolean transfer(int account1, int account2, long money) {\n        if (!validAccount(account1) || !validAccount(account2)) {\n            return false;\n        }\n        int from = account1 - 1;\n        int to = account2 - 1;\n        if (balances[from] < money) {\n            return false;\n        }\n        balances[from] -= money;\n        balances[to] += money;\n        return true;\n    }\n\n    public boolean deposit(int account, long money) {\n        if (!validAccount(account)) {\n            return false;\n        }\n        balances[account - 1] += money;\n        return true;\n    }\n\n    public boolean withdraw(int account, long money) {\n        if (!validAccount(account)) {\n            return false;\n        }\n        int index = account - 1;\n        if (balances[index] < money) {\n            return false;\n        }\n        balances[index] -= money;\n        return true;\n    }\n\n    private boolean validAccount(int account) {\n        return account >= 1 && account <= balances.length;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "HashMap Based Bank",
+      "name": "One-Indexed Padded Array Ledger",
       "timeComplexity": "O(1) per operation",
       "spaceComplexity": "O(n)",
-      "description": "Use a HashMap mapping account number (1-indexed) to balance. Validate account existence and sufficient balance before each operation.",
-      "code": "import java.util.*;\n\nclass Bank {\n    private Map<Integer, Long> accounts;\n\n    public Bank(long[] balance) {\n        accounts = new HashMap();\n        for (int i = 0; i < balance.length; i++) {\n            accounts.put(i + 1, balance[i]);\n        }\n    }\n\n    public boolean transfer(int account1, int account2, long money) {\n        if (!accounts.containsKey(account1) || !accounts.containsKey(account2)) return false;\n        long bal1 = accounts.get(account1).longValue();\n        if (bal1 < money) return false;\n        accounts.put(account1, bal1 - money);\n        accounts.put(account2, accounts.get(account2).longValue() + money);\n        return true;\n    }\n\n    public boolean deposit(int account, long money) {\n        if (!accounts.containsKey(account)) return false;\n        accounts.put(account, accounts.get(account).longValue() + money);\n        return true;\n    }\n\n    public boolean withdraw(int account, long money) {\n        if (!accounts.containsKey(account)) return false;\n        long bal = accounts.get(account).longValue();\n        if (bal < money) return false;\n        accounts.put(account, bal - money);\n        return true;\n    }\n}",
+      "description": "## Approach\n\nCopy balances into a new array of size `n + 1`, leaving index `0` unused. Then account numbers can be used directly as array indexes.\n\n## Key Insight\n\nThe padded array trades one unused slot for simpler indexing. It reduces repeated `account - 1` conversions in a design class where every method uses account IDs.\n\n## Complexity Analysis\n\n- Time Complexity: O(1) per operation after O(n) construction.\n- Space Complexity: O(n).",
+      "code": "class Bank {\n    private final long[] accounts;\n\n    public Bank(long[] balance) {\n        accounts = new long[balance.length + 1];\n        for (int i = 0; i < balance.length; i++) {\n            accounts[i + 1] = balance[i];\n        }\n    }\n\n    public boolean transfer(int account1, int account2, long money) {\n        if (!validAccount(account1) || !validAccount(account2)) {\n            return false;\n        }\n        if (accounts[account1] < money) {\n            return false;\n        }\n        accounts[account1] -= money;\n        accounts[account2] += money;\n        return true;\n    }\n\n    public boolean deposit(int account, long money) {\n        if (!validAccount(account)) {\n            return false;\n        }\n        accounts[account] += money;\n        return true;\n    }\n\n    public boolean withdraw(int account, long money) {\n        if (!validAccount(account) || accounts[account] < money) {\n            return false;\n        }\n        accounts[account] -= money;\n        return true;\n    }\n\n    private boolean validAccount(int account) {\n        return account > 0 && account < accounts.length;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "HashMap Account Table",
+      "timeComplexity": "O(1) average per operation",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore account numbers and balances in a `HashMap<Integer, Long>`. Each operation first checks that every referenced account key exists, then applies the balance rule.\n\n## Key Insight\n\nA hash table is not necessary for contiguous accounts, but it teaches the same validation contract in a sparse-account representation.\n\n## Complexity Analysis\n\n- Time Complexity: O(1) average per operation.\n- Space Complexity: O(n).",
+      "code": "import java.util.*;\n\nclass Bank {\n    private final Map<Integer, Long> accounts = new HashMap<>();\n\n    public Bank(long[] balance) {\n        for (int i = 0; i < balance.length; i++) {\n            accounts.put(i + 1, balance[i]);\n        }\n    }\n\n    public boolean transfer(int account1, int account2, long money) {\n        if (!accounts.containsKey(account1) || !accounts.containsKey(account2)) {\n            return false;\n        }\n        long fromBalance = accounts.get(account1);\n        if (fromBalance < money) {\n            return false;\n        }\n        accounts.put(account1, fromBalance - money);\n        accounts.put(account2, accounts.get(account2) + money);\n        return true;\n    }\n\n    public boolean deposit(int account, long money) {\n        if (!accounts.containsKey(account)) {\n            return false;\n        }\n        accounts.put(account, accounts.get(account) + money);\n        return true;\n    }\n\n    public boolean withdraw(int account, long money) {\n        Long balance = accounts.get(account);\n        if (balance == null || balance < money) {\n            return false;\n        }\n        accounts.put(account, balance - money);\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Account Object Ledger",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nWrap each balance in an `Account` object stored in a one-indexed array. The helper that resolves an account number centralizes bounds checking.\n\n## Key Insight\n\nThis route separates domain concepts from array indexing. Transfer composes the same account lookup and sufficient-balance rule used by withdrawal.\n\n## Complexity Analysis\n\n- Time Complexity: O(1) per operation.\n- Space Complexity: O(n).",
+      "code": "class Bank {\n    private static class Account {\n        long balance;\n\n        Account(long balance) {\n            this.balance = balance;\n        }\n\n        boolean canWithdraw(long money) {\n            return balance >= money;\n        }\n    }\n\n    private final Account[] accounts;\n\n    public Bank(long[] balance) {\n        accounts = new Account[balance.length + 1];\n        for (int i = 0; i < balance.length; i++) {\n            accounts[i + 1] = new Account(balance[i]);\n        }\n    }\n\n    public boolean transfer(int account1, int account2, long money) {\n        Account from = get(account1);\n        Account to = get(account2);\n        if (from == null || to == null || !from.canWithdraw(money)) {\n            return false;\n        }\n        from.balance -= money;\n        to.balance += money;\n        return true;\n    }\n\n    public boolean deposit(int account, long money) {\n        Account target = get(account);\n        if (target == null) {\n            return false;\n        }\n        target.balance += money;\n        return true;\n    }\n\n    public boolean withdraw(int account, long money) {\n        Account target = get(account);\n        if (target == null || !target.canWithdraw(money)) {\n            return false;\n        }\n        target.balance -= money;\n        return true;\n    }\n\n    private Account get(int account) {\n        if (account <= 0 || account >= accounts.length) {\n            return null;\n        }\n        return accounts[account];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "List Ledger with Transaction Guards",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore balances in a one-indexed `ArrayList<Long>`. Use small guard helpers for account existence, withdrawal ability, and applying a signed delta.\n\n## Key Insight\n\nThe guard helpers make transaction atomicity explicit: transfer applies two deltas only after both accounts exist and the source balance is sufficient.\n\n## Complexity Analysis\n\n- Time Complexity: O(1) per operation after O(n) construction.\n- Space Complexity: O(n).",
+      "code": "import java.util.*;\n\nclass Bank {\n    private final List<Long> balances = new ArrayList<>();\n\n    public Bank(long[] balance) {\n        balances.add(0L);\n        for (long value : balance) {\n            balances.add(value);\n        }\n    }\n\n    public boolean transfer(int account1, int account2, long money) {\n        if (!canWithdraw(account1, money) || !validAccount(account2)) {\n            return false;\n        }\n        applyDelta(account1, -money);\n        applyDelta(account2, money);\n        return true;\n    }\n\n    public boolean deposit(int account, long money) {\n        if (!validAccount(account)) {\n            return false;\n        }\n        applyDelta(account, money);\n        return true;\n    }\n\n    public boolean withdraw(int account, long money) {\n        if (!canWithdraw(account, money)) {\n            return false;\n        }\n        applyDelta(account, -money);\n        return true;\n    }\n\n    private boolean validAccount(int account) {\n        return account > 0 && account < balances.size();\n    }\n\n    private boolean canWithdraw(int account, long money) {\n        return validAccount(account) && balances.get(account) >= money;\n    }\n\n    private void applyDelta(int account, long delta) {\n        balances.set(account, balances.get(account) + delta);\n    }\n}",
       "language": "java"
     }
   ],
@@ -33,6 +62,42 @@
     {
       "input": "[\"Bank\", \"withdraw\", \"transfer\", \"deposit\", \"transfer\", \"withdraw\"]\n[[[10, 100, 20, 50, 30]], [3, 10], [5, 1, 20], [5, 20], [3, 4, 15], [10, 50]]",
       "output": "[null, true, true, true, false, false]"
+    },
+    {
+      "input": "[\"Bank\", \"deposit\", \"withdraw\", \"transfer\", \"transfer\", \"withdraw\", \"deposit\"]\n[[[5, 0]], [3, 10], [2, 1], [1, 2, 5], [1, 2, 1], [1, 1], [2, 4]]",
+      "output": "[null, false, false, true, false, false, true]"
+    },
+    {
+      "input": "[\"Bank\", \"transfer\", \"withdraw\", \"deposit\", \"withdraw\"]\n[[[7, 3]], [1, 2, 7], [1, 1], [1, 5], [1, 5]]",
+      "output": "[null, true, false, true, true]"
+    },
+    {
+      "input": "[\"Bank\", \"transfer\", \"withdraw\", \"deposit\"]\n[[[10, 0]], [1, 3, 5], [1, 10], [2, 1]]",
+      "output": "[null, false, true, true]"
+    },
+    {
+      "input": "[\"Bank\", \"transfer\", \"withdraw\", \"deposit\"]\n[[[0, 5]], [3, 2, 10], [2, 5], [1, 0]]",
+      "output": "[null, false, true, true]"
+    },
+    {
+      "input": "[\"Bank\", \"withdraw\", \"transfer\", \"deposit\", \"withdraw\"]\n[[[0, 1]], [1, 0], [1, 2, 0], [2, 0], [1, 1]]",
+      "output": "[null, true, true, true, false]"
+    },
+    {
+      "input": "[\"Bank\", \"transfer\", \"withdraw\", \"withdraw\"]\n[[[1000000000000, 0]], [1, 2, 1000000000000], [1, 1], [2, 1000000000000]]",
+      "output": "[null, true, false, true]"
+    },
+    {
+      "input": "[\"Bank\", \"deposit\", \"withdraw\", \"transfer\", \"withdraw\"]\n[[[5, 6, 7]], [3, 3], [0, 1], [3, 1, 10], [3, 1]]",
+      "output": "[null, true, false, true, false]"
+    },
+    {
+      "input": "[\"Bank\", \"transfer\", \"deposit\", \"transfer\", \"withdraw\"]\n[[[4, 0]], [1, 2, 5], [1, 1], [1, 2, 5], [2, 5]]",
+      "output": "[null, false, true, true, true]"
+    },
+    {
+      "input": "[\"Bank\", \"transfer\", \"withdraw\", \"withdraw\"]\n[[[9]], [1, 1, 9], [1, 9], [1, 0]]",
+      "output": "[null, true, true, true]"
     }
   ]
 }

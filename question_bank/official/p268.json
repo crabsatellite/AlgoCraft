@@ -1,34 +1,118 @@
 {
   "id": "268",
   "title": "Count Pairs Whose Sum is Less than Target",
-  "description": "# Count Pairs Whose Sum is Less than Target\n\nGiven a **0-indexed** integer array `nums` of length `n` and an integer `target`, return *the number of pairs* `(i, j)` *where* `0 <= i < j < n` *and* `nums[i] + nums[j] < target`.\n\n## Example 1:\n\n**Input:** nums = [-1,1,2,3,1], target = 2\n**Output:** 3\n**Explanation:** There are 3 pairs of indices that satisfy the conditions:\n- (0, 1) since 0 < 1 and nums[0] + nums[1] = 0 < target\n- (0, 2) since 0 < 2 and nums[0] + nums[2] = 1 < target\n- (0, 4) since 0 < 4 and nums[0] + nums[4] = 0 < target\nNote that (0, 3) is not counted since nums[0] + nums[3] = 2.\n\n## Example 2:\n\n**Input:** nums = [-6,2,5,-2,-7,-1,3], target = -2\n**Output:** 10\n**Explanation:** There are 10 pairs of indices that satisfy the conditions.\n\n## Constraints:\n\n*   `1 <= nums.length == n <= 50`\n*   `-50 <= nums[i], target <= 50`",
+  "description": "# Count Pairs Whose Sum is Less than Target\n\nGiven a **0-indexed** integer array `nums` and an integer `target`, return the number of index pairs `(i, j)` such that `0 <= i < j < nums.length` and `nums[i] + nums[j] < target`.\n\nThe comparison is **strictly less than** `target`. Pairs whose sum is exactly `target` are not counted.\n\n## Example 1:\n\n**Input:** nums = [-1,1,2,3,1], target = 2\n**Output:** 3\n**Explanation:** The valid pairs are `(0,1)`, `(0,2)`, and `(0,4)`. Pair `(0,3)` is not counted because its sum is exactly 2.\n\n## Example 2:\n\n**Input:** nums = [-6,2,5,-2,-7,-1,3], target = -2\n**Output:** 10\n**Explanation:** Negative values can make many pairs smaller than a negative target.\n\n## Constraints:\n\n*   `1 <= nums.length <= 50`\n*   `-50 <= nums[i] <= 50`\n*   `-50 <= target <= 50`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int countPairs(int[] nums, int target) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Two Pointers", "Sorting"],
+  "tags": [
+    "Array",
+    "Two Pointers",
+    "Sorting"
+  ],
   "examples": [
-    { "input": "nums = [-1,1,2,3,1], target = 2", "output": "3" },
-    { "input": "nums = [-6,2,5,-2,-7,-1,3], target = -2", "output": "10" }
+    {
+      "input": "nums = [-1,1,2,3,1], target = 2",
+      "output": "3"
+    },
+    {
+      "input": "nums = [-6,2,5,-2,-7,-1,3], target = -2",
+      "output": "10"
+    }
   ],
   "solutions": [
     {
-      "name": "Brute Force",
+      "name": "Brute Force Pairs",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(1)",
-      "description": "Check all pairs (i, j) where i < j and count those with sum < target. For n <= 50, this is efficient enough.",
-      "code": "class Solution {\n    public int countPairs(int[] nums, int target) {\n        int count = 0;\n        for (int i = 0; i < nums.length; i++) {\n            for (int j = i + 1; j < nums.length; j++) {\n                if (nums[i] + nums[j] < target) count++;\n            }\n        }\n        return count;\n    }\n}",
+      "description": "## Approach\n\nCheck every pair of indices `i < j`. Count the pair only when `nums[i] + nums[j] < target`.\n\n## Key Insight\n\nThis route mirrors the definition exactly, so it is the clearest correctness baseline. It also keeps the strict inequality visible.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), because every pair may be inspected.\n- Space Complexity: O(1).",
+      "code": "class Solution {\n    public int countPairs(int[] nums, int target) {\n        int count = 0;\n        for (int i = 0; i < nums.length; i++) {\n            for (int j = i + 1; j < nums.length; j++) {\n                if (nums[i] + nums[j] < target) {\n                    count++;\n                }\n            }\n        }\n        return count;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Sort and Two Pointers",
+      "name": "Sort And Two Pointers",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(1)",
-      "description": "Sort the array. Use two pointers: left at start, right at end. If sum < target, all pairs (left, left+1..right) are valid, add (right-left) and move left. Otherwise move right.",
-      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int countPairs(int[] nums, int target) {\n        Arrays.sort(nums);\n        int count = 0;\n        int left = 0, right = nums.length - 1;\n        while (left < right) {\n            if (nums[left] + nums[right] < target) {\n                count += right - left;\n                left++;\n            } else {\n                right--;\n            }\n        }\n        return count;\n    }\n}",
+      "description": "## Approach\n\nSort the array. Keep `left` at the smallest remaining value and `right` at the largest. If `nums[left] + nums[right] < target`, then `nums[left]` pairs with every index from `left + 1` through `right`, so add that whole block and move `left`. Otherwise move `right` down.\n\n## Key Insight\n\nSorting gives monotonicity. Once the largest partner works with `nums[left]`, every smaller partner also works; once it does not work, the largest value must be reduced.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), dominated by sorting.\n- Space Complexity: O(1) extra space, ignoring implementation-specific sort stack details.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int countPairs(int[] nums, int target) {\n        Arrays.sort(nums);\n        int left = 0;\n        int right = nums.length - 1;\n        int count = 0;\n        while (left < right) {\n            if (nums[left] + nums[right] < target) {\n                count += right - left;\n                left++;\n            } else {\n                right--;\n            }\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sort And Binary Search",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nSort the array. For each left index `i`, binary search the first position whose value is at least `target - nums[i]`. All positions before that boundary and after `i` form valid pairs with `i`.\n\n## Key Insight\n\nFor a fixed `nums[i]`, the condition becomes `nums[j] < target - nums[i]`. A lower-bound search gives the first value that fails the strict inequality.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), from sorting plus one binary search per index.\n- Space Complexity: O(1) extra space, ignoring implementation-specific sort stack details.",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int countPairs(int[] nums, int target) {\n        Arrays.sort(nums);\n        int count = 0;\n        for (int i = 0; i < nums.length; i++) {\n            int limit = target - nums[i];\n            int left = i + 1;\n            int right = nums.length;\n            while (left < right) {\n                int mid = left + (right - left) / 2;\n                if (nums[mid] < limit) {\n                    left = mid + 1;\n                } else {\n                    right = mid;\n                }\n            }\n            count += left - i - 1;\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bounded Value Frequency Count",
+      "timeComplexity": "O(n + U^2)",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\n\nUse the small value range `[-50, 50]`. Count how many times each value appears, then enumerate value pairs instead of index pairs. Equal values contribute `c * (c - 1) / 2`, while different values contribute `countA * countB`.\n\n## Key Insight\n\nThe input length is small enough for brute force, but the bounded value range teaches another counting model: group identical values first, then count all index pairs represented by each value pair.\n\n## Complexity Analysis\n\n- Time Complexity: O(n + U^2), where `U = 101` possible values.\n- Space Complexity: O(U).",
+      "code": "class Solution {\n    public int countPairs(int[] nums, int target) {\n        int[] frequency = new int[101];\n        for (int value : nums) {\n            frequency[value + 50]++;\n        }\n\n        int answer = 0;\n        for (int a = 0; a < frequency.length; a++) {\n            if (frequency[a] == 0) {\n                continue;\n            }\n            int valueA = a - 50;\n            for (int b = a; b < frequency.length; b++) {\n                if (frequency[b] == 0) {\n                    continue;\n                }\n                int valueB = b - 50;\n                if (valueA + valueB >= target) {\n                    continue;\n                }\n                if (a == b) {\n                    answer += frequency[a] * (frequency[a] - 1) / 2;\n                } else {\n                    answer += frequency[a] * frequency[b];\n                }\n            }\n        }\n        return answer;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [-1,1,2,3,1], target = 2", "output": "3" },
-    { "input": "nums = [-6,2,5,-2,-7,-1,3], target = -2", "output": "10" }
+    {
+      "input": "nums = [-1,1,2,3,1], target = 2",
+      "output": "3",
+      "description": "sample where only pairs with -1 are small enough"
+    },
+    {
+      "input": "nums = [-6,2,5,-2,-7,-1,3], target = -2",
+      "output": "10",
+      "description": "sample with negative values and many valid pairs"
+    },
+    {
+      "input": "nums = [1], target = 2",
+      "output": "0",
+      "description": "one element cannot form a pair"
+    },
+    {
+      "input": "nums = [1,2,3,4], target = 10",
+      "output": "6",
+      "description": "all pairs are below a large target"
+    },
+    {
+      "input": "nums = [5,6,7], target = 4",
+      "output": "0",
+      "description": "no pair is below a small target"
+    },
+    {
+      "input": "nums = [0,0,0], target = 1",
+      "output": "3",
+      "description": "duplicate values produce multiple index pairs"
+    },
+    {
+      "input": "nums = [1,1,1], target = 2",
+      "output": "0",
+      "description": "strictly less than target excludes equal sums"
+    },
+    {
+      "input": "nums = [-5,-4,-3], target = -7",
+      "output": "2",
+      "description": "negative sums can be strictly below a negative target"
+    },
+    {
+      "input": "nums = [-50,50,0], target = 1",
+      "output": "2",
+      "description": "constraint-edge values and zero are handled together"
+    },
+    {
+      "input": "nums = [-2,-1,0,1,2], target = 0",
+      "output": "4",
+      "description": "mixed signs around a zero target"
+    },
+    {
+      "input": "nums = [3,3,3,3], target = 7",
+      "output": "6",
+      "description": "all equal-value pairs count when their sum is below target"
+    },
+    {
+      "input": "nums = [-1,-1,1,1], target = 1",
+      "output": "5",
+      "description": "duplicate negative and positive values count by index pairs"
+    }
   ]
 }

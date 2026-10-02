@@ -1,21 +1,16 @@
 {
   "id": "83",
   "title": "Diameter of Binary Tree",
-  "description": "# Diameter of Binary Tree\n\nGiven the `root` of a binary tree, return *the length of the **diameter** of the tree*.\n\nThe **diameter** of a binary tree is the **length** of the longest path between any two nodes in a tree. This path may or may not pass through the `root`.\n\nThe **length** of a path between two nodes is represented by the number of edges between them.\n\n## Example 1:\n\n**Input:** root = [1,2,3,4,5]\n**Output:** 3\n**Explanation:** 3 is the length of the path [4,2,1,3] or [5,2,1,3].\n\n## Example 2:\n\n**Input:** root = [1,2]\n**Output:** 1\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[1, 10^4]`.\n*   `-100 <= Node.val <= 100`",
+  "description": "# Diameter of Binary Tree\n\nGiven the `root` of a binary tree, return the length of the diameter of the tree.\n\nThe diameter of a binary tree is the length of the longest path between any two nodes in the tree. The path may or may not pass through the `root`. Path length is measured by the number of edges between the two nodes, not by the number of nodes on the path.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [1,2,3,4,5]\n**Output:** 3\n**Explanation:** The longest path can be [4,2,1,3] or [5,2,1,3], which has 3 edges.\n\n## Example 2:\n\n**Input:** root = [1,2]\n**Output:** 1\n\n## Example 3:\n\n**Input:** root = [1]\n**Output:** 0\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[1, 10^4]`.\n*   `-100 <= Node.val <= 100`.",
   "difficulty": "EASY",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public int diameterOfBinaryTree(TreeNode root) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Tree", "Depth-First Search", "Binary Tree"],
-  "examples": [
-    {
-      "input": "root = [1,2,3,4,5]",
-      "output": "3"
-    },
-    {
-      "input": "root = [1,2]",
-      "output": "1"
-    }
+  "tags": [
+    "Tree",
+    "Depth-First Search",
+    "Breadth-First Search",
+    "Binary Tree"
   ],
-  "tests": [
+  "examples": [
     {
       "input": "root = [1,2,3,4,5]",
       "output": "3"
@@ -27,38 +22,113 @@
     {
       "input": "root = [1]",
       "output": "0"
+    }
+  ],
+  "tests": [
+    {
+      "input": "root = [1,2,3,4,5]",
+      "output": "3",
+      "description": "Canonical example where the best path crosses the root"
     },
     {
-      "input": "root = [1,2,null,3,4,5,6]",
-      "output": "3"
+      "input": "root = [1,2]",
+      "output": "1",
+      "description": "Two-node tree has one edge"
     },
     {
-      "input": "root = [1,2,3,4,5,null,null,null,null,6,7]",
-      "output": "4"
+      "input": "root = [1]",
+      "output": "0",
+      "description": "Single-node tree has zero-edge diameter"
+    },
+    {
+      "input": "root = [1,2,null,3,null,4,null]",
+      "output": "3",
+      "description": "Left-skewed tree measures edges, not nodes"
+    },
+    {
+      "input": "root = [1,null,2,null,3,null,4]",
+      "output": "3",
+      "description": "Right-skewed tree"
+    },
+    {
+      "input": "root = [1,2,3,4,5,6,7]",
+      "output": "4",
+      "description": "Perfect tree where the diameter crosses the root"
+    },
+    {
+      "input": "root = [1,2,3,4,null,null,5,6,null,null,7]",
+      "output": "6",
+      "description": "Longest path crosses the root with deep leaves on both sides"
+    },
+    {
+      "input": "root = [1,2,3,4,5,null,null,6,7]",
+      "output": "4",
+      "description": "Longest path is contained in the left subtree"
+    },
+    {
+      "input": "root = [100,-100,0,-50,null,null,50]",
+      "output": "4",
+      "description": "Boundary values should not affect edge count"
+    },
+    {
+      "input": "root = [-1,-2,-3,-4,null,null,-5]",
+      "output": "4",
+      "description": "All negative values"
+    },
+    {
+      "input": "root = [5,5,5,5,null,null,5,5]",
+      "output": "5",
+      "description": "Duplicate values should not hide the deeper path"
+    },
+    {
+      "input": "root = [1,2,3,null,4,null,5,null,null,6]",
+      "output": "5",
+      "description": "Inside grandchildren make the longest path non-obvious"
+    },
+    {
+      "input": "root = [1,2,3,4,null,5,null,6,null,7,null,8]",
+      "output": "7",
+      "description": "Deep uneven branches on both sides of the root"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p83_example1.png",
-      "caption": "Example 1"
+      "caption": "Input tree for diameter calculation"
     }
   ],
   "solutions": [
     {
-      "name": "DFS with Global Max",
+      "name": "Postorder DFS with Global Answer",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "For each node, the diameter through it is leftHeight + rightHeight. Track the global maximum while computing heights recursively.",
-      "code": "class Solution {\n    private int maxDiameter = 0;\n\n    public int diameterOfBinaryTree(TreeNode root) {\n        maxDiameter = 0;\n        height(root);\n        return maxDiameter;\n    }\n\n    private int height(TreeNode node) {\n        if (node == null) return 0;\n        int left = height(node.left);\n        int right = height(node.right);\n        maxDiameter = Math.max(maxDiameter, left + right);\n        return 1 + Math.max(left, right);\n    }\n}",
+      "description": "## Approach\n\nRun a postorder DFS that returns the height of each subtree. At every node, compute `leftHeight + rightHeight` as the number of edges on the best path passing through that node, and use it to update a global answer.\n\n## Key Insight\n\nA path that passes through a node can extend down one deepest branch on the left and one deepest branch on the right. The value returned upward is only one side's height, but the diameter candidate uses both sides.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h), where `h` is the tree height",
+      "code": "class Solution {\n    private int diameter;\n\n    public int diameterOfBinaryTree(TreeNode root) {\n        diameter = 0;\n        height(root);\n        return diameter;\n    }\n\n    private int height(TreeNode node) {\n        if (node == null) return 0;\n        int left = height(node.left);\n        int right = height(node.right);\n        diameter = Math.max(diameter, left + right);\n        return 1 + Math.max(left, right);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "DFS Returning Pair (No Global State)",
+      "name": "Postorder DFS Returning Info",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "Avoid instance fields by returning both height and diameter from each DFS call as an int array [diameter, height].",
-      "code": "class Solution {\n    public int diameterOfBinaryTree(TreeNode root) {\n        return dfs(root)[0];\n    }\n\n    private int[] dfs(TreeNode node) {\n        if (node == null) return new int[]{0, 0};\n        int[] left = dfs(node.left);\n        int[] right = dfs(node.right);\n        int diameter = Math.max(Math.max(left[0], right[0]), left[1] + right[1]);\n        int height = 1 + Math.max(left[1], right[1]);\n        return new int[]{diameter, height};\n    }\n}",
+      "description": "## Approach\n\nReturn an `Info` object from each subtree containing both its height and the best diameter fully inside it. The parent compares the left diameter, the right diameter, and the path that connects the deepest left and right branches through the parent.\n\n## Key Insight\n\nThis is the same postorder recurrence without mutable global state. Each call has all the facts needed to describe its subtree to its parent.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h), where `h` is the tree height",
+      "code": "class Solution {\n    public int diameterOfBinaryTree(TreeNode root) {\n        return solve(root).diameter;\n    }\n\n    private Info solve(TreeNode node) {\n        if (node == null) return new Info(0, 0);\n        Info left = solve(node.left);\n        Info right = solve(node.right);\n        int throughNode = left.height + right.height;\n        int diameter = Math.max(throughNode, Math.max(left.diameter, right.diameter));\n        int height = 1 + Math.max(left.height, right.height);\n        return new Info(height, diameter);\n    }\n\n    private static class Info {\n        int height;\n        int diameter;\n\n        Info(int height, int diameter) {\n            this.height = height;\n            this.diameter = diameter;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative Postorder Height Map",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSimulate postorder traversal with an explicit stack and a `lastVisited` pointer. Once both children of a node have been processed, read their stored heights from a map, update the best diameter, and store the node's height.\n\n## Key Insight\n\nDiameter needs child heights after both subtrees are complete. Iterative postorder gives the same dependency order as recursion while avoiding Java call-stack depth.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int diameterOfBinaryTree(TreeNode root) {\n        if (root == null) return 0;\n\n        Map<TreeNode, Integer> height = new HashMap<>();\n        Deque<TreeNode> stack = new ArrayDeque<>();\n        TreeNode current = root;\n        TreeNode lastVisited = null;\n        int best = 0;\n\n        while (current != null || !stack.isEmpty()) {\n            while (current != null) {\n                stack.push(current);\n                current = current.left;\n            }\n\n            TreeNode peek = stack.peek();\n            if (peek.right != null && lastVisited != peek.right) {\n                current = peek.right;\n            } else {\n                int leftHeight = height.getOrDefault(peek.left, 0);\n                int rightHeight = height.getOrDefault(peek.right, 0);\n                best = Math.max(best, leftHeight + rightHeight);\n                height.put(peek, 1 + Math.max(leftHeight, rightHeight));\n                lastVisited = stack.pop();\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Graph Two-BFS Diameter",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nConvert the binary tree into an undirected graph. Run BFS from the root to find a farthest node, then run BFS again from that farthest node; the largest distance reached by the second BFS is the diameter in edges.\n\n## Key Insight\n\nA tree diameter can be found by two farthest-node searches in any undirected tree. This route teaches the graph-theory view of the same binary-tree problem.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int diameterOfBinaryTree(TreeNode root) {\n        if (root == null) return 0;\n\n        Map<TreeNode, List<TreeNode>> graph = new HashMap<>();\n        buildGraph(root, null, graph);\n\n        Result first = bfs(root, graph);\n        Result second = bfs(first.node, graph);\n        return second.distance;\n    }\n\n    private void buildGraph(TreeNode node, TreeNode parent, Map<TreeNode, List<TreeNode>> graph) {\n        if (node == null) return;\n        graph.computeIfAbsent(node, key -> new ArrayList<>());\n        if (parent != null) {\n            graph.get(node).add(parent);\n            graph.get(parent).add(node);\n        }\n        buildGraph(node.left, node, graph);\n        buildGraph(node.right, node, graph);\n    }\n\n    private Result bfs(TreeNode start, Map<TreeNode, List<TreeNode>> graph) {\n        Queue<TreeNode> queue = new ArrayDeque<>();\n        Map<TreeNode, Integer> distance = new HashMap<>();\n        queue.offer(start);\n        distance.put(start, 0);\n\n        TreeNode farthest = start;\n        while (!queue.isEmpty()) {\n            TreeNode node = queue.poll();\n            int currentDistance = distance.get(node);\n            if (currentDistance > distance.get(farthest)) {\n                farthest = node;\n            }\n\n            for (TreeNode next : graph.get(node)) {\n                if (!distance.containsKey(next)) {\n                    distance.put(next, currentDistance + 1);\n                    queue.offer(next);\n                }\n            }\n        }\n        return new Result(farthest, distance.get(farthest));\n    }\n\n    private static class Result {\n        TreeNode node;\n        int distance;\n\n        Result(TreeNode node, int distance) {\n            this.node = node;\n            this.distance = distance;\n        }\n    }\n}",
       "language": "java"
     }
   ]

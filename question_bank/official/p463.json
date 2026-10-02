@@ -1,34 +1,104 @@
 {
   "id": "463",
   "title": "Student Attendance Record I",
-  "description": "# Student Attendance Record I\n\nYou are given a string `s` representing an attendance record for a student where each character signifies whether the student was absent, late, or present on that day. The record only contains the following three characters:\n\n*   `'A'`: Absent.\n*   `'L'`: Late.\n*   `'P'`: Present.\n\nThe student is eligible for an attendance award if they meet **both** of the following criteria:\n\n*   The student was absent (`'A'`) for **strictly fewer** than 2 days total.\n*   The student was **never** late (`'L'`) for 3 or more **consecutive** days.\n\nReturn `true` *if the student is eligible for an attendance award, or* `false` *otherwise*.\n\n## Example 1:\n\n**Input:** s = \"PPALLP\"\n**Output:** true\n**Explanation:** The student has fewer than 2 absences and was never late 3 or more consecutive days.\n\n## Example 2:\n\n**Input:** s = \"PPALLL\"\n**Output:** false\n**Explanation:** The student was late 3 consecutive days in the last 3 days, so is not eligible.\n\n## Constraints:\n\n*   `1 <= s.length <= 1000`\n*   `s[i]` is either `'A'`, `'L'`, or `'P'`.",
+  "description": "# Student Attendance Record I\n\nYou are given a string `s` representing one student's attendance record. Each character describes one day:\n\n*   `'A'` means absent.\n*   `'L'` means late.\n*   `'P'` means present.\n\nThe student is eligible for an attendance award only if both rules hold:\n\n*   The total number of absences is strictly less than `2`.\n*   The record never contains `3` or more consecutive late days.\n\nReturn `true` if the record is eligible, or `false` otherwise.\n\n## Example 1:\n\n**Input:** s = \"PPALLP\"\n**Output:** true\n**Explanation:** There is only one absence, and the longest late streak has length `2`.\n\n## Example 2:\n\n**Input:** s = \"PPALLL\"\n**Output:** false\n**Explanation:** The last three days are all late, so the record violates the consecutive-late rule.\n\n## Constraints:\n\n*   `1 <= s.length <= 1000`\n*   `s[i]` is one of `'A'`, `'L'`, or `'P'`.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public boolean checkRecord(String s) {\n        \n    }\n}",
-  "tags": ["String"],
+  "tags": [
+    "String"
+  ],
   "examples": [
-    { "input": "s = \"PPALLP\"", "output": "true" },
-    { "input": "s = \"PPALLL\"", "output": "false" }
+    {
+      "input": "s = \"PPALLP\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"PPALLL\"",
+      "output": "false"
+    }
   ],
   "solutions": [
     {
-      "name": "Single Pass Count",
+      "name": "Single-Pass Rule Counters",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Count absences and track consecutive late days. If absences >= 2 or consecutive late >= 3, return false.",
-      "code": "class Solution {\n    public boolean checkRecord(String s) {\n        int absences = 0, consecutiveLate = 0;\n        for (char c : s.toCharArray()) {\n            if (c == 'A') {\n                absences++;\n                if (absences >= 2) return false;\n                consecutiveLate = 0;\n            } else if (c == 'L') {\n                consecutiveLate++;\n                if (consecutiveLate >= 3) return false;\n            } else {\n                consecutiveLate = 0;\n            }\n        }\n        return true;\n    }\n}",
+      "description": "## Approach\n\nScan the record once. Keep the total number of absences and the length of the current consecutive-late streak. Reset the late streak whenever the current day is not late.\n\n## Key Insight\n\nThe two award rules can be checked online. An absence affects only the total absence count, while a late day affects only the current late streak. As soon as either rule is broken, the final answer is already false.\n\n## Complexity Analysis\n\nThe scan visits each character once, so the time complexity is O(n). The counters use O(1) extra space.",
+      "code": "class Solution {\n    public boolean checkRecord(String s) {\n        int absences = 0;\n        int lateStreak = 0;\n        for (int i = 0; i < s.length(); i++) {\n            char day = s.charAt(i);\n            if (day == 'A') {\n                absences++;\n                lateStreak = 0;\n                if (absences >= 2) {\n                    return false;\n                }\n            } else if (day == 'L') {\n                lateStreak++;\n                if (lateStreak >= 3) {\n                    return false;\n                }\n            } else {\n                lateStreak = 0;\n            }\n        }\n        return true;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "String Contains Check",
+      "name": "Two Independent Rule Checks",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Count occurrences of 'A' and check if 'LLL' substring exists. The student is eligible if A count < 2 and no 'LLL' appears in the string.",
-      "code": "class Solution {\n    public boolean checkRecord(String s) {\n        int aCount = 0;\n        for (int i = 0; i < s.length(); i++) {\n            if (s.charAt(i) == 'A') aCount++;\n        }\n        return aCount < 2 && s.indexOf(\"LLL\") == -1;\n    }\n}",
+      "description": "## Approach\n\nCheck the absence rule by comparing the first and last positions of `'A'`. If they differ, at least two absences exist. Check the late rule by searching for the forbidden substring `\"LLL\"`.\n\n## Key Insight\n\nThe two conditions are independent: total absences do not depend on position, and the late rule cares only about a contiguous length-three pattern. That makes it safe to express them as two direct string predicates.\n\n## Complexity Analysis\n\nEach string search is linear in the record length, so the time complexity is O(n). The algorithm uses O(1) extra space.",
+      "code": "class Solution {\n    public boolean checkRecord(String s) {\n        boolean fewerThanTwoAbsences = s.indexOf('A') == s.lastIndexOf('A');\n        boolean noThreeLateStreak = !s.contains(\"LLL\");\n        return fewerThanTwoAbsences && noThreeLateStreak;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Finite-State Rule Automaton",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nTrack which states are reachable after each day. A state is `(absenceCount, trailingLateCount)`, where `absenceCount` is `0` or `1`, and `trailingLateCount` is `0`, `1`, or `2`. Transitions that would create two absences or three trailing late days are discarded.\n\n## Key Insight\n\nThe validation rules define a tiny automaton. This form is more verbose for Record I, but it makes the state constraints explicit and prepares students for counting variants of the same attendance problem.\n\n## Complexity Analysis\n\nThere are only six possible states, so each day costs O(1) work. The total time complexity is O(n), and the state table uses O(1) extra space.",
+      "code": "class Solution {\n    public boolean checkRecord(String s) {\n        boolean[][] reachable = new boolean[2][3];\n        reachable[0][0] = true;\n        for (int i = 0; i < s.length(); i++) {\n            boolean[][] next = new boolean[2][3];\n            char day = s.charAt(i);\n            for (int absences = 0; absences < 2; absences++) {\n                for (int late = 0; late < 3; late++) {\n                    if (!reachable[absences][late]) {\n                        continue;\n                    }\n                    if (day == 'P') {\n                        next[absences][0] = true;\n                    } else if (day == 'A') {\n                        if (absences + 1 < 2) {\n                            next[absences + 1][0] = true;\n                        }\n                    } else if (late + 1 < 3) {\n                        next[absences][late + 1] = true;\n                    }\n                }\n            }\n            reachable = next;\n        }\n        for (int absences = 0; absences < 2; absences++) {\n            for (int late = 0; late < 3; late++) {\n                if (reachable[absences][late]) {\n                    return true;\n                }\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Regular Expression Rejection",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nReject the record if it matches either forbidden pattern: two absences anywhere, or three consecutive late days. If neither pattern appears, the record satisfies both award rules.\n\n## Key Insight\n\nFor a short rule set, it can be clearer to describe invalid records instead of valid records. The pattern `.*A.*A.*` catches two absences anywhere, and `.*LLL.*` catches the consecutive-late violation.\n\n## Complexity Analysis\n\nThe regular expression engine scans the string for these bounded patterns. The time complexity is O(n), and the algorithm uses O(1) extra space for this fixed expression.",
+      "code": "class Solution {\n    public boolean checkRecord(String s) {\n        return !s.matches(\".*A.*A.*|.*LLL.*\");\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"PPALLP\"", "output": "true" },
-    { "input": "s = \"PPALLL\"", "output": "false" }
+    {
+      "input": "s = \"PPALLP\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"PPALLL\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \"A\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"AA\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \"LLL\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \"LLPL\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"PALAP\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \"LLAPLL\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"PLLLP\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \"LLLP\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \"PPPLLL\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \"PPALLPL\"",
+      "output": "true"
+    }
   ]
 }

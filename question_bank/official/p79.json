@@ -1,7 +1,7 @@
 {
   "id": "79",
   "title": "Partition List",
-  "description": "# Partition List\n\nGiven the `head` of a linked list and a value `x`, partition it such that all nodes **less than** `x` come before nodes **greater than or equal** to `x`.\n\nYou should **preserve** the original relative order of the nodes in each of the two partitions.\n\n## Example 1:\n\n**Input:** head = [1,4,3,2,5,2], x = 3\n**Output:** [1,2,2,4,3,5]\n\n## Example 2:\n\n**Input:** head = [2,1], x = 2\n**Output:** [1,2]\n\n## Constraints:\n\n*   The number of nodes in the list is in the range `[0, 200]`.\n*   `-100 <= Node.val <= 100`\n*   `-200 <= x <= 200`",
+  "description": "# Partition List\n\nGiven the `head` of a linked list and an integer `x`, partition the list so that every node with value less than `x` appears before every node with value greater than or equal to `x`.\n\nThis is a stable partition, not a sort. Nodes that stay on the same side of the boundary must keep their original relative order. The returned list is serialized as an array of node values.\n\nExample arrays display values in `next` order; `[]` denotes an empty list (`null`). A node stores its value in `val` and its next node in `next`. Use node objects for list parameters and results as shown in the initial code.\n\n## Example 1:\n\n**Input:** head = [1,4,3,2,5,2], x = 3\n**Output:** [1,2,2,4,3,5]\n\nThe nodes less than `3` are `1,2,2`, in their original order. The nodes greater than or equal to `3` are `4,3,5`, also in their original order.\n\n## Example 2:\n\n**Input:** head = [2,1], x = 2\n**Output:** [1,2]\n\n## Constraints:\n\n*   The number of nodes in the list is in the range `[0, 200]`.\n*   `-100 <= Node.val <= 100`.\n*   `-200 <= x <= 200`.",
   "difficulty": "MEDIUM",
   "initialCode": "/**\n * Definition for singly-linked list.\n * public class ListNode {\n *     int val;\n *     ListNode next;\n *     ListNode() {}\n *     ListNode(int val) { this.val = val; }\n *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n * }\n */\nclass Solution {\n    public ListNode partition(ListNode head, int x) {\n        // Write your code here\n        return null;\n    }\n}",
   "tags": [
@@ -21,51 +21,101 @@
   "tests": [
     {
       "input": "head = [1,4,3,2,5,2], x = 3",
-      "output": "[1,2,2,4,3,5]"
+      "output": "[1,2,2,4,3,5]",
+      "description": "Canonical stable partition around x"
     },
     {
       "input": "head = [2,1], x = 2",
-      "output": "[1,2]"
+      "output": "[1,2]",
+      "description": "Two nodes with one value below x"
     },
     {
       "input": "head = [1,1], x = 0",
-      "output": "[1,1]"
+      "output": "[1,1]",
+      "description": "All nodes are greater than or equal to x"
     },
     {
       "input": "head = [1,1], x = 2",
-      "output": "[1,1]"
+      "output": "[1,1]",
+      "description": "All nodes are less than x"
     },
     {
       "input": "head = [], x = 1",
       "output": "[]",
-      "note": "空链表"
+      "description": "Empty list"
     },
     {
-      "input": "head = [1,2,3], x = 5",
+      "input": "head = [1], x = 1",
+      "output": "[1]",
+      "description": "Single node equal to x"
+    },
+    {
+      "input": "head = [-1,5,0,3,-2,4], x = 1",
+      "output": "[-1,0,-2,5,3,4]",
+      "description": "Negative values with stable order on both sides"
+    },
+    {
+      "input": "head = [3,1,2,3,0,3], x = 3",
+      "output": "[1,2,0,3,3,3]",
+      "description": "Nodes equal to x must stay in the greater-or-equal partition"
+    },
+    {
+      "input": "head = [4,1,4,2,4,3], x = 4",
+      "output": "[1,2,3,4,4,4]",
+      "description": "Repeated boundary values after smaller nodes"
+    },
+    {
+      "input": "head = [-100,100,0,-50,50], x = 0",
+      "output": "[-100,-50,100,0,50]",
+      "description": "Lower and upper value boundaries"
+    },
+    {
+      "input": "head = [0,-1,1,-2,2,-3,3], x = 0",
+      "output": "[-1,-2,-3,0,1,2,3]",
+      "description": "Alternating nodes across the partition boundary"
+    },
+    {
+      "input": "head = [1,2,3], x = 200",
       "output": "[1,2,3]",
-      "note": "所有都小于x"
+      "description": "x above every node value"
     },
     {
-      "input": "head = [5,4,3], x = 2",
-      "output": "[5,4,3]",
-      "note": "所有都大于等于x"
+      "input": "head = [-3,-2,-1], x = -200",
+      "output": "[-3,-2,-1]",
+      "description": "x below every node value"
     }
   ],
   "solutions": [
     {
-      "name": "Two Dummy Lists",
+      "name": "Two Dummy Stable Chains",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Maintain two separate lists: one for nodes < x and one for nodes >= x. Traverse the original list, appending each node to the appropriate list. Finally, connect the two lists.",
-      "code": "class Solution {\n    public ListNode partition(ListNode head, int x) {\n        ListNode lessHead = new ListNode(0);\n        ListNode greaterHead = new ListNode(0);\n        ListNode less = lessHead, greater = greaterHead;\n        \n        while (head != null) {\n            if (head.val < x) {\n                less.next = head;\n                less = less.next;\n            } else {\n                greater.next = head;\n                greater = greater.next;\n            }\n            head = head.next;\n        }\n        \n        greater.next = null;\n        less.next = greaterHead.next;\n        \n        return lessHead.next;\n    }\n}",
+      "description": "## Approach\n\nMaintain two chains while scanning the original list: `before` for nodes whose value is less than `x`, and `after` for nodes whose value is greater than or equal to `x`. Append each current node to the tail of its chain, then connect the two chains.\n\n## Key Insight\n\nAppending to the tail of each side preserves relative order automatically. The final `after.next = null` is not optional: it removes stale links from the original list and prevents cycles or an old unsorted suffix from leaking into the answer.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode partition(ListNode head, int x) {\n        ListNode beforeHead = new ListNode(0);\n        ListNode afterHead = new ListNode(0);\n        ListNode before = beforeHead;\n        ListNode after = afterHead;\n\n        while (head != null) {\n            if (head.val < x) {\n                before.next = head;\n                before = before.next;\n            } else {\n                after.next = head;\n                after = after.next;\n            }\n            head = head.next;\n        }\n\n        after.next = null;\n        before.next = afterHead.next;\n        return beforeHead.next;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "In-Place Insertion",
+      "name": "In-Place Insertion Before Boundary",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use a dummy node and two pointers. The 'lastSmall' pointer tracks the end of the partition with values < x. Traverse the list; when a node with value < x is found after the partition boundary, detach it and insert it right after lastSmall.",
-      "code": "class Solution {\n    public ListNode partition(ListNode head, int x) {\n        ListNode dummy = new ListNode(0);\n        dummy.next = head;\n        \n        // Find the last node in the 'less than x' section\n        ListNode lastSmall = dummy;\n        // First, advance lastSmall past any initial nodes < x\n        while (lastSmall.next != null && lastSmall.next.val < x) {\n            lastSmall = lastSmall.next;\n        }\n        \n        // Now scan the rest, moving nodes < x to after lastSmall\n        ListNode prev = lastSmall;\n        while (prev.next != null) {\n            if (prev.next.val < x) {\n                // Detach node\n                ListNode node = prev.next;\n                prev.next = node.next;\n                // Insert after lastSmall\n                node.next = lastSmall.next;\n                lastSmall.next = node;\n                lastSmall = node;\n            } else {\n                prev = prev.next;\n            }\n        }\n        \n        return dummy.next;\n    }\n}",
+      "description": "## Approach\n\nUse a dummy node and keep `lastSmall` at the tail of the already-built less-than-`x` prefix. After skipping the initial small nodes, scan the rest with `prev`; whenever `prev.next` is small, detach that node and insert it immediately after `lastSmall`.\n\n## Key Insight\n\nThis route moves nodes within the original chain instead of building two side chains. It is still stable because each newly discovered small node is inserted after all earlier small nodes, not at the very front.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode partition(ListNode head, int x) {\n        ListNode dummy = new ListNode(0);\n        dummy.next = head;\n\n        ListNode lastSmall = dummy;\n        while (lastSmall.next != null && lastSmall.next.val < x) {\n            lastSmall = lastSmall.next;\n        }\n\n        ListNode prev = lastSmall;\n        while (prev.next != null) {\n            if (prev.next.val < x) {\n                ListNode node = prev.next;\n                prev.next = node.next;\n                node.next = lastSmall.next;\n                lastSmall.next = node;\n                lastSmall = node;\n            } else {\n                prev = prev.next;\n            }\n        }\n        return dummy.next;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Stable Split",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nRecursively partition the suffix first, detach the current node, then prepend it to the correct returned chain. Because recursion processes nodes from tail back to head, prepending the current node restores the original left-to-right order inside each partition.\n\n## Key Insight\n\nThis is a useful teaching contrast for stable linked-list transforms: the helper returns both heads and tails, so the final connection is still O(1). It is not the preferred production route for long lists because it spends stack space.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n) for the recursion stack",
+      "code": "class Solution {\n    public ListNode partition(ListNode head, int x) {\n        Parts parts = build(head, x);\n        if (parts.beforeHead == null) return parts.afterHead;\n        parts.beforeTail.next = parts.afterHead;\n        return parts.beforeHead;\n    }\n\n    private Parts build(ListNode node, int x) {\n        if (node == null) return new Parts();\n        ListNode next = node.next;\n        node.next = null;\n        Parts rest = build(next, x);\n\n        if (node.val < x) {\n            node.next = rest.beforeHead;\n            rest.beforeHead = node;\n            if (rest.beforeTail == null) rest.beforeTail = node;\n        } else {\n            node.next = rest.afterHead;\n            rest.afterHead = node;\n            if (rest.afterTail == null) rest.afterTail = node;\n        }\n        return rest;\n    }\n\n    private static class Parts {\n        ListNode beforeHead;\n        ListNode beforeTail;\n        ListNode afterHead;\n        ListNode afterTail;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Buffered Stable Partition",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCollect nodes into two arrays while preserving their original order: first nodes with value less than `x`, then nodes with value greater than or equal to `x`. Detach nodes as they are collected, then reconnect the arrays in order.\n\n## Key Insight\n\nThis route trades memory for simpler control flow. It also makes the stability requirement explicit because the arrays record the exact encounter order of each side of the partition.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public ListNode partition(ListNode head, int x) {\n        List<ListNode> before = new ArrayList<>();\n        List<ListNode> after = new ArrayList<>();\n\n        while (head != null) {\n            ListNode next = head.next;\n            head.next = null;\n            if (head.val < x) {\n                before.add(head);\n            } else {\n                after.add(head);\n            }\n            head = next;\n        }\n\n        ListNode dummy = new ListNode(0);\n        ListNode tail = dummy;\n        for (ListNode node : before) {\n            tail.next = node;\n            tail = tail.next;\n        }\n        for (ListNode node : after) {\n            tail.next = node;\n            tail = tail.next;\n        }\n        tail.next = null;\n        return dummy.next;\n    }\n}",
       "language": "java"
     }
   ],
@@ -73,7 +123,7 @@
     {
       "id": "example1",
       "file": "p79_example1.png",
-      "caption": "Example 1: List [1,4,3,2,5,2] with x=3 (green < x, red >= x)"
+      "caption": "Input linked list and partition value"
     }
   ]
 }

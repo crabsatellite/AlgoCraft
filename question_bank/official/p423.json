@@ -1,38 +1,98 @@
 {
   "id": "423",
-  "title": "Design Front Middle Back Queue",
-  "description": "# Design Front Middle Back Queue\n\nDesign a queue that supports `push` and `pop` operations in the front, middle, and back.\n\nImplement the `FrontMiddleBackQueue` class:\n\n*   `FrontMiddleBackQueue()` Initializes the queue.\n*   `void pushFront(int val)` Adds `val` to the front of the queue.\n*   `void pushMiddle(int val)` Adds `val` to the middle of the queue.\n*   `void pushBack(int val)` Adds `val` to the back of the queue.\n*   `int popFront()` Removes the front element of the queue and returns it. If the queue is empty, return `-1`.\n*   `int popMiddle()` Removes the middle element of the queue and returns it. If the queue is empty, return `-1`.\n*   `int popBack()` Removes the back element of the queue and returns it. If the queue is empty, return `-1`.\n\nNotice that when there are two middle position choices, the operation is performed on the frontmost middle position choice. For example:\n\n*   Pushing `6` into the middle of `[1, 2, 3, 4, 5]` results in `[1, 2, 6, 3, 4, 5]`.\n*   Popping the middle from `[1, 2, 3, 4, 5, 6]` returns `3` and results in `[1, 2, 4, 5, 6]`.\n\n## Example 1:\n\n**Input:**\n[\"FrontMiddleBackQueue\", \"pushFront\", \"pushBack\", \"pushMiddle\", \"pushMiddle\", \"popFront\", \"popMiddle\", \"popMiddle\", \"popBack\", \"popFront\"]\n[[], [1], [2], [3], [4], [], [], [], [], []]\n**Output:**\n[null, null, null, null, null, 1, 3, 4, 2, -1]\n**Explanation:**\nFrontMiddleBackQueue q = new FrontMiddleBackQueue();\nq.pushFront(1);   // [1]\nq.pushBack(2);    // [1, 2]\nq.pushMiddle(3);  // [1, 3, 2]\nq.pushMiddle(4);  // [1, 4, 3, 2]\nq.popFront();     // return 1 -> [4, 3, 2]\nq.popMiddle();    // return 3 -> [4, 2]\nq.popMiddle();    // return 4 -> [2]\nq.popBack();      // return 2 -> []\nq.popFront();     // return -1 -> [] (The queue is empty)\n\n## Constraints:\n\n*   `1 <= val <= 10^9`\n*   At most `1000` calls will be made to `pushFront`, `pushMiddle`, `pushBack`, `popFront`, `popMiddle`, and `popBack`.",
-  "difficulty": "MEDIUM",
-  "initialCode": "class FrontMiddleBackQueue {\n\n    public FrontMiddleBackQueue() {\n        \n    }\n    \n    public void pushFront(int val) {\n        \n    }\n    \n    public void pushMiddle(int val) {\n        \n    }\n    \n    public void pushBack(int val) {\n        \n    }\n    \n    public int popFront() {\n        \n    }\n    \n    public int popMiddle() {\n        \n    }\n    \n    public int popBack() {\n        \n    }\n}",
-  "tags": ["Array", "Linked List", "Design", "Queue", "Data Stream"],
+  "title": "Maximum Number of Pairs in Array",
+  "description": "# Maximum Number of Pairs in Array\n\nGiven an integer array `nums`, repeatedly choose two unused elements with the same value and form a pair. Return an array `[pairs, leftovers]`:\n\n* `pairs` is the maximum number of equal-value pairs that can be formed.\n* `leftovers` is the number of elements not used in any pair.\n\n## Example 1:\n\n**Input:** nums = [1,3,2,1,3,2,2]\n\n**Output:** [3,1]\n\n**Explanation:** The pairs are `(1,1)`, `(3,3)`, and one pair of `2`s. One `2` is left over.\n\n## Example 2:\n\n**Input:** nums = [1,1]\n\n**Output:** [1,0]\n\n**Explanation:** Both elements form one pair, so no element is left over.\n\n## Constraints:\n\n* `0 <= nums.length <= 100`\n* `0 <= nums[i] <= 100`\n",
+  "difficulty": "EASY",
+  "initialCode": "class Solution {\n    public int[] numberOfPairs(int[] nums) {\n        \n    }\n}",
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Counting"
+  ],
   "examples": [
     {
-      "input": "[\"FrontMiddleBackQueue\", \"pushFront\", \"pushBack\", \"pushMiddle\", \"pushMiddle\", \"popFront\", \"popMiddle\", \"popMiddle\", \"popBack\", \"popFront\"]\n[[], [1], [2], [3], [4], [], [], [], [], []]",
-      "output": "[null, null, null, null, null, 1, 3, 4, 2, -1]"
+      "input": "nums = [1,3,2,1,3,2,2]",
+      "output": "[3,1]"
+    },
+    {
+      "input": "nums = [1,1]",
+      "output": "[1,0]"
     }
   ],
   "solutions": [
     {
-      "name": "Two Balanced Deques",
-      "timeComplexity": "O(1) per operation",
-      "spaceComplexity": "O(n)",
-      "description": "Split elements into two deques (first half and second half). Keep balanced: first.size() == second.size() or first.size() + 1 == second.size(). Middle ops work at the boundary.",
-      "code": "class FrontMiddleBackQueue {\n    private java.util.Deque<Integer> first = new java.util.ArrayDeque<>();\n    private java.util.Deque<Integer> second = new java.util.ArrayDeque<>();\n    public FrontMiddleBackQueue() {}\n    private void balance() {\n        if (first.size() > second.size()) second.addFirst(first.pollLast());\n        if (second.size() > first.size() + 1) first.addLast(second.pollFirst());\n    }\n    public void pushFront(int val) { first.addFirst(val); balance(); }\n    public void pushMiddle(int val) { first.addLast(val); balance(); }\n    public void pushBack(int val) { second.addLast(val); balance(); }\n    public int popFront() {\n        if (second.isEmpty()) return -1;\n        int val = first.isEmpty() ? second.pollFirst() : first.pollFirst();\n        balance(); return val;\n    }\n    public int popMiddle() {\n        if (second.isEmpty()) return -1;\n        int val = first.size() == second.size() ? first.pollLast() : second.pollFirst();\n        balance(); return val;\n    }\n    public int popBack() {\n        if (second.isEmpty()) return -1;\n        int val = second.pollLast(); balance(); return val;\n    }\n}",
+      "name": "Bounded Frequency Array",
+      "timeComplexity": "O(n + U)",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\n\nUse the constraint `0 <= nums[i] <= 100` to allocate a frequency array of length `101`. Count each value, then add `count / 2` to the pair total and `count % 2` to the leftover total.\n\n## Key Insight\n\nPairs depend only on how many times each value appears, not on where those values appear. The small value range lets us replace a hash table with direct indexing.\n\n## Complexity Analysis\n\nLet `U = 101` be the fixed value range. Counting takes O(n) time and scanning the range takes O(U) time. The frequency array uses O(U) space.",
+      "code": "class Solution {\n    public int[] numberOfPairs(int[] nums) {\n        int[] count = new int[101];\n        for (int value : nums) {\n            count[value]++;\n        }\n        int pairs = 0;\n        int leftovers = 0;\n        for (int frequency : count) {\n            pairs += frequency / 2;\n            leftovers += frequency % 2;\n        }\n        return new int[]{pairs, leftovers};\n    }\n}",
       "language": "java"
     },
     {
-      "name": "ArrayList Based",
-      "timeComplexity": "O(n) per operation",
-      "spaceComplexity": "O(n)",
-      "description": "Use a single ArrayList. Push and pop at front, middle, and back using ArrayList add/remove with index. Middle index is size/2.",
-      "code": "import java.util.*;\n\nclass FrontMiddleBackQueue {\n    private List<Integer> list;\n    public FrontMiddleBackQueue() {\n        list = new ArrayList();\n    }\n    public void pushFront(int val) {\n        list.add(0, val);\n    }\n    public void pushMiddle(int val) {\n        list.add(list.size() / 2, val);\n    }\n    public void pushBack(int val) {\n        list.add(val);\n    }\n    public int popFront() {\n        if (list.isEmpty()) return -1;\n        return list.remove(0).intValue();\n    }\n    public int popMiddle() {\n        if (list.isEmpty()) return -1;\n        int mid = (list.size() - 1) / 2;\n        return list.remove(mid).intValue();\n    }\n    public int popBack() {\n        if (list.isEmpty()) return -1;\n        return list.remove(list.size() - 1).intValue();\n    }\n}",
+      "name": "HashMap Frequency Counts",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nCount values in a `HashMap`, then apply the same frequency formula to every map entry. This works even if the value range were not small.\n\n## Key Insight\n\nThe formula `pairs += count / 2` and `leftovers += count % 2` is the core of the problem. A hash map keeps that idea independent of the numeric bounds.\n\n## Complexity Analysis\n\nThe expected time complexity is O(n), where `n` is the array length. The map stores `k` distinct values, so the extra space is O(k).",
+      "code": "import java.util.HashMap;\nimport java.util.Map;\n\nclass Solution {\n    public int[] numberOfPairs(int[] nums) {\n        Map<Integer, Integer> counts = new HashMap<>();\n        for (int value : nums) {\n            counts.put(value, counts.getOrDefault(value, 0) + 1);\n        }\n        int pairs = 0;\n        int leftovers = 0;\n        for (int frequency : counts.values()) {\n            pairs += frequency / 2;\n            leftovers += frequency % 2;\n        }\n        return new int[]{pairs, leftovers};\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Toggle Set of Waiting Singles",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nMaintain a set of values that currently have one unpaired occurrence waiting. When a value is not in the set, add it. When it is already waiting, remove it and form one pair.\n\n## Key Insight\n\nOnly parity matters for leftovers: after every two equal values, one pair is complete and no copy of that value is waiting. The final set size is the number of leftover elements.\n\n## Complexity Analysis\n\nThe expected time complexity is O(n). The set stores at most one waiting copy per distinct value, so the extra space is O(k).",
+      "code": "import java.util.HashSet;\nimport java.util.Set;\n\nclass Solution {\n    public int[] numberOfPairs(int[] nums) {\n        Set<Integer> waiting = new HashSet<>();\n        int pairs = 0;\n        for (int value : nums) {\n            if (waiting.contains(value)) {\n                waiting.remove(value);\n                pairs++;\n            } else {\n                waiting.add(value);\n            }\n        }\n        return new int[]{pairs, waiting.size()};\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sort Adjacent Equal Values",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(1) extra besides sorting",
+      "description": "## Approach\n\nSort the array so equal values are adjacent. Scan from left to right: if the current value equals the next value, consume both as one pair; otherwise, count the current value as leftover.\n\n## Key Insight\n\nSorting turns the task of finding equal partners into a local adjacent comparison. It is slower than counting here, but it is a useful baseline when hash structures are unavailable.\n\n## Complexity Analysis\n\nSorting dominates with O(n log n) time. The scan is O(n). Extra space depends on the sorting implementation; ignoring sort internals, the scan uses O(1) space.",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int[] numberOfPairs(int[] nums) {\n        Arrays.sort(nums);\n        int pairs = 0;\n        int leftovers = 0;\n        int index = 0;\n        while (index < nums.length) {\n            if (index + 1 < nums.length && nums[index] == nums[index + 1]) {\n                pairs++;\n                index += 2;\n            } else {\n                leftovers++;\n                index++;\n            }\n        }\n        return new int[]{pairs, leftovers};\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bounded Parity Table",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\n\nUse a boolean array indexed by value to record whether one unmatched copy of that value is waiting. Each time a value appears, flip its waiting state. If it was already waiting, closing the pair increments the pair count.\n\n## Key Insight\n\nFor this problem, the exact frequency is not always necessary while streaming. The parity of each value tells whether the next occurrence will create a pair or become a leftover candidate.\n\n## Complexity Analysis\n\nThe array is scanned once, so the time complexity is O(n). The boolean table has one slot for each possible value, so the extra space is O(U), with `U = 101` under the constraints.",
+      "code": "class Solution {\n    public int[] numberOfPairs(int[] nums) {\n        boolean[] waiting = new boolean[101];\n        int pairs = 0;\n        for (int value : nums) {\n            if (waiting[value]) {\n                waiting[value] = false;\n                pairs++;\n            } else {\n                waiting[value] = true;\n            }\n        }\n        int leftovers = nums.length - pairs * 2;\n        return new int[]{pairs, leftovers};\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
-      "input": "[\"FrontMiddleBackQueue\", \"pushFront\", \"pushBack\", \"pushMiddle\", \"pushMiddle\", \"popFront\", \"popMiddle\", \"popMiddle\", \"popBack\", \"popFront\"]\n[[], [1], [2], [3], [4], [], [], [], [], []]",
-      "output": "[null, null, null, null, null, 1, 3, 4, 2, -1]"
+      "input": "nums = [1,3,2,1,3,2,2]",
+      "output": "[3,1]"
+    },
+    {
+      "input": "nums = [1,1]",
+      "output": "[1,0]"
+    },
+    {
+      "input": "nums = [0]",
+      "output": "[0,1]"
+    },
+    {
+      "input": "nums = []",
+      "output": "[0,0]"
+    },
+    {
+      "input": "nums = [1,2,3,4]",
+      "output": "[0,4]"
+    },
+    {
+      "input": "nums = [4,4,4,4,4]",
+      "output": "[2,1]"
+    },
+    {
+      "input": "nums = [0,0,100,100,100,1]",
+      "output": "[2,2]"
+    },
+    {
+      "input": "nums = [0,0,1,1,2,2,3,3]",
+      "output": "[4,0]"
     }
   ]
 }

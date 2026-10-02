@@ -1,9 +1,9 @@
 {
   "id": "336",
   "title": "The Skyline Problem",
-  "description": "# The Skyline Problem\n\nA city's **skyline** is the outer contour of the silhouette formed by all the buildings in that city when viewed from a distance. Given the locations and heights of all the buildings, return *the **skyline** formed by these buildings collectively*.\n\nThe geometric information of each building is given in the array `buildings` where `buildings[i] = [lefti, righti, heighti]`:\n\n*   `lefti` is the x coordinate of the left edge of the `i-th` building.\n*   `righti` is the x coordinate of the right edge of the `i-th` building.\n*   `heighti` is the height of the `i-th` building.\n\nYou may assume all buildings are perfect rectangles grounded on a flat surface at height 0.\n\nThe **skyline** should be represented as a list of \"key points\" **sorted by their x-coordinate** in the form `[[x1,y1],[x2,y2],...]`. Each key point is the left endpoint of some horizontal segment in the skyline except the last point in the list, which always has a y-coordinate `0` and is used to mark the skyline's termination where the rightmost building ends. Any ground between the leftmost and rightmost buildings should be part of the skyline's contour.\n\n**Note:** There must be no consecutive horizontal lines of equal height in the output skyline. For instance, `[...,[2 3],[4 5],[7 5],[11 5],[12 7],...]` is not acceptable; the three lines of height 5 should be merged into one in the final output as such: `[...,[2 3],[4 5],[12 7],...]`.\n\n## Example 1:\n\n**Input:** buildings = [[2,9,10],[3,7,15],[5,12,12],[15,20,10],[19,24,8]]\n**Output:** [[2,10],[3,15],[7,12],[12,0],[15,10],[20,8],[24,0]]\n**Explanation:**\nFigure A shows the buildings of the input.\nFigure B shows the skyline formed by those buildings. The red points in Figure B represent the key points in the output list.\n\n## Example 2:\n\n**Input:** buildings = [[0,2,3],[2,5,3]]\n**Output:** [[0,3],[5,0]]\n\n## Constraints:\n\n*   `1 <= buildings.length <= 10^4`\n*   `0 <= lefti < righti <= 2^31 - 1`\n*   `1 <= heighti <= 2^31 - 1`\n*   `buildings` is sorted by `lefti` in non-decreasing order.",
+  "description": "# The Skyline Problem\n\nA city's skyline is the outer contour formed by a set of rectangular buildings when viewed from far away. Each building is represented as `[left, right, height]`, where `left` and `right` are x-coordinates and the building covers the half-open horizontal interval `[left, right)`.\n\nReturn the skyline as key points sorted by x-coordinate. A key point `[x, h]` means that the visible contour changes to height `h` starting at x-coordinate `x`. The last key point must return to height `0` at the right edge of the final visible building.\n\nThe output must not contain redundant consecutive segments of the same height. Adjacent buildings with the same visible height should be merged into one horizontal skyline segment.\n\nImportant event-ordering details:\n\n*   Building starts and ends may share the same x-coordinate.\n*   A taller building starting at the same x-coordinate where a shorter building ends should produce one key point, not a rise and fall pair.\n*   When a taller building ends, a shorter still-active building may be revealed.\n*   Gaps between separated groups of buildings must explicitly drop to height `0`.\n\n## Example 1:\n\n**Input:** buildings = [[2,9,10],[3,7,15],[5,12,12],[15,20,10],[19,24,8]]\n**Output:** [[2,10],[3,15],[7,12],[12,0],[15,10],[20,8],[24,0]]\n**Explanation:** The skyline rises when a taller active building appears, drops when the current tallest building ends, and returns to ground between the two building groups.\n\n## Example 2:\n\n**Input:** buildings = [[0,2,3],[2,5,3]]\n**Output:** [[0,3],[5,0]]\n**Explanation:** The two buildings touch and have the same height, so their contour is one continuous segment.\n\n## Constraints:\n\n*   `1 <= buildings.length <= 10^4`\n*   `0 <= lefti < righti <= 2^31 - 1`\n*   `1 <= heighti <= 2^31 - 1`\n*   `buildings` is sorted by `lefti` in non-decreasing order.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public List<List<Integer>> getSkyline(int[][] buildings) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public java.util.List<java.util.List<Integer>> getSkyline(int[][] buildings) {\n        return new java.util.ArrayList<>();\n    }\n}",
   "tags": [
     "Array",
     "Divide and Conquer",
@@ -25,37 +25,115 @@
   ],
   "solutions": [
     {
-      "name": "Line Sweep with Max Heap",
+      "name": "Grouped Event Sweep with Height Multiset",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Create events for building starts (negative height) and ends. Sort by x. Use a TreeMap as a max-heap to track active heights. When the max height changes, add a key point.",
-      "code": "class Solution {\n    public List<List<Integer>> getSkyline(int[][] buildings) {\n        List<int[]> events = new java.util.ArrayList<>();\n        for (int[] b : buildings) {\n            events.add(new int[]{b[0], -b[2]});\n            events.add(new int[]{b[1], b[2]});\n        }\n        events.sort((a, b) -> a[0] != b[0] ? a[0] - b[0] : a[1] - b[1]);\n        java.util.TreeMap<Integer, Integer> heights = new java.util.TreeMap<>();\n        heights.put(0, 1);\n        int prevMax = 0;\n        List<List<Integer>> result = new java.util.ArrayList<>();\n        for (int[] e : events) {\n            if (e[1] < 0) heights.merge(-e[1], 1, Integer::sum);\n            else {\n                int cnt = heights.get(e[1]);\n                if (cnt == 1) heights.remove(e[1]);\n                else heights.put(e[1], cnt - 1);\n            }\n            int curMax = heights.lastKey();\n            if (curMax != prevMax) {\n                result.add(java.util.Arrays.asList(e[0], curMax));\n                prevMax = curMax;\n            }\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nCreate two events for each building: a start event with negative height and an end event with positive height. Sort all events by x-coordinate and process every event at the same x-coordinate as one group. A TreeMap stores active heights and their counts.\n\n## Key Insight\n\nThe skyline changes only after all starts and ends at the current x-coordinate have been applied. Grouping by x avoids redundant rise/fall pairs when buildings touch or start and end together.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public java.util.List<java.util.List<Integer>> getSkyline(int[][] buildings) {\n        java.util.List<int[]> events = new java.util.ArrayList<>();\n        for (int[] building : buildings) {\n            events.add(new int[]{building[0], -building[2]});\n            events.add(new int[]{building[1], building[2]});\n        }\n        events.sort((a, b) -> a[0] != b[0]\n                ? Integer.compare(a[0], b[0])\n                : Integer.compare(a[1], b[1]));\n\n        java.util.TreeMap<Integer, Integer> active = new java.util.TreeMap<>();\n        active.put(0, 1);\n        java.util.List<java.util.List<Integer>> skyline = new java.util.ArrayList<>();\n        int previousHeight = 0;\n        int index = 0;\n\n        while (index < events.size()) {\n            int x = events.get(index)[0];\n            while (index < events.size() && events.get(index)[0] == x) {\n                int height = events.get(index)[1];\n                if (height < 0) {\n                    active.merge(-height, 1, Integer::sum);\n                } else {\n                    int count = active.get(height);\n                    if (count == 1) {\n                        active.remove(height);\n                    } else {\n                        active.put(height, count - 1);\n                    }\n                }\n                index++;\n            }\n\n            int currentHeight = active.lastKey();\n            if (currentHeight != previousHeight) {\n                skyline.add(java.util.Arrays.asList(x, currentHeight));\n                previousHeight = currentHeight;\n            }\n        }\n        return skyline;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Divide and Conquer",
+      "name": "Line Sweep with Lazy Max Heap",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Recursively divide buildings into two halves, compute skyline for each half, then merge the two skylines by tracking the current height of each side and outputting the max at each x-coordinate.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> getSkyline(int[][] buildings) {\n        return divide(buildings, 0, buildings.length - 1);\n    }\n    private List<List<Integer>> divide(int[][] buildings, int lo, int hi) {\n        List<List<Integer>> result = new ArrayList<>();\n        if (lo > hi) return result;\n        if (lo == hi) {\n            result.add(Arrays.asList(buildings[lo][0], buildings[lo][2]));\n            result.add(Arrays.asList(buildings[lo][1], 0));\n            return result;\n        }\n        int mid = lo + (hi - lo) / 2;\n        List<List<Integer>> left = divide(buildings, lo, mid);\n        List<List<Integer>> right = divide(buildings, mid + 1, hi);\n        return merge(left, right);\n    }\n    private List<List<Integer>> merge(List<List<Integer>> left, List<List<Integer>> right) {\n        List<List<Integer>> result = new ArrayList<>();\n        int i = 0, j = 0;\n        int lh = 0, rh = 0;\n        while (i < left.size() && j < right.size()) {\n            int x;\n            if (left.get(i).get(0) < right.get(j).get(0)) {\n                x = left.get(i).get(0);\n                lh = left.get(i).get(1);\n                i++;\n            } else if (left.get(i).get(0) > right.get(j).get(0)) {\n                x = right.get(j).get(0);\n                rh = right.get(j).get(1);\n                j++;\n            } else {\n                x = left.get(i).get(0);\n                lh = left.get(i).get(1);\n                rh = right.get(j).get(1);\n                i++;\n                j++;\n            }\n            int maxH = Math.max(lh, rh);\n            if (result.isEmpty() || result.get(result.size() - 1).get(1) != maxH) {\n                result.add(Arrays.asList(x, maxH));\n            }\n        }\n        while (i < left.size()) result.add(left.get(i++));\n        while (j < right.size()) result.add(right.get(j++));\n        return result;\n    }\n}",
+      "description": "## Approach\n\nCollect every building edge as a candidate x-coordinate. Sweep those coordinates from left to right. Add every building that has started to a max heap ordered by height, lazily remove heap entries whose right edge is not beyond the current x, and emit a key point when the heap's visible height changes.\n\n## Key Insight\n\nThe heap may contain expired buildings, but only the top matters. Removing expired top entries at each candidate x-coordinate gives the current maximum height without requiring arbitrary deletion from the heap.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public java.util.List<java.util.List<Integer>> getSkyline(int[][] buildings) {\n        java.util.TreeSet<Integer> coordinates = new java.util.TreeSet<>();\n        for (int[] building : buildings) {\n            coordinates.add(building[0]);\n            coordinates.add(building[1]);\n        }\n\n        java.util.PriorityQueue<int[]> heap = new java.util.PriorityQueue<>((a, b) ->\n                a[0] != b[0] ? Integer.compare(b[0], a[0]) : Integer.compare(b[1], a[1]));\n        java.util.List<java.util.List<Integer>> skyline = new java.util.ArrayList<>();\n        int buildingIndex = 0;\n        int previousHeight = 0;\n\n        for (int x : coordinates) {\n            while (buildingIndex < buildings.length && buildings[buildingIndex][0] <= x) {\n                heap.offer(new int[]{buildings[buildingIndex][2], buildings[buildingIndex][1]});\n                buildingIndex++;\n            }\n            while (!heap.isEmpty() && heap.peek()[1] <= x) {\n                heap.poll();\n            }\n\n            int currentHeight = heap.isEmpty() ? 0 : heap.peek()[0];\n            if (currentHeight != previousHeight) {\n                skyline.add(java.util.Arrays.asList(x, currentHeight));\n                previousHeight = currentHeight;\n            }\n        }\n        return skyline;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Divide and Conquer Skyline Merge",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nRecursively compute the skyline for the left and right halves of the building list, then merge two skyline polylines. During the merge, track the current height contributed by each side and output the maximum when it changes.\n\n## Key Insight\n\nMerging two skylines is like merging two sorted sequences of x-coordinates. The visible height at each x is the maximum of the two currently active side heights, and equal consecutive heights must be suppressed.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public java.util.List<java.util.List<Integer>> getSkyline(int[][] buildings) {\n        return divide(buildings, 0, buildings.length - 1);\n    }\n\n    private java.util.List<java.util.List<Integer>> divide(int[][] buildings, int left, int right) {\n        java.util.List<java.util.List<Integer>> result = new java.util.ArrayList<>();\n        if (left > right) {\n            return result;\n        }\n        if (left == right) {\n            result.add(java.util.Arrays.asList(buildings[left][0], buildings[left][2]));\n            result.add(java.util.Arrays.asList(buildings[left][1], 0));\n            return result;\n        }\n\n        int mid = left + (right - left) / 2;\n        java.util.List<java.util.List<Integer>> leftSkyline = divide(buildings, left, mid);\n        java.util.List<java.util.List<Integer>> rightSkyline = divide(buildings, mid + 1, right);\n        return merge(leftSkyline, rightSkyline);\n    }\n\n    private java.util.List<java.util.List<Integer>> merge(\n            java.util.List<java.util.List<Integer>> left,\n            java.util.List<java.util.List<Integer>> right) {\n        java.util.List<java.util.List<Integer>> merged = new java.util.ArrayList<>();\n        int i = 0;\n        int j = 0;\n        int leftHeight = 0;\n        int rightHeight = 0;\n\n        while (i < left.size() && j < right.size()) {\n            int x;\n            int leftX = left.get(i).get(0);\n            int rightX = right.get(j).get(0);\n            if (leftX < rightX) {\n                x = leftX;\n                leftHeight = left.get(i).get(1);\n                i++;\n            } else if (rightX < leftX) {\n                x = rightX;\n                rightHeight = right.get(j).get(1);\n                j++;\n            } else {\n                x = leftX;\n                leftHeight = left.get(i).get(1);\n                rightHeight = right.get(j).get(1);\n                i++;\n                j++;\n            }\n            append(merged, x, Math.max(leftHeight, rightHeight));\n        }\n        while (i < left.size()) {\n            append(merged, left.get(i).get(0), left.get(i).get(1));\n            i++;\n        }\n        while (j < right.size()) {\n            append(merged, right.get(j).get(0), right.get(j).get(1));\n            j++;\n        }\n        return merged;\n    }\n\n    private void append(java.util.List<java.util.List<Integer>> skyline, int x, int height) {\n        if (skyline.isEmpty() || !skyline.get(skyline.size() - 1).get(1).equals(height)) {\n            skyline.add(java.util.Arrays.asList(x, height));\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Coordinate Compression Segment Tree",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCompress every building edge into an ordered coordinate list. Each adjacent pair of coordinates is an elementary horizontal interval. Apply range maximum updates for buildings over the intervals they cover, then scan intervals and emit a key point whenever the visible height changes.\n\n## Key Insight\n\nThe skyline can change only at building edges. Range max updates record the tallest building covering each elementary interval, and the final scan converts interval heights back into key points.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private java.util.List<Integer> coords;\n    private int[] tree;\n\n    public java.util.List<java.util.List<Integer>> getSkyline(int[][] buildings) {\n        java.util.TreeSet<Integer> edges = new java.util.TreeSet<>();\n        for (int[] building : buildings) {\n            edges.add(building[0]);\n            edges.add(building[1]);\n        }\n        coords = new java.util.ArrayList<>(edges);\n        java.util.Map<Integer, Integer> index = new java.util.HashMap<>();\n        for (int i = 0; i < coords.size(); i++) {\n            index.put(coords.get(i), i);\n        }\n\n        tree = new int[coords.size() * 4];\n        for (int[] building : buildings) {\n            int left = index.get(building[0]);\n            int right = index.get(building[1]) - 1;\n            update(1, 0, coords.size() - 2, left, right, building[2]);\n        }\n\n        java.util.List<java.util.List<Integer>> skyline = new java.util.ArrayList<>();\n        int previousHeight = 0;\n        for (int i = 0; i < coords.size() - 1; i++) {\n            int height = query(1, 0, coords.size() - 2, i, 0);\n            if (height != previousHeight) {\n                skyline.add(java.util.Arrays.asList(coords.get(i), height));\n                previousHeight = height;\n            }\n        }\n        if (previousHeight != 0) {\n            skyline.add(java.util.Arrays.asList(coords.get(coords.size() - 1), 0));\n        }\n        return skyline;\n    }\n\n    private void update(int node, int left, int right, int ql, int qr, int height) {\n        if (ql > right || qr < left || ql > qr) {\n            return;\n        }\n        if (ql <= left && right <= qr) {\n            tree[node] = Math.max(tree[node], height);\n            return;\n        }\n        int mid = left + (right - left) / 2;\n        update(node * 2, left, mid, ql, qr, height);\n        update(node * 2 + 1, mid + 1, right, ql, qr, height);\n    }\n\n    private int query(int node, int left, int right, int target, int carry) {\n        carry = Math.max(carry, tree[node]);\n        if (left == right) {\n            return carry;\n        }\n        int mid = left + (right - left) / 2;\n        if (target <= mid) {\n            return query(node * 2, left, mid, target, carry);\n        }\n        return query(node * 2 + 1, mid + 1, right, target, carry);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "buildings = [[2,9,10],[3,7,15],[5,12,12],[15,20,10],[19,24,8]]",
-      "output": "[[2,10],[3,15],[7,12],[12,0],[15,10],[20,8],[24,0]]"
+      "output": "[[2,10],[3,15],[7,12],[12,0],[15,10],[20,8],[24,0]]",
+      "description": "canonical sample with overlapping and separated building groups"
     },
     {
       "input": "buildings = [[0,2,3],[2,5,3]]",
-      "output": "[[0,3],[5,0]]"
+      "output": "[[0,3],[5,0]]",
+      "description": "adjacent buildings of equal height merge without a redundant key point"
+    },
+    {
+      "input": "buildings = [[1,2,1]]",
+      "output": "[[1,1],[2,0]]",
+      "description": "single building creates one rise and one fall"
+    },
+    {
+      "input": "buildings = [[1,3,3],[2,4,4],[5,6,1]]",
+      "output": "[[1,3],[2,4],[4,0],[5,1],[6,0]]",
+      "description": "overlap followed by a separated low building"
+    },
+    {
+      "input": "buildings = [[1,5,3],[2,3,4],[3,4,2]]",
+      "output": "[[1,3],[2,4],[3,3],[5,0]]",
+      "description": "ending a taller building reveals a lower still-active building"
+    },
+    {
+      "input": "buildings = [[1,2,1],[1,2,2],[1,2,3]]",
+      "output": "[[1,3],[2,0]]",
+      "description": "same span with different heights should keep only the maximum"
+    },
+    {
+      "input": "buildings = [[1,3,3],[3,5,5]]",
+      "output": "[[1,3],[3,5],[5,0]]",
+      "description": "a taller building starts exactly where a shorter one ends"
+    },
+    {
+      "input": "buildings = [[1,10,5],[2,3,3],[4,5,4]]",
+      "output": "[[1,5],[10,0]]",
+      "description": "lower nested buildings are fully hidden by a taller outer building"
+    },
+    {
+      "input": "buildings = [[1,10,3],[2,5,8],[6,9,8]]",
+      "output": "[[1,3],[2,8],[5,3],[6,8],[9,3],[10,0]]",
+      "description": "two disjoint tall buildings expose the lower base between them"
+    },
+    {
+      "input": "buildings = [[1,5,11],[1,3,13],[2,4,12]]",
+      "output": "[[1,13],[3,12],[4,11],[5,0]]",
+      "description": "multiple buildings sharing the same left edge reveal descending active heights"
+    },
+    {
+      "input": "buildings = [[1,4,3],[2,4,4],[3,4,5]]",
+      "output": "[[1,3],[2,4],[3,5],[4,0]]",
+      "description": "multiple buildings sharing the same right edge rise in steps then drop once"
+    },
+    {
+      "input": "buildings = [[0,2147483647,2147483647]]",
+      "output": "[[0,2147483647],[2147483647,0]]",
+      "description": "coordinate and height upper boundary without integer-comparison overflow"
+    },
+    {
+      "input": "buildings = [[0,2,3],[2,5,3],[2,4,4],[4,6,2]]",
+      "output": "[[0,3],[2,4],[4,3],[5,2],[6,0]]",
+      "description": "same x-coordinate contains an end, a same-height continuation, and a taller start"
+    },
+    {
+      "input": "buildings = [[1,2,1],[3,4,1]]",
+      "output": "[[1,1],[2,0],[3,1],[4,0]]",
+      "description": "separated equal-height buildings must include the ground gap"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p336_example1.png",
-      "caption": "Buildings for Skyline Problem"
+      "caption": "Five Example 1 buildings labeled by horizontal endpoints and heights; occluded building portions still exist"
     }
   ]
 }

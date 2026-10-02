@@ -1,0 +1,28 @@
+{
+  "title": "设计添加和搜索单词数据结构",
+  "description": "# 设计添加和搜索单词数据结构\n\n设计一个数据结构，支持添加小写英文单词，并搜索一个模式是否能匹配之前添加过的某个完整单词。\n\n实现 `WordDictionary` 类：\n\n*   `WordDictionary()` 初始化对象。\n*   `void addWord(String word)` 添加 `word`，之后可以被搜索匹配。\n*   `boolean search(String word)` 如果存在一个已添加单词与 `word` 长度相同，并且每个位置都匹配，则返回 `true`。搜索模式中的点号 `'.'` 恰好匹配一个小写英文字母；普通字母必须与自身相同。\n\n已添加单词的前缀不能算作匹配，除非这个前缀本身也被作为完整单词添加过。\n\n操作示例中，第一组数组是操作名，第二组是对应参数，按同一下标配对并从左到右执行。第一项创建对象，之后都操作同一个对象。输出数组也逐项对应：构造和没有返回值的方法写作 `null`；`[]` 作为参数表示无参数调用。\n\n## 示例：\n\n**输入**\n[\"WordDictionary\", \"addWord\", \"addWord\", \"addWord\", \"search\", \"search\", \"search\", \"search\"]\n[[], [\"bad\"], [\"dad\"], [\"mad\"], [\"pad\"], [\"bad\"], [\".ad\"], [\"b..\"]]\n\n**输出**\n[null, null, null, null, false, true, true, true]\n\n**解释**\nWordDictionary wordDictionary = new WordDictionary();\nwordDictionary.addWord(\"bad\");\nwordDictionary.addWord(\"dad\");\nwordDictionary.addWord(\"mad\");\nwordDictionary.search(\"pad\"); // 返回 false，因为没有添加过 \"pad\"。\nwordDictionary.search(\"bad\"); // 返回 true，因为添加过 \"bad\"。\nwordDictionary.search(\".ad\"); // 返回 true，因为点号可以匹配 'b'、'd' 或 'm'。\nwordDictionary.search(\"b..\"); // 返回 true，因为 \"bad\" 匹配这个模式。\n\n## 约束条件：\n\n*   `1 <= word.length <= 25`\n*   `addWord` 中的 `word` 只包含小写英文字母。\n*   `search` 中的 `word` 只包含小写英文字母或点号 `'.'`。\n*   每个 `search` 模式最多包含 `2` 个点号。\n*   对 `addWord` 和 `search` 的调用总次数不超过 `10^4`。",
+  "solutions": [
+    {
+      "name": "数组子节点 Trie + DFS",
+      "description": "## 思路\n\n把每个单词插入到一个 Trie 中，每个节点用长度为 26 的数组保存小写字母子节点。搜索时，普通字符只沿对应子节点继续；遇到点号时，递归尝试当前节点所有非空子节点。\n\n## 关键点\n\nTrie 会共享公共前缀，只有查询模式真的包含点号时才会分支。只有当整个模式都消耗完之后才检查终止标记，因此不会把前缀误判成完整单词。\n\n## 复杂度分析\n- addWord 时间复杂度: O(L)\n- search 最坏时间复杂度: O(26^D * L)，其中 D 是点号数量\n- 空间复杂度: O(T)，T 是 Trie 节点数"
+    },
+    {
+      "name": "HashMap 子节点 Trie + DFS",
+      "description": "## 思路\n\n每个 Trie 节点用 `HashMap<Character, TrieNode>` 保存实际存在的子边。插入时用 `computeIfAbsent` 创建缺失节点；搜索点号时递归遍历 map 中的所有子节点。\n\n## 关键点\n\nHashMap Trie 只存真实出现的边，字母分支稀疏时更省空间。通配符逻辑与数组 Trie 相同，但点号分支只会遍历当前节点实际存在的孩子。\n\n## 复杂度分析\n- addWord 时间复杂度: O(L)\n- search 最坏时间复杂度: O(B^D * L)，其中 B 是实际分支数\n- 空间复杂度: O(T)"
+    },
+    {
+      "name": "按长度分桶后逐词匹配",
+      "description": "## 思路\n\n把单词按长度分到不同列表里。搜索时只检查长度相同的候选单词，然后逐字符比较；普通字母必须相同，点号可以匹配任意一个字符。\n\n## 关键点\n\n长度分桶先保证“必须匹配完整同长单词”这一规则。它比 Trie 慢，但实现简单，很适合作为验证通配符语义的基线解法。\n\n## 复杂度分析\n- addWord 平均时间复杂度: O(1)，不计读取单词本身\n- search 时间复杂度: O(C * L)，C 是同长度候选数\n- 空间复杂度: O(N * L)"
+    },
+    {
+      "name": "最多两个点号的通配模式索引",
+      "description": "## 思路\n\n利用题目限制：每个搜索模式最多只有两个点号。添加一个单词时，把原词、替换一个位置为 `.` 的所有模式、替换两个位置为 `.` 的所有模式都加入集合。搜索时直接查询这个模式是否存在。\n\n## 关键点\n\n这个方法把搜索阶段的工作前移到插入阶段。因为单词长度最多 25、点号最多 2，所以每个单词生成的模式数量是 O(L^2)，可以换来非常快的查询。\n\n## 复杂度分析\n- addWord 时间复杂度: O(L^2)\n- search 时间复杂度: O(L)，用于计算哈希\n- 空间复杂度: O(N * L^2)"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "trie",
+      "caption": "bad、dad、mad 的前缀树；黄色表示单词末尾，.ad 可以匹配这三个单词"
+    }
+  ]
+}

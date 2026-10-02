@@ -1,41 +1,154 @@
 {
   "id": "177",
   "title": "Gas Station",
-  "description": "# Gas Station\n\nThere are `n` gas stations along a circular route, where the amount of gas at the `i`-th station is `gas[i]`.\n\nYou have a car with an unlimited gas tank and it costs `cost[i]` of gas to travel from the `i`-th station to the `(i + 1)`-th station. You begin the journey with an empty tank at one of the gas stations.\n\nGiven two integer arrays `gas` and `cost`, return *the starting gas station's index if you can travel around the circuit once in the clockwise direction, otherwise return* `-1`. If there exists a solution, it is **guaranteed** to be **unique**.\n\n## Example 1:\n\n**Input:** gas = [1,2,3,4,5], cost = [3,4,5,1,2]\n**Output:** 3\n**Explanation:**\nStart at station 3 (index 3) and fill up with 4 unit of gas. Your tank = 0 + 4 = 4\nTravel to station 4. Your tank = 4 - 1 + 5 = 8\nTravel to station 0. Your tank = 8 - 2 + 1 = 7\nTravel to station 1. Your tank = 7 - 3 + 2 = 6\nTravel to station 2. Your tank = 6 - 4 + 3 = 5\nTravel to station 3. The cost is 5. Your gas is just enough to travel back to station 3.\nTherefore, return 3 as the starting index.\n\n## Example 2:\n\n**Input:** gas = [2,3,4], cost = [3,4,3]\n**Output:** -1\n**Explanation:**\nYou can't start at station 0 or 1, as there is not enough gas to travel to the next station.\nLet's start at station 2 and fill up with 4 unit of gas. Your tank = 0 + 4 = 4\nTravel to station 0. Your tank = 4 - 3 + 2 = 3\nTravel to station 1. Your tank = 3 - 3 + 3 = 3\nYou cannot travel back to station 2, as it requires 4 unit of gas but you only have 3.\nTherefore, you can't travel around the circuit once no matter where you start.\n\n## Constraints:\n\n*   `n == gas.length == cost.length`\n*   `1 <= n <= 10^5`\n*   `0 <= gas[i], cost[i] <= 10^4`",
+  "description": "# Gas Station\n\nThere are `n` gas stations arranged on a circular route. Station `i` provides `gas[i]` units of gas, and driving from station `i` to station `(i + 1) mod n` costs `cost[i]` units of gas.\n\nYou start with an empty tank, but the tank has unlimited capacity. Choose one station as the start, refuel there, and drive clockwise until you either return to the start or run out of gas.\n\nReturn the index of the station from which you can complete exactly one full circuit. Return `-1` if no such station exists. If a valid start exists, it is guaranteed to be unique.\n\n## Example 1:\n\n**Input:** gas = [1,2,3,4,5], cost = [3,4,5,1,2]\n**Output:** 3\n**Explanation:** Starting at station 3, the tank balances are 4, 8, 7, 6, and 5 before paying the final cost back to station 3. No earlier station can survive the initial deficit stretch.\n\n## Example 2:\n\n**Input:** gas = [2,3,4], cost = [3,4,3]\n**Output:** -1\n**Explanation:** The total gas is 9, but the total travel cost is 10, so a full circuit is impossible from every start.\n\n## Constraints:\n\n*   `n == gas.length == cost.length`\n*   `1 <= n <= 10^5`\n*   `0 <= gas[i], cost[i] <= 10^4`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int canCompleteCircuit(int[] gas, int[] cost) {\n        // Write your code here\n        return -1;\n    }\n}",
-  "tags": ["Array", "Greedy"],
+  "tags": [
+    "Array",
+    "Greedy",
+    "Prefix Sum",
+    "Queue"
+  ],
   "examples": [
-    { "input": "gas = [1,2,3,4,5], cost = [3,4,5,1,2]", "output": "3" },
-    { "input": "gas = [2,3,4], cost = [3,4,3]", "output": "-1" }
+    {
+      "input": "gas = [1,2,3,4,5], cost = [3,4,5,1,2]",
+      "output": "3"
+    },
+    {
+      "input": "gas = [2,3,4], cost = [3,4,3]",
+      "output": "-1"
+    }
   ],
   "solutions": [
     {
-      "name": "Greedy (Single Pass)",
+      "name": "Greedy Reset After Failed Segment",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "If total gas >= total cost, a solution exists. Track current tank; when it goes negative, reset start to next station. The key insight: if we can't reach station j from i, then no station between i and j can reach j either.",
-      "code": "class Solution {\n    public int canCompleteCircuit(int[] gas, int[] cost) {\n        int totalTank = 0, currTank = 0, start = 0;\n        for (int i = 0; i < gas.length; i++) {\n            int diff = gas[i] - cost[i];\n            totalTank += diff;\n            currTank += diff;\n            if (currTank < 0) {\n                start = i + 1;\n                currTank = 0;\n            }\n        }\n        return totalTank >= 0 ? start : -1;\n    }\n}",
+      "description": "## Approach\nScan the stations once while tracking the total net gas and the tank balance from the current candidate start. When the candidate tank becomes negative, the current candidate and every station since it are impossible starts, so the next station becomes the new candidate.\n\n## Key Insight\nIf starting at `s` first fails at station `i`, then every station between `s` and `i` starts with no more useful surplus before reaching `i`; all of them fail there as well. A nonnegative total sum is the separate condition that makes the final candidate feasible.\n\n## Complexity Analysis\nThe scan touches each station once, so the time complexity is O(n), and only counters are stored, so the space complexity is O(1).",
+      "code": "class Solution {\n    public int canCompleteCircuit(int[] gas, int[] cost) {\n        int total = 0;\n        int tank = 0;\n        int start = 0;\n\n        for (int i = 0; i < gas.length; i++) {\n            int gain = gas[i] - cost[i];\n            total += gain;\n            tank += gain;\n            if (tank < 0) {\n                start = i + 1;\n                tank = 0;\n            }\n        }\n\n        return total < 0 ? -1 : start;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Brute Force with Early Exit",
-      "timeComplexity": "O(n^2)",
+      "name": "Minimum Prefix Sum Start",
+      "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Try each station as a starting point. Simulate the trip around the circuit. If the tank goes negative, skip to the station after the failure point since all stations in between would also fail.",
-      "code": "class Solution {\n    public int canCompleteCircuit(int[] gas, int[] cost) {\n        int n = gas.length;\n        int i = 0;\n        while (i < n) {\n            int tank = 0;\n            int count = 0;\n            while (count < n) {\n                int idx = (i + count) % n;\n                tank += gas[idx] - cost[idx];\n                if (tank < 0) break;\n                count++;\n            }\n            if (count == n) return i;\n            i = i + count + 1;\n        }\n        return -1;\n    }\n}",
+      "description": "## Approach\nTreat each station as a net gain `gas[i] - cost[i]` and scan the prefix sum around the route. If the total sum is nonnegative, the valid start is immediately after the lowest prefix sum, because from that point every later balance is measured relative to the minimum.\n\n## Key Insight\nThe greedy reset algorithm is equivalent to finding the lowest valley of the prefix-sum walk. Rotating the circular route to start after that valley makes every prefix of the rotated route nonnegative.\n\n## Complexity Analysis\nThe method uses one pass over the arrays, so the time complexity is O(n), and it keeps only the current prefix, minimum prefix, and candidate index, so the space complexity is O(1).",
+      "code": "class Solution {\n    public int canCompleteCircuit(int[] gas, int[] cost) {\n        int prefix = 0;\n        int minPrefix = 0;\n        int start = 0;\n\n        for (int i = 0; i < gas.length; i++) {\n            prefix += gas[i] - cost[i];\n            if (prefix < minPrefix) {\n                minPrefix = prefix;\n                start = i + 1;\n            }\n        }\n\n        return prefix < 0 ? -1 : start % gas.length;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Failure-Skipping Simulation",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nSimulate a trip from the current start until either all stations are visited or the tank becomes negative. If it fails after `steps` stations, skip every start inside that failed stretch and try the first station after it.\n\n## Key Insight\nThis keeps the direct mental model of trying starts, but it still uses the same failed-segment proof as the greedy scan. The skipped stations cannot do better because they would reach the failure point with less accumulated gas than the original start had.\n\n## Complexity Analysis\nEach failed stretch is skipped permanently, and a successful stretch visits exactly one full circuit, so the amortized time complexity is O(n). The simulation stores only the start, step count, and tank, so the space complexity is O(1).",
+      "code": "class Solution {\n    public int canCompleteCircuit(int[] gas, int[] cost) {\n        int n = gas.length;\n        int start = 0;\n\n        while (start < n) {\n            int tank = 0;\n            int steps = 0;\n            while (steps < n) {\n                int station = (start + steps) % n;\n                tank += gas[station] - cost[station];\n                if (tank < 0) {\n                    break;\n                }\n                steps++;\n            }\n            if (steps == n) {\n                return start;\n            }\n            start += steps + 1;\n        }\n\n        return -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Doubled Prefix Monotonic Queue",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nBuild prefix sums over two copies of the route. For a start `s`, the trip is valid exactly when the minimum prefix in the window `(s, s + n]` never drops below `prefix[s]`. Maintain that window minimum with a monotonic deque while scanning the doubled prefix array.\n\n## Key Insight\nThe circular condition becomes a range-minimum query on a linear doubled array. The deque version answers every candidate start in amortized constant time while preserving the prefix-sum proof explicitly.\n\n## Complexity Analysis\nEvery prefix index enters and leaves the deque at most once, so the time complexity is O(n). The doubled prefix array and deque use O(n) extra space.",
+      "code": "class Solution {\n    public int canCompleteCircuit(int[] gas, int[] cost) {\n        int n = gas.length;\n        long[] prefix = new long[2 * n + 1];\n        for (int i = 0; i < 2 * n; i++) {\n            prefix[i + 1] = prefix[i] + gas[i % n] - cost[i % n];\n        }\n        if (prefix[n] < 0) {\n            return -1;\n        }\n\n        java.util.Deque<Integer> deque = new java.util.ArrayDeque<>();\n        for (int i = 1; i <= 2 * n; i++) {\n            while (!deque.isEmpty() && prefix[deque.peekLast()] >= prefix[i]) {\n                deque.pollLast();\n            }\n            deque.offerLast(i);\n\n            int start = i - n;\n            if (start >= 0) {\n                while (!deque.isEmpty() && deque.peekFirst() <= start) {\n                    deque.pollFirst();\n                }\n                if (start < n && !deque.isEmpty() && prefix[deque.peekFirst()] - prefix[start] >= 0) {\n                    return start;\n                }\n            }\n        }\n\n        return -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Segment Tree Range Minimum Check",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nUse the same doubled prefix sums as the monotonic-queue method, but answer each candidate window minimum with a segment tree. For start `s`, query the minimum prefix in `[s + 1, s + n]` and compare it with `prefix[s]`.\n\n## Key Insight\nThis version exposes the exact range-query formulation: a start is valid only if no intermediate balance in the next `n` moves is negative relative to the starting prefix. It is less optimal than the deque but useful when teaching circular arrays plus range minimum queries.\n\n## Complexity Analysis\nBuilding the tree costs O(n), and each of the `n` starts performs one O(log n) query, so the total time complexity is O(n log n). The prefix array and tree use O(n) space.",
+      "code": "class Solution {\n    public int canCompleteCircuit(int[] gas, int[] cost) {\n        int n = gas.length;\n        long[] prefix = new long[2 * n + 1];\n        for (int i = 0; i < 2 * n; i++) {\n            prefix[i + 1] = prefix[i] + gas[i % n] - cost[i % n];\n        }\n        if (prefix[n] < 0) {\n            return -1;\n        }\n\n        RangeMinTree tree = new RangeMinTree(prefix);\n        for (int start = 0; start < n; start++) {\n            long minBalance = tree.query(start + 1, start + n);\n            if (minBalance - prefix[start] >= 0) {\n                return start;\n            }\n        }\n        return -1;\n    }\n\n    private static class RangeMinTree {\n        private final int size;\n        private final long[] tree;\n\n        RangeMinTree(long[] values) {\n            int capacity = 1;\n            while (capacity < values.length) {\n                capacity <<= 1;\n            }\n            size = capacity;\n            tree = new long[size * 2];\n            java.util.Arrays.fill(tree, Long.MAX_VALUE / 4);\n            for (int i = 0; i < values.length; i++) {\n                tree[size + i] = values[i];\n            }\n            for (int i = size - 1; i > 0; i--) {\n                tree[i] = Math.min(tree[i * 2], tree[i * 2 + 1]);\n            }\n        }\n\n        long query(int left, int right) {\n            left += size;\n            right += size;\n            long answer = Long.MAX_VALUE / 4;\n            while (left <= right) {\n                if ((left & 1) == 1) {\n                    answer = Math.min(answer, tree[left++]);\n                }\n                if ((right & 1) == 0) {\n                    answer = Math.min(answer, tree[right--]);\n                }\n                left >>= 1;\n                right >>= 1;\n            }\n            return answer;\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "gas = [1,2,3,4,5], cost = [3,4,5,1,2]", "output": "3" },
-    { "input": "gas = [2,3,4], cost = [3,4,3]", "output": "-1" },
-    { "input": "gas = [5], cost = [4]", "output": "0" },
-    { "input": "gas = [3], cost = [4]", "output": "-1" },
-    { "input": "gas = [1,2,3,4,5], cost = [1,2,3,4,5]", "output": "0" },
-    { "input": "gas = [5,1,2,3,4], cost = [4,4,1,5,1]", "output": "4" },
-    { "input": "gas = [2,2,2,2], cost = [2,2,2,2]", "output": "0" },
-    { "input": "gas = [3,1,1], cost = [1,2,2]", "output": "0" }
+    {
+      "input": "gas = [1,2,3,4,5], cost = [3,4,5,1,2]",
+      "output": "3",
+      "description": "Canonical route where the only successful start is after a long deficit stretch."
+    },
+    {
+      "input": "gas = [2,3,4], cost = [3,4,3]",
+      "output": "-1",
+      "description": "Total gas is less than total cost, so every start is impossible."
+    },
+    {
+      "input": "gas = [5], cost = [4]",
+      "output": "0",
+      "description": "Single station with enough gas must return index zero."
+    },
+    {
+      "input": "gas = [3], cost = [4]",
+      "output": "-1",
+      "description": "Single station without enough gas is impossible."
+    },
+    {
+      "input": "gas = [5,1,2,3,4], cost = [4,4,1,5,1]",
+      "output": "4",
+      "description": "The valid start is at the final index after earlier candidates fail."
+    },
+    {
+      "input": "gas = [3,1,1], cost = [1,2,2]",
+      "output": "0",
+      "description": "The valid start is the first station and total gas exactly matches total cost."
+    },
+    {
+      "input": "gas = [1,1,5], cost = [1,5,1]",
+      "output": "2",
+      "description": "A zero-balance edge before a deep deficit still leaves only the surplus station valid."
+    },
+    {
+      "input": "gas = [2,1,1,4], cost = [1,2,2,1]",
+      "output": "3",
+      "description": "The route must start after two consecutive losing stations."
+    },
+    {
+      "input": "gas = [1,6,1,1], cost = [3,1,2,2]",
+      "output": "1",
+      "description": "A large surplus at index one pays for the rest of the circuit."
+    },
+    {
+      "input": "gas = [1,0,5,0], cost = [1,2,1,2]",
+      "output": "2",
+      "description": "Zero-gas stations are valid inputs and should not break the balance logic."
+    },
+    {
+      "input": "gas = [0,1,2], cost = [1,2,3]",
+      "output": "-1",
+      "description": "A route with zero gas and negative total balance has no solution."
+    },
+    {
+      "input": "gas = [1,5,1,3,1], cost = [4,1,2,1,2]",
+      "output": "1",
+      "description": "The start is the station after the lowest prefix-sum valley."
+    },
+    {
+      "input": "gas = [1,1,6,1,1], cost = [2,2,1,2,2]",
+      "output": "2",
+      "description": "One central surplus station has to cover symmetric losses on both sides."
+    },
+    {
+      "input": "gas = [1,2,2,2,1], cost = [3,1,1,1,2]",
+      "output": "1",
+      "description": "A run of small gains is enough only when started before the run begins."
+    },
+    {
+      "input": "gas = [1,5,3,3,5,3,1,3,4,5], cost = [5,2,2,8,2,4,2,5,1,2]",
+      "output": "8",
+      "description": "Longer route with several local surpluses but only one global valid start."
+    },
+    {
+      "input": "gas = [1,7,1,4,1], cost = [6,1,3,1,2]",
+      "output": "1",
+      "description": "The winning start must recover from a large loss immediately before it."
+    }
   ],
-  "diagram": "images/p177_gas_station.png"
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p177_gas_station.png",
+      "caption": "Gas and travel cost around a circular route."
+    }
+  ]
 }

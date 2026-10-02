@@ -1,34 +1,128 @@
 {
   "id": "342",
-  "title": "Burst Balloons",
-  "description": "# Burst Balloons\n\nYou are given `n` balloons, indexed from `0` to `n - 1`. Each balloon is painted with a number on it represented by an array `nums`. You are asked to burst all the balloons.\n\nIf you burst the `i-th` balloon, you will get `nums[i - 1] * nums[i] * nums[i + 1]` coins. If `i - 1` or `i + 1` goes out of bounds of the array, then treat it as if there is a balloon with a `1` painted on it.\n\nReturn *the maximum coins you can collect by bursting the balloons wisely*.\n\n## Example 1:\n\n**Input:** nums = [3,1,5,8]\n**Output:** 167\n**Explanation:**\nnums = [3,1,5,8] --> [3,5,8] --> [3,8] --> [8] --> []\ncoins =  3*1*5    +   3*5*8   +  1*3*8  + 1*8*1 = 167\n\n## Example 2:\n\n**Input:** nums = [1,5]\n**Output:** 10\n\n## Constraints:\n\n*   `n == nums.length`\n*   `1 <= n <= 300`\n*   `0 <= nums[i] <= 100`",
-  "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int maxCoins(int[] nums) {\n        \n    }\n}",
-  "tags": ["Array", "Dynamic Programming"],
-  "examples": [
-    { "input": "nums = [3,1,5,8]", "output": "167" },
-    { "input": "nums = [1,5]", "output": "10" }
+  "title": "Minimum Number Game",
+  "description": "# Minimum Number Game\n\nYou are given an even-length integer array `nums`. Repeatedly play this game until no numbers remain:\n\n1. Alice removes the smallest remaining number.\n2. Bob removes the smallest remaining number after Alice's removal.\n3. Append Bob's number to the answer, then append Alice's number.\n\nReturn the final answer array.\n\n## Example 1:\n\n**Input:** nums = [5,4,2,3]\n**Output:** [3,2,5,4]\n**Explanation:** Alice removes `2`, Bob removes `3`, so append `[3,2]`. Then Alice removes `4`, Bob removes `5`, so append `[5,4]`.\n\n## Example 2:\n\n**Input:** nums = [2,5]\n**Output:** [5,2]\n\n## Constraints:\n\n*   `2 <= nums.length <= 100`\n*   `nums.length` is even.\n*   `-10^9 <= nums[i] <= 10^9`",
+  "difficulty": "EASY",
+  "initialCode": "class Solution {\n    public int[] numberGame(int[] nums) {\n        return new int[0];\n    }\n}",
+  "tags": [
+    "Array",
+    "Sorting",
+    "Simulation"
   ],
-  "solutions": [
+  "examples": [
     {
-      "name": "Interval DP",
-      "timeComplexity": "O(n^3)",
-      "spaceComplexity": "O(n^2)",
-      "description": "Add boundary 1s. dp[i][j] = max coins from bursting all balloons between i and j (exclusive). For each k in (i,j), k is the LAST balloon burst in that range: dp[i][j] = max(dp[i][k] + dp[k][j] + nums[i]*nums[k]*nums[j]).",
-      "code": "class Solution {\n    public int maxCoins(int[] nums) {\n        int n = nums.length;\n        int[] val = new int[n + 2];\n        val[0] = val[n + 1] = 1;\n        for (int i = 0; i < n; i++) val[i + 1] = nums[i];\n        int[][] dp = new int[n + 2][n + 2];\n        for (int len = 2; len <= n + 1; len++) {\n            for (int i = 0; i + len <= n + 1; i++) {\n                int j = i + len;\n                for (int k = i + 1; k < j; k++) {\n                    dp[i][j] = Math.max(dp[i][j], dp[i][k] + dp[k][j] + val[i] * val[k] * val[j]);\n                }\n            }\n        }\n        return dp[0][n + 1];\n    }\n}",
-      "language": "java"
+      "input": "nums = [5,4,2,3]",
+      "output": "[3,2,5,4]"
     },
     {
-      "name": "Top-Down DP with Memoization",
-      "timeComplexity": "O(n^3)",
-      "spaceComplexity": "O(n^2)",
-      "description": "Recursive approach with memoization. For the range (left, right), try each balloon k as the last one to burst. Memoize results for each (left, right) pair to avoid recomputation.",
-      "code": "class Solution {\n    private int[][] memo;\n    private int[] val;\n    public int maxCoins(int[] nums) {\n        int n = nums.length;\n        val = new int[n + 2];\n        val[0] = val[n + 1] = 1;\n        for (int i = 0; i < n; i++) val[i + 1] = nums[i];\n        memo = new int[n + 2][n + 2];\n        for (int[] row : memo) java.util.Arrays.fill(row, -1);\n        return solve(0, n + 1);\n    }\n    private int solve(int left, int right) {\n        if (left + 1 == right) return 0;\n        if (memo[left][right] != -1) return memo[left][right];\n        int best = 0;\n        for (int k = left + 1; k < right; k++) {\n            int coins = val[left] * val[k] * val[right] + solve(left, k) + solve(k, right);\n            best = Math.max(best, coins);\n        }\n        memo[left][right] = best;\n        return best;\n    }\n}",
-      "language": "java"
+      "input": "nums = [2,5]",
+      "output": "[5,2]"
     }
   ],
   "tests": [
-    { "input": "nums = [3,1,5,8]", "output": "167" },
-    { "input": "nums = [1,5]", "output": "10" }
+    {
+      "input": "nums = [5,4,2,3]",
+      "output": "[3,2,5,4]",
+      "description": "canonical sample with two sorted pairs"
+    },
+    {
+      "input": "nums = [2,5]",
+      "output": "[5,2]",
+      "description": "minimum valid even length"
+    },
+    {
+      "input": "nums = [1,1]",
+      "output": "[1,1]",
+      "description": "equal pair remains equal after swapping"
+    },
+    {
+      "input": "nums = [9,8,7,6]",
+      "output": "[7,6,9,8]",
+      "description": "reverse-sorted input is still paired by global minimum order"
+    },
+    {
+      "input": "nums = [1,2,3,4,5,6]",
+      "output": "[2,1,4,3,6,5]",
+      "description": "already sorted input swaps every adjacent pair"
+    },
+    {
+      "input": "nums = [10,10,1,1]",
+      "output": "[1,1,10,10]",
+      "description": "duplicate low and high values"
+    },
+    {
+      "input": "nums = [-1,-3,2,0]",
+      "output": "[-1,-3,2,0]",
+      "description": "negative values are ordered before nonnegative values"
+    },
+    {
+      "input": "nums = [1000000000,-1000000000,0,0]",
+      "output": "[0,-1000000000,1000000000,0]",
+      "description": "integer constraint extremes and duplicate zero"
+    },
+    {
+      "input": "nums = [4,4,4,4]",
+      "output": "[4,4,4,4]",
+      "description": "all values equal"
+    },
+    {
+      "input": "nums = [3,1,2,2]",
+      "output": "[2,1,3,2]",
+      "description": "duplicate in the middle of sorted order"
+    },
+    {
+      "input": "nums = [8,1,6,3,5,7,2,4]",
+      "output": "[2,1,4,3,6,5,8,7]",
+      "description": "four sorted pairs from a shuffled array"
+    },
+    {
+      "input": "nums = [-5,-5,-4,-4,10,9]",
+      "output": "[-5,-5,-4,-4,10,9]",
+      "description": "duplicate negative pairs and a positive pair"
+    },
+    {
+      "input": "nums = [11,3,3,10,0,-1]",
+      "output": "[0,-1,3,3,11,10]",
+      "description": "mixed signs, duplicates, and a high pair"
+    },
+    {
+      "input": "nums = [100,-50,25,-25,0,75]",
+      "output": "[-25,-50,25,0,100,75]",
+      "description": "several distinct pairs spanning negative and positive ranges"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Sort and Swap Adjacent Pairs",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nSort `nums` in nondecreasing order. After sorting, each adjacent pair is exactly the pair Alice and Bob would remove. Swap the two values inside every pair and return the array.\n\n## Key Insight\n\nAlice always takes the smaller value of a sorted adjacent pair and Bob takes the next value, but the output order is Bob first, Alice second. Sorting exposes all game rounds at once.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(1) auxiliary space, ignoring the sorting implementation's stack.",
+      "code": "class Solution {\n    public int[] numberGame(int[] nums) {\n        java.util.Arrays.sort(nums);\n        for (int i = 0; i < nums.length; i += 2) {\n            int alice = nums[i];\n            nums[i] = nums[i + 1];\n            nums[i + 1] = alice;\n        }\n        return nums;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Min-Heap Simulation",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nPush every number into a min-heap. Each round, pop Alice's minimum value, then pop Bob's next minimum value. Write Bob's value first and Alice's value second.\n\n## Key Insight\n\nThe heap mirrors the game statement directly. It is useful when teaching priority queues because every removal operation is exactly one heap pop.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int[] numberGame(int[] nums) {\n        java.util.PriorityQueue<Integer> heap = new java.util.PriorityQueue<>();\n        for (int value : nums) {\n            heap.offer(value);\n        }\n        int[] answer = new int[nums.length];\n        for (int i = 0; i < answer.length; i += 2) {\n            int alice = heap.poll();\n            int bob = heap.poll();\n            answer[i] = bob;\n            answer[i + 1] = alice;\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "TreeMap Frequency Multiset",
+      "timeComplexity": "O(n log u)",
+      "spaceComplexity": "O(u)",
+      "description": "## Approach\n\nCount each value in a `TreeMap`. Repeatedly remove the current smallest value twice by decreasing counts. The first removed value is Alice's number, and the second removed value is Bob's number.\n\n## Key Insight\n\nThe ordered map behaves like a multiset. It groups duplicates by frequency while still letting us remove the current minimum value at each step.\n\n## Complexity Analysis\n- Time Complexity: O(n log u), where `u` is the number of distinct values.\n- Space Complexity: O(u)",
+      "code": "class Solution {\n    public int[] numberGame(int[] nums) {\n        java.util.TreeMap<Integer, Integer> counts = new java.util.TreeMap<>();\n        for (int value : nums) {\n            counts.put(value, counts.getOrDefault(value, 0) + 1);\n        }\n        int[] answer = new int[nums.length];\n        for (int i = 0; i < answer.length; i += 2) {\n            int alice = pollMin(counts);\n            int bob = pollMin(counts);\n            answer[i] = bob;\n            answer[i + 1] = alice;\n        }\n        return answer;\n    }\n\n    private int pollMin(java.util.TreeMap<Integer, Integer> counts) {\n        java.util.Map.Entry<Integer, Integer> entry = counts.firstEntry();\n        int value = entry.getKey();\n        if (entry.getValue() == 1) {\n            counts.pollFirstEntry();\n        } else {\n            counts.put(value, entry.getValue() - 1);\n        }\n        return value;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Repeated Selection Baseline",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nSimulate the statement without a heap. To remove a number, scan the array to find the smallest unused value, save it, and mark that position as used with a sentinel larger than any allowed input. Do this twice per round.\n\n## Key Insight\n\nThe input values are at most `10^9`, so `Integer.MAX_VALUE` is a safe used-marker. This baseline is slower but follows the game definition step by step.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int[] numberGame(int[] nums) {\n        int[] answer = new int[nums.length];\n        for (int i = 0; i < answer.length; i += 2) {\n            int alice = takeMinimum(nums);\n            int bob = takeMinimum(nums);\n            answer[i] = bob;\n            answer[i + 1] = alice;\n        }\n        return answer;\n    }\n\n    private int takeMinimum(int[] nums) {\n        int best = 0;\n        for (int i = 1; i < nums.length; i++) {\n            if (nums[i] < nums[best]) {\n                best = i;\n            }\n        }\n        int value = nums[best];\n        nums[best] = Integer.MAX_VALUE;\n        return value;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

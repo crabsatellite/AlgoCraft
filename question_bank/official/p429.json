@@ -1,7 +1,7 @@
 {
   "id": "429",
   "title": "Design a Leaderboard",
-  "description": "# Design a Leaderboard\n\nDesign a Leaderboard class, which has 3 functions:\n\n1.  `addScore(playerId, score)`: Update the leaderboard by adding `score` to the given player's score. If there is no player with such id in the leaderboard, add him to the leaderboard with the given `score`.\n2.  `top(K)`: Return the score sum of the top `K` players.\n3.  `reset(playerId)`: Reset the score of the player with the given id to 0 (in other words erase it from the leaderboard). It is guaranteed that the player was added to the leaderboard before calling this function.\n\nInitially, the leaderboard is empty.\n\n## Example 1:\n\n**Input:**\n[\"Leaderboard\",\"addScore\",\"addScore\",\"addScore\",\"addScore\",\"addScore\",\"top\",\"reset\",\"reset\",\"addScore\",\"top\"]\n[[],[1,73],[2,56],[3,39],[4,51],[5,4],[1],[1],[2],[2,51],[3]]\n**Output:**\n[null,null,null,null,null,null,73,null,null,null,141]\n**Explanation:**\nLeaderboard leaderboard = new Leaderboard ();\nleaderboard.addScore(1,73);   // leaderboard = [[1,73]];\nleaderboard.addScore(2,56);   // leaderboard = [[1,73],[2,56]];\nleaderboard.addScore(3,39);   // leaderboard = [[1,73],[2,56],[3,39]];\nleaderboard.addScore(4,51);   // leaderboard = [[1,73],[2,56],[3,39],[4,51]];\nleaderboard.addScore(5,4);    // leaderboard = [[1,73],[2,56],[3,39],[4,51],[5,4]];\nleaderboard.top(1);           // returns 73;\nleaderboard.reset(1);         // leaderboard = [[2,56],[3,39],[4,51],[5,4]];\nleaderboard.reset(2);         // leaderboard = [[3,39],[4,51],[5,4]];\nleaderboard.addScore(2,51);   // leaderboard = [[2,51],[3,39],[4,51],[5,4]];\nleaderboard.top(3);           // returns 141 = 51 + 51 + 39;\n\n## Constraints:\n\n*   `1 <= playerId, K <= 10000`\n*   `1 <= score <= 100`\n*   There will be at most `1000` function calls.",
+  "description": "# Design a Leaderboard\n\nDesign a `Leaderboard` class that stores each player's current score and can return the sum of the highest `K` current scores.\n\nImplement the `Leaderboard` class:\n\n1.  `addScore(playerId, score)`: Add `score` to the current score of `playerId`. If the player is not on the leaderboard yet, add that player with this score.\n2.  `top(K)`: Return the sum of the scores of the top `K` players. Players with equal scores are still separate players and must each count toward `K`.\n3.  `reset(playerId)`: Reset `playerId` to score `0`, which removes that player from the active leaderboard. The player is guaranteed to have been added before this call.\n\nInitially, the leaderboard is empty. If a reset player is later added again, the new score starts from `0`, not from the old removed score.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1:\n\n**Input:**\n[\"Leaderboard\",\"addScore\",\"addScore\",\"addScore\",\"addScore\",\"addScore\",\"top\",\"reset\",\"reset\",\"addScore\",\"top\"]\n[[],[1,73],[2,56],[3,39],[4,51],[5,4],[1],[1],[2],[2,51],[3]]\n**Output:**\n[null,null,null,null,null,null,73,null,null,null,141]\n\n**Explanation:**\nAfter the first five additions, the highest score is `73`. After resetting players `1` and `2`, adding `51` to player `2` starts that player again from zero, so the top three scores are `51`, `51`, and `39`.\n\n## Example 2:\n\n**Input:**\n[\"Leaderboard\",\"addScore\",\"addScore\",\"addScore\",\"top\",\"reset\",\"top\"]\n[[],[1,40],[2,40],[3,10],[2],[1],[2]]\n**Output:**\n[null,null,null,null,80,null,50]\n\n**Explanation:**\nThe two players with score `40` both count. After player `1` is reset, the top two scores are `40` and `10`.\n\n## Constraints:\n\n*   `1 <= playerId, K <= 10000`\n*   `1 <= score <= 100`\n*   `top(K)` is called only when at least `K` active players are on the leaderboard.\n*   There will be at most `1000` function calls.",
   "difficulty": "MEDIUM",
   "initialCode": "class Leaderboard {\n\n    public Leaderboard() {\n        \n    }\n    \n    public void addScore(int playerId, int score) {\n        \n    }\n    \n    public int top(int K) {\n        \n    }\n    \n    public void reset(int playerId) {\n        \n    }\n}",
   "tags": [
@@ -13,37 +13,95 @@
     {
       "input": "[\"Leaderboard\",\"addScore\",\"addScore\",\"addScore\",\"addScore\",\"addScore\",\"top\",\"reset\",\"reset\",\"addScore\",\"top\"]\n[[],[1,73],[2,56],[3,39],[4,51],[5,4],[1],[1],[2],[2,51],[3]]",
       "output": "[null,null,null,null,null,null,73,null,null,null,141]"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "HashMap + TreeMap",
-      "timeComplexity": "O(K log n) for top, O(log n) for others",
-      "spaceComplexity": "O(n)",
-      "description": "HashMap maps playerId to score. TreeMap (descending) maps score to count. top() iterates TreeMap collecting top K scores. addScore/reset update both maps.",
-      "code": "class Leaderboard {\n    private java.util.Map<Integer, Integer> scores = new java.util.HashMap<>();\n    private java.util.TreeMap<Integer, Integer> sorted = new java.util.TreeMap<>(java.util.Collections.reverseOrder());\n    public Leaderboard() {}\n    public void addScore(int playerId, int score) {\n        if (scores.containsKey(playerId)) {\n            int old = scores.get(playerId);\n            sorted.merge(old, -1, Integer::sum); if (sorted.get(old) == 0) sorted.remove(old);\n            score += old;\n        }\n        scores.put(playerId, score);\n        sorted.merge(score, 1, Integer::sum);\n    }\n    public int top(int K) {\n        int sum = 0, count = 0;\n        for (var e : sorted.entrySet()) {\n            int take = Math.min(e.getValue(), K - count);\n            sum += e.getKey() * take; count += take;\n            if (count == K) break;\n        }\n        return sum;\n    }\n    public void reset(int playerId) {\n        int old = scores.remove(playerId);\n        sorted.merge(old, -1, Integer::sum); if (sorted.get(old) == 0) sorted.remove(old);\n    }\n}",
-      "language": "java"
     },
     {
-      "name": "HashMap with Sorting on top()",
-      "timeComplexity": "O(n log n) for top, O(1) for add/reset",
-      "spaceComplexity": "O(n)",
-      "description": "Use a HashMap mapping playerId to score. For top(K), collect all scores into a list, sort descending, and sum the top K values.",
-      "code": "import java.util.*;\n\nclass Leaderboard {\n    private Map<Integer, Integer> scores;\n    public Leaderboard() {\n        scores = new HashMap();\n    }\n    public void addScore(int playerId, int score) {\n        scores.put(playerId, scores.getOrDefault(playerId, 0) + score);\n    }\n    public int top(int K) {\n        List<Integer> vals = new ArrayList(scores.values());\n        Collections.sort(vals, Collections.reverseOrder());\n        int sum = 0;\n        for (int i = 0; i < K && i < vals.size(); i++) {\n            sum += vals.get(i).intValue();\n        }\n        return sum;\n    }\n    public void reset(int playerId) {\n        scores.remove(playerId);\n    }\n}",
-      "language": "java"
+      "input": "[\"Leaderboard\",\"addScore\",\"addScore\",\"addScore\",\"top\",\"reset\",\"top\"]\n[[],[1,40],[2,40],[3,10],[2],[1],[2]]",
+      "output": "[null,null,null,null,80,null,50]"
     }
   ],
   "tests": [
     {
       "input": "[\"Leaderboard\",\"addScore\",\"addScore\",\"addScore\",\"addScore\",\"addScore\",\"top\",\"reset\",\"reset\",\"addScore\",\"top\"]\n[[],[1,73],[2,56],[3,39],[4,51],[5,4],[1],[1],[2],[2,51],[3]]",
       "output": "[null,null,null,null,null,null,73,null,null,null,141]"
+    },
+    {
+      "description": "Score updates, reset, and re-adding a player affect ordered top sums.",
+      "input": "[\"Leaderboard\",\"addScore\",\"addScore\",\"addScore\",\"addScore\",\"top\",\"addScore\",\"top\",\"reset\",\"top\",\"addScore\",\"top\"]\n[[],[10,50],[20,50],[30,40],[20,10],[2],[30,30],[2],[20],[2],[20,100],[2]]",
+      "output": "[null,null,null,null,null,110,null,130,null,120,null,170]"
+    },
+    {
+      "description": "Equal scores are counted as separate players in top(K).",
+      "input": "[\"Leaderboard\",\"addScore\",\"addScore\",\"addScore\",\"top\",\"reset\",\"top\"]\n[[],[1,40],[2,40],[3,10],[2],[1],[2]]",
+      "output": "[null,null,null,null,80,null,50]"
+    },
+    {
+      "description": "Repeated addScore calls accumulate on the same player and top(K) can include all players.",
+      "input": "[\"Leaderboard\",\"addScore\",\"addScore\",\"addScore\",\"addScore\",\"top\",\"top\"]\n[[],[1,10],[1,15],[2,20],[3,5],[1],[3]]",
+      "output": "[null,null,null,null,null,25,50]"
+    },
+    {
+      "description": "Reset removes a high score, and a later add starts that player from zero.",
+      "input": "[\"Leaderboard\",\"addScore\",\"addScore\",\"top\",\"reset\",\"addScore\",\"top\"]\n[[],[1,100],[2,90],[2],[1],[1,1],[2]]",
+      "output": "[null,null,null,190,null,null,91]"
+    },
+    {
+      "description": "A tie created by an update counts each tied player separately.",
+      "input": "[\"Leaderboard\",\"addScore\",\"addScore\",\"addScore\",\"addScore\",\"top\",\"reset\",\"top\"]\n[[],[1,30],[2,20],[2,10],[3,30],[3],[2],[2]]",
+      "output": "[null,null,null,null,null,90,null,60]"
+    },
+    {
+      "description": "Multiple equal high scores, reset, and low re-addition preserve top ordering.",
+      "input": "[\"Leaderboard\",\"addScore\",\"addScore\",\"addScore\",\"addScore\",\"top\",\"reset\",\"addScore\",\"top\"]\n[[],[1,100],[2,100],[3,1],[4,99],[3],[2],[2,2],[3]]",
+      "output": "[null,null,null,null,null,299,null,null,201]"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "HashMap and TreeMap Score Counts",
+      "timeComplexity": "O(log n) add/reset, O(d) top until K players",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse a `HashMap` from player id to current score and a descending `TreeMap` from score to the number of players with that score. Updating a player removes one count from the old score bucket and adds one count to the new score bucket. `top(K)` walks score buckets from highest to lowest, taking as many players as still needed.\n\n## Key Insight\n\nThe leaderboard only needs score multiplicities for ranking, not the identities inside each equal-score group. Counting equal scores keeps ties correct and avoids sorting every player on each query.\n\n## Complexity Analysis\n- Time Complexity: O(log n) for add/reset and O(d) for top, where d is the number of score buckets visited\n- Space Complexity: O(n)",
+      "code": "import java.util.Collections;\nimport java.util.HashMap;\nimport java.util.Map;\nimport java.util.TreeMap;\n\nclass Leaderboard {\n    private Map<Integer, Integer> scores;\n    private TreeMap<Integer, Integer> scoreCounts;\n\n    public Leaderboard() {\n        scores = new HashMap<>();\n        scoreCounts = new TreeMap<>(Collections.reverseOrder());\n    }\n\n    public void addScore(int playerId, int score) {\n        int oldScore = scores.getOrDefault(playerId, 0);\n        if (oldScore > 0) {\n            changeCount(oldScore, -1);\n        }\n        int newScore = oldScore + score;\n        scores.put(playerId, newScore);\n        changeCount(newScore, 1);\n    }\n\n    public int top(int K) {\n        int sum = 0;\n        int remaining = K;\n        for (Map.Entry<Integer, Integer> entry : scoreCounts.entrySet()) {\n            int take = Math.min(remaining, entry.getValue());\n            sum += entry.getKey() * take;\n            remaining -= take;\n            if (remaining == 0) {\n                break;\n            }\n        }\n        return sum;\n    }\n\n    public void reset(int playerId) {\n        int oldScore = scores.remove(playerId);\n        changeCount(oldScore, -1);\n    }\n\n    private void changeCount(int score, int delta) {\n        int next = scoreCounts.getOrDefault(score, 0) + delta;\n        if (next == 0) {\n            scoreCounts.remove(score);\n        } else {\n            scoreCounts.put(score, next);\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "HashMap with Sort on Query",
+      "timeComplexity": "O(n log n) top, O(1) average add/reset",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nKeep only a `HashMap` of current player scores. `addScore` and `reset` update this map directly. When `top(K)` is called, copy all current scores to a list, sort the list in descending order, and sum the first `K` entries.\n\n## Key Insight\n\nThis is the simplest correctness baseline: updates are cheap and the ranking work is delayed until a top query actually asks for it. It is useful when top queries are rare or the number of players is small.\n\n## Complexity Analysis\n- Time Complexity: O(1) average for add/reset and O(n log n) for top\n- Space Complexity: O(n)",
+      "code": "import java.util.ArrayList;\nimport java.util.Collections;\nimport java.util.HashMap;\nimport java.util.List;\nimport java.util.Map;\n\nclass Leaderboard {\n    private Map<Integer, Integer> scores;\n\n    public Leaderboard() {\n        scores = new HashMap<>();\n    }\n\n    public void addScore(int playerId, int score) {\n        scores.put(playerId, scores.getOrDefault(playerId, 0) + score);\n    }\n\n    public int top(int K) {\n        List<Integer> values = new ArrayList<>(scores.values());\n        values.sort(Collections.reverseOrder());\n        int sum = 0;\n        for (int i = 0; i < K; i++) {\n            sum += values.get(i);\n        }\n        return sum;\n    }\n\n    public void reset(int playerId) {\n        scores.remove(playerId);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "HashMap with Min-Heap Top K",
+      "timeComplexity": "O(n log K) top, O(1) average add/reset",
+      "spaceComplexity": "O(n + K)",
+      "description": "## Approach\n\nStore current scores in a `HashMap`. For `top(K)`, scan all scores while maintaining a min-heap of at most `K` scores. Whenever the heap grows past `K`, remove its smallest score. At the end, the heap contains exactly the top `K` scores.\n\n## Key Insight\n\nA full sort orders scores that are not needed. A size-`K` min-heap keeps only the current winners, which is the standard Top-K pattern when the ranking is computed on demand.\n\n## Complexity Analysis\n- Time Complexity: O(1) average for add/reset and O(n log K) for top\n- Space Complexity: O(n + K)",
+      "code": "import java.util.HashMap;\nimport java.util.Map;\nimport java.util.PriorityQueue;\n\nclass Leaderboard {\n    private Map<Integer, Integer> scores;\n\n    public Leaderboard() {\n        scores = new HashMap<>();\n    }\n\n    public void addScore(int playerId, int score) {\n        scores.put(playerId, scores.getOrDefault(playerId, 0) + score);\n    }\n\n    public int top(int K) {\n        PriorityQueue<Integer> heap = new PriorityQueue<>();\n        for (int score : scores.values()) {\n            heap.offer(score);\n            if (heap.size() > K) {\n                heap.poll();\n            }\n        }\n        int sum = 0;\n        for (int score : heap) {\n            sum += score;\n        }\n        return sum;\n    }\n\n    public void reset(int playerId) {\n        scores.remove(playerId);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bounded Score Bucket Counts",
+      "timeComplexity": "O(maxScore) top, O(1) average add/reset",
+      "spaceComplexity": "O(maxScore + n)",
+      "description": "## Approach\n\nUse a `HashMap` for each player's score and an integer bucket array where `scoreCounts[s]` is the number of active players with score `s`. Because at most 1000 calls add at most 100 points each, no active score can exceed 100000. `top(K)` scans buckets from high to low and takes players from each score bucket.\n\n## Key Insight\n\nWhen the possible score range is bounded, a counting table can replace a balanced tree. Equal scores are naturally handled by the count stored in the bucket.\n\n## Complexity Analysis\n- Time Complexity: O(1) average for add/reset and O(maxScore) for top\n- Space Complexity: O(maxScore + n)",
+      "code": "import java.util.HashMap;\nimport java.util.Map;\n\nclass Leaderboard {\n    private static final int MAX_SCORE = 100000;\n    private Map<Integer, Integer> scores;\n    private int[] scoreCounts;\n\n    public Leaderboard() {\n        scores = new HashMap<>();\n        scoreCounts = new int[MAX_SCORE + 1];\n    }\n\n    public void addScore(int playerId, int score) {\n        int oldScore = scores.getOrDefault(playerId, 0);\n        if (oldScore > 0) {\n            scoreCounts[oldScore]--;\n        }\n        int newScore = oldScore + score;\n        scores.put(playerId, newScore);\n        scoreCounts[newScore]++;\n    }\n\n    public int top(int K) {\n        int sum = 0;\n        int remaining = K;\n        for (int score = MAX_SCORE; score >= 0 && remaining > 0; score--) {\n            int take = Math.min(remaining, scoreCounts[score]);\n            sum += score * take;\n            remaining -= take;\n        }\n        return sum;\n    }\n\n    public void reset(int playerId) {\n        int oldScore = scores.remove(playerId);\n        scoreCounts[oldScore]--;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "TreeSet of Player Score Records",
+      "timeComplexity": "O(log n) add/reset, O(K) top",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nKeep a `HashMap` from player id to that player's current record and a `TreeSet` ordered by score descending, then player id ascending for ties. Updating a player removes the old record from the set, creates a new record with the updated score, and inserts it. `top(K)` iterates the first `K` records.\n\n## Key Insight\n\nUnlike score-count aggregation, this representation keeps every player as an ordered item. The tie-breaker by player id makes equal scores distinct and removable, which is essential for reset and score updates.\n\n## Complexity Analysis\n- Time Complexity: O(log n) for add/reset and O(K) for top\n- Space Complexity: O(n)",
+      "code": "import java.util.HashMap;\nimport java.util.Iterator;\nimport java.util.Map;\nimport java.util.TreeSet;\n\nclass Leaderboard {\n    private Map<Integer, PlayerScore> records;\n    private TreeSet<PlayerScore> ranking;\n\n    public Leaderboard() {\n        records = new HashMap<>();\n        ranking = new TreeSet<>((a, b) -> {\n            if (a.score != b.score) {\n                return Integer.compare(b.score, a.score);\n            }\n            return Integer.compare(a.playerId, b.playerId);\n        });\n    }\n\n    public void addScore(int playerId, int score) {\n        PlayerScore old = records.get(playerId);\n        int newScore = score;\n        if (old != null) {\n            ranking.remove(old);\n            newScore += old.score;\n        }\n        PlayerScore updated = new PlayerScore(playerId, newScore);\n        records.put(playerId, updated);\n        ranking.add(updated);\n    }\n\n    public int top(int K) {\n        int sum = 0;\n        Iterator<PlayerScore> iterator = ranking.iterator();\n        for (int count = 0; count < K; count++) {\n            sum += iterator.next().score;\n        }\n        return sum;\n    }\n\n    public void reset(int playerId) {\n        PlayerScore old = records.remove(playerId);\n        ranking.remove(old);\n    }\n\n    private static class PlayerScore {\n        final int playerId;\n        final int score;\n\n        PlayerScore(int playerId, int score) {\n            this.playerId = playerId;\n            this.score = score;\n        }\n    }\n}",
+      "language": "java"
     }
   ],
   "diagrams": [
     {
-      "id": "board",
-      "file": "p429_board.png",
-      "caption": "Tic-Tac-Toe Board (3x3)"
+      "id": "leaderboard",
+      "file": "p429_leaderboard.png",
+      "caption": "Leaderboard score state"
     }
   ]
 }

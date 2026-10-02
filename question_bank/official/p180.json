@@ -1,41 +1,159 @@
 {
   "id": "180",
   "title": "Partition Labels",
-  "description": "# Partition Labels\n\nYou are given a string `s`. We want to partition the string into as many parts as possible so that each letter appears in at most one part.\n\nNote that the partition is done so that after concatenating all the parts in order, the resultant string should be `s`.\n\nReturn *a list of integers representing the size of these parts*.\n\n## Example 1:\n\n**Input:** s = \"ababcbacadefegdehijhklij\"\n**Output:** [9,7,8]\n**Explanation:**\nThe partition is \"ababcbaca\", \"defegde\", \"hijhklij\".\nThis is a partition so that each letter appears in at most one part.\nA partition like \"ababcbacadefegde\", \"hijhklij\" is incorrect, because it splits s into less parts.\n\n## Example 2:\n\n**Input:** s = \"eccbbbbdec\"\n**Output:** [10]\n\n## Constraints:\n\n*   `1 <= s.length <= 500`\n*   `s` consists of lowercase English letters.",
+  "description": "# Partition Labels\n\nYou are given a string `s` of lowercase English letters. Partition `s` into as many non-empty contiguous parts as possible so that every letter appears in at most one part.\n\nAfter concatenating the parts in order, the result must be exactly the original string `s`.\n\nReturn a list of integers representing the length of each part.\n\n## Example 1:\n\n**Input:** s = \"ababcbacadefegdehijhklij\"\n**Output:** [9,7,8]\n**Explanation:** The partition is \"ababcbaca\", \"defegde\", \"hijhklij\". Each letter appears in only one part, and this is the maximum possible number of parts.\n\n## Example 2:\n\n**Input:** s = \"eccbbbbdec\"\n**Output:** [10]\n**Explanation:** The last `e` and the last `c` force every character into one part.\n\n## Example 3:\n\n**Input:** s = \"caedbdedda\"\n**Output:** [1,9]\n**Explanation:** The leading `c` closes immediately. The remaining letters overlap through their later occurrences.\n\n## Constraints:\n\n*   `1 <= s.length <= 500`\n*   `s` consists of lowercase English letters.",
   "difficulty": "MEDIUM",
   "initialCode": "import java.util.List;\n\nclass Solution {\n    public List<Integer> partitionLabels(String s) {\n        // Write your code here\n        return null;\n    }\n}",
-  "tags": ["Hash Table", "Two Pointers", "String", "Greedy"],
+  "tags": [
+    "Hash Table",
+    "Two Pointers",
+    "String",
+    "Greedy",
+    "Union Find"
+  ],
   "examples": [
-    { "input": "s = \"ababcbacadefegdehijhklij\"", "output": "[9,7,8]" },
-    { "input": "s = \"eccbbbbdec\"", "output": "[10]" }
+    {
+      "input": "s = \"ababcbacadefegdehijhklij\"",
+      "output": "[9,7,8]"
+    },
+    {
+      "input": "s = \"eccbbbbdec\"",
+      "output": "[10]"
+    },
+    {
+      "input": "s = \"caedbdedda\"",
+      "output": "[1,9]"
+    }
   ],
   "solutions": [
     {
       "name": "Greedy with Last Occurrence Map",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Track last occurrence of each character, then greedily extend each partition until all characters within it are fully contained.",
-      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> partitionLabels(String s) {\n        int[] last = new int[26];\n        for (int i = 0; i < s.length(); i++) last[s.charAt(i) - 'a'] = i;\n        List<Integer> result = new ArrayList<>();\n        int start = 0, end = 0;\n        for (int i = 0; i < s.length(); i++) {\n            end = Math.max(end, last[s.charAt(i) - 'a']);\n            if (i == end) {\n                result.add(end - start + 1);\n                start = end + 1;\n            }\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\nRecord the last index of every character. Scan from left to right while extending the current partition end to the farthest last occurrence of any character seen in the partition. When the scan index reaches that end, emit the partition length.\n\n## Key Insight\nA partition cannot close before the last occurrence of any character it already contains. Closing at the first index where all seen characters have ended gives the shortest valid current part, which leaves the most remaining space for future parts.\n\n## Complexity Analysis\nThe string is scanned twice and the alphabet has fixed size 26, so the time complexity is O(n). The last-occurrence array and output aside use O(1) extra space.",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> partitionLabels(String s) {\n        int[] last = new int[26];\n        for (int i = 0; i < s.length(); i++) {\n            last[s.charAt(i) - 'a'] = i;\n        }\n\n        List<Integer> result = new ArrayList<>();\n        int start = 0;\n        int end = 0;\n        for (int i = 0; i < s.length(); i++) {\n            end = Math.max(end, last[s.charAt(i) - 'a']);\n            if (i == end) {\n                result.add(end - start + 1);\n                start = end + 1;\n            }\n        }\n        return result;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Merge Intervals Approach",
+      "name": "Merge Character Intervals",
+      "timeComplexity": "O(n + k log k)",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\nFor each character that appears, build the interval from its first occurrence to its last occurrence. Sort those character intervals by start position and merge overlaps. Every merged interval is one valid partition.\n\n## Key Insight\nAll occurrences of the same character must stay in one part, so each character creates a required interval. If two required intervals overlap, their characters must share a partition. The final answer is exactly the list of merged interval lengths.\n\n## Complexity Analysis\nLet `k` be the number of distinct characters, at most 26 here. Building intervals takes O(n), sorting them takes O(k log k), and merging takes O(k). The interval list uses O(k) extra space.",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\nimport java.util.Arrays;\n\nclass Solution {\n    public List<Integer> partitionLabels(String s) {\n        int[] first = new int[26];\n        int[] last = new int[26];\n        Arrays.fill(first, -1);\n\n        for (int i = 0; i < s.length(); i++) {\n            int c = s.charAt(i) - 'a';\n            if (first[c] == -1) {\n                first[c] = i;\n            }\n            last[c] = i;\n        }\n\n        List<int[]> intervals = new ArrayList<>();\n        for (int c = 0; c < 26; c++) {\n            if (first[c] != -1) {\n                intervals.add(new int[]{first[c], last[c]});\n            }\n        }\n        intervals.sort((a, b) -> Integer.compare(a[0], b[0]));\n\n        List<Integer> result = new ArrayList<>();\n        int start = intervals.get(0)[0];\n        int end = intervals.get(0)[1];\n        for (int i = 1; i < intervals.size(); i++) {\n            int[] interval = intervals.get(i);\n            if (interval[0] <= end) {\n                end = Math.max(end, interval[1]);\n            } else {\n                result.add(end - start + 1);\n                start = interval[0];\n                end = interval[1];\n            }\n        }\n        result.add(end - start + 1);\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Remaining Frequency Active Set",
       "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nCount the remaining occurrences of every character. During the scan, keep an active set of characters that have appeared in the current partition but still occur later. A partition closes exactly when that active set becomes empty.\n\n## Key Insight\nInstead of storing last positions, this method stores the same obligation dynamically: a character keeps the current partition open until its remaining count drops to zero. When no active character remains, no future character is tied to the current part.\n\n## Complexity Analysis\nCounting and scanning are both linear, so the time complexity is O(n). The remaining counts and active flags are fixed arrays of length 26, so the extra space is O(1).",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> partitionLabels(String s) {\n        int[] remaining = new int[26];\n        for (int i = 0; i < s.length(); i++) {\n            remaining[s.charAt(i) - 'a']++;\n        }\n\n        boolean[] active = new boolean[26];\n        int openCharacters = 0;\n        int start = 0;\n        List<Integer> result = new ArrayList<>();\n\n        for (int i = 0; i < s.length(); i++) {\n            int c = s.charAt(i) - 'a';\n            if (!active[c]) {\n                active[c] = true;\n                openCharacters++;\n            }\n            remaining[c]--;\n            if (remaining[c] == 0) {\n                active[c] = false;\n                openCharacters--;\n            }\n            if (openCharacters == 0) {\n                result.add(i - start + 1);\n                start = i + 1;\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Brute Force Closed-Segment Check",
+      "timeComplexity": "O(26 * n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nPrecompute each character's first and last occurrence. Starting from the next unpartitioned index, try candidate end positions from left to right and choose the first segment that fully contains every character interval it touches.\n\n## Key Insight\nA segment is valid if every character either has all of its occurrences inside the segment or has no occurrence inside it. Testing this condition directly is slower, but it is a useful correctness baseline because it mirrors the problem statement literally.\n\n## Complexity Analysis\nFor each start position, the method may test many end positions, and each test checks 26 characters, so the time complexity is O(26 * n^2). The first and last arrays are fixed size, so the extra space is O(1).",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\nimport java.util.Arrays;\n\nclass Solution {\n    public List<Integer> partitionLabels(String s) {\n        int[] first = new int[26];\n        int[] last = new int[26];\n        Arrays.fill(first, -1);\n        for (int i = 0; i < s.length(); i++) {\n            int c = s.charAt(i) - 'a';\n            if (first[c] == -1) {\n                first[c] = i;\n            }\n            last[c] = i;\n        }\n\n        List<Integer> result = new ArrayList<>();\n        int start = 0;\n        while (start < s.length()) {\n            for (int end = start; end < s.length(); end++) {\n                if (isClosedSegment(first, last, start, end)) {\n                    result.add(end - start + 1);\n                    start = end + 1;\n                    break;\n                }\n            }\n        }\n        return result;\n    }\n\n    private boolean isClosedSegment(int[] first, int[] last, int start, int end) {\n        for (int c = 0; c < 26; c++) {\n            if (first[c] == -1) {\n                continue;\n            }\n            boolean overlaps = first[c] <= end && last[c] >= start;\n            if (overlaps && (first[c] < start || last[c] > end)) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Union-Find Index Components",
+      "timeComplexity": "O(26 * n α(n))",
       "spaceComplexity": "O(n)",
-      "description": "For each character, compute its first and last occurrence as an interval. Merge overlapping intervals, then the length of each merged interval gives the partition size.",
-      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> partitionLabels(String s) {\n        int[] first = new int[26];\n        int[] lastOcc = new int[26];\n        java.util.Arrays.fill(first, -1);\n        for (int i = 0; i < s.length(); i++) {\n            int c = s.charAt(i) - 'a';\n            if (first[c] == -1) first[c] = i;\n            lastOcc[c] = i;\n        }\n        List<int[]> intervals = new ArrayList<>();\n        for (int i = 0; i < 26; i++) {\n            if (first[i] != -1) intervals.add(new int[]{first[i], lastOcc[i]});\n        }\n        intervals.sort((a, b) -> a[0] - b[0]);\n        List<Integer> result = new ArrayList<>();\n        int start = intervals.get(0)[0];\n        int end = intervals.get(0)[1];\n        for (int i = 1; i < intervals.size(); i++) {\n            if (intervals.get(i)[0] <= end) {\n                end = Math.max(end, intervals.get(i)[1]);\n            } else {\n                result.add(end - start + 1);\n                start = intervals.get(i)[0];\n                end = intervals.get(i)[1];\n            }\n        }\n        result.add(end - start + 1);\n        return result;\n    }\n}",
+      "description": "## Approach\nCompute each character interval, then union all indices inside each interval with that interval's first index. After all unions, scan the string and output the lengths of contiguous connected components.\n\n## Key Insight\nEvery index between the first and last occurrence of a character is forced into the same final part. Overlapping character intervals become connected components, and each component corresponds to exactly one partition.\n\n## Complexity Analysis\nThere are at most 26 character intervals, and each interval may union a linear number of indices, so the time complexity is O(26 * n α(n)). The disjoint-set structure stores one parent per index, so the space complexity is O(n).",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\nimport java.util.Arrays;\n\nclass Solution {\n    public List<Integer> partitionLabels(String s) {\n        int n = s.length();\n        int[] first = new int[26];\n        int[] last = new int[26];\n        Arrays.fill(first, -1);\n\n        for (int i = 0; i < n; i++) {\n            int c = s.charAt(i) - 'a';\n            if (first[c] == -1) {\n                first[c] = i;\n            }\n            last[c] = i;\n        }\n\n        DSU dsu = new DSU(n);\n        for (int c = 0; c < 26; c++) {\n            if (first[c] == -1) {\n                continue;\n            }\n            for (int i = first[c] + 1; i <= last[c]; i++) {\n                dsu.union(first[c], i);\n            }\n        }\n\n        List<Integer> result = new ArrayList<>();\n        int start = 0;\n        int root = dsu.find(0);\n        for (int i = 1; i < n; i++) {\n            int current = dsu.find(i);\n            if (current != root) {\n                result.add(i - start);\n                start = i;\n                root = current;\n            }\n        }\n        result.add(n - start);\n        return result;\n    }\n\n    private static class DSU {\n        private final int[] parent;\n        private final int[] rank;\n\n        DSU(int n) {\n            parent = new int[n];\n            rank = new int[n];\n            for (int i = 0; i < n; i++) {\n                parent[i] = i;\n            }\n        }\n\n        int find(int x) {\n            if (parent[x] != x) {\n                parent[x] = find(parent[x]);\n            }\n            return parent[x];\n        }\n\n        void union(int a, int b) {\n            int rootA = find(a);\n            int rootB = find(b);\n            if (rootA == rootB) {\n                return;\n            }\n            if (rank[rootA] < rank[rootB]) {\n                parent[rootA] = rootB;\n            } else if (rank[rootA] > rank[rootB]) {\n                parent[rootB] = rootA;\n            } else {\n                parent[rootB] = rootA;\n                rank[rootA]++;\n            }\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"ababcbacadefegdehijhklij\"", "output": "[9,7,8]" },
-    { "input": "s = \"eccbbbbdec\"", "output": "[10]" },
-    { "input": "s = \"a\"", "output": "[1]" },
-    { "input": "s = \"abcdef\"", "output": "[1,1,1,1,1,1]" },
-    { "input": "s = \"aaaaaa\"", "output": "[6]" },
-    { "input": "s = \"abab\"", "output": "[4]" },
-    { "input": "s = \"abcabc\"", "output": "[6]" },
-    { "input": "s = \"caedbdedda\"", "output": "[1,9]" }
+    {
+      "input": "s = \"ababcbacadefegdehijhklij\"",
+      "output": "[9,7,8]",
+      "description": "Canonical sample with three maximal labels."
+    },
+    {
+      "input": "s = \"eccbbbbdec\"",
+      "output": "[10]",
+      "description": "Overlapping first and last occurrences force the whole string into one part."
+    },
+    {
+      "input": "s = \"a\"",
+      "output": "[1]",
+      "description": "Single character boundary."
+    },
+    {
+      "input": "s = \"abcdef\"",
+      "output": "[1,1,1,1,1,1]",
+      "description": "All distinct letters close immediately."
+    },
+    {
+      "input": "s = \"aaaaaa\"",
+      "output": "[6]",
+      "description": "All same character forces one partition."
+    },
+    {
+      "input": "s = \"abab\"",
+      "output": "[4]",
+      "description": "Two repeated letters overlap across the whole string."
+    },
+    {
+      "input": "s = \"abcabc\"",
+      "output": "[6]",
+      "description": "Repeated pattern keeps all letters in one partition."
+    },
+    {
+      "input": "s = \"caedbdedda\"",
+      "output": "[1,9]",
+      "description": "Leading singleton closes before a long overlapping suffix."
+    },
+    {
+      "input": "s = \"abac\"",
+      "output": "[3,1]",
+      "description": "A repeated first letter closes the first segment, then a singleton remains."
+    },
+    {
+      "input": "s = \"abbaccd\"",
+      "output": "[4,2,1]",
+      "description": "Nested pair interval followed by a short repeated block and a singleton."
+    },
+    {
+      "input": "s = \"abacdeffed\"",
+      "output": "[3,1,6]",
+      "description": "A first partition, a middle singleton, and a mirrored suffix partition."
+    },
+    {
+      "input": "s = \"abcddcbaefgfe\"",
+      "output": "[8,5]",
+      "description": "Two independent nested groups should not be merged together."
+    },
+    {
+      "input": "s = \"abcdefghijklmnopqrstuvwxyz\"",
+      "output": "[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]",
+      "description": "All 26 letters appear once."
+    },
+    {
+      "input": "s = \"abcdefghijklmnopqrstuvwxyza\"",
+      "output": "[27]",
+      "description": "The first and last character enclose every other singleton."
+    },
+    {
+      "input": "s = \"abcbadefegdehijhklij\"",
+      "output": "[5,7,8]",
+      "description": "Three partition blocks with different internal overlap patterns."
+    },
+    {
+      "input": "s = \"adefaddaccc\"",
+      "output": "[8,3]",
+      "description": "Classic two-part case where repeated letters force a long first block."
+    }
   ],
-  "diagram": "images/p180_partition_labels.png"
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p180_partition_labels.png",
+      "caption": "Sample string with repeated letters highlighted."
+    }
+  ]
 }

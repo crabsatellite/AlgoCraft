@@ -1,36 +1,142 @@
 {
   "id": "349",
   "title": "Largest Component Size by Common Factor",
-  "description": "# Largest Component Size by Common Factor\n\nYou are given an integer array of unique positive integers `nums`. Consider the following graph:\n\n*   There are `nums.length` nodes, labeled `nums[0]` to `nums[nums.length - 1]`,\n*   There is an undirected edge between `nums[i]` and `nums[j]` if `nums[i]` and `nums[j]` share a common factor greater than `1`.\n\nReturn *the size of the largest connected component in the graph*.\n\n## Example 1:\n\n**Input:** nums = [4,6,15,35]\n**Output:** 4\n\n## Example 2:\n\n**Input:** nums = [20,50,9,63]\n**Output:** 2\n\n## Example 3:\n\n**Input:** nums = [2,3,6,7,4,12,21,39]\n**Output:** 8\n\n## Constraints:\n\n*   `1 <= nums.length <= 2 * 10^4`\n*   `1 <= nums[i] <= 10^5`\n*   All the values of `nums` are **unique**.",
+  "description": "# Largest Component Size by Common Factor\n\nYou are given an array `nums` of unique positive integers. Build an undirected graph where each value in `nums` is a node, and two nodes have an edge when their greatest common divisor is greater than `1`.\n\nReturn the size of the largest connected component. Connectivity is transitive: if `a` shares a factor with `b`, and `b` shares a factor with `c`, then all three values are in the same component even if `a` and `c` are coprime. The value `1` has no factor greater than `1`, so it is isolated unless it is the only node.\n\nThe greatest common divisor is the largest positive integer dividing both values. A connected group consists of all nodes reachable from each other along edges, and its size counts nodes.\n\n## Example 1:\n\n**Input:** nums = [4,6,15,35]\n\n**Output:** 4\n\n**Explanation:** 4 shares factor 2 with 6; 6 shares factor 3 with 15; 15 shares factor 5 with 35. All four nodes are connected by a chain.\n\n## Example 2:\n\n**Input:** nums = [20,50,9,63]\n\n**Output:** 2\n\n## Example 3:\n\n**Input:** nums = [2,3,6,7,4,12,21,39]\n\n**Output:** 8\n\n## Constraints:\n\n* `1 <= nums.length <= 2 * 10^4`\n* `1 <= nums[i] <= 10^5`\n* All values in `nums` are unique.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int largestComponentSize(int[] nums) {\n        \n    }\n}",
-  "tags": ["Array", "Math", "Union Find"],
+  "initialCode": "class Solution {\n    public int largestComponentSize(int[] nums) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Math",
+    "Union Find",
+    "Graph",
+    "Number Theory"
+  ],
   "examples": [
-    { "input": "nums = [4,6,15,35]", "output": "4" },
-    { "input": "nums = [20,50,9,63]", "output": "2" },
-    { "input": "nums = [2,3,6,7,4,12,21,39]", "output": "8" }
+    {
+      "input": "nums = [4,6,15,35]",
+      "output": "4"
+    },
+    {
+      "input": "nums = [20,50,9,63]",
+      "output": "2"
+    },
+    {
+      "input": "nums = [2,3,6,7,4,12,21,39]",
+      "output": "8"
+    }
   ],
   "solutions": [
     {
-      "name": "Union Find with Prime Factorization",
+      "name": "Value-Factor Union Find",
       "timeComplexity": "O(n * sqrt(max))",
       "spaceComplexity": "O(max)",
-      "description": "For each number, find its prime factors and union the number with each factor. After processing all numbers, count the size of each component containing an original number.",
-      "code": "class Solution {\n    private int[] parent, rank;\n    public int largestComponentSize(int[] nums) {\n        int max = 0;\n        for (int n : nums) max = Math.max(max, n);\n        parent = new int[max + 1];\n        rank = new int[max + 1];\n        for (int i = 0; i <= max; i++) parent[i] = i;\n        for (int num : nums) {\n            for (int f = 2; f * f <= num; f++) {\n                if (num % f == 0) {\n                    union(num, f);\n                    union(num, num / f);\n                }\n            }\n        }\n        java.util.Map<Integer, Integer> count = new java.util.HashMap<>();\n        int result = 0;\n        for (int num : nums) {\n            int root = find(num);\n            count.put(root, count.getOrDefault(root, 0) + 1);\n            result = Math.max(result, count.get(root));\n        }\n        return result;\n    }\n    private int find(int x) {\n        if (parent[x] != x) parent[x] = find(parent[x]);\n        return parent[x];\n    }\n    private void union(int a, int b) {\n        int ra = find(a), rb = find(b);\n        if (ra == rb) return;\n        if (rank[ra] < rank[rb]) { int t = ra; ra = rb; rb = t; }\n        parent[rb] = ra;\n        if (rank[ra] == rank[rb]) rank[ra]++;\n    }\n}",
+      "description": "## Approach\n\nCreate a disjoint-set over integer values from `0` to `max(nums)`. For each number, factor it by trial division and union the number with each distinct prime factor. After all unions, count only roots of the original numbers.\n\n## Key Insight\n\nA prime factor can act as a hub node. Connecting every number to its prime factors produces the same transitive components as connecting every pair of numbers with a common factor.\n\n## Complexity Analysis\n- Time Complexity: O(n * sqrt(max))\n- Space Complexity: O(max)",
+      "code": "class Solution {\n    private int[] parent;\n    private int[] rank;\n\n    public int largestComponentSize(int[] nums) {\n        int max = 0;\n        for (int num : nums) {\n            max = Math.max(max, num);\n        }\n        parent = new int[max + 1];\n        rank = new int[max + 1];\n        for (int i = 0; i <= max; i++) {\n            parent[i] = i;\n        }\n\n        for (int num : nums) {\n            int x = num;\n            for (int p = 2; p * p <= x; p++) {\n                if (x % p == 0) {\n                    union(num, p);\n                    while (x % p == 0) {\n                        x /= p;\n                    }\n                }\n            }\n            if (x > 1) {\n                union(num, x);\n            }\n        }\n\n        java.util.Map<Integer, Integer> count = new java.util.HashMap<>();\n        int answer = 0;\n        for (int num : nums) {\n            int root = find(num);\n            count.put(root, count.getOrDefault(root, 0) + 1);\n            answer = Math.max(answer, count.get(root));\n        }\n        return answer;\n    }\n\n    private int find(int x) {\n        if (parent[x] != x) {\n            parent[x] = find(parent[x]);\n        }\n        return parent[x];\n    }\n\n    private void union(int a, int b) {\n        int ra = find(a);\n        int rb = find(b);\n        if (ra == rb) {\n            return;\n        }\n        if (rank[ra] < rank[rb]) {\n            int tmp = ra;\n            ra = rb;\n            rb = tmp;\n        }\n        parent[rb] = ra;\n        if (rank[ra] == rank[rb]) {\n            rank[ra]++;\n        }\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Union Find with Sieve-like Factor Mapping",
+      "name": "Prime Owner Index Union Find",
       "timeComplexity": "O(n * sqrt(max))",
-      "spaceComplexity": "O(max)",
-      "description": "For each number, find all prime factors. Map each prime factor to the first number that had it. Union subsequent numbers sharing the same prime factor with that first number. Count component sizes.",
-      "code": "import java.util.*;\n\nclass Solution {\n    private int[] parent;\n    private int[] size;\n    public int largestComponentSize(int[] nums) {\n        int max = 0;\n        for (int n : nums) max = Math.max(max, n);\n        parent = new int[max + 1];\n        size = new int[max + 1];\n        for (int i = 0; i <= max; i++) { parent[i] = i; size[i] = 1; }\n        Map<Integer, Integer> primeToNode = new HashMap<>();\n        for (int num : nums) {\n            List<Integer> primes = getPrimeFactors(num);\n            for (int p : primes) {\n                if (primeToNode.containsKey(p)) {\n                    union(num, primeToNode.get(p));\n                } else {\n                    primeToNode.put(p, num);\n                }\n            }\n        }\n        Map<Integer, Integer> componentCount = new HashMap<>();\n        int result = 0;\n        for (int num : nums) {\n            int root = find(num);\n            int cnt = componentCount.getOrDefault(root, 0) + 1;\n            componentCount.put(root, cnt);\n            result = Math.max(result, cnt);\n        }\n        return result;\n    }\n    private List<Integer> getPrimeFactors(int n) {\n        List<Integer> factors = new ArrayList<>();\n        for (int f = 2; f * f <= n; f++) {\n            if (n % f == 0) {\n                factors.add(f);\n                while (n % f == 0) n /= f;\n            }\n        }\n        if (n > 1) factors.add(n);\n        return factors;\n    }\n    private int find(int x) {\n        while (parent[x] != x) { parent[x] = parent[parent[x]]; x = parent[x]; }\n        return x;\n    }\n    private void union(int a, int b) {\n        int ra = find(a), rb = find(b);\n        if (ra == rb) return;\n        if (size[ra] < size[rb]) { int t = ra; ra = rb; rb = t; }\n        parent[rb] = ra;\n        size[ra] += size[rb];\n    }\n}",
+      "spaceComplexity": "O(n + distinctPrimeFactors)",
+      "description": "## Approach\n\nBuild the disjoint-set only over indices in `nums`. For each distinct prime factor of `nums[i]`, remember the first index that contained that prime. Later indices with the same prime are unioned with that owner.\n\n## Key Insight\n\nThe factor value is only a connector; it does not need to be a DSU node. Mapping each prime to one representative index is enough to merge every number that contains that prime.\n\n## Complexity Analysis\n- Time Complexity: O(n * sqrt(max))\n- Space Complexity: O(n + distinctPrimeFactors)",
+      "code": "class Solution {\n    private int[] parent;\n    private int[] size;\n\n    public int largestComponentSize(int[] nums) {\n        parent = new int[nums.length];\n        size = new int[nums.length];\n        for (int i = 0; i < nums.length; i++) {\n            parent[i] = i;\n            size[i] = 1;\n        }\n\n        java.util.Map<Integer, Integer> primeOwner = new java.util.HashMap<>();\n        for (int i = 0; i < nums.length; i++) {\n            int x = nums[i];\n            for (int p = 2; p * p <= x; p++) {\n                if (x % p == 0) {\n                    connectPrime(primeOwner, p, i);\n                    while (x % p == 0) {\n                        x /= p;\n                    }\n                }\n            }\n            if (x > 1) {\n                connectPrime(primeOwner, x, i);\n            }\n        }\n\n        int answer = 1;\n        for (int i = 0; i < nums.length; i++) {\n            answer = Math.max(answer, size[find(i)]);\n        }\n        return answer;\n    }\n\n    private void connectPrime(java.util.Map<Integer, Integer> primeOwner, int prime, int index) {\n        Integer owner = primeOwner.putIfAbsent(prime, index);\n        if (owner != null) {\n            union(index, owner);\n        }\n    }\n\n    private int find(int x) {\n        if (parent[x] != x) {\n            parent[x] = find(parent[x]);\n        }\n        return parent[x];\n    }\n\n    private void union(int a, int b) {\n        int ra = find(a);\n        int rb = find(b);\n        if (ra == rb) {\n            return;\n        }\n        if (size[ra] < size[rb]) {\n            int tmp = ra;\n            ra = rb;\n            rb = tmp;\n        }\n        parent[rb] = ra;\n        size[ra] += size[rb];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "SPF Sieve with Index Union",
+      "timeComplexity": "O(max log log max + n log max)",
+      "spaceComplexity": "O(max + n)",
+      "description": "## Approach\n\nPrecompute the smallest prime factor for every value up to `max(nums)`. Then factor each number by repeatedly using the SPF table, and union indices that share the same prime factor.\n\n## Key Insight\n\nThe expensive part of repeated trial division is rediscovering factors. An SPF table turns factorization of each value into a short walk through its prime factors.\n\n## Complexity Analysis\n- Time Complexity: O(max log log max + n log max)\n- Space Complexity: O(max + n)",
+      "code": "class Solution {\n    private int[] parent;\n    private int[] size;\n\n    public int largestComponentSize(int[] nums) {\n        int max = 0;\n        for (int num : nums) {\n            max = Math.max(max, num);\n        }\n        int[] spf = buildSmallestPrimeFactor(max);\n        parent = new int[nums.length];\n        size = new int[nums.length];\n        for (int i = 0; i < nums.length; i++) {\n            parent[i] = i;\n            size[i] = 1;\n        }\n\n        java.util.Map<Integer, Integer> owner = new java.util.HashMap<>();\n        for (int i = 0; i < nums.length; i++) {\n            int x = nums[i];\n            while (x > 1) {\n                int p = spf[x] == 0 ? x : spf[x];\n                while (x % p == 0) {\n                    x /= p;\n                }\n                Integer first = owner.putIfAbsent(p, i);\n                if (first != null) {\n                    union(i, first);\n                }\n            }\n        }\n\n        int answer = 1;\n        for (int i = 0; i < nums.length; i++) {\n            answer = Math.max(answer, size[find(i)]);\n        }\n        return answer;\n    }\n\n    private int[] buildSmallestPrimeFactor(int max) {\n        int[] spf = new int[max + 1];\n        for (int i = 2; i <= max; i++) {\n            if (spf[i] == 0) {\n                spf[i] = i;\n                if ((long) i * i <= max) {\n                    for (long j = (long) i * i; j <= max; j += i) {\n                        if (spf[(int) j] == 0) {\n                            spf[(int) j] = i;\n                        }\n                    }\n                }\n            }\n        }\n        return spf;\n    }\n\n    private int find(int x) {\n        if (parent[x] != x) {\n            parent[x] = find(parent[x]);\n        }\n        return parent[x];\n    }\n\n    private void union(int a, int b) {\n        int ra = find(a);\n        int rb = find(b);\n        if (ra == rb) {\n            return;\n        }\n        if (size[ra] < size[rb]) {\n            int tmp = ra;\n            ra = rb;\n            rb = tmp;\n        }\n        parent[rb] = ra;\n        size[ra] += size[rb];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Divisor Bucket Sieve Union",
+      "timeComplexity": "O(max log max + n)",
+      "spaceComplexity": "O(max + n)",
+      "description": "## Approach\n\nMap every value in `nums` to its index. For each possible factor from `2` to `max(nums)`, scan its multiples. All present multiples of the same factor are unioned together.\n\n## Key Insight\n\nInstead of factoring each number, enumerate factor buckets directly. Every bucket represents one common factor greater than `1`, so all numbers inside that bucket belong to the same component.\n\n## Complexity Analysis\n- Time Complexity: O(max log max + n)\n- Space Complexity: O(max + n)",
+      "code": "class Solution {\n    private int[] parent;\n    private int[] size;\n\n    public int largestComponentSize(int[] nums) {\n        int max = 0;\n        for (int num : nums) {\n            max = Math.max(max, num);\n        }\n        int[] indexByValue = new int[max + 1];\n        java.util.Arrays.fill(indexByValue, -1);\n        for (int i = 0; i < nums.length; i++) {\n            indexByValue[nums[i]] = i;\n        }\n\n        parent = new int[nums.length];\n        size = new int[nums.length];\n        for (int i = 0; i < nums.length; i++) {\n            parent[i] = i;\n            size[i] = 1;\n        }\n\n        for (int factor = 2; factor <= max; factor++) {\n            int firstIndex = -1;\n            for (int multiple = factor; multiple <= max; multiple += factor) {\n                int index = indexByValue[multiple];\n                if (index == -1) {\n                    continue;\n                }\n                if (firstIndex == -1) {\n                    firstIndex = index;\n                } else {\n                    union(firstIndex, index);\n                }\n            }\n        }\n\n        int answer = 1;\n        for (int i = 0; i < nums.length; i++) {\n            answer = Math.max(answer, size[find(i)]);\n        }\n        return answer;\n    }\n\n    private int find(int x) {\n        if (parent[x] != x) {\n            parent[x] = find(parent[x]);\n        }\n        return parent[x];\n    }\n\n    private void union(int a, int b) {\n        int ra = find(a);\n        int rb = find(b);\n        if (ra == rb) {\n            return;\n        }\n        if (size[ra] < size[rb]) {\n            int tmp = ra;\n            ra = rb;\n            rb = tmp;\n        }\n        parent[rb] = ra;\n        size[ra] += size[rb];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Prime Factor Bipartite BFS",
+      "timeComplexity": "O(n * sqrt(max) + totalFactorEdges)",
+      "spaceComplexity": "O(n + totalFactorEdges)",
+      "description": "## Approach\n\nFactor every number into distinct prime factors. Build a map from each prime factor to all indices that contain it. Then run BFS over number indices, expanding through each unused prime-factor bucket once.\n\n## Key Insight\n\nThe graph is naturally bipartite: number nodes connect to prime-factor nodes. Visiting each factor bucket once gives connected component sizes without using a disjoint-set.\n\n## Complexity Analysis\n- Time Complexity: O(n * sqrt(max) + totalFactorEdges)\n- Space Complexity: O(n + totalFactorEdges)",
+      "code": "class Solution {\n    public int largestComponentSize(int[] nums) {\n        java.util.List<java.util.List<Integer>> factorsByIndex = new java.util.ArrayList<>();\n        java.util.Map<Integer, java.util.List<Integer>> factorToIndices = new java.util.HashMap<>();\n        for (int i = 0; i < nums.length; i++) {\n            java.util.List<Integer> factors = primeFactors(nums[i]);\n            factorsByIndex.add(factors);\n            for (int factor : factors) {\n                factorToIndices.computeIfAbsent(factor, key -> new java.util.ArrayList<>()).add(i);\n            }\n        }\n\n        boolean[] visited = new boolean[nums.length];\n        java.util.Set<Integer> usedFactors = new java.util.HashSet<>();\n        int answer = 0;\n        for (int i = 0; i < nums.length; i++) {\n            if (visited[i]) {\n                continue;\n            }\n            int count = 0;\n            java.util.ArrayDeque<Integer> queue = new java.util.ArrayDeque<>();\n            queue.addLast(i);\n            visited[i] = true;\n            while (!queue.isEmpty()) {\n                int current = queue.removeFirst();\n                count++;\n                for (int factor : factorsByIndex.get(current)) {\n                    if (!usedFactors.add(factor)) {\n                        continue;\n                    }\n                    for (int next : factorToIndices.getOrDefault(factor, java.util.List.of())) {\n                        if (!visited[next]) {\n                            visited[next] = true;\n                            queue.addLast(next);\n                        }\n                    }\n                }\n            }\n            answer = Math.max(answer, count);\n        }\n        return answer;\n    }\n\n    private java.util.List<Integer> primeFactors(int value) {\n        java.util.List<Integer> factors = new java.util.ArrayList<>();\n        int x = value;\n        for (int p = 2; p * p <= x; p++) {\n            if (x % p == 0) {\n                factors.add(p);\n                while (x % p == 0) {\n                    x /= p;\n                }\n            }\n        }\n        if (x > 1) {\n            factors.add(x);\n        }\n        return factors;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [4,6,15,35]", "output": "4" },
-    { "input": "nums = [20,50,9,63]", "output": "2" },
-    { "input": "nums = [2,3,6,7,4,12,21,39]", "output": "8" }
+    {
+      "input": "nums = [4,6,15,35]",
+      "output": "4",
+      "description": "canonical transitive chain through factors 2, 3, and 5"
+    },
+    {
+      "input": "nums = [20,50,9,63]",
+      "output": "2",
+      "description": "two separate components of size two"
+    },
+    {
+      "input": "nums = [2,3,6,7,4,12,21,39]",
+      "output": "8",
+      "description": "all values become connected by transitive factor links"
+    },
+    {
+      "input": "nums = [2,3,5,7]",
+      "output": "1",
+      "description": "pairwise coprime primes are all isolated"
+    },
+    {
+      "input": "nums = [6,10,15]",
+      "output": "3",
+      "description": "three numbers form one component through different shared primes"
+    },
+    {
+      "input": "nums = [4,8,16]",
+      "output": "3",
+      "description": "same prime power component"
+    },
+    {
+      "input": "nums = [18,35,49,64]",
+      "output": "2",
+      "description": "only 35 and 49 share a component"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "1",
+      "description": "single value 1 is an isolated component of size one"
+    },
+    {
+      "input": "nums = [1,2,4,8,16,3,9,27,6]",
+      "output": "8",
+      "description": "1 stays isolated while 6 connects the powers of 2 and powers of 3"
+    },
+    {
+      "input": "nums = [99991,99989,2,4,8]",
+      "output": "3",
+      "description": "large primes remain isolated beside a small factor component"
+    },
+    {
+      "input": "nums = [30,42,70,105]",
+      "output": "4",
+      "description": "dense composite set with several overlapping factors"
+    },
+    {
+      "input": "nums = [14,25,49,121,169]",
+      "output": "2",
+      "description": "prime squares should not connect unless they share the same base prime"
+    },
+    {
+      "input": "nums = [6,35,10,77,143]",
+      "output": "5",
+      "description": "long transitive chain where adjacent numbers share different primes"
+    },
+    {
+      "input": "nums = [2,6,17,51,85,95]",
+      "output": "6",
+      "description": "prime singleton becomes connected through a later composite"
+    }
   ]
 }

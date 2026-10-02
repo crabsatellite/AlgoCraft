@@ -1,36 +1,102 @@
 {
   "id": "471",
   "title": "Longest Harmonious Subsequence",
-  "description": "# Longest Harmonious Subsequence\n\nWe define a harmonious array as an array where the difference between its maximum value and its minimum value is **exactly** `1`.\n\nGiven an integer array `nums`, return *the length of its longest harmonious subsequence among all its possible subsequences*.\n\nA subsequence of array is a sequence that can be derived from the array by deleting some or no elements without changing the order of the remaining elements.\n\n## Example 1:\n\n**Input:** nums = [1,3,2,2,5,2,3,7]\n**Output:** 5\n**Explanation:** The longest harmonious subsequence is [3,2,2,2,3].\n\n## Example 2:\n\n**Input:** nums = [1,2,3,4]\n**Output:** 2\n\n## Example 3:\n\n**Input:** nums = [1,1,1,1]\n**Output:** 0\n\n## Constraints:\n\n*   `1 <= nums.length <= 2 * 10^4`\n*   `-10^9 <= nums[i] <= 10^9`",
+  "description": "# Longest Harmonious Subsequence\n\nA harmonious array is an array where the difference between its maximum value and its minimum value is exactly `1`.\n\nGiven an integer array `nums`, return the length of the longest harmonious subsequence among all possible subsequences.\n\nA subsequence deletes zero or more elements while preserving order. The difference must be exactly `1`, so a subsequence containing only one distinct value is not harmonious.\n\nIf no harmonious subsequence exists, return `0`.\n\n## Example 1:\n\n**Input:** nums = [1,3,2,2,5,2,3,7]\n**Output:** 5\n**Explanation:** The longest harmonious subsequence is [3,2,2,2,3], whose minimum is 2 and maximum is 3.\n\n## Example 2:\n\n**Input:** nums = [1,2,3,4]\n**Output:** 2\n**Explanation:** Any adjacent pair such as [1,2], [2,3], or [3,4] has length 2.\n\n## Example 3:\n\n**Input:** nums = [1,1,1,1]\n**Output:** 0\n**Explanation:** The maximum and minimum are equal in every non-empty subsequence, so the difference is never exactly 1.\n\n## Constraints:\n\n* `1 <= nums.length <= 2 * 10^4`\n* `-10^9 <= nums[i] <= 10^9`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int findLHS(int[] nums) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Sorting"],
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Sorting"
+  ],
   "examples": [
-    { "input": "nums = [1,3,2,2,5,2,3,7]", "output": "5" },
-    { "input": "nums = [1,2,3,4]", "output": "2" },
-    { "input": "nums = [1,1,1,1]", "output": "0" }
+    {
+      "input": "nums = [1,3,2,2,5,2,3,7]",
+      "output": "5"
+    },
+    {
+      "input": "nums = [1,2,3,4]",
+      "output": "2"
+    },
+    {
+      "input": "nums = [1,1,1,1]",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
       "name": "HashMap Frequency Count",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Count frequency of each number. For each number x, if x+1 exists, the harmonious subsequence length is count(x) + count(x+1). Track the maximum.",
-      "code": "class Solution {\n    public int findLHS(int[] nums) {\n        java.util.HashMap<Integer, Integer> map = new java.util.HashMap<>();\n        for (int n : nums) map.merge(n, 1, Integer::sum);\n        int max = 0;\n        for (int key : map.keySet()) {\n            if (map.containsKey(key + 1)) {\n                max = Math.max(max, map.get(key) + map.get(key + 1));\n            }\n        }\n        return max;\n    }\n}",
+      "description": "## Approach\n\nCount how often each value appears. For every value `x`, only the pair `x` and `x + 1` can form a harmonious subsequence with `x` as the smaller value, so combine their frequencies when both exist.\n\n## Key Insight\n\nBecause this is a subsequence rather than a subarray, positions do not constrain which equal values can be chosen. Once two adjacent values are selected, the best subsequence takes every occurrence of both values.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each value is counted once and each distinct key is checked once.\n- Space Complexity: O(n), because all values may be distinct.",
+      "code": "class Solution {\n    public int findLHS(int[] nums) {\n        java.util.HashMap<Integer, Integer> frequency = new java.util.HashMap<>();\n        for (int value : nums) {\n            frequency.put(value, frequency.getOrDefault(value, 0) + 1);\n        }\n\n        int best = 0;\n        for (int value : frequency.keySet()) {\n            if (frequency.containsKey(value + 1)) {\n                best = Math.max(best, frequency.get(value) + frequency.get(value + 1));\n            }\n        }\n        return best;\n    }\n}",
       "language": "java"
     },
     {
       "name": "Sort and Sliding Window",
       "timeComplexity": "O(n log n)",
-      "spaceComplexity": "O(1)",
-      "description": "Sort the array. Use a two-pointer approach: for each pair of adjacent values differing by 1, count occurrences of both and sum them. Track the maximum.",
-      "code": "class Solution {\n    public int findLHS(int[] nums) {\n        java.util.Arrays.sort(nums);\n        int max = 0;\n        int left = 0;\n        for (int right = 0; right < nums.length; right++) {\n            while (nums[right] - nums[left] > 1) left++;\n            if (nums[right] - nums[left] == 1) {\n                max = Math.max(max, right - left + 1);\n            }\n        }\n        return max;\n    }\n}",
+      "spaceComplexity": "O(log n)",
+      "description": "## Approach\n\nSort the array, then keep a window whose minimum is `nums[left]` and maximum is `nums[right]`. Shrink the left side while the difference is greater than 1, and update the answer only when the difference is exactly 1.\n\n## Key Insight\n\nAfter sorting, every window contains values between its endpoints. A window with endpoint difference exactly 1 contains only two adjacent values, so its full length is a valid harmonious subsequence length.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), dominated by sorting.\n- Space Complexity: O(log n), for the sorting implementation's stack space.",
+      "code": "class Solution {\n    public int findLHS(int[] nums) {\n        java.util.Arrays.sort(nums);\n        int best = 0;\n        int left = 0;\n        for (int right = 0; right < nums.length; right++) {\n            while (nums[right] - nums[left] > 1) {\n                left++;\n            }\n            if (nums[right] - nums[left] == 1) {\n                best = Math.max(best, right - left + 1);\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Ordered Frequency Map",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCount values in a TreeMap so keys are visited in numeric order. For each key, read the frequency of key `+ 1` and combine the two counts when that neighbor exists.\n\n## Key Insight\n\nThis keeps the frequency-table reasoning but also makes the numeric adjacency explicit. It avoids scanning a sorted array of every element while still checking only neighboring values.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), because each insertion into the ordered map costs logarithmic time.\n- Space Complexity: O(n), because all values may be distinct.",
+      "code": "class Solution {\n    public int findLHS(int[] nums) {\n        java.util.TreeMap<Integer, Integer> frequency = new java.util.TreeMap<>();\n        for (int value : nums) {\n            frequency.put(value, frequency.getOrDefault(value, 0) + 1);\n        }\n\n        int best = 0;\n        for (int value : frequency.keySet()) {\n            Integer nextCount = frequency.get(value + 1);\n            if (nextCount != null) {\n                best = Math.max(best, frequency.get(value) + nextCount);\n            }\n        }\n        return best;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [1,3,2,2,5,2,3,7]", "output": "5" },
-    { "input": "nums = [1,2,3,4]", "output": "2" },
-    { "input": "nums = [1,1,1,1]", "output": "0" }
+    {
+      "input": "nums = [1,3,2,2,5,2,3,7]",
+      "output": "5"
+    },
+    {
+      "input": "nums = [1,2,3,4]",
+      "output": "2"
+    },
+    {
+      "input": "nums = [1,1,1,1]",
+      "output": "0"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "0"
+    },
+    {
+      "input": "nums = [-1,0,-1,0,-1]",
+      "output": "5"
+    },
+    {
+      "input": "nums = [1,2,2,1]",
+      "output": "4"
+    },
+    {
+      "input": "nums = [1,1,2,2,2,3,3]",
+      "output": "5"
+    },
+    {
+      "input": "nums = [0,2,4,6]",
+      "output": "0"
+    },
+    {
+      "input": "nums = [1000000000,999999999,999999999]",
+      "output": "3"
+    },
+    {
+      "input": "nums = [-1000000000,-999999999,-1000000000,5]",
+      "output": "3"
+    },
+    {
+      "input": "nums = [1,2,2,3,3,3,4,4,4,4]",
+      "output": "7"
+    },
+    {
+      "input": "nums = [-2,-1,-1,0,0,0]",
+      "output": "5"
+    }
   ]
 }

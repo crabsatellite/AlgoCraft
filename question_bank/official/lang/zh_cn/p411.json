@@ -1,0 +1,32 @@
+{
+  "title": "设计认证管理器",
+  "description": "# 设计认证管理器\n\n认证系统会发放 token。一个 token 在 `currentTime` 生成后，会在 `currentTime + timeToLive` 这个时刻过期。只有尚未过期的 token 才能续期；续期后，它的新过期时间变为 `currentTime + timeToLive`。\n\n实现 `AuthenticationManager` 类：\n\n* `AuthenticationManager(int timeToLive)` 保存所有 token 共用的有效期。\n* `void generate(String tokenId, int currentTime)` 创建一个新 token，过期时间为 `currentTime + timeToLive`。\n* `void renew(String tokenId, int currentTime)` 只有当 token 存在并且当前过期时间严格大于 `currentTime` 时，才续期；否则忽略这次调用。\n* `int countUnexpiredTokens(int currentTime)` 返回过期时间严格大于 `currentTime` 的 token 数量。\n\n如果一个 token 在时间 `t` 过期，那么任何 `currentTime == t` 的操作中，它都已经算作过期。因此 `renew` 和 `countUnexpiredTokens` 都必须把 `expiry == currentTime` 当成已过期。\n\n操作示例中，第一组数组是操作名，第二组是对应参数，按同一下标配对并从左到右执行。第一项创建对象，之后都操作同一个对象。输出数组也逐项对应：构造和没有返回值的方法写作 `null`；`[]` 作为参数表示无参数调用。\n\n## 示例 1\n\n**输入：**\n[\"AuthenticationManager\", \"renew\", \"generate\", \"countUnexpiredTokens\", \"generate\", \"renew\", \"renew\", \"countUnexpiredTokens\"]\n[[5], [\"aaa\", 1], [\"aaa\", 2], [6], [\"bbb\", 7], [\"aaa\", 8], [\"bbb\", 10], [15]]\n\n**输出：**\n[null, null, null, 1, null, null, null, 0]\n\n**解释：**\n`renew(\"aaa\", 1)` 被忽略，因为 `aaa` 不存在。`generate(\"aaa\", 2)` 让 `aaa` 在时间 `7` 过期，所以时间 `6` 仍会被计数。`renew(\"aaa\", 8)` 被忽略，因为 `aaa` 已经在时间 `7` 过期。`generate(\"bbb\", 7)` 让 `bbb` 在时间 `12` 过期；`renew(\"bbb\", 10)` 把它延长到时间 `15`。时间 `15` 时，`bbb` 正好过期，因此不再计数。\n\n## 约束条件\n\n* `1 <= timeToLive <= 10^8`\n* `1 <= currentTime <= 10^8`\n* `1 <= tokenId.length <= 5`\n* `tokenId` 只包含小写英文字母。\n* 所有 `generate` 调用都会使用唯一的 `tokenId`。\n* 所有函数调用中的 `currentTime` 严格递增。\n* 所有函数的调用总次数最多为 `2000`。",
+  "solutions": [
+    {
+      "name": "HashMap 过期时间扫描基线",
+      "description": "## 思路\n用 `HashMap` 保存每个 token 的最新过期时间。`generate` 写入 `currentTime + timeToLive`；`renew` 只有在保存的过期时间严格大于 `currentTime` 时才更新；`countUnexpiredTokens` 扫描所有过期时间并统计仍然大于 `currentTime` 的 token。\n\n## 关键点\n如果过期时间等于 `currentTime`，这个 token 已经过期，所以所有有效性判断都必须使用 `expiry > currentTime`。这个基线写法把边界规则展示得最直接。\n\n## 复杂度分析\n- 时间复杂度：`generate` 和 `renew` 期望 O(1)，`countUnexpiredTokens` 为 O(n)\n- 空间复杂度：O(n)"
+    },
+    {
+      "name": "FIFO 过期事件加版本校验",
+      "description": "## 思路\n用哈希表保存每个 token 的最新过期时间，同时把每次生成或续期产生的过期事件追加到 FIFO 队列中。由于 `currentTime` 严格递增且 `timeToLive` 固定，新追加事件的过期时间也按顺序递增。清理时从队首弹出已经过期的事件。\n\n## 关键点\n续期会给同一个 token 留下旧的过期事件。一个队列事件只有在它的过期时间仍然等于哈希表里的最新过期时间时，才能删除该 token；否则它只是旧版本，必须忽略。\n\n## 复杂度分析\n- 时间复杂度：均摊每次操作 O(1)，因为每个事件最多入队和出队一次\n- 空间复杂度：O(n)"
+    },
+    {
+      "name": "LinkedHashMap 按过期顺序清理",
+      "description": "## 思路\n使用 `LinkedHashMap`，让迭代顺序表示 token 的过期顺序。生成 token 时追加到末尾；续期时先删除该 token，再以新的更晚过期时间插回末尾。清理时不断检查第一个条目并删除已经过期的 token。\n\n## 关键点\n因为 `currentTime` 严格递增并且 `timeToLive` 固定，每次成功生成或续期都会产生比之前更晚的过期时间。把续期 token 移到末尾后，map 的头部就是最早可能过期的位置。\n\n## 复杂度分析\n- 时间复杂度：把清理成本摊到被删除的 token 上，每次操作均摊 O(1)\n- 空间复杂度：O(n)"
+    },
+    {
+      "name": "TreeMap 过期时间桶",
+      "description": "## 思路\n同时维护 token 到最新过期时间的哈希表，以及过期时间到 token 集合的 `TreeMap`。清理时，只要最小过期时间小于等于 `currentTime`，就取出这一桶并删除其中仍对应当前版本的 token。续期时，把 token 从旧桶移动到新桶。\n\n## 关键点\n`TreeMap` 明确维护了过期时间顺序，也能处理多个 token 拥有相同过期时间的情况。token 到过期时间的哈希表仍然必须存在，因为续期时需要定位并移动某一个 token。\n\n## 复杂度分析\n- 时间复杂度：生成或续期为 O(log n)，清理成本随被移除的过期桶分摊\n- 空间复杂度：O(n)"
+    },
+    {
+      "name": "PriorityQueue 过期小根堆加版本校验",
+      "description": "## 思路\n用哈希表保存最新过期时间，并把每个过期事件放进按过期时间排序的小根堆。清理时弹出过期时间不晚于 `currentTime` 的堆顶事件，只有当该事件仍然匹配哈希表中的最新版本时，才删除 token。\n\n## 关键点\n小根堆路线不依赖 FIFO 追加顺序，是更通用的事件调度模型。续期后的旧事件仍然会留在堆中，因此同样需要版本校验来避免误删新版本。\n\n## 复杂度分析\n- 时间复杂度：每次生成或续期事件 O(log n)，每个旧事件也最多被弹出一次\n- 空间复杂度：O(n)"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "design",
+      "caption": "认证 token 的过期边界和续期"
+    }
+  ]
+}

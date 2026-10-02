@@ -1,51 +1,86 @@
 {
   "id": "44",
   "title": "Generate Parentheses",
-  "description": "# Generate Parentheses\n\nGiven `n` pairs of parentheses, write a function to *generate all combinations of well-formed parentheses*.\n\n## Example 1:\n\n**Input:** n = 3\n**Output:** [\"((()))\",\"(()())\",\"(())()\",\"()(())\",\"()()()\"]\n\n## Example 2:\n\n**Input:** n = 1\n**Output:** [\"()\"]\n\n## Constraints:\n\n*   `1 <= n <= 8`",
+  "description": "# Generate Parentheses\n\nGiven an integer `n`, generate every string that uses exactly `n` opening parentheses and `n` closing parentheses and is well formed.\n\nA string is well formed when every prefix contains at least as many `(` characters as `)` characters, and the final counts of both characters are equal.\n\nReturn the combinations in any order.\n\n## Example 1:\n\n**Input:** n = 3\n**Output:** [\"((()))\",\"(()())\",\"(())()\",\"()(())\",\"()()()\"]\n\n## Example 2:\n\n**Input:** n = 1\n**Output:** [\"()\"]\n\n## Constraints:\n\n* `1 <= n <= 8`",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public List<String> generateParenthesis(int n) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["String", "Dynamic Programming", "Backtracking"],
+  "initialCode": "import java.util.*;\n\nclass Solution {\n    public List<String> generateParenthesis(int n) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
+  "tags": [
+    "String",
+    "Dynamic Programming",
+    "Backtracking"
+  ],
   "examples": [
     {
       "input": "n = 3",
       "output": "[\"((()))\",\"(()())\",\"(())()\",\"()(())\",\"()()()\"]"
     },
-    { "input": "n = 1", "output": "[\"()\"]" }
+    {
+      "input": "n = 1",
+      "output": "[\"()\"]"
+    }
   ],
   "tests": [
     {
-      "input": "n = 3",
-      "output": "[\"((()))\",\"(()())\",\"(())()\",\"()(())\",\"()()()\"]"
+      "input": "n = 1",
+      "output": "[\"()\"]",
+      "description": "Smallest positive input"
     },
-    { "input": "n = 1", "output": "[\"()\"]" },
-    { "input": "n = 2", "output": "[\"(())\",\"()()\"]" },
+    {
+      "input": "n = 2",
+      "output": "[\"(())\",\"()()\"]",
+      "description": "Two pairs produce the two Catalan combinations"
+    },
+    {
+      "input": "n = 3",
+      "output": "[\"((()))\",\"(()())\",\"(())()\",\"()(())\",\"()()()\"]",
+      "description": "Three pairs produce the five canonical combinations"
+    },
     {
       "input": "n = 4",
       "output": "[\"(((())))\",\"((()()))\",\"((())())\",\"((()))()\",\"(()(()))\",\"(()()())\",\"(()())()\",\"(())(())\",\"(())()()\",\"()((()))\",\"()(()())\",\"()(())()\",\"()()(())\",\"()()()()\"]",
-      "description": "14 combinations for n=4"
+      "description": "Four pairs produce fourteen combinations"
+    },
+    {
+      "input": "n = 5",
+      "output": "[\"((((()))))\",\"(((()())))\",\"(((())()))\",\"(((()))())\",\"(((())))()\",\"((()(())))\",\"((()()()))\",\"((()())())\",\"((()()))()\",\"((())(()))\",\"((())()())\",\"((())())()\",\"((()))(())\",\"((()))()()\",\"(()((())))\",\"(()(()()))\",\"(()(())())\",\"(()(()))()\",\"(()()(()))\",\"(()()()())\",\"(()()())()\",\"(()())(())\",\"(()())()()\",\"(())((()))\",\"(())(()())\",\"(())(())()\",\"(())()(())\",\"(())()()()\",\"()(((())))\",\"()((()()))\",\"()((())())\",\"()((()))()\",\"()(()(()))\",\"()(()()())\",\"()(()())()\",\"()(())(())\",\"()(())()()\",\"()()((()))\",\"()()(()())\",\"()()(())()\",\"()()()(())\",\"()()()()()\"]",
+      "description": "Five pairs stress deeper nesting and concatenated blocks with forty-two combinations"
     }
   ],
   "solutions": [
     {
-      "name": "Backtracking",
-      "timeComplexity": "O(4^n / sqrt(n))",
+      "name": "Mutable Prefix Backtracking",
+      "timeComplexity": "O(Cn * n)",
       "spaceComplexity": "O(n)",
-      "description": "Recursively build valid combinations. Add '(' if open count < n, add ')' if close count < open count.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> generateParenthesis(int n) {\n        List<String> result = new ArrayList<>();\n        backtrack(result, new StringBuilder(), 0, 0, n);\n        return result;\n    }\n    \n    private void backtrack(List<String> result, StringBuilder sb, \n                           int open, int close, int n) {\n        if (sb.length() == 2 * n) {\n            result.add(sb.toString());\n            return;\n        }\n        \n        // Add '(' if we haven't used all n\n        if (open < n) {\n            sb.append('(');\n            backtrack(result, sb, open + 1, close, n);\n            sb.deleteCharAt(sb.length() - 1);\n        }\n        \n        // Add ')' if it won't make invalid\n        if (close < open) {\n            sb.append(')');\n            backtrack(result, sb, open, close + 1, n);\n            sb.deleteCharAt(sb.length() - 1);\n        }\n    }\n}"
+      "description": "## Approach\n\nBuild one prefix at a time with a `StringBuilder`, tracking how many opening and closing parentheses have already been used. Add `(` while `open < n`, and add `)` only while `close < open`.\n\n## Key Insight\n\nThe prefix rule is the whole legality test: a prefix can never have more closing parentheses than opening parentheses. Because every branch preserves that invariant, every completed string is valid, and every valid string is reachable.\n\n## Complexity Analysis\n- Time Complexity: O(Cn * n), where Cn is the nth Catalan number and each returned string has length 2n.\n- Space Complexity: O(n) recursion depth, excluding the output list.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> generateParenthesis(int n) {\n        List<String> result = new ArrayList<>();\n        backtrack(n, 0, 0, new StringBuilder(), result);\n        return result;\n    }\n\n    private void backtrack(int n, int open, int close, StringBuilder path, List<String> result) {\n        if (path.length() == 2 * n) {\n            result.add(path.toString());\n            return;\n        }\n\n        if (open < n) {\n            path.append('(');\n            backtrack(n, open + 1, close, path, result);\n            path.deleteCharAt(path.length() - 1);\n        }\n\n        if (close < open) {\n            path.append(')');\n            backtrack(n, open, close + 1, path, result);\n            path.deleteCharAt(path.length() - 1);\n        }\n    }\n}"
     },
     {
-      "name": "Backtracking with String",
-      "timeComplexity": "O(4^n / sqrt(n))",
-      "spaceComplexity": "O(n)",
-      "description": "Same backtracking approach but using string concatenation (simpler but slightly less efficient).",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> generateParenthesis(int n) {\n        List<String> result = new ArrayList<>();\n        generate(result, \"\", 0, 0, n);\n        return result;\n    }\n    \n    private void generate(List<String> result, String current, \n                          int open, int close, int n) {\n        if (current.length() == 2 * n) {\n            result.add(current);\n            return;\n        }\n        \n        if (open < n) {\n            generate(result, current + \"(\", open + 1, close, n);\n        }\n        \n        if (close < open) {\n            generate(result, current + \")\", open, close + 1, n);\n        }\n    }\n}"
+      "name": "Immutable String Backtracking",
+      "timeComplexity": "O(Cn * n)",
+      "spaceComplexity": "O(Cn * n)",
+      "description": "## Approach\n\nUse the same open/close counters, but pass a new `String` to each recursive branch instead of mutating a shared builder. This makes each state self-contained and easy to inspect.\n\n## Key Insight\n\nThe search tree is unchanged from mutable backtracking; the tradeoff is representation. Immutable prefixes are simpler for beginners, while the mutable route avoids repeated allocation on the path.\n\n## Complexity Analysis\n- Time Complexity: O(Cn * n), with extra copying hidden in string concatenation.\n- Space Complexity: O(Cn * n) across temporary and returned strings.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> generateParenthesis(int n) {\n        List<String> result = new ArrayList<>();\n        generate(n, 0, 0, \"\", result);\n        return result;\n    }\n\n    private void generate(int n, int open, int close, String current, List<String> result) {\n        if (current.length() == 2 * n) {\n            result.add(current);\n            return;\n        }\n\n        if (open < n) {\n            generate(n, open + 1, close, current + \"(\", result);\n        }\n        if (close < open) {\n            generate(n, open, close + 1, current + \")\", result);\n        }\n    }\n}"
     },
     {
-      "name": "Dynamic Programming",
-      "timeComplexity": "O(4^n / sqrt(n))",
-      "spaceComplexity": "O(4^n / sqrt(n))",
-      "description": "Build solutions for n using solutions for smaller values. dp[n] = '(' + dp[i] + ')' + dp[n-1-i] for all i.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> generateParenthesis(int n) {\n        List<List<String>> dp = new ArrayList<>();\n        dp.add(Arrays.asList(\"\")); // dp[0] = empty string\n        \n        for (int i = 1; i <= n; i++) {\n            List<String> current = new ArrayList<>();\n            \n            for (int j = 0; j < i; j++) {\n                // '(' + dp[j] + ')' + dp[i-1-j]\n                for (String left : dp.get(j)) {\n                    for (String right : dp.get(i - 1 - j)) {\n                        current.add(\"(\" + left + \")\" + right);\n                    }\n                }\n            }\n            \n            dp.add(current);\n        }\n        \n        return dp.get(n);\n    }\n}"
+      "name": "Iterative State Stack",
+      "timeComplexity": "O(Cn * n)",
+      "spaceComplexity": "O(Cn * n)",
+      "description": "## Approach\n\nReplace recursion with an explicit stack of states. Each state stores the current prefix plus the number of used opening and closing parentheses. Pop a state, expand its legal next states, and collect completed prefixes.\n\n## Key Insight\n\nBacktracking does not require the Java call stack. The explicit stack exposes the same state graph, which is useful when teaching recursion as a search process rather than a language feature.\n\n## Complexity Analysis\n- Time Complexity: O(Cn * n).\n- Space Complexity: O(Cn * n) in the explicit stack and produced strings.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static class State {\n        final String value;\n        final int open;\n        final int close;\n\n        State(String value, int open, int close) {\n            this.value = value;\n            this.open = open;\n            this.close = close;\n        }\n    }\n\n    public List<String> generateParenthesis(int n) {\n        List<String> result = new ArrayList<>();\n        Deque<State> stack = new ArrayDeque<>();\n        stack.push(new State(\"\", 0, 0));\n\n        while (!stack.isEmpty()) {\n            State state = stack.pop();\n            if (state.value.length() == 2 * n) {\n                result.add(state.value);\n                continue;\n            }\n            if (state.close < state.open) {\n                stack.push(new State(state.value + \")\", state.open, state.close + 1));\n            }\n            if (state.open < n) {\n                stack.push(new State(state.value + \"(\", state.open + 1, state.close));\n            }\n        }\n\n        return result;\n    }\n}"
+    },
+    {
+      "name": "Dynamic Programming by Catalan Split",
+      "timeComplexity": "O(Cn * n)",
+      "spaceComplexity": "O(Cn * n)",
+      "description": "## Approach\n\nUse the decomposition `(` + left + `)` + right. If the left side uses `k` pairs, the right side uses `n - 1 - k` pairs. Build every `dp[i]` from earlier lists.\n\n## Key Insight\n\nEvery valid parenthesis string has a first matching close for its first open parenthesis. That matching pair splits the string into two smaller valid strings, giving the Catalan recurrence.\n\n## Complexity Analysis\n- Time Complexity: O(Cn * n), because all valid strings must be materialized.\n- Space Complexity: O(Cn * n) for the dynamic-programming lists and output strings.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> generateParenthesis(int n) {\n        List<List<String>> dp = new ArrayList<>();\n        dp.add(Collections.singletonList(\"\"));\n\n        for (int pairs = 1; pairs <= n; pairs++) {\n            List<String> current = new ArrayList<>();\n            for (int leftPairs = 0; leftPairs < pairs; leftPairs++) {\n                int rightPairs = pairs - 1 - leftPairs;\n                for (String left : dp.get(leftPairs)) {\n                    for (String right : dp.get(rightPairs)) {\n                        current.add(\"(\" + left + \")\" + right);\n                    }\n                }\n            }\n            dp.add(current);\n        }\n\n        return dp.get(n);\n    }\n}"
+    },
+    {
+      "name": "Bitmask Generate and Filter Baseline",
+      "timeComplexity": "O(n * 4^n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nEnumerate every bitmask of length `2n`, keep only masks with exactly `n` opening positions, and scan each candidate to reject any prefix whose balance drops below zero.\n\n## Key Insight\n\nThis route is intentionally a correctness baseline. It separates generation from validation and makes the prefix-balance definition of a well-formed string completely explicit.\n\n## Complexity Analysis\n- Time Complexity: O(n * 4^n), because it inspects all length-2n masks.\n- Space Complexity: O(n) working space, excluding the output list.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> generateParenthesis(int n) {\n        List<String> result = new ArrayList<>();\n        int length = 2 * n;\n        int limit = 1 << length;\n\n        for (int mask = 0; mask < limit; mask++) {\n            if (Integer.bitCount(mask) != n) {\n                continue;\n            }\n            StringBuilder candidate = new StringBuilder();\n            int balance = 0;\n            boolean valid = true;\n            for (int bit = length - 1; bit >= 0; bit--) {\n                boolean open = ((mask >> bit) & 1) == 1;\n                if (open) {\n                    balance++;\n                    candidate.append('(');\n                } else {\n                    balance--;\n                    candidate.append(')');\n                }\n                if (balance < 0) {\n                    valid = false;\n                    break;\n                }\n            }\n            if (valid && balance == 0) {\n                result.add(candidate.toString());\n            }\n        }\n\n        return result;\n    }\n}"
     }
   ]
 }

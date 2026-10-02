@@ -1,7 +1,7 @@
 {
   "id": "101",
   "title": "Implement Trie (Prefix Tree)",
-  "description": "# Implement Trie (Prefix Tree)\n\nA [Trie](https://en.wikipedia.org/wiki/Trie) (pronounced as \"try\") or prefix tree is a tree data structure used to efficiently store and retrieve keys in a dataset of strings. There are various applications of this data structure, such as autocomplete and spellchecker.\n\nImplement the `Trie` class:\n\n*   `Trie()` Initializes the trie object.\n*   `void insert(String word)` Inserts the string `word` into the trie.\n*   `boolean search(String word)` Returns `true` if the string `word` is in the trie (i.e., was inserted before), and `false` otherwise.\n*   `boolean startsWith(String prefix)` Returns `true` if there is a previously inserted string `word` that has the prefix `prefix`, and `false` otherwise.\n\n## Example 1:\n\n**Input**\n[\"Trie\", \"insert\", \"search\", \"search\", \"startsWith\", \"insert\", \"search\"]\n[[], [\"apple\"], [\"apple\"], [\"app\"], [\"app\"], [\"app\"], [\"app\"]]\n\n**Output**\n[null, null, true, false, true, null, true]\n\n**Explanation**\nTrie trie = new Trie();\ntrie.insert(\"apple\");\ntrie.search(\"apple\");   // return True\ntrie.search(\"app\");     // return False\ntrie.startsWith(\"app\"); // return True\ntrie.insert(\"app\");\ntrie.search(\"app\");     // return True\n\n## Constraints:\n\n*   `1 <= word.length, prefix.length <= 2000`\n*   `word` and `prefix` consist only of lowercase English letters.\n*   At most `3 * 10^4` calls in total will be made to `insert`, `search`, and `startsWith`.",
+  "description": "# Implement Trie (Prefix Tree)\n\nA Trie, pronounced \"try\", is a prefix tree for storing strings so that shared prefixes are represented only once. It is commonly used in autocomplete, dictionary lookup, and prefix search.\n\nImplement the `Trie` class:\n\n*   `Trie()` initializes the trie object.\n*   `void insert(String word)` inserts `word` into the data structure.\n*   `boolean search(String word)` returns `true` only if the complete string `word` was inserted before.\n*   `boolean startsWith(String prefix)` returns `true` if at least one inserted word has `prefix` as a prefix.\n\nA prefix by itself is not a searchable word unless that exact string has been inserted.\n\nA prefix is a contiguous beginning of a string. For example, `\"ap\"` and `\"app\"` are prefixes of `\"apple\"`, but `\"pp\"` is not.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1:\n\n**Input**\n[\"Trie\", \"insert\", \"search\", \"search\", \"startsWith\", \"insert\", \"search\"]\n[[], [\"apple\"], [\"apple\"], [\"app\"], [\"app\"], [\"app\"], [\"app\"]]\n\n**Output**\n[null, null, true, false, true, null, true]\n\n**Explanation**\nTrie trie = new Trie();\ntrie.insert(\"apple\");\ntrie.search(\"apple\");   // returns true\ntrie.search(\"app\");     // returns false because app is only a prefix so far\ntrie.startsWith(\"app\"); // returns true\ntrie.insert(\"app\");\ntrie.search(\"app\");     // returns true\n\n## Constraints:\n\n*   `1 <= word.length, prefix.length <= 2000`\n*   `word` and `prefix` consist only of lowercase English letters.\n*   At most `3 * 10^4` total calls will be made to `insert`, `search`, and `startsWith`.",
   "difficulty": "MEDIUM",
   "initialCode": "class Trie {\n\n    public Trie() {\n        \n    }\n    \n    public void insert(String word) {\n        \n    }\n    \n    public boolean search(String word) {\n        return false;\n    }\n    \n    public boolean startsWith(String prefix) {\n        return false;\n    }\n}\n\n/**\n * Your Trie object will be instantiated and called as such:\n * Trie obj = new Trie();\n * obj.insert(word);\n * boolean param_2 = obj.search(word);\n * boolean param_3 = obj.startsWith(prefix);\n */",
   "tags": [
@@ -9,9 +9,6 @@
     "Trie",
     "Hash Table",
     "String"
-  ],
-  "images": [
-    "images/p101_trie.png"
   ],
   "examples": [
     {
@@ -22,32 +19,96 @@
   "tests": [
     {
       "input": "[\"Trie\", \"insert\", \"search\", \"search\", \"startsWith\", \"insert\", \"search\"]\n[[], [\"apple\"], [\"apple\"], [\"app\"], [\"app\"], [\"app\"], [\"app\"]]",
-      "output": "[null, null, true, false, true, null, true]"
+      "output": "[null, null, true, false, true, null, true]",
+      "description": "Canonical workflow: a prefix is not a word until it is inserted, but startsWith still recognizes it."
     },
     {
-      "input": "[\"Trie\", \"insert\", \"search\", \"startsWith\"]\n[[], [\"a\"], [\"a\"], [\"b\"]]",
-      "output": "[null, null, true, false]"
+      "input": "[\"Trie\", \"insert\", \"search\", \"startsWith\", \"search\", \"startsWith\"]\n[[], [\"a\"], [\"a\"], [\"a\"], [\"b\"], [\"b\"]]",
+      "output": "[null, null, true, true, false, false]",
+      "description": "Single-letter word and missing single-letter prefix."
     },
     {
       "input": "[\"Trie\", \"insert\", \"insert\", \"search\", \"startsWith\", \"startsWith\"]\n[[], [\"hello\"], [\"help\"], [\"hell\"], [\"hel\"], [\"he\"]]",
-      "output": "[null, null, null, false, true, true]"
+      "output": "[null, null, null, false, true, true]",
+      "description": "Shared prefix is valid for startsWith but not for search unless inserted as a complete word."
+    },
+    {
+      "input": "[\"Trie\", \"insert\", \"insert\", \"search\", \"startsWith\", \"search\"]\n[[], [\"app\"], [\"app\"], [\"app\"], [\"ap\"], [\"apple\"]]",
+      "output": "[null, null, null, true, true, false]",
+      "description": "Duplicate insertion is idempotent and should not create a longer word."
+    },
+    {
+      "input": "[\"Trie\", \"insert\", \"search\", \"startsWith\", \"search\", \"startsWith\"]\n[[], [\"app\"], [\"apple\"], [\"apple\"], [\"app\"], [\"app\"]]",
+      "output": "[null, null, false, false, true, true]",
+      "description": "Inserted short word does not imply a longer word or longer prefix."
+    },
+    {
+      "input": "[\"Trie\", \"insert\", \"insert\", \"insert\", \"search\", \"search\", \"startsWith\", \"startsWith\", \"startsWith\"]\n[[], [\"cat\"], [\"car\"], [\"dog\"], [\"car\"], [\"cap\"], [\"ca\"], [\"do\"], [\"cow\"]]",
+      "output": "[null, null, null, null, true, false, true, true, false]",
+      "description": "Branching prefixes verify that siblings do not leak into missing words or prefixes."
+    },
+    {
+      "input": "[\"Trie\", \"insert\", \"startsWith\", \"search\", \"search\", \"startsWith\"]\n[[], [\"abcdefghijklmnopqrstuvwxyz\"], [\"abcdefghij\"], [\"abcdefghijklmnopqrstuvwxyz\"], [\"abcdefghijklmnopqrstuvwxyza\"], [\"z\"]]",
+      "output": "[null, null, true, true, false, false]",
+      "description": "Long word checks multi-character traversal without accidentally accepting absent extensions."
+    },
+    {
+      "input": "[\"Trie\", \"insert\", \"insert\", \"search\", \"search\", \"startsWith\", \"search\"]\n[[], [\"a\"], [\"ab\"], [\"a\"], [\"ab\"], [\"abc\"], [\"ac\"]]",
+      "output": "[null, null, null, true, true, false, false]",
+      "description": "A word can also be a prefix of another inserted word."
+    },
+    {
+      "input": "[\"Trie\", \"insert\", \"insert\", \"insert\", \"search\", \"startsWith\", \"search\", \"search\"]\n[[], [\"bat\"], [\"bad\"], [\"bath\"], [\"ba\"], [\"ba\"], [\"bath\"], [\"badge\"]]",
+      "output": "[null, null, null, null, false, true, true, false]",
+      "description": "Shared short prefix remains non-terminal while longer related words are searchable."
+    },
+    {
+      "input": "[\"Trie\", \"insert\", \"insert\", \"search\", \"startsWith\", \"search\", \"startsWith\"]\n[[], [\"zebra\"], [\"zen\"], [\"zebra\"], [\"ze\"], [\"zero\"], [\"zoo\"]]",
+      "output": "[null, null, null, true, true, false, false]",
+      "description": "Words sharing the same first letters should not accept an absent branch."
+    },
+    {
+      "input": "[\"Trie\", \"insert\", \"insert\", \"insert\", \"search\", \"search\", \"search\", \"startsWith\"]\n[[], [\"m\"], [\"a\"], [\"z\"], [\"a\"], [\"m\"], [\"b\"], [\"z\"]]",
+      "output": "[null, null, null, null, true, true, false, true]",
+      "description": "Single-letter branches across the alphabet catch implementations that only keep one child."
+    },
+    {
+      "input": "[\"Trie\", \"insert\", \"insert\", \"insert\", \"search\", \"startsWith\", \"search\", \"startsWith\"]\n[[], [\"code\"], [\"coder\"], [\"coding\"], [\"cod\"], [\"cod\"], [\"coder\"], [\"coding\"]]",
+      "output": "[null, null, null, null, false, true, true, true]",
+      "description": "Multiple words under the same prefix keep terminal markers separate from traversal."
     }
   ],
   "solutions": [
     {
       "name": "Trie with Array Children",
-      "timeComplexity": "O(m) per operation",
-      "spaceComplexity": "O(T)",
-      "description": "Each TrieNode has an array of 26 children (one per letter) and a boolean marking end-of-word. Insert, search, and startsWith all follow the character path down the trie.",
-      "code": "class Trie {\n    private class TrieNode {\n        TrieNode[] children = new TrieNode[26];\n        boolean isEnd = false;\n    }\n    \n    private TrieNode root;\n    \n    public Trie() {\n        root = new TrieNode();\n    }\n    \n    public void insert(String word) {\n        TrieNode node = root;\n        for (char c : word.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) {\n                node.children[idx] = new TrieNode();\n            }\n            node = node.children[idx];\n        }\n        node.isEnd = true;\n    }\n    \n    public boolean search(String word) {\n        TrieNode node = find(word);\n        return node != null && node.isEnd;\n    }\n    \n    public boolean startsWith(String prefix) {\n        return find(prefix) != null;\n    }\n    \n    private TrieNode find(String s) {\n        TrieNode node = root;\n        for (char c : s.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) return null;\n            node = node.children[idx];\n        }\n        return node;\n    }\n}",
+      "timeComplexity": "O(L) per operation",
+      "spaceComplexity": "O(N * 26)",
+      "description": "## Approach\n\nEach node stores a fixed array of 26 child references and a boolean `isEnd` marker. Insert creates missing child nodes along the word path; search and startsWith reuse a helper that walks the requested string from the root.\n\n## Key Insight\n\nThe traversal state is a node representing the prefix already consumed. `search` must additionally check `isEnd`, while `startsWith` only needs the prefix path to exist.\n\n## Complexity Analysis\n- Time Complexity: O(L) per operation\n- Space Complexity: O(N * 26), where N is the number of allocated Trie nodes",
+      "code": "class Trie {\n    private static final class TrieNode {\n        TrieNode[] children = new TrieNode[26];\n        boolean isEnd = false;\n    }\n    \n    private final TrieNode root;\n    \n    public Trie() {\n        root = new TrieNode();\n    }\n    \n    public void insert(String word) {\n        TrieNode node = root;\n        for (char c : word.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) {\n                node.children[idx] = new TrieNode();\n            }\n            node = node.children[idx];\n        }\n        node.isEnd = true;\n    }\n    \n    public boolean search(String word) {\n        TrieNode node = find(word);\n        return node != null && node.isEnd;\n    }\n    \n    public boolean startsWith(String prefix) {\n        return find(prefix) != null;\n    }\n    \n    private TrieNode find(String value) {\n        TrieNode node = root;\n        for (char c : value.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) {\n                return null;\n            }\n            node = node.children[idx];\n        }\n        return node;\n    }\n}",
       "language": "java"
     },
     {
       "name": "Trie with HashMap Children",
-      "timeComplexity": "O(m) per operation",
-      "spaceComplexity": "O(T)",
-      "description": "Instead of a fixed-size array of 26 children, each TrieNode uses a HashMap to store children. This is more memory-efficient for sparse tries and generalizes to any character set.",
-      "code": "import java.util.*;\n\nclass Trie {\n    private class TrieNode {\n        Map<Character, TrieNode> children = new HashMap<>();\n        boolean isEnd = false;\n    }\n    \n    private TrieNode root;\n    \n    public Trie() {\n        root = new TrieNode();\n    }\n    \n    public void insert(String word) {\n        TrieNode node = root;\n        for (int i = 0; i < word.length(); i++) {\n            char c = word.charAt(i);\n            if (!node.children.containsKey(c)) {\n                node.children.put(c, new TrieNode());\n            }\n            node = node.children.get(c);\n        }\n        node.isEnd = true;\n    }\n    \n    public boolean search(String word) {\n        TrieNode node = find(word);\n        return node != null && node.isEnd;\n    }\n    \n    public boolean startsWith(String prefix) {\n        return find(prefix) != null;\n    }\n    \n    private TrieNode find(String s) {\n        TrieNode node = root;\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (!node.children.containsKey(c)) return null;\n            node = node.children.get(c);\n        }\n        return node;\n    }\n}",
+      "timeComplexity": "O(L) per operation",
+      "spaceComplexity": "O(E)",
+      "description": "## Approach\n\nEach node stores only existing outgoing edges in a `HashMap<Character, TrieNode>`. Insert uses `computeIfAbsent` to create the next node, while search and startsWith walk the map edges with the same helper.\n\n## Key Insight\n\nThis keeps the same Trie invariant as the array version but allocates storage only for characters that actually appear. It is a useful contrast when the alphabet is sparse or not fixed to 26 letters.\n\n## Complexity Analysis\n- Time Complexity: O(L) average per operation\n- Space Complexity: O(E), where E is the number of stored character edges",
+      "code": "import java.util.*;\n\nclass Trie {\n    private static final class TrieNode {\n        Map<Character, TrieNode> children = new HashMap<>();\n        boolean isEnd = false;\n    }\n    \n    private final TrieNode root;\n    \n    public Trie() {\n        root = new TrieNode();\n    }\n    \n    public void insert(String word) {\n        TrieNode node = root;\n        for (int i = 0; i < word.length(); i++) {\n            char c = word.charAt(i);\n            node = node.children.computeIfAbsent(c, key -> new TrieNode());\n        }\n        node.isEnd = true;\n    }\n    \n    public boolean search(String word) {\n        TrieNode node = find(word);\n        return node != null && node.isEnd;\n    }\n    \n    public boolean startsWith(String prefix) {\n        return find(prefix) != null;\n    }\n    \n    private TrieNode find(String value) {\n        TrieNode node = root;\n        for (int i = 0; i < value.length(); i++) {\n            char c = value.charAt(i);\n            node = node.children.get(c);\n            if (node == null) {\n                return null;\n            }\n        }\n        return node;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Ternary Search Tree",
+      "timeComplexity": "O(L) average per operation",
+      "spaceComplexity": "O(N)",
+      "description": "## Approach\n\nStore each character node with three links: left for smaller characters, mid for the next character in the word, and right for larger characters. Insert and find compare the current character with the node character before either branching sideways or moving down the word.\n\n## Key Insight\n\nA ternary search tree is a compact Trie variant. The mid link preserves prefix traversal, while left and right links avoid allocating a 26-slot array at every node.\n\n## Complexity Analysis\n- Time Complexity: O(L) average per operation, with character-branch balance affecting constants\n- Space Complexity: O(N), one node per stored character occurrence after sharing",
+      "code": "class Trie {\n    private static final class Node {\n        char c;\n        Node left;\n        Node mid;\n        Node right;\n        boolean isEnd;\n\n        Node(char c) {\n            this.c = c;\n        }\n    }\n\n    private Node root;\n\n    public Trie() {\n    }\n\n    public void insert(String word) {\n        root = insert(root, word, 0);\n    }\n\n    private Node insert(Node node, String word, int index) {\n        char c = word.charAt(index);\n        if (node == null) {\n            node = new Node(c);\n        }\n\n        if (c < node.c) {\n            node.left = insert(node.left, word, index);\n        } else if (c > node.c) {\n            node.right = insert(node.right, word, index);\n        } else if (index + 1 == word.length()) {\n            node.isEnd = true;\n        } else {\n            node.mid = insert(node.mid, word, index + 1);\n        }\n        return node;\n    }\n\n    public boolean search(String word) {\n        Node node = find(word);\n        return node != null && node.isEnd;\n    }\n\n    public boolean startsWith(String prefix) {\n        return find(prefix) != null;\n    }\n\n    private Node find(String value) {\n        Node node = root;\n        int index = 0;\n        while (node != null) {\n            char c = value.charAt(index);\n            if (c < node.c) {\n                node = node.left;\n            } else if (c > node.c) {\n                node = node.right;\n            } else if (index + 1 == value.length()) {\n                return node;\n            } else {\n                index++;\n                node = node.mid;\n            }\n        }\n        return null;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "HashSet of Words and Prefixes Baseline",
+      "timeComplexity": "O(L) insert, O(1) average query",
+      "spaceComplexity": "O(P)",
+      "description": "## Approach\n\nMaintain one `HashSet` for complete inserted words and another for every prefix produced during insertion. `search` checks the complete-word set, and `startsWith` checks the prefix set.\n\n## Key Insight\n\nThis is not a node-based Trie, but it implements the same public behavior and makes the difference between complete words and prefixes explicit. It is a useful baseline for understanding what the Trie is storing implicitly.\n\n## Complexity Analysis\n- Time Complexity: O(L) per insert and O(1) average per query after hashing\n- Space Complexity: O(P), where P is the total number of stored prefix strings",
+      "code": "import java.util.*;\n\nclass Trie {\n    private final Set<String> words = new HashSet<>();\n    private final Set<String> prefixes = new HashSet<>();\n\n    public Trie() {\n    }\n\n    public void insert(String word) {\n        words.add(word);\n        for (int i = 1; i <= word.length(); i++) {\n            prefixes.add(word.substring(0, i));\n        }\n    }\n\n    public boolean search(String word) {\n        return words.contains(word);\n    }\n\n    public boolean startsWith(String prefix) {\n        return prefixes.contains(prefix);\n    }\n}",
       "language": "java"
     }
   ],
@@ -55,7 +116,7 @@
     {
       "id": "trie",
       "file": "p101_trie.png",
-      "caption": "Trie Structure after inserting 'apple' and 'app'"
+      "caption": "Example 1 trie after app and apple are inserted; yellow marks the end of a complete word"
     }
   ]
 }

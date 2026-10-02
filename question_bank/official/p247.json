@@ -1,37 +1,121 @@
 {
   "id": "247",
   "title": "Number of Steps to Reduce a Number to Zero",
-  "description": "# Number of Steps to Reduce a Number to Zero\n\nGiven an integer `num`, return *the number of steps to reduce it to zero*.\n\nIn one step, if the current number is even, you have to divide it by `2`, otherwise, you have to subtract `1` from it.\n\n## Example 1:\n\n**Input:** num = 14\n**Output:** 6\n**Explanation:** \nStep 1) 14 is even; divide by 2 and obtain 7. \nStep 2) 7 is odd; subtract 1 and obtain 6.\nStep 3) 6 is even; divide by 2 and obtain 3. \nStep 4) 3 is odd; subtract 1 and obtain 2. \nStep 5) 2 is even; divide by 2 and obtain 1. \nStep 6) 1 is odd; subtract 1 and obtain 0.\n\n## Example 2:\n\n**Input:** num = 8\n**Output:** 4\n**Explanation:** \nStep 1) 8 is even; divide by 2 and obtain 4. \nStep 2) 4 is even; divide by 2 and obtain 2. \nStep 3) 2 is even; divide by 2 and obtain 1. \nStep 4) 1 is odd; subtract 1 and obtain 0.\n\n## Example 3:\n\n**Input:** num = 123\n**Output:** 12\n\n## Constraints:\n\n*   `0 <= num <= 10^6`",
+  "description": "# Number of Steps to Reduce a Number to Zero\n\nGiven a non-negative integer `num`, return the number of operations needed to reduce it to `0`.\n\nIn one operation:\n\n* if the current number is even, divide it by `2`;\n* if the current number is odd, subtract `1` from it.\n\nThe operation choice is forced at every step. The only task is to count how many forced operations happen before the value becomes zero.\n\n## Example 1:\n\n**Input:** num = 14\n**Output:** 6\n**Explanation:** 14 -> 7 -> 6 -> 3 -> 2 -> 1 -> 0, so six operations are needed.\n\n## Example 2:\n\n**Input:** num = 8\n**Output:** 4\n**Explanation:** 8 -> 4 -> 2 -> 1 -> 0.\n\n## Example 3:\n\n**Input:** num = 123\n**Output:** 12\n\n## Constraints:\n\n* `0 <= num <= 10^6`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int numberOfSteps(int num) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Math", "Bit Manipulation"],
+  "tags": [
+    "Math",
+    "Bit Manipulation"
+  ],
   "examples": [
-    { "input": "num = 14", "output": "6" },
-    { "input": "num = 8", "output": "4" },
-    { "input": "num = 123", "output": "12" }
+    {
+      "input": "num = 14",
+      "output": "6"
+    },
+    {
+      "input": "num = 8",
+      "output": "4"
+    },
+    {
+      "input": "num = 123",
+      "output": "12"
+    }
   ],
   "solutions": [
     {
-      "name": "Simulation",
+      "name": "Forced Operation Simulation",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(1)",
-      "description": "Follow the rules: if even divide by 2, if odd subtract 1. Count steps until zero.",
-      "code": "class Solution {\n    public int numberOfSteps(int num) {\n        int steps = 0;\n        while (num > 0) {\n            if (num % 2 == 0) num /= 2;\n            else num--;\n            steps++;\n        }\n        return steps;\n    }\n}",
+      "description": "## Approach\n\nRun the process exactly as the statement defines it. While the number is positive, divide it by two when it is even and subtract one when it is odd. Count every operation.\n\n## Key Insight\n\nThe rule is deterministic, so a direct simulation cannot choose a wrong operation. Each division removes one binary digit, and each subtraction turns an odd number into an even number that can later be divided.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n), because the value is divided by two after each odd value has first been made even.\n- Space Complexity: O(1), because only the current value and the step count are stored.",
+      "code": "class Solution {\n    public int numberOfSteps(int num) {\n        int steps = 0;\n        while (num > 0) {\n            if (num % 2 == 0) {\n                num /= 2;\n            } else {\n                num--;\n            }\n            steps++;\n        }\n        return steps;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Bit Counting",
+      "name": "Manual Bit Contribution Scan",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(1)",
-      "description": "Each 1-bit in the binary representation requires 2 steps (subtract 1 + divide) except the leading bit which only needs a divide. Total steps = number of bits + number of 1-bits - 1, with special handling for 0.",
-      "code": "class Solution {\n    public int numberOfSteps(int num) {\n        if (num == 0) return 0;\n        int steps = 0;\n        while (num > 0) {\n            steps += (num & 1) == 1 ? 2 : 1;\n            num >>= 1;\n        }\n        return steps - 1;\n    }\n}",
+      "description": "## Approach\n\nRead the binary representation from the least significant bit upward. Every bit position contributes one division step, and every `1` bit contributes one subtract-one step. The final leading `1` should not be followed by an extra division, so subtract one at the end.\n\n## Key Insight\n\nFor a positive number, the answer is `bit length + number of set bits - 1`. The bit length counts the divisions needed to shift the value down, and the set bits count the odd-subtraction operations.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n), because the loop shifts the number right once per binary digit.\n- Space Complexity: O(1), because the scan uses a constant number of counters.",
+      "code": "class Solution {\n    public int numberOfSteps(int num) {\n        if (num == 0) {\n            return 0;\n        }\n\n        int steps = 0;\n        while (num > 0) {\n            steps += 1;\n            if ((num & 1) == 1) {\n                steps += 1;\n            }\n            num >>= 1;\n        }\n        return steps - 1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Java Bit Helper Formula",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse Java's integer bit helpers to compute the same formula directly. `Integer.bitCount(num)` counts the subtract-one operations, and the bit length is `32 - Integer.numberOfLeadingZeros(num)`.\n\n## Key Insight\n\nThis is the closed-form version of the manual bit scan. It is useful after the formula is understood because it expresses the count without mutating the input value or writing a loop.\n\n## Complexity Analysis\n\n- Time Complexity: O(1), because Java computes these fixed-width integer bit operations directly.\n- Space Complexity: O(1), because no auxiliary data structure is used.",
+      "code": "class Solution {\n    public int numberOfSteps(int num) {\n        if (num == 0) {\n            return 0;\n        }\n\n        int bitLength = Integer.SIZE - Integer.numberOfLeadingZeros(num);\n        int setBits = Integer.bitCount(num);\n        return bitLength + setBits - 1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Rule Application",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(log n)",
+      "description": "## Approach\n\nTreat one operation as reducing the problem to a smaller number. If `num` is zero, the answer is zero. Otherwise the answer is one plus the answer for `num / 2` when even or `num - 1` when odd.\n\n## Key Insight\n\nThe recursive form exposes the recurrence behind the simulation. It is less memory efficient than the iterative version, but it is a useful way to reason about why the direct loop terminates and counts the same operations.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n), because the recursion follows the same forced transitions as the simulation.\n- Space Complexity: O(log n), because each pending recursive call remains on the call stack.",
+      "code": "class Solution {\n    public int numberOfSteps(int num) {\n        if (num == 0) {\n            return 0;\n        }\n        if ((num & 1) == 0) {\n            return 1 + numberOfSteps(num / 2);\n        }\n        return 1 + numberOfSteps(num - 1);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "num = 14", "output": "6" },
-    { "input": "num = 8", "output": "4" },
-    { "input": "num = 123", "output": "12" },
-    { "input": "num = 0", "output": "0" }
+    {
+      "input": "num = 14",
+      "output": "6",
+      "description": "canonical mixed even and odd operations"
+    },
+    {
+      "input": "num = 8",
+      "output": "4",
+      "description": "power of two uses only divisions before the final subtraction"
+    },
+    {
+      "input": "num = 123",
+      "output": "12",
+      "description": "larger mixed binary pattern"
+    },
+    {
+      "input": "num = 0",
+      "output": "0",
+      "description": "zero already satisfies the target"
+    },
+    {
+      "input": "num = 1",
+      "output": "1",
+      "description": "single odd subtraction"
+    },
+    {
+      "input": "num = 2",
+      "output": "2",
+      "description": "one division and one subtraction"
+    },
+    {
+      "input": "num = 3",
+      "output": "3",
+      "description": "two consecutive odd/even transitions"
+    },
+    {
+      "input": "num = 7",
+      "output": "5",
+      "description": "all lower bits are set"
+    },
+    {
+      "input": "num = 1024",
+      "output": "11",
+      "description": "large power of two boundary pattern"
+    },
+    {
+      "input": "num = 999999",
+      "output": "31",
+      "description": "near the upper bound with many set bits"
+    },
+    {
+      "input": "num = 1000000",
+      "output": "26",
+      "description": "upper constraint boundary"
+    },
+    {
+      "input": "num = 524287",
+      "output": "37",
+      "description": "all nineteen low bits set"
+    }
   ]
 }

@@ -1,34 +1,105 @@
 {
   "id": "491",
   "title": "Kth Smallest Number in Multiplication Table",
-  "description": "# Kth Smallest Number in Multiplication Table\n\nNearly everyone has used the Multiplication Table. The multiplication table of size `m x n` is an integer matrix `mat` where `mat[i][j] == i * j` (1-indexed).\n\nGiven three integers `m`, `n`, and `k`, return *the* `kth` *smallest element in the* `m x n` *multiplication table*.\n\n## Example 1:\n\n**Input:** m = 3, n = 3, k = 5\n**Output:** 3\n**Explanation:** The 3x3 multiplication table is as follows:\n1 2 3\n2 4 6\n3 6 9\nThe 5th smallest value is 3 (1, 2, 2, 3, 3).\n\n## Example 2:\n\n**Input:** m = 2, n = 3, k = 6\n**Output:** 6\n**Explanation:** The 2x3 multiplication table is as follows:\n1 2 3\n2 4 6\nThe 6th smallest value is 6 (1, 2, 2, 3, 4, 6).\n\n## Constraints:\n\n*   `1 <= m, n <= 3 * 10^4`\n*   `1 <= k <= m * n`",
+  "description": "# Kth Smallest Number in Multiplication Table\n\nThe `m x n` multiplication table contains `m` rows and `n` columns. The value at row `i` and column `j` is `i * j`, where both `i` and `j` are **1-indexed**.\n\nGiven integers `m`, `n`, and `k`, return the `kth` smallest value in this multiplication table. Duplicate values are counted separately because they appear in different cells.\n\n## Example 1:\n\n**Input:** m = 3, n = 3, k = 5\n**Output:** 3\n**Explanation:** The sorted values begin as `[1, 2, 2, 3, 3, 4, 6, 6, 9]`, so the 5th value is `3`.\n\n## Example 2:\n\n**Input:** m = 2, n = 3, k = 6\n**Output:** 6\n**Explanation:** The sorted values are `[1, 2, 2, 3, 4, 6]`, so the 6th value is `6`.\n\n## Constraints:\n\n* `1 <= m, n <= 3 * 10^4`\n* `1 <= k <= m * n`",
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public int findKthNumber(int m, int n, int k) {\n        \n    }\n}",
-  "tags": ["Math", "Binary Search"],
+  "tags": [
+    "Math",
+    "Binary Search"
+  ],
   "examples": [
-    { "input": "m = 3, n = 3, k = 5", "output": "3" },
-    { "input": "m = 2, n = 3, k = 6", "output": "6" }
+    {
+      "input": "m = 3, n = 3, k = 5",
+      "output": "3"
+    },
+    {
+      "input": "m = 2, n = 3, k = 6",
+      "output": "6"
+    }
   ],
   "solutions": [
     {
-      "name": "Binary Search on Value",
-      "timeComplexity": "O(m * log(m*n))",
+      "name": "Binary Search with Smaller-Dimension Count",
+      "timeComplexity": "O(min(m,n) * log(mn))",
       "spaceComplexity": "O(1)",
-      "description": "Binary search on the answer value x. For a given x, count how many numbers in the multiplication table are <= x by summing min(x/i, n) for each row i. Find the smallest x where count >= k.",
-      "code": "class Solution {\n    public int findKthNumber(int m, int n, int k) {\n        int lo = 1, hi = m * n;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            int count = 0;\n            for (int i = 1; i <= m; i++) {\n                count += Math.min(mid / i, n);\n            }\n            if (count < k) lo = mid + 1;\n            else hi = mid;\n        }\n        return lo;\n    }\n}",
+      "description": "## Approach\n\nBinary search the answer value. For a candidate `x`, count how many table entries are `<= x`: row `i` contributes `min(n, x / i)` values. Swapping the dimensions lets the loop scan the smaller side of the table.\n\n## Key Insight\n\nThe multiplication table is too large to materialize, but the predicate `count(<= x) >= k` is monotonic. Once a value is feasible, every larger value is also feasible, so the smallest feasible value is exactly the kth smallest number.\n\n## Complexity Analysis\n\n- Time Complexity: O(min(m,n) * log(mn)), because each binary-search probe scans the smaller dimension.\n- Space Complexity: O(1).",
+      "code": "class Solution {\n    public int findKthNumber(int m, int n, int k) {\n        int rows = Math.min(m, n);\n        int cols = Math.max(m, n);\n        int low = 1;\n        int high = rows * cols;\n        while (low < high) {\n            int mid = low + (high - low) / 2;\n            if (countLessOrEqual(mid, rows, cols) < k) {\n                low = mid + 1;\n            } else {\n                high = mid;\n            }\n        }\n        return low;\n    }\n\n    private long countLessOrEqual(int value, int rows, int cols) {\n        long count = 0;\n        for (int row = 1; row <= rows; row++) {\n            count += Math.min(cols, value / row);\n        }\n        return count;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Binary Search with Enough Function",
-      "timeComplexity": "O(m * log(m*n))",
+      "name": "Early-Stopping Feasibility Predicate",
+      "timeComplexity": "O(min(m,n) * log(mn))",
       "spaceComplexity": "O(1)",
-      "description": "Same binary search approach but structured with a separate helper function that checks if there are at least k values less than or equal to a given number in the multiplication table.",
-      "code": "class Solution {\n    public int findKthNumber(int m, int n, int k) {\n        int lo = 1, hi = m * n;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (enough(mid, m, n, k)) hi = mid;\n            else lo = mid + 1;\n        }\n        return lo;\n    }\n\n    private boolean enough(int x, int m, int n, int k) {\n        int count = 0;\n        for (int i = 1; i <= m; i++) {\n            count += Math.min(x / i, n);\n            if (count >= k) return true;\n        }\n        return false;\n    }\n}",
+      "description": "## Approach\n\nKeep the same answer-space binary search, but express the check as `hasAtLeastK(value)`. The helper stops as soon as the running count reaches `k`, which avoids scanning unnecessary rows for large candidate values.\n\n## Key Insight\n\nMany candidates near the upper half already contain far more than `k` values. A boolean feasibility function makes the lower-bound binary search explicit and gives the implementation a safe early-exit point without changing the proof.\n\n## Complexity Analysis\n\n- Time Complexity: O(min(m,n) * log(mn)) in the worst case, often less inside each probe because of early stopping.\n- Space Complexity: O(1).",
+      "code": "class Solution {\n    public int findKthNumber(int m, int n, int k) {\n        int rows = Math.min(m, n);\n        int cols = Math.max(m, n);\n        int left = 1;\n        int right = rows * cols;\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (hasAtLeastK(mid, rows, cols, k)) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        return left;\n    }\n\n    private boolean hasAtLeastK(int value, int rows, int cols, int k) {\n        long count = 0;\n        for (int row = 1; row <= rows; row++) {\n            count += Math.min(cols, value / row);\n            if (count >= k) {\n                return true;\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Staircase Count Binary Search",
+      "timeComplexity": "O((m+n) * log(mn))",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nBinary search the value, but count entries `<= value` with a staircase walk over the sorted table. Start at the bottom-left cell. If `row * col <= value`, then every row above in that column also qualifies; otherwise move upward.\n\n## Key Insight\n\nEvery row and every column is sorted. The staircase walk uses both monotonic directions at once, so each count moves at most `m + n` steps and still preserves the same feasible-value binary search proof.\n\n## Complexity Analysis\n\n- Time Complexity: O((m+n) * log(mn)), because each predicate call moves through at most one row or one column per step.\n- Space Complexity: O(1).",
+      "code": "class Solution {\n    public int findKthNumber(int m, int n, int k) {\n        int low = 1;\n        int high = m * n;\n        while (low < high) {\n            int mid = low + (high - low) / 2;\n            if (hasAtLeastK(mid, m, n, k)) {\n                high = mid;\n            } else {\n                low = mid + 1;\n            }\n        }\n        return low;\n    }\n\n    private boolean hasAtLeastK(int value, int m, int n, int k) {\n        int row = m;\n        int col = 1;\n        long count = 0;\n        while (row >= 1 && col <= n) {\n            if ((long) row * col <= value) {\n                count += row;\n                if (count >= k) {\n                    return true;\n                }\n                col++;\n            } else {\n                row--;\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Quotient-Grouped Count Binary Search",
+      "timeComplexity": "O(sqrt(mn) * log(mn))",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nBinary search the value and compute `count(<= x)` by grouping consecutive rows that share the same quotient `x / row`. Rows where `x / row >= cols` are handled as full rows first, then the remaining rows are advanced by quotient ranges.\n\n## Key Insight\n\nThe row-count formula can repeat the same quotient for many adjacent rows. Grouping those rows teaches the number-theory structure behind the predicate and is a useful optimization pattern for floor-division sums.\n\n## Complexity Analysis\n\n- Time Complexity: O(sqrt(mn) * log(mn)) for the grouped-count view; with these constraints the simpler O(min(m,n)) count is also fast, but this route demonstrates quotient compression.\n- Space Complexity: O(1).",
+      "code": "class Solution {\n    public int findKthNumber(int m, int n, int k) {\n        int rows = Math.min(m, n);\n        int cols = Math.max(m, n);\n        int left = 1;\n        int right = rows * cols;\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (countGrouped(mid, rows, cols) >= k) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        return left;\n    }\n\n    private long countGrouped(int value, int rows, int cols) {\n        int fullRows = Math.min(rows, value / cols);\n        long count = (long) fullRows * cols;\n        int row = fullRows + 1;\n        while (row <= rows && row <= value) {\n            int quotient = value / row;\n            if (quotient == 0) {\n                break;\n            }\n            int lastRow = Math.min(rows, value / quotient);\n            count += (long) (lastRow - row + 1) * quotient;\n            row = lastRow + 1;\n        }\n        return count;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "m = 3, n = 3, k = 5", "output": "3" },
-    { "input": "m = 2, n = 3, k = 6", "output": "6" }
+    {
+      "input": "m = 3, n = 3, k = 5",
+      "output": "3"
+    },
+    {
+      "input": "m = 2, n = 3, k = 6",
+      "output": "6"
+    },
+    {
+      "input": "m = 1, n = 1, k = 1",
+      "output": "1"
+    },
+    {
+      "input": "m = 1, n = 10, k = 7",
+      "output": "7"
+    },
+    {
+      "input": "m = 10, n = 1, k = 10",
+      "output": "10"
+    },
+    {
+      "input": "m = 2, n = 3, k = 4",
+      "output": "3"
+    },
+    {
+      "input": "m = 3, n = 5, k = 8",
+      "output": "5"
+    },
+    {
+      "input": "m = 5, n = 5, k = 12",
+      "output": "6"
+    },
+    {
+      "input": "m = 4, n = 6, k = 8",
+      "output": "4"
+    },
+    {
+      "input": "m = 12, n = 15, k = 73",
+      "output": "30"
+    },
+    {
+      "input": "m = 30000, n = 30000, k = 1",
+      "output": "1"
+    },
+    {
+      "input": "m = 30000, n = 30000, k = 900000000",
+      "output": "900000000"
+    }
   ]
 }

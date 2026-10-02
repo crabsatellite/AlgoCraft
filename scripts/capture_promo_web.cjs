@@ -5,6 +5,7 @@ const { chromium } = require('../promo/video/node_modules/playwright');
 const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
+const root = path.resolve(__dirname, '..');
 const out = path.resolve(__dirname, '../promo/video/public/cap');
 fs.rmSync(out, {recursive: true, force: true});
 for (const d of ['type', 'run', 'submit', 'search', 'browse']) fs.mkdirSync(path.join(out, d), {recursive: true});
@@ -119,7 +120,8 @@ const SOLUTION = [
     assert.equal(receipt.errors.length, 0);
   } finally {
     await context.close(); await browser.close();
-    fs.writeFileSync(path.join(out, 'capture-receipt.json'), JSON.stringify(receipt, null, 2));
+    fs.mkdirSync(path.join(root, 'build/promo/evidence'), { recursive: true });
+    fs.writeFileSync(path.join(root, 'build/promo/evidence/capture-receipt.json'), JSON.stringify(receipt, null, 2));
   }
 })().catch(e => { console.error(e); process.exitCode = 1; });
 

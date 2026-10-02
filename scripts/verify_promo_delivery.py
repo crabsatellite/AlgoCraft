@@ -46,10 +46,10 @@ check(mp4.stat().st_size < 100_000_000, 'video fits below the 100 MB repository 
 bank = [json.loads(p.read_text(encoding='utf-8')) for p in (ROOT / 'question_bank/official').glob('p*.json')]
 counts = {d: sum(p['difficulty'].upper() == d for p in bank) for d in ('EASY', 'MEDIUM', 'HARD')}
 check(len(bank) == 500 and counts == {'EASY': 172, 'MEDIUM': 205, 'HARD': 123}, 'advertised official bank counts match repository')
-capture = json.loads((ROOT / 'promo/video/public/cap/capture-receipt.json').read_text(encoding='utf-8'))
+capture = json.loads((ROOT / 'build/promo/evidence/capture-receipt.json').read_text(encoding='utf-8'))
 check(capture['headless'] and capture['muted'] and not capture['systemClipboardUsed'] and not capture['errors'], 'Web capture was headless, muted and clipboard isolated')
 check(not capture['twoSumPassedBefore'] and '7/7' in capture['modal'] and capture['runOutput'].count('Result: PASS') == 2, 'recording contains real Run PASS x2 and Submit 7/7')
-render_binding_path = ROOT / 'docs/verification/trailer-render.json'
+render_binding_path = ROOT / 'build/promo/evidence/trailer-render.json'
 render_binding = json.loads(render_binding_path.read_text(encoding='utf-8'))
 check(render_binding['status'] == 'source-bound-render-passed' and not render_binding['draft'], 'final render is bound to the accepted source')
 check({p.relative_to(ROOT / 'promo/video/src').as_posix(): sha(p) for p in (ROOT / 'promo/video/src').rglob('*') if p.is_file()} == render_binding['expectedSourceHashes'], 'render source hashes match final video source')
@@ -63,7 +63,7 @@ if not media_only:
         check(z.read('evidence/dual-version-render-binding.json') == render_binding_path.read_bytes(), 'ZIP includes the source binding for the dual-version render')
         for p in sorted(MEDIA.iterdir()):
             if p.is_file(): check(z.read('docs/media/' + p.name) == p.read_bytes(), f'ZIP includes final {p.name}')
-        for name in ['README.md', 'docs/README.zh-CN.md', 'docs/PLAYER_GUIDE.md', 'docs/BETA_0.1.0_HANDOFF.md', 'docs/PROMO_MEDIA.md', 'docs/CURSEFORGE.en.md', 'docs/CURSEFORGE.en.html', 'docs/CURSEFORGE.zh-CN.md', 'docs/CURSEFORGE.zh-CN.html']:
+        for name in ['README.md', 'docs/README.zh-CN.md', 'docs/PLAYER_GUIDE.md', 'docs/PROMO_MEDIA.md', 'docs/CURSEFORGE.en.md', 'docs/CURSEFORGE.en.html', 'docs/CURSEFORGE.zh-CN.md', 'docs/CURSEFORGE.zh-CN.html']:
             check(z.read(name) == (ROOT / name).read_bytes(), f'ZIP includes current {name}')
 dec = run('ffmpeg', '-hide_banner', '-nostats', '-v', 'error', '-threads', '2', '-i', str(mp4), '-f', 'null', '-')
 check(dec.returncode == 0 and not dec.stderr.strip(), 'full decode without errors')

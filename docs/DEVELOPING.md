@@ -22,4 +22,8 @@ launch. Missing graphics support is a failed lane, never permission to show a
 window. Keep the desktop-isolation and clean-exit receipts.
 
 The two branches share the official JSON/PNG bank and component formats.
-See [custom problem format](PROBLEM_FORMAT.md) and [Beta verification](BETA_0.1.0_HANDOFF.md).
+See [custom problem format](PROBLEM_FORMAT.md).
+
+Before release, run `python scripts/check_public_tree.py`. The build wrapper and
+CI run this check too. Keep internal reports and generated test output outside
+the publishable tree; use ignored `build/` or a separate private evidence folder.

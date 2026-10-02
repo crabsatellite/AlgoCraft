@@ -1,4 +1,4 @@
-![AlgoCraft: learn algorithms in Minecraft](docs/media/hero.jpg)
+![AlgoCraft: learn algorithms in Minecraft](https://files.seeusercontent.com/2026/10/02/Ba0i/hero.jpg)
 
 # AlgoCraft
 
@@ -8,13 +8,13 @@
 
 **Current release: 0.1.0 Beta** (`0.1.0-beta`). This early Beta is intended for player feedback on the learning flow and survival reward balance.
 
-[![Watch the AlgoCraft trailer](docs/media/trailer-poster.jpg)](docs/media/algocraft-trailer-en-1080p.mp4)
+[![Watch the AlgoCraft trailer](https://files.seeusercontent.com/2026/10/02/0fAt/trailer-poster.jpg)](https://www.youtube.com/watch?v=DsKH72bj73o)
 
-▶ [Watch the 2-minute trailer](docs/media/algocraft-trailer-en-1080p.mp4) · [Player guide](docs/PLAYER_GUIDE.md) · [简体中文说明](docs/README.zh-CN.md)
+▶ [Watch the 2-minute trailer](https://www.youtube.com/watch?v=DsKH72bj73o) · [Player guide](docs/PLAYER_GUIDE.md) · [简体中文说明](docs/README.zh-CN.md)
 
-English trailer URL — 2:07, 1080p, English captions, music and effects:
+English trailer URL — 2:08, 1080p, English captions, music and effects:
 
-https://github.com/crabsatellite/AlgoCraft/raw/refs/heads/main/docs/media/algocraft-trailer-en-1080p.mp4
+https://www.youtube.com/watch?v=DsKH72bj73o
 
 ## Start in five minutes
 
@@ -30,7 +30,7 @@ https://github.com/crabsatellite/AlgoCraft/raw/refs/heads/main/docs/media/algocr
 | Redstone dust | Glass | Redstone dust |
 | Iron ingot | Iron ingot | Iron ingot |
 
-![The Algorithm Computer and its crafting recipe](docs/media/feature-computer.jpg)
+![The Algorithm Computer and its crafting recipe](https://files.seeusercontent.com/2026/10/02/mfN2/feature-computer.jpg)
 
 A little Java helps: you should be comfortable with methods, loops and arrays. Start with the Easy problems and work up.
 
@@ -38,29 +38,29 @@ A little Java helps: you should be comfortable with methods, loops and arrays. S
 
 **In-game IDE.** Everything happens at the computer: search problems, read statements and diagrams, edit code with syntax highlighting, and see compiler errors and results in the terminal. Your draft is saved per problem, so you can switch problems and come back later.
 
-![Real in-game screenshot of the AlgoCraft IDE](docs/media/ingame-ide.jpg)
+![Real in-game screenshot of the AlgoCraft IDE](https://files.seeusercontent.com/2026/10/02/5cKy/ingame-ide.jpg)
 
 **Web IDE.** Press **Web** to open a bigger editor in your browser, with the full Monaco editor (the editor from VS Code) and your submission history. It runs on your own computer and submits through your connected player, so the result counts exactly like an in-game submit.
 
-![Real capture of the AlgoCraft Web IDE with a Two Sum solution](docs/media/web-ide.jpg)
+![Real capture of the AlgoCraft Web IDE with a Two Sum solution](https://files.seeusercontent.com/2026/10/02/2mcU/web-ide.jpg)
 
 **Run** compiles your code and checks the examples you can see. **Submit** is judged by the server against hidden tests too, and only an accepted Submit counts toward progress and rewards.
 
-![Accepted: 7 of 7 test cases passed](docs/media/feature-accepted.jpg)
+![Accepted: 7 of 7 test cases passed](https://files.seeusercontent.com/2026/10/02/2eVm/feature-accepted.jpg)
 
 ## 500 problems, ready from the start
 
 The official bank ships inside the mod and works offline: **172 Easy, 205 Medium and 123 Hard** problems covering arrays, strings, hash tables, two pointers, stacks, linked lists, trees, graphs, backtracking, greedy algorithms and dynamic programming. Statements are written for first-time readers, with grids, trees, graphs and linked lists drawn as diagrams where words are not enough. Problems and the IDE are available in **English and Simplified Chinese**.
 
-![500 official problems: 172 Easy, 205 Medium, 123 Hard](docs/media/feature-bank.jpg)
+![500 official problems: 172 Easy, 205 Medium, 123 Hard](https://files.seeusercontent.com/2026/10/02/2mDc/feature-bank.jpg)
 
-![Problem statements with diagrams](docs/media/feature-diagrams.jpg)
+![Problem statements with diagrams](https://files.seeusercontent.com/2026/10/02/pIr9/feature-diagrams.jpg)
 
 ## Rewards that fit your survival world
 
 With rewards enabled, your **first accepted clear** of a problem gives items and XP. Harder problems give more, and so does your progress: AlgoCraft looks at your gear and scales the loot for early game, diamond gear and netherite gear. For example, a first Hard clear gives 5 diamonds, 3 golden apples and 4 iron blocks early on; with netherite gear it gives a netherite ingot, 2 enchanted golden apples and a nether star.
 
-![First clears pay off: loot scales with difficulty and gear](docs/media/feature-rewards.jpg)
+![First clears pay off: loot scales with difficulty and gear](https://files.seeusercontent.com/2026/10/02/X4gs/feature-rewards.jpg)
 
 | Keep practising | What you get |
 | --- | --- |
@@ -75,23 +75,23 @@ With rewards enabled, your **first accepted clear** of a problem gives items and
 
 Days are counted on the server's clock; miss a day and the streak starts again from 1. Each rewarded solve also has a 10% chance of a lucky bonus drop.
 
-![Daily streaks with a bonus from day 3 and weekly rewards](docs/media/feature-daily.jpg)
+![Daily streaks with a bonus from day 3 and weekly rewards](https://files.seeusercontent.com/2026/10/02/fm5R/feature-daily.jpg)
 
-![Milestone rewards up to a dragon egg at 500 solves](docs/media/feature-milestones.jpg)
+![Milestone rewards up to a dragon egg at 500 solves](https://files.seeusercontent.com/2026/10/02/Paq5/feature-milestones.jpg)
 
 ## A trophy shelf worth building
 
 Achievements become real 3D trophies in five tiers: **bronze, silver, gold, diamond and netherite**. Each one is engraved with your name, the date and the achievement, and can be placed on a floor, shelf or desk, or displayed in an item frame. Breaking a placed trophy returns it with its engraving intact. There are **23 achievements**: solve milestones (1 to 500), streaks (3 to 100 days), difficulty goals, and specials like *Night Owl*, *Speed Demon*, *Perfectionist* and the netherite **Completionist** for clearing every problem in a bank.
 
-![Five trophy tiers](docs/media/feature-trophies.jpg)
+![Five trophy tiers](https://files.seeusercontent.com/2026/10/02/b6Ce/feature-trophies.jpg)
 
-![23 achievement trophies](docs/media/feature-achievements.jpg)
+![23 achievement trophies](https://files.seeusercontent.com/2026/10/02/fEf6/feature-achievements.jpg)
 
 ## Built for servers
 
 The **server owns the problem banks.** Everyone on a server sees the same public problems, public submissions are judged on the server, and progress and rewards are stored with the world. Players download the published statements and images automatically when they join.
 
-![The server owns the bank and judges every public submit](docs/media/feature-server.jpg)
+![The server owns the bank and judges every public submit](https://files.seeusercontent.com/2026/10/02/Ekt8/feature-server.jpg)
 
 Only the server console or an operator (permission level 2) can manage public banks. In the in-game IDE, **Bank update guide** shows the commands below; ordinary players receive server banks automatically and do not see an update control.
 
@@ -106,6 +106,10 @@ Only the server console or an operator (permission level 2) can manage public ba
 Use **Import → Official format** for a [JSON template and format guide](docs/PROBLEM_FORMAT.md). The guide links to the official bank and [GitHub source](https://github.com/crabsatellite/AlgoCraft).
 
 Players can still **import their own problems** for private practice. Personal imports stay on their computer and never give server rewards, so nobody can farm loot with homemade easy problems. Server owners can turn rewards off with `enableRewards=false`; progress is still saved.
+
+## Download
+
+[CurseForge](https://www.curseforge.com/minecraft/mc-mods/algocraft) · [Modrinth](https://modrinth.com/mod/algocraft) · [GitHub Releases](https://github.com/crabsatellite/AlgoCraft/releases/tag/v0.1.0-beta)
 
 ## Install
 
@@ -128,7 +132,7 @@ Choose the JAR matching your Minecraft version and loader, then put it in `mods/
 
 ---
 
-More detail: [Beta verification](docs/BETA_0.1.0_HANDOFF.md) · [player guide](docs/PLAYER_GUIDE.md) · [server bank guide (中文)](docs/SERVER_BANKS_2026-10-01.md) · [promo media and credits](docs/PROMO_MEDIA.md)
+More detail: [player guide](docs/PLAYER_GUIDE.md) · [promo media and credits](docs/PROMO_MEDIA.md)
 
 Source code: [MIT](LICENSE). See [third-party notices](THIRD_PARTY_NOTICES.md) for the bundled compiler and media credits.
 

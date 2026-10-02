@@ -14,13 +14,9 @@ with zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED) as z:
         if p.is_file(): z.write(p, f'docs/media/{p.name}')
     for name in ['CURSEFORGE.en.md', 'CURSEFORGE.en.html', 'CURSEFORGE.zh-CN.md', 'CURSEFORGE.zh-CN.html', 'PROMO_MEDIA.md']:
         z.write(ROOT / 'docs' / name, f'docs/{name}')
-    for name in ['README.zh-CN.md', 'PLAYER_GUIDE.md', 'SERVER_BANKS_2026-10-01.md', 'BETA_0.1.0_HANDOFF.md']:
+    for name in ['README.zh-CN.md', 'PLAYER_GUIDE.md', 'PROBLEM_FORMAT.md']:
         z.write(ROOT / 'docs' / name, f'docs/{name}')
     z.write(ROOT / 'README.md', 'README.md')
     z.write(ROOT / 'promo/video/CREDITS.md', 'CREDITS.md')
     z.writestr('CREDITS.txt', CREDITS)
-    z.write(ROOT / 'build/promo/media-receipt.json', 'evidence/media-receipt.json')
-    z.write(ROOT / 'build/promo/pages/review-receipt.json', 'evidence/page-review-receipt.json')
-    binding = ROOT / 'docs/verification/trailer-render.json'
-    if binding.is_file(): z.write(binding, 'evidence/dual-version-render-binding.json')
 print(target, target.stat().st_size)

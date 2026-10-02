@@ -39,24 +39,10 @@ An administrator can set `enableRewards=false`: accepted progress still saves, b
 
 The **server** installs and publishes public banks, judges submissions, stores each player's progress and awards rewards. Players joining the world automatically receive the public statements, translations and images. Progress belongs to the world and your player UUID and is shared across that world's dimensions.
 
-New worlds enable the bundled `official` bank. Only the server console or an operator with permission level 2 can install, update, enable or disable additional public banks. Operators can click **Bank update guide** in the IDE to see the chat commands. The guide does not start a download. See the [server-bank guide](SERVER_BANKS_2026-10-01.md) for commands and storage.
+New worlds enable the bundled `official` bank. Only the server console or an operator with permission level 2 can install, update, enable or disable additional public banks. Operators can click **Bank update guide** in the IDE to see the chat commands. The guide does not start a download. Use `/algocraft bank list`, `install <name> <manifest-url>`, `enable <id>`, `disable <id>`, `reload`, or `update-official`.
 
-Personal imports are private practice. Importing a file or repository does not publish it to the server and does not grant server items. Place personal JSON files in `<gameDir>/algorithm_challenges/user/` or use **Import** in the IDE. Example:
+Personal imports are private practice. Importing a file or repository does not publish it to the server and does not grant server items. Place personal JSON files in `<gameDir>/algorithm_challenges/user/` or use **Import** in the IDE. Start with the [official-format guide](PROBLEM_FORMAT.md) and [working JSON example](examples/p9001.json).
 
-```json
-{
-  "id": "custom_1",
-  "title": "Double a number",
-  "description": "Return n multiplied by 2. Example: n = 3 returns 6.",
-  "difficulty": "easy",
-  "initialCode": "class Solution { public int solve(int n) { return 0; } }",
-  "examples": [{ "input": "3", "output": "6" }],
-  "tests": [{ "input": "-2", "output": "-4" }]
-}
-```
+## Development
 
-## Development and verification
-
-Use `./mod-build.ps1 build`. The managed framework verifies its stable release, checksum, manifest and installed hashes before Gradle. Automated Minecraft and browser checks must be hidden, muted and input/clipboard isolated; never launch a visible fallback.
-
-The [Beta verification handoff](BETA_0.1.0_HANDOFF.md), [gameplay review](GAMEPLAY_REVIEW_2026-10-01.md), [visual review](VISUAL_REVIEW_2026-10-01.md) and [question audit](../question_bank/FIRST_READER_REVIEW_2026-09-30.md) document the current evidence. Both versions passed the same automated acceptance lanes. The development clients and dedicated fixture server establish runtime evidence; long-term reward balance and enjoyment still need player feedback.
+See [developing](DEVELOPING.md) for the self-contained build and hidden test entrypoints.

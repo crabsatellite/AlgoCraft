@@ -26,8 +26,23 @@ tasks.named('jar', Jar) {
     from('licenses') { into 'META-INF/licenses' }
 }
 
+// Forge eventbus declares 0.6.+; retain the verified 0.6.3 selection without
+// querying changing metadata from unrelated Minecraft Maven proxies.
+configurations.configureEach {
+    resolutionStrategy.force 'net.jodah:typetools:0.6.3'
+}
+
 repositories {
     mavenCentral()
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'TypeToolsCentral'
+                url = 'https://repo.maven.apache.org/maven2'
+            }
+        }
+        filter { includeModule('net.jodah', 'typetools') }
+    }
     maven {
         name = "Jared's maven"
         url = "https://maven.blamejared.com"

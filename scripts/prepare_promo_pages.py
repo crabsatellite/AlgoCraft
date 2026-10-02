@@ -35,7 +35,7 @@ def store_copy(md, media_prefix, doc_prefix):
     if start >= 0 and end > start:
         link_text = 'Watch on YouTube' if media_prefix == 'docs/media/' else '在 YouTube 上观看'
         player = (f'<iframe src="{EMBED}" width="100%" '
-                  'style="aspect-ratio:16/9;width:100%;border:0" '
+                  'style="aspect-ratio:1.777778;width:100%;border:0" '
                   'frameborder="0" allowfullscreen></iframe>\n\n'
                   f'[{link_text}]({TRAILER})\n')
         md = md[:start] + player + md[end:]
@@ -51,7 +51,7 @@ for lang, src, media_prefix, doc_prefix in [('en', ROOT / 'README.md', 'docs/med
     (PREVIEW / f'readme-{lang}.html').write_text(page(f'AlgoCraft README {lang}', readme_html, lang, base), encoding='utf-8')
     store = store_copy(md, media_prefix, doc_prefix)
     (DOCS / f'CURSEFORGE.{lang}.md').write_text(store, encoding='utf-8')
-    modrinth = store.replace('style="aspect-ratio:16/9;width:100%;border:0"', 'height="420"')
+    modrinth = store.replace('style="aspect-ratio:1.777778;width:100%;border:0"', 'height="420"')
     (DOCS / f'MODRINTH.{lang}.md').write_text(modrinth, encoding='utf-8')
     store_html = markdown.markdown(store, extensions=['tables', 'fenced_code'])
     (DOCS / f'CURSEFORGE.{lang}.html').write_text('<article>\n' + store_html + '\n</article>\n', encoding='utf-8')

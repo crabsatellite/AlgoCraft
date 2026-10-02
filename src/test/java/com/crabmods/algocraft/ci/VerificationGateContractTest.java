@@ -395,6 +395,7 @@ class VerificationGateContractTest {
         assertContains(workflow, "run: ./mod-build.ps1 gradle ideStressTest --no-daemon");
         assertContains(workflow, "GALLIUM_DRIVER=llvmpipe");
         assertContains(workflow, "LP_NUM_THREADS=2");
+        assertContains(workflow, "ALSOFT_DRIVERS: 'null'");
         assertContains(workflow, "mingw-w64-ucrt-x86_64-mesa");
         assertContains(workflow, "RUNNER_ENVIRONMENT");
         assertContains(workflow, "build/test-results/");

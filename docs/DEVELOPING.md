@@ -20,7 +20,8 @@ All tests must be invisible, muted and input/clipboard isolated. The native lane
 requires a working OpenGL driver. GitHub-hosted Windows CI installs the public
 MSYS2 Mesa package and uses LLVMpipe in its disposable JDK; it does not modify
 the operating system or the local developer JDK. Driver support is checked by
-the actual hidden launch. Missing graphics support is a failed lane, never permission to show a
+the actual hidden launch. OpenAL uses its null backend on CI, while the existing
+listener-gain gate still requires a real zero-gain audio context. Missing graphics support is a failed lane, never permission to show a
 window. Keep the desktop-isolation and clean-exit receipts.
 
 The two branches share the official JSON/PNG bank and component formats.

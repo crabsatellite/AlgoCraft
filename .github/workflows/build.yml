@@ -20,7 +20,7 @@ jobs:
       - name: Check public source hygiene
         run: python scripts/check_public_tree.py
 
-      - name: Setup JDK 21
+      - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
@@ -32,9 +32,20 @@ jobs:
       - name: Build with Gradle
         run: ./mod-build.ps1 build --no-daemon
 
+      - name: Upload build test reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-test-reports
+          path: |
+            build/reports/tests/
+            build/test-results/
+            run/logs/
+            run/crash-reports/
+          retention-days: 14
+
   ide-client-acceptance:
     runs-on: windows-latest
-    needs: build
     timeout-minutes: 90
     steps:
       - name: Checkout repository
@@ -46,7 +57,7 @@ jobs:
       - name: Check public source hygiene
         run: python scripts/check_public_tree.py
 
-      - name: Setup JDK 21
+      - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
@@ -55,8 +66,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      # JVM and full-bank coverage run in the build job; this independent job
+      # runs the same ten-pass native gate without repeating the JVM suite.
       - name: Run IDE client smoke and stress tests
-        run: ./mod-build.ps1 gradle ideClientAcceptanceTest --no-daemon '-PalgocraftTestRuntimeDirectory=run-ide-stress'
+        run: ./mod-build.ps1 gradle ideStressTest --no-daemon '-PalgocraftTestRuntimeDirectory=run-ide-stress'
 
       - name: Upload IDE client acceptance artifacts
         uses: actions/upload-artifact@v4

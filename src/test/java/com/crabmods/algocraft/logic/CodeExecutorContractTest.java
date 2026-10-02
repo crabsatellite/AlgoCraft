@@ -91,7 +91,7 @@ class CodeExecutorContractTest {
 
     @Test
     void publicEntrypointsRejectOversizedCodeBeforeWorkerRequestSerialization() throws IOException {
-        String source = Files.readString(CODE_EXECUTOR, StandardCharsets.UTF_8);
+        String source = Files.readString(CODE_EXECUTOR, StandardCharsets.UTF_8).replace("\r\n", "\n");
 
         assertTrue(source.contains("""
                 String envelopeError = validateCodeEnvelope(code);

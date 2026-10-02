@@ -71,7 +71,7 @@ class ProblemManagerCacheTest {
 
     @Test
     void problemManagerPublishesWholeCacheSnapshotsInsteadOfClearingLiveCache() throws IOException {
-        String source = Files.readString(PROBLEM_MANAGER, StandardCharsets.UTF_8);
+        String source = Files.readString(PROBLEM_MANAGER, StandardCharsets.UTF_8).replace("\r\n", "\n");
 
         assertTrue(source.contains("AtomicReference<Map<String, Problem>> problemCache"),
                 "ProblemManager should publish the cache by replacing an immutable snapshot");
@@ -89,7 +89,7 @@ class ProblemManagerCacheTest {
 
     @Test
     void firstProblemAccessBuildsOfflineCacheBeforeReturningToTheIde() throws IOException {
-        String source = Files.readString(PROBLEM_MANAGER, StandardCharsets.UTF_8);
+        String source = Files.readString(PROBLEM_MANAGER, StandardCharsets.UTF_8).replace("\r\n", "\n");
 
         assertTrue(source.contains("The initial load is cache-only and must finish before callers render a problem list"),
                 "ProblemManager should document why first IDE access cannot publish an empty problem list");
@@ -108,7 +108,7 @@ class ProblemManagerCacheTest {
                 "src", "main", "java", "com", "crabmods", "algocraft", "logic", "repo",
                 "BuiltInProblemRepository.java"
         );
-        String source = Files.readString(PROBLEM_MANAGER, StandardCharsets.UTF_8);
+        String source = Files.readString(PROBLEM_MANAGER, StandardCharsets.UTF_8).replace("\r\n", "\n");
 
         assertFalse(Files.exists(builtInRepository),
                 "legacy built-in problem resources should not remain as a silent fallback question bank");

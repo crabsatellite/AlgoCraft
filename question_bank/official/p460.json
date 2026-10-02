@@ -1,7 +1,7 @@
 {
   "id": "460",
   "title": "Island Perimeter",
-  "description": "# Island Perimeter\n\nYou are given `row x col` `grid` representing a map where `grid[i][j] = 1` represents land and `grid[i][j] = 0` represents water.\n\nGrid cells are connected **horizontally/vertically** (not diagonally). The `grid` is completely surrounded by water, and there is exactly one island (i.e., one or more connected land cells).\n\nThe island doesn't have \"lakes\", meaning the water inside isn't connected to the water around the island. One cell is a square with side length 1. The grid is rectangular, width and height don't exceed 100. Determine the perimeter of the island.\n\n## Example 1:\n\n**Input:** grid = [[0,1,0,0],[1,1,1,0],[0,1,0,0],[1,1,0,0]]\n**Output:** 16\n**Explanation:** The perimeter is the 16 yellow stripes in the image above.\n\n## Example 2:\n\n**Input:** grid = [[1]]\n**Output:** 4\n\n## Example 3:\n\n**Input:** grid = [[1,0]]\n**Output:** 4\n\n## Constraints:\n\n*   `row == grid.length`\n*   `col == grid[i].length`\n*   `1 <= row, col <= 100`\n*   `grid[i][j]` is `0` or `1`.\n*   There is exactly one island in `grid`.",
+  "description": "# Island Perimeter\n\nYou are given a rectangular `row x col` grid `grid`. `grid[r][c] = 1` represents land, and `grid[r][c] = 0` represents water.\n\nLand cells are connected only horizontally or vertically, not diagonally. The grid is surrounded by water outside its borders, and the land cells form exactly one island. There are no lakes: no water cell is completely enclosed by land.\n\nEach cell is a square with side length `1`. Return the perimeter of the island, meaning the total number of land-cell edges that touch water or the outside of the grid.\n\n## Example 1:\n\n**Input:** grid = [[0,1,0,0],[1,1,1,0],[0,1,0,0],[1,1,0,0]]\n**Output:** 16\n**Explanation:** Counting every outer edge of the connected land shape gives perimeter 16.\n\n## Example 2:\n\n**Input:** grid = [[1]]\n**Output:** 4\n**Explanation:** A single land cell has four exposed edges.\n\n## Example 3:\n\n**Input:** grid = [[1,0]]\n**Output:** 4\n**Explanation:** The land cell touches outside water on three sides and grid water on one side.\n\n## Constraints:\n\n*   `row == grid.length`\n*   `col == grid[i].length`\n*   `1 <= row, col <= 100`\n*   `grid[i][j]` is `0` or `1`.\n*   `grid` contains exactly one island.\n*   `grid` contains no lakes.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int islandPerimeter(int[][] grid) {\n        \n    }\n}",
   "tags": [
@@ -26,19 +26,35 @@
   ],
   "solutions": [
     {
-      "name": "Count Edges",
+      "name": "Exposed Boundary Scan",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(1)",
-      "description": "For each land cell, start with 4 edges. Subtract 1 for each adjacent land cell (shared edge). Sum over all land cells.",
-      "code": "class Solution {\n    public int islandPerimeter(int[][] grid) {\n        int rows = grid.length, cols = grid[0].length;\n        int perimeter = 0;\n        for (int i = 0; i < rows; i++) {\n            for (int j = 0; j < cols; j++) {\n                if (grid[i][j] == 1) {\n                    perimeter += 4;\n                    if (i > 0 && grid[i - 1][j] == 1) perimeter -= 2;\n                    if (j > 0 && grid[i][j - 1] == 1) perimeter -= 2;\n                }\n            }\n        }\n        return perimeter;\n    }\n}",
+      "description": "## Approach\n\nScan every cell. For each land cell, inspect its four neighbors. A neighbor contributes one perimeter edge if it is outside the grid or is water.\n\n## Key Insight\n\nThe perimeter is exactly the number of land-cell sides that do not touch another land cell. This direct definition is often the clearest route for grid boundary problems.\n\n## Complexity Analysis\n\nLet `m` be the number of rows and `n` be the number of columns. Time Complexity: O(m * n). Space Complexity: O(1).",
+      "code": "class Solution {\n    public int islandPerimeter(int[][] grid) {\n        int rows = grid.length;\n        int cols = grid[0].length;\n        int perimeter = 0;\n        int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (grid[row][col] == 0) {\n                    continue;\n                }\n                for (int[] direction : directions) {\n                    int nextRow = row + direction[0];\n                    int nextCol = col + direction[1];\n                    if (nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols\n                            || grid[nextRow][nextCol] == 0) {\n                        perimeter++;\n                    }\n                }\n            }\n        }\n        return perimeter;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "DFS Perimeter Count",
+      "name": "Land Cells Minus Shared Edges",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCount the number of land cells and count shared land-land edges only downward and rightward, so each shared edge is counted once. Each land cell starts with four edges, and each shared edge removes two exposed edges.\n\n## Key Insight\n\nThis converts local boundary counting into the formula `4 * land - 2 * shared`. Counting only down and right prevents double-counting the same internal edge.\n\n## Complexity Analysis\n\nLet `m` be the number of rows and `n` be the number of columns. Time Complexity: O(m * n). Space Complexity: O(1).",
+      "code": "class Solution {\n    public int islandPerimeter(int[][] grid) {\n        int rows = grid.length;\n        int cols = grid[0].length;\n        int land = 0;\n        int shared = 0;\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (grid[row][col] == 0) {\n                    continue;\n                }\n                land++;\n                if (row + 1 < rows && grid[row + 1][col] == 1) {\n                    shared++;\n                }\n                if (col + 1 < cols && grid[row][col + 1] == 1) {\n                    shared++;\n                }\n            }\n        }\n\n        return land * 4 - shared * 2;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "DFS Boundary Count",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "Use DFS from any land cell to traverse the island. For each land cell, count how many of its 4 neighbors are water or out of bounds. Sum these counts for the perimeter.",
-      "code": "class Solution {\n    public int islandPerimeter(int[][] grid) {\n        int rows = grid.length, cols = grid[0].length;\n        boolean[][] visited = new boolean[rows][cols];\n        for (int i = 0; i < rows; i++) {\n            for (int j = 0; j < cols; j++) {\n                if (grid[i][j] == 1) {\n                    return dfs(grid, visited, i, j, rows, cols);\n                }\n            }\n        }\n        return 0;\n    }\n\n    private int dfs(int[][] grid, boolean[][] visited, int i, int j, int rows, int cols) {\n        if (i < 0 || i >= rows || j < 0 || j >= cols || grid[i][j] == 0) return 1;\n        if (visited[i][j]) return 0;\n        visited[i][j] = true;\n        int perim = 0;\n        perim += dfs(grid, visited, i - 1, j, rows, cols);\n        perim += dfs(grid, visited, i + 1, j, rows, cols);\n        perim += dfs(grid, visited, i, j - 1, rows, cols);\n        perim += dfs(grid, visited, i, j + 1, rows, cols);\n        return perim;\n    }\n}",
+      "description": "## Approach\n\nFind the first land cell and run DFS across the island. A DFS step that moves out of bounds or into water contributes one perimeter edge. A step into an already visited land cell contributes nothing.\n\n## Key Insight\n\nTraversal-based solutions count the perimeter at the moment an island edge meets water or the grid boundary. This is useful when later island problems require visiting only the connected component.\n\n## Complexity Analysis\n\nLet `m` be the number of rows and `n` be the number of columns. Time Complexity: O(m * n). Space Complexity: O(m * n) for the visited grid and recursion stack.",
+      "code": "class Solution {\n    public int islandPerimeter(int[][] grid) {\n        int rows = grid.length;\n        int cols = grid[0].length;\n        boolean[][] visited = new boolean[rows][cols];\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (grid[row][col] == 1) {\n                    return dfs(grid, visited, row, col);\n                }\n            }\n        }\n        return 0;\n    }\n\n    private int dfs(int[][] grid, boolean[][] visited, int row, int col) {\n        int rows = grid.length;\n        int cols = grid[0].length;\n        if (row < 0 || row >= rows || col < 0 || col >= cols || grid[row][col] == 0) {\n            return 1;\n        }\n        if (visited[row][col]) {\n            return 0;\n        }\n        visited[row][col] = true;\n        return dfs(grid, visited, row + 1, col)\n                + dfs(grid, visited, row - 1, col)\n                + dfs(grid, visited, row, col + 1)\n                + dfs(grid, visited, row, col - 1);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "BFS Boundary Count",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nFind one land cell, then perform BFS over the island with a queue. For every popped land cell, inspect four neighbors. Water or out-of-bounds neighbors add to the perimeter; unvisited land neighbors are marked and enqueued.\n\n## Key Insight\n\nBFS counts the same boundary edges as DFS but avoids recursion depth concerns and makes the frontier of the connected island explicit.\n\n## Complexity Analysis\n\nLet `m` be the number of rows and `n` be the number of columns. Time Complexity: O(m * n). Space Complexity: O(m * n).",
+      "code": "class Solution {\n    public int islandPerimeter(int[][] grid) {\n        int rows = grid.length;\n        int cols = grid[0].length;\n        boolean[][] seen = new boolean[rows][cols];\n        java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();\n\n        for (int row = 0; row < rows && queue.isEmpty(); row++) {\n            for (int col = 0; col < cols; col++) {\n                if (grid[row][col] == 1) {\n                    queue.add(new int[] {row, col});\n                    seen[row][col] = true;\n                    break;\n                }\n            }\n        }\n\n        int perimeter = 0;\n        int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        while (!queue.isEmpty()) {\n            int[] cell = queue.remove();\n            for (int[] direction : directions) {\n                int nextRow = cell[0] + direction[0];\n                int nextCol = cell[1] + direction[1];\n                if (nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols\n                        || grid[nextRow][nextCol] == 0) {\n                    perimeter++;\n                } else if (!seen[nextRow][nextCol]) {\n                    seen[nextRow][nextCol] = true;\n                    queue.add(new int[] {nextRow, nextCol});\n                }\n            }\n        }\n        return perimeter;\n    }\n}",
       "language": "java"
     }
   ],
@@ -54,13 +70,50 @@
     {
       "input": "grid = [[1,0]]",
       "output": "4"
+    },
+    {
+      "input": "grid = [[1,1],[1,1]]",
+      "output": "8"
+    },
+    {
+      "input": "grid = [[1,1,1]]",
+      "output": "8"
+    },
+    {
+      "input": "grid = [[1],[1],[1]]",
+      "output": "8"
+    },
+    {
+      "input": "grid = [[1,0],[1,1]]",
+      "output": "8"
+    },
+    {
+      "input": "grid = [[1,1,1],[1,1,1]]",
+      "output": "10"
+    },
+    {
+      "input": "grid = [[0,1,0],[1,1,1],[0,0,0]]",
+      "output": "10"
+    },
+    {
+      "input": "grid = [[0,1,0],[1,1,1],[0,1,0]]",
+      "output": "12"
+    },
+    {
+      "input": "grid = [[1,0,0],[1,1,0],[0,1,1]]",
+      "output": "12"
+    },
+    {
+      "input": "grid = [[1,1,0],[0,1,0],[0,1,1]]",
+      "output": "12"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p460_example1.png",
-      "caption": "Example 1"
+      "alt": "A four by four input grid with land cells marked 1 and water cells marked 0",
+      "caption": "Input island grid"
     }
   ]
 }

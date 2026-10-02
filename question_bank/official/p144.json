@@ -1,10 +1,14 @@
 {
   "id": "144",
   "title": "Reconstruct Itinerary",
-  "description": "# Reconstruct Itinerary\n\nYou are given a list of airline `tickets` where `tickets[i] = [from_i, to_i]` represent the departure and the arrival airports of one flight. Reconstruct the itinerary in order and return it.\n\nAll of the tickets belong to a man who departs from `\"JFK\"`, thus, the itinerary must begin with `\"JFK\"`. If there are multiple valid itineraries, you should return the itinerary that has the smallest lexical order when read as a single string.\n\n*   For example, the itinerary `[\"JFK\", \"LGA\"]` has a smaller lexical order than `[\"JFK\", \"LGB\"]`.\n\nYou may assume all tickets form at least one valid itinerary. You must use all the tickets once and only once.\n\n## Example 1:\n\n**Input:** tickets = [[\"MUC\",\"LHR\"],[\"JFK\",\"MUC\"],[\"SFO\",\"SJC\"],[\"LHR\",\"SFO\"]]\n**Output:** [\"JFK\",\"MUC\",\"LHR\",\"SFO\",\"SJC\"]\n\n## Example 2:\n\n**Input:** tickets = [[\"JFK\",\"SFO\"],[\"JFK\",\"ATL\"],[\"SFO\",\"ATL\"],[\"ATL\",\"JFK\"],[\"ATL\",\"SFO\"]]\n**Output:** [\"JFK\",\"ATL\",\"JFK\",\"SFO\",\"ATL\",\"SFO\"]\n**Explanation:** Another possible reconstruction is [\"JFK\",\"SFO\",\"ATL\",\"JFK\",\"ATL\",\"SFO\"], but it is larger in lexical order.\n\n## Constraints:\n\n*   `1 <= tickets.length <= 300`\n*   `tickets[i].length == 2`\n*   `from_i.length == 3`\n*   `to_i.length == 3`\n*   `from_i` and `to_i` consist of uppercase English letters.\n*   `from_i != to_i`",
+  "description": "# Reconstruct Itinerary\n\nYou are given a list of airline tickets where `tickets[i] = [from_i, to_i]` represents one directed flight from airport `from_i` to airport `to_i`. Reconstruct and return the itinerary in order.\n\nThe traveler always starts from `\"JFK\"`. Every ticket must be used exactly once. If several valid itineraries use every ticket, return the one with the smallest lexicographic order when the whole itinerary is read from left to right.\n\n*   For example, `[\"JFK\", \"AAA\", \"SFO\"]` is lexicographically smaller than `[\"JFK\", \"SFO\", \"AAA\"]` because `\"AAA\"` is smaller than `\"SFO\"` at the first differing airport.\n*   Duplicate tickets may appear, and each copy must be consumed separately.\n\nYou may assume the tickets form at least one valid itinerary starting from `\"JFK\"`.\n\n## Example 1:\n\n**Input:** tickets = [[\"MUC\",\"LHR\"],[\"JFK\",\"MUC\"],[\"SFO\",\"SJC\"],[\"LHR\",\"SFO\"]]\n**Output:** [\"JFK\",\"MUC\",\"LHR\",\"SFO\",\"SJC\"]\n\n## Example 2:\n\n**Input:** tickets = [[\"JFK\",\"SFO\"],[\"JFK\",\"ATL\"],[\"SFO\",\"ATL\"],[\"ATL\",\"JFK\"],[\"ATL\",\"SFO\"]]\n**Output:** [\"JFK\",\"ATL\",\"JFK\",\"SFO\",\"ATL\",\"SFO\"]\n**Explanation:** Another valid itinerary is `[\"JFK\",\"SFO\",\"ATL\",\"JFK\",\"ATL\",\"SFO\"]`, but it is lexicographically larger.\n\n## Constraints:\n\n*   `1 <= tickets.length <= 300`\n*   `tickets[i].length == 2`\n*   `from_i.length == 3`\n*   `to_i.length == 3`\n*   `from_i` and `to_i` consist of uppercase English letters.\n*   `from_i != to_i`",
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public List<String> findItinerary(List<List<String>> tickets) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["Depth-First Search", "Graph", "Eulerian Circuit"],
+  "tags": [
+    "Depth-First Search",
+    "Graph",
+    "Eulerian Circuit"
+  ],
   "examples": [
     {
       "input": "tickets = [[\"MUC\",\"LHR\"],[\"JFK\",\"MUC\"],[\"SFO\",\"SJC\"],[\"LHR\",\"SFO\"]]",
@@ -17,42 +21,95 @@
   ],
   "solutions": [
     {
-      "name": "Hierholzer's Algorithm (Euler Path)",
+      "name": "Recursive Hierholzer with Priority Queues",
       "timeComplexity": "O(E log E)",
       "spaceComplexity": "O(E)",
-      "description": "Build adjacency list with sorted destinations (PriorityQueue). DFS using Hierholzer's algorithm for Eulerian path. Post-order add to result and reverse at end.",
-      "code": "import java.util.*;\n\nclass Solution {\n    private Map<String, PriorityQueue<String>> graph = new HashMap<>();\n    private LinkedList<String> result = new LinkedList<>();\n\n    public List<String> findItinerary(List<List<String>> tickets) {\n        for (List<String> ticket : tickets)\n            graph.computeIfAbsent(ticket.get(0), k -> new PriorityQueue<>()).offer(ticket.get(1));\n        dfs(\"JFK\");\n        return result;\n    }\n\n    private void dfs(String airport) {\n        PriorityQueue<String> dests = graph.get(airport);\n        while (dests != null && !dests.isEmpty())\n            dfs(dests.poll());\n        result.addFirst(airport);\n    }\n}",
+      "description": "## Approach\n\nModel each ticket as one directed edge and keep every departure airport's destinations in a min-priority queue. DFS repeatedly consumes the lexicographically smallest outgoing ticket. When an airport has no remaining outgoing edge, add it to the front of the answer.\n\n## Key Insight\n\nThis is an Euler path problem, not an ordinary path search. The postorder `addFirst` step is what makes dead ends safe: local cycles are closed first, then stitched into the final route while every ticket is consumed exactly once.\n\n## Complexity Analysis\n- Time Complexity: O(E log E)\n- Space Complexity: O(E)",
+      "code": "import java.util.*;\n\nclass Solution {\n    private final Map<String, PriorityQueue<String>> graph = new HashMap<>();\n    private final LinkedList<String> route = new LinkedList<>();\n\n    public List<String> findItinerary(List<List<String>> tickets) {\n        for (List<String> ticket : tickets) {\n            graph.computeIfAbsent(ticket.get(0), key -> new PriorityQueue<>()).offer(ticket.get(1));\n        }\n        dfs(\"JFK\");\n        return route;\n    }\n\n    private void dfs(String airport) {\n        PriorityQueue<String> destinations = graph.get(airport);\n        while (destinations != null && !destinations.isEmpty()) {\n            dfs(destinations.poll());\n        }\n        route.addFirst(airport);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Iterative Hierholzer's with Stack",
+      "name": "Iterative Hierholzer with Explicit Stack",
       "timeComplexity": "O(E log E)",
       "spaceComplexity": "O(E)",
-      "description": "Iterative version of Hierholzer's algorithm using an explicit stack. Push airports onto the stack, pop destinations from the priority queue. When no more destinations, add to result.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> findItinerary(List<List<String>> tickets) {\n        Map<String, PriorityQueue<String>> graph = new HashMap<>();\n        for (List<String> ticket : tickets)\n            graph.computeIfAbsent(ticket.get(0), k -> new PriorityQueue<>()).offer(ticket.get(1));\n        LinkedList<String> result = new LinkedList<>();\n        Deque<String> stack = new ArrayDeque<>();\n        stack.push(\"JFK\");\n        while (!stack.isEmpty()) {\n            String curr = stack.peek();\n            PriorityQueue<String> dests = graph.get(curr);\n            if (dests != null && !dests.isEmpty()) {\n                stack.push(dests.poll());\n            } else {\n                result.addFirst(stack.pop());\n            }\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nUse the same priority-queue adjacency lists, but replace recursion with an explicit stack. While the airport on top of the stack still has outgoing tickets, push the smallest destination and remove that ticket. When no edge remains, pop the airport into the front of the route.\n\n## Key Insight\n\nThe stack contains the current unfinished Euler walk. Popping only after an airport has no remaining edge reproduces recursive Hierholzer postorder without depending on call-stack depth.\n\n## Complexity Analysis\n- Time Complexity: O(E log E)\n- Space Complexity: O(E)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> findItinerary(List<List<String>> tickets) {\n        Map<String, PriorityQueue<String>> graph = new HashMap<>();\n        for (List<String> ticket : tickets) {\n            graph.computeIfAbsent(ticket.get(0), key -> new PriorityQueue<>()).offer(ticket.get(1));\n        }\n\n        LinkedList<String> route = new LinkedList<>();\n        Deque<String> stack = new ArrayDeque<>();\n        stack.push(\"JFK\");\n\n        while (!stack.isEmpty()) {\n            String airport = stack.peek();\n            PriorityQueue<String> destinations = graph.get(airport);\n            if (destinations != null && !destinations.isEmpty()) {\n                stack.push(destinations.poll());\n            } else {\n                route.addFirst(stack.pop());\n            }\n        }\n        return route;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Reverse-Sorted Adjacency Lists",
+      "timeComplexity": "O(E log E)",
+      "spaceComplexity": "O(E)",
+      "description": "## Approach\n\nStore each airport's destinations in a normal list, sort every list in reverse lexicographic order, and remove from the end during DFS. Removing the last element gives the smallest remaining destination in O(1) after sorting.\n\n## Key Insight\n\nThis is the same Hierholzer route construction as the priority-queue version, but it exposes a useful implementation tradeoff: pay the sort cost once, then consume tickets cheaply while preserving lexicographic order.\n\n## Complexity Analysis\n- Time Complexity: O(E log E)\n- Space Complexity: O(E)",
+      "code": "import java.util.*;\n\nclass Solution {\n    private final Map<String, List<String>> graph = new HashMap<>();\n    private final LinkedList<String> route = new LinkedList<>();\n\n    public List<String> findItinerary(List<List<String>> tickets) {\n        for (List<String> ticket : tickets) {\n            graph.computeIfAbsent(ticket.get(0), key -> new ArrayList<>()).add(ticket.get(1));\n        }\n        for (List<String> destinations : graph.values()) {\n            destinations.sort(Collections.reverseOrder());\n        }\n        dfs(\"JFK\");\n        return route;\n    }\n\n    private void dfs(String airport) {\n        List<String> destinations = graph.get(airport);\n        while (destinations != null && !destinations.isEmpty()) {\n            String next = destinations.remove(destinations.size() - 1);\n            dfs(next);\n        }\n        route.addFirst(airport);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Lexicographic Backtracking Baseline",
+      "timeComplexity": "O(E! * E) worst case",
+      "spaceComplexity": "O(E)",
+      "description": "## Approach\n\nUse a sorted destination map with ticket counts for each departure airport. Starting from `JFK`, try destinations in lexicographic order, consume one ticket copy, and backtrack if the partial route cannot use all tickets.\n\n## Key Insight\n\nThis baseline is much slower than Hierholzer's algorithm, but it makes the specification concrete: duplicates are separate tickets, a locally smallest choice can still be invalid, and the answer is the first complete lexicographic route.\n\n## Complexity Analysis\n- Time Complexity: O(E! * E) worst case\n- Space Complexity: O(E)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> findItinerary(List<List<String>> tickets) {\n        Map<String, TreeMap<String, Integer>> graph = new HashMap<>();\n        for (List<String> ticket : tickets) {\n            graph.computeIfAbsent(ticket.get(0), key -> new TreeMap<>())\n                    .merge(ticket.get(1), 1, Integer::sum);\n        }\n\n        List<String> route = new ArrayList<>();\n        route.add(\"JFK\");\n        backtrack(\"JFK\", tickets.size(), graph, route);\n        return route;\n    }\n\n    private boolean backtrack(String airport, int ticketCount,\n                              Map<String, TreeMap<String, Integer>> graph,\n                              List<String> route) {\n        if (route.size() == ticketCount + 1) return true;\n        TreeMap<String, Integer> destinations = graph.get(airport);\n        if (destinations == null) return false;\n\n        for (String next : new ArrayList<>(destinations.keySet())) {\n            int count = destinations.get(next);\n            if (count == 0) continue;\n            destinations.put(next, count - 1);\n            route.add(next);\n            if (backtrack(next, ticketCount, graph, route)) return true;\n            route.remove(route.size() - 1);\n            destinations.put(next, count);\n        }\n        return false;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "tickets = [[\"MUC\",\"LHR\"],[\"JFK\",\"MUC\"],[\"SFO\",\"SJC\"],[\"LHR\",\"SFO\"]]",
-      "output": "[\"JFK\",\"MUC\",\"LHR\",\"SFO\",\"SJC\"]"
+      "output": "[\"JFK\",\"MUC\",\"LHR\",\"SFO\",\"SJC\"]",
+      "description": "Straight chain from JFK has only one valid itinerary."
     },
     {
       "input": "tickets = [[\"JFK\",\"SFO\"],[\"JFK\",\"ATL\"],[\"SFO\",\"ATL\"],[\"ATL\",\"JFK\"],[\"ATL\",\"SFO\"]]",
-      "output": "[\"JFK\",\"ATL\",\"JFK\",\"SFO\",\"ATL\",\"SFO\"]"
+      "output": "[\"JFK\",\"ATL\",\"JFK\",\"SFO\",\"ATL\",\"SFO\"]",
+      "description": "Canonical lexicographic tie case with several valid Euler paths."
     },
-    { "input": "tickets = [[\"JFK\",\"NRT\"]]", "output": "[\"JFK\",\"NRT\"]" },
+    {
+      "input": "tickets = [[\"JFK\",\"NRT\"]]",
+      "output": "[\"JFK\",\"NRT\"]",
+      "description": "Single ticket boundary case."
+    },
     {
       "input": "tickets = [[\"JFK\",\"KUL\"],[\"JFK\",\"NRT\"],[\"NRT\",\"JFK\"]]",
-      "output": "[\"JFK\",\"NRT\",\"JFK\",\"KUL\"]"
+      "output": "[\"JFK\",\"NRT\",\"JFK\",\"KUL\"]",
+      "description": "A locally smallest JFK -> KUL choice would strand the remaining ticket."
+    },
+    {
+      "input": "tickets = [[\"JFK\",\"AAA\"],[\"JFK\",\"AAA\"],[\"AAA\",\"JFK\"]]",
+      "output": "[\"JFK\",\"AAA\",\"JFK\",\"AAA\"]",
+      "description": "Duplicate tickets between the same airports must be consumed separately."
+    },
+    {
+      "input": "tickets = [[\"JFK\",\"AAA\"],[\"AAA\",\"JFK\"],[\"JFK\",\"AAA\"],[\"AAA\",\"JFK\"]]",
+      "output": "[\"JFK\",\"AAA\",\"JFK\",\"AAA\",\"JFK\"]",
+      "description": "Repeated two-airport cycle uses every duplicate edge exactly once."
+    },
+    {
+      "input": "tickets = [[\"JFK\",\"AAA\"],[\"AAA\",\"BBB\"],[\"JFK\",\"BBB\"],[\"BBB\",\"JFK\"]]",
+      "output": "[\"JFK\",\"AAA\",\"BBB\",\"JFK\",\"BBB\"]",
+      "description": "Lexicographic choice at JFK remains valid only if every later ticket can still be used."
+    },
+    {
+      "input": "tickets = [[\"JFK\",\"AAA\"],[\"AAA\",\"BBB\"],[\"BBB\",\"JFK\"],[\"JFK\",\"CCC\"],[\"CCC\",\"AAA\"]]",
+      "output": "[\"JFK\",\"AAA\",\"BBB\",\"JFK\",\"CCC\",\"AAA\"]",
+      "description": "Multiple cycles must be stitched into one itinerary in lexical order."
+    },
+    {
+      "input": "tickets = [[\"JFK\",\"AAA\"],[\"AAA\",\"BBB\"],[\"BBB\",\"AAA\"],[\"AAA\",\"JFK\"],[\"JFK\",\"CCC\"]]",
+      "output": "[\"JFK\",\"AAA\",\"BBB\",\"AAA\",\"JFK\",\"CCC\"]",
+      "description": "Nested cycle around AAA should finish before the final JFK -> CCC ticket."
+    },
+    {
+      "input": "tickets = [[\"JFK\",\"BBB\"],[\"JFK\",\"AAA\"],[\"AAA\",\"JFK\"],[\"BBB\",\"AAA\"]]",
+      "output": "[\"JFK\",\"AAA\",\"JFK\",\"BBB\",\"AAA\"]",
+      "description": "Sorted outgoing choices from JFK still need exact ticket consumption."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p144_example1.png",
-      "caption": "Example 1"
+      "caption": "Directed ticket graph starting at JFK; every ticket is used once"
     }
   ]
 }

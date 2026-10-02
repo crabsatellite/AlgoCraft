@@ -7,15 +7,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 @EventBusSubscriber(modid = AlgoCraft.MODID)
 public class PlayerEventHandler {
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
+            com.crabmods.algocraft.server.ServerBankService.announce(player);
             AlgoCraftSavedData data = AlgoCraftSavedData.get(player.serverLevel());
-            PacketDistributor.sendToPlayer(player, new PacketSyncProgress(data.getPlayerProgress(player.getUUID())));
+            PacketSyncProgress.sendSafely(player, data.getPlayerProgress(player.getUUID()));
         }
     }
 }

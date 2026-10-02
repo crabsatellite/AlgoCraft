@@ -1,41 +1,147 @@
 {
   "id": "170",
   "title": "Distinct Subsequences",
-  "description": "# Distinct Subsequences\n\nGiven two strings `s` and `t`, return *the number of distinct **subsequences** of `s` which equals `t`*.\n\nThe test cases are generated so that the answer fits on a 32-bit signed integer.\n\n## Example 1:\n\n**Input:** s = \"rabbbit\", t = \"rabbit\"\n**Output:** 3\n**Explanation:**\nAs shown below, there are 3 ways you can generate \"rabbit\" from s.\n**rabb**b**it**\n**ra**b**bbit**\n**rab**b**bit**\n\n## Example 2:\n\n**Input:** s = \"babgbag\", t = \"bag\"\n**Output:** 5\n**Explanation:**\nAs shown below, there are 5 ways you can generate \"bag\" from s.\n**ba**b**g**bag\n**ba**bgba**g**\n**b**abgb**ag**\nba**b**gb**ag**\nbabg**bag**\n\n## Constraints:\n\n*   `1 <= s.length, t.length <= 1000`\n*   `s` and `t` consist of English letters.",
+  "description": "# Distinct Subsequences\n\nGiven two strings `s` and `t`, return the number of distinct subsequences of `s` that are exactly equal to `t`.\n\nA subsequence is formed by deleting zero or more characters without changing the relative order of the remaining characters. Two subsequences are considered different when they use different indices from `s`, even if the chosen letters look the same.\n\nThe test cases are generated so that the answer fits in a 32-bit signed integer.\n\nCharacter matching is case-sensitive. A subsequence preserves order but may skip characters.\n\n## Example 1:\n\n**Input:** s = \"rabbbit\", t = \"rabbit\"\n**Output:** 3\n**Explanation:** The three choices delete exactly one of the three consecutive `b` characters in `s`, producing `rabbit` each time.\n\n## Example 2:\n\n**Input:** s = \"babgbag\", t = \"bag\"\n**Output:** 5\n**Explanation:** There are five index sequences in `s` whose letters, in order, spell `bag`.\n\n## Constraints:\n\n*   `1 <= s.length, t.length <= 1000`\n*   `s` and `t` consist of English letters.\n*   The answer fits in a 32-bit signed integer.",
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public int numDistinct(String s, String t) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["String", "Dynamic Programming"],
+  "tags": [
+    "String",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "s = \"rabbbit\", t = \"rabbit\"", "output": "3" },
-    { "input": "s = \"babgbag\", t = \"bag\"", "output": "5" }
+    {
+      "input": "s = \"rabbbit\", t = \"rabbit\"",
+      "output": "3"
+    },
+    {
+      "input": "s = \"babgbag\", t = \"bag\"",
+      "output": "5"
+    }
   ],
   "solutions": [
     {
-      "name": "2D Dynamic Programming",
+      "name": "Prefix Table Dynamic Programming",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "dp[i][j] = number of ways to form t[0..j-1] from s[0..i-1]. If chars match, dp[i][j] = dp[i-1][j-1] + dp[i-1][j]. Otherwise dp[i][j] = dp[i-1][j].",
-      "code": "class Solution {\n    public int numDistinct(String s, String t) {\n        int m = s.length(), n = t.length();\n        int[][] dp = new int[m + 1][n + 1];\n        for (int i = 0; i <= m; i++) dp[i][0] = 1;\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                dp[i][j] = dp[i - 1][j];\n                if (s.charAt(i - 1) == t.charAt(j - 1)) {\n                    dp[i][j] += dp[i - 1][j - 1];\n                }\n            }\n        }\n        return dp[m][n];\n    }\n}",
+      "description": "## Approach\n\nBuild a prefix table where `dp[i][j]` counts how many ways `s[0..i)` can form `t[0..j)`. For each source character, first inherit the count that skips it. If the character also matches the next target character, add the count that takes it.\n\n## Key Insight\n\nThe recurrence separates the two legal decisions for every source index: skip this character, or use it as the next target character. Repeated letters are counted correctly because the table counts index choices rather than distinct text values.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public int numDistinct(String s, String t) {\n        int m = s.length();\n        int n = t.length();\n        long[][] dp = new long[m + 1][n + 1];\n        for (int i = 0; i <= m; i++) {\n            dp[i][0] = 1;\n        }\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                dp[i][j] = dp[i - 1][j];\n                if (s.charAt(i - 1) == t.charAt(j - 1)) {\n                    dp[i][j] += dp[i - 1][j - 1];\n                }\n            }\n        }\n        return (int) dp[m][n];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Space-Optimized DP",
+      "name": "One-Row Reverse Target DP",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(n)",
-      "description": "Use a 1D array iterating backwards to avoid overwriting values needed for computation.",
-      "code": "class Solution {\n    public int numDistinct(String s, String t) {\n        int n = t.length();\n        int[] dp = new int[n + 1];\n        dp[0] = 1;\n        for (int i = 0; i < s.length(); i++) {\n            for (int j = n; j >= 1; j--) {\n                if (s.charAt(i) == t.charAt(j - 1)) {\n                    dp[j] += dp[j - 1];\n                }\n            }\n        }\n        return dp[n];\n    }\n}",
+      "description": "## Approach\n\nCompress the prefix table into one array over target prefixes. `dp[j]` stores the number of ways to form the first `j` target characters after scanning the processed part of `s`. For each source character, scan `j` backward so the same source character cannot feed more than one target position in the same round.\n\n## Key Insight\n\nThe two-dimensional recurrence only depends on the previous source row. Backward iteration preserves that previous-row value in `dp[j - 1]`, which is why repeated characters such as the three `b` letters are counted without double-using a single index.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int numDistinct(String s, String t) {\n        int n = t.length();\n        long[] dp = new long[n + 1];\n        dp[0] = 1;\n        for (int i = 0; i < s.length(); i++) {\n            for (int j = n; j >= 1; j--) {\n                if (s.charAt(i) == t.charAt(j - 1)) {\n                    dp[j] += dp[j - 1];\n                }\n            }\n        }\n        return (int) dp[n];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Take-or-Skip Memoization",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nDefine `count(i, j)` as the number of ways to form `t[j..]` using only `s[i..]`. Every state can skip `s[i]`. If `s[i]` equals `t[j]`, the state can also take that character and advance both indices. Memoize the pair `(i, j)`.\n\n## Key Insight\n\nThis is the most direct reading of the problem statement: each source index creates a binary choice, but many suffix states repeat. Memoization turns the exponential choice tree into one solved state per source-target suffix pair.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public int numDistinct(String s, String t) {\n        long[][] memo = new long[s.length()][t.length()];\n        for (long[] row : memo) {\n            java.util.Arrays.fill(row, -1);\n        }\n        return (int) count(s, t, 0, 0, memo);\n    }\n\n    private long count(String s, String t, int i, int j, long[][] memo) {\n        if (j == t.length()) {\n            return 1;\n        }\n        if (i == s.length()) {\n            return 0;\n        }\n        if (s.length() - i < t.length() - j) {\n            return 0;\n        }\n        if (memo[i][j] != -1) {\n            return memo[i][j];\n        }\n        long ways = count(s, t, i + 1, j, memo);\n        if (s.charAt(i) == t.charAt(j)) {\n            ways += count(s, t, i + 1, j + 1, memo);\n        }\n        memo[i][j] = ways;\n        return ways;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Backward Suffix DP",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nFill a suffix table from the end of both strings. `suffix[i][j]` counts how many ways `s[i..]` can form `t[j..]`. The state always inherits the skip count from `suffix[i + 1][j]`, and matching characters add `suffix[i + 1][j + 1]`.\n\n## Key Insight\n\nThe suffix view is the same recurrence as prefix DP but aligned with the natural base case: once all of `t` has been formed, every remaining suffix of `s` contributes exactly one completed subsequence.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public int numDistinct(String s, String t) {\n        int m = s.length();\n        int n = t.length();\n        long[][] suffix = new long[m + 1][n + 1];\n        for (int i = 0; i <= m; i++) {\n            suffix[i][n] = 1;\n        }\n        for (int i = m - 1; i >= 0; i--) {\n            for (int j = n - 1; j >= 0; j--) {\n                suffix[i][j] = suffix[i + 1][j];\n                if (s.charAt(i) == t.charAt(j)) {\n                    suffix[i][j] += suffix[i + 1][j + 1];\n                }\n            }\n        }\n        return (int) suffix[0][0];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sparse Target-Index DP",
+      "timeComplexity": "O(m * k)",
+      "spaceComplexity": "O(n + A)",
+      "description": "## Approach\n\nGroup target positions by character. While scanning `s`, only update the target positions whose character equals the current source character, and visit those positions in reverse order. Here `k` is the average number of matching target positions for a processed source character and `A` is the fixed alphabet bucket count.\n\n## Key Insight\n\nThe one-row DP does unnecessary work when most target positions do not match the current source character. Sparse buckets keep the same reverse-update invariant but restrict updates to positions that can actually receive new subsequences.\n\n## Complexity Analysis\n- Time Complexity: O(m * k), worst-case O(m * n)\n- Space Complexity: O(n + A)",
+      "code": "class Solution {\n    public int numDistinct(String s, String t) {\n        int n = t.length();\n        java.util.List<Integer>[] positions = new java.util.ArrayList[128];\n        for (int i = 0; i < positions.length; i++) {\n            positions[i] = new java.util.ArrayList<>();\n        }\n        for (int j = 0; j < n; j++) {\n            positions[t.charAt(j)].add(j + 1);\n        }\n        long[] dp = new long[n + 1];\n        dp[0] = 1;\n        for (int i = 0; i < s.length(); i++) {\n            char ch = s.charAt(i);\n            java.util.List<Integer> matches = positions[ch];\n            for (int k = matches.size() - 1; k >= 0; k--) {\n                int j = matches.get(k);\n                dp[j] += dp[j - 1];\n            }\n        }\n        return (int) dp[n];\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"rabbbit\", t = \"rabbit\"", "output": "3" },
-    { "input": "s = \"babgbag\", t = \"bag\"", "output": "5" },
-    { "input": "s = \"a\", t = \"a\"", "output": "1" },
-    { "input": "s = \"aaa\", t = \"a\"", "output": "3" },
-    { "input": "s = \"aaa\", t = \"aa\"", "output": "3" },
-    { "input": "s = \"abc\", t = \"abc\"", "output": "1" },
-    { "input": "s = \"abc\", t = \"def\"", "output": "0" },
-    { "input": "s = \"aaaa\", t = \"aaa\"", "output": "4" }
+    {
+      "input": "s = \"rabbbit\", t = \"rabbit\"",
+      "output": "3",
+      "description": "Canonical repeated-b example counts three different source-index choices."
+    },
+    {
+      "input": "s = \"babgbag\", t = \"bag\"",
+      "output": "5",
+      "description": "Second canonical example has five valid index sequences."
+    },
+    {
+      "input": "s = \"a\", t = \"a\"",
+      "output": "1",
+      "description": "Identical single-character strings have one subsequence match."
+    },
+    {
+      "input": "s = \"aaa\", t = \"a\"",
+      "output": "3",
+      "description": "Choosing one source index from three equal letters gives three matches."
+    },
+    {
+      "input": "s = \"aaa\", t = \"aa\"",
+      "output": "3",
+      "description": "Choosing two ordered indices from three equal letters gives three combinations."
+    },
+    {
+      "input": "s = \"abc\", t = \"abc\"",
+      "output": "1",
+      "description": "The entire source string is the only full-length match."
+    },
+    {
+      "input": "s = \"abc\", t = \"def\"",
+      "output": "0",
+      "description": "Disjoint strings have no matching subsequence."
+    },
+    {
+      "input": "s = \"aaaa\", t = \"aaa\"",
+      "output": "4",
+      "description": "Four choose three repeated-character case produces four matches."
+    },
+    {
+      "input": "s = \"abc\", t = \"abcd\"",
+      "output": "0",
+      "description": "The target is longer than the source, so no subsequence can match."
+    },
+    {
+      "input": "s = \"aaaaaaaaaa\", t = \"aaaaa\"",
+      "output": "252",
+      "description": "Large repeated-character combination checks 10 choose 5."
+    },
+    {
+      "input": "s = \"aaaaa\", t = \"aa\"",
+      "output": "10",
+      "description": "Five choose two catches off-by-one errors in repeated letters."
+    },
+    {
+      "input": "s = \"abcabc\", t = \"abc\"",
+      "output": "4",
+      "description": "Repeated subsequence pattern requires counting index choices across both copies."
+    },
+    {
+      "input": "s = \"banana\", t = \"ban\"",
+      "output": "3",
+      "description": "Repeated a and n letters create several valid ordered index choices."
+    },
+    {
+      "input": "s = \"mississippi\", t = \"mip\"",
+      "output": "6",
+      "description": "Sparse target letters appear at multiple late positions."
+    },
+    {
+      "input": "s = \"leetcode\", t = \"let\"",
+      "output": "2",
+      "description": "Multiple e choices before the single t produce two valid subsequences."
+    }
   ],
-  "diagram": "images/p170_distinct_subseq.png"
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p170_distinct_subseq.png",
+      "caption": "Choose source indices in order to spell the target"
+    }
+  ]
 }

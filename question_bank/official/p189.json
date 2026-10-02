@@ -1,10 +1,14 @@
 {
   "id": "189",
   "title": "Spiral Matrix",
-  "description": "# Spiral Matrix\n\nGiven an `m x n` `matrix`, return *all elements of the* `matrix` *in spiral order*.\n\n## Example 1:\n\n**Input:** matrix = [[1,2,3],[4,5,6],[7,8,9]]\n**Output:** [1,2,3,6,9,8,7,4,5]\n\n## Example 2:\n\n**Input:** matrix = [[1,2,3,4],[5,6,7,8],[9,10,11,12]]\n**Output:** [1,2,3,4,8,12,11,10,9,5,6,7]\n\n## Constraints:\n\n*   `m == matrix.length`\n*   `n == matrix[i].length`\n*   `1 <= m, n <= 10`\n*   `-100 <= matrix[i][j] <= 100`",
+  "description": "# Spiral Matrix\n\nGiven an `m x n` integer matrix, return all elements of the matrix in clockwise spiral order.\n\nStart at the top-left cell, move right across the top row, then down the right column, then left across the bottom row, then up the left column. After completing one outer ring, continue with the next inner rectangle until every cell has been returned exactly once.\n\nThe matrix is only read; you do not need to modify it.\n\n## Example 1:\n\n**Input:** matrix = [[1,2,3],[4,5,6],[7,8,9]]\n**Output:** [1,2,3,6,9,8,7,4,5]\n**Explanation:** Visit the outer ring first, then the center value `5`.\n\n## Example 2:\n\n**Input:** matrix = [[1,2,3,4],[5,6,7,8],[9,10,11,12]]\n**Output:** [1,2,3,4,8,12,11,10,9,5,6,7]\n**Explanation:** The remaining inner rectangle after the outer ring is the row `[6,7]`.\n\n## Constraints:\n\n*   `m == matrix.length`\n*   `n == matrix[i].length`\n*   `1 <= m, n <= 10`\n*   `-100 <= matrix[i][j] <= 100`",
   "difficulty": "MEDIUM",
   "initialCode": "import java.util.List;\n\nclass Solution {\n    public List<Integer> spiralOrder(int[][] matrix) {\n        // Write your code here\n        return null;\n    }\n}",
-  "tags": ["Array", "Matrix", "Simulation"],
+  "tags": [
+    "Array",
+    "Matrix",
+    "Simulation"
+  ],
   "examples": [
     {
       "input": "matrix = [[1,2,3],[4,5,6],[7,8,9]]",
@@ -17,61 +21,118 @@
   ],
   "solutions": [
     {
-      "name": "Layer-by-Layer Simulation",
+      "name": "Shrinking Boundary Simulation",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(1)",
-      "description": "Use four boundaries (top, bottom, left, right). Traverse right, down, left, up in each layer, shrinking boundaries after each direction.",
-      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> spiralOrder(int[][] matrix) {\n        List<Integer> result = new ArrayList<>();\n        int top = 0, bottom = matrix.length - 1;\n        int left = 0, right = matrix[0].length - 1;\n        while (top <= bottom && left <= right) {\n            for (int j = left; j <= right; j++) result.add(matrix[top][j]);\n            top++;\n            for (int i = top; i <= bottom; i++) result.add(matrix[i][right]);\n            right--;\n            if (top <= bottom) {\n                for (int j = right; j >= left; j--) result.add(matrix[bottom][j]);\n                bottom--;\n            }\n            if (left <= right) {\n                for (int i = bottom; i >= top; i--) result.add(matrix[i][left]);\n                left++;\n            }\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nMaintain four boundaries: `top`, `bottom`, `left`, and `right`. Traverse the current top row, right column, bottom row, and left column, shrinking the corresponding boundary after each side.\n\n## Key Insight\n\nA clockwise spiral is a sequence of nested rectangles. After one side is read, that side must never be visited again, so shrinking boundaries prevents duplicates in single-row and single-column inner rectangles.\n\n## Complexity Analysis\n\n- Time Complexity: O(m * n), because every cell is appended once.\n- Space Complexity: O(1), not counting the output list.",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> spiralOrder(int[][] matrix) {\n        List<Integer> result = new ArrayList<>();\n        int top = 0;\n        int bottom = matrix.length - 1;\n        int left = 0;\n        int right = matrix[0].length - 1;\n        while (top <= bottom && left <= right) {\n            for (int col = left; col <= right; col++) {\n                result.add(matrix[top][col]);\n            }\n            top++;\n            for (int row = top; row <= bottom; row++) {\n                result.add(matrix[row][right]);\n            }\n            right--;\n            if (top <= bottom) {\n                for (int col = right; col >= left; col--) {\n                    result.add(matrix[bottom][col]);\n                }\n                bottom--;\n            }\n            if (left <= right) {\n                for (int row = bottom; row >= top; row--) {\n                    result.add(matrix[row][left]);\n                }\n                left++;\n            }\n        }\n        return result;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Direction Vectors with Visited Matrix",
+      "name": "Direction Vectors With Visited Matrix",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "Use direction vectors (right, down, left, up) and a visited matrix. Move in the current direction until hitting a boundary or visited cell, then turn clockwise.",
-      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> spiralOrder(int[][] matrix) {\n        List<Integer> result = new ArrayList<>();\n        int m = matrix.length, n = matrix[0].length;\n        boolean[][] visited = new boolean[m][n];\n        int[] dr = {0, 1, 0, -1};\n        int[] dc = {1, 0, -1, 0};\n        int r = 0, c = 0, dir = 0;\n        for (int i = 0; i < m * n; i++) {\n            result.add(matrix[r][c]);\n            visited[r][c] = true;\n            int nr = r + dr[dir];\n            int nc = c + dc[dir];\n            if (nr < 0 || nr >= m || nc < 0 || nc >= n || visited[nr][nc]) {\n                dir = (dir + 1) % 4;\n                nr = r + dr[dir];\n                nc = c + dc[dir];\n            }\n            r = nr;\n            c = nc;\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nWalk one cell at a time using the direction order right, down, left, up. Mark visited cells and turn whenever the next coordinate would leave the matrix or revisit a cell.\n\n## Key Insight\n\nThe spiral is just deterministic movement with a right turn at each blocked next step. A `visited` matrix makes the stopping condition explicit and avoids manual boundary shrink logic.\n\n## Complexity Analysis\n\n- Time Complexity: O(m * n), because the loop runs once per cell.\n- Space Complexity: O(m * n), for the visited matrix.",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> spiralOrder(int[][] matrix) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        boolean[][] visited = new boolean[rows][cols];\n        int[] dr = {0, 1, 0, -1};\n        int[] dc = {1, 0, -1, 0};\n        int row = 0;\n        int col = 0;\n        int dir = 0;\n        List<Integer> result = new ArrayList<>();\n        for (int count = 0; count < rows * cols; count++) {\n            result.add(matrix[row][col]);\n            visited[row][col] = true;\n            int nextRow = row + dr[dir];\n            int nextCol = col + dc[dir];\n            if (nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols || visited[nextRow][nextCol]) {\n                dir = (dir + 1) % 4;\n                nextRow = row + dr[dir];\n                nextCol = col + dc[dir];\n            }\n            row = nextRow;\n            col = nextCol;\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Boundary Peel",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(min(m, n))",
+      "description": "## Approach\n\nWrite a helper that appends the boundary of the current rectangle, then recursively calls itself on the rectangle one layer inward.\n\n## Key Insight\n\nThe outer ring can be solved independently from the inner problem. Each recursive call has the same spiral task on a smaller rectangle, so this directly expresses the nested-layer structure.\n\n## Complexity Analysis\n\n- Time Complexity: O(m * n), because every cell is appended once.\n- Space Complexity: O(min(m, n)), for the recursion depth in the worst case.",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> spiralOrder(int[][] matrix) {\n        List<Integer> result = new ArrayList<>();\n        peel(matrix, 0, matrix.length - 1, 0, matrix[0].length - 1, result);\n        return result;\n    }\n\n    private void peel(int[][] matrix, int top, int bottom, int left, int right, List<Integer> result) {\n        if (top > bottom || left > right) {\n            return;\n        }\n        for (int col = left; col <= right; col++) {\n            result.add(matrix[top][col]);\n        }\n        for (int row = top + 1; row <= bottom; row++) {\n            result.add(matrix[row][right]);\n        }\n        if (top < bottom) {\n            for (int col = right - 1; col >= left; col--) {\n                result.add(matrix[bottom][col]);\n            }\n        }\n        if (left < right) {\n            for (int row = bottom - 1; row > top; row--) {\n                result.add(matrix[row][left]);\n            }\n        }\n        peel(matrix, top + 1, bottom - 1, left + 1, right - 1, result);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Boundary State Machine Without Visited",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nMove one cell at a time while tracking the current direction and four shrinking boundaries. When the current position reaches the active boundary for that direction, turn right and shrink the side just completed.\n\n## Key Insight\n\nThe `visited` matrix can be replaced by the current unvisited rectangle. The direction state tells which boundary is about to become invalid after the next turn.\n\n## Complexity Analysis\n\n- Time Complexity: O(m * n), because one value is appended per loop iteration.\n- Space Complexity: O(1), not counting the output list.",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> spiralOrder(int[][] matrix) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        int top = 0;\n        int bottom = rows - 1;\n        int left = 0;\n        int right = cols - 1;\n        int row = 0;\n        int col = 0;\n        int direction = 0;\n        List<Integer> result = new ArrayList<>();\n        for (int count = 0; count < rows * cols; count++) {\n            result.add(matrix[row][col]);\n            if (direction == 0) {\n                if (col == right) {\n                    top++;\n                    row++;\n                    direction = 1;\n                } else {\n                    col++;\n                }\n            } else if (direction == 1) {\n                if (row == bottom) {\n                    right--;\n                    col--;\n                    direction = 2;\n                } else {\n                    row++;\n                }\n            } else if (direction == 2) {\n                if (col == left) {\n                    bottom--;\n                    row--;\n                    direction = 3;\n                } else {\n                    col--;\n                }\n            } else {\n                if (row == top) {\n                    left++;\n                    col++;\n                    direction = 0;\n                } else {\n                    row--;\n                }\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Layer Index Perimeter Traversal",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nIterate by layer index instead of mutating boundaries in a loop. For each layer, compute its `top`, `bottom`, `left`, and `right` coordinates, handle single-row or single-column layers, and otherwise append the four perimeter sides.\n\n## Key Insight\n\nLayer index makes the geometry explicit: layer `k` is the rectangle whose edges are offset `k` cells from the outer border. Special-casing degenerate layers prevents duplicate visits.\n\n## Complexity Analysis\n\n- Time Complexity: O(m * n), because each cell belongs to exactly one layer perimeter.\n- Space Complexity: O(1), not counting the output list.",
+      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Integer> spiralOrder(int[][] matrix) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        int layers = (Math.min(rows, cols) + 1) / 2;\n        List<Integer> result = new ArrayList<>();\n        for (int layer = 0; layer < layers; layer++) {\n            int top = layer;\n            int bottom = rows - 1 - layer;\n            int left = layer;\n            int right = cols - 1 - layer;\n            if (top > bottom || left > right) {\n                continue;\n            }\n            if (top == bottom) {\n                for (int col = left; col <= right; col++) {\n                    result.add(matrix[top][col]);\n                }\n                continue;\n            }\n            if (left == right) {\n                for (int row = top; row <= bottom; row++) {\n                    result.add(matrix[row][left]);\n                }\n                continue;\n            }\n            for (int col = left; col <= right; col++) {\n                result.add(matrix[top][col]);\n            }\n            for (int row = top + 1; row <= bottom; row++) {\n                result.add(matrix[row][right]);\n            }\n            for (int col = right - 1; col >= left; col--) {\n                result.add(matrix[bottom][col]);\n            }\n            for (int row = bottom - 1; row > top; row--) {\n                result.add(matrix[row][left]);\n            }\n        }\n        return result;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "matrix = [[1,2,3],[4,5,6],[7,8,9]]",
-      "output": "[1,2,3,6,9,8,7,4,5]"
+      "output": "[1,2,3,6,9,8,7,4,5]",
+      "description": "Canonical square matrix visits outer ring then center."
     },
     {
       "input": "matrix = [[1,2,3,4],[5,6,7,8],[9,10,11,12]]",
-      "output": "[1,2,3,4,8,12,11,10,9,5,6,7]"
+      "output": "[1,2,3,4,8,12,11,10,9,5,6,7]",
+      "description": "Rectangular matrix with more columns than rows checks right boundary shrink."
     },
     {
       "input": "matrix = [[1]]",
-      "output": "[1]"
+      "output": "[1]",
+      "description": "Single-cell matrix returns that cell only."
     },
     {
       "input": "matrix = [[1,2,3,4]]",
-      "output": "[1,2,3,4]"
+      "output": "[1,2,3,4]",
+      "description": "Single row matrix is already in spiral order."
     },
     {
       "input": "matrix = [[1],[2],[3],[4]]",
-      "output": "[1,2,3,4]"
+      "output": "[1,2,3,4]",
+      "description": "Single column matrix is already in top-to-bottom order."
     },
     {
       "input": "matrix = [[1,2],[3,4]]",
-      "output": "[1,2,4,3]"
+      "output": "[1,2,4,3]",
+      "description": "Two by two matrix checks the smallest full spiral."
     },
     {
       "input": "matrix = [[1,2,3],[4,5,6]]",
-      "output": "[1,2,3,6,5,4]"
+      "output": "[1,2,3,6,5,4]",
+      "description": "Two-row rectangle ends with the reversed bottom row."
     },
     {
       "input": "matrix = [[1,2],[3,4],[5,6]]",
-      "output": "[1,2,4,6,5,3]"
+      "output": "[1,2,4,6,5,3]",
+      "description": "Three-row narrow rectangle checks downward and leftward turns."
+    },
+    {
+      "input": "matrix = [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]",
+      "output": "[1,2,3,4,8,12,16,15,14,13,9,5,6,7,11,10]",
+      "description": "Four by four matrix checks two complete rings."
+    },
+    {
+      "input": "matrix = [[1,2,3],[4,5,6],[7,8,9],[10,11,12]]",
+      "output": "[1,2,3,6,9,12,11,10,7,4,5,8]",
+      "description": "More rows than columns leaves a vertical inner rectangle."
+    },
+    {
+      "input": "matrix = [[0,-1,2],[3,-4,5],[-6,7,-8]]",
+      "output": "[0,-1,2,5,-8,7,-6,3,-4]",
+      "description": "Mixed signs and zero verify traversal order is positional, not value-based."
+    },
+    {
+      "input": "matrix = [[7,7,7,7],[7,7,7,7]]",
+      "output": "[7,7,7,7,7,7,7,7]",
+      "description": "All equal values make sure every cell is counted exactly once."
+    },
+    {
+      "input": "matrix = [[-100,0,100,50,-50],[1,2,3,4,5]]",
+      "output": "[-100,0,100,50,-50,5,4,3,2,1]",
+      "description": "Boundary values in a wide rectangle check constraint extremes."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p189_example1.png",
-      "caption": "Example 1"
+      "caption": "Input matrix whose cells must be read in spiral order"
     }
   ]
 }

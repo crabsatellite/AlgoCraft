@@ -1,59 +1,127 @@
 {
   "id": "365",
-  "title": "Max Sum of Rectangle No Larger Than K",
-  "description": "# Max Sum of Rectangle No Larger Than K\n\nGiven an `m x n` matrix `matrix` and an integer `k`, return *the max sum of a rectangle in the matrix such that its sum is no larger than* `k`.\n\nIt is **guaranteed** that there will be a rectangle with a sum no larger than `k`.\n\n## Example 1:\n\n**Input:** matrix = [[1,0,1],[0,-2,3]], k = 2\n**Output:** 2\n**Explanation:** Because the sum of rectangle [[0, 1], [-2, 3]] is 2, and 2 is the max number no larger than k (k = 2).\n\n## Example 2:\n\n**Input:** matrix = [[2,2,-1]], k = 3\n**Output:** 3\n\n## Constraints:\n\n*   `m == matrix.length`\n*   `n == matrix[i].length`\n*   `1 <= m, n <= 100`\n*   `-100 <= matrix[i][j] <= 100`\n*   `-10^5 <= k <= 10^5`",
+  "title": "Number of Submatrices That Sum to Target",
+  "description": "# Number of Submatrices That Sum to Target\n\nGiven an `m x n` integer matrix `matrix` and an integer `target`, return the number of non-empty rectangular submatrices whose elements sum exactly to `target`.\n\nA rectangular submatrix uses contiguous rows and contiguous columns. Different row or column ranges count as different submatrices.\n\n## Example 1:\n\n**Input:** matrix = [[0,1,0],[1,1,1],[0,1,0]], target = 0\n**Output:** 4\n**Explanation:** The four corner cells each form a one-cell submatrix with sum 0.\n\n## Example 2:\n\n**Input:** matrix = [[1,-1],[-1,1]], target = 0\n**Output:** 5\n**Explanation:** There are five non-empty submatrices whose sum is exactly 0.\n\n## Constraints:\n\n*   `m == matrix.length`\n*   `n == matrix[i].length`\n*   `1 <= m, n <= 100`\n*   `-1000 <= matrix[i][j] <= 1000`\n*   `-10^8 <= target <= 10^8`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int maxSumSubmatrix(int[][] matrix, int k) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int numSubmatrixSumTarget(int[][] matrix, int target) {\n        return 0;\n    }\n}",
   "tags": [
     "Array",
-    "Binary Search",
+    "Hash Table",
     "Matrix",
-    "Prefix Sum",
-    "Ordered Set"
+    "Prefix Sum"
   ],
   "examples": [
     {
-      "input": "matrix = [[1,0,1],[0,-2,3]], k = 2",
-      "output": "2"
+      "input": "matrix = [[0,1,0],[1,1,1],[0,1,0]], target = 0",
+      "output": "4"
     },
     {
-      "input": "matrix = [[2,2,-1]], k = 3",
-      "output": "3"
+      "input": "matrix = [[1,-1],[-1,1]], target = 0",
+      "output": "5"
     }
   ],
   "solutions": [
     {
-      "name": "Column Compression + TreeSet",
-      "timeComplexity": "O(min(m,n)^2 * max(m,n) * log(max(m,n)))",
+      "name": "Adaptive Pair Compression",
+      "timeComplexity": "O(min(m,n)^2 * max(m,n))",
       "spaceComplexity": "O(max(m,n))",
-      "description": "Fix two column boundaries. Compress each row between them into a 1D prefix sum array. For each prefix sum, find the largest previous prefix sum such that current - previous <= k using TreeSet ceiling.",
-      "code": "class Solution {\n    public int maxSumSubmatrix(int[][] matrix, int k) {\n        int m = matrix.length, n = matrix[0].length;\n        int result = Integer.MIN_VALUE;\n        for (int c1 = 0; c1 < n; c1++) {\n            int[] rowSum = new int[m];\n            for (int c2 = c1; c2 < n; c2++) {\n                for (int r = 0; r < m; r++) rowSum[r] += matrix[r][c2];\n                java.util.TreeSet<Integer> set = new java.util.TreeSet<>();\n                set.add(0);\n                int prefix = 0;\n                for (int s : rowSum) {\n                    prefix += s;\n                    Integer ceil = set.ceiling(prefix - k);\n                    if (ceil != null) result = Math.max(result, prefix - ceil);\n                    set.add(prefix);\n                }\n            }\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nChoose the smaller matrix dimension for the fixed boundary pair. If there are fewer rows, fix top and bottom rows and compress columns. Otherwise, fix left and right columns and compress rows. Each compressed one-dimensional array is solved with prefix-sum frequencies.\n\n## Key Insight\n\nAfter two boundaries are fixed, every valid rectangle becomes a contiguous subarray in the remaining dimension. Counting subarrays with sum `target` is exactly the repeated-prefix-sum problem, and choosing the smaller dimension for the boundary pair reduces the number of compressed arrays.\n\n## Complexity Analysis\n\n- Time Complexity: O(min(m,n)^2 * max(m,n)).\n- Space Complexity: O(max(m,n)), for the compressed sums and prefix-frequency map.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int numSubmatrixSumTarget(int[][] matrix, int target) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        return rows <= cols ? countByRowPairs(matrix, target) : countByColumnPairs(matrix, target);\n    }\n\n    private int countByRowPairs(int[][] matrix, int target) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        int answer = 0;\n        for (int top = 0; top < rows; top++) {\n            int[] columnSums = new int[cols];\n            for (int bottom = top; bottom < rows; bottom++) {\n                for (int col = 0; col < cols; col++) columnSums[col] += matrix[bottom][col];\n                answer += countSubarraysWithTarget(columnSums, target);\n            }\n        }\n        return answer;\n    }\n\n    private int countByColumnPairs(int[][] matrix, int target) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        int answer = 0;\n        for (int left = 0; left < cols; left++) {\n            int[] rowSums = new int[rows];\n            for (int right = left; right < cols; right++) {\n                for (int row = 0; row < rows; row++) rowSums[row] += matrix[row][right];\n                answer += countSubarraysWithTarget(rowSums, target);\n            }\n        }\n        return answer;\n    }\n\n    private int countSubarraysWithTarget(int[] values, int target) {\n        Map<Integer, Integer> prefixCounts = new HashMap<>();\n        prefixCounts.put(0, 1);\n        int prefix = 0;\n        int count = 0;\n        for (int value : values) {\n            prefix += value;\n            count += prefixCounts.getOrDefault(prefix - target, 0);\n            prefixCounts.put(prefix, prefixCounts.getOrDefault(prefix, 0) + 1);\n        }\n        return count;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Row Compression + Kadane with Brute Force Bound",
-      "timeComplexity": "O(min(m,n)^2 * max(m,n)^2)",
-      "spaceComplexity": "O(max(m,n))",
-      "description": "Fix two row boundaries. Compress columns between them into a 1D array. Use Kadane's algorithm to find max subarray sum. If max <= k, that's a candidate. Otherwise, brute-force check all subarray sums to find the largest <= k.",
-      "code": "class Solution {\n    public int maxSumSubmatrix(int[][] matrix, int k) {\n        int m = matrix.length, n = matrix[0].length;\n        int result = Integer.MIN_VALUE;\n        for (int r1 = 0; r1 < m; r1++) {\n            int[] colSum = new int[n];\n            for (int r2 = r1; r2 < m; r2++) {\n                for (int c = 0; c < n; c++) colSum[c] += matrix[r2][c];\n                int kadane = kadaneMax(colSum);\n                if (kadane <= k) {\n                    result = Math.max(result, kadane);\n                    if (result == k) return k;\n                } else {\n                    for (int c1 = 0; c1 < n; c1++) {\n                        int sum = 0;\n                        for (int c2 = c1; c2 < n; c2++) {\n                            sum += colSum[c2];\n                            if (sum <= k) result = Math.max(result, sum);\n                        }\n                    }\n                    if (result == k) return k;\n                }\n            }\n        }\n        return result;\n    }\n    private int kadaneMax(int[] arr) {\n        int maxSum = arr[0], curSum = arr[0];\n        for (int i = 1; i < arr.length; i++) {\n            curSum = Math.max(arr[i], curSum + arr[i]);\n            maxSum = Math.max(maxSum, curSum);\n        }\n        return maxSum;\n    }\n}",
+      "name": "Row Pair Compression with Prefix Counts",
+      "timeComplexity": "O(m^2 * n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFix the top and bottom rows. For that row band, maintain `columnSums[col]` as the sum of entries between the two rows. Then scan `columnSums` from left to right, counting how many previous prefix sums equal `currentPrefix - target`.\n\n## Key Insight\n\nFor a fixed row band, choosing a left and right column is the same as choosing a contiguous subarray of `columnSums`. Negative values do not matter because prefix frequencies count exact differences instead of depending on monotonic growth.\n\n## Complexity Analysis\n\n- Time Complexity: O(m^2 * n).\n- Space Complexity: O(n), for the compressed columns and prefix-frequency map.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int numSubmatrixSumTarget(int[][] matrix, int target) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        int result = 0;\n        for (int top = 0; top < rows; top++) {\n            int[] columnSums = new int[cols];\n            for (int bottom = top; bottom < rows; bottom++) {\n                for (int col = 0; col < cols; col++) {\n                    columnSums[col] += matrix[bottom][col];\n                }\n                Map<Integer, Integer> prefixCounts = new HashMap<>();\n                prefixCounts.put(0, 1);\n                int prefix = 0;\n                for (int value : columnSums) {\n                    prefix += value;\n                    result += prefixCounts.getOrDefault(prefix - target, 0);\n                    prefixCounts.put(prefix, prefixCounts.getOrDefault(prefix, 0) + 1);\n                }\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Column Pair Compression with Prefix Counts",
+      "timeComplexity": "O(n^2 * m)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nFix the left and right columns instead of rows. Each column band is compressed into row sums, and a prefix-frequency scan counts row intervals whose sum equals `target`.\n\n## Key Insight\n\nThis is the transposed version of row compression. It is the better orientation when the matrix has fewer columns than rows, and it also gives a clean way to explain why the adaptive solution chooses the smaller dimension for boundary pairs.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2 * m).\n- Space Complexity: O(m), for compressed row sums and prefix counts.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int numSubmatrixSumTarget(int[][] matrix, int target) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        int answer = 0;\n        for (int left = 0; left < cols; left++) {\n            int[] rowSums = new int[rows];\n            for (int right = left; right < cols; right++) {\n                for (int row = 0; row < rows; row++) {\n                    rowSums[row] += matrix[row][right];\n                }\n                Map<Integer, Integer> prefixCounts = new HashMap<>();\n                prefixCounts.put(0, 1);\n                int prefix = 0;\n                for (int value : rowSums) {\n                    prefix += value;\n                    answer += prefixCounts.getOrDefault(prefix - target, 0);\n                    prefixCounts.merge(prefix, 1, Integer::sum);\n                }\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "2D Prefix Sum Rectangle Enumeration",
+      "timeComplexity": "O(m^2 * n^2)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nBuild a two-dimensional prefix-sum table. Enumerate every top-left and bottom-right corner pair, compute the rectangle sum in O(1), and increment the answer when it equals `target`.\n\n## Key Insight\n\nThis route follows the problem definition directly. It is slower than compression, but it is a valuable correctness baseline because every candidate rectangle is counted exactly once.\n\n## Complexity Analysis\n\n- Time Complexity: O(m^2 * n^2).\n- Space Complexity: O(m * n), for the prefix-sum table.",
+      "code": "class Solution {\n    public int numSubmatrixSumTarget(int[][] matrix, int target) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        int[][] prefix = new int[rows + 1][cols + 1];\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                prefix[row + 1][col + 1] = matrix[row][col]\n                        + prefix[row][col + 1]\n                        + prefix[row + 1][col]\n                        - prefix[row][col];\n            }\n        }\n\n        int count = 0;\n        for (int top = 0; top < rows; top++) {\n            for (int left = 0; left < cols; left++) {\n                for (int bottom = top; bottom < rows; bottom++) {\n                    for (int right = left; right < cols; right++) {\n                        int sum = prefix[bottom + 1][right + 1]\n                                - prefix[top][right + 1]\n                                - prefix[bottom + 1][left]\n                                + prefix[top][left];\n                        if (sum == target) count++;\n                    }\n                }\n            }\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Coordinate-Compressed Prefix Frequencies",
+      "timeComplexity": "O(m^2 * n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFix a row band and build the prefix sums for its compressed column array. Sort a copy of those prefix sums, compress equal values, and use an integer frequency array instead of a hash map while scanning the original prefix order.\n\n## Key Insight\n\nThe same repeated-prefix invariant can be implemented without hashing. Compressing prefix values makes the frequency table dense and shows another way to turn exact prefix differences into counts.\n\n## Complexity Analysis\n\n- Time Complexity: O(m^2 * n log n), because each row band sorts its prefix sums.\n- Space Complexity: O(n), for prefix sums, compressed keys, and frequencies.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int numSubmatrixSumTarget(int[][] matrix, int target) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        int answer = 0;\n        for (int top = 0; top < rows; top++) {\n            int[] columnSums = new int[cols];\n            for (int bottom = top; bottom < rows; bottom++) {\n                for (int col = 0; col < cols; col++) columnSums[col] += matrix[bottom][col];\n                answer += countWithCompressedPrefixes(columnSums, target);\n            }\n        }\n        return answer;\n    }\n\n    private int countWithCompressedPrefixes(int[] values, int target) {\n        int[] prefixes = new int[values.length + 1];\n        for (int i = 0; i < values.length; i++) prefixes[i + 1] = prefixes[i] + values[i];\n        int[] sorted = prefixes.clone();\n        Arrays.sort(sorted);\n        int uniqueSize = 0;\n        for (int value : sorted) {\n            if (uniqueSize == 0 || sorted[uniqueSize - 1] != value) sorted[uniqueSize++] = value;\n        }\n        int[] unique = Arrays.copyOf(sorted, uniqueSize);\n        int[] frequencies = new int[uniqueSize];\n        int count = 0;\n        for (int prefix : prefixes) {\n            int need = lowerBound(unique, prefix - target);\n            if (need < unique.length && unique[need] == prefix - target) count += frequencies[need];\n            int index = lowerBound(unique, prefix);\n            frequencies[index]++;\n        }\n        return count;\n    }\n\n    private int lowerBound(int[] values, int target) {\n        int lo = 0;\n        int hi = values.length;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (values[mid] < target) lo = mid + 1;\n            else hi = mid;\n        }\n        return lo;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
-      "input": "matrix = [[1,0,1],[0,-2,3]], k = 2",
-      "output": "2"
+      "input": "matrix = [[0,1,0],[1,1,1],[0,1,0]], target = 0",
+      "output": "4",
+      "description": "canonical sample with zero corner cells"
     },
     {
-      "input": "matrix = [[2,2,-1]], k = 3",
-      "output": "3"
-    }
-  ],
-  "diagrams": [
+      "input": "matrix = [[1,-1],[-1,1]], target = 0",
+      "output": "5",
+      "description": "sample with overlapping zero-sum rectangles"
+    },
     {
-      "id": "example1",
-      "file": "p365_example1.png",
-      "caption": "2x3 Matrix"
+      "input": "matrix = [[904]], target = 0",
+      "output": "0",
+      "description": "single cell that does not match target"
+    },
+    {
+      "input": "matrix = [[1]], target = 1",
+      "output": "1",
+      "description": "single cell that matches target"
+    },
+    {
+      "input": "matrix = [[1,-1,1,-1]], target = 0",
+      "output": "4",
+      "description": "single row with repeated prefix sums"
+    },
+    {
+      "input": "matrix = [[0,0],[0,0]], target = 0",
+      "output": "9",
+      "description": "all-zero matrix counts every submatrix"
+    },
+    {
+      "input": "matrix = [[1,2],[3,4]], target = 4",
+      "output": "2",
+      "description": "positive matrix still has multiple exact rectangles"
+    },
+    {
+      "input": "matrix = [[-1,-1],[-1,1]], target = 0",
+      "output": "2",
+      "description": "negative values with a zero target"
+    },
+    {
+      "input": "matrix = [[2],[-2],[2],[-2]], target = 0",
+      "output": "4",
+      "description": "single column requires the transposed orientation to behave correctly"
+    },
+    {
+      "input": "matrix = [[1,2,3],[-3,-2,-1]], target = 0",
+      "output": "2",
+      "description": "wide matrix with row cancellation"
+    },
+    {
+      "input": "matrix = [[3,-1,-2],[4,-4,1],[-1,2,-3]], target = 0",
+      "output": "2",
+      "description": "mixed 3x3 matrix with nontrivial rectangles"
+    },
+    {
+      "input": "matrix = [[1000,-1000],[1000,-1000]], target = 0",
+      "output": "3",
+      "description": "constraint-boundary values with cancellation"
     }
   ]
 }

@@ -1,32 +1,55 @@
 {
   "id": "464",
   "title": "Reverse Words in a String III",
-  "description": "# Reverse Words in a String III\n\nGiven a string `s`, reverse the order of characters in each word within a sentence while still preserving whitespace and initial word order.\n\n## Example 1:\n\n**Input:** s = \"Let's take LeetCode contest\"\n**Output:** \"s'teL ekat edoCteeL tsetnoc\"\n\n## Example 2:\n\n**Input:** s = \"God Ding\"\n**Output:** \"doG gniD\"\n\n## Constraints:\n\n*   `1 <= s.length <= 5 * 10^4`\n*   `s` contains printable ASCII characters.\n*   `s` does not contain any leading or trailing spaces.\n*   There is at least one word in `s`.\n*   All the words in `s` are separated by a single space.",
+  "description": "# Reverse Words in a String III\n\nGiven a sentence string `s`, reverse the characters inside every word.\n\nKeep the words in their original order, and keep the single spaces between adjacent words unchanged. A word is a maximal non-space sequence.\n\n## Example 1:\n\n**Input:** s = \"Let's take LeetCode contest\"\n**Output:** \"s'teL ekat edoCteeL tsetnoc\"\n**Explanation:** Each word is reversed independently, but the word order stays the same.\n\n## Example 2:\n\n**Input:** s = \"God Ding\"\n**Output:** \"doG gniD\"\n\n## Constraints:\n\n* `1 <= s.length <= 5 * 10^4`\n* `s` contains printable ASCII characters.\n* `s` does not contain any leading or trailing spaces.\n* There is at least one word in `s`.\n* Adjacent words are separated by exactly one space.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public String reverseWords(String s) {\n        \n    }\n}",
-  "tags": ["Two Pointers", "String"],
+  "tags": [
+    "Two Pointers",
+    "String"
+  ],
   "examples": [
     {
       "input": "s = \"Let's take LeetCode contest\"",
-      "output": "\"s'teL ekat edoCteeL tsetnoc\""
+      "output": "\"s'teL ekat edoCteeL tsetnoc\"",
+      "explanation": "Each word is reversed independently, while the word order stays the same."
     },
-    { "input": "s = \"God Ding\"", "output": "\"doG gniD\"" }
+    {
+      "input": "s = \"God Ding\"",
+      "output": "\"doG gniD\""
+    }
   ],
   "solutions": [
     {
-      "name": "Split and Reverse Each Word",
+      "name": "Tokenize and Reverse Each Word",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Split by spaces, reverse each word using StringBuilder, then join with spaces.",
-      "code": "class Solution {\n    public String reverseWords(String s) {\n        String[] words = s.split(\" \");\n        StringBuilder result = new StringBuilder();\n        for (int i = 0; i < words.length; i++) {\n            if (i > 0) result.append(' ');\n            result.append(new StringBuilder(words[i]).reverse());\n        }\n        return result.toString();\n    }\n}",
+      "description": "## Approach\n\nScan the sentence and collect complete words into a list whenever a space closes the current word. Then rebuild the answer by visiting that list in the same order and appending each stored word backward.\n\n## Key Insight\n\nThe prompt says the spacing is already normalized, so word boundaries are exactly the spaces in `s`. Separating token collection from output construction gives a clear baseline without relying on regular-expression splitting inside the judge sandbox.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), where `n` is the length of `s`; every character is copied a constant number of times.\n- Space Complexity: O(n), because the word list, temporary builder, and final answer store characters outside the input string.",
+      "code": "class Solution {\n    public String reverseWords(String s) {\n        java.util.List<String> words = new java.util.ArrayList<>();\n        StringBuilder current = new StringBuilder();\n\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (c == ' ') {\n                words.add(current.toString());\n                current.setLength(0);\n            } else {\n                current.append(c);\n            }\n        }\n        words.add(current.toString());\n\n        StringBuilder result = new StringBuilder(s.length());\n        for (int i = 0; i < words.size(); i++) {\n            if (i > 0) {\n                result.append(' ');\n            }\n            String word = words.get(i);\n            for (int j = word.length() - 1; j >= 0; j--) {\n                result.append(word.charAt(j));\n            }\n        }\n\n        return result.toString();\n    }\n}",
       "language": "java"
     },
     {
-      "name": "In-place Two Pointer Reverse",
+      "name": "In-Place Word Boundary Reversal",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Convert string to char array. Use two pointers to find word boundaries, then reverse each word in-place within the array without splitting.",
-      "code": "class Solution {\n    public String reverseWords(String s) {\n        char[] chars = s.toCharArray();\n        int start = 0;\n        for (int i = 0; i <= chars.length; i++) {\n            if (i == chars.length || chars[i] == ' ') {\n                reverse(chars, start, i - 1);\n                start = i + 1;\n            }\n        }\n        return new String(chars);\n    }\n\n    private void reverse(char[] chars, int l, int r) {\n        while (l < r) {\n            char tmp = chars[l];\n            chars[l] = chars[r];\n            chars[r] = tmp;\n            l++;\n            r--;\n        }\n    }\n}",
+      "description": "## Approach\n\nCopy the string into a character array. Scan one index past the end so that either a space or the sentinel position closes the current word, then reverse that word's interval inside the array.\n\n## Key Insight\n\nThe output differs from the input only by reversing characters within each word. Once the characters are mutable, a standard two-pointer reversal on each word boundary produces the final string without allocating separate word objects.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each character participates in at most one scan step and one swap.\n- Space Complexity: O(n), because Java strings are immutable and the solution needs a character array for the editable copy.",
+      "code": "class Solution {\n    public String reverseWords(String s) {\n        char[] chars = s.toCharArray();\n        int start = 0;\n\n        for (int i = 0; i <= chars.length; i++) {\n            if (i == chars.length || chars[i] == ' ') {\n                reverse(chars, start, i - 1);\n                start = i + 1;\n            }\n        }\n\n        return new String(chars);\n    }\n\n    private void reverse(char[] chars, int left, int right) {\n        while (left < right) {\n            char temporary = chars[left];\n            chars[left] = chars[right];\n            chars[right] = temporary;\n            left++;\n            right--;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Reverse Spans Directly Into Output",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nScan the sentence by word spans. For each span `[start, end)`, append its characters to the answer from `end - 1` down to `start`, then append the separating space if another word remains.\n\n## Key Insight\n\nA word does not need to be stored separately before it is reversed. Knowing the left and right boundary of the word is enough to copy that exact span into the answer in reverse order.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each character is visited while finding its word and appended once to the output.\n- Space Complexity: O(n), because the returned string builder holds the full answer.",
+      "code": "class Solution {\n    public String reverseWords(String s) {\n        StringBuilder answer = new StringBuilder(s.length());\n        int start = 0;\n\n        while (start < s.length()) {\n            int end = start;\n            while (end < s.length() && s.charAt(end) != ' ') {\n                end++;\n            }\n            for (int i = end - 1; i >= start; i--) {\n                answer.append(s.charAt(i));\n            }\n            if (end < s.length()) {\n                answer.append(' ');\n            }\n            start = end + 1;\n        }\n\n        return answer.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Manual Word Buffer",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nRead the string from left to right and collect the current word in a small buffer. When a space or the end of the string closes the word, append that buffer backward to the answer and clear it for the next word.\n\n## Key Insight\n\nThis route makes the stream-processing state explicit: one builder stores the final answer, while one builder stores only the word currently being read. It is useful when teaching how to flush buffered state at delimiters.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each character is added to a buffer once and then written once to the answer.\n- Space Complexity: O(n), because the answer and the largest current-word buffer require extra storage.",
+      "code": "class Solution {\n    public String reverseWords(String s) {\n        StringBuilder answer = new StringBuilder(s.length());\n        StringBuilder word = new StringBuilder();\n\n        for (int i = 0; i <= s.length(); i++) {\n            if (i == s.length() || s.charAt(i) == ' ') {\n                for (int j = word.length() - 1; j >= 0; j--) {\n                    answer.append(word.charAt(j));\n                }\n                if (i < s.length()) {\n                    answer.append(' ');\n                }\n                word.setLength(0);\n            } else {\n                word.append(s.charAt(i));\n            }\n        }\n\n        return answer.toString();\n    }\n}",
       "language": "java"
     }
   ],
@@ -35,6 +58,49 @@
       "input": "s = \"Let's take LeetCode contest\"",
       "output": "\"s'teL ekat edoCteeL tsetnoc\""
     },
-    { "input": "s = \"God Ding\"", "output": "\"doG gniD\"" }
+    {
+      "input": "s = \"God Ding\"",
+      "output": "\"doG gniD\""
+    },
+    {
+      "input": "s = \"a\"",
+      "output": "\"a\""
+    },
+    {
+      "input": "s = \"ab cd\"",
+      "output": "\"ba dc\""
+    },
+    {
+      "input": "s = \"a b c\"",
+      "output": "\"a b c\""
+    },
+    {
+      "input": "s = \"Hello\"",
+      "output": "\"olleH\""
+    },
+    {
+      "input": "s = \"hi there\"",
+      "output": "\"ih ereht\""
+    },
+    {
+      "input": "s = \"a-b c!\"",
+      "output": "\"b-a !c\""
+    },
+    {
+      "input": "s = \"Java 17\"",
+      "output": "\"avaJ 71\""
+    },
+    {
+      "input": "s = \"Mix3d CASE\"",
+      "output": "\"d3xiM ESAC\""
+    },
+    {
+      "input": "s = \"longer short x\"",
+      "output": "\"regnol trohs x\""
+    },
+    {
+      "input": "s = \"123 45 6\"",
+      "output": "\"321 54 6\""
+    }
   ]
 }

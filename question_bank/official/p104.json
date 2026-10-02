@@ -1,7 +1,7 @@
 {
   "id": "104",
   "title": "Replace Words",
-  "description": "# Replace Words\n\nIn English, we have a concept called **root**, which can be followed by some other word to form another longer word - let's call this word **successor**. For example, when the **root** `\"an\"` is followed by the **successor** word `\"other\"`, we can form a new word `\"another\"`.\n\nGiven a `dictionary` consisting of many **roots** and a `sentence` consisting of words separated by spaces, replace all the **successors** in the sentence with the **root** forming it. If a **successor** can be replaced by more than one **root**, replace it with the **root** that has **the shortest length**.\n\nReturn *the `sentence` after the replacement*.\n\n## Example 1:\n\n**Input:** dictionary = [\"cat\",\"bat\",\"rat\"], sentence = \"the cattle was rattled by the battery\"\n**Output:** \"the cat was rat by the bat\"\n\n## Example 2:\n\n**Input:** dictionary = [\"a\",\"b\",\"c\"], sentence = \"aadsfasf absbs bbab cadsfafs\"\n**Output:** \"a a b c\"\n\n## Constraints:\n\n*   `1 <= dictionary.length <= 1000`\n*   `1 <= dictionary[i].length <= 100`\n*   `dictionary[i]` consists of only lower-case letters.\n*   `1 <= sentence.length <= 10^6`\n*   `sentence` consists of only lower-case letters and spaces.\n*   The number of words in `sentence` is in the range `[1, 1000]`.\n*   The length of each word in `sentence` is in the range `[1, 1000]`.\n*   Every two consecutive words in `sentence` will be separated by exactly one space.\n*   `sentence` does not have leading or trailing spaces.",
+  "description": "# Replace Words\n\nIn English, a root can be followed by other letters to form a longer successor word. Given a list of dictionary roots and a sentence made of lowercase words separated by single spaces, replace every word in the sentence with the shortest dictionary root that is a prefix of that word.\n\nIf a word has no dictionary root as a prefix, keep the original word. If multiple roots match the same word, always choose the shortest matching root. Return the sentence after all replacements, preserving the original word order and single spaces between words.\n\nHere a root is simply a dictionary string; no linguistic knowledge is required. A prefix starts at the first letter: `\"cat\"` is a prefix of `\"cattle\"`, but `\"att\"` is not.\n\n## Example 1:\n\n**Input:** dictionary = [\"cat\",\"bat\",\"rat\"], sentence = \"the cattle was rattled by the battery\"\n**Output:** \"the cat was rat by the bat\"\n\n## Example 2:\n\n**Input:** dictionary = [\"a\",\"b\",\"c\"], sentence = \"aadsfasf absbs bbab cadsfafs\"\n**Output:** \"a a b c\"\n\n## Constraints:\n\n*   `1 <= dictionary.length <= 1000`\n*   `1 <= dictionary[i].length <= 100`\n*   `dictionary[i]` consists of lowercase English letters.\n*   `1 <= sentence.length <= 10^6`\n*   `sentence` consists of lowercase English letters and spaces.\n*   The words in `sentence` are separated by exactly one space.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public String replaceWords(List<String> dictionary, String sentence) {\n        // Write your code here\n        return \"\";\n    }\n}",
   "tags": [
@@ -23,36 +23,96 @@
   "tests": [
     {
       "input": "dictionary = [\"cat\",\"bat\",\"rat\"], sentence = \"the cattle was rattled by the battery\"",
-      "output": "\"the cat was rat by the bat\""
+      "output": "\"the cat was rat by the bat\"",
+      "description": "Canonical replacement where each successor chooses the shortest matching root."
     },
     {
       "input": "dictionary = [\"a\",\"b\",\"c\"], sentence = \"aadsfasf absbs bbab cadsfafs\"",
-      "output": "\"a a b c\""
+      "output": "\"a a b c\"",
+      "description": "Single-letter roots dominate longer words that start with those letters."
     },
     {
       "input": "dictionary = [\"xyz\"], sentence = \"hello world\"",
-      "output": "\"hello world\""
+      "output": "\"hello world\"",
+      "description": "A dictionary with no matching prefixes should leave the sentence unchanged."
     },
     {
       "input": "dictionary = [\"ca\",\"cat\",\"cate\"], sentence = \"category\"",
-      "output": "\"ca\""
+      "output": "\"ca\"",
+      "description": "When several roots match the same word, the shortest root must be used."
+    },
+    {
+      "input": "dictionary = [\"cat\"], sentence = \"cat cater cattle dog\"",
+      "output": "\"cat cat cat dog\"",
+      "description": "Exact root words stay valid roots, and longer successors with the same prefix are replaced."
+    },
+    {
+      "input": "dictionary = [\"a\",\"aa\",\"a\"], sentence = \"a aa aaa b\"",
+      "output": "\"a a a b\"",
+      "description": "Duplicate roots and nested roots must still produce the shortest root once."
+    },
+    {
+      "input": "dictionary = [\"abcd\"], sentence = \"abc abcd abcde\"",
+      "output": "\"abc abcd abcd\"",
+      "description": "A root longer than a word cannot replace it, but exact and longer prefix matches still work."
+    },
+    {
+      "input": "dictionary = [\"look\",\"lock\",\"locker\"], sentence = \"looked locker lockstep loose\"",
+      "output": "\"look lock lock loose\"",
+      "description": "Overlapping same-length and longer roots should replace only words with true prefixes."
+    },
+    {
+      "input": "dictionary = [\"pre\",\"post\"], sentence = \"prefix middle postfix prelude\"",
+      "output": "\"pre middle post pre\"",
+      "description": "Sentence word order and spaces between words should be preserved after replacement."
+    },
+    {
+      "input": "dictionary = [\"art\"], sentence = \"cart artist smart artful\"",
+      "output": "\"cart art smart art\"",
+      "description": "A root must match at the beginning of a word, not in the middle."
+    },
+    {
+      "input": "dictionary = [\"x\",\"xy\",\"xyz\"], sentence = \"xylophone xyz abc x\"",
+      "output": "\"x x abc x\"",
+      "description": "A one-character root should replace both longer successors and exact longer roots."
+    },
+    {
+      "input": "dictionary = [\"go\",\"gone\",\"do\",\"dog\"], sentence = \"dogs dogma going gone doing\"",
+      "output": "\"do do go go do\"",
+      "description": "Competing short roots should win even when a longer dictionary word looks more specific."
     }
   ],
   "solutions": [
     {
-      "name": "Trie-Based Replacement",
-      "timeComplexity": "O(W + S)",
-      "spaceComplexity": "O(T)",
-      "description": "Build a Trie from dictionary roots. For each word in the sentence, walk down the trie. If we hit an end-of-word node, replace with the root; otherwise keep the original word.",
-      "code": "import java.util.*;\n\nclass Solution {\n    private int[][] trie = new int[100001][26];\n    private boolean[] isEnd = new boolean[100001];\n    private int cnt = 1;\n    \n    public String replaceWords(List<String> dictionary, String sentence) {\n        for (String root : dictionary) {\n            int node = 0;\n            for (char c : root.toCharArray()) {\n                int idx = c - 'a';\n                if (trie[node][idx] == 0) trie[node][idx] = cnt++;\n                node = trie[node][idx];\n            }\n            isEnd[node] = true;\n        }\n        \n        StringBuilder sb = new StringBuilder();\n        for (String word : sentence.split(\" \")) {\n            if (sb.length() > 0) sb.append(' ');\n            sb.append(findRoot(word));\n        }\n        return sb.toString();\n    }\n    \n    private String findRoot(String word) {\n        int node = 0;\n        for (int i = 0; i < word.length(); i++) {\n            int idx = word.charAt(i) - 'a';\n            if (trie[node][idx] == 0) break;\n            node = trie[node][idx];\n            if (isEnd[node]) return word.substring(0, i + 1);\n        }\n        return word;\n    }\n}",
+      "name": "Array Trie Shortest Root",
+      "timeComplexity": "O(D * L + S)",
+      "spaceComplexity": "O(D * L)",
+      "description": "## Approach\n\nInsert each root into a trie with 26 array children per node. Store the full root string on the terminal node. For each sentence word, walk the trie character by character; as soon as a terminal node is reached, return that root. If the next child is missing before a terminal node appears, keep the original word.\n\n## Key Insight\n\nWalking the word from left to right means the first terminal node encountered is necessarily the shortest matching root. The trie also shares common prefixes such as `ca`, `cat`, and `cate`, so the replacement check does not scan every dictionary root for every word.\n\n## Complexity Analysis\n\nBuilding the trie costs `O(D * L)`, where `D` is the number of roots and `L` is the maximum root length. Scanning all sentence characters costs `O(S)`, because each word is checked only until it finds a root or misses the trie. Space is `O(D * L)` for trie nodes.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static class TrieNode {\n        TrieNode[] children = new TrieNode[26];\n        String root;\n    }\n\n    public String replaceWords(List<String> dictionary, String sentence) {\n        TrieNode trieRoot = new TrieNode();\n        for (String root : dictionary) {\n            insert(trieRoot, root);\n        }\n\n        String[] words = sentence.split(\" \");\n        for (int i = 0; i < words.length; i++) {\n            words[i] = shortestRoot(trieRoot, words[i]);\n        }\n        return String.join(\" \", words);\n    }\n\n    private void insert(TrieNode trieRoot, String root) {\n        TrieNode node = trieRoot;\n        for (char c : root.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) {\n                node.children[idx] = new TrieNode();\n            }\n            node = node.children[idx];\n        }\n        if (node.root == null || root.length() < node.root.length()) {\n            node.root = root;\n        }\n    }\n\n    private String shortestRoot(TrieNode trieRoot, String word) {\n        TrieNode node = trieRoot;\n        for (char c : word.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) {\n                return word;\n            }\n            node = node.children[idx];\n            if (node.root != null) {\n                return node.root;\n            }\n        }\n        return word;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "HashSet Prefix Matching",
-      "timeComplexity": "O(D * L + W * L^2)",
+      "name": "HashMap Trie for Sparse Roots",
+      "timeComplexity": "O(D * L + S)",
       "spaceComplexity": "O(D * L)",
-      "description": "Store all dictionary roots in a HashSet. For each word in the sentence, check every prefix of that word against the set. Return the shortest matching root, or the original word if none match.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public String replaceWords(List<String> dictionary, String sentence) {\n        Set<String> rootSet = new HashSet<>(dictionary);\n        String[] words = sentence.split(\" \");\n        StringBuilder sb = new StringBuilder();\n        \n        for (int w = 0; w < words.length; w++) {\n            if (w > 0) sb.append(' ');\n            String word = words[w];\n            String replacement = word;\n            for (int i = 1; i <= word.length(); i++) {\n                String prefix = word.substring(0, i);\n                if (rootSet.contains(prefix)) {\n                    replacement = prefix;\n                    break;\n                }\n            }\n            sb.append(replacement);\n        }\n        return sb.toString();\n    }\n}",
+      "description": "## Approach\n\nBuild the same prefix tree, but store each node's children in a `HashMap<Character, TrieNode>`. This keeps only the edges that actually appear in the dictionary. Replacement walks each sentence word through the map and returns the first terminal root reached.\n\n## Key Insight\n\nThe logic is identical to the array trie: the earliest terminal node is the shortest root. The difference is representation. A map-based trie is useful for teaching sparse branching, and it generalizes to alphabets larger than the 26 lowercase English letters used in this problem.\n\n## Complexity Analysis\n\nThe expected time is `O(D * L + S)` with hash map lookups, and the trie stores `O(D * L)` nodes and edges. Compared with the fixed-array trie, it trades array-index speed for lower wasted child slots when the dictionary is sparse.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static class TrieNode {\n        Map<Character, TrieNode> children = new HashMap<>();\n        String root;\n    }\n\n    public String replaceWords(List<String> dictionary, String sentence) {\n        TrieNode trieRoot = new TrieNode();\n        for (String root : dictionary) {\n            TrieNode node = trieRoot;\n            for (char c : root.toCharArray()) {\n                node = node.children.computeIfAbsent(c, key -> new TrieNode());\n            }\n            if (node.root == null || root.length() < node.root.length()) {\n                node.root = root;\n            }\n        }\n\n        String[] words = sentence.split(\" \");\n        for (int i = 0; i < words.length; i++) {\n            words[i] = findRoot(trieRoot, words[i]);\n        }\n        return String.join(\" \", words);\n    }\n\n    private String findRoot(TrieNode trieRoot, String word) {\n        TrieNode node = trieRoot;\n        for (char c : word.toCharArray()) {\n            node = node.children.get(c);\n            if (node == null) {\n                return word;\n            }\n            if (node.root != null) {\n                return node.root;\n            }\n        }\n        return word;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "HashSet Prefix Scan",
+      "timeComplexity": "O(S * L)",
+      "spaceComplexity": "O(D * L)",
+      "description": "## Approach\n\nPut every dictionary root in a hash set. For each sentence word, generate prefixes from length 1 upward and return the first prefix found in the set. If no generated prefix is a root, return the original word.\n\n## Key Insight\n\nChecking prefixes in increasing length order directly enforces the shortest-root rule without sorting the dictionary. This is a compact baseline that is easy to reason about, though substring creation can cost more than walking a trie on very long sentences.\n\n## Complexity Analysis\n\nLet `S` be the total sentence length and `L` the maximum word length. In Java, creating prefixes can copy characters, so the practical worst case is up to `O(S * L)` across all words. The root set stores `O(D * L)` characters.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String replaceWords(List<String> dictionary, String sentence) {\n        Set<String> roots = new HashSet<>(dictionary);\n        String[] words = sentence.split(\" \");\n        for (int i = 0; i < words.length; i++) {\n            words[i] = replacement(roots, words[i]);\n        }\n        return String.join(\" \", words);\n    }\n\n    private String replacement(Set<String> roots, String word) {\n        for (int end = 1; end <= word.length(); end++) {\n            String prefix = word.substring(0, end);\n            if (roots.contains(prefix)) {\n                return prefix;\n            }\n        }\n        return word;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Length-Sorted Root Scan Baseline",
+      "timeComplexity": "O(D log D + W * D * L)",
+      "spaceComplexity": "O(D + W)",
+      "description": "## Approach\n\nCopy the dictionary roots into a list and sort them by length. For each word in the sentence, scan the sorted roots and use the first root that is a prefix of the word. Because the roots are sorted shortest first, the first match is the required replacement.\n\n## Key Insight\n\nThis route is intentionally simple and slower. It does not build a prefix data structure, so it makes a good comparison point for why the trie and hash-set prefix approaches are better when the dictionary or sentence is large.\n\n## Complexity Analysis\n\nSorting costs `O(D log D)`. For each of `W` sentence words, the scan can compare against all `D` roots, and each `startsWith` check may inspect up to `L` characters, giving `O(D log D + W * D * L)` time. The copied root list and split words use `O(D + W)` extra space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String replaceWords(List<String> dictionary, String sentence) {\n        List<String> roots = new ArrayList<>(dictionary);\n        roots.sort(Comparator.comparingInt(String::length));\n\n        String[] words = sentence.split(\" \");\n        for (int i = 0; i < words.length; i++) {\n            for (String root : roots) {\n                if (words[i].startsWith(root)) {\n                    words[i] = root;\n                    break;\n                }\n            }\n        }\n        return String.join(\" \", words);\n    }\n}",
       "language": "java"
     }
   ],
@@ -60,7 +120,7 @@
     {
       "id": "trie",
       "file": "p104_trie.png",
-      "caption": "Trie of dictionary roots: cat, bat, rat"
+      "caption": "Dictionary strings cat, bat and rat in a prefix tree; yellow marks complete roots"
     }
   ]
 }

@@ -1,37 +1,12 @@
 # AlgoCraft Textures
 
-## AI-Generated Textures
+## Current Block Asset Policy
 
-The following textures were generated using PixelLab AI:
+AlgoCraft ships no custom PNG textures for the Algorithm Computer or the trophies. Both use vanilla Minecraft block textures and build their detail from cuboids, which keeps them in Minecraft's material language and avoids the old AI-generated texture style.
 
-### Block Textures
+The models are generated, so edit the scripts and regenerate rather than editing the JSON by hand:
 
-- `computer_monitor.png` - Retro computer monitor with green screen (64x64px)
-- `computer_case.png` - Computer tower with blue LEDs (64x64px)
-- `computer_panel.png` - Metallic panel tileset (64x64px)
+- `scripts/generate_computer_model.py` writes `models/block/algorithm_computer.json`. The computer is a modern workstation: a widescreen monitor showing an IDE (file tree, coloured code lines, cursor and a green "accepted" status bar), a thin stand, a keyboard and mouse on a desk mat, and a tower with a green light strip. Its `COLLISION` boxes must match `AlgorithmComputerBlock.MODEL_BOXES`.
+- `scripts/generate_trophy_models.py` writes the five `trophy_*_shape.json` tier models and the 23 achievement variants in `models/item/trophy_variants/`. Every tier is a cup trophy on a blackstone plinth; higher tiers add plinth studs, a lid, gems and crown points. Achievement marks live in `scripts/trophy_variant_marks.json` and sit on the plinth plaque, the cup front or the lid.
 
-### Generation Details
-
-- **Service**: PixelLab AI (https://pixellab.ai)
-- **Style**: Pixel art with medium shading and high detail
-- **Date**: 2025-12-07
-- **License**: Generated for AlgoCraft Mod
-
-### Vanilla Texture References
-
-The 3D model also uses these vanilla Minecraft textures as fallbacks:
-
-- `minecraft:block/iron_block` - For metal panels and frames
-- `minecraft:block/cyan_concrete` - For the glowing screen effect
-
-## 3D Model Design
-
-The Algorithm Computer block features:
-
-- **Monitor**: Front-facing screen with AI-generated retro display
-- **Computer Case**: Side tower with LED details
-- **Keyboard**: Thin flat element at the front
-- **Stand**: Central support connecting monitor to base
-- **Base Platform**: Stable foundation for the entire setup
-
-Total elements: 6 component parts creating a detailed workstation appearance.
+Computer palette: `gray_concrete` shell, `black_concrete` bezel and keyboard deck, `light_gray_concrete` stand, keys and mouse, `black_wool` desk mat, `iron_block` stand neck, `deepslate_tiles` vents and file tree, `black_stained_glass` screen, and `lime_concrete`, `light_blue_concrete` and `yellow_concrete` for code, status and accent lights. Green is the shared brand colour of the in-game IDE (`IdeTheme`) and the web IDE.

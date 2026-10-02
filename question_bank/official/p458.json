@@ -1,50 +1,106 @@
 {
   "id": "458",
-  "title": "Poor Pigs",
-  "description": "# Poor Pigs\n\nThere are `buckets` buckets of liquid, where **exactly one** of the buckets is poisonous. To figure out which one is poisonous, you feed some number of (poor) pigs the liquid to see whether they will die or not. Unfortunately, you only have `minutesToTest` minutes to determine which bucket is poisonous.\n\nYou can feed the pigs according to these steps:\n\n1.  Choose some live pigs to feed.\n2.  For each pig, choose which buckets to feed it. The pig will consume all the chosen buckets simultaneously and will take no time.\n3.  Wait for `minutesToDie` minutes. You may not feed any other pigs during this time.\n4.  After `minutesToDie` minutes have passed, any pigs that have been fed the poisonous bucket will die, and all others will survive.\n5.  Repeat this process until you run out of time.\n\nGiven `buckets`, `minutesToDie`, and `minutesToTest`, return *the minimum number of pigs needed to figure out which bucket is poisonous within the allotted time*.\n\n## Example 1:\n\n**Input:** buckets = 4, minutesToDie = 15, minutesToTest = 15\n**Output:** 2\n**Explanation:** We can determine the poisonous bucket as follows:\nAt time 0, feed the first pig buckets 1 and 2, and feed the second pig buckets 2 and 3.\nAt time 15, there are 4 possible outcomes:\n- If only the first pig dies, then bucket 1 must be poisonous.\n- If only the second pig dies, then bucket 3 must be poisonous.\n- If both pigs die, then bucket 2 must be poisonous.\n- If neither pig dies, then bucket 4 must be poisonous.\n\n## Example 2:\n\n**Input:** buckets = 4, minutesToDie = 15, minutesToTest = 30\n**Output:** 2\n**Explanation:** We can determine the poisonous bucket as follows:\nAt time 0, feed the first pig bucket 1, and feed the second pig bucket 2.\nAt time 15, there are 2 possible outcomes:\n- If either pig dies, then the poisonous bucket is already known.\n- If neither pig dies, then feed the first pig bucket 3, and feed the second pig bucket 4.\nAt time 30, one of the two pigs must die.\n\n## Constraints:\n\n*   `1 <= buckets <= 1000`\n*   `1 <= minutesToDie <= minutesToTest <= 100`",
-  "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int poorPigs(int buckets, int minutesToDie, int minutesToTest) {\n        \n    }\n}",
-  "tags": ["Math", "Dynamic Programming", "Combinatorics"],
+  "title": "Destroying Asteroids",
+  "description": "# Destroying Asteroids\n\nA planet starts with mass `mass`. You are also given an array `asteroids`, where `asteroids[i]` is the mass of the `i-th` asteroid.\n\nThe planet may choose the order in which it tries to destroy the asteroids. If the planet's current mass is at least an asteroid's mass, it can destroy that asteroid and then gains that asteroid's mass. If its current mass is smaller than the asteroid's mass, it cannot destroy that asteroid at that time.\n\nReturn `true` if there exists some order in which the planet can destroy every asteroid. Otherwise, return `false`.\n\n## Example 1:\n\n**Input:** mass = 10, asteroids = [4,9,23,4]\n**Output:** true\n**Explanation:** One valid order is `[4, 9, 4, 23]`. The planet's mass changes as `10 -> 14 -> 23 -> 27 -> 50`.\n\n## Example 2:\n\n**Input:** mass = 3, asteroids = [5,4,9]\n**Output:** false\n**Explanation:** The smallest asteroid has mass `4`, which is already larger than the planet's initial mass `3`. No order can start successfully.\n\n## Constraints:\n\n* `1 <= mass <= 10^5`\n* `0 <= asteroids.length <= 10^5`\n* `1 <= asteroids[i] <= 10^5`",
+  "difficulty": "MEDIUM",
+  "initialCode": "class Solution {\n    public boolean asteroidsDestroyed(int mass, int[] asteroids) {\n        \n    }\n}",
+  "tags": [
+    "Array",
+    "Greedy",
+    "Sorting"
+  ],
   "examples": [
     {
-      "input": "buckets = 4, minutesToDie = 15, minutesToTest = 15",
-      "output": "2"
+      "input": "mass = 10, asteroids = [4,9,23,4]",
+      "output": "true"
     },
     {
-      "input": "buckets = 4, minutesToDie = 15, minutesToTest = 30",
-      "output": "2"
+      "input": "mass = 3, asteroids = [5,4,9]",
+      "output": "false"
     }
   ],
   "solutions": [
     {
-      "name": "Information Theory / Base Encoding",
-      "timeComplexity": "O(log(buckets))",
+      "name": "Sort and Absorb Greedy",
+      "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(1)",
-      "description": "Each pig can have (tests+1) possible outcomes (die at round 1, round 2, ..., or survive). With p pigs, we can distinguish (tests+1)^p buckets. Find minimum p such that (tests+1)^p >= buckets.",
-      "code": "class Solution {\n    public int poorPigs(int buckets, int minutesToDie, int minutesToTest) {\n        int tests = minutesToTest / minutesToDie;\n        int pigs = 0;\n        while (Math.pow(tests + 1, pigs) < buckets) {\n            pigs++;\n        }\n        return pigs;\n    }\n}",
+      "description": "## Approach\n\nSort the asteroid masses from smallest to largest. Keep the planet's current mass in a `long`. If the current mass can absorb the next smallest asteroid, add that asteroid's mass and continue; otherwise return false.\n\n## Key Insight\n\nTrying the smallest remaining asteroid is always at least as good as trying any larger one. If the planet cannot destroy the smallest remaining asteroid, then no remaining asteroid can be destroyed first.\n\n## Complexity Analysis\n\nSorting dominates the runtime. Time Complexity: O(n log n). Space Complexity: O(1) extra space beyond the sorting implementation.",
+      "code": "class Solution {\n    public boolean asteroidsDestroyed(int mass, int[] asteroids) {\n        java.util.Arrays.sort(asteroids);\n        long current = mass;\n        for (int asteroid : asteroids) {\n            if (current < asteroid) {\n                return false;\n            }\n            current += asteroid;\n        }\n        return true;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Logarithm Formula",
-      "timeComplexity": "O(1)",
-      "spaceComplexity": "O(1)",
-      "description": "Use the logarithm formula directly: pigs = ceil(log(buckets) / log(tests + 1)). This computes the same result as the loop approach in constant time.",
-      "code": "class Solution {\n    public int poorPigs(int buckets, int minutesToDie, int minutesToTest) {\n        int tests = minutesToTest / minutesToDie;\n        if (buckets <= 1) return 0;\n        return (int) Math.ceil(Math.log(buckets) / Math.log(tests + 1));\n    }\n}",
+      "name": "Min-Heap Choose-Smallest Greedy",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nInsert every asteroid into a min-heap. Repeatedly remove the smallest remaining asteroid and try to absorb it. If the planet cannot absorb the heap minimum, it cannot absorb any other remaining asteroid either.\n\n## Key Insight\n\nThe heap expresses the greedy choice as an online process: always ask for the easiest asteroid still available. This is equivalent to sorting, but it makes the repeated choose-smallest operation explicit.\n\n## Complexity Analysis\n\nEach asteroid is inserted and removed once. Time Complexity: O(n log n). Space Complexity: O(n).",
+      "code": "class Solution {\n    public boolean asteroidsDestroyed(int mass, int[] asteroids) {\n        java.util.PriorityQueue<Integer> minHeap = new java.util.PriorityQueue<>();\n        for (int asteroid : asteroids) {\n            minHeap.add(asteroid);\n        }\n\n        long current = mass;\n        while (!minHeap.isEmpty()) {\n            int asteroid = minHeap.poll();\n            if (current < asteroid) {\n                return false;\n            }\n            current += asteroid;\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Counting Sort by Asteroid Mass",
+      "timeComplexity": "O(n + M)",
+      "spaceComplexity": "O(M)",
+      "description": "## Approach\n\nUse the value bound `asteroids[i] <= 100000` to count how many asteroids have each mass. Scan masses from small to large. For each mass with a positive frequency, first verify that the current planet mass can absorb one asteroid of that size, then add the whole group's total mass at once.\n\n## Key Insight\n\nOnly the sorted order of masses matters, not the original positions. Counting sort keeps the same greedy invariant while replacing comparison sorting with a bounded frequency table.\n\n## Complexity Analysis\n\nLet `M` be the maximum possible asteroid mass. Time Complexity: O(n + M). Space Complexity: O(M).",
+      "code": "class Solution {\n    public boolean asteroidsDestroyed(int mass, int[] asteroids) {\n        int[] count = new int[100001];\n        int maxMass = 0;\n        for (int asteroid : asteroids) {\n            count[asteroid]++;\n            maxMass = Math.max(maxMass, asteroid);\n        }\n\n        long current = mass;\n        for (int size = 1; size <= maxMass; size++) {\n            int frequency = count[size];\n            if (frequency == 0) {\n                continue;\n            }\n            if (current < size) {\n                return false;\n            }\n            current += (long) size * frequency;\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "TreeMap Frequency Sweep",
+      "timeComplexity": "O(n log u)",
+      "spaceComplexity": "O(u)",
+      "description": "## Approach\n\nStore asteroid masses in a `TreeMap` from mass to frequency. Iterate the map in ascending key order. Before absorbing a whole mass group, check whether the current mass can absorb one asteroid of that mass; if so, add `mass * frequency` to the planet.\n\n## Key Insight\n\nThis route aggregates duplicates like counting sort, but it does not rely on a fixed numeric bound. It teaches the same greedy proof with an ordered map over the distinct asteroid masses.\n\n## Complexity Analysis\n\nLet `u` be the number of distinct asteroid masses. Time Complexity: O(n log u). Space Complexity: O(u).",
+      "code": "class Solution {\n    public boolean asteroidsDestroyed(int mass, int[] asteroids) {\n        java.util.TreeMap<Integer, Integer> counts = new java.util.TreeMap<>();\n        for (int asteroid : asteroids) {\n            counts.merge(asteroid, 1, Integer::sum);\n        }\n\n        long current = mass;\n        for (java.util.Map.Entry<Integer, Integer> entry : counts.entrySet()) {\n            int asteroid = entry.getKey();\n            int frequency = entry.getValue();\n            if (current < asteroid) {\n                return false;\n            }\n            current += (long) asteroid * frequency;\n        }\n        return true;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
-      "input": "buckets = 4, minutesToDie = 15, minutesToTest = 15",
-      "output": "2"
+      "input": "mass = 10, asteroids = [4,9,23,4]",
+      "output": "true"
     },
     {
-      "input": "buckets = 4, minutesToDie = 15, minutesToTest = 30",
-      "output": "2"
+      "input": "mass = 3, asteroids = [5,4,9]",
+      "output": "false"
     },
     {
-      "input": "buckets = 1000, minutesToDie = 15, minutesToTest = 60",
-      "output": "5"
+      "input": "mass = 5, asteroids = [1,2,3]",
+      "output": "true"
+    },
+    {
+      "input": "mass = 1, asteroids = [2]",
+      "output": "false"
+    },
+    {
+      "input": "mass = 100, asteroids = []",
+      "output": "true"
+    },
+    {
+      "input": "mass = 5, asteroids = [4,9,23,4]",
+      "output": "false"
+    },
+    {
+      "input": "mass = 2, asteroids = [2,2,3]",
+      "output": "true"
+    },
+    {
+      "input": "mass = 2, asteroids = [3,2,1]",
+      "output": "true"
+    },
+    {
+      "input": "mass = 1, asteroids = [1,1,2,4,8,16]",
+      "output": "true"
+    },
+    {
+      "input": "mass = 1, asteroids = [1,1,2,8]",
+      "output": "false"
+    },
+    {
+      "input": "mass = 100000, asteroids = [100000,100000,100000]",
+      "output": "true"
+    },
+    {
+      "input": "mass = 10, asteroids = [11,1,1,1,1,1,1,1,1,1,1]",
+      "output": "true"
     }
   ]
 }

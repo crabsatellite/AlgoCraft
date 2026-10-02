@@ -1,9 +1,9 @@
 {
   "id": "479",
   "title": "Average of Levels in Binary Tree",
-  "description": "# Average of Levels in Binary Tree\n\nGiven the `root` of a binary tree, return *the average value of the nodes on each level in the form of an array*. Answers within `10^-5` of the actual answer will be accepted.\n\n## Example 1:\n\n**Input:** root = [3,9,20,null,null,15,7]\n**Output:** [3.00000,14.50000,11.00000]\n**Explanation:** The average value of nodes on level 0 is 3, on level 1 is 14.5, and on level 2 is 11.\nHence return [3, 14.5, 11].\n\n## Example 2:\n\n**Input:** root = [3,9,20,15,7]\n**Output:** [3.00000,14.50000,11.00000]\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[1, 10^4]`.\n*   `-2^31 <= Node.val <= 2^31 - 1`",
+  "description": "# Average of Levels in Binary Tree\n\nGiven the `root` of a non-empty binary tree, return the average value of the nodes on each level, from top to bottom.\n\nReturn the averages as an array. Answers within `10^-5` of the actual value are accepted.\n\nA level contains nodes reached by the same number of parent-child edges from the root. The root alone forms the first level.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [3,9,20,null,null,15,7]\n**Output:** [3.00000,14.50000,11.00000]\n**Explanation:** Level 0 has average `3`. Level 1 has average `(9 + 20) / 2 = 14.5`. Level 2 has average `(15 + 7) / 2 = 11`.\n\n## Example 2:\n\n**Input:** root = [3,9,20,15,7]\n**Output:** [3.00000,14.50000,11.00000]\n**Explanation:** The missing `null` markers are not nodes. The last level contains `15` and `7`, so its average is still `11`.\n\n## Constraints:\n\n* The number of nodes in the tree is in the range `[1, 10^4]`.\n* `-2^31 <= Node.val <= 2^31 - 1`",
   "difficulty": "EASY",
-  "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public List<Double> averageOfLevels(TreeNode root) {\n        \n    }\n}",
+  "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public java.util.List<Double> averageOfLevels(TreeNode root) {\n        \n    }\n}",
   "tags": [
     "Tree",
     "Depth-First Search",
@@ -18,23 +18,35 @@
     {
       "input": "root = [3,9,20,15,7]",
       "output": "[3.00000,14.50000,11.00000]"
+    },
+    {
+      "input": "root = [2147483647,2147483647,2147483647]",
+      "output": "[2147483647.00000,2147483647.00000]"
     }
   ],
   "solutions": [
     {
-      "name": "BFS Level Order",
+      "name": "BFS Level Order Queue",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(w)",
-      "description": "Use BFS with a queue. Process each level: sum all node values and divide by level size to get the average.",
-      "code": "class Solution {\n    public java.util.List<Double> averageOfLevels(TreeNode root) {\n        java.util.List<Double> result = new java.util.ArrayList<>();\n        java.util.Queue<TreeNode> queue = new java.util.LinkedList<>();\n        queue.offer(root);\n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            double sum = 0;\n            for (int i = 0; i < size; i++) {\n                TreeNode node = queue.poll();\n                sum += node.val;\n                if (node.left != null) queue.offer(node.left);\n                if (node.right != null) queue.offer(node.right);\n            }\n            result.add(sum / size);\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nUse breadth-first search and process one complete level at a time. The queue size at the start of the loop is exactly the number of nodes on that level. Sum those values in a `double` accumulator, enqueue the next level, then append `sum / size`.\n\n## Key Insight\n\nThe average is a level property, not a subtree property. Capturing the queue size before the inner loop freezes the current level boundary, so children added during the loop cannot accidentally change the divisor.\n\n## Complexity Analysis\n\nEvery node is enqueued and dequeued once, so the time complexity is O(n). The queue stores at most the tree width `w`, so the extra space is O(w).",
+      "code": "class Solution {\n    public java.util.List<Double> averageOfLevels(TreeNode root) {\n        java.util.List<Double> averages = new java.util.ArrayList<>();\n        java.util.ArrayDeque<TreeNode> queue = new java.util.ArrayDeque<>();\n        queue.add(root);\n\n        while (!queue.isEmpty()) {\n            int levelSize = queue.size();\n            double sum = 0.0;\n            for (int i = 0; i < levelSize; i++) {\n                TreeNode node = queue.removeFirst();\n                sum += (double) node.val;\n                if (node.left != null) {\n                    queue.addLast(node.left);\n                }\n                if (node.right != null) {\n                    queue.addLast(node.right);\n                }\n            }\n            averages.add(sum / levelSize);\n        }\n        return averages;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "DFS with Level Sums",
+      "name": "Recursive DFS Level Accumulators",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(h)",
-      "description": "Use DFS traversal, maintaining two lists: one for the sum of values at each level and one for the count of nodes at each level. After traversal, compute averages.",
-      "code": "class Solution {\n    public java.util.List<Double> averageOfLevels(TreeNode root) {\n        java.util.List<Double> sums = new java.util.ArrayList<>();\n        java.util.List<Integer> counts = new java.util.ArrayList<>();\n        dfs(root, 0, sums, counts);\n        java.util.List<Double> result = new java.util.ArrayList<>();\n        for (int i = 0; i < sums.size(); i++) {\n            result.add(sums.get(i) / counts.get(i));\n        }\n        return result;\n    }\n\n    private void dfs(TreeNode node, int level, java.util.List<Double> sums, java.util.List<Integer> counts) {\n        if (node == null) return;\n        if (level == sums.size()) {\n            sums.add(0.0);\n            counts.add(0);\n        }\n        sums.set(level, sums.get(level) + node.val);\n        counts.set(level, counts.get(level) + 1);\n        dfs(node.left, level + 1, sums, counts);\n        dfs(node.right, level + 1, sums, counts);\n    }\n}",
+      "spaceComplexity": "O(h + L)",
+      "description": "## Approach\n\nTraverse the tree with DFS while carrying the current depth. Two arrays indexed by depth store the running sum and count for each level. After traversal, divide each stored sum by its count to produce the answer.\n\n## Key Insight\n\nDFS does not naturally visit nodes level by level, but the depth value gives each node the same level index that BFS would use. This separates traversal order from aggregation order and is often useful for level-based tree statistics.\n\n## Complexity Analysis\n\nThe traversal visits every node once, so the time complexity is O(n). The recursion stack is O(h), where `h` is the tree height, and the accumulator lists store one entry per level `L`.",
+      "code": "class Solution {\n    public java.util.List<Double> averageOfLevels(TreeNode root) {\n        java.util.List<Double> sums = new java.util.ArrayList<>();\n        java.util.List<Integer> counts = new java.util.ArrayList<>();\n        collect(root, 0, sums, counts);\n\n        java.util.List<Double> averages = new java.util.ArrayList<>();\n        for (int level = 0; level < sums.size(); level++) {\n            averages.add(sums.get(level) / counts.get(level));\n        }\n        return averages;\n    }\n\n    private void collect(TreeNode node, int depth, java.util.List<Double> sums, java.util.List<Integer> counts) {\n        if (node == null) {\n            return;\n        }\n        if (depth == sums.size()) {\n            sums.add(0.0);\n            counts.add(0);\n        }\n        sums.set(depth, sums.get(depth) + (double) node.val);\n        counts.set(depth, counts.get(depth) + 1);\n        collect(node.left, depth + 1, sums, counts);\n        collect(node.right, depth + 1, sums, counts);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative DFS Explicit Depth Stack",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h + L)",
+      "description": "## Approach\n\nReplace recursion with explicit stacks. One stack stores nodes and a parallel stack stores the matching depth for each node. When a node is popped, grow the sum and count lists if this is the first node seen at that depth, then add the node value and push its children with `depth + 1`.\n\n## Key Insight\n\nThis is the iterative version of the DFS accumulator idea. It teaches the same depth-indexed aggregation while avoiding call-stack depth as a hidden dependency, which matters for very skewed trees.\n\n## Complexity Analysis\n\nEach node is pushed and popped once, so the time complexity is O(n). The stacks use O(h) space in a depth-first traversal, and the per-level accumulator lists use O(L) space.",
+      "code": "class Solution {\n    public java.util.List<Double> averageOfLevels(TreeNode root) {\n        java.util.List<Double> sums = new java.util.ArrayList<>();\n        java.util.List<Integer> counts = new java.util.ArrayList<>();\n        java.util.ArrayDeque<TreeNode> nodes = new java.util.ArrayDeque<>();\n        java.util.ArrayDeque<Integer> depths = new java.util.ArrayDeque<>();\n        nodes.push(root);\n        depths.push(0);\n\n        while (!nodes.isEmpty()) {\n            TreeNode node = nodes.pop();\n            int depth = depths.pop();\n            if (depth == sums.size()) {\n                sums.add(0.0);\n                counts.add(0);\n            }\n            sums.set(depth, sums.get(depth) + (double) node.val);\n            counts.set(depth, counts.get(depth) + 1);\n\n            if (node.right != null) {\n                nodes.push(node.right);\n                depths.push(depth + 1);\n            }\n            if (node.left != null) {\n                nodes.push(node.left);\n                depths.push(depth + 1);\n            }\n        }\n\n        for (int level = 0; level < sums.size(); level++) {\n            sums.set(level, sums.get(level) / counts.get(level));\n        }\n        return sums;\n    }\n}",
       "language": "java"
     }
   ],
@@ -46,13 +58,53 @@
     {
       "input": "root = [3,9,20,15,7]",
       "output": "[3.00000,14.50000,11.00000]"
+    },
+    {
+      "input": "root = [2147483647,2147483647,2147483647]",
+      "output": "[2147483647.00000,2147483647.00000]"
+    },
+    {
+      "input": "root = [1]",
+      "output": "[1.00000]"
+    },
+    {
+      "input": "root = [-1,-2,-3]",
+      "output": "[-1.00000,-2.50000]"
+    },
+    {
+      "input": "root = [-2147483648,-2147483648,2147483647]",
+      "output": "[-2147483648.00000,-0.50000]"
+    },
+    {
+      "input": "root = [1,2,3,4,null,null,5]",
+      "output": "[1.00000,2.50000,4.50000]"
+    },
+    {
+      "input": "root = [5,null,8,null,13,null,21]",
+      "output": "[5.00000,8.00000,13.00000,21.00000]"
+    },
+    {
+      "input": "root = [5,4,null,3,null,2,null,1]",
+      "output": "[5.00000,4.00000,3.00000,2.00000,1.00000]"
+    },
+    {
+      "input": "root = [0,-3,9,-10,null,5,15]",
+      "output": "[0.00000,3.00000,3.33333]"
+    },
+    {
+      "input": "root = [10,5,15,3,7,12,18,1,null,null,8]",
+      "output": "[10.00000,10.00000,10.00000,4.50000]"
+    },
+    {
+      "input": "root = [1000000000,-1000000000,1000000000,-1000000000,1000000000]",
+      "output": "[1000000000.00000,0.00000,0.00000]"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p479_example1.png",
-      "caption": "Example 1: Tree [3,9,20,null,null,15,7]"
+      "caption": "Example input tree"
     }
   ]
 }

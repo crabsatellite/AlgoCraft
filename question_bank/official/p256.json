@@ -1,40 +1,117 @@
 {
   "id": "256",
   "title": "Sorting the Sentence",
-  "description": "# Sorting the Sentence\n\nA **sentence** is a list of words that are separated by a single space with no leading or trailing spaces. Each word consists of lowercase and uppercase English letters.\n\nA sentence can be **shuffled** by appending the **1-indexed word position** to each word then rearranging the words in the sentence.\n\n*   For example, the sentence `\"This is a sentence\"` can be shuffled as `\"sentence4 a3 is2 This1\"` or `\"is2 sentence4 This1 a3\"`.\n\nGiven a shuffled sentence `s` containing no more than `9` words, reconstruct and return *the original sentence*.\n\n## Example 1:\n\n**Input:** s = \"is2 sentence4 This1 a3\"\n**Output:** \"This is a sentence\"\n**Explanation:** Sort the words in s to their original positions \"This1 is2 a3 sentence4\", then remove the numbers.\n\n## Example 2:\n\n**Input:** s = \"Myself2 Me1 I4 and3\"\n**Output:** \"Me Myself and I\"\n**Explanation:** Sort the words in s to their original positions \"Me1 Myself2 and3 I4\", then remove the numbers.\n\n## Constraints:\n\n*   `2 <= s.length <= 200`\n*   `s` consists of lowercase and uppercase English letters, spaces, and digits from `1` to `9`.\n*   The number of words in `s` is between `1` and `9`.\n*   The words in `s` are separated by a single space.\n*   `s` contains no leading or trailing spaces.",
+  "description": "# Sorting the Sentence\n\nA sentence is a list of words separated by one space, with no leading or trailing spaces. Each word contains only lowercase and uppercase English letters.\n\nA sentence was shuffled by appending each word's original 1-indexed position to the end of that word, then rearranging the words.\n\nGiven the shuffled sentence `s`, reconstruct and return the original sentence without the trailing position digits.\n\nThe input contains at most 9 words, so every position marker is a single digit from `1` to `9`.\n\n## Example 1:\n\n**Input:** s = \"is2 sentence4 This1 a3\"\n**Output:** \"This is a sentence\"\n**Explanation:** The position markers tell us that `This` is first, `is` is second, `a` is third, and `sentence` is fourth.\n\n## Example 2:\n\n**Input:** s = \"Myself2 Me1 I4 and3\"\n**Output:** \"Me Myself and I\"\n**Explanation:** Sorting by the final digit gives `Me1 Myself2 and3 I4`, then the digits are removed.\n\n## Constraints:\n\n*   `2 <= s.length <= 200`\n*   `s` consists of lowercase and uppercase English letters, spaces, and digits from `1` to `9`\n*   The number of words in `s` is between `1` and `9`\n*   The words in `s` are separated by a single space\n*   `s` contains no leading or trailing spaces",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public String sortSentence(String s) {\n        // Write your code here\n        return \"\";\n    }\n}",
-  "tags": ["String", "Sorting"],
+  "tags": [
+    "String",
+    "Sorting"
+  ],
   "examples": [
     {
       "input": "s = \"is2 sentence4 This1 a3\"",
       "output": "\"This is a sentence\""
     },
-    { "input": "s = \"Myself2 Me1 I4 and3\"", "output": "\"Me Myself and I\"" }
+    {
+      "input": "s = \"Myself2 Me1 I4 and3\"",
+      "output": "\"Me Myself and I\""
+    }
   ],
   "solutions": [
     {
-      "name": "Array Placement by Index",
+      "name": "Split And Place By Index",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Extract the position digit from each word's last character and place the word (without the digit) at that position.",
-      "code": "class Solution {\n    public String sortSentence(String s) {\n        String[] words = s.split(\" \");\n        String[] result = new String[words.length];\n        for (String word : words) {\n            int pos = word.charAt(word.length() - 1) - '1';\n            result[pos] = word.substring(0, word.length() - 1);\n        }\n        return String.join(\" \", result);\n    }\n}",
+      "description": "## Approach\n\nSplit the shuffled sentence into tokens. For each token, read the last character as the 1-indexed position, remove that final digit, and store the word in the corresponding output slot.\n\n## Key Insight\n\nThe position digit is a direct address. Because there are at most 9 words, the final character alone identifies the word's exact original position.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String sortSentence(String s) {\n        String[] tokens = s.split(\" \");\n        String[] ordered = new String[tokens.length];\n        for (String token : tokens) {\n            int position = token.charAt(token.length() - 1) - '1';\n            ordered[position] = token.substring(0, token.length() - 1);\n        }\n        return String.join(\" \", ordered);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Sort-Based Approach",
-      "timeComplexity": "O(n log n)",
+      "name": "Sort Tokens By Trailing Digit",
+      "timeComplexity": "O(k log k + n)",
       "spaceComplexity": "O(n)",
-      "description": "Split words, sort them by their trailing digit, then strip the digit and join with spaces.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public String sortSentence(String s) {\n        String[] words = s.split(\" \");\n        Arrays.sort(words, (a, b) -> a.charAt(a.length() - 1) - b.charAt(b.length() - 1));\n        StringBuilder sb = new StringBuilder();\n        for (int i = 0; i < words.length; i++) {\n            if (i > 0) sb.append(' ');\n            sb.append(words[i].substring(0, words[i].length() - 1));\n        }\n        return sb.toString();\n    }\n}",
+      "description": "## Approach\n\nSplit the sentence into tokens and sort those tokens by their final digit. Then strip the digit from each sorted token and join the words with spaces.\n\n## Key Insight\n\nThis treats the trailing digit as a sorting key. It is less direct than indexed placement, but it mirrors the problem statement's wording: put the words back in order by position.\n\n## Complexity Analysis\n\n- Time Complexity: O(k log k + n)\n- Space Complexity: O(n)",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public String sortSentence(String s) {\n        String[] tokens = s.split(\" \");\n        Arrays.sort(tokens, (left, right) -> left.charAt(left.length() - 1) - right.charAt(right.length() - 1));\n\n        StringBuilder answer = new StringBuilder();\n        for (int i = 0; i < tokens.length; i++) {\n            if (i > 0) {\n                answer.append(' ');\n            }\n            answer.append(tokens[i], 0, tokens[i].length() - 1);\n        }\n        return answer.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Manual Token Parser",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nScan the string with indexes instead of calling `split`. Whenever the scan reaches a space or the end of the string, the previous character is the position digit and the characters before it form the word.\n\n## Key Insight\n\nThe input format guarantees one space between tokens and one trailing digit per token. Those guarantees are enough to parse each token boundary manually.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String sortSentence(String s) {\n        String[] slots = new String[9];\n        int wordCount = 0;\n        int start = 0;\n\n        for (int i = 0; i <= s.length(); i++) {\n            if (i == s.length() || s.charAt(i) == ' ') {\n                int position = s.charAt(i - 1) - '1';\n                slots[position] = s.substring(start, i - 1);\n                wordCount++;\n                start = i + 1;\n            }\n        }\n\n        StringBuilder answer = new StringBuilder();\n        for (int i = 0; i < wordCount; i++) {\n            if (i > 0) {\n                answer.append(' ');\n            }\n            answer.append(slots[i]);\n        }\n        return answer.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Streaming Builder Slots",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nRead the sentence character by character. Accumulate letters for the current word. When the trailing digit is reached, copy the accumulated word into that digit's slot, then clear the builder for the next word.\n\n## Key Insight\n\nThis avoids creating token substrings while parsing. The digit is still the destination slot, but the word body is built as the scan moves through the input.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String sortSentence(String s) {\n        StringBuilder[] slots = new StringBuilder[9];\n        StringBuilder current = new StringBuilder();\n        int wordCount = 0;\n\n        for (int i = 0; i < s.length(); i++) {\n            char ch = s.charAt(i);\n            if (ch == ' ') {\n                current.setLength(0);\n            } else if (ch >= '1' && ch <= '9') {\n                slots[ch - '1'] = new StringBuilder(current);\n                wordCount++;\n                current.setLength(0);\n            } else {\n                current.append(ch);\n            }\n        }\n\n        StringBuilder answer = new StringBuilder();\n        for (int i = 0; i < wordCount; i++) {\n            if (i > 0) {\n                answer.append(' ');\n            }\n            answer.append(slots[i]);\n        }\n        return answer.toString();\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "s = \"is2 sentence4 This1 a3\"",
-      "output": "\"This is a sentence\""
+      "output": "\"This is a sentence\"",
+      "description": "canonical four-word sentence"
     },
-    { "input": "s = \"Myself2 Me1 I4 and3\"", "output": "\"Me Myself and I\"" }
+    {
+      "input": "s = \"Myself2 Me1 I4 and3\"",
+      "output": "\"Me Myself and I\"",
+      "description": "mixed uppercase words"
+    },
+    {
+      "input": "s = \"word1\"",
+      "output": "\"word\"",
+      "description": "single-word boundary"
+    },
+    {
+      "input": "s = \"b2 a1\"",
+      "output": "\"a b\"",
+      "description": "two words swapped"
+    },
+    {
+      "input": "s = \"nine9 eight8 seven7 six6 five5 four4 three3 two2 one1\"",
+      "output": "\"one two three four five six seven eight nine\"",
+      "description": "maximum nine words in reverse order"
+    },
+    {
+      "input": "s = \"Hello1 world2\"",
+      "output": "\"Hello world\"",
+      "description": "already ordered two-word sentence"
+    },
+    {
+      "input": "s = \"Coding3 love2 I1\"",
+      "output": "\"I love Coding\"",
+      "description": "three words in reverse order"
+    },
+    {
+      "input": "s = \"a1 B2 c3 D4\"",
+      "output": "\"a B c D\"",
+      "description": "single-letter words preserve uppercase and lowercase"
+    },
+    {
+      "input": "s = \"last3 first1 middle2\"",
+      "output": "\"first middle last\"",
+      "description": "middle position is not adjacent in input"
+    },
+    {
+      "input": "s = \"ab2 cd1 ef3\"",
+      "output": "\"cd ab ef\"",
+      "description": "short lowercase words with one swap"
+    },
+    {
+      "input": "s = \"Z9 y8 X7 w6 V5 u4 T3 s2 R1\"",
+      "output": "\"R s T u V w X y Z\"",
+      "description": "maximum nine words with alternating case"
+    },
+    {
+      "input": "s = \"longword1 tiny2 MIXED3\"",
+      "output": "\"longword tiny MIXED\"",
+      "description": "different word lengths and uppercase word body"
+    }
   ]
 }

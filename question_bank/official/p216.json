@@ -1,36 +1,129 @@
 {
   "id": "216",
   "title": "Excel Sheet Column Title",
-  "description": "# Excel Sheet Column Title\n\nGiven an integer `columnNumber`, return *its corresponding column title as it appears in an Excel sheet*.\n\nFor example:\n\n```\nA -> 1\nB -> 2\nC -> 3\n...\nZ -> 26\nAA -> 27\nAB -> 28\n...\n```\n\n## Example 1:\n\n**Input:** columnNumber = 1\n**Output:** \"A\"\n\n## Example 2:\n\n**Input:** columnNumber = 28\n**Output:** \"AB\"\n\n## Example 3:\n\n**Input:** columnNumber = 701\n**Output:** \"ZY\"\n\n## Constraints:\n\n*   `1 <= columnNumber <= 2^31 - 1`",
+  "description": "# Excel Sheet Column Title\n\nGiven an integer `columnNumber`, return its corresponding column title as it appears in an Excel sheet.\n\nColumn titles proceed as `A, B, ..., Z, AA, AB, ..., AZ, BA, ...`, with column numbers starting at `1`.\n\nFor example:\n\n```\nA -> 1\nB -> 2\nC -> 3\n...\nZ -> 26\nAA -> 27\nAB -> 28\n...\n```\n\n## Example 1:\n\n**Input:** columnNumber = 1\n**Output:** \"A\"\n\n## Example 2:\n\n**Input:** columnNumber = 28\n**Output:** \"AB\"\n\n## Example 3:\n\n**Input:** columnNumber = 701\n**Output:** \"ZY\"\n\n## Constraints:\n\n*   `1 <= columnNumber <= 2^31 - 1`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public String convertToTitle(int columnNumber) {\n        // Write your code here\n        return \"\";\n    }\n}",
-  "tags": ["Math", "String"],
+  "tags": [
+    "Math",
+    "String"
+  ],
   "examples": [
-    { "input": "columnNumber = 1", "output": "\"A\"" },
-    { "input": "columnNumber = 28", "output": "\"AB\"" },
-    { "input": "columnNumber = 701", "output": "\"ZY\"" }
+    {
+      "input": "columnNumber = 1",
+      "output": "\"A\""
+    },
+    {
+      "input": "columnNumber = 28",
+      "output": "\"AB\""
+    },
+    {
+      "input": "columnNumber = 701",
+      "output": "\"ZY\""
+    }
   ],
   "solutions": [
     {
-      "name": "Base-26 Conversion",
+      "name": "Reverse Append One-Offset Base 26",
       "timeComplexity": "O(log n)",
-      "spaceComplexity": "O(1)",
-      "description": "Convert to base-26 but 1-indexed (A=1, not A=0). Subtract 1 before taking modulo to handle the offset.",
-      "code": "class Solution {\n    public String convertToTitle(int columnNumber) {\n        StringBuilder sb = new StringBuilder();\n        while (columnNumber > 0) {\n            columnNumber--;\n            sb.append((char) ('A' + columnNumber % 26));\n            columnNumber /= 26;\n        }\n        return sb.reverse().toString();\n    }\n}",
+      "spaceComplexity": "O(log n)",
+      "description": "## Approach\n\nRepeatedly subtract 1 from `columnNumber`, take the remainder modulo 26 as the next character, and divide by 26. The characters are produced from right to left, so append them to a `StringBuilder` and reverse at the end.\n\n## Key Insight\n\nExcel column titles have no zero digit. Subtracting 1 before `% 26` shifts `A..Z` onto remainders `0..25`, which makes multiples of 26 correctly produce `Z` instead of an empty carry digit.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n), because each loop removes one base-26 digit.\n- Space Complexity: O(log n), for the output builder.",
+      "code": "class Solution {\n    public String convertToTitle(int columnNumber) {\n        StringBuilder reversed = new StringBuilder();\n        while (columnNumber > 0) {\n            columnNumber--;\n            reversed.append((char) ('A' + columnNumber % 26));\n            columnNumber /= 26;\n        }\n        return reversed.reverse().toString();\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Recursive Conversion",
+      "name": "Recursive Prefix Conversion",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(log n)",
-      "description": "Recursively compute the title by processing the last digit first (1-indexed base-26), then prepending the result of the remaining number.",
-      "code": "class Solution {\n    public String convertToTitle(int columnNumber) {\n        if (columnNumber == 0) return \"\";\n        columnNumber--;\n        return convertToTitle(columnNumber / 26) + (char)('A' + columnNumber % 26);\n    }\n}",
+      "description": "## Approach\n\nUse the same one-offset conversion recursively. After subtracting 1, the quotient is the prefix title and the remainder is the current last character. The base case is `columnNumber == 0`, which contributes an empty prefix.\n\n## Key Insight\n\nThis mirrors positional notation directly: higher-order digits come from the quotient and the current digit comes from the remainder. The one-offset adjustment must happen before both operations.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n), because each recursive call divides by 26.\n- Space Complexity: O(log n), for the recursion stack and returned title.",
+      "code": "class Solution {\n    public String convertToTitle(int columnNumber) {\n        if (columnNumber == 0) {\n            return \"\";\n        }\n        columnNumber--;\n        return convertToTitle(columnNumber / 26) + (char) ('A' + columnNumber % 26);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Stack of Generated Letters",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(log n)",
+      "description": "## Approach\n\nGenerate letters from low order to high order using the one-offset modulo rule, but push each generated letter onto a stack. Popping the stack produces the title from high order to low order.\n\n## Key Insight\n\nThe conversion naturally discovers the last character first. A stack makes that reversal explicit and separates the digit extraction step from the final string assembly step.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n), because there is one push and one pop per title character.\n- Space Complexity: O(log n), for the stack and result builder.",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\nclass Solution {\n    public String convertToTitle(int columnNumber) {\n        Deque<Character> letters = new ArrayDeque<>();\n        while (columnNumber > 0) {\n            columnNumber--;\n            letters.push((char) ('A' + columnNumber % 26));\n            columnNumber /= 26;\n        }\n\n        StringBuilder result = new StringBuilder();\n        while (!letters.isEmpty()) {\n            result.append(letters.pop());\n        }\n        return result.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Fixed Back Buffer",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(log n)",
+      "description": "## Approach\n\nWrite generated characters into a fixed character buffer from the back toward the front. After the loop, construct the result string from the filled suffix of the buffer.\n\n## Key Insight\n\nThe input is at most `2^31 - 1`, so the title has only a small number of letters. Filling from the back avoids both `StringBuilder.reverse()` and an explicit stack while still handling the one-offset digit rule.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n), one loop step per output character.\n- Space Complexity: O(log n), because the buffer size is proportional to the maximum output length.",
+      "code": "class Solution {\n    public String convertToTitle(int columnNumber) {\n        char[] buffer = new char[16];\n        int write = buffer.length;\n        while (columnNumber > 0) {\n            columnNumber--;\n            buffer[--write] = (char) ('A' + columnNumber % 26);\n            columnNumber /= 26;\n        }\n        return new String(buffer, write, buffer.length - write);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Exact-Length Back Fill",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(log n)",
+      "description": "## Approach\n\nFirst run the one-offset division on a copy of the number to count how many letters are needed. Allocate an exact-size array, then run the conversion again and fill that array from right to left.\n\n## Key Insight\n\nThis version shows that the title length is determined by the same carry process as the conversion itself. Once the length is known, each generated low-order letter can be placed directly at its final index.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n), with two passes over the title digits.\n- Space Complexity: O(log n), for the exact-size output array.",
+      "code": "class Solution {\n    public String convertToTitle(int columnNumber) {\n        int length = 0;\n        int copy = columnNumber;\n        while (copy > 0) {\n            copy--;\n            copy /= 26;\n            length++;\n        }\n\n        char[] answer = new char[length];\n        int write = length - 1;\n        while (columnNumber > 0) {\n            columnNumber--;\n            answer[write--] = (char) ('A' + columnNumber % 26);\n            columnNumber /= 26;\n        }\n        return new String(answer);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "columnNumber = 1", "output": "\"A\"" },
-    { "input": "columnNumber = 28", "output": "\"AB\"" },
-    { "input": "columnNumber = 701", "output": "\"ZY\"" }
+    {
+      "input": "columnNumber = 1",
+      "output": "\"A\"",
+      "description": "First column maps to A."
+    },
+    {
+      "input": "columnNumber = 26",
+      "output": "\"Z\"",
+      "description": "The twenty-sixth column is Z, not a zero digit."
+    },
+    {
+      "input": "columnNumber = 27",
+      "output": "\"AA\"",
+      "description": "After Z, the representation rolls over to AA."
+    },
+    {
+      "input": "columnNumber = 28",
+      "output": "\"AB\"",
+      "description": "The second letter can advance after the first carry."
+    },
+    {
+      "input": "columnNumber = 52",
+      "output": "\"AZ\"",
+      "description": "A two-letter title can end with Z."
+    },
+    {
+      "input": "columnNumber = 53",
+      "output": "\"BA\"",
+      "description": "The next value after AZ carries into the first letter."
+    },
+    {
+      "input": "columnNumber = 701",
+      "output": "\"ZY\"",
+      "description": "Canonical large two-letter example."
+    },
+    {
+      "input": "columnNumber = 702",
+      "output": "\"ZZ\"",
+      "description": "Largest two-letter title before AAA."
+    },
+    {
+      "input": "columnNumber = 703",
+      "output": "\"AAA\"",
+      "description": "First three-letter title checks the no-zero carry."
+    },
+    {
+      "input": "columnNumber = 18278",
+      "output": "\"ZZZ\"",
+      "description": "Largest three-letter title before AAAA."
+    },
+    {
+      "input": "columnNumber = 18279",
+      "output": "\"AAAA\"",
+      "description": "First four-letter title catches repeated carries."
+    },
+    {
+      "input": "columnNumber = 2147483647",
+      "output": "\"FXSHRXW\"",
+      "description": "Maximum int input checks repeated high-order carries."
+    }
   ]
 }

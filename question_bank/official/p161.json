@@ -1,41 +1,143 @@
 {
   "id": "161",
   "title": "Longest Increasing Subsequence",
-  "description": "# Longest Increasing Subsequence\n\nGiven an integer array `nums`, return *the length of the longest **strictly increasing subsequence***.\n\n## Example 1:\n\n**Input:** nums = [10,9,2,5,3,7,101,18]\n**Output:** 4\n**Explanation:** The longest increasing subsequence is [2,3,7,101], therefore the length is 4.\n\n## Example 2:\n\n**Input:** nums = [0,1,0,3,2,3]\n**Output:** 4\n\n## Example 3:\n\n**Input:** nums = [7,7,7,7,7,7,7]\n**Output:** 1\n\n## Constraints:\n\n*   `1 <= nums.length <= 2500`\n*   `-10^4 <= nums[i] <= 10^4`",
+  "description": "# Longest Increasing Subsequence\n\nGiven an integer array `nums`, return the length of the longest **strictly increasing subsequence**.\n\nA subsequence is formed by deleting zero or more elements without changing the order of the remaining elements. The chosen numbers do not need to be contiguous, but every next chosen number must be larger than the previous chosen number.\n\n## Example 1:\n\n**Input:** nums = [10,9,2,5,3,7,101,18]\n**Output:** 4\n**Explanation:** One longest increasing subsequence is [2,3,7,101].\n\n## Example 2:\n\n**Input:** nums = [0,1,0,3,2,3]\n**Output:** 4\n**Explanation:** One valid subsequence is [0,1,2,3]. Equal values cannot extend a strictly increasing subsequence.\n\n## Example 3:\n\n**Input:** nums = [7,7,7,7,7,7,7]\n**Output:** 1\n\n## Constraints:\n\n* `1 <= nums.length <= 2500`\n* `-10^4 <= nums[i] <= 10^4`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int lengthOfLIS(int[] nums) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Binary Search", "Dynamic Programming"],
+  "tags": [
+    "Array",
+    "Binary Search",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "nums = [10,9,2,5,3,7,101,18]", "output": "4" },
-    { "input": "nums = [0,1,0,3,2,3]", "output": "4" },
-    { "input": "nums = [7,7,7,7,7,7,7]", "output": "1" }
+    {
+      "input": "nums = [10,9,2,5,3,7,101,18]",
+      "output": "4"
+    },
+    {
+      "input": "nums = [0,1,0,3,2,3]",
+      "output": "4"
+    },
+    {
+      "input": "nums = [7,7,7,7,7,7,7]",
+      "output": "1"
+    }
   ],
   "solutions": [
     {
-      "name": "Dynamic Programming",
-      "timeComplexity": "O(n²)",
+      "name": "Quadratic DP Ending at Each Index",
+      "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n)",
-      "description": "For each element, find the longest increasing subsequence ending at that element by checking all previous elements.",
-      "code": "class Solution {\n    public int lengthOfLIS(int[] nums) {\n        int n = nums.length;\n        int[] dp = new int[n];\n        java.util.Arrays.fill(dp, 1);\n        int max = 1;\n        for (int i = 1; i < n; i++) {\n            for (int j = 0; j < i; j++) {\n                if (nums[j] < nums[i]) {\n                    dp[i] = Math.max(dp[i], dp[j] + 1);\n                }\n            }\n            max = Math.max(max, dp[i]);\n        }\n        return max;\n    }\n}",
+      "description": "## Approach\nLet `dp[i]` be the length of the longest strictly increasing subsequence that must end at index `i`. For every earlier index `j`, if `nums[j] < nums[i]`, extend the best chain ending at `j` into `i`.\n\n## Key Insight\nThe state is tied to the final chosen element, not to a contiguous window. The answer is the maximum over all ending positions because the best subsequence may end anywhere in the array.\n\n## Complexity Analysis\nThe nested scan checks every ordered pair of indices, so the time complexity is O(n^2). The `dp` table stores one length per index, so the space complexity is O(n).",
+      "code": "class Solution {\n    public int lengthOfLIS(int[] nums) {\n        int n = nums.length;\n        int[] dp = new int[n];\n        java.util.Arrays.fill(dp, 1);\n        int best = 1;\n\n        for (int i = 0; i < n; i++) {\n            for (int j = 0; j < i; j++) {\n                if (nums[j] < nums[i]) {\n                    dp[i] = Math.max(dp[i], dp[j] + 1);\n                }\n            }\n            best = Math.max(best, dp[i]);\n        }\n        return best;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Binary Search (Patience Sorting)",
+      "name": "Patience Sorting Tails",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Maintain a tails array where tails[i] is the smallest tail element for an increasing subsequence of length i+1. Use binary search to find the position to update.",
-      "code": "class Solution {\n    public int lengthOfLIS(int[] nums) {\n        int[] tails = new int[nums.length];\n        int size = 0;\n        for (int num : nums) {\n            int lo = 0, hi = size;\n            while (lo < hi) {\n                int mid = lo + (hi - lo) / 2;\n                if (tails[mid] < num) lo = mid + 1;\n                else hi = mid;\n            }\n            tails[lo] = num;\n            if (lo == size) size++;\n        }\n        return size;\n    }\n}",
+      "description": "## Approach\nMaintain `tails[length - 1]` as the smallest possible tail value for any increasing subsequence of that length. For each number, binary search the first tail greater than or equal to it and replace that tail.\n\n## Key Insight\n`tails` is not necessarily one real subsequence; it is a set of best tail candidates. Replacing with the first value greater than or equal to the current number preserves strictness and keeps future extension options as small as possible.\n\n## Complexity Analysis\nEach of the n numbers performs one binary search over the current tail list, so the time complexity is O(n log n). The tail array can grow to length n, so the space complexity is O(n).",
+      "code": "class Solution {\n    public int lengthOfLIS(int[] nums) {\n        int[] tails = new int[nums.length];\n        int size = 0;\n\n        for (int num : nums) {\n            int lo = 0;\n            int hi = size;\n            while (lo < hi) {\n                int mid = lo + (hi - lo) / 2;\n                if (tails[mid] < num) {\n                    lo = mid + 1;\n                } else {\n                    hi = mid;\n                }\n            }\n            tails[lo] = num;\n            if (lo == size) {\n                size++;\n            }\n        }\n        return size;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Include-or-Skip Memoization",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\nUse recursion on the current index and the previously chosen index. At each position, either skip the current number or take it when it is larger than the previous chosen value, then memoize the best result for that state.\n\n## Key Insight\nThe brute-force subsequence search branches at every element, but the only information needed for the future is the current index and the previous chosen index. Memoization collapses repeated suffix decisions into O(n^2) states.\n\n## Complexity Analysis\nThere are O(n^2) `(index, previous)` states and each state does O(1) work besides recursive calls. The memo table also stores O(n^2) values.",
+      "code": "class Solution {\n    public int lengthOfLIS(int[] nums) {\n        int[][] memo = new int[nums.length][nums.length + 1];\n        return dfs(nums, 0, -1, memo);\n    }\n\n    private int dfs(int[] nums, int index, int previous, int[][] memo) {\n        if (index == nums.length) {\n            return 0;\n        }\n\n        int memoColumn = previous + 1;\n        if (memo[index][memoColumn] != 0) {\n            return memo[index][memoColumn];\n        }\n\n        int skip = dfs(nums, index + 1, previous, memo);\n        int take = 0;\n        if (previous == -1 || nums[previous] < nums[index]) {\n            take = 1 + dfs(nums, index + 1, index, memo);\n        }\n\n        memo[index][memoColumn] = Math.max(take, skip);\n        return memo[index][memoColumn];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Fenwick Tree with Coordinate Compression",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nSort and deduplicate the values to give each number a rank. A Fenwick tree stores the best LIS length for rank prefixes; for the current number, query ranks strictly smaller than its rank and then update its rank with the new length.\n\n## Key Insight\nStrictly increasing means equal values must not feed each other, so the query uses `rank - 1`. The Fenwick tree stores maximums rather than sums, turning value-order DP into prefix maximum queries.\n\n## Complexity Analysis\nCoordinate compression takes O(n log n), and each query/update takes O(log n). The compressed values and Fenwick tree use O(n) space.",
+      "code": "class Solution {\n    public int lengthOfLIS(int[] nums) {\n        int[] values = nums.clone();\n        java.util.Arrays.sort(values);\n        int size = 0;\n        for (int value : values) {\n            if (size == 0 || values[size - 1] != value) {\n                values[size++] = value;\n            }\n        }\n\n        Fenwick tree = new Fenwick(size);\n        int best = 0;\n        for (int num : nums) {\n            int rank = lowerBound(values, size, num) + 1;\n            int length = tree.query(rank - 1) + 1;\n            tree.update(rank, length);\n            best = Math.max(best, length);\n        }\n        return best;\n    }\n\n    private int lowerBound(int[] values, int size, int target) {\n        int lo = 0;\n        int hi = size;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (values[mid] < target) {\n                lo = mid + 1;\n            } else {\n                hi = mid;\n            }\n        }\n        return lo;\n    }\n\n    private static class Fenwick {\n        private final int[] tree;\n\n        Fenwick(int size) {\n            this.tree = new int[size + 1];\n        }\n\n        void update(int index, int value) {\n            while (index < tree.length) {\n                tree[index] = Math.max(tree[index], value);\n                index += index & -index;\n            }\n        }\n\n        int query(int index) {\n            int best = 0;\n            while (index > 0) {\n                best = Math.max(best, tree[index]);\n                index -= index & -index;\n            }\n            return best;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Segment Tree Range-Max DP",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nCompress values to ranks and keep a segment tree where each rank stores the best LIS length ending with that value. For each number, query the maximum over all smaller ranks, add one, and update the current rank.\n\n## Key Insight\nThe recurrence is `bestEndingAtValue = 1 + max(bestEndingAtSmallerValue)`. A segment tree makes that range maximum explicit and is easier to extend when the query range later becomes a custom interval.\n\n## Complexity Analysis\nSorting for compression costs O(n log n), and every range query and point update costs O(log n). The segment tree uses O(n) space after compression.",
+      "code": "class Solution {\n    public int lengthOfLIS(int[] nums) {\n        int[] values = nums.clone();\n        java.util.Arrays.sort(values);\n        int unique = 0;\n        for (int value : values) {\n            if (unique == 0 || values[unique - 1] != value) {\n                values[unique++] = value;\n            }\n        }\n\n        SegmentTree tree = new SegmentTree(unique);\n        int best = 0;\n        for (int num : nums) {\n            int rank = lowerBound(values, unique, num);\n            int length = tree.query(0, rank - 1) + 1;\n            tree.update(rank, length);\n            best = Math.max(best, length);\n        }\n        return best;\n    }\n\n    private int lowerBound(int[] values, int size, int target) {\n        int lo = 0;\n        int hi = size;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (values[mid] < target) {\n                lo = mid + 1;\n            } else {\n                hi = mid;\n            }\n        }\n        return lo;\n    }\n\n    private static class SegmentTree {\n        private final int size;\n        private final int[] tree;\n\n        SegmentTree(int count) {\n            int capacity = 1;\n            while (capacity < count) {\n                capacity <<= 1;\n            }\n            this.size = capacity;\n            this.tree = new int[size * 2];\n        }\n\n        void update(int index, int value) {\n            int position = index + size;\n            tree[position] = Math.max(tree[position], value);\n            position >>= 1;\n            while (position > 0) {\n                tree[position] = Math.max(tree[position << 1], tree[position << 1 | 1]);\n                position >>= 1;\n            }\n        }\n\n        int query(int left, int right) {\n            if (right < left) {\n                return 0;\n            }\n            left += size;\n            right += size;\n            int best = 0;\n            while (left <= right) {\n                if ((left & 1) == 1) {\n                    best = Math.max(best, tree[left++]);\n                }\n                if ((right & 1) == 0) {\n                    best = Math.max(best, tree[right--]);\n                }\n                left >>= 1;\n                right >>= 1;\n            }\n            return best;\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [10,9,2,5,3,7,101,18]", "output": "4" },
-    { "input": "nums = [0,1,0,3,2,3]", "output": "4" },
-    { "input": "nums = [7,7,7,7,7,7,7]", "output": "1" },
-    { "input": "nums = [1]", "output": "1" },
-    { "input": "nums = [5,4,3,2,1]", "output": "1" },
-    { "input": "nums = [1,2,3,4,5]", "output": "5" },
-    { "input": "nums = [1,3,6,7,9,4,10,5,6]", "output": "6" }
+    {
+      "input": "nums = [10,9,2,5,3,7,101,18]",
+      "output": "4",
+      "description": "Canonical mixed array where the longest increasing subsequence has length four."
+    },
+    {
+      "input": "nums = [0,1,0,3,2,3]",
+      "output": "4",
+      "description": "Repeated values and later growth verify that subsequences are not required to be contiguous."
+    },
+    {
+      "input": "nums = [7,7,7,7,7,7,7]",
+      "output": "1",
+      "description": "All values equal, so a strictly increasing subsequence can contain only one element."
+    },
+    {
+      "input": "nums = [1]",
+      "output": "1",
+      "description": "Single-element boundary has LIS length one."
+    },
+    {
+      "input": "nums = [5,4,3,2,1]",
+      "output": "1",
+      "description": "Strictly decreasing input cannot build any increasing chain longer than one."
+    },
+    {
+      "input": "nums = [1,2,3,4,5]",
+      "output": "5",
+      "description": "Strictly increasing input uses every element."
+    },
+    {
+      "input": "nums = [1,3,6,7,9,4,10,5,6]",
+      "output": "6",
+      "description": "Longer mixed sequence tests the patience-sorting tail replacement invariant."
+    },
+    {
+      "input": "nums = [4,10,4,3,8,9]",
+      "output": "3",
+      "description": "A later smaller value must replace a tail so that [3,8,9] can be found."
+    },
+    {
+      "input": "nums = [-2,-1]",
+      "output": "2",
+      "description": "Negative values still follow the same strict ordering rule."
+    },
+    {
+      "input": "nums = [-1,3,4,-2,0,6,2,3]",
+      "output": "4",
+      "description": "Coordinate compression routes must handle negative values and later low restarts."
+    },
+    {
+      "input": "nums = [2,2,2,2,3]",
+      "output": "2",
+      "description": "Equal values cannot chain, but a later larger value can extend one of them."
+    },
+    {
+      "input": "nums = [3,5,6,2,5,4,19,5,6,7,12]",
+      "output": "6",
+      "description": "A dense zigzag case checks that tails and range maximum structures keep the best future option."
+    },
+    {
+      "input": "nums = [1,3,5,4,7]",
+      "output": "4",
+      "description": "A local dip should replace a tail without losing the length-four answer."
+    }
   ],
-  "diagram": "images/p161_lis.png"
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p161_lis.png",
+      "alt": "An input array with one non-contiguous strictly increasing subsequence highlighted",
+      "caption": "Keep the original index order while choosing a strictly increasing chain; skipped values do not need to be adjacent"
+    }
+  ]
 }

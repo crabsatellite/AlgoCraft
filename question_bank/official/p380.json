@@ -1,34 +1,147 @@
 {
   "id": "380",
   "title": "Race Car",
-  "description": "# Race Car\n\nYour car starts at position `0` and speed `+1` on an infinite number line. Your car can go into negative positions. Your car drives automatically according to a sequence of instructions 'A' (accelerate) and 'R' (reverse):\n\n*   When you get an instruction 'A', your car does the following:\n    *   `position += speed`\n    *   `speed *= 2`\n*   When you get an instruction 'R', your car does the following:\n    *   If your speed is positive then `speed = -1`\n    *   otherwise `speed = 1`\n    *   Your position stays the same.\n\nFor example, after commands \"AAR\", your car goes to positions 0 -> 1 -> 3 -> 3, and your speed goes to 1 -> 2 -> 4 -> -1.\n\nGiven a target position `target`, return the length of the shortest sequence of instructions to get there.\n\n## Example 1:\n\n**Input:** target = 3\n**Output:** 2\n**Explanation:**\nThe shortest instruction sequence is \"AA\".\nYour position goes from 0 -> 1 -> 3.\n\n## Example 2:\n\n**Input:** target = 6\n**Output:** 5\n**Explanation:**\nThe shortest instruction sequence is \"AAARA\".\nYour position goes from 0 -> 1 -> 3 -> 7 -> 7 -> 6.\n\n## Constraints:\n\n*   `1 <= target <= 10000`",
+  "description": "# Race Car\n\nYour car starts at position `0` with speed `+1` on an infinite number line. The car may pass through negative positions. You may issue two kinds of instructions:\n\n* `A` means accelerate: `position += speed`, then `speed *= 2`.\n* `R` means reverse direction: if speed is positive, it becomes `-1`; otherwise it becomes `+1`. The position does not change.\n\nGiven a positive target position, return the minimum number of instructions needed to make the car stop on that target position after executing the instruction sequence.\n\n## Example 1\n\n**Input:** target = 3\n\n**Output:** 2\n\n**Explanation:** The sequence `AA` moves from `0 -> 1 -> 3`.\n\n## Example 2\n\n**Input:** target = 6\n\n**Output:** 5\n\n**Explanation:** One shortest sequence is `AAARA`: positions `0 -> 1 -> 3 -> 7 -> 7 -> 6`.\n\n## Constraints\n\n* `1 <= target <= 10000`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int racecar(int target) {\n        \n    }\n}",
-  "tags": ["Dynamic Programming", "Breadth-First Search"],
+  "initialCode": "class Solution {\n    public int racecar(int target) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Dynamic Programming",
+    "Breadth-First Search"
+  ],
   "examples": [
-    { "input": "target = 3", "output": "2" },
-    { "input": "target = 6", "output": "5" }
+    {
+      "input": "target = 3",
+      "output": "2"
+    },
+    {
+      "input": "target = 6",
+      "output": "5"
+    }
   ],
   "solutions": [
     {
-      "name": "Dynamic Programming",
-      "timeComplexity": "O(t * log t)",
-      "spaceComplexity": "O(t)",
-      "description": "dp[t] = min instructions to reach position t. If 2^k - 1 == t, answer is k. Otherwise, try overshooting (2^k - 1 > t, reverse, solve remaining) or undershooting (2^k - 1 < t, reverse, go back j steps, reverse, solve remaining).",
+      "name": "Bottom-Up Distance Dynamic Programming",
+      "timeComplexity": "O(target log target)",
+      "spaceComplexity": "O(target)",
+      "description": "## Approach\n\nBuild `dp[d]`, the minimum instruction count needed to reach distance `d` from rest with speed +1. For each distance, compare an exact all-accelerate run, one overshoot followed by reverse, and every undershoot-then-back-up split.\n\n## Key Insight\n\nAfter a run of k accelerations the car is at `2^k - 1`. Every optimal plan for a positive distance either reaches one of those perfect distances, overshoots once and solves the reflected remainder, or stops at the previous perfect distance and backs up before solving a smaller remainder.\n\n## Complexity Analysis\n- Time Complexity: O(target log target)\n- Space Complexity: O(target)",
       "code": "class Solution {\n    public int racecar(int target) {\n        int[] dp = new int[target + 1];\n        java.util.Arrays.fill(dp, Integer.MAX_VALUE);\n        for (int t = 1; t <= target; t++) {\n            int k = 0;\n            while ((1 << k) - 1 < t) k++;\n            int pos = (1 << k) - 1;\n            if (pos == t) { dp[t] = k; continue; }\n            dp[t] = k + 1 + dp[pos - t];\n            for (int j = 0; j < k - 1; j++) {\n                int pos2 = (1 << (k - 1)) - 1 - ((1 << j) - 1);\n                dp[t] = Math.min(dp[t], (k - 1) + 1 + j + 1 + dp[t - pos2]);\n            }\n        }\n        return dp[target];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "BFS on (Position, Speed) States",
-      "timeComplexity": "O(t * log t)",
-      "spaceComplexity": "O(t * log t)",
-      "description": "BFS where each state is (position, speed). From each state, try 'A' (position + speed, speed * 2) and 'R' (position, reverse speed). Prune states where position is too far from target. BFS guarantees shortest instruction sequence.",
+      "name": "Layered BFS on Position and Speed States",
+      "timeComplexity": "O(target log target)",
+      "spaceComplexity": "O(target log target)",
+      "description": "## Approach\n\nTreat `(position, speed)` as graph states and perform BFS. Each layer appends exactly one instruction, either `A` or `R`, while states far outside the useful target window are pruned.\n\n## Key Insight\n\nAll instructions have equal cost, so the first time BFS dequeues `position == target`, that layer number is the shortest instruction length.\n\n## Complexity Analysis\n- Time Complexity: O(target log target)\n- Space Complexity: O(target log target)",
       "code": "import java.util.*;\n\nclass Solution {\n    public int racecar(int target) {\n        Set<String> visited = new HashSet<>();\n        Queue<int[]> queue = new LinkedList<>();\n        queue.offer(new int[]{0, 1});\n        visited.add(\"0,1\");\n        int steps = 0;\n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            for (int i = 0; i < size; i++) {\n                int[] cur = queue.poll();\n                int pos = cur[0], speed = cur[1];\n                if (pos == target) return steps;\n                int newPos = pos + speed;\n                int newSpeed = speed * 2;\n                String key1 = newPos + \",\" + newSpeed;\n                if (newPos > 0 && newPos < 2 * target && !visited.contains(key1)) {\n                    visited.add(key1);\n                    queue.offer(new int[]{newPos, newSpeed});\n                }\n                int revSpeed = speed > 0 ? -1 : 1;\n                String key2 = pos + \",\" + revSpeed;\n                if (!visited.contains(key2)) {\n                    visited.add(key2);\n                    queue.offer(new int[]{pos, revSpeed});\n                }\n            }\n            steps++;\n        }\n        return -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Memoized Distance Recurrence",
+      "timeComplexity": "O(target log target)",
+      "spaceComplexity": "O(target)",
+      "description": "## Approach\n\nSolve only the requested distances recursively. For a distance, find the first all-accelerate run that passes it, then compare overshooting with all undershoot/backtrack choices.\n\n## Key Insight\n\nThe recursive subproblems are strictly smaller distances, and memoization makes each distance pay for its bit-length split choices once.\n\n## Complexity Analysis\n- Time Complexity: O(target log target)\n- Space Complexity: O(target)",
+      "code": "class Solution {\n    private int[] memo;\n\n    public int racecar(int target) {\n        memo = new int[target + 1];\n        return solve(target);\n    }\n\n    private int solve(int target) {\n        if (memo[target] != 0) {\n            return memo[target];\n        }\n\n        int forwardSteps = 32 - Integer.numberOfLeadingZeros(target);\n        int fullDistance = (1 << forwardSteps) - 1;\n        if (fullDistance == target) {\n            memo[target] = forwardSteps;\n            return forwardSteps;\n        }\n\n        int best = forwardSteps + 1 + solve(fullDistance - target);\n        int beforeTargetSteps = forwardSteps - 1;\n        int beforeTargetDistance = (1 << beforeTargetSteps) - 1;\n        for (int reverseSteps = 0; reverseSteps < beforeTargetSteps; reverseSteps++) {\n            int reverseDistance = (1 << reverseSteps) - 1;\n            int remaining = target - (beforeTargetDistance - reverseDistance);\n            best = Math.min(best, beforeTargetSteps + 1 + reverseSteps + 1 + solve(remaining));\n        }\n\n        memo[target] = best;\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Uniform-Cost Priority Search over States",
+      "timeComplexity": "O(target log target log target)",
+      "spaceComplexity": "O(target log target)",
+      "description": "## Approach\n\nRun Dijkstra-style uniform-cost search on the same implicit `(position, speed)` graph. Each edge has cost one, and the priority queue always settles the currently shortest instruction count first.\n\n## Key Insight\n\nThis is a shortest-path framing of Race Car. It is more general than BFS and makes the optimality proof explicit through settled states with nondecreasing path length.\n\n## Complexity Analysis\n- Time Complexity: O(target log target log target)\n- Space Complexity: O(target log target)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int racecar(int target) {\n        int limit = target * 2 + 4;\n        PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(state -> state[2]));\n        Set<Long> settled = new HashSet<>();\n        pq.offer(new int[]{0, 1, 0});\n\n        while (!pq.isEmpty()) {\n            int[] state = pq.poll();\n            int position = state[0];\n            int speed = state[1];\n            int steps = state[2];\n            long key = encode(position, speed, limit);\n            if (!settled.add(key)) {\n                continue;\n            }\n            if (position == target) {\n                return steps;\n            }\n\n            int acceleratedPosition = position + speed;\n            int acceleratedSpeed = speed * 2;\n            if (acceleratedPosition > -limit && acceleratedPosition < limit) {\n                pq.offer(new int[]{acceleratedPosition, acceleratedSpeed, steps + 1});\n            }\n\n            int reversedSpeed = speed > 0 ? -1 : 1;\n            pq.offer(new int[]{position, reversedSpeed, steps + 1});\n        }\n        return -1;\n    }\n\n    private long encode(int position, int speed, int limit) {\n        return (((long) position + limit) << 32) ^ (speed & 0xffffffffL);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Packed-State Bounded BFS",
+      "timeComplexity": "O(target log target)",
+      "spaceComplexity": "O(target log target)",
+      "description": "## Approach\n\nUse the BFS graph model, but encode each `(position, speed)` pair into one `long` key and allow a symmetric bounded window around zero. This keeps the proof of BFS while reducing state-management overhead.\n\n## Key Insight\n\nThe optimal path never needs to wander far past twice the target magnitude; within that bounded graph, packed visited keys prevent revisiting equivalent states.\n\n## Complexity Analysis\n- Time Complexity: O(target log target)\n- Space Complexity: O(target log target)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int racecar(int target) {\n        int limit = target * 2 + 4;\n        ArrayDeque<int[]> queue = new ArrayDeque<>();\n        Set<Long> visited = new HashSet<>();\n        queue.offer(new int[]{0, 1});\n        visited.add(encode(0, 1, limit));\n        int instructions = 0;\n\n        while (!queue.isEmpty()) {\n            for (int size = queue.size(); size > 0; size--) {\n                int[] state = queue.poll();\n                int position = state[0];\n                int speed = state[1];\n                if (position == target) {\n                    return instructions;\n                }\n\n                int nextPosition = position + speed;\n                int nextSpeed = speed * 2;\n                if (nextPosition > -limit && nextPosition < limit) {\n                    long acceleratedKey = encode(nextPosition, nextSpeed, limit);\n                    if (visited.add(acceleratedKey)) {\n                        queue.offer(new int[]{nextPosition, nextSpeed});\n                    }\n                }\n\n                int reverseSpeed = speed > 0 ? -1 : 1;\n                long reverseKey = encode(position, reverseSpeed, limit);\n                if (visited.add(reverseKey)) {\n                    queue.offer(new int[]{position, reverseSpeed});\n                }\n            }\n            instructions++;\n        }\n        return -1;\n    }\n\n    private long encode(int position, int speed, int limit) {\n        return (((long) position + limit) << 32) ^ (speed & 0xffffffffL);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "target = 3", "output": "2" },
-    { "input": "target = 6", "output": "5" }
+    {
+      "input": "target = 3",
+      "output": "2",
+      "description": "sample exact two accelerations"
+    },
+    {
+      "input": "target = 6",
+      "output": "5",
+      "description": "sample overshoots and reverses"
+    },
+    {
+      "input": "target = 1",
+      "output": "1",
+      "description": "single accelerate command"
+    },
+    {
+      "input": "target = 2",
+      "output": "4",
+      "description": "must pass the target and reverse"
+    },
+    {
+      "input": "target = 4",
+      "output": "5",
+      "description": "undershoot before the next perfect distance"
+    },
+    {
+      "input": "target = 5",
+      "output": "7",
+      "description": "undershoot and backtrack split"
+    },
+    {
+      "input": "target = 7",
+      "output": "3",
+      "description": "perfect distance 2^3 - 1"
+    },
+    {
+      "input": "target = 8",
+      "output": "6",
+      "description": "just after a perfect distance"
+    },
+    {
+      "input": "target = 9",
+      "output": "8",
+      "description": "larger target exercises DP split"
+    },
+    {
+      "input": "target = 10",
+      "output": "7",
+      "description": "shorter overshoot correction beats naive search"
+    },
+    {
+      "input": "target = 15",
+      "output": "4",
+      "description": "perfect distance 2^4 - 1"
+    },
+    {
+      "input": "target = 16",
+      "output": "7",
+      "description": "one beyond a perfect distance"
+    },
+    {
+      "input": "target = 31",
+      "output": "5",
+      "description": "larger perfect distance"
+    },
+    {
+      "input": "target = 32",
+      "output": "8",
+      "description": "larger one-beyond-perfect target"
+    },
+    {
+      "input": "target = 100",
+      "output": "19",
+      "description": "medium target with multiple split choices"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "aaara-example",
+      "file": "p380_race_car.png",
+      "caption": "Example path for target 6 using AAARA."
+    }
   ]
 }

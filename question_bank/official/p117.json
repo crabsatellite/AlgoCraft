@@ -1,10 +1,14 @@
 {
   "id": "117",
   "title": "Combination Sum",
-  "description": "# Combination Sum\n\nGiven an array of **distinct** integers `candidates` and a target integer `target`, return *a list of all **unique combinations** of* `candidates` *where the chosen numbers sum to* `target`. You may return the combinations in **any order**.\n\nThe **same** number may be chosen from `candidates` an **unlimited number of times**. Two combinations are unique if the frequency of at least one of the chosen numbers is different.\n\nThe test cases are generated such that the number of unique combinations that sum up to `target` is less than `150` combinations for the given input.\n\n## Example 1:\n\n**Input:** candidates = [2,3,6,7], target = 7\n**Output:** [[2,2,3],[7]]\n**Explanation:**\n2 and 3 are candidates, and 2 + 2 + 3 = 7. Note that 2 can be used multiple times.\n7 is a candidate, and 7 = 7.\nThese are the only two combinations.\n\n## Example 2:\n\n**Input:** candidates = [2,3,5], target = 8\n**Output:** [[2,2,2,2],[2,3,3],[3,5]]\n\n## Example 3:\n\n**Input:** candidates = [2], target = 1\n**Output:** []\n\n## Constraints:\n\n*   `1 <= candidates.length <= 30`\n*   `2 <= candidates[i] <= 40`\n*   All elements of `candidates` are **distinct**.\n*   `1 <= target <= 40`",
+  "description": "# Combination Sum\n\nGiven an array of **distinct** positive integers `candidates` and a target integer `target`, return all **unique combinations** of `candidates` whose chosen numbers sum to exactly `target`.\n\nEach candidate number may be chosen an unlimited number of times. A combination is defined by the frequency of each chosen value, not by the order in which the values are listed. You may return the combinations in any order, and the values inside each combination may also be returned in any order. The examples list combinations in nondecreasing order only for readability.\n\nThe test cases are generated so that the number of unique valid combinations is less than `150` for every input.\n\n## Example 1:\n\n**Input:** candidates = [2,3,6,7], target = 7\n**Output:** [[2,2,3],[7]]\n**Explanation:** `2 + 2 + 3 = 7`, and `7 = 7`. These are the only valid combinations.\n\n## Example 2:\n\n**Input:** candidates = [2,3,5], target = 8\n**Output:** [[2,2,2,2],[2,3,3],[3,5]]\n**Explanation:** Candidates can be reused, so four copies of `2` are allowed.\n\n## Example 3:\n\n**Input:** candidates = [2], target = 1\n**Output:** []\n**Explanation:** No positive number from `candidates` can sum to `1`.\n\n## Constraints:\n\n*   `1 <= candidates.length <= 30`\n*   `2 <= candidates[i] <= 40`\n*   All elements of `candidates` are **distinct**.\n*   `1 <= target <= 40`",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public List<List<Integer>> combinationSum(int[] candidates, int target) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["Array", "Backtracking"],
+  "initialCode": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> combinationSum(int[] candidates, int target) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
+  "tags": [
+    "Array",
+    "Backtracking",
+    "Dynamic Programming"
+  ],
   "examples": [
     {
       "input": "candidates = [2,3,6,7], target = 7",
@@ -14,40 +18,105 @@
       "input": "candidates = [2,3,5], target = 8",
       "output": "[[2,2,2,2],[2,3,3],[3,5]]"
     },
-    { "input": "candidates = [2], target = 1", "output": "[]" }
+    {
+      "input": "candidates = [2], target = 1",
+      "output": "[]"
+    }
   ],
   "solutions": [
     {
-      "name": "Backtracking",
-      "timeComplexity": "O(n^(T/M)) where T=target, M=min candidate",
-      "spaceComplexity": "O(T/M)",
-      "description": "Sort candidates. DFS from each index, subtracting from target. Since elements can be reused, recurse from the same index. Prune when target < 0.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> combinationSum(int[] candidates, int target) {\n        List<List<Integer>> result = new ArrayList<>();\n        Arrays.sort(candidates);\n        backtrack(candidates, target, 0, new ArrayList<>(), result);\n        return result;\n    }\n\n    private void backtrack(int[] candidates, int remain, int start, List<Integer> path, List<List<Integer>> result) {\n        if (remain == 0) {\n            result.add(new ArrayList<>(path));\n            return;\n        }\n        for (int i = start; i < candidates.length; i++) {\n            if (candidates[i] > remain) break;\n            path.add(candidates[i]);\n            backtrack(candidates, remain - candidates[i], i, path, result);\n            path.remove(path.size() - 1);\n        }\n    }\n}",
+      "name": "Sorted Start-Index Backtracking",
+      "timeComplexity": "O(C * L), where C is the number of generated combinations and L is the maximum combination length",
+      "spaceComplexity": "O(L) excluding the returned answer",
+      "description": "## Approach\n\nSort the candidates, keep a path, and recurse from a `start` index. When a candidate is chosen, the recursive call keeps the same index because that value may be reused. If the remaining sum reaches zero, copy the path into the answer.\n\n## Key Insight\n\nThe `start` index is what prevents duplicate permutations: after choosing a value, later choices can only use that value again or move to larger candidate indices. Sorting also lets the loop stop as soon as `candidates[i] > remain`.\n\n## Complexity Analysis\n- Time Complexity: O(C * L), where C is the number of valid and partial combinations explored and L is at most target divided by the smallest candidate\n- Space Complexity: O(L) for the recursion path, excluding the returned answer",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> combinationSum(int[] candidates, int target) {\n        Arrays.sort(candidates);\n        List<List<Integer>> answer = new ArrayList<>();\n        backtrack(candidates, target, 0, new ArrayList<>(), answer);\n        return answer;\n    }\n\n    private void backtrack(int[] candidates, int remain, int start,\n                           List<Integer> path, List<List<Integer>> answer) {\n        if (remain == 0) {\n            answer.add(new ArrayList<>(path));\n            return;\n        }\n        for (int i = start; i < candidates.length; i++) {\n            if (candidates[i] > remain) {\n                break;\n            }\n            path.add(candidates[i]);\n            backtrack(candidates, remain - candidates[i], i, path, answer);\n            path.remove(path.size() - 1);\n        }\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Bottom-Up DP",
-      "timeComplexity": "O(n * target)",
-      "spaceComplexity": "O(target * C) where C = number of combinations",
-      "description": "Use dynamic programming where dp[t] stores all combinations that sum to t. For each candidate and each reachable sum, extend existing combinations. Build from amount 0 up to target.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> combinationSum(int[] candidates, int target) {\n        Arrays.sort(candidates);\n        List<List<List<Integer>>> dp = new ArrayList<>();\n        for (int i = 0; i <= target; i++) {\n            dp.add(new ArrayList<>());\n        }\n        dp.get(0).add(new ArrayList<>());\n        \n        for (int cand : candidates) {\n            for (int t = cand; t <= target; t++) {\n                List<List<Integer>> combsForRemainder = dp.get(t - cand);\n                for (List<Integer> combo : combsForRemainder) {\n                    if (!combo.isEmpty() && combo.get(combo.size() - 1) > cand) continue;\n                    List<Integer> newCombo = new ArrayList<>(combo);\n                    newCombo.add(cand);\n                    dp.get(t).add(newCombo);\n                }\n            }\n        }\n        return dp.get(target);\n    }\n}",
+      "name": "Include-or-Skip Recursion",
+      "timeComplexity": "O(C * L), where C is the number of generated search states and L is the maximum combination length",
+      "spaceComplexity": "O(L + n) for the recursion depth",
+      "description": "## Approach\n\nSort the candidates and view each recursive state as a choice about one index: either include the current candidate again, or skip it and move to the next index. Including subtracts the value but keeps the same index; skipping advances the index.\n\n## Key Insight\n\nThis makes the unbounded nature explicit. Reusing a number is not a loop trick; it is the include branch staying on the same candidate until the remaining target can no longer support it.\n\n## Complexity Analysis\n- Time Complexity: O(C * L), proportional to the generated recursion tree and the cost of copying valid paths\n- Space Complexity: O(L + n), because a path can hold L values and the skip chain can visit n candidate indices",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> combinationSum(int[] candidates, int target) {\n        Arrays.sort(candidates);\n        List<List<Integer>> answer = new ArrayList<>();\n        dfs(candidates, 0, target, new ArrayList<>(), answer);\n        return answer;\n    }\n\n    private void dfs(int[] candidates, int index, int remain,\n                     List<Integer> path, List<List<Integer>> answer) {\n        if (remain == 0) {\n            answer.add(new ArrayList<>(path));\n            return;\n        }\n        if (index == candidates.length || candidates[index] > remain) {\n            return;\n        }\n\n        path.add(candidates[index]);\n        dfs(candidates, index, remain - candidates[index], path, answer);\n        path.remove(path.size() - 1);\n\n        dfs(candidates, index + 1, remain, path, answer);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bottom-Up Combination DP",
+      "timeComplexity": "O(n * target * C), where C is the number of stored partial combinations",
+      "spaceComplexity": "O(target * C)",
+      "description": "## Approach\n\nLet `dp[t]` hold every nondecreasing combination that sums to `t`. Start with one empty combination for sum zero. For each candidate, extend smaller sums to larger sums, appending the same candidate as many times as needed.\n\n## Key Insight\n\nProcessing candidates in sorted outer-loop order is the duplicate guard. It allows unbounded reuse while preventing `[2,3,3]` and `[3,2,3]` from being stored as separate answers.\n\n## Complexity Analysis\n- Time Complexity: O(n * target * C), because every candidate may extend many stored combinations across all sums\n- Space Complexity: O(target * C), dominated by all partial combinations kept in the DP table",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> combinationSum(int[] candidates, int target) {\n        Arrays.sort(candidates);\n        List<List<List<Integer>>> dp = new ArrayList<>();\n        for (int sum = 0; sum <= target; sum++) {\n            dp.add(new ArrayList<>());\n        }\n        dp.get(0).add(new ArrayList<>());\n\n        for (int candidate : candidates) {\n            for (int sum = candidate; sum <= target; sum++) {\n                for (List<Integer> previous : dp.get(sum - candidate)) {\n                    if (!previous.isEmpty() && previous.get(previous.size() - 1) > candidate) {\n                        continue;\n                    }\n                    List<Integer> next = new ArrayList<>(previous);\n                    next.add(candidate);\n                    dp.get(sum).add(next);\n                }\n            }\n        }\n        return dp.get(target);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Explicit Queue Search",
+      "timeComplexity": "O(S * L), where S is the number of generated partial states",
+      "spaceComplexity": "O(S * L)",
+      "description": "## Approach\n\nRepresent each unfinished combination as a queue state containing the next allowed candidate index, the remaining sum, and the current path. Poll a state, expand all legal candidates at or after its start index, and enqueue the resulting states.\n\n## Key Insight\n\nThis is the same search tree as recursive backtracking, but storing states explicitly makes the traversal order and state definition visible. It is useful for teaching that DFS and BFS differ in control flow, not in the underlying combination rules.\n\n## Complexity Analysis\n- Time Complexity: O(S * L), where S is the number of partial states generated and L is the cost of copying a path\n- Space Complexity: O(S * L), because the queue may store many copied partial paths",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static class State {\n        int start;\n        int remain;\n        List<Integer> path;\n\n        State(int start, int remain, List<Integer> path) {\n            this.start = start;\n            this.remain = remain;\n            this.path = path;\n        }\n    }\n\n    public List<List<Integer>> combinationSum(int[] candidates, int target) {\n        Arrays.sort(candidates);\n        List<List<Integer>> answer = new ArrayList<>();\n        Queue<State> queue = new ArrayDeque<>();\n        queue.offer(new State(0, target, new ArrayList<>()));\n\n        while (!queue.isEmpty()) {\n            State state = queue.poll();\n            if (state.remain == 0) {\n                answer.add(state.path);\n                continue;\n            }\n            for (int i = state.start; i < candidates.length; i++) {\n                if (candidates[i] > state.remain) {\n                    break;\n                }\n                List<Integer> nextPath = new ArrayList<>(state.path);\n                nextPath.add(candidates[i]);\n                queue.offer(new State(i, state.remain - candidates[i], nextPath));\n            }\n        }\n        return answer;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "candidates = [2,3,6,7], target = 7",
-      "output": "[[2,2,3],[7]]"
+      "output": "[[2,2,3],[7]]",
+      "description": "Canonical unlimited-use case with one repeated-candidate combination and one direct candidate."
     },
     {
       "input": "candidates = [2,3,5], target = 8",
-      "output": "[[2,2,2,2],[2,3,3],[3,5]]"
+      "output": "[[2,2,2,2],[2,3,3],[3,5]]",
+      "description": "Multiple answers require different reuse counts."
     },
-    { "input": "candidates = [2], target = 1", "output": "[]" },
-    { "input": "candidates = [5], target = 5", "output": "[[5]]" },
+    {
+      "input": "candidates = [2], target = 1",
+      "output": "[]",
+      "description": "Target smaller than the only candidate has no solution."
+    },
+    {
+      "input": "candidates = [5], target = 5",
+      "output": "[[5]]",
+      "description": "Single candidate exactly equal to target."
+    },
     {
       "input": "candidates = [2,3,4], target = 6",
-      "output": "[[2,2,2],[2,4],[3,3]]"
+      "output": "[[2,2,2],[2,4],[3,3]]",
+      "description": "Dense small target with several unique multisets."
+    },
+    {
+      "input": "candidates = [7,3,2], target = 18",
+      "output": "[[2,2,2,2,2,2,2,2,2],[2,2,2,2,2,2,3,3],[2,2,2,3,3,3,3],[3,3,3,3,3,3],[2,2,2,2,3,7],[2,3,3,3,7],[2,2,7,7]]",
+      "description": "Unsorted candidates with many valid counts catches ordering and reuse mistakes."
+    },
+    {
+      "input": "candidates = [8,3,4], target = 11",
+      "output": "[[3,4,4],[3,8]]",
+      "description": "Unsorted candidates where one answer reuses a middle value and another uses a large value."
+    },
+    {
+      "input": "candidates = [4,6], target = 5",
+      "output": "[]",
+      "description": "No combination exists even though all candidates are close to the target."
+    },
+    {
+      "input": "candidates = [6,2,5], target = 10",
+      "output": "[[2,2,2,2,2],[2,2,6],[5,5]]",
+      "description": "Catches implementations that accidentally treat each candidate as usable only once."
+    },
+    {
+      "input": "candidates = [9,4,2], target = 16",
+      "output": "[[2,2,2,2,2,2,2,2],[2,2,2,2,2,2,4],[2,2,2,2,4,4],[2,2,4,4,4],[4,4,4,4]]",
+      "description": "Many combinations use only a subset of the candidates."
+    },
+    {
+      "input": "candidates = [40,20,10], target = 40",
+      "output": "[[10,10,10,10],[10,10,20],[20,20],[40]]",
+      "description": "Boundary value candidate with several exact decompositions."
+    },
+    {
+      "input": "candidates = [3,5,7], target = 2",
+      "output": "[]",
+      "description": "Target below every candidate must return an empty answer."
     }
   ]
 }

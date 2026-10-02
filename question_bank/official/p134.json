@@ -1,7 +1,7 @@
 {
   "id": "134",
   "title": "Surrounded Regions",
-  "description": "# Surrounded Regions\n\nGiven an `m x n` matrix `board` containing `'X'` and `'O'`, *capture all regions that are 4-directionally surrounded by* `'X'`.\n\nA region is **captured** by flipping all `'O'`s into `'X'`s in that surrounded region.\n\n## Example 1:\n\n**Input:** board = [[\"X\",\"X\",\"X\",\"X\"],[\"X\",\"O\",\"O\",\"X\"],[\"X\",\"X\",\"O\",\"X\"],[\"X\",\"O\",\"X\",\"X\"]]\n**Output:** [[\"X\",\"X\",\"X\",\"X\"],[\"X\",\"X\",\"X\",\"X\"],[\"X\",\"X\",\"X\",\"X\"],[\"X\",\"O\",\"X\",\"X\"]]\n**Explanation:** Notice that an 'O' should not be flipped if:\n- It is on the border, or\n- It is adjacent to an 'O' that should not be flipped.\nThe bottom 'O' is on the border, so it is not flipped. The other three 'O' form a surrounded region, so they are flipped.\n\n## Example 2:\n\n**Input:** board = [[\"X\"]]\n**Output:** [[\"X\"]]\n\n## Constraints:\n\n*   `m == board.length`\n*   `n == board[i].length`\n*   `1 <= m, n <= 200`\n*   `board[i][j]` is `'X'` or `'O'`.",
+  "description": "# Surrounded Regions\n\nGiven an `m x n` matrix `board` containing `'X'` and `'O'`, capture every region of `'O'` cells that is 4-directionally surrounded by `'X'`.\n\nA region is captured by flipping all of its `'O'` cells into `'X'`. An `'O'` must stay unchanged if it is on the border, or if it is 4-directionally connected to an `'O'` on the border. Diagonal contact does not connect regions.\n\nModify `board` in-place and do not return anything.\n\n## Example 1:\n\n**Input:** board = [[\"X\",\"X\",\"X\",\"X\"],[\"X\",\"O\",\"O\",\"X\"],[\"X\",\"X\",\"O\",\"X\"],[\"X\",\"O\",\"X\",\"X\"]]\n**Output:** [[\"X\",\"X\",\"X\",\"X\"],[\"X\",\"X\",\"X\",\"X\"],[\"X\",\"X\",\"X\",\"X\"],[\"X\",\"O\",\"X\",\"X\"]]\n**Explanation:** The bottom `'O'` is on the border, so it is safe. The other three `'O'` cells form one enclosed 4-directional component and are flipped.\n\n## Example 2:\n\n**Input:** board = [[\"X\"]]\n**Output:** [[\"X\"]]\n\n## Constraints:\n\n*   `m == board.length`\n*   `n == board[i].length`\n*   `1 <= m, n <= 200`\n*   `board[i][j]` is `'X'` or `'O'`.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public void solve(char[][] board) {\n        // Write your code here\n    }\n}",
   "tags": [
@@ -23,42 +23,90 @@
   ],
   "solutions": [
     {
-      "name": "DFS from Border",
+      "name": "Border DFS Marking",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "DFS from all border 'O' cells, marking them as safe (e.g., '#'). Then iterate: convert remaining 'O' to 'X' (captured), convert '#' back to 'O' (safe).",
-      "code": "class Solution {\n    public void solve(char[][] board) {\n        int m = board.length, n = board[0].length;\n        for (int i = 0; i < m; i++) {\n            if (board[i][0] == 'O') dfs(board, i, 0);\n            if (board[i][n - 1] == 'O') dfs(board, i, n - 1);\n        }\n        for (int j = 0; j < n; j++) {\n            if (board[0][j] == 'O') dfs(board, 0, j);\n            if (board[m - 1][j] == 'O') dfs(board, m - 1, j);\n        }\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++) {\n                if (board[i][j] == 'O') board[i][j] = 'X';\n                else if (board[i][j] == '#') board[i][j] = 'O';\n            }\n    }\n\n    private void dfs(char[][] board, int i, int j) {\n        if (i < 0 || i >= board.length || j < 0 || j >= board[0].length || board[i][j] != 'O') return;\n        board[i][j] = '#';\n        dfs(board, i + 1, j);\n        dfs(board, i - 1, j);\n        dfs(board, i, j + 1);\n        dfs(board, i, j - 1);\n    }\n}",
+      "description": "## Approach\n\nOnly border-connected `'O'` cells are safe. Start a depth-first search from every border position, temporarily mark every reachable `'O'` as safe, then scan the whole board: remaining `'O'` cells are enclosed and become `'X'`, while safe marks are restored to `'O'`.\n\n## Key Insight\n\nIt is easier to prove which cells must survive than to directly search for surrounded regions. Any captured region cannot touch the border through 4-directional moves.\n\n## Complexity Analysis\n\nEach cell is visited a constant number of times. The time complexity is `O(m * n)`, and the recursion stack can use `O(m * n)` space in the worst case.",
+      "code": "class Solution {\n    public void solve(char[][] board) {\n        int rows = board.length;\n        int cols = board[0].length;\n\n        for (int r = 0; r < rows; r++) {\n            markBorder(board, r, 0);\n            markBorder(board, r, cols - 1);\n        }\n        for (int c = 0; c < cols; c++) {\n            markBorder(board, 0, c);\n            markBorder(board, rows - 1, c);\n        }\n\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                if (board[r][c] == 'O') {\n                    board[r][c] = 'X';\n                } else if (board[r][c] == '#') {\n                    board[r][c] = 'O';\n                }\n            }\n        }\n    }\n\n    private void markBorder(char[][] board, int row, int col) {\n        if (row < 0 || row >= board.length || col < 0 || col >= board[0].length || board[row][col] != 'O') {\n            return;\n        }\n        board[row][col] = '#';\n        markBorder(board, row + 1, col);\n        markBorder(board, row - 1, col);\n        markBorder(board, row, col + 1);\n        markBorder(board, row, col - 1);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "BFS from Border",
+      "name": "Border BFS Marking",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "BFS from all border 'O' cells, marking them as safe '#'. Then iterate: convert remaining 'O' to 'X' (captured), convert '#' back to 'O' (safe).",
-      "code": "import java.util.*;\n\nclass Solution {\n    public void solve(char[][] board) {\n        int m = board.length, n = board[0].length;\n        Queue<int[]> queue = new LinkedList<>();\n        for (int i = 0; i < m; i++) {\n            if (board[i][0] == 'O') { board[i][0] = '#'; queue.offer(new int[]{i, 0}); }\n            if (board[i][n - 1] == 'O') { board[i][n - 1] = '#'; queue.offer(new int[]{i, n - 1}); }\n        }\n        for (int j = 1; j < n - 1; j++) {\n            if (board[0][j] == 'O') { board[0][j] = '#'; queue.offer(new int[]{0, j}); }\n            if (board[m - 1][j] == 'O') { board[m - 1][j] = '#'; queue.offer(new int[]{m - 1, j}); }\n        }\n        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        while (!queue.isEmpty()) {\n            int[] cell = queue.poll();\n            for (int[] d : dirs) {\n                int ni = cell[0] + d[0], nj = cell[1] + d[1];\n                if (ni >= 0 && ni < m && nj >= 0 && nj < n && board[ni][nj] == 'O') {\n                    board[ni][nj] = '#';\n                    queue.offer(new int[]{ni, nj});\n                }\n            }\n        }\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++) {\n                if (board[i][j] == 'O') board[i][j] = 'X';\n                else if (board[i][j] == '#') board[i][j] = 'O';\n            }\n    }\n}",
+      "description": "## Approach\n\nPut every border `'O'` into a queue and mark it as safe immediately. Breadth-first search then expands through 4-directional `'O'` neighbors. After the queue is empty, flip unmarked `'O'` cells and restore safe marks.\n\n## Key Insight\n\nThis is the same border-safety idea as depth-first search, but the explicit queue avoids deep recursion on large boards and makes the frontier of safe cells visible.\n\n## Complexity Analysis\n\nEvery cell can enter the queue at most once. The time complexity is `O(m * n)`, and the queue can hold `O(m * n)` cells.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public void solve(char[][] board) {\n        int rows = board.length;\n        int cols = board[0].length;\n        Queue<int[]> queue = new ArrayDeque<>();\n\n        for (int r = 0; r < rows; r++) {\n            enqueueIfOpen(board, queue, r, 0);\n            enqueueIfOpen(board, queue, r, cols - 1);\n        }\n        for (int c = 0; c < cols; c++) {\n            enqueueIfOpen(board, queue, 0, c);\n            enqueueIfOpen(board, queue, rows - 1, c);\n        }\n\n        while (!queue.isEmpty()) {\n            int[] cell = queue.poll();\n            for (int[] direction : DIRECTIONS) {\n                int nextRow = cell[0] + direction[0];\n                int nextCol = cell[1] + direction[1];\n                if (nextRow >= 0 && nextRow < rows && nextCol >= 0 && nextCol < cols\n                        && board[nextRow][nextCol] == 'O') {\n                    board[nextRow][nextCol] = '#';\n                    queue.offer(new int[]{nextRow, nextCol});\n                }\n            }\n        }\n\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                if (board[r][c] == 'O') {\n                    board[r][c] = 'X';\n                } else if (board[r][c] == '#') {\n                    board[r][c] = 'O';\n                }\n            }\n        }\n    }\n\n    private void enqueueIfOpen(char[][] board, Queue<int[]> queue, int row, int col) {\n        if (board[row][col] == 'O') {\n            board[row][col] = '#';\n            queue.offer(new int[]{row, col});\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Union-Find with Border Sentinel",
+      "timeComplexity": "O(m * n * alpha(mn))",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nTreat every `'O'` cell as a node in a disjoint-set structure. Union adjacent `'O'` cells, and union every border `'O'` with one sentinel node. In the final scan, flip any `'O'` whose component is not connected to the sentinel.\n\n## Key Insight\n\nThe sentinel turns \"can this component reach the border\" into a constant-time connectivity query after all unions have been built.\n\n## Complexity Analysis\n\nThe board is scanned a constant number of times. With path compression, the time complexity is `O(m * n * alpha(mn))`, and the disjoint-set arrays use `O(m * n)` space.",
+      "code": "class Solution {\n    public void solve(char[][] board) {\n        int rows = board.length;\n        int cols = board[0].length;\n        int sentinel = rows * cols;\n        UnionFind uf = new UnionFind(sentinel + 1);\n        int[][] directions = {{1, 0}, {0, 1}};\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (board[row][col] != 'O') {\n                    continue;\n                }\n                int id = row * cols + col;\n                if (row == 0 || col == 0 || row == rows - 1 || col == cols - 1) {\n                    uf.union(id, sentinel);\n                }\n                for (int[] direction : directions) {\n                    int nextRow = row + direction[0];\n                    int nextCol = col + direction[1];\n                    if (nextRow < rows && nextCol < cols && board[nextRow][nextCol] == 'O') {\n                        uf.union(id, nextRow * cols + nextCol);\n                    }\n                }\n            }\n        }\n\n        int safe = uf.find(sentinel);\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (board[row][col] == 'O' && uf.find(row * cols + col) != safe) {\n                    board[row][col] = 'X';\n                }\n            }\n        }\n    }\n\n    static class UnionFind {\n        int[] parent;\n        int[] rank;\n\n        UnionFind(int n) {\n            parent = new int[n];\n            rank = new int[n];\n            for (int i = 0; i < n; i++) {\n                parent[i] = i;\n            }\n        }\n\n        int find(int x) {\n            if (parent[x] != x) {\n                parent[x] = find(parent[x]);\n            }\n            return parent[x];\n        }\n\n        void union(int a, int b) {\n            int rootA = find(a);\n            int rootB = find(b);\n            if (rootA == rootB) {\n                return;\n            }\n            if (rank[rootA] < rank[rootB]) {\n                parent[rootA] = rootB;\n            } else if (rank[rootA] > rank[rootB]) {\n                parent[rootB] = rootA;\n            } else {\n                parent[rootB] = rootA;\n                rank[rootA]++;\n            }\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Component BFS with Border Flag",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nScan the board and start a breadth-first search from each unvisited `'O'`. Collect every cell in that component and record whether the component touches the border. After the component is known, flip it only when it never touched the border.\n\n## Key Insight\n\nThis route classifies whole components directly. It is useful for teaching because the flip decision is delayed until the complete region has been inspected.\n\n## Complexity Analysis\n\nEach `'O'` cell is visited once, so the time complexity is `O(m * n)`. The visited array, queue, and current component list can use `O(m * n)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public void solve(char[][] board) {\n        int rows = board.length;\n        int cols = board[0].length;\n        boolean[][] visited = new boolean[rows][cols];\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (board[row][col] == 'O' && !visited[row][col]) {\n                    scanComponent(board, visited, row, col);\n                }\n            }\n        }\n    }\n\n    private void scanComponent(char[][] board, boolean[][] visited, int startRow, int startCol) {\n        int rows = board.length;\n        int cols = board[0].length;\n        Queue<int[]> queue = new ArrayDeque<>();\n        List<int[]> component = new ArrayList<>();\n        boolean touchesBorder = false;\n\n        visited[startRow][startCol] = true;\n        queue.offer(new int[]{startRow, startCol});\n\n        while (!queue.isEmpty()) {\n            int[] cell = queue.poll();\n            component.add(cell);\n            int row = cell[0];\n            int col = cell[1];\n            if (row == 0 || col == 0 || row == rows - 1 || col == cols - 1) {\n                touchesBorder = true;\n            }\n            for (int[] direction : DIRECTIONS) {\n                int nextRow = row + direction[0];\n                int nextCol = col + direction[1];\n                if (nextRow >= 0 && nextRow < rows && nextCol >= 0 && nextCol < cols\n                        && board[nextRow][nextCol] == 'O' && !visited[nextRow][nextCol]) {\n                    visited[nextRow][nextCol] = true;\n                    queue.offer(new int[]{nextRow, nextCol});\n                }\n            }\n        }\n\n        if (!touchesBorder) {\n            for (int[] cell : component) {\n                board[cell[0]][cell[1]] = 'X';\n            }\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "board = [[\"X\",\"X\",\"X\",\"X\"],[\"X\",\"O\",\"O\",\"X\"],[\"X\",\"X\",\"O\",\"X\"],[\"X\",\"O\",\"X\",\"X\"]]",
-      "output": "[[\"X\",\"X\",\"X\",\"X\"],[\"X\",\"X\",\"X\",\"X\"],[\"X\",\"X\",\"X\",\"X\"],[\"X\",\"O\",\"X\",\"X\"]]"
+      "output": "[[\"X\",\"X\",\"X\",\"X\"],[\"X\",\"X\",\"X\",\"X\"],[\"X\",\"X\",\"X\",\"X\"],[\"X\",\"O\",\"X\",\"X\"]]",
+      "description": "Canonical board where only border-connected O cells survive."
     },
     {
       "input": "board = [[\"X\"]]",
-      "output": "[[\"X\"]]"
+      "output": "[[\"X\"]]",
+      "description": "Single X cell remains unchanged."
     },
     {
       "input": "board = [[\"O\",\"O\"],[\"O\",\"O\"]]",
-      "output": "[[\"O\",\"O\"],[\"O\",\"O\"]]"
+      "output": "[[\"O\",\"O\"],[\"O\",\"O\"]]",
+      "description": "All O cells touch the border and must remain O."
     },
-    { "input": "board = [[\"O\"]]", "output": "[[\"O\"]]" }
+    {
+      "input": "board = [[\"O\"]]",
+      "output": "[[\"O\"]]",
+      "description": "Single O cell is border-connected and remains O."
+    },
+    {
+      "input": "board = [[\"X\",\"O\",\"O\",\"X\"]]",
+      "output": "[[\"X\",\"O\",\"O\",\"X\"]]",
+      "description": "A single-row board has no enclosed cells because every cell is on the border."
+    },
+    {
+      "input": "board = [[\"X\"],[\"O\"],[\"O\"],[\"X\"]]",
+      "output": "[[\"X\"],[\"O\"],[\"O\"],[\"X\"]]",
+      "description": "A single-column board has no enclosed cells because every cell is on the border."
+    },
+    {
+      "input": "board = [[\"X\",\"X\",\"X\"],[\"X\",\"O\",\"X\"],[\"X\",\"X\",\"X\"]]",
+      "output": "[[\"X\",\"X\",\"X\"],[\"X\",\"X\",\"X\"],[\"X\",\"X\",\"X\"]]",
+      "description": "An interior O fully surrounded by X is captured."
+    },
+    {
+      "input": "board = [[\"O\",\"X\",\"X\"],[\"X\",\"O\",\"X\"],[\"X\",\"X\",\"O\"]]",
+      "output": "[[\"O\",\"X\",\"X\"],[\"X\",\"X\",\"X\"],[\"X\",\"X\",\"O\"]]",
+      "description": "Diagonal contact with border O cells does not make the center O safe."
+    },
+    {
+      "input": "board = [[\"X\",\"O\",\"X\",\"X\",\"X\"],[\"X\",\"O\",\"X\",\"O\",\"X\"],[\"X\",\"X\",\"X\",\"O\",\"X\"],[\"X\",\"O\",\"O\",\"O\",\"X\"],[\"X\",\"X\",\"X\",\"X\",\"X\"]]",
+      "output": "[[\"X\",\"O\",\"X\",\"X\",\"X\"],[\"X\",\"O\",\"X\",\"X\",\"X\"],[\"X\",\"X\",\"X\",\"X\",\"X\"],[\"X\",\"X\",\"X\",\"X\",\"X\"],[\"X\",\"X\",\"X\",\"X\",\"X\"]]",
+      "description": "A border-connected vertical path survives while a separate interior component is captured."
+    }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p134_example1.png",
-      "caption": "Example 1"
+      "caption": "Board with border-connected and enclosed O cells"
     }
   ]
 }

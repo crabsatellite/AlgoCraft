@@ -1,34 +1,126 @@
 {
   "id": "368",
   "title": "Arithmetic Slices II - Subsequence",
-  "description": "# Arithmetic Slices II - Subsequence\n\nGiven an integer array `nums`, return *the number of all the **arithmetic subsequences** of* `nums`.\n\nA sequence of numbers is called arithmetic if it consists of at least three elements and if the difference between any two consecutive elements is the same.\n\n*   For example, `[1, 3, 5, 7, 9]`, `[7, 7, 7, 7]`, and `[3, -1, -5, -9]` are arithmetic sequences.\n*   For example, `[1, 1, 2, 5, 7]` is not an arithmetic sequence.\n\nA **subsequence** of an array is a new array that is formed from the original array by deleting some (possibly none) of the elements without disturbing the relative positions of the remaining elements.\n\n*   For example, `[2,5,10]` is a subsequence of `[1,2,1,2,4,1,5,10]`.\n\nThe test cases are generated so that the answer fits in 32-bit integer.\n\n## Example 1:\n\n**Input:** nums = [2,4,6,8,10]\n**Output:** 7\n**Explanation:** All arithmetic subsequence slices are:\n[2,4,6]\n[4,6,8]\n[6,8,10]\n[2,4,6,8]\n[4,6,8,10]\n[2,4,6,8,10]\n[2,6,10]\n\n## Example 2:\n\n**Input:** nums = [7,7,7,7,7]\n**Output:** 16\n**Explanation:** Any subsequence of this array is arithmetic.\n\n## Constraints:\n\n*   `1  <= nums.length <= 1000`\n*   `-2^31 <= nums[i] <= 2^31 - 1`",
+  "description": "# Arithmetic Slices II - Subsequence\n\nGiven an integer array `nums`, return the number of arithmetic subsequences in `nums`.\n\nAn arithmetic subsequence must satisfy all of the following:\n\n* it uses at least three elements;\n* it keeps the original relative order of the chosen elements;\n* the difference between every two consecutive chosen elements is the same.\n\nThe subsequence does not need to be contiguous. For example, `[2, 6, 10]` is a subsequence of `[2, 4, 6, 8, 10]` and is arithmetic with difference `4`.\n\nCount choices of indices separately, even when they produce equal values. The final answer fits in a signed 32-bit integer.\n\n## Example 1:\n\n**Input:** nums = [2,4,6,8,10]\n**Output:** 7\n**Explanation:** The arithmetic subsequences are `[2,4,6]`, `[4,6,8]`, `[6,8,10]`, `[2,4,6,8]`, `[4,6,8,10]`, `[2,4,6,8,10]`, and `[2,6,10]`.\n\n## Example 2:\n\n**Input:** nums = [7,7,7,7,7]\n**Output:** 16\n**Explanation:** Every subsequence with length at least 3 is arithmetic.\n\n## Constraints:\n\n*   `1 <= nums.length <= 1000`\n*   `-2^31 <= nums[i] <= 2^31 - 1`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int numberOfArithmeticSlices(int[] nums) {\n        \n    }\n}",
-  "tags": ["Array", "Dynamic Programming"],
-  "examples": [
-    { "input": "nums = [2,4,6,8,10]", "output": "7" },
-    { "input": "nums = [7,7,7,7,7]", "output": "16" }
+  "initialCode": "class Solution {\n    public int numberOfArithmeticSlices(int[] nums) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Dynamic Programming",
+    "Hash Table"
   ],
-  "solutions": [
+  "examples": [
     {
-      "name": "DP with HashMap per Index",
-      "timeComplexity": "O(n^2)",
-      "spaceComplexity": "O(n^2)",
-      "description": "For each index i, maintain a map from common difference to the count of weak arithmetic subsequences (length >= 2) ending at i. For each pair (j, i), diff = nums[i] - nums[j], dp[i][diff] += dp[j][diff] + 1. The +1 accounts for the pair (j,i). Add dp[j][diff] to result (those become length >= 3).",
-      "code": "class Solution {\n    public int numberOfArithmeticSlices(int[] nums) {\n        int n = nums.length, result = 0;\n        java.util.Map<Long, Integer>[] dp = new java.util.HashMap[n];\n        for (int i = 0; i < n; i++) {\n            dp[i] = new java.util.HashMap<>();\n            for (int j = 0; j < i; j++) {\n                long diff = (long) nums[i] - nums[j];\n                int countJ = dp[j].getOrDefault(diff, 0);\n                int countI = dp[i].getOrDefault(diff, 0);\n                result += countJ;\n                dp[i].put(diff, countI + countJ + 1);\n            }\n        }\n        return result;\n    }\n}",
-      "language": "java"
+      "input": "nums = [2,4,6,8,10]",
+      "output": "7"
     },
     {
-      "name": "DP with Array of Maps (Long Key)",
-      "timeComplexity": "O(n^2)",
-      "spaceComplexity": "O(n^2)",
-      "description": "Same DP approach but uses an explicit long difference to handle integer overflow. For each pair (j, i), compute diff as a long. Track counts of weak arithmetic subsequences ending at each index with each difference. Accumulate the answer from completed subsequences.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int numberOfArithmeticSlices(int[] nums) {\n        int n = nums.length;\n        int total = 0;\n        HashMap<Long, Integer>[] dp = new HashMap[n];\n        for (int i = 0; i < n; i++) {\n            dp[i] = new HashMap<>();\n            for (int j = 0; j < i; j++) {\n                long diff = (long) nums[i] - (long) nums[j];\n                int prev = dp[j].containsKey(diff) ? dp[j].get(diff) : 0;\n                int cur = dp[i].containsKey(diff) ? dp[i].get(diff) : 0;\n                total += prev;\n                dp[i].put(diff, cur + prev + 1);\n            }\n        }\n        return total;\n    }\n}",
-      "language": "java"
+      "input": "nums = [7,7,7,7,7]",
+      "output": "16"
     }
   ],
   "tests": [
-    { "input": "nums = [2,4,6,8,10]", "output": "7" },
-    { "input": "nums = [7,7,7,7,7]", "output": "16" }
+    {
+      "input": "nums = [2,4,6,8,10]",
+      "output": "7",
+      "description": "canonical sample with multiple differences"
+    },
+    {
+      "input": "nums = [7,7,7,7,7]",
+      "output": "16",
+      "description": "all equal values produce every length-at-least-three subsequence"
+    },
+    {
+      "input": "nums = [1,2,3,4]",
+      "output": "3",
+      "description": "short increasing run"
+    },
+    {
+      "input": "nums = [1,1,1,1]",
+      "output": "5",
+      "description": "zero-difference combinations for four equal values"
+    },
+    {
+      "input": "nums = [1,3,5]",
+      "output": "1",
+      "description": "minimum length arithmetic subsequence"
+    },
+    {
+      "input": "nums = [1,5,9,13]",
+      "output": "3",
+      "description": "four-term progression contributes triples and quadruple"
+    },
+    {
+      "input": "nums = [0,1,2,2,3,4]",
+      "output": "14",
+      "description": "duplicate middle value creates overlapping subsequence choices"
+    },
+    {
+      "input": "nums = [1,2,4,8,16]",
+      "output": "0",
+      "description": "geometric growth has no arithmetic subsequence of length three"
+    },
+    {
+      "input": "nums = [-1,-3,-5,-7]",
+      "output": "3",
+      "description": "negative common difference"
+    },
+    {
+      "input": "nums = [2147483647,0,-2147483647]",
+      "output": "1",
+      "description": "difference requires long arithmetic to avoid int overflow"
+    },
+    {
+      "input": "nums = [0,0,0,0,0,0]",
+      "output": "42",
+      "description": "dense zero-difference combination count"
+    },
+    {
+      "input": "nums = [1,2,3,4,5,6]",
+      "output": "12",
+      "description": "several differences share the same array"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Per-Index Difference Map DP",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nFor each index `i`, keep a map from difference `d` to the number of weak arithmetic subsequences of length at least two that end at `i` with difference `d`. For every pair `(j, i)`, the pair itself creates one new weak subsequence, and every weak subsequence ending at `j` with the same difference becomes a valid length-at-least-three subsequence when `nums[i]` is appended.\n\n## Key Insight\n\nCounting length-at-least-two sequences avoids special-casing triples. `dp[j][d]` is exactly the number of sequences that become complete answers after adding `nums[i]`, while `dp[j][d] + 1` is added into `dp[i][d]` for future extensions.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(n^2)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int numberOfArithmeticSlices(int[] nums) {\n        int n = nums.length;\n        Map<Long, Integer>[] dp = new HashMap[n];\n        int answer = 0;\n        for (int i = 0; i < n; i++) {\n            dp[i] = new HashMap<>();\n            for (int j = 0; j < i; j++) {\n                long diff = (long) nums[i] - (long) nums[j];\n                int extend = dp[j].getOrDefault(diff, 0);\n                int current = dp[i].getOrDefault(diff, 0);\n                answer += extend;\n                dp[i].put(diff, current + extend + 1);\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Global Difference Bucket DP",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nGroup all index pairs by their `long` difference first. Then solve each difference independently. Inside one difference bucket, process pairs in increasing right endpoint order and maintain how many weak subsequences with that difference currently end at each index.\n\n## Key Insight\n\nThe standard recurrence does not actually require all differences to be mixed together. For a fixed difference, a pair `(j, i)` completes exactly the weak subsequences already ending at `j`, then creates the same number plus the pair itself as weak subsequences ending at `i`.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(n^2)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int numberOfArithmeticSlices(int[] nums) {\n        int n = nums.length;\n        Map<Long, List<int[]>> pairsByDiff = new HashMap<>();\n        for (int i = 0; i < n; i++) {\n            for (int j = 0; j < i; j++) {\n                long diff = (long) nums[i] - (long) nums[j];\n                pairsByDiff.computeIfAbsent(diff, key -> new ArrayList<>()).add(new int[] {j, i});\n            }\n        }\n        long answer = 0;\n        for (List<int[]> pairs : pairsByDiff.values()) {\n            long[] weakEndingAt = new long[n];\n            for (int[] pair : pairs) {\n                int j = pair[0], i = pair[1];\n                long completed = weakEndingAt[j];\n                answer += completed;\n                weakEndingAt[i] += completed + 1;\n            }\n        }\n        return (int) answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Coordinate-Compressed Difference Arrays",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nPrecompute the distinct incoming differences for each endpoint `i`, assign each such difference a compact slot, and store counts in integer arrays instead of hash maps during the recurrence. The recurrence is the same as the per-index map solution, but the storage shape is explicit and dense per endpoint.\n\n## Key Insight\n\nThis version separates key discovery from dynamic programming. It is useful when teaching that the state space is bounded by the `O(n^2)` index pairs, even though the numerical difference values can be huge and sparse.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(n^2)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int numberOfArithmeticSlices(int[] nums) {\n        int n = nums.length;\n        Map<Long, Integer>[] ids = new HashMap[n];\n        long[][] counts = new long[n][];\n        for (int i = 0; i < n; i++) {\n            ids[i] = new HashMap<>();\n            for (int j = 0; j < i; j++) {\n                long diff = (long) nums[i] - (long) nums[j];\n                ids[i].putIfAbsent(diff, ids[i].size());\n            }\n            counts[i] = new long[ids[i].size()];\n        }\n        long answer = 0;\n        for (int i = 0; i < n; i++) {\n            for (int j = 0; j < i; j++) {\n                long diff = (long) nums[i] - (long) nums[j];\n                Integer previousSlot = ids[j].get(diff);\n                long extend = previousSlot == null ? 0 : counts[j][previousSlot];\n                int slot = ids[i].get(diff);\n                answer += extend;\n                counts[i][slot] += extend + 1;\n            }\n        }\n        return (int) answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Last-Two-Index Bottom-Up DP",
+      "timeComplexity": "O(n^3)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nLet `dp[j][i]` be the number of arithmetic subsequences of length at least three whose last two indices are `j` and `i`. For each possible predecessor `k < j` with `nums[k], nums[j], nums[i]` forming one arithmetic step, add `dp[k][j] + 1` into `dp[j][i]`.\n\n## Key Insight\n\nThis state says exactly what the last two chosen elements are, so the transition is easy to reason about: every valid predecessor creates a new triple, and every longer sequence ending at `(k, j)` can be extended by `i`. It is slower, but it is a clear bridge to the optimized difference-map recurrence.\n\n## Complexity Analysis\n- Time Complexity: O(n^3)\n- Space Complexity: O(n^2)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int numberOfArithmeticSlices(int[] nums) {\n        int n = nums.length;\n        Map<Long, List<Integer>> indicesByValue = new HashMap<>();\n        for (int i = 0; i < n; i++) {\n            indicesByValue.computeIfAbsent((long) nums[i], key -> new ArrayList<>()).add(i);\n        }\n        long[][] dp = new long[n][n];\n        long answer = 0;\n        for (int i = 0; i < n; i++) {\n            for (int j = 0; j < i; j++) {\n                long previousValue = 2L * nums[j] - (long) nums[i];\n                List<Integer> candidates = indicesByValue.get(previousValue);\n                if (candidates == null) continue;\n                for (int k : candidates) {\n                    if (k >= j) break;\n                    dp[j][i] += dp[k][j] + 1;\n                }\n                answer += dp[j][i];\n            }\n        }\n        return (int) answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Memoized Forward Pair Extension",
+      "timeComplexity": "O(n^3)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nTreat every ordered pair `(i, j)` as the first two elements of a potential arithmetic subsequence. Recursively count all later indices that can continue the same difference. Choosing a next index contributes one completed subsequence immediately, plus all longer continuations from that next pair.\n\n## Key Insight\n\nThis top-down direction mirrors the definition of subsequence extension. Memoizing by `(lastIndex, difference)` prevents recomputing the same suffix extension tree for every earlier start pair.\n\n## Complexity Analysis\n- Time Complexity: O(n^3)\n- Space Complexity: O(n^2)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int numberOfArithmeticSlices(int[] nums) {\n        Map<Long, List<Integer>> positions = new HashMap<>();\n        for (int i = 0; i < nums.length; i++) {\n            positions.computeIfAbsent((long) nums[i], key -> new ArrayList<>()).add(i);\n        }\n        Map<String, Integer> memo = new HashMap<>();\n        int answer = 0;\n        for (int i = 0; i < nums.length; i++) {\n            for (int j = i + 1; j < nums.length; j++) {\n                long diff = (long) nums[j] - (long) nums[i];\n                answer += countAfter(j, diff, nums, positions, memo);\n            }\n        }\n        return answer;\n    }\n\n    private int countAfter(int last, long diff, int[] nums, Map<Long, List<Integer>> positions, Map<String, Integer> memo) {\n        String key = last + \"#\" + diff;\n        Integer cached = memo.get(key);\n        if (cached != null) return cached;\n        long nextValue = (long) nums[last] + diff;\n        List<Integer> nextIndices = positions.get(nextValue);\n        int total = 0;\n        if (nextIndices != null) {\n            for (int next : nextIndices) {\n                if (next > last) {\n                    total += 1 + countAfter(next, diff, nums, positions, memo);\n                }\n            }\n        }\n        memo.put(key, total);\n        return total;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

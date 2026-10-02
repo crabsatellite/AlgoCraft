@@ -1,49 +1,108 @@
 {
   "id": "131",
   "title": "Walls and Gates",
-  "description": "# Walls and Gates\n\nYou are given an `m x n` grid `rooms` initialized with these three possible values.\n\n*   `-1` A wall or an obstacle.\n*   `0` A gate.\n*   `INF` Infinity means an empty room. We use the value `2^31 - 1 = 2147483647` to represent `INF` as you may assume that the distance to a gate is less than `2147483647`.\n\nFill each empty room with the distance to its nearest gate. If it is impossible to reach a gate, it should be filled with `INF`.\n\n## Example 1:\n\n**Input:** rooms = [[2147483647,-1,0,2147483647],[2147483647,2147483647,2147483647,-1],[2147483647,-1,2147483647,-1],[0,-1,2147483647,2147483647]]\n**Output:** [[3,-1,0,1],[2,2,1,-1],[1,-1,2,-1],[0,-1,3,4]]\n\n## Example 2:\n\n**Input:** rooms = [[-1]]\n**Output:** [[-1]]\n\n## Constraints:\n\n*   `m == rooms.length`\n*   `n == rooms[i].length`\n*   `1 <= m, n <= 250`\n*   `rooms[i][j]` is `-1`, `0`, or `2^31 - 1`.",
+  "description": "# Walls and Gates\n\nYou are given an `m x n` grid `rooms`. Each cell contains one of three values:\n\n* `-1`: a wall or obstacle that cannot be crossed.\n* `0`: a gate.\n* `2147483647`: an empty room. This value represents `INF`, and you may assume every reachable shortest distance is smaller than it.\n\nUpdate the grid in place so that every empty room stores the distance to its nearest gate. Movement is allowed only in the four cardinal directions. Walls stay `-1`, gates stay `0`, and any empty room that cannot reach a gate must remain `INF`.\n\nDistance counts moves: one step moves to one side-adjacent cell.\n\n## Example 1\n\n**Input:** `rooms = [[2147483647,-1,0,2147483647],[2147483647,2147483647,2147483647,-1],[2147483647,-1,2147483647,-1],[0,-1,2147483647,2147483647]]`\n\n**Output:** `[[3,-1,0,1],[2,2,1,-1],[1,-1,2,-1],[0,-1,3,4]]`\n\n**Explanation:** The room at the top-left corner is closer to the lower-left gate than to the upper gate, so it becomes `3`. Walls block paths and unreachable rooms would stay `INF`.\n\n## Example 2\n\n**Input:** `rooms = [[-1]]`\n\n**Output:** `[[-1]]`\n\n**Explanation:** A wall is not changed.\n\n## Constraints\n\n* `m == rooms.length`.\n* `n == rooms[i].length`.\n* `1 <= m, n <= 250`.\n* `rooms[i][j]` is `-1`, `0`, or `2147483647`.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public void wallsAndGates(int[][] rooms) {\n        // Write your code here\n    }\n}",
-  "tags": ["Array", "Breadth-First Search", "Matrix"],
+  "tags": [
+    "Array",
+    "Breadth-First Search",
+    "Depth-First Search",
+    "Shortest Path",
+    "Heap (Priority Queue)",
+    "Matrix"
+  ],
   "examples": [
     {
       "input": "rooms = [[2147483647,-1,0,2147483647],[2147483647,2147483647,2147483647,-1],[2147483647,-1,2147483647,-1],[0,-1,2147483647,2147483647]]",
       "output": "[[3,-1,0,1],[2,2,1,-1],[1,-1,2,-1],[0,-1,3,4]]"
     },
-    { "input": "rooms = [[-1]]", "output": "[[-1]]" }
+    {
+      "input": "rooms = [[-1]]",
+      "output": "[[-1]]"
+    }
   ],
   "solutions": [
     {
-      "name": "Multi-Source BFS",
+      "name": "Multi-Source BFS from All Gates",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "Add all gate cells to a queue. BFS outward, updating empty rooms with distance. Each cell is visited at most once, guaranteeing shortest distance.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public void wallsAndGates(int[][] rooms) {\n        int m = rooms.length, n = rooms[0].length;\n        Queue<int[]> queue = new LinkedList<>();\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++)\n                if (rooms[i][j] == 0) queue.offer(new int[]{i, j});\n        int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};\n        while (!queue.isEmpty()) {\n            int[] cell = queue.poll();\n            for (int[] d : dirs) {\n                int ni = cell[0] + d[0], nj = cell[1] + d[1];\n                if (ni >= 0 && ni < m && nj >= 0 && nj < n && rooms[ni][nj] == Integer.MAX_VALUE) {\n                    rooms[ni][nj] = rooms[cell[0]][cell[1]] + 1;\n                    queue.offer(new int[]{ni, nj});\n                }\n            }\n        }\n    }\n}",
+      "description": "## Approach\nPut every gate into one queue before the traversal starts. Then perform BFS through empty rooms. When the wave reaches an `INF` room, write the current cell's distance plus one and enqueue that room.\n\n## Key Insight\nAll gates are distance-zero sources. BFS expands by increasing distance, so the first time an empty room is written is already the shortest distance to any gate. This is why the search should start from gates rather than running a separate search from each room.\n\n## Complexity Analysis\nEach cell is enqueued at most once, and each cell checks four neighbors. The time complexity is `O(m * n)`, and the queue can hold `O(m * n)` cells.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int INF = 2147483647;\n    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public void wallsAndGates(int[][] rooms) {\n        int rows = rooms.length;\n        int cols = rooms[0].length;\n        Queue<int[]> queue = new ArrayDeque<>();\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (rooms[row][col] == 0) {\n                    queue.offer(new int[]{row, col});\n                }\n            }\n        }\n\n        while (!queue.isEmpty()) {\n            int[] cell = queue.poll();\n            for (int[] direction : DIRECTIONS) {\n                int nextRow = cell[0] + direction[0];\n                int nextCol = cell[1] + direction[1];\n                if (nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols) {\n                    continue;\n                }\n                if (rooms[nextRow][nextCol] != INF) {\n                    continue;\n                }\n                rooms[nextRow][nextCol] = rooms[cell[0]][cell[1]] + 1;\n                queue.offer(new int[]{nextRow, nextCol});\n            }\n        }\n    }\n}",
       "language": "java"
     },
     {
-      "name": "DFS from Gates",
-      "timeComplexity": "O(m * n)",
+      "name": "DFS Distance Relaxation from Gates",
+      "timeComplexity": "O(m * n * g) in the worst case, where g is the number of gates",
       "spaceComplexity": "O(m * n)",
-      "description": "DFS from each gate cell. At each cell, if the current distance is less than the stored value, update and recurse to neighbors with distance+1. Naturally prunes when distance is not an improvement.",
-      "code": "class Solution {\n    public void wallsAndGates(int[][] rooms) {\n        int m = rooms.length, n = rooms[0].length;\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (rooms[i][j] == 0) {\n                    dfs(rooms, i, j, 0);\n                }\n            }\n        }\n    }\n\n    private void dfs(int[][] rooms, int i, int j, int dist) {\n        if (i < 0 || i >= rooms.length || j < 0 || j >= rooms[0].length) return;\n        if (rooms[i][j] < dist) return;\n        rooms[i][j] = dist;\n        dfs(rooms, i + 1, j, dist + 1);\n        dfs(rooms, i - 1, j, dist + 1);\n        dfs(rooms, i, j + 1, dist + 1);\n        dfs(rooms, i, j - 1, dist + 1);\n    }\n}",
+      "description": "## Approach\nStart a DFS from each gate and carry the distance from that gate. A recursive call writes a cell only if the new distance is not worse than the value already stored there, then tries to relax its four neighbors.\n\n## Key Insight\nThis is not the preferred shortest-path implementation, but it teaches the relaxation invariant directly: a cell should be explored only when the path just found improves its current distance. Without that pruning, cycles and multiple gates create large amounts of repeated work.\n\n## Complexity Analysis\nA cell can be relaxed more than once when a better gate path is discovered later, so the worst case is higher than BFS. The recursion stack can grow to `O(m * n)`.",
+      "code": "class Solution {\n    public void wallsAndGates(int[][] rooms) {\n        int rows = rooms.length;\n        int cols = rooms[0].length;\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (rooms[row][col] == 0) {\n                    relax(rooms, row, col, 0);\n                }\n            }\n        }\n    }\n\n    private void relax(int[][] rooms, int row, int col, int distance) {\n        if (row < 0 || row >= rooms.length || col < 0 || col >= rooms[0].length) {\n            return;\n        }\n        if (rooms[row][col] < distance) {\n            return;\n        }\n        rooms[row][col] = distance;\n        relax(rooms, row + 1, col, distance + 1);\n        relax(rooms, row - 1, col, distance + 1);\n        relax(rooms, row, col + 1, distance + 1);\n        relax(rooms, row, col - 1, distance + 1);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Multi-Source Dijkstra",
+      "timeComplexity": "O(m * n * log(m * n))",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\nTreat gates as zero-distance starting nodes in a priority queue. Pop the smallest known distance, ignore stale entries, and relax neighboring `INF` rooms with distance plus one.\n\n## Key Insight\nFor this problem all edges have equal weight, so BFS is faster and simpler. Dijkstra is still a correct general shortest-path model: it becomes useful if movement costs are no longer uniform. Including it clarifies why BFS is the specialized optimal version here.\n\n## Complexity Analysis\nEach reachable room can enter the heap when its best distance is found. Heap operations cost `O(log(m * n))`, so the total time is `O(m * n * log(m * n))`, with `O(m * n)` heap space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int INF = 2147483647;\n    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public void wallsAndGates(int[][] rooms) {\n        int rows = rooms.length;\n        int cols = rooms[0].length;\n        PriorityQueue<int[]> heap = new PriorityQueue<>(Comparator.comparingInt(cell -> cell[2]));\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (rooms[row][col] == 0) {\n                    heap.offer(new int[]{row, col, 0});\n                }\n            }\n        }\n\n        while (!heap.isEmpty()) {\n            int[] cell = heap.poll();\n            int row = cell[0];\n            int col = cell[1];\n            int distance = cell[2];\n            if (distance != rooms[row][col]) {\n                continue;\n            }\n            for (int[] direction : DIRECTIONS) {\n                int nextRow = row + direction[0];\n                int nextCol = col + direction[1];\n                if (nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols) {\n                    continue;\n                }\n                if (rooms[nextRow][nextCol] != INF) {\n                    continue;\n                }\n                int nextDistance = distance + 1;\n                rooms[nextRow][nextCol] = nextDistance;\n                heap.offer(new int[]{nextRow, nextCol, nextDistance});\n            }\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Repeated Grid Relaxation",
+      "timeComplexity": "O(m * n * D), where D is the maximum shortest distance",
+      "spaceComplexity": "O(1) extra space",
+      "description": "## Approach\nRepeatedly scan the whole grid. For every empty room, look at neighboring cells that already have finite distances and try to improve the room with neighbor distance plus one. Stop when a full pass makes no changes.\n\n## Key Insight\nThis is the grid version of Bellman-Ford relaxation. It is slower than BFS, but it makes the shortest-distance invariant visible: distances spread through local improvements until no room can be improved.\n\n## Complexity Analysis\nOne pass costs `O(m * n)`, and the number of useful passes is bounded by the largest shortest distance `D`. It uses only constant extra space beyond the input grid.",
+      "code": "class Solution {\n    private static final int INF = 2147483647;\n    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public void wallsAndGates(int[][] rooms) {\n        int rows = rooms.length;\n        int cols = rooms[0].length;\n        boolean changed = true;\n\n        while (changed) {\n            changed = false;\n            for (int row = 0; row < rows; row++) {\n                for (int col = 0; col < cols; col++) {\n                    if (rooms[row][col] == -1 || rooms[row][col] == 0) {\n                        continue;\n                    }\n                    int best = rooms[row][col];\n                    for (int[] direction : DIRECTIONS) {\n                        int nextRow = row + direction[0];\n                        int nextCol = col + direction[1];\n                        if (nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols) {\n                            continue;\n                        }\n                        if (rooms[nextRow][nextCol] == -1 || rooms[nextRow][nextCol] == INF) {\n                            continue;\n                        }\n                        best = Math.min(best, rooms[nextRow][nextCol] + 1);\n                    }\n                    if (best < rooms[row][col]) {\n                        rooms[row][col] = best;\n                        changed = true;\n                    }\n                }\n            }\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "rooms = [[2147483647,-1,0,2147483647],[2147483647,2147483647,2147483647,-1],[2147483647,-1,2147483647,-1],[0,-1,2147483647,2147483647]]",
-      "output": "[[3,-1,0,1],[2,2,1,-1],[1,-1,2,-1],[0,-1,3,4]]"
+      "output": "[[3,-1,0,1],[2,2,1,-1],[1,-1,2,-1],[0,-1,3,4]]",
+      "description": "Canonical grid with multiple gates, walls, and different nearest-gate choices."
     },
-    { "input": "rooms = [[-1]]", "output": "[[-1]]" },
-    { "input": "rooms = [[0,0],[0,0]]", "output": "[[0,0],[0,0]]" },
-    { "input": "rooms = [[2147483647]]", "output": "[[2147483647]]" }
+    {
+      "input": "rooms = [[-1]]",
+      "output": "[[-1]]",
+      "description": "Single wall cell remains unchanged."
+    },
+    {
+      "input": "rooms = [[0,0],[0,0]]",
+      "output": "[[0,0],[0,0]]",
+      "description": "All gates remain distance zero."
+    },
+    {
+      "input": "rooms = [[2147483647]]",
+      "output": "[[2147483647]]",
+      "description": "No-gate grid keeps an empty room unreachable."
+    },
+    {
+      "input": "rooms = [[2147483647,2147483647,0,2147483647,-1,2147483647]]",
+      "output": "[[2,1,0,1,-1,2147483647]]",
+      "description": "Single row checks one-dimensional propagation and a wall-separated unreachable room."
+    },
+    {
+      "input": "rooms = [[2147483647],[0],[2147483647],[-1],[2147483647],[0]]",
+      "output": "[[1],[0],[1],[-1],[1],[0]]",
+      "description": "Single column checks vertical propagation, walls, and two gates."
+    },
+    {
+      "input": "rooms = [[0,-1,2147483647],[-1,-1,2147483647],[2147483647,2147483647,2147483647]]",
+      "output": "[[0,-1,2147483647],[-1,-1,2147483647],[2147483647,2147483647,2147483647]]",
+      "description": "Walls can isolate a whole region from every gate."
+    },
+    {
+      "input": "rooms = [[0,2147483647,2147483647],[2147483647,-1,2147483647],[2147483647,2147483647,0]]",
+      "output": "[[0,1,2],[1,-1,1],[2,1,0]]",
+      "description": "Two gates compete around a central wall; each room keeps the nearest distance."
+    }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p131_walls_gates.png",
-      "caption": "Multi-source BFS from gates"
+      "caption": "Rooms grid with gates, walls, and empty rooms"
     }
   ]
 }

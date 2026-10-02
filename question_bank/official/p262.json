@@ -1,34 +1,117 @@
 {
   "id": "262",
   "title": "Left and Right Sum Differences",
-  "description": "# Left and Right Sum Differences\n\nGiven a **0-indexed** integer array `nums`, find a **0-indexed** integer array `answer` where:\n\n*   `answer.length == nums.length`.\n*   `answer[i] = |leftSum[i] - rightSum[i]|`.\n\nWhere:\n\n*   `leftSum[i]` is the sum of elements to the left of the index `i` in the array `nums`. If there is no such element, `leftSum[i] = 0`.\n*   `rightSum[i]` is the sum of elements to the right of the index `i` in the array `nums`. If there is no such element, `rightSum[i] = 0`.\n\nReturn *the array* `answer`.\n\n## Example 1:\n\n**Input:** nums = [10,4,8,3]\n**Output:** [15,1,11,22]\n**Explanation:** The array leftSum is [0,10,14,22] and the array rightSum is [15,11,3,0].\nThe array answer is [|0 - 15|, |10 - 11|, |14 - 3|, |22 - 0|] = [15,1,11,22].\n\n## Example 2:\n\n**Input:** nums = [1]\n**Output:** [0]\n**Explanation:** The array leftSum is [0] and the array rightSum is [0].\nThe array answer is [|0 - 0|] = [0].\n\n## Constraints:\n\n*   `1 <= nums.length <= 1000`\n*   `1 <= nums[i] <= 10^5`",
+  "description": "# Left and Right Sum Differences\n\nGiven a **0-indexed** integer array `nums`, build an array `answer` of the same length.\n\nFor every index `i`:\n\n*   `leftSum[i]` is the sum of all elements strictly before `i`.\n*   `rightSum[i]` is the sum of all elements strictly after `i`.\n*   `answer[i] = |leftSum[i] - rightSum[i]|`.\n\nIf one side has no elements, its sum is `0`.\n\nReturn the array `answer`.\n\n## Example 1:\n\n**Input:** nums = [10,4,8,3]\n**Output:** [15,1,11,22]\n**Explanation:** The left sums are [0,10,14,22] and the right sums are [15,11,3,0], so the absolute differences are [15,1,11,22].\n\n## Example 2:\n\n**Input:** nums = [1]\n**Output:** [0]\n**Explanation:** There are no elements on either side of the only index.\n\n## Constraints:\n\n*   `1 <= nums.length <= 1000`\n*   `0 <= nums[i] <= 100000`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int[] leftRightDifference(int[] nums) {\n        // Write your code here\n        return new int[]{};\n    }\n}",
-  "tags": ["Array", "Prefix Sum"],
+  "tags": [
+    "Array",
+    "Prefix Sum"
+  ],
   "examples": [
-    { "input": "nums = [10,4,8,3]", "output": "[15,1,11,22]" },
-    { "input": "nums = [1]", "output": "[0]" }
+    {
+      "input": "nums = [10,4,8,3]",
+      "output": "[15,1,11,22]"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "[0]"
+    }
   ],
   "solutions": [
     {
-      "name": "Prefix Sum",
-      "timeComplexity": "O(n)",
+      "name": "Brute Force Separate Sides",
+      "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n)",
-      "description": "Compute total sum. Maintain running leftSum. rightSum = total - leftSum - nums[i]. Answer[i] = |leftSum - rightSum|.",
-      "code": "class Solution {\n    public int[] leftRightDifference(int[] nums) {\n        int total = 0;\n        for (int n : nums) total += n;\n        int[] ans = new int[nums.length];\n        int leftSum = 0;\n        for (int i = 0; i < nums.length; i++) {\n            int rightSum = total - leftSum - nums[i];\n            ans[i] = Math.abs(leftSum - rightSum);\n            leftSum += nums[i];\n        }\n        return ans;\n    }\n}",
+      "description": "## Approach\n\nFor each index, separately add all values on its left and all values on its right, then store the absolute difference.\n\n## Key Insight\n\nThe definition of the answer is local to each index, so the most direct baseline is to recompute both side sums from the original array.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int[] leftRightDifference(int[] nums) {\n        int n = nums.length;\n        int[] ans = new int[n];\n        for (int i = 0; i < n; i++) {\n            int leftSum = 0;\n            for (int left = 0; left < i; left++) {\n                leftSum += nums[left];\n            }\n            int rightSum = 0;\n            for (int right = i + 1; right < n; right++) {\n                rightSum += nums[right];\n            }\n            ans[i] = Math.abs(leftSum - rightSum);\n        }\n        return ans;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Two Prefix Arrays",
+      "name": "Prefix And Suffix Arrays",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Build explicit leftSum and rightSum arrays, then compute the absolute difference at each index.",
-      "code": "class Solution {\n    public int[] leftRightDifference(int[] nums) {\n        int n = nums.length;\n        int[] leftSum = new int[n];\n        int[] rightSum = new int[n];\n        for (int i = 1; i < n; i++) {\n            leftSum[i] = leftSum[i - 1] + nums[i - 1];\n        }\n        for (int i = n - 2; i >= 0; i--) {\n            rightSum[i] = rightSum[i + 1] + nums[i + 1];\n        }\n        int[] ans = new int[n];\n        for (int i = 0; i < n; i++) {\n            ans[i] = Math.abs(leftSum[i] - rightSum[i]);\n        }\n        return ans;\n    }\n}",
+      "description": "## Approach\n\nBuild a prefix array where `left[i]` is the sum before `i`, and a suffix array where `right[i]` is the sum after `i`. Then compare the two arrays at each index.\n\n## Key Insight\n\nOnce every left-side and right-side sum is precomputed, each answer cell can be produced in constant time without rescanning the input.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int[] leftRightDifference(int[] nums) {\n        int n = nums.length;\n        int[] left = new int[n];\n        int[] right = new int[n];\n        for (int i = 1; i < n; i++) {\n            left[i] = left[i - 1] + nums[i - 1];\n        }\n        for (int i = n - 2; i >= 0; i--) {\n            right[i] = right[i + 1] + nums[i + 1];\n        }\n        int[] ans = new int[n];\n        for (int i = 0; i < n; i++) {\n            ans[i] = Math.abs(left[i] - right[i]);\n        }\n        return ans;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Rolling Total Balance",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1) extra",
+      "description": "## Approach\n\nCompute the total sum once. During a left-to-right scan, keep a rolling `leftSum` and derive `rightSum` as `total - leftSum - nums[i]`.\n\n## Key Insight\n\nAt any index, the whole array is split into left side, current value, and right side, so knowing the total lets us compute the right side without a suffix array.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1) extra",
+      "code": "class Solution {\n    public int[] leftRightDifference(int[] nums) {\n        int total = 0;\n        for (int num : nums) {\n            total += num;\n        }\n        int[] ans = new int[nums.length];\n        int leftSum = 0;\n        for (int i = 0; i < nums.length; i++) {\n            int rightSum = total - leftSum - nums[i];\n            ans[i] = Math.abs(leftSum - rightSum);\n            leftSum += nums[i];\n        }\n        return ans;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Reuse Output For Right Sums",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFirst fill the output array with each index's right-side sum by scanning from right to left. Then scan left to right with a rolling left sum and overwrite each cell with the final difference.\n\n## Key Insight\n\nThe answer array can temporarily store one side of the calculation, which avoids creating a separate suffix array while keeping the transformation easy to inspect.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int[] leftRightDifference(int[] nums) {\n        int n = nums.length;\n        int[] ans = new int[n];\n        int rightSum = 0;\n        for (int i = n - 1; i >= 0; i--) {\n            ans[i] = rightSum;\n            rightSum += nums[i];\n        }\n\n        int leftSum = 0;\n        for (int i = 0; i < n; i++) {\n            int current = nums[i];\n            ans[i] = Math.abs(leftSum - ans[i]);\n            leftSum += current;\n        }\n        return ans;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [10,4,8,3]", "output": "[15,1,11,22]" },
-    { "input": "nums = [1]", "output": "[0]" }
+    {
+      "input": "nums = [10,4,8,3]",
+      "output": "[15,1,11,22]",
+      "description": "sample with different left and right sums at each position"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "[0]",
+      "description": "single element has empty left and right sides"
+    },
+    {
+      "input": "nums = [1,2]",
+      "output": "[2,1]",
+      "description": "two elements make each side depend only on the opposite value"
+    },
+    {
+      "input": "nums = [5,5,5,5]",
+      "output": "[15,5,5,15]",
+      "description": "repeated values still produce position-dependent differences"
+    },
+    {
+      "input": "nums = [0,0,0]",
+      "output": "[0,0,0]",
+      "description": "all-zero array keeps every side sum at zero"
+    },
+    {
+      "input": "nums = [100000,1,100000]",
+      "output": "[100001,0,100001]",
+      "description": "large endpoint values with a balanced center"
+    },
+    {
+      "input": "nums = [1,2,3,4,5]",
+      "output": "[14,11,6,1,10]",
+      "description": "strictly increasing values check the rolling total route"
+    },
+    {
+      "input": "nums = [7,0,0,0]",
+      "output": "[0,7,7,7]",
+      "description": "a nonzero first value checks empty-left and trailing-zero behavior"
+    },
+    {
+      "input": "nums = [0,7,0,7]",
+      "output": "[14,7,0,7]",
+      "description": "zeros between positive values can create a middle balance"
+    },
+    {
+      "input": "nums = [2,1,6,4]",
+      "output": "[11,8,1,9]",
+      "description": "mixed small values catch off-by-one inclusion of the current element"
+    },
+    {
+      "input": "nums = [9,1,1,1,9]",
+      "output": "[12,2,0,2,12]",
+      "description": "symmetric endpoints make the center difference zero"
+    },
+    {
+      "input": "nums = [100000,100000,100000,100000,100000]",
+      "output": "[400000,200000,0,200000,400000]",
+      "description": "large repeated values verify that sums are not capped at an element value"
+    }
   ]
 }

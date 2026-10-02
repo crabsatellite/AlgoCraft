@@ -35,8 +35,8 @@ public class Config
         MAX_EXECUTION_TIME = BUILDER
                 .comment("Maximum execution time for user code in milliseconds.",
                          "Higher values allow more complex solutions but increase server load.",
-                         "Recommended: 1000-5000ms")
-                .defineInRange("maxExecutionTime", 2000, 500, 30000);
+                         "Recommended: 2000-5000ms")
+                .defineInRange("maxExecutionTime", 2000, 2000, 30000);
         
         MAX_CODE_LENGTH = BUILDER
                 .comment("Maximum allowed code length in characters.",

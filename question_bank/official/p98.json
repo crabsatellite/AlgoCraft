@@ -1,13 +1,14 @@
 {
   "id": "98",
   "title": "Path Sum II",
-  "description": "# Path Sum II\n\nGiven the `root` of a binary tree and an integer `targetSum`, return *all **root-to-leaf** paths where the sum of the node values in the path equals* `targetSum`. *Each path should be returned as a list of the node values, not node references*.\n\nA **root-to-leaf** path is a path starting from the root and ending at any leaf node. A **leaf** is a node with no children.\n\n## Example 1:\n\n**Input:** root = [5,4,8,11,null,13,4,7,2,null,null,5,1], targetSum = 22\n**Output:** [[5,4,11,2],[5,8,4,5]]\n**Explanation:** There are two paths whose sum equals targetSum:\n5 + 4 + 11 + 2 = 22\n5 + 8 + 4 + 5 = 22\n\n## Example 2:\n\n**Input:** root = [1,2,3], targetSum = 5\n**Output:** []\n\n## Example 3:\n\n**Input:** root = [1,2], targetSum = 0\n**Output:** []\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[0, 5000]`.\n*   `-1000 <= Node.val <= 1000`\n*   `-1000 <= targetSum <= 1000`",
+  "description": "# Path Sum II\n\nGiven the `root` of a binary tree and an integer `targetSum`, return **all root-to-leaf paths** whose node values add up to `targetSum`.\n\nEach returned path must be a list of node values, in root-to-leaf order. A **leaf** is a node with no children. If there are no matching paths, return an empty list.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [5,4,8,11,null,13,4,7,2,null,null,5,1], targetSum = 22\n**Output:** [[5,4,11,2],[5,8,4,5]]\n**Explanation:** The matching paths are 5 -> 4 -> 11 -> 2 and 5 -> 8 -> 4 -> 5.\n\n## Example 2:\n\n**Input:** root = [1,2,3], targetSum = 5\n**Output:** []\n**Explanation:** No complete root-to-leaf path reaches 5.\n\n## Example 3:\n\n**Input:** root = [1,2], targetSum = 0\n**Output:** []\n**Explanation:** A non-empty tree does not have an empty path, and the only complete path has sum 3.\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[0, 5000]`.\n*   `-1000 <= Node.val <= 1000`\n*   `-1000 <= targetSum <= 1000`",
   "difficulty": "MEDIUM",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public List<List<Integer>> pathSum(TreeNode root, int targetSum) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
   "tags": [
     "Backtracking",
     "Tree",
     "Depth-First Search",
+    "Breadth-First Search",
     "Binary Tree"
   ],
   "examples": [
@@ -27,44 +28,96 @@
   "tests": [
     {
       "input": "root = [5,4,8,11,null,13,4,7,2,null,null,5,1], targetSum = 22",
-      "output": "[[5,4,11,2],[5,8,4,5]]"
+      "output": "[[5,4,11,2],[5,8,4,5]]",
+      "description": "Canonical tree returns two matching root-to-leaf paths."
     },
     {
       "input": "root = [1,2,3], targetSum = 5",
-      "output": "[]"
+      "output": "[]",
+      "description": "Non-empty tree with no matching root-to-leaf path."
     },
     {
       "input": "root = [1,2], targetSum = 0",
-      "output": "[]"
+      "output": "[]",
+      "description": "Target zero does not imply an empty path inside a non-empty tree."
     },
     {
       "input": "root = [], targetSum = 0",
-      "output": "[]"
+      "output": "[]",
+      "description": "Empty tree returns no paths."
     },
     {
       "input": "root = [5], targetSum = 5",
-      "output": "[[5]]"
+      "output": "[[5]]",
+      "description": "Single-node tree equal to target returns one path."
     },
     {
       "input": "root = [-2,null,-3], targetSum = -5",
-      "output": "[[-2,-3]]"
+      "output": "[[-2,-3]]",
+      "description": "Negative values are valid in complete root-to-leaf paths."
+    },
+    {
+      "input": "root = [1], targetSum = 0",
+      "output": "[]",
+      "description": "Single-node tree not equal to target returns no paths."
+    },
+    {
+      "input": "root = [0], targetSum = 0",
+      "output": "[[0]]",
+      "description": "Zero-valued singleton is a valid target path."
+    },
+    {
+      "input": "root = [1,-2,-3,1,3,-2,null,-1], targetSum = -1",
+      "output": "[[1,-2,1,-1]]",
+      "description": "Mixed positive and negative values can produce a deeper matching path."
+    },
+    {
+      "input": "root = [1,-2,-3,1,3,-2,null,-1], targetSum = 0",
+      "output": "[]",
+      "description": "The same mixed tree also needs a false target to reject prefix shortcuts."
+    },
+    {
+      "input": "root = [1,2,null,3,null,4,null,5], targetSum = 15",
+      "output": "[[1,2,3,4,5]]",
+      "description": "A deep skewed tree checks path copying and backtracking depth."
+    },
+    {
+      "input": "root = [1000,-1000,1000], targetSum = 0",
+      "output": "[[1000,-1000]]",
+      "description": "Allowed boundary values can cancel on one root-to-leaf path."
     }
   ],
   "solutions": [
     {
       "name": "DFS Backtracking",
-      "timeComplexity": "O(n)",
+      "timeComplexity": "O(n * h)",
       "spaceComplexity": "O(h)",
-      "description": "DFS maintaining a current path list. At each leaf, if remaining sum is 0, add a copy of the path to results. Backtrack by removing the last element after exploring.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> pathSum(TreeNode root, int targetSum) {\n        List<List<Integer>> result = new ArrayList<>();\n        dfs(root, targetSum, new ArrayList<>(), result);\n        return result;\n    }\n    \n    private void dfs(TreeNode node, int remain, List<Integer> path, List<List<Integer>> result) {\n        if (node == null) return;\n        \n        path.add(node.val);\n        \n        if (node.left == null && node.right == null && remain == node.val) {\n            result.add(new ArrayList<>(path));\n        } else {\n            dfs(node.left, remain - node.val, path, result);\n            dfs(node.right, remain - node.val, path, result);\n        }\n        \n        path.remove(path.size() - 1);\n    }\n}",
+      "description": "## Approach\n\nMaintain one mutable path while descending the tree. Add the current value before visiting children, record a copy only when a leaf completes the target sum, and remove the value while returning.\n\n## Key Insight\n\nThe path list is shared across recursive calls, so answers must store a copy. The remove step is the backtracking operation that restores the path for sibling branches.\n\n## Complexity Analysis\n- Time Complexity: O(n * h) in the worst case because copying an answer path can cost O(h)\n- Space Complexity: O(h), excluding the output list",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> pathSum(TreeNode root, int targetSum) {\n        List<List<Integer>> result = new ArrayList<>();\n        dfs(root, targetSum, new ArrayList<>(), result);\n        return result;\n    }\n\n    private void dfs(TreeNode node, int remaining, List<Integer> path, List<List<Integer>> result) {\n        if (node == null) {\n            return;\n        }\n\n        path.add(node.val);\n        if (node.left == null && node.right == null && remaining == node.val) {\n            result.add(new ArrayList<>(path));\n        } else {\n            int nextRemaining = remaining - node.val;\n            dfs(node.left, nextRemaining, path, result);\n            dfs(node.right, nextRemaining, path, result);\n        }\n        path.remove(path.size() - 1);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Iterative BFS with Path Tracking",
-      "timeComplexity": "O(n)",
+      "name": "Iterative DFS Stack with Path Copies",
+      "timeComplexity": "O(n * h)",
+      "spaceComplexity": "O(n * h)",
+      "description": "## Approach\n\nUse an explicit stack of frames. Each frame contains a node, the remaining sum after including that node, and a copied root-to-node path.\n\n## Key Insight\n\nPushing the right child before the left child preserves left-to-right answer order while using a stack. This route is easier to step through than recursion, but copied paths cost more memory.\n\n## Complexity Analysis\n- Time Complexity: O(n * h) because child paths are copied\n- Space Complexity: O(n * h) in the worst case",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final class Frame {\n        final TreeNode node;\n        final int remaining;\n        final List<Integer> path;\n\n        Frame(TreeNode node, int remaining, List<Integer> path) {\n            this.node = node;\n            this.remaining = remaining;\n            this.path = path;\n        }\n    }\n\n    public List<List<Integer>> pathSum(TreeNode root, int targetSum) {\n        List<List<Integer>> result = new ArrayList<>();\n        if (root == null) {\n            return result;\n        }\n\n        List<Integer> path = new ArrayList<>();\n        path.add(root.val);\n        Deque<Frame> stack = new ArrayDeque<>();\n        stack.push(new Frame(root, targetSum - root.val, path));\n        while (!stack.isEmpty()) {\n            Frame frame = stack.pop();\n            TreeNode node = frame.node;\n            if (node.left == null && node.right == null && frame.remaining == 0) {\n                result.add(frame.path);\n                continue;\n            }\n            if (node.right != null) {\n                List<Integer> rightPath = new ArrayList<>(frame.path);\n                rightPath.add(node.right.val);\n                stack.push(new Frame(node.right, frame.remaining - node.right.val, rightPath));\n            }\n            if (node.left != null) {\n                List<Integer> leftPath = new ArrayList<>(frame.path);\n                leftPath.add(node.left.val);\n                stack.push(new Frame(node.left, frame.remaining - node.left.val, leftPath));\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "BFS Queue with Path Tracking",
+      "timeComplexity": "O(n * h)",
+      "spaceComplexity": "O(n * h)",
+      "description": "## Approach\n\nTraverse level by level. Each queued frame stores a node, the running root-to-node sum, and the path values used to reach that node.\n\n## Key Insight\n\nBreadth-first traversal is valid because each frame owns its own path state. The tradeoff is that many partial paths can exist in the queue at the same time.\n\n## Complexity Analysis\n- Time Complexity: O(n * h) due to path copying\n- Space Complexity: O(n * h) in the worst case",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final class Frame {\n        final TreeNode node;\n        final int sum;\n        final List<Integer> path;\n\n        Frame(TreeNode node, int sum, List<Integer> path) {\n            this.node = node;\n            this.sum = sum;\n            this.path = path;\n        }\n    }\n\n    public List<List<Integer>> pathSum(TreeNode root, int targetSum) {\n        List<List<Integer>> result = new ArrayList<>();\n        if (root == null) {\n            return result;\n        }\n\n        List<Integer> firstPath = new ArrayList<>();\n        firstPath.add(root.val);\n        Queue<Frame> queue = new ArrayDeque<>();\n        queue.offer(new Frame(root, root.val, firstPath));\n        while (!queue.isEmpty()) {\n            Frame frame = queue.poll();\n            TreeNode node = frame.node;\n            if (node.left == null && node.right == null && frame.sum == targetSum) {\n                result.add(frame.path);\n            }\n            if (node.left != null) {\n                List<Integer> leftPath = new ArrayList<>(frame.path);\n                leftPath.add(node.left.val);\n                queue.offer(new Frame(node.left, frame.sum + node.left.val, leftPath));\n            }\n            if (node.right != null) {\n                List<Integer> rightPath = new ArrayList<>(frame.path);\n                rightPath.add(node.right.val);\n                queue.offer(new Frame(node.right, frame.sum + node.right.val, rightPath));\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Parent Map Path Reconstruction",
+      "timeComplexity": "O(n * h)",
       "spaceComplexity": "O(n)",
-      "description": "Use BFS with a queue storing (node, remainingSum, pathSoFar) tuples. At each leaf, if remaining sum equals node value, add path to results.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> pathSum(TreeNode root, int targetSum) {\n        List<List<Integer>> result = new ArrayList<>();\n        if (root == null) return result;\n        \n        Queue<Object[]> queue = new LinkedList<>();\n        List<Integer> initPath = new ArrayList<>();\n        initPath.add(root.val);\n        queue.offer(new Object[]{root, targetSum - root.val, initPath});\n        \n        while (!queue.isEmpty()) {\n            Object[] curr = queue.poll();\n            TreeNode node = (TreeNode) curr[0];\n            int remain = (int) curr[1];\n            List<Integer> path = (List<Integer>) curr[2];\n            \n            if (node.left == null && node.right == null && remain == 0) {\n                result.add(new ArrayList<>(path));\n                continue;\n            }\n            \n            if (node.left != null) {\n                List<Integer> leftPath = new ArrayList<>(path);\n                leftPath.add(node.left.val);\n                queue.offer(new Object[]{node.left, remain - node.left.val, leftPath});\n            }\n            if (node.right != null) {\n                List<Integer> rightPath = new ArrayList<>(path);\n                rightPath.add(node.right.val);\n                queue.offer(new Object[]{node.right, remain - node.right.val, rightPath});\n            }\n        }\n        \n        return result;\n    }\n}",
+      "description": "## Approach\n\nTraverse the tree while storing each node's parent and running sum. When a target-sum leaf is found, reconstruct that path by walking parent links back to the root, then add values to the front of a list.\n\n## Key Insight\n\nThis avoids copying a full path for every queued node. Work is delayed until a leaf actually becomes an answer, which is a useful tradeoff when few paths match.\n\n## Complexity Analysis\n- Time Complexity: O(n * h) in the worst case because reconstructing each answer path can cost O(h)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> pathSum(TreeNode root, int targetSum) {\n        List<List<Integer>> result = new ArrayList<>();\n        if (root == null) {\n            return result;\n        }\n\n        Map<TreeNode, TreeNode> parent = new HashMap<>();\n        Map<TreeNode, Integer> sum = new HashMap<>();\n        Queue<TreeNode> queue = new ArrayDeque<>();\n        queue.offer(root);\n        parent.put(root, null);\n        sum.put(root, root.val);\n\n        while (!queue.isEmpty()) {\n            TreeNode node = queue.poll();\n            int currentSum = sum.get(node);\n            if (node.left == null && node.right == null && currentSum == targetSum) {\n                result.add(reconstruct(node, parent));\n            }\n            if (node.left != null) {\n                parent.put(node.left, node);\n                sum.put(node.left, currentSum + node.left.val);\n                queue.offer(node.left);\n            }\n            if (node.right != null) {\n                parent.put(node.right, node);\n                sum.put(node.right, currentSum + node.right.val);\n                queue.offer(node.right);\n            }\n        }\n        return result;\n    }\n\n    private List<Integer> reconstruct(TreeNode node, Map<TreeNode, TreeNode> parent) {\n        LinkedList<Integer> path = new LinkedList<>();\n        while (node != null) {\n            path.addFirst(node.val);\n            node = parent.get(node);\n        }\n        return path;\n    }\n}",
       "language": "java"
     }
   ],
@@ -72,7 +125,7 @@
     {
       "id": "example1",
       "file": "p98_example1.png",
-      "caption": "Example 1: Tree [5,4,8,11,null,13,4,7,2,null,null,5,1]"
+      "caption": "Input tree and target sum"
     }
   ]
 }

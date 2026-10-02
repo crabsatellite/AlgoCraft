@@ -1,36 +1,131 @@
 {
   "id": "225",
   "title": "Add Strings",
-  "description": "# Add Strings\n\nGiven two non-negative integers, `num1` and `num2` represented as string, return *the sum of* `num1` *and* `num2` *as a string*.\n\nYou must solve the problem without using any built-in library for handling large integers (such as `BigInteger`). You must also not convert the inputs to integers directly.\n\n## Example 1:\n\n**Input:** num1 = \"11\", num2 = \"123\"\n**Output:** \"134\"\n\n## Example 2:\n\n**Input:** num1 = \"456\", num2 = \"77\"\n**Output:** \"533\"\n\n## Example 3:\n\n**Input:** num1 = \"0\", num2 = \"0\"\n**Output:** \"0\"\n\n## Constraints:\n\n*   `1 <= num1.length, num2.length <= 10^4`\n*   `num1` and `num2` consist of only digits.\n*   `num1` and `num2` don't have any leading zeros except for the zero itself.",
+  "description": "# Add Strings\n\nGiven two non-negative integers `num1` and `num2` represented as strings, return their sum as a string.\n\nYou must not use a built-in large-integer type such as `BigInteger`, and you must not convert either whole input string directly into a primitive integer type.\n\nThe inputs may be much longer than any primitive numeric type can store, so the algorithm has to work from the decimal digits themselves.\n\n## Example 1:\n\n**Input:** num1 = \"11\", num2 = \"123\"\n**Output:** \"134\"\n**Explanation:** Add from the right: `1 + 3 = 4`, then `1 + 2 = 3`, then the remaining `1`.\n\n## Example 2:\n\n**Input:** num1 = \"456\", num2 = \"77\"\n**Output:** \"533\"\n**Explanation:** `6 + 7` produces carry `1`, and that carry is used by the next column.\n\n## Example 3:\n\n**Input:** num1 = \"0\", num2 = \"0\"\n**Output:** \"0\"\n**Explanation:** The result should keep the canonical single zero string.\n\n## Constraints:\n\n* `1 <= num1.length, num2.length <= 10^4`\n* `num1` and `num2` consist of only digits.\n* `num1` and `num2` do not have leading zeros except for the zero itself.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public String addStrings(String num1, String num2) {\n        // Write your code here\n        return \"\";\n    }\n}",
-  "tags": ["Math", "String", "Simulation"],
+  "tags": [
+    "Math",
+    "String",
+    "Simulation",
+    "Two Pointers"
+  ],
   "examples": [
-    { "input": "num1 = \"11\", num2 = \"123\"", "output": "\"134\"" },
-    { "input": "num1 = \"456\", num2 = \"77\"", "output": "\"533\"" },
-    { "input": "num1 = \"0\", num2 = \"0\"", "output": "\"0\"" }
+    {
+      "input": "num1 = \"11\", num2 = \"123\"",
+      "output": "\"134\""
+    },
+    {
+      "input": "num1 = \"456\", num2 = \"77\"",
+      "output": "\"533\""
+    },
+    {
+      "input": "num1 = \"0\", num2 = \"0\"",
+      "output": "\"0\""
+    }
   ],
   "solutions": [
     {
-      "name": "Two Pointer with Carry",
+      "name": "Reverse Builder Digit Carry",
       "timeComplexity": "O(max(n, m))",
       "spaceComplexity": "O(max(n, m))",
-      "description": "Simulate addition from right to left using two pointers, processing carry at each step.",
-      "code": "class Solution {\n    public String addStrings(String num1, String num2) {\n        StringBuilder sb = new StringBuilder();\n        int i = num1.length() - 1, j = num2.length() - 1, carry = 0;\n        while (i >= 0 || j >= 0 || carry > 0) {\n            int sum = carry;\n            if (i >= 0) sum += num1.charAt(i--) - '0';\n            if (j >= 0) sum += num2.charAt(j--) - '0';\n            sb.append(sum % 10);\n            carry = sum / 10;\n        }\n        return sb.reverse().toString();\n    }\n}",
+      "description": "## Approach\n\nStart from the last character of each string and simulate elementary addition one decimal column at a time. Append each output digit to a `StringBuilder`, then reverse it at the end because digits are produced from least significant to most significant.\n\n## Key Insight\n\nEach column only needs one digit from each input plus the carry from the previous column. This avoids converting the whole string into a numeric type, so it works for length `10000` inputs.\n\n## Complexity Analysis\n\n- Time Complexity: O(max(n, m))\n- Space Complexity: O(max(n, m)) for the returned digits",
+      "code": "class Solution {\n    public String addStrings(String num1, String num2) {\n        StringBuilder reversed = new StringBuilder();\n        int i = num1.length() - 1;\n        int j = num2.length() - 1;\n        int carry = 0;\n        while (i >= 0 || j >= 0 || carry > 0) {\n            int sum = carry;\n            if (i >= 0) {\n                sum += num1.charAt(i--) - '0';\n            }\n            if (j >= 0) {\n                sum += num2.charAt(j--) - '0';\n            }\n            reversed.append((char) ('0' + sum % 10));\n            carry = sum / 10;\n        }\n        return reversed.reverse().toString();\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Recursive Addition",
+      "name": "Fixed Output Buffer Backfill",
       "timeComplexity": "O(max(n, m))",
       "spaceComplexity": "O(max(n, m))",
-      "description": "Recursively add digit by digit from right to left, passing carry as a parameter and building the result string on return.",
-      "code": "class Solution {\n    public String addStrings(String num1, String num2) {\n        return addHelper(num1, num1.length() - 1, num2, num2.length() - 1, 0);\n    }\n\n    private String addHelper(String num1, int i, String num2, int j, int carry) {\n        if (i < 0 && j < 0 && carry == 0) return \"\";\n        int sum = carry;\n        if (i >= 0) sum += num1.charAt(i) - '0';\n        if (j >= 0) sum += num2.charAt(j) - '0';\n        String rest = addHelper(num1, i - 1, num2, j - 1, sum / 10);\n        return rest + (char)('0' + sum % 10);\n    }\n}",
+      "description": "## Approach\n\nAllocate a character array of length `max(num1.length(), num2.length()) + 1`. Fill it from right to left while reading both input strings from right to left, then skip the unused leading slot when no final carry remains.\n\n## Key Insight\n\nThe maximum result length is known before the loop: at most one digit longer than the longer input. Writing backward creates the final left-to-right output without a reverse pass.\n\n## Complexity Analysis\n\n- Time Complexity: O(max(n, m))\n- Space Complexity: O(max(n, m)) for the output buffer",
+      "code": "class Solution {\n    public String addStrings(String num1, String num2) {\n        int maxLength = Math.max(num1.length(), num2.length());\n        char[] buffer = new char[maxLength + 1];\n        int write = buffer.length - 1;\n        int i = num1.length() - 1;\n        int j = num2.length() - 1;\n        int carry = 0;\n        while (i >= 0 || j >= 0) {\n            int sum = carry;\n            if (i >= 0) {\n                sum += num1.charAt(i--) - '0';\n            }\n            if (j >= 0) {\n                sum += num2.charAt(j--) - '0';\n            }\n            buffer[write--] = (char) ('0' + sum % 10);\n            carry = sum / 10;\n        }\n        buffer[write] = (char) ('0' + carry);\n        return carry == 0 ? new String(buffer, 1, maxLength) : new String(buffer);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Deque Front Assembly",
+      "timeComplexity": "O(max(n, m))",
+      "spaceComplexity": "O(max(n, m))",
+      "description": "## Approach\n\nCompute digits from right to left, but push each result digit to the front of a deque. After all columns and the final carry are processed, iterate through the deque to build the answer in normal order.\n\n## Key Insight\n\nA deque bridges the order mismatch: addition naturally discovers low digits first, while the final string must print high digits first. It avoids both a final reverse and fixed output indexing.\n\n## Complexity Analysis\n\n- Time Complexity: O(max(n, m))\n- Space Complexity: O(max(n, m)) for the deque and returned string",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\nclass Solution {\n    public String addStrings(String num1, String num2) {\n        Deque<Character> digits = new ArrayDeque<>();\n        int i = num1.length() - 1;\n        int j = num2.length() - 1;\n        int carry = 0;\n        while (i >= 0 || j >= 0 || carry > 0) {\n            int sum = carry;\n            if (i >= 0) {\n                sum += num1.charAt(i--) - '0';\n            }\n            if (j >= 0) {\n                sum += num2.charAt(j--) - '0';\n            }\n            digits.addFirst((char) ('0' + sum % 10));\n            carry = sum / 10;\n        }\n        StringBuilder answer = new StringBuilder(digits.size());\n        for (char digit : digits) {\n            answer.append(digit);\n        }\n        return answer.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Integer Array Column Sums",
+      "timeComplexity": "O(max(n, m))",
+      "spaceComplexity": "O(max(n, m))",
+      "description": "## Approach\n\nUse an integer array one slot longer than the longer input. Add every input digit into its aligned result column, then sweep the array from right to left to propagate carries. Finally skip the optional leading zero.\n\n## Key Insight\n\nThis separates accumulation from carry propagation. It is the same grade-school addition, but the intermediate array makes each output column explicit before carrying normalizes it.\n\n## Complexity Analysis\n\n- Time Complexity: O(max(n, m))\n- Space Complexity: O(max(n, m)) for the result columns",
+      "code": "class Solution {\n    public String addStrings(String num1, String num2) {\n        int maxLength = Math.max(num1.length(), num2.length());\n        int[] columns = new int[maxLength + 1];\n\n        int offset = columns.length - num1.length();\n        for (int i = 0; i < num1.length(); i++) {\n            columns[offset + i] += num1.charAt(i) - '0';\n        }\n        offset = columns.length - num2.length();\n        for (int i = 0; i < num2.length(); i++) {\n            columns[offset + i] += num2.charAt(i) - '0';\n        }\n\n        for (int i = columns.length - 1; i > 0; i--) {\n            columns[i - 1] += columns[i] / 10;\n            columns[i] %= 10;\n        }\n\n        StringBuilder answer = new StringBuilder(columns.length);\n        int start = columns[0] == 0 ? 1 : 0;\n        for (int i = start; i < columns.length; i++) {\n            answer.append((char) ('0' + columns[i]));\n        }\n        return answer.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Base 10000 Chunk Addition",
+      "timeComplexity": "O(max(n, m))",
+      "spaceComplexity": "O(max(n, m))",
+      "description": "## Approach\n\nProcess the strings in chunks of four decimal digits from right to left. Parse each small chunk manually, add the chunk values with carry in base `10000`, and pad non-leading result chunks back to four digits.\n\n## Key Insight\n\nThe rule forbids converting the whole input to an integer, but fixed-size chunks are bounded and safe. This teaches the same idea used by many big-number implementations: store a huge number as several smaller base units.\n\n## Complexity Analysis\n\n- Time Complexity: O(max(n, m))\n- Space Complexity: O(max(n, m)) for the chunk result",
+      "code": "class Solution {\n    private static final int BASE = 10000;\n    private static final int WIDTH = 4;\n\n    public String addStrings(String num1, String num2) {\n        StringBuilder reversedChunks = new StringBuilder();\n        int i = num1.length();\n        int j = num2.length();\n        int carry = 0;\n        while (i > 0 || j > 0 || carry > 0) {\n            int start1 = Math.max(0, i - WIDTH);\n            int start2 = Math.max(0, j - WIDTH);\n            int a = parseChunk(num1, start1, i);\n            int b = parseChunk(num2, start2, j);\n            int sum = a + b + carry;\n            int chunk = sum % BASE;\n            carry = sum / BASE;\n            boolean hasMoreHighChunks = start1 > 0 || start2 > 0 || carry > 0;\n\n            if (hasMoreHighChunks) {\n                appendPaddedReverse(reversedChunks, chunk);\n            } else {\n                appendReverse(reversedChunks, chunk);\n            }\n            i = start1;\n            j = start2;\n        }\n        return reversedChunks.reverse().toString();\n    }\n\n    private int parseChunk(String s, int start, int end) {\n        int value = 0;\n        for (int i = start; i < end; i++) {\n            value = value * 10 + (s.charAt(i) - '0');\n        }\n        return value;\n    }\n\n    private void appendPaddedReverse(StringBuilder builder, int value) {\n        for (int k = 0; k < WIDTH; k++) {\n            builder.append((char) ('0' + value % 10));\n            value /= 10;\n        }\n    }\n\n    private void appendReverse(StringBuilder builder, int value) {\n        if (value == 0) {\n            builder.append('0');\n            return;\n        }\n        while (value > 0) {\n            builder.append((char) ('0' + value % 10));\n            value /= 10;\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "num1 = \"11\", num2 = \"123\"", "output": "\"134\"" },
-    { "input": "num1 = \"456\", num2 = \"77\"", "output": "\"533\"" },
-    { "input": "num1 = \"0\", num2 = \"0\"", "output": "\"0\"" }
+    {
+      "input": "num1 = \"11\", num2 = \"123\"",
+      "output": "\"134\"",
+      "description": "Different-length inputs add from the right."
+    },
+    {
+      "input": "num1 = \"456\", num2 = \"77\"",
+      "output": "\"533\"",
+      "description": "Carry can propagate through the shorter operand."
+    },
+    {
+      "input": "num1 = \"0\", num2 = \"0\"",
+      "output": "\"0\"",
+      "description": "Zero plus zero keeps the canonical zero string."
+    },
+    {
+      "input": "num1 = \"999\", num2 = \"1\"",
+      "output": "\"1000\"",
+      "description": "Carry can create a new most-significant digit."
+    },
+    {
+      "input": "num1 = \"500\", num2 = \"500\"",
+      "output": "\"1000\"",
+      "description": "Equal-length numbers can still produce a longer result."
+    },
+    {
+      "input": "num1 = \"123456789123456789\", num2 = \"987654321987654321\"",
+      "output": "\"1111111111111111110\"",
+      "description": "Large strings must not be converted to primitive integers."
+    },
+    {
+      "input": "num1 = \"1\", num2 = \"999999999999999999\"",
+      "output": "\"1000000000000000000\"",
+      "description": "A carry may propagate across every digit of the longer operand."
+    },
+    {
+      "input": "num1 = \"123456789012345678901234567890\", num2 = \"987654321098765432109876543210\"",
+      "output": "\"1111111110111111111011111111100\"",
+      "description": "Inputs beyond 64-bit range must still add correctly."
+    },
+    {
+      "input": "num1 = \"99999999999999999999999999999999999999999999999999\", num2 = \"1\"",
+      "output": "\"100000000000000000000000000000000000000000000000000\"",
+      "description": "A long all-nine carry chain creates one extra digit."
+    },
+    {
+      "input": "num1 = \"10000000000000000000000000000000000000000000000000\", num2 = \"99999999999999999999999999999999999999999999999999\"",
+      "output": "\"109999999999999999999999999999999999999999999999999\"",
+      "description": "Very different leading digits with many zero columns should not drop zeros."
+    },
+    {
+      "input": "num1 = \"999999999999999999999999999999\", num2 = \"999999999999999999999999999999\"",
+      "output": "\"1999999999999999999999999999998\"",
+      "description": "Equal very large operands create both leading carry and trailing eight."
+    },
+    {
+      "input": "num1 = \"123450000000000000000\", num2 = \"55000000000000000000\"",
+      "output": "\"178450000000000000000\"",
+      "description": "Internal zero runs must be preserved in the output."
+    }
   ]
 }

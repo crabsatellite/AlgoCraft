@@ -1,36 +1,140 @@
 {
   "id": "203",
   "title": "Roman to Integer",
-  "description": "# Roman to Integer\n\nRoman numerals are represented by seven different symbols: `I`, `V`, `X`, `L`, `C`, `D` and `M`.\n\n**Symbol**       **Value**\nI             1\nV             5\nX             10\nL             50\nC             100\nD             500\nM             1000\n\nFor example, `2` is written as `II` in Roman numeral, just two ones added together. `12` is written as `XII`, which is simply `X + II`. The number `27` is written as `XXVII`, which is `XX + V + II`.\n\nRoman numerals are usually written largest to smallest from left to right. However, the numeral for four is not `IIII`. Instead, the number four is written as `IV`. Because the one is before the five we subtract it making four. The same principle applies to the number nine, which is written as `IX`. There are six instances where subtraction is used:\n\n*   `I` can be placed before `V` (5) and `X` (10) to make 4 and 9.\n*   `X` can be placed before `L` (50) and `C` (100) to make 40 and 90.\n*   `C` can be placed before `D` (500) and `M` (1000) to make 400 and 900.\n\nGiven a roman numeral, convert it to an integer.\n\n## Example 1:\n\n**Input:** s = \"III\"\n**Output:** 3\n**Explanation:** III = 3.\n\n## Example 2:\n\n**Input:** s = \"LVIII\"\n**Output:** 58\n**Explanation:** L = 50, V= 5, III = 3.\n\n## Example 3:\n\n**Input:** s = \"MCMXCIV\"\n**Output:** 1994\n**Explanation:** M = 1000, CM = 900, XC = 90 and IV = 4.\n\n## Constraints:\n\n*   `1 <= s.length <= 15`\n*   `s` contains only the characters `('I', 'V', 'X', 'L', 'C', 'D', 'M')`.\n*   It is **guaranteed** that `s` is a valid roman numeral in the range `[1, 3999]`.",
+  "description": "# Roman to Integer\n\nRoman numerals are represented by seven symbols:\n\n| Symbol | Value |\n| --- | --- |\n| I | 1 |\n| V | 5 |\n| X | 10 |\n| L | 50 |\n| C | 100 |\n| D | 500 |\n| M | 1000 |\n\nNormally, symbols are written from largest to smallest and their values are added. For example, `II` is `2`, `XII` is `12`, and `XXVII` is `27`.\n\nThere are exactly six subtractive forms:\n\n* `I` before `V` or `X` means `4` or `9`.\n* `X` before `L` or `C` means `40` or `90`.\n* `C` before `D` or `M` means `400` or `900`.\n\nGiven a valid Roman numeral string `s`, convert it to an integer.\n\n## Example 1:\n\n**Input:** s = \"III\"\n**Output:** 3\n**Explanation:** `III = 1 + 1 + 1`.\n\n## Example 2:\n\n**Input:** s = \"LVIII\"\n**Output:** 58\n**Explanation:** `L = 50`, `V = 5`, and `III = 3`.\n\n## Example 3:\n\n**Input:** s = \"MCMXCIV\"\n**Output:** 1994\n**Explanation:** `M = 1000`, `CM = 900`, `XC = 90`, and `IV = 4`.\n\n## Constraints:\n\n* `1 <= s.length <= 15`\n* `s` contains only `I`, `V`, `X`, `L`, `C`, `D`, and `M`.\n* `s` is guaranteed to be a valid Roman numeral in the range `[1, 3999]`.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int romanToInt(String s) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Hash Table", "Math", "String"],
+  "tags": [
+    "Hash Table",
+    "Math",
+    "String"
+  ],
   "examples": [
-    { "input": "s = \"III\"", "output": "3" },
-    { "input": "s = \"LVIII\"", "output": "58" },
-    { "input": "s = \"MCMXCIV\"", "output": "1994" }
+    {
+      "input": "s = \"III\"",
+      "output": "3"
+    },
+    {
+      "input": "s = \"LVIII\"",
+      "output": "58"
+    },
+    {
+      "input": "s = \"MCMXCIV\"",
+      "output": "1994"
+    }
   ],
   "solutions": [
     {
-      "name": "Left-to-Right Pass",
+      "name": "Left-to-Right Lookahead",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "If current value is less than the next value, subtract it (subtraction case like IV, IX). Otherwise add it.",
-      "code": "class Solution {\n    public int romanToInt(String s) {\n        int[] map = new int[128];\n        map['I'] = 1; map['V'] = 5; map['X'] = 10;\n        map['L'] = 50; map['C'] = 100; map['D'] = 500; map['M'] = 1000;\n        int result = 0;\n        for (int i = 0; i < s.length(); i++) {\n            if (i + 1 < s.length() && map[s.charAt(i)] < map[s.charAt(i + 1)])\n                result -= map[s.charAt(i)];\n            else\n                result += map[s.charAt(i)];\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nScan the string from left to right. Convert the current symbol to its value, compare it with the next symbol when one exists, subtract the current value if the next value is larger, and otherwise add it.\n\n## Key Insight\n\nIn a valid Roman numeral, the only time a symbol should be subtracted is when a larger symbol immediately follows it. This local comparison captures all six subtractive forms without listing them separately.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int romanToInt(String s) {\n        int result = 0;\n        for (int i = 0; i < s.length(); i++) {\n            int current = valueOf(s.charAt(i));\n            if (i + 1 < s.length() && current < valueOf(s.charAt(i + 1))) {\n                result -= current;\n            } else {\n                result += current;\n            }\n        }\n        return result;\n    }\n\n    private int valueOf(char c) {\n        if (c == 'I') return 1;\n        if (c == 'V') return 5;\n        if (c == 'X') return 10;\n        if (c == 'L') return 50;\n        if (c == 'C') return 100;\n        if (c == 'D') return 500;\n        return 1000;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Right-to-Left Pass",
+      "name": "Right-to-Left Previous Maximum",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Traverse from right to left. If current value is less than the previous value (to the right), subtract it. Otherwise add it.",
-      "code": "class Solution {\n    public int romanToInt(String s) {\n        int[] map = new int[128];\n        map['I'] = 1; map['V'] = 5; map['X'] = 10;\n        map['L'] = 50; map['C'] = 100; map['D'] = 500; map['M'] = 1000;\n        int result = 0;\n        int prev = 0;\n        for (int i = s.length() - 1; i >= 0; i--) {\n            int curr = map[s.charAt(i)];\n            if (curr < prev) {\n                result -= curr;\n            } else {\n                result += curr;\n            }\n            prev = curr;\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nScan from right to left while remembering the value immediately to the right. If the current value is smaller than that right-side value, subtract it; otherwise add it and update the remembered value.\n\n## Key Insight\n\nA smaller symbol before a larger symbol is subtractive. Reading from the right turns that rule into a simple invariant: each symbol is decided by the larger-value context already seen to its right.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int romanToInt(String s) {\n        int result = 0;\n        int previous = 0;\n        for (int i = s.length() - 1; i >= 0; i--) {\n            int current = valueOf(s.charAt(i));\n            if (current < previous) {\n                result -= current;\n            } else {\n                result += current;\n                previous = current;\n            }\n        }\n        return result;\n    }\n\n    private int valueOf(char c) {\n        if (c == 'I') return 1;\n        if (c == 'V') return 5;\n        if (c == 'X') return 10;\n        if (c == 'L') return 50;\n        if (c == 'C') return 100;\n        if (c == 'D') return 500;\n        return 1000;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Previous-Symbol Correction",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan left to right and add every symbol first. When the current value is larger than the previous value, the previous symbol was incorrectly added even though it should have been subtracted, so subtract twice the previous value to correct the total.\n\n## Key Insight\n\nFor `IV`, adding both symbols gives `1 + 5`; the correct value is `-1 + 5`. The difference is exactly `2 * 1`, and the same correction works for every subtractive pair.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int romanToInt(String s) {\n        int total = 0;\n        int previous = 0;\n        for (int i = 0; i < s.length(); i++) {\n            int current = valueOf(s.charAt(i));\n            total += current;\n            if (previous < current) {\n                total -= 2 * previous;\n            }\n            previous = current;\n        }\n        return total;\n    }\n\n    private int valueOf(char c) {\n        if (c == 'I') return 1;\n        if (c == 'V') return 5;\n        if (c == 'X') return 10;\n        if (c == 'L') return 50;\n        if (c == 'C') return 100;\n        if (c == 'D') return 500;\n        return 1000;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Explicit Subtractive Pair Scan",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan from left to right and first test whether the current character and the next character form one of `IV`, `IX`, `XL`, `XC`, `CD`, or `CM`. If so, add that pair value and skip both characters; otherwise add the single-symbol value.\n\n## Key Insight\n\nThe Roman subtraction rule has only six legal pairs. Listing them explicitly is verbose, but it is excellent for teaching because it makes the grammar of the notation visible.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int romanToInt(String s) {\n        int total = 0;\n        int i = 0;\n        while (i < s.length()) {\n            if (i + 1 < s.length()) {\n                String pair = s.substring(i, i + 2);\n                if (pair.equals(\"IV\")) { total += 4; i += 2; continue; }\n                if (pair.equals(\"IX\")) { total += 9; i += 2; continue; }\n                if (pair.equals(\"XL\")) { total += 40; i += 2; continue; }\n                if (pair.equals(\"XC\")) { total += 90; i += 2; continue; }\n                if (pair.equals(\"CD\")) { total += 400; i += 2; continue; }\n                if (pair.equals(\"CM\")) { total += 900; i += 2; continue; }\n            }\n            total += valueOf(s.charAt(i));\n            i++;\n        }\n        return total;\n    }\n\n    private int valueOf(char c) {\n        if (c == 'I') return 1;\n        if (c == 'V') return 5;\n        if (c == 'X') return 10;\n        if (c == 'L') return 50;\n        if (c == 'C') return 100;\n        if (c == 'D') return 500;\n        return 1000;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Normalize Subtractive Forms",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nRewrite each subtractive form into an equivalent additive form, such as `IV` to `IIII` and `CM` to `DCCCC`. After normalization, every remaining symbol can simply be added.\n\n## Key Insight\n\nSubtractive notation is syntactic compression. Expanding the six special cases into additive notation turns the conversion problem into a straight symbol-sum problem, which is useful as a correctness explanation and baseline.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int romanToInt(String s) {\n        s = s.replace(\"CM\", \"DCCCC\")\n             .replace(\"CD\", \"CCCC\")\n             .replace(\"XC\", \"LXXXX\")\n             .replace(\"XL\", \"XXXX\")\n             .replace(\"IX\", \"VIIII\")\n             .replace(\"IV\", \"IIII\");\n\n        int total = 0;\n        for (int i = 0; i < s.length(); i++) {\n            total += valueOf(s.charAt(i));\n        }\n        return total;\n    }\n\n    private int valueOf(char c) {\n        if (c == 'I') return 1;\n        if (c == 'V') return 5;\n        if (c == 'X') return 10;\n        if (c == 'L') return 50;\n        if (c == 'C') return 100;\n        if (c == 'D') return 500;\n        return 1000;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"III\"", "output": "3" },
-    { "input": "s = \"LVIII\"", "output": "58" },
-    { "input": "s = \"MCMXCIV\"", "output": "1994" }
+    {
+      "input": "s = \"III\"",
+      "output": "3",
+      "description": "Repeated additive symbols accumulate directly."
+    },
+    {
+      "input": "s = \"LVIII\"",
+      "output": "58",
+      "description": "Mixed fifties, fives, and ones without subtractive pairs."
+    },
+    {
+      "input": "s = \"MCMXCIV\"",
+      "output": "1994",
+      "description": "Canonical example combines hundreds, tens, and ones subtractive pairs."
+    },
+    {
+      "input": "s = \"IV\"",
+      "output": "4",
+      "description": "Small subtractive pair before five."
+    },
+    {
+      "input": "s = \"IX\"",
+      "output": "9",
+      "description": "Small subtractive pair before ten."
+    },
+    {
+      "input": "s = \"XL\"",
+      "output": "40",
+      "description": "Tens-place subtractive pair before fifty."
+    },
+    {
+      "input": "s = \"XC\"",
+      "output": "90",
+      "description": "Tens-place subtractive pair before one hundred."
+    },
+    {
+      "input": "s = \"CD\"",
+      "output": "400",
+      "description": "Hundreds-place subtractive pair before five hundred."
+    },
+    {
+      "input": "s = \"CM\"",
+      "output": "900",
+      "description": "Hundreds-place subtractive pair before one thousand."
+    },
+    {
+      "input": "s = \"I\"",
+      "output": "1",
+      "description": "Minimum valid Roman numeral."
+    },
+    {
+      "input": "s = \"MMMCMXCIX\"",
+      "output": "3999",
+      "description": "Maximum value in the valid input range."
+    },
+    {
+      "input": "s = \"MMMDCCXLIX\"",
+      "output": "3749",
+      "description": "Large valid numeral combines additive thousands and multiple subtractive pairs."
+    },
+    {
+      "input": "s = \"CDXLIV\"",
+      "output": "444",
+      "description": "Subtractive forms appear in hundreds, tens, and ones positions."
+    },
+    {
+      "input": "s = \"MMDCCLXXVI\"",
+      "output": "2776",
+      "description": "Purely additive mixed-place numeral."
+    }
   ]
 }

@@ -1,85 +1,134 @@
 {
   "id": "190",
-  "title": "Set Matrix Zeroes",
-  "description": "# Set Matrix Zeroes\n\nGiven an `m x n` integer matrix `matrix`, if an element is `0`, set its entire row and column to `0`'s.\n\nYou must do it **in-place**.\n\n## Example 1:\n\n**Input:** matrix = [[1,1,1],[1,0,1],[1,1,1]]\n**Output:** [[1,0,1],[0,0,0],[1,0,1]]\n\n## Example 2:\n\n**Input:** matrix = [[0,1,2,0],[3,4,5,2],[1,3,1,5]]\n**Output:** [[0,0,0,0],[0,4,5,0],[0,3,1,0]]\n\n## Constraints:\n\n*   `m == matrix.length`\n*   `n == matrix[0].length`\n*   `1 <= m, n <= 200`\n*   `-2^31 <= matrix[i][j] <= 2^31 - 1`",
+  "title": "Minimum Right Rotations to Sort",
+  "description": "# Minimum Right Rotations to Sort\n\nGiven an integer array `nums`, return the fewest right rotations needed to make the array nondecreasing. A right rotation moves the last element of the array to the front while shifting every other element one position to the right.\n\nReturn `-1` if no number of right rotations can make the array nondecreasing.\n\n## Example 1:\n\n**Input:** nums = [3,4,5,1,2]\n**Output:** 2\n**Explanation:** Two right rotations produce `[1,2,3,4,5]`.\n\n## Example 2:\n\n**Input:** nums = [1,3,5]\n**Output:** 0\n**Explanation:** The array is already nondecreasing, so no rotation is needed.\n\n## Example 3:\n\n**Input:** nums = [2,1,4]\n**Output:** -1\n**Explanation:** No cut point produces a nondecreasing circular reading.\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^5`\n*   `-10^9 <= nums[i] <= 10^9`\n*   A nondecreasing array may contain equal adjacent values.",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public void setZeroes(int[][] matrix) {\n        // Write your code here\n    }\n}",
+  "initialCode": "class Solution {\n    public int minimumRightRotations(int[] nums) {\n        // Write your code here\n        return -1;\n    }\n}",
   "tags": [
     "Array",
-    "Hash Table",
-    "Matrix"
+    "Simulation"
   ],
   "examples": [
     {
-      "input": "matrix = [[1,1,1],[1,0,1],[1,1,1]]",
-      "output": "[[1,0,1],[0,0,0],[1,0,1]]"
+      "input": "nums = [3,4,5,1,2]",
+      "output": "2"
     },
     {
-      "input": "matrix = [[0,1,2,0],[3,4,5,2],[1,3,1,5]]",
-      "output": "[[0,0,0,0],[0,4,5,0],[0,3,1,0]]"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "In-Place Markers (First Row/Col)",
-      "timeComplexity": "O(m * n)",
-      "spaceComplexity": "O(1)",
-      "description": "Use the first row and first column as markers. Track whether the first row/col themselves need zeroing with separate flags. Then zero cells based on markers.",
-      "code": "class Solution {\n    public void setZeroes(int[][] matrix) {\n        int m = matrix.length, n = matrix[0].length;\n        boolean firstRow = false, firstCol = false;\n        for (int j = 0; j < n; j++) if (matrix[0][j] == 0) firstRow = true;\n        for (int i = 0; i < m; i++) if (matrix[i][0] == 0) firstCol = true;\n        for (int i = 1; i < m; i++)\n            for (int j = 1; j < n; j++)\n                if (matrix[i][j] == 0) {\n                    matrix[i][0] = 0;\n                    matrix[0][j] = 0;\n                }\n        for (int i = 1; i < m; i++)\n            for (int j = 1; j < n; j++)\n                if (matrix[i][0] == 0 || matrix[0][j] == 0)\n                    matrix[i][j] = 0;\n        if (firstRow) for (int j = 0; j < n; j++) matrix[0][j] = 0;\n        if (firstCol) for (int i = 0; i < m; i++) matrix[i][0] = 0;\n    }\n}",
-      "language": "java"
+      "input": "nums = [1,3,5]",
+      "output": "0"
     },
     {
-      "name": "HashSet Row/Column Tracking",
-      "timeComplexity": "O(m * n)",
-      "spaceComplexity": "O(m + n)",
-      "description": "First pass: record which rows and columns contain zeros using two HashSets. Second pass: set any cell to zero if its row or column is in the set.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public void setZeroes(int[][] matrix) {\n        int m = matrix.length, n = matrix[0].length;\n        Set<Integer> rows = new HashSet<>();\n        Set<Integer> cols = new HashSet<>();\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (matrix[i][j] == 0) {\n                    rows.add(i);\n                    cols.add(j);\n                }\n            }\n        }\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (rows.contains(i) || cols.contains(j)) {\n                    matrix[i][j] = 0;\n                }\n            }\n        }\n    }\n}",
-      "language": "java"
+      "input": "nums = [2,1,4]",
+      "output": "-1"
     }
   ],
   "tests": [
     {
-      "input": "matrix = [[1,1,1],[1,0,1],[1,1,1]]",
-      "output": "[[1,0,1],[0,0,0],[1,0,1]]"
+      "input": "nums = [3,4,5,1,2]",
+      "output": "2",
+      "description": "Canonical rotated sorted array needs two right rotations."
     },
     {
-      "input": "matrix = [[0,1,2,0],[3,4,5,2],[1,3,1,5]]",
-      "output": "[[0,0,0,0],[0,4,5,0],[0,3,1,0]]"
+      "input": "nums = [1,3,5]",
+      "output": "0",
+      "description": "Already nondecreasing array has the circular descent only at the wrap boundary."
     },
     {
-      "input": "matrix = [[0]]",
-      "output": "[[0]]"
+      "input": "nums = [2,1,4]",
+      "output": "-1",
+      "description": "Two circular descents mean no single cut can sort the array."
     },
     {
-      "input": "matrix = [[5]]",
-      "output": "[[5]]"
+      "input": "nums = [2,3,4,1]",
+      "output": "1",
+      "description": "One right rotation moves the sorted prefix behind the smallest suffix."
     },
     {
-      "input": "matrix = [[1,2,3],[4,5,6],[7,8,9]]",
-      "output": "[[1,2,3],[4,5,6],[7,8,9]]"
+      "input": "nums = [1,1,2]",
+      "output": "0",
+      "description": "Equal adjacent values are allowed in an already sorted array."
     },
     {
-      "input": "matrix = [[0,0],[0,0]]",
-      "output": "[[0,0],[0,0]]"
+      "input": "nums = [1]",
+      "output": "0",
+      "description": "A single value is already nondecreasing."
     },
     {
-      "input": "matrix = [[0,1,1],[1,1,1],[1,1,0]]",
-      "output": "[[0,0,0],[0,1,0],[0,0,0]]"
+      "input": "nums = [2,1]",
+      "output": "1",
+      "description": "The smallest nontrivial sortable case needs one right rotation."
     },
     {
-      "input": "matrix = [[1,0],[0,1]]",
-      "output": "[[0,0],[0,0]]"
+      "input": "nums = [2,2,1,2]",
+      "output": "2",
+      "description": "Duplicate values around the cut still allow a sorted rotation."
     },
     {
-      "input": "matrix = [[1,2,3,4],[5,0,7,8],[9,10,11,12]]",
-      "output": "[[1,0,3,4],[0,0,0,0],[9,0,11,12]]"
+      "input": "nums = [1,2,1,1]",
+      "output": "2",
+      "description": "Multiple equal minima require choosing the cut after the only internal descent."
+    },
+    {
+      "input": "nums = [5,5,5,5]",
+      "output": "0",
+      "description": "All equal values have no strict descent and need no rotation."
+    },
+    {
+      "input": "nums = [-1,0,0,-3,-2]",
+      "output": "2",
+      "description": "Negative values and duplicates verify the logic is order-based, not value-range-based."
+    },
+    {
+      "input": "nums = [3,1,2,2]",
+      "output": "3",
+      "description": "The cut can be near the front, producing a large right-rotation count."
+    },
+    {
+      "input": "nums = [1,3,2,4]",
+      "output": "-1",
+      "description": "One internal descent plus an invalid wrap boundary must be rejected."
     }
   ],
-  "diagrams": [
+  "solutions": [
     {
-      "id": "example1",
-      "file": "p190_example1.png",
-      "caption": "Spiral Matrix II: n=3 result"
+      "name": "Count Circular Descents",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan every adjacent pair in circular order, including the wrap pair `nums[n - 1]` to `nums[0]`. A sortable rotation can have at most one strict descent. If there are two or more descents, return `-1`. If there is no descent, all values are equal and the answer is `0`. If the only descent is at the wrap boundary, the array is already sorted and the answer is also `0`. Otherwise, the cut must be immediately after the descent, so the right-rotation count is the suffix length after that descent.\n\n## Key Insight\n\nA right rotation only changes where the circular sequence starts; it cannot change the circular order itself. A nondecreasing linear reading can therefore exist only when the circular sequence has at most one strict drop.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each circular edge is checked once.\n- Space Complexity: O(1), because only the descent index is stored.",
+      "code": "class Solution {\n    public int minimumRightRotations(int[] nums) {\n        int n = nums.length;\n        int descent = -1;\n        for (int i = 0; i < n; i++) {\n            int next = (i + 1) % n;\n            if (nums[i] > nums[next]) {\n                if (descent != -1) {\n                    return -1;\n                }\n                descent = i;\n            }\n        }\n        if (descent == -1 || descent == n - 1) {\n            return 0;\n        }\n        return n - descent - 1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "First Internal Drop Pivot Verification",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFind the first internal index `i` where `nums[i] > nums[i + 1]`; the only possible sorted rotation must start at `i + 1`. If another internal drop appears, return `-1`. When there is no internal drop, the array is already sorted. Otherwise, verify the circular view starting from the candidate pivot and return `n - pivot` right rotations.\n\n## Key Insight\n\nInstead of counting all circular descents directly, this route constructs the only possible cut point from the first visible drop and then proves that the resulting rotated view is nondecreasing.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because the array is scanned a constant number of times.\n- Space Complexity: O(1), because the rotated view is checked with indices.",
+      "code": "class Solution {\n    public int minimumRightRotations(int[] nums) {\n        int n = nums.length;\n        int pivot = -1;\n        for (int i = 0; i + 1 < n; i++) {\n            if (nums[i] > nums[i + 1]) {\n                if (pivot != -1) {\n                    return -1;\n                }\n                pivot = i + 1;\n            }\n        }\n        if (pivot == -1) {\n            return 0;\n        }\n        for (int offset = 1; offset < n; offset++) {\n            int previous = nums[(pivot + offset - 1) % n];\n            int current = nums[(pivot + offset) % n];\n            if (previous > current) {\n                return -1;\n            }\n        }\n        return n - pivot;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Try Every Rotation",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFor each possible right-rotation count, check the virtual rotated array with modular indexing. The first rotation whose virtual order is nondecreasing is the minimum answer, because rotations are tested from `0` upward.\n\n## Key Insight\n\nThis is the definition written directly as code. It is not efficient enough for the largest input, but it is valuable as a baseline for teaching and for validating optimized reasoning on small cases.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), because each of `n` rotations may inspect `n` values.\n- Space Complexity: O(1), because no rotated copy is built.",
+      "code": "class Solution {\n    public int minimumRightRotations(int[] nums) {\n        int n = nums.length;\n        for (int rotation = 0; rotation < n; rotation++) {\n            boolean sorted = true;\n            for (int i = 1; i < n; i++) {\n                int previous = nums[(i - 1 - rotation + n) % n];\n                int current = nums[(i - rotation + n) % n];\n                if (previous > current) {\n                    sorted = false;\n                    break;\n                }\n            }\n            if (sorted) {\n                return rotation;\n            }\n        }\n        return -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Copy Rotation Match",
+      "timeComplexity": "O(n^2 + n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCreate a sorted copy of `nums`. Then try every possible circular start index in the original array and compare that circular view with the sorted copy. A start index of `s` corresponds to `(n - s) % n` right rotations; keep the smallest such value.\n\n## Key Insight\n\nIf a rotation sorts the array, its values must exactly match the globally sorted multiset in order. Comparing against a sorted copy makes duplicate handling explicit and avoids depending on a unique minimum value.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2 + n log n), from sorting once and comparing up to `n` circular views.\n- Space Complexity: O(n), for the sorted copy.",
+      "code": "class Solution {\n    public int minimumRightRotations(int[] nums) {\n        int n = nums.length;\n        int[] sorted = nums.clone();\n        java.util.Arrays.sort(sorted);\n        int best = n;\n        for (int start = 0; start < n; start++) {\n            boolean matches = true;\n            for (int i = 0; i < n; i++) {\n                if (nums[(start + i) % n] != sorted[i]) {\n                    matches = false;\n                    break;\n                }\n            }\n            if (matches) {\n                best = Math.min(best, (n - start) % n);\n            }\n        }\n        return best == n ? -1 : best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "KMP Search in Doubled Circular Array",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort a copy of the array to obtain the target nondecreasing sequence. Search for that target sequence inside the doubled circular array `nums + nums` using a KMP prefix table, considering only start positions below `n`. Each match gives a valid circular start, and the smallest corresponding right-rotation count is the answer.\n\n## Key Insight\n\nRotation matching is the same problem as finding a length-`n` pattern in a circular text. KMP avoids the repeated `O(n)` comparison for each start while still handling duplicate values correctly.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), dominated by sorting; the KMP scan is linear.\n- Space Complexity: O(n), for the sorted pattern and prefix table.",
+      "code": "class Solution {\n    public int minimumRightRotations(int[] nums) {\n        int n = nums.length;\n        int[] pattern = nums.clone();\n        java.util.Arrays.sort(pattern);\n        int[] lps = buildLps(pattern);\n        int best = Integer.MAX_VALUE;\n        int matched = 0;\n        for (int i = 0; i < 2 * n - 1; i++) {\n            int value = nums[i % n];\n            while (matched > 0 && value != pattern[matched]) {\n                matched = lps[matched - 1];\n            }\n            if (value == pattern[matched]) {\n                matched++;\n            }\n            if (matched == n) {\n                int start = i - n + 1;\n                if (start < n) {\n                    best = Math.min(best, (n - start) % n);\n                }\n                matched = lps[matched - 1];\n            }\n        }\n        return best == Integer.MAX_VALUE ? -1 : best;\n    }\n\n    private int[] buildLps(int[] pattern) {\n        int[] lps = new int[pattern.length];\n        int length = 0;\n        for (int i = 1; i < pattern.length; i++) {\n            while (length > 0 && pattern[i] != pattern[length]) {\n                length = lps[length - 1];\n            }\n            if (pattern[i] == pattern[length]) {\n                length++;\n                lps[i] = length;\n            }\n        }\n        return lps;\n    }\n}",
+      "language": "java"
     }
   ]
 }

@@ -1,36 +1,132 @@
 {
   "id": "341",
   "title": "Remove Invalid Parentheses",
-  "description": "# Remove Invalid Parentheses\n\nGiven a string `s` that contains parentheses and letters, remove the minimum number of invalid parentheses to make the input string valid.\n\nReturn *all the possible results*. You may return the answer in **any order**.\n\n## Example 1:\n\n**Input:** s = \"()())()\"\n**Output:** [\"(())()\",\"()()()\"]\n\n## Example 2:\n\n**Input:** s = \"(a)())()\"\n**Output:** [\"(a())()\",\"(a)()()\"]\n\n## Example 3:\n\n**Input:** s = \")(\"\n**Output:** [\"\"]\n\n## Constraints:\n\n*   `1 <= s.length <= 25`\n*   `s` consists of lowercase English letters and parentheses `'('` and `')'`.\n*   There will be at most `20` parentheses in `s`.",
+  "description": "# Remove Invalid Parentheses\n\nGiven a string `s` containing lowercase letters and parentheses, remove the minimum possible number of invalid parentheses so that the remaining string is valid.\n\nReturn all distinct strings that can be produced with this minimum number of removals. The answer may be returned in any order.\n\nValid parentheses pair every opening parenthesis with a later closing one, and every closing parenthesis with an earlier unmatched opening one. For example, `\"(a)()\"` is valid but `\"a)(\"` is not. Do not remove letters or change their relative order.\n\n## Example 1:\n\n**Input:** s = \"()())()\"\n**Output:** [\"(())()\",\"()()()\"]\n**Explanation:** Removing one `')'` is enough, and there are two distinct valid strings after one removal.\n\n## Example 2:\n\n**Input:** s = \"(a)())()\"\n**Output:** [\"(a())()\",\"(a)()()\"]\n**Explanation:** Letters must remain in place while removing the minimum number of parentheses.\n\n## Example 3:\n\n**Input:** s = \")(\" \n**Output:** [\"\"]\n**Explanation:** Both parentheses must be removed.\n\n## Constraints:\n\n*   `1 <= s.length <= 25`\n*   `s` contains only lowercase English letters, `'('`, and `')'`.\n*   `s` contains at most `20` parentheses.\n*   Return each distinct minimum-removal result once.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public List<String> removeInvalidParentheses(String s) {\n        \n    }\n}",
-  "tags": ["String", "Backtracking", "Breadth-First Search"],
+  "initialCode": "class Solution {\n    public List<String> removeInvalidParentheses(String s) {\n        return new ArrayList<>();\n    }\n}",
+  "tags": [
+    "String",
+    "Backtracking",
+    "Breadth-First Search"
+  ],
   "examples": [
-    { "input": "s = \"()())()\"", "output": "[\"(())()\",\"()()()\"]" },
-    { "input": "s = \"(a)())()\"", "output": "[\"(a())()\",\"(a)()()\"]" },
-    { "input": "s = \")(\"", "output": "[\"\"]" }
+    {
+      "input": "s = \"()())()\"",
+      "output": "[\"(())()\",\"()()()\"]"
+    },
+    {
+      "input": "s = \"(a)())()\"",
+      "output": "[\"(a())()\",\"(a)()()\"]"
+    },
+    {
+      "input": "s = \")(\"",
+      "output": "[\"\"]"
+    }
+  ],
+  "tests": [
+    {
+      "input": "s = \"()())()\"",
+      "output": "[\"(())()\",\"()()()\"]",
+      "description": "canonical sample with two one-removal answers"
+    },
+    {
+      "input": "s = \"(a)())()\"",
+      "output": "[\"(a())()\",\"(a)()()\"]",
+      "description": "letters stay fixed while parentheses are removed"
+    },
+    {
+      "input": "s = \")(\"",
+      "output": "[\"\"]",
+      "description": "one invalid closing and one invalid opening must both be removed"
+    },
+    {
+      "input": "s = \"n\"",
+      "output": "[\"n\"]",
+      "description": "a string with no parentheses is already valid"
+    },
+    {
+      "input": "s = \"((()\"",
+      "output": "[\"()\"]",
+      "description": "extra opening parentheses on the left"
+    },
+    {
+      "input": "s = \"()())())\"",
+      "output": "[\"(()())\",\"(())()\",\"()(())\",\"()()()\"]",
+      "description": "multiple two-removal answers must all be returned"
+    },
+    {
+      "input": "s = \")(a)(\"",
+      "output": "[\"(a)\"]",
+      "description": "invalid parentheses can appear on both ends around letters"
+    },
+    {
+      "input": "s = \"((((\"",
+      "output": "[\"\"]",
+      "description": "all opening parentheses are invalid"
+    },
+    {
+      "input": "s = \"))))\"",
+      "output": "[\"\"]",
+      "description": "all closing parentheses are invalid"
+    },
+    {
+      "input": "s = \"abc\"",
+      "output": "[\"abc\"]",
+      "description": "letters-only input remains unchanged"
+    },
+    {
+      "input": "s = \"(ab)c\"",
+      "output": "[\"(ab)c\"]",
+      "description": "already valid string with letters"
+    },
+    {
+      "input": "s = \"((a))())\"",
+      "output": "[\"((a)())\",\"((a))()\"]",
+      "description": "nested parentheses with duplicate invalid closing choices"
+    },
+    {
+      "input": "s = \"a)b(c)d\"",
+      "output": "[\"ab(c)d\"]",
+      "description": "remove an early invalid closing while preserving letters"
+    },
+    {
+      "input": "s = \"(()(()\"",
+      "output": "[\"(())\",\"()()\"]",
+      "description": "extra openings with two distinct minimum-removal answers"
+    }
   ],
   "solutions": [
     {
       "name": "BFS Level-by-Level Removal",
-      "timeComplexity": "O(2^n)",
-      "spaceComplexity": "O(2^n)",
-      "description": "Use BFS removing one parenthesis at a time. At each level, try removing each parenthesis and check validity. If any valid string is found at this level, stop (minimum removals). Use a HashSet to avoid duplicates.",
-      "code": "class Solution {\n    public List<String> removeInvalidParentheses(String s) {\n        List<String> result = new java.util.ArrayList<>();\n        java.util.Set<String> visited = new java.util.HashSet<>();\n        java.util.Queue<String> queue = new java.util.LinkedList<>();\n        queue.offer(s);\n        visited.add(s);\n        boolean found = false;\n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            for (int i = 0; i < size; i++) {\n                String cur = queue.poll();\n                if (isValid(cur)) { result.add(cur); found = true; }\n                if (found) continue;\n                for (int j = 0; j < cur.length(); j++) {\n                    if (cur.charAt(j) != '(' && cur.charAt(j) != ')') continue;\n                    String next = cur.substring(0, j) + cur.substring(j + 1);\n                    if (visited.add(next)) queue.offer(next);\n                }\n            }\n            if (found) break;\n        }\n        return result;\n    }\n    private boolean isValid(String s) {\n        int count = 0;\n        for (char c : s.toCharArray()) {\n            if (c == '(') count++;\n            else if (c == ')') { if (--count < 0) return false; }\n        }\n        return count == 0;\n    }\n}",
+      "timeComplexity": "O(2^p * n)",
+      "spaceComplexity": "O(2^p * n)",
+      "description": "## Approach\n\nRun breadth-first search over strings. Each edge removes one parenthesis, so every BFS level represents a fixed number of removals. As soon as at least one valid string appears at a level, collect all valid strings from that same level and stop expanding deeper levels.\n\n## Key Insight\n\nBFS gives the minimum-removal guarantee without separately computing how many parentheses must be removed. A visited set is required because deleting equal-looking parentheses in different orders can create the same string.\n\n## Complexity Analysis\n- Time Complexity: O(2^p * n), where `p` is the number of parentheses and `n` is the string length.\n- Space Complexity: O(2^p * n) for the queue and visited set.",
+      "code": "class Solution {\n    public java.util.List<String> removeInvalidParentheses(String s) {\n        java.util.List<String> result = new java.util.ArrayList<>();\n        java.util.Set<String> visited = new java.util.HashSet<>();\n        java.util.Queue<String> queue = new java.util.ArrayDeque<>();\n        queue.offer(s);\n        visited.add(s);\n        boolean found = false;\n\n        while (!queue.isEmpty()) {\n            for (int size = queue.size(); size > 0; size--) {\n                String current = queue.poll();\n                if (isValid(current)) {\n                    result.add(current);\n                    found = true;\n                }\n                if (found) {\n                    continue;\n                }\n                for (int i = 0; i < current.length(); i++) {\n                    char c = current.charAt(i);\n                    if (c != '(' && c != ')') {\n                        continue;\n                    }\n                    String next = current.substring(0, i) + current.substring(i + 1);\n                    if (visited.add(next)) {\n                        queue.offer(next);\n                    }\n                }\n            }\n            if (found) {\n                break;\n            }\n        }\n        return result;\n    }\n\n    private boolean isValid(String value) {\n        int balance = 0;\n        for (int i = 0; i < value.length(); i++) {\n            char c = value.charAt(i);\n            if (c == '(') {\n                balance++;\n            } else if (c == ')') {\n                balance--;\n                if (balance < 0) {\n                    return false;\n                }\n            }\n        }\n        return balance == 0;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "DFS Backtracking with Pruning",
-      "timeComplexity": "O(2^n)",
-      "spaceComplexity": "O(n)",
-      "description": "First count the minimum number of '(' and ')' to remove. Then DFS try removing each parenthesis, tracking open/close counts to remove. Prune branches where remaining removals are impossible.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> removeInvalidParentheses(String s) {\n        int remL = 0, remR = 0;\n        for (int i = 0; i < s.length(); i++) {\n            if (s.charAt(i) == '(') remL++;\n            else if (s.charAt(i) == ')') {\n                if (remL > 0) remL--;\n                else remR++;\n            }\n        }\n        Set<String> result = new HashSet<>();\n        dfs(s, 0, 0, remL, remR, new StringBuilder(), result);\n        return new ArrayList<>(result);\n    }\n    private void dfs(String s, int idx, int open, int remL, int remR, StringBuilder sb, Set<String> result) {\n        if (idx == s.length()) {\n            if (remL == 0 && remR == 0 && open == 0) {\n                result.add(sb.toString());\n            }\n            return;\n        }\n        char c = s.charAt(idx);\n        int len = sb.length();\n        if (c == '(' && remL > 0) {\n            dfs(s, idx + 1, open, remL - 1, remR, sb, result);\n        }\n        if (c == ')' && remR > 0) {\n            dfs(s, idx + 1, open, remL, remR - 1, sb, result);\n        }\n        sb.append(c);\n        if (c == '(') {\n            dfs(s, idx + 1, open + 1, remL, remR, sb, result);\n        } else if (c == ')') {\n            if (open > 0) {\n                dfs(s, idx + 1, open - 1, remL, remR, sb, result);\n            }\n        } else {\n            dfs(s, idx + 1, open, remL, remR, sb, result);\n        }\n        sb.setLength(len);\n    }\n}",
+      "name": "Removal Count Backtracking",
+      "timeComplexity": "O(2^p * n)",
+      "spaceComplexity": "O(2^p * n)",
+      "description": "## Approach\n\nFirst scan the string to compute the exact number of extra left and right parentheses that must be removed. Then backtrack through the string, choosing to keep or delete each parenthesis while tracking the current open balance. Letters are always kept.\n\n## Key Insight\n\nThe precomputed `removeLeft` and `removeRight` counters force the DFS to use the minimum number of deletions. The open-balance check prevents building prefixes that are already invalid, and a set removes duplicate results.\n\n## Complexity Analysis\n- Time Complexity: O(2^p * n) in the worst case.\n- Space Complexity: O(2^p * n) for distinct answers plus O(n) recursion depth.",
+      "code": "class Solution {\n    public java.util.List<String> removeInvalidParentheses(String s) {\n        int removeLeft = 0;\n        int removeRight = 0;\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (c == '(') {\n                removeLeft++;\n            } else if (c == ')') {\n                if (removeLeft > 0) {\n                    removeLeft--;\n                } else {\n                    removeRight++;\n                }\n            }\n        }\n\n        java.util.Set<String> result = new java.util.HashSet<>();\n        dfs(s, 0, 0, removeLeft, removeRight, new StringBuilder(), result);\n        return new java.util.ArrayList<>(result);\n    }\n\n    private void dfs(String s, int index, int open, int removeLeft, int removeRight,\n                     StringBuilder builder, java.util.Set<String> result) {\n        if (index == s.length()) {\n            if (open == 0 && removeLeft == 0 && removeRight == 0) {\n                result.add(builder.toString());\n            }\n            return;\n        }\n\n        char c = s.charAt(index);\n        int length = builder.length();\n        if (c == '(' && removeLeft > 0) {\n            dfs(s, index + 1, open, removeLeft - 1, removeRight, builder, result);\n        }\n        if (c == ')' && removeRight > 0) {\n            dfs(s, index + 1, open, removeLeft, removeRight - 1, builder, result);\n        }\n\n        builder.append(c);\n        if (c == '(') {\n            dfs(s, index + 1, open + 1, removeLeft, removeRight, builder, result);\n        } else if (c == ')') {\n            if (open > 0) {\n                dfs(s, index + 1, open - 1, removeLeft, removeRight, builder, result);\n            }\n        } else {\n            dfs(s, index + 1, open, removeLeft, removeRight, builder, result);\n        }\n        builder.setLength(length);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two-Pass Directional Removal",
+      "timeComplexity": "O(2^p * n)",
+      "spaceComplexity": "O(2^p * n)",
+      "description": "## Approach\n\nScan left to right to find the first prefix with too many closing parentheses. At that point, recursively remove one candidate closing parenthesis from the invalid range, skipping duplicate removals. After no invalid closing remains, reverse the string and repeat the same process with parenthesis roles swapped.\n\n## Key Insight\n\nRemoving only inside the first invalid range keeps the search focused on minimum deletions. Reversing the string turns extra opening parentheses into the same problem as extra closing parentheses.\n\n## Complexity Analysis\n- Time Complexity: O(2^p * n) in the worst case.\n- Space Complexity: O(2^p * n) for output plus O(n) recursion stack.",
+      "code": "class Solution {\n    public java.util.List<String> removeInvalidParentheses(String s) {\n        java.util.List<String> result = new java.util.ArrayList<>();\n        remove(s, result, 0, 0, new char[]{'(', ')'});\n        return result;\n    }\n\n    private void remove(String s, java.util.List<String> result, int scanStart, int removeStart, char[] par) {\n        int balance = 0;\n        for (int i = scanStart; i < s.length(); i++) {\n            if (s.charAt(i) == par[0]) {\n                balance++;\n            }\n            if (s.charAt(i) == par[1]) {\n                balance--;\n            }\n            if (balance >= 0) {\n                continue;\n            }\n\n            for (int j = removeStart; j <= i; j++) {\n                if (s.charAt(j) == par[1]\n                        && (j == removeStart || s.charAt(j - 1) != par[1])) {\n                    remove(s.substring(0, j) + s.substring(j + 1), result, i, j, par);\n                }\n            }\n            return;\n        }\n\n        String reversed = new StringBuilder(s).reverse().toString();\n        if (par[0] == '(') {\n            remove(reversed, result, 0, 0, new char[]{')', '('});\n        } else {\n            result.add(reversed);\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Target Length Generation",
+      "timeComplexity": "O(2^p * n)",
+      "spaceComplexity": "O(2^p * n)",
+      "description": "## Approach\n\nCompute the minimum numbers of left and right parentheses to remove, then derive the target result length. Backtrack while building only strings of that target length. Prune whenever the remaining characters cannot fill the target length, and discard any branch whose balance would become negative.\n\n## Key Insight\n\nInstead of carrying deletion counters through every branch, this route converts the minimum-removal requirement into an exact target length. That makes it a useful second view of the same search space and gives a simple remaining-length prune.\n\n## Complexity Analysis\n- Time Complexity: O(2^p * n) in the worst case.\n- Space Complexity: O(2^p * n) for results and O(n) recursion depth.",
+      "code": "class Solution {\n    public java.util.List<String> removeInvalidParentheses(String s) {\n        int removeLeft = 0;\n        int removeRight = 0;\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (c == '(') {\n                removeLeft++;\n            } else if (c == ')') {\n                if (removeLeft > 0) {\n                    removeLeft--;\n                } else {\n                    removeRight++;\n                }\n            }\n        }\n\n        int targetLength = s.length() - removeLeft - removeRight;\n        java.util.Set<String> result = new java.util.HashSet<>();\n        backtrack(s, 0, targetLength, 0, new StringBuilder(), result);\n        return new java.util.ArrayList<>(result);\n    }\n\n    private void backtrack(String s, int index, int targetLength, int balance,\n                           StringBuilder builder, java.util.Set<String> result) {\n        int remaining = s.length() - index;\n        if (builder.length() + remaining < targetLength) {\n            return;\n        }\n        if (builder.length() > targetLength || balance < 0) {\n            return;\n        }\n        if (index == s.length()) {\n            if (builder.length() == targetLength && balance == 0) {\n                result.add(builder.toString());\n            }\n            return;\n        }\n\n        char c = s.charAt(index);\n        int length = builder.length();\n        if (c == '(' || c == ')') {\n            backtrack(s, index + 1, targetLength, balance, builder, result);\n        }\n\n        builder.append(c);\n        if (c == '(') {\n            backtrack(s, index + 1, targetLength, balance + 1, builder, result);\n        } else if (c == ')') {\n            backtrack(s, index + 1, targetLength, balance - 1, builder, result);\n        } else {\n            backtrack(s, index + 1, targetLength, balance, builder, result);\n        }\n        builder.setLength(length);\n    }\n}",
       "language": "java"
     }
-  ],
-  "tests": [
-    { "input": "s = \"()())()\"", "output": "[\"(())()\",\"()()()\"]" },
-    { "input": "s = \"(a)())()\"", "output": "[\"(a())()\",\"(a)()()\"]" },
-    { "input": "s = \")(\"", "output": "[\"\"]" }
   ]
 }

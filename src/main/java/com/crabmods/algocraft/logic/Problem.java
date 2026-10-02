@@ -2,6 +2,7 @@ package com.crabmods.algocraft.logic;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
@@ -37,6 +38,12 @@ public class Problem {
     
     @SerializedName("tests")
     private List<TestCase> tests = new ArrayList<>();
+
+    @SerializedName("diagrams")
+    private List<Diagram> diagrams = new ArrayList<>();
+
+    @SerializedName("solutions")
+    private List<Solution> solutions = new ArrayList<>();
     
     // Metadata
     @SerializedName("author")
@@ -47,6 +54,22 @@ public class Problem {
     
     @SerializedName("lastModified")
     private long lastModified;
+
+    private transient Path assetBaseDir;
+    private transient String publicationRepository = "";
+    private transient String publicationVersion = "";
+    private transient java.util.Map<String, ProblemTranslationManager.ProblemTranslation> publishedTranslations;
+
+    public void setPublication(String repository, String version) { publicationRepository = repository; publicationVersion = version; }
+    public String getPublicationRepository() { return publicationRepository == null ? "" : publicationRepository; }
+    public String getPublicationVersion() { return publicationVersion == null ? "" : publicationVersion; }
+    public boolean isPublished() { return !getPublicationVersion().isEmpty(); }
+    public void setPublishedTranslations(java.util.Map<String, ProblemTranslationManager.ProblemTranslation> translations) {
+        publishedTranslations = java.util.Map.copyOf(translations);
+    }
+    private ProblemTranslationManager.ProblemTranslation publishedTranslation(String lang) {
+        return publishedTranslations == null || lang == null ? null : publishedTranslations.get(lang);
+    }
     
     /**
      * Get the problem ID, never null.
@@ -82,6 +105,10 @@ public class Problem {
      * @param lang Language code (e.g., "zh_cn", "ja_jp")
      */
     public String getTitle(String lang) {
+        if (publishedTranslations != null) {
+            var text = publishedTranslation(lang);
+            return text != null && text.hasTitle() ? text.getTitle() : getTitle();
+        }
         return ProblemTranslationManager.getTitle(lang, getId(), getTitle());
     }
     
@@ -105,6 +132,10 @@ public class Problem {
      * @param lang Language code (e.g., "zh_cn", "ja_jp")
      */
     public String getDescription(String lang) {
+        if (publishedTranslations != null) {
+            var text = publishedTranslation(lang);
+            return text != null && text.hasDescription() ? text.getDescription() : getDescription();
+        }
         return ProblemTranslationManager.getDescription(lang, getId(), getDescription());
     }
     
@@ -171,6 +202,81 @@ public class Problem {
     public void setTests(List<TestCase> tests) {
         this.tests = tests;
     }
+
+    /**
+     * Get reference solutions as an unmodifiable list.
+     */
+    public List<Solution> getSolutions() {
+        return solutions != null ? Collections.unmodifiableList(solutions) : Collections.emptyList();
+    }
+
+    /**
+     * Get reference solutions with localized names and explanations when
+     * translations are available. Code and language stay unchanged.
+     */
+    public List<Solution> getSolutions(String lang) {
+        List<Solution> baseSolutions = getSolutions();
+        if (lang == null || lang.isEmpty() || "en_us".equals(lang)) {
+            return baseSolutions;
+        }
+
+        List<Solution> localized = new ArrayList<>(baseSolutions.size());
+        for (int i = 0; i < baseSolutions.size(); i++) {
+            Solution solution = baseSolutions.get(i);
+            localized.add(new Solution(
+                    ProblemTranslationManager.getSolutionName(lang, getId(), i, solution.getName()),
+                    ProblemTranslationManager.getSolutionDescription(lang, getId(), i, solution.getDescription()),
+                    solution.getCode(),
+                    solution.getLanguage()
+            ));
+        }
+        return Collections.unmodifiableList(localized);
+    }
+
+    /**
+     * Get structured diagram metadata from current problem files.
+     */
+    public List<Diagram> getDiagrams() {
+        return diagrams != null ? Collections.unmodifiableList(diagrams) : Collections.emptyList();
+    }
+
+    /**
+     * Return all prompt visuals from structured diagram metadata.
+     */
+    public List<Visual> getVisuals() {
+        return getVisuals(null);
+    }
+
+    /**
+     * Return all prompt visuals with localized captions when available.
+     */
+    public List<Visual> getVisuals(String lang) {
+        List<Visual> visuals = new ArrayList<>();
+        for (Diagram diagram : getDiagrams()) {
+            String file = diagram.getFile();
+            if (!file.isBlank()) {
+                String id = diagram.getId();
+                String caption = diagram.getCaption();
+                if (publishedTranslations == null) caption = ProblemTranslationManager.getDiagramCaption(lang, getId(), id, caption);
+                else {
+                    var text = publishedTranslation(lang);
+                    if (text != null) for (var translated : text.getDiagrams()) {
+                        if (id.equals(translated.getId()) && translated.hasCaption()) caption = translated.getCaption();
+                    }
+                }
+                visuals.add(new Visual(id, file, caption));
+            }
+        }
+        return Collections.unmodifiableList(visuals);
+    }
+
+    public Path getAssetBaseDir() {
+        return assetBaseDir;
+    }
+
+    public void setAssetBaseDir(Path assetBaseDir) {
+        this.assetBaseDir = assetBaseDir;
+    }
     
     /**
      * Get the author of this problem.
@@ -210,6 +316,80 @@ public class Problem {
         return id != null && !id.isEmpty() 
             && title != null && !title.isEmpty()
             && ((examples != null && !examples.isEmpty()) || (tests != null && !tests.isEmpty()));
+    }
+
+    public static class Diagram {
+        @SerializedName("id")
+        private String id;
+
+        @SerializedName("file")
+        private String file;
+
+        @SerializedName("caption")
+        private String caption;
+
+        public String getId() {
+            return id != null ? id : "";
+        }
+
+        public String getFile() {
+            return file != null ? file : "";
+        }
+
+        public String getCaption() {
+            return caption != null ? caption : "";
+        }
+    }
+
+    public record Visual(String id, String file, String caption) {
+        public Visual {
+            id = id != null ? id : "";
+            file = file != null ? file : "";
+            caption = caption != null ? caption : "";
+        }
+    }
+
+    /**
+     * Represents a reference solution bundled with a problem.
+     */
+    public static class Solution {
+        @SerializedName("name")
+        private String name;
+
+        @SerializedName("description")
+        private String description;
+
+        @SerializedName("code")
+        private String code;
+
+        @SerializedName("language")
+        private String language;
+
+        public Solution() {
+        }
+
+        private Solution(String name, String description, String code, String language) {
+            this.name = name;
+            this.description = description;
+            this.code = code;
+            this.language = language;
+        }
+
+        public String getName() {
+            return name != null ? name : "";
+        }
+
+        public String getDescription() {
+            return description != null ? description : "";
+        }
+
+        public String getCode() {
+            return code != null ? code : "";
+        }
+
+        public String getLanguage() {
+            return language != null ? language : "";
+        }
     }
 
     /**

@@ -4,33 +4,120 @@
   "description": "# To Lower Case\n\nGiven a string `s`, return *the string after replacing every uppercase letter with the same lowercase letter*.\n\n## Example 1:\n\n**Input:** s = \"Hello\"\n**Output:** \"hello\"\n\n## Example 2:\n\n**Input:** s = \"here\"\n**Output:** \"here\"\n\n## Example 3:\n\n**Input:** s = \"LOVELY\"\n**Output:** \"lovely\"\n\n## Constraints:\n\n*   `1 <= s.length <= 100`\n*   `s` consists of printable ASCII characters.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public String toLowerCase(String s) {\n        // Write your code here\n        return \"\";\n    }\n}",
-  "tags": ["String"],
+  "tags": [
+    "String"
+  ],
   "examples": [
-    { "input": "s = \"Hello\"", "output": "\"hello\"" },
-    { "input": "s = \"here\"", "output": "\"here\"" },
-    { "input": "s = \"LOVELY\"", "output": "\"lovely\"" }
+    {
+      "input": "s = \"Hello\"",
+      "output": "\"hello\""
+    },
+    {
+      "input": "s = \"here\"",
+      "output": "\"here\""
+    },
+    {
+      "input": "s = \"LOVELY\"",
+      "output": "\"lovely\""
+    }
   ],
   "solutions": [
     {
       "name": "Character Manipulation",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Iterate through each character. If it's uppercase (A-Z), convert to lowercase by adding 32 to the ASCII value.",
-      "code": "class Solution {\n    public String toLowerCase(String s) {\n        char[] chars = s.toCharArray();\n        for (int i = 0; i < chars.length; i++) {\n            if (chars[i] >= 'A' && chars[i] <= 'Z') {\n                chars[i] = (char)(chars[i] + 32);\n            }\n        }\n        return new String(chars);\n    }\n}",
+      "description": "## Approach\n\nConvert the string to a character array. For each character, only values in the ASCII uppercase range `A` through `Z` are adjusted by the lowercase offset `('a' - 'A')`; every other printable ASCII character is copied unchanged.\n\n## Key Insight\n\nIn ASCII, uppercase and lowercase English letters are separated by a fixed offset. The range guard is part of the algorithm because digits, spaces, and punctuation must not be shifted.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String toLowerCase(String s) {\n        char[] chars = s.toCharArray();\n        int offset = 'a' - 'A';\n        for (int i = 0; i < chars.length; i++) {\n            if (chars[i] >= 'A' && chars[i] <= 'Z') {\n                chars[i] = (char) (chars[i] + offset);\n            }\n        }\n        return new String(chars);\n    }\n}",
       "language": "java"
     },
     {
       "name": "Bitwise OR Conversion",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use bitwise OR with 32 (0x20) to convert uppercase ASCII to lowercase. Lowercase letters and non-letter characters are unaffected.",
+      "description": "## Approach\n\nFor characters in the ASCII uppercase range, set bit `0x20` with `current | 32`. This converts `A` through `Z` to `a` through `z`; characters outside the range are appended unchanged.\n\n## Key Insight\n\nThe bit trick is only safe after the uppercase range check. Without that guard, symbols such as `[` and `]` would also be changed because they share the same bit position.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
       "code": "class Solution {\n    public String toLowerCase(String s) {\n        char[] chars = s.toCharArray();\n        for (int i = 0; i < chars.length; i++) {\n            if (chars[i] >= 'A' && chars[i] <= 'Z') {\n                chars[i] = (char)(chars[i] | 32);\n            }\n        }\n        return new String(chars);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "StringBuilder Streaming Conversion",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nBuild the answer from left to right with a `StringBuilder`. Convert each uppercase ASCII letter by offset arithmetic and append either the converted letter or the original character.\n\n## Key Insight\n\nThis route avoids mutating a copied character array and makes the output construction explicit. It is useful when teaching how to stream-transform a string one character at a time.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String toLowerCase(String s) {\n        StringBuilder builder = new StringBuilder(s.length());\n        for (int i = 0; i < s.length(); i++) {\n            char current = s.charAt(i);\n            if (current >= 'A' && current <= 'Z') {\n                current = (char) (current + ('a' - 'A'));\n            }\n            builder.append(current);\n        }\n        return builder.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Character API Conversion",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nIterate through the string and append `Character.toLowerCase(current)` for every character. The Java character API leaves non-letter printable ASCII characters unchanged.\n\n## Key Insight\n\nThis is the library-backed baseline. It teaches the production-safe primitive while still walking through the string so the cost and transformation are visible.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String toLowerCase(String s) {\n        StringBuilder builder = new StringBuilder(s.length());\n        for (int i = 0; i < s.length(); i++) {\n            builder.append(Character.toLowerCase(s.charAt(i)));\n        }\n        return builder.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "ASCII Lookup Table",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nBuild a constant-size lookup table for ASCII characters. Initialize every character to map to itself, then overwrite `A` through `Z` with their lowercase partners and transform the input by table lookup.\n\n## Key Insight\n\nA table separates the classification work from the transformation pass. Because the input is printable ASCII, a 128-entry table is sufficient and independent of input length.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public String toLowerCase(String s) {\n        char[] table = new char[128];\n        for (int i = 0; i < table.length; i++) {\n            table[i] = (char) i;\n        }\n        for (char c = 'A'; c <= 'Z'; c++) {\n            table[c] = (char) ('a' + (c - 'A'));\n        }\n\n        char[] result = s.toCharArray();\n        for (int i = 0; i < result.length; i++) {\n            result[i] = table[result[i]];\n        }\n        return new String(result);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"Hello\"", "output": "\"hello\"" },
-    { "input": "s = \"here\"", "output": "\"here\"" },
-    { "input": "s = \"LOVELY\"", "output": "\"lovely\"" }
+    {
+      "input": "s = \"Hello\"",
+      "output": "\"hello\"",
+      "description": "Mixed case letters convert uppercase H only."
+    },
+    {
+      "input": "s = \"here\"",
+      "output": "\"here\"",
+      "description": "Lowercase input stays unchanged."
+    },
+    {
+      "input": "s = \"LOVELY\"",
+      "output": "\"lovely\"",
+      "description": "All uppercase letters convert."
+    },
+    {
+      "input": "s = \"al&phaBET\"",
+      "output": "\"al&phabet\"",
+      "description": "Printable symbols remain unchanged while uppercase letters convert."
+    },
+    {
+      "input": "s = \"123ABC!?\"",
+      "output": "\"123abc!?\"",
+      "description": "Digits and punctuation are unaffected."
+    },
+    {
+      "input": "s = \"Z\"",
+      "output": "\"z\"",
+      "description": "A single uppercase boundary character converts."
+    },
+    {
+      "input": "s = \"A\"",
+      "output": "\"a\"",
+      "description": "A single lower-bound uppercase character converts."
+    },
+    {
+      "input": "s = \"A[Z]\"",
+      "output": "\"a[z]\"",
+      "description": "Bracket punctuation next to uppercase letters must stay unchanged."
+    },
+    {
+      "input": "s = \"JAVA 21 Rocks!\"",
+      "output": "\"java 21 rocks!\"",
+      "description": "Spaces, digits, and punctuation stay unchanged inside a mixed phrase."
+    },
+    {
+      "input": "s = \"@ABC_[]\"",
+      "output": "\"@abc_[]\"",
+      "description": "Printable punctuation around uppercase letters must not be converted by an unguarded bit trick."
+    },
+    {
+      "input": "s = \"aBcDeFgHiJkLmNoPqRsTuVwXyZ\"",
+      "output": "\"abcdefghijklmnopqrstuvwxyz\"",
+      "description": "Alternating case across the alphabet converts every uppercase position."
+    }
   ]
 }

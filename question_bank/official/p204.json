@@ -1,36 +1,145 @@
 {
   "id": "204",
   "title": "Integer to Roman",
-  "description": "# Integer to Roman\n\nRoman numerals are represented by seven different symbols: `I`, `V`, `X`, `L`, `C`, `D` and `M`.\n\n**Symbol**       **Value**\nI             1\nV             5\nX             10\nL             50\nC             100\nD             500\nM             1000\n\nFor example, `2` is written as `II` in Roman numeral, just two one's added together. `12` is written as `XII`, which is simply `X + II`. The number `27` is written as `XXVII`, which is `XX + V + II`.\n\nRoman numerals are usually written largest to smallest from left to right. However, the numeral for four is not `IIII`. Instead, the number four is written as `IV`. Because the one is before the five we subtract it making four. The same principle applies to the number nine, which is written as `IX`. There are six instances where subtraction is used:\n\n*   `I` can be placed before `V` (5) and `X` (10) to make 4 and 9.\n*   `X` can be placed before `L` (50) and `C` (100) to make 40 and 90.\n*   `C` can be placed before `D` (500) and `M` (1000) to make 400 and 900.\n\nGiven an integer, convert it to a roman numeral.\n\n## Example 1:\n\n**Input:** num = 3\n**Output:** \"III\"\n**Explanation:** 3 is represented as 3 ones.\n\n## Example 2:\n\n**Input:** num = 58\n**Output:** \"LVIII\"\n**Explanation:** L = 50, V = 5, III = 3.\n\n## Example 3:\n\n**Input:** num = 1994\n**Output:** \"MCMXCIV\"\n**Explanation:** M = 1000, CM = 900, XC = 90 and IV = 4.\n\n## Constraints:\n\n*   `1 <= num <= 3999`",
+  "description": "# Integer to Roman\n\nRoman numerals use seven symbols:\n\n| Symbol | Value |\n| --- | --- |\n| I | 1 |\n| V | 5 |\n| X | 10 |\n| L | 50 |\n| C | 100 |\n| D | 500 |\n| M | 1000 |\n\nNormally, symbols are written from largest to smallest and their values are added. For example, `2` is written as `II`, `12` is written as `XII`, and `27` is written as `XXVII`.\n\nStandard Roman notation also uses exactly six subtractive forms:\n\n* `4 = IV` and `9 = IX`\n* `40 = XL` and `90 = XC`\n* `400 = CD` and `900 = CM`\n\nGiven an integer `num`, convert it to its standard Roman numeral representation.\n\n## Example 1:\n\n**Input:** num = 3\n**Output:** \"III\"\n**Explanation:** `3` is represented as `I + I + I`.\n\n## Example 2:\n\n**Input:** num = 58\n**Output:** \"LVIII\"\n**Explanation:** `L = 50`, `V = 5`, and `III = 3`.\n\n## Example 3:\n\n**Input:** num = 1994\n**Output:** \"MCMXCIV\"\n**Explanation:** `M = 1000`, `CM = 900`, `XC = 90`, and `IV = 4`.\n\n## Constraints:\n\n* `1 <= num <= 3999`\n* The output must use the canonical subtractive forms above instead of nonstandard spellings such as `IIII` or `DCCCC`.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public String intToRoman(int num) {\n        // Write your code here\n        return \"\";\n    }\n}",
-  "tags": ["Hash Table", "Math", "String"],
+  "tags": [
+    "Hash Table",
+    "Math",
+    "String"
+  ],
   "examples": [
-    { "input": "num = 3", "output": "\"III\"" },
-    { "input": "num = 58", "output": "\"LVIII\"" },
-    { "input": "num = 1994", "output": "\"MCMXCIV\"" }
+    {
+      "input": "num = 3",
+      "output": "\"III\""
+    },
+    {
+      "input": "num = 58",
+      "output": "\"LVIII\""
+    },
+    {
+      "input": "num = 1994",
+      "output": "\"MCMXCIV\""
+    }
   ],
   "solutions": [
     {
-      "name": "Greedy with Value-Symbol Mapping",
+      "name": "Greedy Repeated Subtraction",
       "timeComplexity": "O(1)",
       "spaceComplexity": "O(1)",
-      "description": "Use a descending list of value-symbol pairs (including subtractive forms). Greedily subtract the largest possible value and append its symbol.",
-      "code": "class Solution {\n    public String intToRoman(int num) {\n        int[] values =    {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};\n        String[] symbols = {\"M\",\"CM\",\"D\",\"CD\",\"C\",\"XC\",\"L\",\"XL\",\"X\",\"IX\",\"V\",\"IV\",\"I\"};\n        StringBuilder sb = new StringBuilder();\n        for (int i = 0; i < values.length; i++) {\n            while (num >= values[i]) {\n                sb.append(symbols[i]);\n                num -= values[i];\n            }\n        }\n        return sb.toString();\n    }\n}",
+      "description": "## Approach\n\nKeep the thirteen legal chunks, including the six subtractive chunks, in descending value order. Repeatedly append the first chunk whose value fits the remaining number and subtract that value.\n\n## Key Insight\n\nCanonical Roman numerals always use the largest legal prefix available. Treating `CM`, `CD`, `XC`, `XL`, `IX`, and `IV` as normal chunks makes the greedy choice local and correct.\n\n## Complexity Analysis\n\n- Time Complexity: O(1)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public String intToRoman(int num) {\n        int[] values = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};\n        String[] symbols = {\"M\", \"CM\", \"D\", \"CD\", \"C\", \"XC\", \"L\", \"XL\", \"X\", \"IX\", \"V\", \"IV\", \"I\"};\n        StringBuilder result = new StringBuilder();\n        for (int i = 0; i < values.length; i++) {\n            while (num >= values[i]) {\n                result.append(symbols[i]);\n                num -= values[i];\n            }\n        }\n        return result.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Ordered Chunk Count Sweep",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse the same descending chunk table, but compute how many times each chunk appears with integer division. Append that symbol `count` times, then reduce `num` with the remainder.\n\n## Key Insight\n\nThis is the counting version of the greedy decomposition. The quotient says how many copies of the current Roman chunk are forced before any smaller chunk can appear.\n\n## Complexity Analysis\n\n- Time Complexity: O(1)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public String intToRoman(int num) {\n        int[] values = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};\n        String[] symbols = {\"M\", \"CM\", \"D\", \"CD\", \"C\", \"XC\", \"L\", \"XL\", \"X\", \"IX\", \"V\", \"IV\", \"I\"};\n        StringBuilder result = new StringBuilder();\n        for (int i = 0; i < values.length; i++) {\n            int count = num / values[i];\n            for (int j = 0; j < count; j++) {\n                result.append(symbols[i]);\n            }\n            num %= values[i];\n        }\n        return result.toString();\n    }\n}",
       "language": "java"
     },
     {
       "name": "Hardcoded Digit Tables",
       "timeComplexity": "O(1)",
       "spaceComplexity": "O(1)",
-      "description": "Use pre-built arrays for thousands, hundreds, tens, and ones places. Look up the Roman representation for each digit position directly.",
-      "code": "class Solution {\n    public String intToRoman(int num) {\n        String[] thousands = {\"\", \"M\", \"MM\", \"MMM\"};\n        String[] hundreds = {\"\", \"C\", \"CC\", \"CCC\", \"CD\", \"D\", \"DC\", \"DCC\", \"DCCC\", \"CM\"};\n        String[] tens = {\"\", \"X\", \"XX\", \"XXX\", \"XL\", \"L\", \"LX\", \"LXX\", \"LXXX\", \"XC\"};\n        String[] ones = {\"\", \"I\", \"II\", \"III\", \"IV\", \"V\", \"VI\", \"VII\", \"VIII\", \"IX\"};\n        return thousands[num / 1000] + hundreds[(num % 1000) / 100] + tens[(num % 100) / 10] + ones[num % 10];\n    }\n}",
+      "description": "## Approach\n\nPrecompute the Roman text for the thousands, hundreds, tens, and ones digit. Split `num` into its decimal digits and concatenate one entry from each table.\n\n## Key Insight\n\nStandard Roman notation is place-local in the range `1..3999`: each decimal digit has a fixed Roman spelling for its place. The table stores all subtractive cases before runtime.\n\n## Complexity Analysis\n\n- Time Complexity: O(1)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public String intToRoman(int num) {\n        String[] thousands = {\"\", \"M\", \"MM\", \"MMM\"};\n        String[] hundreds = {\"\", \"C\", \"CC\", \"CCC\", \"CD\", \"D\", \"DC\", \"DCC\", \"DCCC\", \"CM\"};\n        String[] tens = {\"\", \"X\", \"XX\", \"XXX\", \"XL\", \"L\", \"LX\", \"LXX\", \"LXXX\", \"XC\"};\n        String[] ones = {\"\", \"I\", \"II\", \"III\", \"IV\", \"V\", \"VI\", \"VII\", \"VIII\", \"IX\"};\n        return thousands[num / 1000]\n                + hundreds[(num % 1000) / 100]\n                + tens[(num % 100) / 10]\n                + ones[num % 10];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Place-Value Grammar Builder",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nSplit the integer into thousands, hundreds, tens, and ones. Thousands repeat `M`; every other place uses a local one, five, and ten symbol and handles the four cases `9`, `5..8`, `4`, and `0..3`.\n\n## Key Insight\n\nThe same grammar applies at the ones, tens, and hundreds places. Abstracting that grammar avoids both a full lookup table and repeated global greedy subtraction.\n\n## Complexity Analysis\n\n- Time Complexity: O(1)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public String intToRoman(int num) {\n        StringBuilder result = new StringBuilder();\n        appendRepeat(result, 'M', num / 1000);\n        appendDigit(result, (num / 100) % 10, 'C', 'D', 'M');\n        appendDigit(result, (num / 10) % 10, 'X', 'L', 'C');\n        appendDigit(result, num % 10, 'I', 'V', 'X');\n        return result.toString();\n    }\n\n    private void appendDigit(StringBuilder result, int digit, char one, char five, char ten) {\n        if (digit == 9) {\n            result.append(one).append(ten);\n        } else if (digit >= 5) {\n            result.append(five);\n            appendRepeat(result, one, digit - 5);\n        } else if (digit == 4) {\n            result.append(one).append(five);\n        } else {\n            appendRepeat(result, one, digit);\n        }\n    }\n\n    private void appendRepeat(StringBuilder result, char symbol, int count) {\n        for (int i = 0; i < count; i++) {\n            result.append(symbol);\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Additive Expansion then Canonical Compression",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFirst write the number using only additive Roman notation, allowing temporary forms such as `DCCCC`, `LXXXX`, and `VIIII`. Then replace those noncanonical runs with the six canonical subtractive forms.\n\n## Key Insight\n\nSubtractive notation is a compression rule layered on top of additive notation. Building the additive spelling first makes it clear exactly which patterns must be normalized.\n\n## Complexity Analysis\n\n- Time Complexity: O(1)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public String intToRoman(int num) {\n        StringBuilder additive = new StringBuilder();\n        num = appendChunk(additive, num, 1000, \"M\");\n        num = appendChunk(additive, num, 500, \"D\");\n        num = appendChunk(additive, num, 100, \"C\");\n        num = appendChunk(additive, num, 50, \"L\");\n        num = appendChunk(additive, num, 10, \"X\");\n        num = appendChunk(additive, num, 5, \"V\");\n        appendChunk(additive, num, 1, \"I\");\n\n        return additive.toString()\n                .replace(\"DCCCC\", \"CM\")\n                .replace(\"CCCC\", \"CD\")\n                .replace(\"LXXXX\", \"XC\")\n                .replace(\"XXXX\", \"XL\")\n                .replace(\"VIIII\", \"IX\")\n                .replace(\"IIII\", \"IV\");\n    }\n\n    private int appendChunk(StringBuilder builder, int num, int value, String symbol) {\n        int count = num / value;\n        for (int i = 0; i < count; i++) {\n            builder.append(symbol);\n        }\n        return num % value;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "num = 3", "output": "\"III\"" },
-    { "input": "num = 58", "output": "\"LVIII\"" },
-    { "input": "num = 1994", "output": "\"MCMXCIV\"" }
+    {
+      "input": "num = 3",
+      "output": "\"III\"",
+      "description": "Small additive value repeats the one symbol."
+    },
+    {
+      "input": "num = 58",
+      "output": "\"LVIII\"",
+      "description": "Mixed tens, fives, and ones without subtractive notation."
+    },
+    {
+      "input": "num = 1994",
+      "output": "\"MCMXCIV\"",
+      "description": "Canonical value requires subtractive notation in three places."
+    },
+    {
+      "input": "num = 4",
+      "output": "\"IV\"",
+      "description": "Ones-place subtractive notation before five."
+    },
+    {
+      "input": "num = 9",
+      "output": "\"IX\"",
+      "description": "Ones-place subtractive notation before ten."
+    },
+    {
+      "input": "num = 40",
+      "output": "\"XL\"",
+      "description": "Tens-place subtractive notation before fifty."
+    },
+    {
+      "input": "num = 90",
+      "output": "\"XC\"",
+      "description": "Tens-place subtractive notation before one hundred."
+    },
+    {
+      "input": "num = 400",
+      "output": "\"CD\"",
+      "description": "Hundreds-place subtractive notation before five hundred."
+    },
+    {
+      "input": "num = 900",
+      "output": "\"CM\"",
+      "description": "Hundreds-place subtractive notation before one thousand."
+    },
+    {
+      "input": "num = 1",
+      "output": "\"I\"",
+      "description": "Minimum valid input."
+    },
+    {
+      "input": "num = 3999",
+      "output": "\"MMMCMXCIX\"",
+      "description": "Upper constraint value uses the largest standard Roman numeral."
+    },
+    {
+      "input": "num = 944",
+      "output": "\"CMXLIV\"",
+      "description": "Hundreds, tens, and ones all use subtractive forms."
+    },
+    {
+      "input": "num = 3888",
+      "output": "\"MMMDCCCLXXXVIII\"",
+      "description": "Large purely additive representation stresses repeated symbols."
+    },
+    {
+      "input": "num = 2421",
+      "output": "\"MMCDXXI\"",
+      "description": "Mixed thousands, subtractive hundreds, additive tens, and ones."
+    },
+    {
+      "input": "num = 2776",
+      "output": "\"MMDCCLXXVI\"",
+      "description": "Pure additive mixed-place numeral with five-symbol places."
+    }
   ]
 }

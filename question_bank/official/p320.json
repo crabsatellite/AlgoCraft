@@ -3,19 +3,31 @@
   "title": "Scramble String",
   "description": "# Scramble String\n\nWe can scramble a string s to get a string t using the following algorithm:\n\n1.  If the length of the string is 1, stop.\n2.  If the length of the string is > 1, do the following:\n    *   Split the string into two non-empty substrings at a random index, i.e., if the string is `s`, divide it to `x` and `y` where `s = x + y`.\n    *   Randomly decide to swap the two substrings or to keep them in the same order. i.e., after this step, `s` may become `s = x + y` or `s = y + x`.\n    *   Apply step 1 recursively on each of the two substrings `x` and `y`.\n\nGiven two strings `s1` and `s2` of **the same length**, return `true` if `s2` is a scrambled string of `s1`, otherwise, return `false`.\n\n## Example 1:\n\n**Input:** s1 = \"great\", s2 = \"rgeat\"\n**Output:** true\n**Explanation:** One possible scenario applied on s1 is:\n\"great\" --> \"gr/eat\" // divide at random index.\n\"gr/eat\" --> \"gr/eat\" // random decision is not to swap the two substrings and keep them in order.\n\"gr/eat\" --> \"g/r / e/at\" // apply the same algorithm recursively on both substrings. divide at random index each of them.\n\"g/r / e/at\" --> \"r/g / e/at\" // random decision was to swap the first substring and to keep the second substring in the same order.\n\"r/g / e/at\" --> \"r/g / e/ a/t\" // again apply the algorithm recursively, divide \"at\" to \"a/t\".\n\"r/g / e/ a/t\" --> \"r/g / e/ a/t\" // random decision is to keep both substrings in the same order.\nThe algorithm stops now and the result string is \"rgeat\" which is s2.\nAs there is one possible scenario that led s1 to be scrambled to s2, we return true.\n\n## Example 2:\n\n**Input:** s1 = \"abcde\", s2 = \"caebd\"\n**Output:** false\n\n## Example 3:\n\n**Input:** s1 = \"a\", s2 = \"a\"\n**Output:** true\n\n## Constraints:\n\n*   `s1.length == s2.length`\n*   `1 <= s1.length <= 30`\n*   `s1` and `s2` consist of lowercase English letters.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public boolean isScramble(String s1, String s2) {\n        \n    }\n}",
-  "tags": ["String", "Dynamic Programming"],
+  "initialCode": "class Solution {\n    public boolean isScramble(String s1, String s2) {\n        return false;\n    }\n}",
+  "tags": [
+    "String",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "s1 = \"great\", s2 = \"rgeat\"", "output": "true" },
-    { "input": "s1 = \"abcde\", s2 = \"caebd\"", "output": "false" },
-    { "input": "s1 = \"a\", s2 = \"a\"", "output": "true" }
+    {
+      "input": "s1 = \"great\", s2 = \"rgeat\"",
+      "output": "true"
+    },
+    {
+      "input": "s1 = \"abcde\", s2 = \"caebd\"",
+      "output": "false"
+    },
+    {
+      "input": "s1 = \"a\", s2 = \"a\"",
+      "output": "true"
+    }
   ],
   "solutions": [
     {
       "name": "3D Dynamic Programming",
       "timeComplexity": "O(n^4)",
       "spaceComplexity": "O(n^3)",
-      "description": "dp[len][i][j] = true if s1 starting at i with length len is a scramble of s2 starting at j. For each split point k, check both swap and no-swap configurations.",
+      "description": "## Approach\n\nUse a bottom-up interval DP where `dp[len][i][j]` means `s1.substring(i, i + len)` can scramble into `s2.substring(j, j + len)`. Initialize length-1 states by character equality, then increase the interval length.\n\n## Key Insight\n\nFor a fixed split length `k`, either the left part maps to the left part and the right part maps to the right part, or the two children are swapped. Those two cases exactly match the recursive scramble definition.\n\n## Complexity Analysis\n- Time Complexity: O(n^4)\n- Space Complexity: O(n^3)",
       "code": "class Solution {\n    public boolean isScramble(String s1, String s2) {\n        int n = s1.length();\n        boolean[][][] dp = new boolean[n + 1][n][n];\n        for (int i = 0; i < n; i++)\n            for (int j = 0; j < n; j++)\n                dp[1][i][j] = s1.charAt(i) == s2.charAt(j);\n        for (int len = 2; len <= n; len++) {\n            for (int i = 0; i <= n - len; i++) {\n                for (int j = 0; j <= n - len; j++) {\n                    for (int k = 1; k < len; k++) {\n                        if ((dp[k][i][j] && dp[len - k][i + k][j + k]) ||\n                            (dp[k][i][j + len - k] && dp[len - k][i + k][j])) {\n                            dp[len][i][j] = true;\n                            break;\n                        }\n                    }\n                }\n            }\n        }\n        return dp[n][0][0];\n    }\n}",
       "language": "java"
     },
@@ -23,14 +35,112 @@
       "name": "Recursive with Memoization",
       "timeComplexity": "O(n^4)",
       "spaceComplexity": "O(n^3)",
-      "description": "Use top-down recursion with a HashMap to memoize (i, j, len) states. At each step, try all split points and check both swapped and non-swapped configurations. Prune by checking character frequency match.",
+      "description": "## Approach\n\nUse top-down recursion on the two current substrings and memoize each `(leftSubstring, rightSubstring)` pair in a hash map. Before trying split points, compare character frequencies to reject impossible pairs.\n\n## Key Insight\n\nScramble equivalence has overlapping subproblems: the same pair of substrings can be reached through different split orders. Memoization keeps the recursion from expanding the same interval pair repeatedly.\n\n## Complexity Analysis\n- Time Complexity: O(n^4)\n- Space Complexity: O(n^3)",
       "code": "import java.util.*;\n\nclass Solution {\n    private Map<String, Boolean> memo = new HashMap<>();\n    public boolean isScramble(String s1, String s2) {\n        memo = new HashMap<>();\n        return solve(s1, s2);\n    }\n    private boolean solve(String s1, String s2) {\n        if (s1.equals(s2)) return true;\n        if (s1.length() != s2.length()) return false;\n        String key = s1 + \"#\" + s2;\n        if (memo.containsKey(key)) return memo.get(key);\n        int n = s1.length();\n        int[] count = new int[26];\n        for (int i = 0; i < n; i++) {\n            count[s1.charAt(i) - 'a']++;\n            count[s2.charAt(i) - 'a']--;\n        }\n        for (int c : count) {\n            if (c != 0) {\n                memo.put(key, false);\n                return false;\n            }\n        }\n        for (int i = 1; i < n; i++) {\n            if (solve(s1.substring(0, i), s2.substring(0, i)) && solve(s1.substring(i), s2.substring(i))) {\n                memo.put(key, true);\n                return true;\n            }\n            if (solve(s1.substring(0, i), s2.substring(n - i)) && solve(s1.substring(i), s2.substring(0, n - i))) {\n                memo.put(key, true);\n                return true;\n            }\n        }\n        memo.put(key, false);\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Index DFS With Prefix Counts",
+      "timeComplexity": "O(n^4)",
+      "spaceComplexity": "O(n^3)",
+      "description": "## Approach\n\nMemoize states by `(i, j, len)` instead of allocating substring objects. Prefix character counts check whether the two intervals contain the same multiset of letters before the DFS tries split points.\n\n## Key Insight\n\nThe recursive state is fully determined by two starting indices and one length. Using prefix counts gives the same pruning as substring frequency checks while staying close to interval DP.\n\n## Complexity Analysis\n- Time Complexity: O(n^4)\n- Space Complexity: O(n^3)",
+      "code": "class Solution { private String a, b; private Boolean[][][] memo; private int[][] prefA, prefB; public boolean isScramble(String s1, String s2) { int n = s1.length(); a = s1; b = s2; memo = new Boolean[n][n][n + 1]; prefA = buildPrefix(a); prefB = buildPrefix(b); return dfs(0, 0, n); } private boolean dfs(int i, int j, int len) { if (a.regionMatches(i, b, j, len)) return true; if (memo[i][j][len] != null) return memo[i][j][len]; if (!sameCounts(i, j, len)) return memo[i][j][len] = false; for (int split = 1; split < len; split++) { if (dfs(i, j, split) && dfs(i + split, j + split, len - split)) return memo[i][j][len] = true; if (dfs(i, j + len - split, split) && dfs(i + split, j, len - split)) return memo[i][j][len] = true; } return memo[i][j][len] = false; } private int[][] buildPrefix(String s) { int[][] pref = new int[s.length() + 1][26]; for (int i = 0; i < s.length(); i++) { System.arraycopy(pref[i], 0, pref[i + 1], 0, 26); pref[i + 1][s.charAt(i) - 'a']++; } return pref; } private boolean sameCounts(int i, int j, int len) { for (int c = 0; c < 26; c++) { int ca = prefA[i + len][c] - prefA[i][c]; int cb = prefB[j + len][c] - prefB[j][c]; if (ca != cb) return false; } return true; } }",
+      "language": "java"
+    },
+    {
+      "name": "Prefix-Pruned Bottom-Up DP",
+      "timeComplexity": "O(n^4)",
+      "spaceComplexity": "O(n^3)",
+      "description": "## Approach\n\nBuild prefix letter counts for both strings, then run the same length-first interval DP. For each `(len, i, j)` state, skip all split checks if the two intervals do not have identical character counts.\n\n## Key Insight\n\nCharacter-count equality is necessary for scramble equivalence. Applying that filter inside bottom-up DP keeps the deterministic table order while avoiding split work on impossible interval pairs.\n\n## Complexity Analysis\n- Time Complexity: O(n^4)\n- Space Complexity: O(n^3)",
+      "code": "class Solution { public boolean isScramble(String s1, String s2) { int n = s1.length(); int[][] prefA = buildPrefix(s1); int[][] prefB = buildPrefix(s2); boolean[][][] dp = new boolean[n + 1][n][n]; for (int i = 0; i < n; i++) { for (int j = 0; j < n; j++) { dp[1][i][j] = s1.charAt(i) == s2.charAt(j); } } for (int len = 2; len <= n; len++) { for (int i = 0; i <= n - len; i++) { for (int j = 0; j <= n - len; j++) { if (!sameCounts(prefA, prefB, i, j, len)) continue; for (int split = 1; split < len; split++) { if ((dp[split][i][j] && dp[len - split][i + split][j + split]) || (dp[split][i][j + len - split] && dp[len - split][i + split][j])) { dp[len][i][j] = true; break; } } } } } return dp[n][0][0]; } private int[][] buildPrefix(String s) { int[][] pref = new int[s.length() + 1][26]; for (int i = 0; i < s.length(); i++) { System.arraycopy(pref[i], 0, pref[i + 1], 0, 26); pref[i + 1][s.charAt(i) - 'a']++; } return pref; } private boolean sameCounts(int[][] prefA, int[][] prefB, int i, int j, int len) { for (int c = 0; c < 26; c++) { int left = prefA[i + len][c] - prefA[i][c]; int right = prefB[j + len][c] - prefB[j][c]; if (left != right) return false; } return true; } }",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s1 = \"great\", s2 = \"rgeat\"", "output": "true" },
-    { "input": "s1 = \"abcde\", s2 = \"caebd\"", "output": "false" },
-    { "input": "s1 = \"a\", s2 = \"a\"", "output": "true" }
+    {
+      "input": "s1 = \"great\", s2 = \"rgeat\"",
+      "output": "true",
+      "description": "sample true scramble with a swapped prefix"
+    },
+    {
+      "input": "s1 = \"abcde\", s2 = \"caebd\"",
+      "output": "false",
+      "description": "same letters but no recursive split works"
+    },
+    {
+      "input": "s1 = \"a\", s2 = \"a\"",
+      "output": "true",
+      "description": "single equal character"
+    },
+    {
+      "input": "s1 = \"abc\", s2 = \"bca\"",
+      "output": "true",
+      "description": "top-level swap can move the first character to the end"
+    },
+    {
+      "input": "s1 = \"abc\", s2 = \"acb\"",
+      "output": "true",
+      "description": "nested swap inside the suffix"
+    },
+    {
+      "input": "s1 = \"abcd\", s2 = \"bdac\"",
+      "output": "false",
+      "description": "an anagram can still fail the scramble recursion"
+    },
+    {
+      "input": "s1 = \"abc\", s2 = \"def\"",
+      "output": "false",
+      "description": "different character counts fail immediately"
+    },
+    {
+      "input": "s1 = \"abb\", s2 = \"bba\"",
+      "output": "true",
+      "description": "duplicate letters still require recursive matching"
+    },
+    {
+      "input": "s1 = \"algorithm\", s2 = \"algorithm\"",
+      "output": "true",
+      "description": "identical longer strings should short-circuit to true"
+    },
+    {
+      "input": "s1 = \"abcde\", s2 = \"edcba\"",
+      "output": "true",
+      "description": "full reversal can be obtained by recursively swapping children"
+    },
+    {
+      "input": "s1 = \"abcdefghijklmnopq\", s2 = \"efghijklmnopqcadb\"",
+      "output": "false",
+      "description": "classic long negative case with matching character counts"
+    },
+    {
+      "input": "s1 = \"great\", s2 = \"eatrg\"",
+      "output": "true",
+      "description": "top-level swap followed by a nested swap"
+    },
+    {
+      "input": "s1 = \"aaabbb\", s2 = \"ababab\"",
+      "output": "true",
+      "description": "repeated characters can still form a valid recursive partition"
+    },
+    {
+      "input": "s1 = \"aabb\", s2 = \"bbaa\"",
+      "output": "true",
+      "description": "duplicate blocks can swap at multiple levels"
+    },
+    {
+      "input": "s1 = \"abcd\", s2 = \"badc\"",
+      "output": "true",
+      "description": "both halves swap internally without swapping the top level"
+    },
+    {
+      "input": "s1 = \"abcd\", s2 = \"cadb\"",
+      "output": "false",
+      "description": "same letters but the required crossing split is impossible"
+    },
+    {
+      "input": "s1 = \"aa\", s2 = \"ab\"",
+      "output": "false",
+      "description": "same length but different character counts"
+    }
   ]
 }

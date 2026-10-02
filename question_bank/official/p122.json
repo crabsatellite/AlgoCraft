@@ -1,45 +1,118 @@
 {
   "id": "122",
   "title": "Palindrome Partitioning",
-  "description": "# Palindrome Partitioning\n\nGiven a string `s`, partition `s` such that every substring of the partition is a **palindrome**.\n\nReturn *all possible palindrome partitioning of* `s`.\n\n## Example 1:\n\n**Input:** s = \"aab\"\n**Output:** [[\"a\",\"a\",\"b\"],[\"aa\",\"b\"]]\n\n## Example 2:\n\n**Input:** s = \"a\"\n**Output:** [[\"a\"]]\n\n## Constraints:\n\n*   `1 <= s.length <= 16`\n*   `s` contains only lowercase English letters.",
+  "description": "# Palindrome Partitioning\n\nGiven a string `s`, return every way to split `s` into one or more non-empty substrings such that every substring in the split is a palindrome.\n\nEach partition must preserve the original left-to-right order of the characters and must cover the whole string. The judge accepts the list of partitions in any outer order, but the substrings inside one partition must remain in the order they appear in `s`.\n\nA palindrome reads the same forward and backward, such as `\"aba\"` or `\"aa\"`. A single character is also a palindrome.\n\n## Example 1:\n\n**Input:** s = \"aab\"\n**Output:** [[\"a\",\"a\",\"b\"],[\"aa\",\"b\"]]\n\n## Example 2:\n\n**Input:** s = \"a\"\n**Output:** [[\"a\"]]\n\n## Constraints:\n\n* `1 <= s.length <= 16`\n* `s` contains only lowercase English letters.",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public List<List<String>> partition(String s) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["String", "Dynamic Programming", "Backtracking"],
+  "initialCode": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> partition(String s) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
+  "tags": [
+    "String",
+    "Dynamic Programming",
+    "Backtracking"
+  ],
   "examples": [
     {
       "input": "s = \"aab\"",
       "output": "[[\"a\",\"a\",\"b\"],[\"aa\",\"b\"]]"
     },
-    { "input": "s = \"a\"", "output": "[[\"a\"]]" }
+    {
+      "input": "s = \"a\"",
+      "output": "[[\"a\"]]"
+    }
   ],
   "solutions": [
     {
-      "name": "Backtracking",
+      "name": "Backtracking with On-Demand Palindrome Check",
       "timeComplexity": "O(n * 2^n)",
       "spaceComplexity": "O(n)",
-      "description": "Try every possible partition point. For each substring starting at index, check if it's a palindrome. If yes, add it and recurse on the remainder.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> partition(String s) {\n        List<List<String>> result = new ArrayList<>();\n        backtrack(s, 0, new ArrayList<>(), result);\n        return result;\n    }\n\n    private void backtrack(String s, int start, List<String> path, List<List<String>> result) {\n        if (start == s.length()) {\n            result.add(new ArrayList<>(path));\n            return;\n        }\n        for (int end = start + 1; end <= s.length(); end++) {\n            String sub = s.substring(start, end);\n            if (isPalindrome(sub)) {\n                path.add(sub);\n                backtrack(s, end, path, result);\n                path.remove(path.size() - 1);\n            }\n        }\n    }\n\n    private boolean isPalindrome(String s) {\n        int l = 0, r = s.length() - 1;\n        while (l < r) {\n            if (s.charAt(l++) != s.charAt(r--)) return false;\n        }\n        return true;\n    }\n}",
+      "description": "## Approach\n\nBuild a partition from left to right. At each `start` index, try every possible `end` index, check whether `s[start..end]` is a palindrome with two pointers, and recurse from `end + 1` only for valid pieces.\n\n## Key Insight\n\nA partition is just a sequence of cut positions. Backtracking enumerates those cuts, and the palindrome check decides which cuts are legal before they enter the current path.\n\n## Complexity Analysis\n- Time Complexity: O(n * 2^n), including palindrome checks and copying output paths\n- Space Complexity: O(n) excluding the returned partitions",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> partition(String s) {\n        List<List<String>> answer = new ArrayList<>();\n        backtrack(s, 0, new ArrayList<>(), answer);\n        return answer;\n    }\n\n    private void backtrack(String s, int start, List<String> path, List<List<String>> answer) {\n        if (start == s.length()) {\n            answer.add(new ArrayList<>(path));\n            return;\n        }\n        for (int end = start; end < s.length(); end++) {\n            if (!isPalindrome(s, start, end)) {\n                continue;\n            }\n            path.add(s.substring(start, end + 1));\n            backtrack(s, end + 1, path, answer);\n            path.remove(path.size() - 1);\n        }\n    }\n\n    private boolean isPalindrome(String s, int left, int right) {\n        while (left < right) {\n            if (s.charAt(left++) != s.charAt(right--)) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Backtracking with DP Palindrome Check",
+      "name": "Palindrome Table Backtracking",
       "timeComplexity": "O(n * 2^n)",
       "spaceComplexity": "O(n^2)",
-      "description": "Precompute a DP table where dp[i][j] is true if s[i..j] is a palindrome. Then backtrack using this table for O(1) palindrome checks instead of O(n) each time.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> partition(String s) {\n        int n = s.length();\n        boolean[][] dp = new boolean[n][n];\n        for (int i = n - 1; i >= 0; i--) {\n            for (int j = i; j < n; j++) {\n                if (s.charAt(i) == s.charAt(j) && (j - i <= 2 || dp[i + 1][j - 1])) {\n                    dp[i][j] = true;\n                }\n            }\n        }\n        List<List<String>> result = new ArrayList<>();\n        backtrack(s, 0, dp, new ArrayList<String>(), result);\n        return result;\n    }\n\n    private void backtrack(String s, int start, boolean[][] dp, List<String> path, List<List<String>> result) {\n        if (start == s.length()) {\n            result.add(new ArrayList<>(path));\n            return;\n        }\n        for (int end = start; end < s.length(); end++) {\n            if (dp[start][end]) {\n                path.add(s.substring(start, end + 1));\n                backtrack(s, end + 1, dp, path, result);\n                path.remove(path.size() - 1);\n            }\n        }\n    }\n}",
+      "description": "## Approach\n\nPrecompute a boolean table `palindrome[start][end]` for every substring, then run the same cut-enumerating backtracking. During recursion, checking whether a candidate piece is legal becomes an O(1) table lookup.\n\n## Key Insight\n\nMany recursive branches ask whether the same substring is a palindrome. The DP table pays O(n^2) once and removes repeated two-pointer scans from the search tree.\n\n## Complexity Analysis\n- Time Complexity: O(n^2 + n * 2^n)\n- Space Complexity: O(n^2) for the table plus O(n) recursion depth",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> partition(String s) {\n        boolean[][] palindrome = buildPalindromeTable(s);\n        List<List<String>> answer = new ArrayList<>();\n        backtrack(s, 0, palindrome, new ArrayList<>(), answer);\n        return answer;\n    }\n\n    private void backtrack(String s, int start, boolean[][] palindrome,\n                           List<String> path, List<List<String>> answer) {\n        if (start == s.length()) {\n            answer.add(new ArrayList<>(path));\n            return;\n        }\n        for (int end = start; end < s.length(); end++) {\n            if (!palindrome[start][end]) {\n                continue;\n            }\n            path.add(s.substring(start, end + 1));\n            backtrack(s, end + 1, palindrome, path, answer);\n            path.remove(path.size() - 1);\n        }\n    }\n\n    private boolean[][] buildPalindromeTable(String s) {\n        int n = s.length();\n        boolean[][] palindrome = new boolean[n][n];\n        for (int start = n - 1; start >= 0; start--) {\n            for (int end = start; end < n; end++) {\n                palindrome[start][end] = s.charAt(start) == s.charAt(end)\n                        && (end - start < 2 || palindrome[start + 1][end - 1]);\n            }\n        }\n        return palindrome;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative Stack DFS",
+      "timeComplexity": "O(n * 2^n)",
+      "spaceComplexity": "O(n * 2^n)",
+      "description": "## Approach\n\nStore search states on an explicit stack. Each state contains the next start index and the pieces chosen so far. Pushing candidate cuts in reverse order makes the traversal resemble ordinary left-to-right recursive DFS.\n\n## Key Insight\n\nRecursive backtracking is a stack of partially built partitions. Making that stack explicit is useful for teaching how DFS state is represented and copied.\n\n## Complexity Analysis\n- Time Complexity: O(n * 2^n)\n- Space Complexity: O(n * 2^n) in the worst case because queued states store partial paths",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static class State {\n        final int start;\n        final List<String> path;\n\n        State(int start, List<String> path) {\n            this.start = start;\n            this.path = path;\n        }\n    }\n\n    public List<List<String>> partition(String s) {\n        List<List<String>> answer = new ArrayList<>();\n        Deque<State> stack = new ArrayDeque<>();\n        stack.push(new State(0, new ArrayList<>()));\n\n        while (!stack.isEmpty()) {\n            State state = stack.pop();\n            if (state.start == s.length()) {\n                answer.add(state.path);\n                continue;\n            }\n            for (int end = s.length() - 1; end >= state.start; end--) {\n                if (!isPalindrome(s, state.start, end)) {\n                    continue;\n                }\n                List<String> next = new ArrayList<>(state.path);\n                next.add(s.substring(state.start, end + 1));\n                stack.push(new State(end + 1, next));\n            }\n        }\n        return answer;\n    }\n\n    private boolean isPalindrome(String s, int left, int right) {\n        while (left < right) {\n            if (s.charAt(left++) != s.charAt(right--)) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bottom-Up Suffix Partition DP",
+      "timeComplexity": "O(n * 2^n)",
+      "spaceComplexity": "O(n * 2^n)",
+      "description": "## Approach\n\nPrecompute palindrome substrings, then build answers from the end of the string toward the front. `suffixPartitions[i]` stores every valid palindrome partition of `s[i..]`. For each palindrome prefix `s[start..end]`, prepend it to every partition already known for `end + 1`.\n\n## Key Insight\n\nInstead of exploring cuts top down, this DP defines the full answer set for every suffix. The transition mirrors the recursive choice, but the subproblem boundary is explicit: a first palindrome piece plus a valid partition of the remaining suffix.\n\n## Complexity Analysis\n- Time Complexity: O(n * 2^n), because every emitted partition still has to be built\n- Space Complexity: O(n * 2^n) for all stored suffix partitions",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> partition(String s) {\n        int n = s.length();\n        boolean[][] palindrome = buildPalindromeTable(s);\n        List<List<List<String>>> suffixPartitions = new ArrayList<>();\n        for (int i = 0; i <= n; i++) {\n            suffixPartitions.add(new ArrayList<>());\n        }\n        suffixPartitions.get(n).add(new ArrayList<>());\n\n        for (int start = n - 1; start >= 0; start--) {\n            for (int end = start; end < n; end++) {\n                if (!palindrome[start][end]) {\n                    continue;\n                }\n                String first = s.substring(start, end + 1);\n                for (List<String> suffix : suffixPartitions.get(end + 1)) {\n                    List<String> partition = new ArrayList<>();\n                    partition.add(first);\n                    partition.addAll(suffix);\n                    suffixPartitions.get(start).add(partition);\n                }\n            }\n        }\n        return suffixPartitions.get(0);\n    }\n\n    private boolean[][] buildPalindromeTable(String s) {\n        int n = s.length();\n        boolean[][] palindrome = new boolean[n][n];\n        for (int start = n - 1; start >= 0; start--) {\n            for (int end = start; end < n; end++) {\n                palindrome[start][end] = s.charAt(start) == s.charAt(end)\n                        && (end - start < 2 || palindrome[start + 1][end - 1]);\n            }\n        }\n        return palindrome;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "s = \"aab\"",
-      "output": "[[\"a\",\"a\",\"b\"],[\"aa\",\"b\"]]"
+      "output": "[[\"a\",\"a\",\"b\"],[\"aa\",\"b\"]]",
+      "description": "Canonical string with both single-character and grouped-palindrome partitions."
     },
-    { "input": "s = \"a\"", "output": "[[\"a\"]]" },
-    { "input": "s = \"aba\"", "output": "[[\"a\",\"b\",\"a\"],[\"aba\"]]" },
+    {
+      "input": "s = \"a\"",
+      "output": "[[\"a\"]]",
+      "description": "Single-character string has exactly one partition."
+    },
+    {
+      "input": "s = \"aba\"",
+      "output": "[[\"a\",\"b\",\"a\"],[\"aba\"]]",
+      "description": "Whole odd-length palindrome plus the all-single-character partition."
+    },
     {
       "input": "s = \"aaa\"",
-      "output": "[[\"a\",\"a\",\"a\"],[\"a\",\"aa\"],[\"aa\",\"a\"],[\"aaa\"]]"
+      "output": "[[\"a\",\"a\",\"a\"],[\"a\",\"aa\"],[\"aa\",\"a\"],[\"aaa\"]]",
+      "description": "Repeated characters create all possible cut combinations."
+    },
+    {
+      "input": "s = \"ab\"",
+      "output": "[[\"a\",\"b\"]]",
+      "description": "No two-character palindrome exists, so only singleton pieces are valid."
+    },
+    {
+      "input": "s = \"abb\"",
+      "output": "[[\"a\",\"b\",\"b\"],[\"a\",\"bb\"]]",
+      "description": "Even-length palindrome appears only after a non-palindrome prefix."
+    },
+    {
+      "input": "s = \"abba\"",
+      "output": "[[\"a\",\"b\",\"b\",\"a\"],[\"a\",\"bb\",\"a\"],[\"abba\"]]",
+      "description": "Nested even-length palindromes verify whole-string and middle-piece cuts."
+    },
+    {
+      "input": "s = \"noon\"",
+      "output": "[[\"n\",\"o\",\"o\",\"n\"],[\"n\",\"oo\",\"n\"],[\"noon\"]]",
+      "description": "Another even palindrome with an internal two-character palindrome."
+    },
+    {
+      "input": "s = \"aaaa\"",
+      "output": "[[\"a\",\"a\",\"a\",\"a\"],[\"a\",\"a\",\"aa\"],[\"a\",\"aa\",\"a\"],[\"a\",\"aaa\"],[\"aa\",\"a\",\"a\"],[\"aa\",\"aa\"],[\"aaa\",\"a\"],[\"aaaa\"]]",
+      "description": "Four identical characters produce every cut pattern."
+    },
+    {
+      "input": "s = \"abc\"",
+      "output": "[[\"a\",\"b\",\"c\"]]",
+      "description": "Distinct non-palindromic letters force singleton cuts."
+    },
+    {
+      "input": "s = \"level\"",
+      "output": "[[\"l\",\"e\",\"v\",\"e\",\"l\"],[\"l\",\"eve\",\"l\"],[\"level\"]]",
+      "description": "Nested odd-length palindrome pieces verify middle and whole-string options."
+    },
+    {
+      "input": "s = \"aabb\"",
+      "output": "[[\"a\",\"a\",\"b\",\"b\"],[\"a\",\"a\",\"bb\"],[\"aa\",\"b\",\"b\"],[\"aa\",\"bb\"]]",
+      "description": "Two independent duplicate-letter groups verify combinations across suffixes."
     }
   ]
 }

@@ -1,10 +1,14 @@
 {
   "id": "369",
   "title": "Poor Pigs",
-  "description": "# Poor Pigs\n\nThere are `buckets` buckets of liquid, where **exactly one** of the buckets is poisonous. To figure out which one is poisonous, you feed some number of (poor) pigs the liquid to see whether they will die or not. Unfortunately, you only have `minutesToTest` minutes to determine which bucket is poisonous.\n\nYou can feed the pigs according to these steps:\n\n1.  Choose some live pigs to feed.\n2.  For each pig, choose which buckets to feed it. The pig will consume all the chosen buckets simultaneously and will take no time. Each pig can feed from any number of buckets, and each bucket can be fed to any number of pigs.\n3.  Wait for `minutesToDie` minutes. You may not feed any other pigs during this time.\n4.  After `minutesToDie` minutes have passed, any pigs that have been fed the poisonous bucket will die, and all others will survive.\n5.  Repeat this process until you run out of time.\n\nGiven `buckets`, `minutesToDie`, and `minutesToTest`, return *the minimum number of pigs needed to figure out which bucket is poisonous within the allotted time*.\n\n## Example 1:\n\n**Input:** buckets = 4, minutesToDie = 15, minutesToTest = 15\n**Output:** 2\n**Explanation:** We can determine the poisonous bucket in one test using 2 pigs. The 4 buckets are 00, 01, 10, 11.\n00: No pig drinks.\n01: Pig 1 drinks.\n10: Pig 2 drinks.\n11: Both pigs drink.\n\n## Example 2:\n\n**Input:** buckets = 4, minutesToDie = 15, minutesToTest = 30\n**Output:** 2\n**Explanation:** We can determine the poisonous bucket in two tests using 2 pigs.\n\n## Constraints:\n\n*   `1 <= buckets <= 1000`\n*   `1 <= minutesToDie <= minutesToTest <= 100`",
+  "description": "# Poor Pigs\n\nThere are `buckets` buckets of liquid, and exactly one bucket is poisonous. If a pig drinks from the poisonous bucket, it dies after exactly `minutesToDie` minutes. You have only `minutesToTest` minutes in total.\n\nIn each testing round, you may choose any living pigs and let each chosen pig drink from any set of buckets. Drinking takes no time. Then you must wait `minutesToDie` minutes before observing which pigs died. You may repeat this process while time remains.\n\nReturn the minimum number of pigs needed to determine the poisonous bucket with certainty.\n\n## Example 1:\n\n**Input:** buckets = 4, minutesToDie = 15, minutesToTest = 15\n**Output:** 2\n**Explanation:** There is one round, so each pig has two outcomes: die or survive. Two pigs have four combined outcome patterns, enough to label all four buckets.\n\n## Example 2:\n\n**Input:** buckets = 4, minutesToDie = 15, minutesToTest = 30\n**Output:** 2\n**Explanation:** There are two rounds, so each pig has three outcomes. One pig can distinguish only three buckets, but two pigs can distinguish nine.\n\n## Constraints:\n\n* `1 <= buckets <= 1000`\n* `1 <= minutesToDie <= minutesToTest <= 100`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int poorPigs(int buckets, int minutesToDie, int minutesToTest) {\n        \n    }\n}",
-  "tags": ["Math", "Dynamic Programming", "Combinatorics"],
+  "initialCode": "class Solution {\n    public int poorPigs(int buckets, int minutesToDie, int minutesToTest) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Math",
+    "Dynamic Programming",
+    "Combinatorics"
+  ],
   "examples": [
     {
       "input": "buckets = 4, minutesToDie = 15, minutesToTest = 15",
@@ -17,30 +21,106 @@
   ],
   "solutions": [
     {
-      "name": "Information Theory (Base T+1)",
+      "name": "Iterative Capacity Multiplication",
       "timeComplexity": "O(log buckets)",
       "spaceComplexity": "O(1)",
-      "description": "Each pig can have T+1 outcomes (die at round 1, 2, ..., T, or survive). With p pigs, we can distinguish (T+1)^p states. Find minimum p such that (T+1)^p >= buckets.",
-      "code": "class Solution {\n    public int poorPigs(int buckets, int minutesToDie, int minutesToTest) {\n        int rounds = minutesToTest / minutesToDie;\n        int pigs = 0;\n        while (Math.pow(rounds + 1, pigs) < buckets) pigs++;\n        return pigs;\n    }\n}",
+      "description": "## Approach\n\nCompute the number of complete testing rounds, so one pig contributes `rounds + 1` distinguishable states. Start with one distinguishable state and keep adding pigs, multiplying the current capacity by `statesPerPig`, until the capacity covers every bucket.\n\n## Key Insight\n\nThe pigs form independent coordinates in an outcome vector. With `p` pigs, the experiment can encode `(rounds + 1)^p` possible buckets, and the first `p` whose capacity reaches `buckets` is both sufficient and necessary.\n\n## Complexity Analysis\n- Time Complexity: O(log buckets)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int poorPigs(int buckets, int minutesToDie, int minutesToTest) {\n        int rounds = minutesToTest / minutesToDie;\n        int statesPerPig = rounds + 1;\n        int pigs = 0;\n        long capacity = 1;\n        while (capacity < buckets) {\n            pigs++;\n            capacity *= statesPerPig;\n        }\n        return pigs;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Logarithmic Calculation",
-      "timeComplexity": "O(1)",
+      "name": "Mixed-Radix Bucket Labels",
+      "timeComplexity": "O(log buckets)",
       "spaceComplexity": "O(1)",
-      "description": "Directly compute the number of pigs using logarithms. Each pig has (T+1) possible outcomes where T = minutesToTest/minutesToDie. We need ceil(log(buckets) / log(T+1)) pigs.",
-      "code": "class Solution {\n    public int poorPigs(int buckets, int minutesToDie, int minutesToTest) {\n        int states = minutesToTest / minutesToDie + 1;\n        if (buckets <= 1) return 0;\n        return (int) Math.ceil(Math.log(buckets) / Math.log(states));\n    }\n}",
+      "description": "## Approach\n\nImagine labeling bucket numbers from `0` to `buckets - 1` in base `rounds + 1`. Each digit is assigned to one pig, and the digit value says in which round that pig would die if this bucket were poisonous. Count how many base digits are needed for the largest bucket label.\n\n## Key Insight\n\nThis is the constructive version of the capacity proof. A bucket is identified by the full vector of pig outcomes, so representing every bucket label in base `statesPerPig` directly tells us how many pig coordinates are required.\n\n## Complexity Analysis\n- Time Complexity: O(log buckets)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int poorPigs(int buckets, int minutesToDie, int minutesToTest) {\n        if (buckets <= 1) {\n            return 0;\n        }\n        int statesPerPig = minutesToTest / minutesToDie + 1;\n        int maxBucketLabel = buckets - 1;\n        int pigs = 0;\n        while (maxBucketLabel > 0) {\n            pigs++;\n            maxBucketLabel /= statesPerPig;\n        }\n        return pigs;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Binary Search on Feasible Pig Count",
+      "timeComplexity": "O((log buckets)^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nTreat the number of pigs as a monotonic answer. If `p` pigs can cover all buckets, then any larger number can also cover them. First find an upper bound, then binary-search the smallest feasible count using capped multiplication so the check never needs floating point arithmetic.\n\n## Key Insight\n\nFeasibility is monotonic because adding a pig only adds another outcome coordinate. The search tests the theorem from the outside: `p` is valid exactly when multiplying `statesPerPig` for `p` pigs reaches the bucket count.\n\n## Complexity Analysis\n- Time Complexity: O((log buckets)^2)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int poorPigs(int buckets, int minutesToDie, int minutesToTest) {\n        int statesPerPig = minutesToTest / minutesToDie + 1;\n        int low = 0;\n        int high = 1;\n        while (!canCover(high, statesPerPig, buckets)) {\n            high *= 2;\n        }\n        while (low < high) {\n            int mid = low + (high - low) / 2;\n            if (canCover(mid, statesPerPig, buckets)) {\n                high = mid;\n            } else {\n                low = mid + 1;\n            }\n        }\n        return low;\n    }\n\n    private boolean canCover(int pigs, int statesPerPig, int buckets) {\n        long covered = 1;\n        for (int i = 0; i < pigs && covered < buckets; i++) {\n            covered *= statesPerPig;\n        }\n        return covered >= buckets;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Logarithmic Estimate with Integer Correction",
+      "timeComplexity": "O(log buckets)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse logarithms to estimate `ceil(log(buckets) / log(statesPerPig))`, then verify and correct the result with exact integer multiplication. The correction loops handle exact powers and floating-point rounding at the boundary.\n\n## Key Insight\n\nThe logarithm is only a shortcut for solving `(statesPerPig)^p >= buckets`. Because the judge expects an exact integer answer, the implementation must prove the estimated answer by checking the neighboring powers without relying on floating-point precision.\n\n## Complexity Analysis\n- Time Complexity: O(log buckets)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int poorPigs(int buckets, int minutesToDie, int minutesToTest) {\n        if (buckets <= 1) {\n            return 0;\n        }\n        int statesPerPig = minutesToTest / minutesToDie + 1;\n        int pigs = (int) Math.ceil(Math.log(buckets) / Math.log(statesPerPig));\n        while (pigs > 0 && powerAtLeast(statesPerPig, pigs - 1, buckets)) {\n            pigs--;\n        }\n        while (!powerAtLeast(statesPerPig, pigs, buckets)) {\n            pigs++;\n        }\n        return pigs;\n    }\n\n    private boolean powerAtLeast(int base, int exponent, int target) {\n        long product = 1;\n        for (int i = 0; i < exponent && product < target; i++) {\n            product *= base;\n        }\n        return product >= target;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Capped Outcome Tree Counting",
+      "timeComplexity": "O(buckets * log buckets)",
+      "spaceComplexity": "O(log buckets)",
+      "description": "## Approach\n\nView the experiment as a tree of possible observation vectors. For a fixed number of pigs, recursively count how many leaves this outcome tree can produce, stopping once the count reaches `buckets`. Increase the pig count until the capped leaf count is large enough.\n\n## Key Insight\n\nEvery leaf of the outcome tree is one complete pattern of pig death rounds and survivors. Counting leaves makes the state-space argument explicit, while the cap keeps the teaching implementation bounded by the maximum number of buckets that matter.\n\n## Complexity Analysis\n- Time Complexity: O(buckets * log buckets)\n- Space Complexity: O(log buckets)",
+      "code": "class Solution {\n    public int poorPigs(int buckets, int minutesToDie, int minutesToTest) {\n        int statesPerPig = minutesToTest / minutesToDie + 1;\n        int pigs = 0;\n        while (countOutcomeVectors(pigs, statesPerPig, buckets) < buckets) {\n            pigs++;\n        }\n        return pigs;\n    }\n\n    private int countOutcomeVectors(int pigs, int statesPerPig, int limit) {\n        if (pigs == 0) {\n            return 1;\n        }\n        int total = 0;\n        for (int state = 0; state < statesPerPig && total < limit; state++) {\n            int remainingLimit = limit - total;\n            total += countOutcomeVectors(pigs - 1, statesPerPig, remainingLimit);\n        }\n        return Math.min(total, limit);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "buckets = 4, minutesToDie = 15, minutesToTest = 15",
-      "output": "2"
+      "output": "2",
+      "description": "one round gives two states per pig"
     },
     {
       "input": "buckets = 4, minutesToDie = 15, minutesToTest = 30",
-      "output": "2"
+      "output": "2",
+      "description": "two rounds give three states per pig"
+    },
+    {
+      "input": "buckets = 1, minutesToDie = 15, minutesToTest = 15",
+      "output": "0",
+      "description": "one bucket needs no pig"
+    },
+    {
+      "input": "buckets = 2, minutesToDie = 15, minutesToTest = 15",
+      "output": "1",
+      "description": "single pig distinguishes two buckets in one round"
+    },
+    {
+      "input": "buckets = 3, minutesToDie = 15, minutesToTest = 15",
+      "output": "2",
+      "description": "one round cannot cover three buckets with one pig"
+    },
+    {
+      "input": "buckets = 25, minutesToDie = 15, minutesToTest = 60",
+      "output": "2",
+      "description": "five states per pig exactly cover twenty-five buckets"
+    },
+    {
+      "input": "buckets = 26, minutesToDie = 15, minutesToTest = 60",
+      "output": "3",
+      "description": "just above an exact capacity power needs one more pig"
+    },
+    {
+      "input": "buckets = 64, minutesToDie = 10, minutesToTest = 30",
+      "output": "3",
+      "description": "four states per pig exactly cover sixty-four buckets"
+    },
+    {
+      "input": "buckets = 65, minutesToDie = 10, minutesToTest = 30",
+      "output": "4",
+      "description": "boundary immediately above four cubed"
+    },
+    {
+      "input": "buckets = 1000, minutesToDie = 15, minutesToTest = 60",
+      "output": "5",
+      "description": "large bucket count with five states per pig"
+    },
+    {
+      "input": "buckets = 1000, minutesToDie = 1, minutesToTest = 100",
+      "output": "2",
+      "description": "many rounds sharply reduce the pig count"
+    },
+    {
+      "input": "buckets = 1000, minutesToDie = 100, minutesToTest = 100",
+      "output": "10",
+      "description": "one available round gives only binary outcomes"
     }
   ]
 }

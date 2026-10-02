@@ -51,6 +51,44 @@ public class ModItems {
     }
     
     /**
+     * Check whether an achievement trophy id is backed by a registered trophy item.
+     */
+    public static boolean isKnownTrophyItemId(String itemId) {
+        return switch (itemId) {
+            case "bronze_trophy", "silver_trophy", "gold_trophy", "diamond_trophy", "netherite_trophy" -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * Get the display/effect tier represented by a trophy item id.
+     */
+    public static TrophyItem.TrophyTier getTrophyTierForItemId(String itemId) {
+        return switch (itemId) {
+            case "bronze_trophy" -> TrophyItem.TrophyTier.BRONZE;
+            case "silver_trophy" -> TrophyItem.TrophyTier.SILVER;
+            case "gold_trophy" -> TrophyItem.TrophyTier.GOLD;
+            case "diamond_trophy" -> TrophyItem.TrophyTier.DIAMOND;
+            case "netherite_trophy" -> TrophyItem.TrophyTier.NETHERITE;
+            default -> throw new IllegalArgumentException("Unknown trophy item id: " + itemId);
+        };
+    }
+
+    /**
+     * Get the trophy item explicitly declared by an achievement.
+     */
+    public static TrophyItem getTrophyForItemId(String itemId) {
+        return switch (itemId) {
+            case "bronze_trophy" -> BRONZE_TROPHY.get();
+            case "silver_trophy" -> SILVER_TROPHY.get();
+            case "gold_trophy" -> GOLD_TROPHY.get();
+            case "diamond_trophy" -> DIAMOND_TROPHY.get();
+            case "netherite_trophy" -> NETHERITE_TROPHY.get();
+            default -> null;
+        };
+    }
+
+    /**
      * Get the appropriate trophy item for an achievement rarity.
      */
     public static TrophyItem getTrophyForRarity(AchievementRegistry.Rarity rarity) {

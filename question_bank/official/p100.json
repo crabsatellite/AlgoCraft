@@ -1,10 +1,16 @@
 {
   "id": "100",
   "title": "Flatten Binary Tree to Linked List",
-  "description": "# Flatten Binary Tree to Linked List\n\nGiven the `root` of a binary tree, flatten the tree into a \"linked list\":\n\n*   The \"linked list\" should use the same `TreeNode` class where the `right` child pointer points to the next node in the list and the `left` child pointer is always `null`.\n*   The \"linked list\" should be in the same order as a [pre-order traversal](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR) of the binary tree.\n\n## Example 1:\n\n**Input:** root = [1,2,5,3,4,null,6]\n**Output:** [1,null,2,null,3,null,4,null,5,null,6]\n\n## Example 2:\n\n**Input:** root = []\n**Output:** []\n\n## Example 3:\n\n**Input:** root = [0]\n**Output:** [0]\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[0, 2000]`.\n*   `-100 <= Node.val <= 100`\n\n**Follow up:** Can you flatten the tree in-place (with `O(1)` extra space)?",
+  "description": "# Flatten Binary Tree to Linked List\n\nGiven the `root` of a binary tree, flatten the tree in-place into a right-only linked list using the same `TreeNode` objects.\n\nAfter flattening:\n\n*   Each node's `left` pointer must be `null`.\n*   Each node's `right` pointer must point to the next node in preorder traversal.\n*   The node values in the right-only chain must match the preorder traversal of the original tree.\n\nPreorder visits the root, then the entire left subtree, then the entire right subtree, applying the same rule within every subtree.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [1,2,5,3,4,null,6]\n**Output:** [1,null,2,null,3,null,4,null,5,null,6]\n**Explanation:** The preorder traversal is [1,2,3,4,5,6], and every node is connected through `right` pointers only.\n\n## Example 2:\n\n**Input:** root = []\n**Output:** []\n\n## Example 3:\n\n**Input:** root = [0]\n**Output:** [0]\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[0, 2000]`.\n*   `-100 <= Node.val <= 100`\n\n**Follow up:** Can you flatten the tree in-place with `O(1)` extra space?",
   "difficulty": "MEDIUM",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public void flatten(TreeNode root) {\n        // Write your code here\n    }\n}",
-  "tags": ["Linked List", "Stack", "Tree", "Depth-First Search", "Binary Tree"],
+  "tags": [
+    "Linked List",
+    "Stack",
+    "Tree",
+    "Depth-First Search",
+    "Binary Tree"
+  ],
   "examples": [
     {
       "input": "root = [1,2,5,3,4,null,6]",
@@ -22,37 +28,70 @@
   "tests": [
     {
       "input": "root = [1,2,5,3,4,null,6]",
-      "output": "[1,null,2,null,3,null,4,null,5,null,6]"
+      "output": "[1,null,2,null,3,null,4,null,5,null,6]",
+      "description": "Canonical tree should flatten into preorder order with all left pointers removed."
     },
     {
       "input": "root = []",
-      "output": "[]"
+      "output": "[]",
+      "description": "Empty tree remains empty."
     },
     {
       "input": "root = [0]",
-      "output": "[0]"
+      "output": "[0]",
+      "description": "Single-node tree remains unchanged."
     },
     {
       "input": "root = [1,null,2,null,3]",
       "output": "[1,null,2,null,3]",
-      "description": "Right-skewed tree (already flat)"
+      "description": "Already right-skewed tree should remain a right-only preorder chain."
     },
     {
       "input": "root = [1,2,null,3,null,4]",
       "output": "[1,null,2,null,3,null,4]",
-      "description": "Left-skewed tree needs full transformation"
+      "description": "Left-skewed tree should become a right-only chain."
+    },
+    {
+      "input": "root = [1,2,3,4,5,6,7]",
+      "output": "[1,null,2,null,4,null,5,null,3,null,6,null,7]",
+      "description": "Complete tree verifies that preorder visits the entire left subtree before the right subtree."
+    },
+    {
+      "input": "root = [1,null,2,3]",
+      "output": "[1,null,2,null,3]",
+      "description": "Right subtree with a left child must still clear that internal left pointer."
+    },
+    {
+      "input": "root = [1,2,5,null,3,4,null]",
+      "output": "[1,null,2,null,3,null,5,null,4]",
+      "description": "Sparse mixed tree checks preorder across missing children."
+    },
+    {
+      "input": "root = [-1,-2,3]",
+      "output": "[-1,null,-2,null,3]",
+      "description": "Negative values should be preserved while only pointers change."
+    },
+    {
+      "input": "root = [1,1,1,1,null,null,1]",
+      "output": "[1,null,1,null,1,null,1,null,1]",
+      "description": "Duplicate values verify that node order comes from structure, not value comparisons."
+    },
+    {
+      "input": "root = [1,2,null,null,3,4]",
+      "output": "[1,null,2,null,3,null,4]",
+      "description": "Zigzag tree verifies that right children under left branches are not skipped."
+    },
+    {
+      "input": "root = [100,-100,0]",
+      "output": "[100,null,-100,null,0]",
+      "description": "Boundary values verify that flattening does not alter node values."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p100_example1.png",
-      "caption": "Example 1"
-    },
-    {
-      "id": "example1_flattened",
-      "file": "p100_example1_flattened.png",
-      "caption": "Example 1 - After Flatten"
+      "caption": "Input tree before flattening"
     }
   ],
   "solutions": [
@@ -60,16 +99,32 @@
       "name": "Morris Traversal - O(1) Space",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "For each node with a left child: find the rightmost node of the left subtree, attach the current right subtree there, then move the left subtree to the right and set left to null.",
-      "code": "class Solution {\n    public void flatten(TreeNode root) {\n        TreeNode curr = root;\n        \n        while (curr != null) {\n            if (curr.left != null) {\n                // Find rightmost node of left subtree\n                TreeNode rightmost = curr.left;\n                while (rightmost.right != null) {\n                    rightmost = rightmost.right;\n                }\n                \n                // Attach right subtree to rightmost\n                rightmost.right = curr.right;\n                \n                // Move left subtree to right\n                curr.right = curr.left;\n                curr.left = null;\n            }\n            curr = curr.right;\n        }\n    }\n}",
+      "description": "## Approach\n\nWalk along the current right chain. Whenever a node has a left subtree, find the rightmost node of that left subtree, attach the original right subtree there, then move the left subtree to `right` and set `left` to `null`.\n\n## Key Insight\n\nPreorder visits the current node, then its entire left subtree, then its right subtree. Splicing the old right subtree after the left subtree preserves exactly that order without an auxiliary stack.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public void flatten(TreeNode root) {\n        TreeNode curr = root;\n        \n        while (curr != null) {\n            if (curr.left != null) {\n                TreeNode rightmost = curr.left;\n                while (rightmost.right != null) {\n                    rightmost = rightmost.right;\n                }\n                \n                rightmost.right = curr.right;\n                curr.right = curr.left;\n                curr.left = null;\n            }\n            curr = curr.right;\n        }\n    }\n}",
       "language": "java"
     },
     {
       "name": "Reverse Postorder (Right-Left-Root)",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "Process nodes in reverse preorder (right, left, root). Each node's right pointer points to the previously processed node.",
+      "description": "## Approach\n\nTraverse in reverse preorder: right subtree, then left subtree, then root. Keep `prev` as the head of the already flattened suffix, point the current root's `right` to `prev`, clear `left`, and update `prev`.\n\n## Key Insight\n\nProcessing from the future tail back toward the head means each node already knows the next node it should point to, so no tail search is needed.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h)",
       "code": "class Solution {\n    private TreeNode prev = null;\n    \n    public void flatten(TreeNode root) {\n        if (root == null) return;\n        \n        flatten(root.right);\n        flatten(root.left);\n        \n        root.right = prev;\n        root.left = null;\n        prev = root;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Explicit Preorder Stack",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nUse a stack to visit nodes in preorder. Push the right child before the left child so the left child is popped first, then relink the previously visited node to the current node and clear the previous left pointer.\n\n## Key Insight\n\nThe traversal order itself is the desired linked-list order. The stack stores only the postponed subtrees whose roots should be connected later.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public void flatten(TreeNode root) {\n        if (root == null) {\n            return;\n        }\n\n        Deque<TreeNode> stack = new ArrayDeque<>();\n        stack.push(root);\n        TreeNode previous = null;\n\n        while (!stack.isEmpty()) {\n            TreeNode node = stack.pop();\n            if (previous != null) {\n                previous.left = null;\n                previous.right = node;\n            }\n\n            if (node.right != null) {\n                stack.push(node.right);\n            }\n            if (node.left != null) {\n                stack.push(node.left);\n            }\n            previous = node;\n        }\n\n        previous.left = null;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Tail-Rewire DFS",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nRecursively flatten the left and right subtrees and return the tail of each flattened chain. If a left chain exists, splice it between the root and the original right chain, then return the correct final tail.\n\n## Key Insight\n\nReturning the tail makes the splice local: `leftTail.right` reconnects to the old right subtree, and `root.right` becomes the flattened left subtree. This teaches the same pointer transformation without global state.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h)",
+      "code": "class Solution {\n    public void flatten(TreeNode root) {\n        flattenAndReturnTail(root);\n    }\n\n    private TreeNode flattenAndReturnTail(TreeNode node) {\n        if (node == null) {\n            return null;\n        }\n\n        TreeNode leftTail = flattenAndReturnTail(node.left);\n        TreeNode rightTail = flattenAndReturnTail(node.right);\n\n        if (leftTail != null) {\n            leftTail.right = node.right;\n            node.right = node.left;\n            node.left = null;\n        }\n\n        if (rightTail != null) {\n            return rightTail;\n        }\n        if (leftTail != null) {\n            return leftTail;\n        }\n        return node;\n    }\n}",
       "language": "java"
     }
   ]

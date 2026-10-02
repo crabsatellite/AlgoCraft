@@ -1,56 +1,123 @@
 {
   "id": "51",
   "title": "Binary Search",
-  "description": "# Binary Search\n\nGiven an array of integers `nums` which is sorted in ascending order, and an integer `target`, write a function to search `target` in `nums`. If `target` exists, then return its index. Otherwise, return `-1`.\n\nYou must write an algorithm with `O(log n)` runtime complexity.\n\n## Example 1:\n\n**Input:** nums = [-1,0,3,5,9,12], target = 9\n**Output:** 4\n**Explanation:** 9 exists in nums and its index is 4\n\n## Example 2:\n\n**Input:** nums = [-1,0,3,5,9,12], target = 2\n**Output:** -1\n**Explanation:** 2 does not exist in nums so return -1\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^4`\n*   `-10^4 < nums[i], target < 10^4`\n*   All the integers in `nums` are **unique**.\n*   `nums` is sorted in ascending order.",
+  "description": "# Binary Search\n\nGiven an integer array `nums` sorted in strictly increasing order and an integer `target`, return the index of `target` in `nums`. If `target` is not present, return `-1`.\n\nThe required runtime complexity is `O(log n)`. You may assume every value in `nums` is unique, so there is at most one correct index.\n\n## Example 1\n\n**Input:** nums = [-1,0,3,5,9,12], target = 9\n\n**Output:** 4\n\n**Explanation:** `nums[4]` is `9`.\n\n## Example 2\n\n**Input:** nums = [-1,0,3,5,9,12], target = 2\n\n**Output:** -1\n\n**Explanation:** `2` is between existing values but does not appear in the array.\n\n## Constraints\n\n* `1 <= nums.length <= 10000`\n* `-10000 < nums[i], target < 10000`\n* All integers in `nums` are unique.\n* `nums` is sorted in strictly increasing order.",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public int search(int[] nums, int target) {\n        // Write your code here\n        return -1;\n    }\n}",
-  "tags": ["Array", "Binary Search"],
+  "initialCode": "class Solution {\n    public int search(int[] nums, int target) {\n        return -1;\n    }\n}",
+  "tags": [
+    "Array",
+    "Binary Search"
+  ],
   "examples": [
-    { "input": "nums = [-1,0,3,5,9,12], target = 9", "output": "4" },
-    { "input": "nums = [-1,0,3,5,9,12], target = 2", "output": "-1" }
+    {
+      "input": "nums = [-1,0,3,5,9,12], target = 9",
+      "output": "4"
+    },
+    {
+      "input": "nums = [-1,0,3,5,9,12], target = 2",
+      "output": "-1"
+    }
   ],
   "tests": [
-    { "input": "nums = [-1,0,3,5,9,12], target = 9", "output": "4" },
-    { "input": "nums = [-1,0,3,5,9,12], target = 2", "output": "-1" },
-    { "input": "nums = [5], target = 5", "output": "0" },
-    { "input": "nums = [5], target = -5", "output": "-1" },
+    {
+      "input": "nums = [-1,0,3,5,9,12], target = 9",
+      "output": "4",
+      "description": "Target exists in the right half"
+    },
+    {
+      "input": "nums = [-1,0,3,5,9,12], target = 2",
+      "output": "-1",
+      "description": "Target missing between two values"
+    },
+    {
+      "input": "nums = [5], target = 5",
+      "output": "0",
+      "description": "Single element found"
+    },
+    {
+      "input": "nums = [5], target = -5",
+      "output": "-1",
+      "description": "Single element not found"
+    },
     {
       "input": "nums = [-1,0,3,5,9,12], target = -1",
       "output": "0",
-      "note": "目标是首元素"
+      "description": "Target at the first index"
     },
     {
       "input": "nums = [-1,0,3,5,9,12], target = 12",
       "output": "5",
-      "note": "目标是尾元素"
+      "description": "Target at the last index"
     },
     {
       "input": "nums = [1,2,3,4,5,6,7,8,9,10], target = 5",
       "output": "4",
-      "note": "恰好在中间"
+      "description": "Target near the middle of an even-length array"
+    },
+    {
+      "input": "nums = [-10,-3,0,4], target = -11",
+      "output": "-1",
+      "description": "Target smaller than every element"
+    },
+    {
+      "input": "nums = [-10,-3,0,4], target = 9",
+      "output": "-1",
+      "description": "Target larger than every element"
+    },
+    {
+      "input": "nums = [1,3], target = 1",
+      "output": "0",
+      "description": "Two elements with target at left"
+    },
+    {
+      "input": "nums = [1,3], target = 3",
+      "output": "1",
+      "description": "Two elements with target at right"
+    },
+    {
+      "input": "nums = [1,3], target = 2",
+      "output": "-1",
+      "description": "Two elements with missing target between them"
+    },
+    {
+      "input": "nums = [-10,-7,-3,0,8], target = -7",
+      "output": "1",
+      "description": "Negative target found"
+    },
+    {
+      "input": "nums = [2,4,6,8,10,12,14], target = 12",
+      "output": "5",
+      "description": "Target found after repeatedly discarding the left half"
     }
   ],
   "solutions": [
     {
-      "name": "标准二分查找 - 闭区间",
+      "name": "Closed-Interval Binary Search",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(1)",
-      "description": "使用左闭右闭区间 [left, right]。当 left <= right 时继续循环，根据中间值与目标的比较缩小搜索范围。",
-      "code": "class Solution {\n    public int search(int[] nums, int target) {\n        int left = 0, right = nums.length - 1;\n        \n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            \n            if (nums[mid] == target) {\n                return mid;\n            } else if (nums[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        \n        return -1;\n    }\n}"
+      "description": "## Approach\n\nMaintain a closed search interval `[left, right]`, where both endpoints are still possible target positions. On every step, compare `nums[mid]` with `target` and discard the half that cannot contain the target.\n\n## Key Insight\n\nBecause both endpoints are included, the loop condition is `left <= right`. After checking `mid`, the next interval must exclude `mid`, so the updates are `left = mid + 1` and `right = mid - 1`.\n\n## Complexity Analysis\n- Time Complexity: O(log n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int search(int[] nums, int target) {\n        int left = 0;\n        int right = nums.length - 1;\n\n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            if (nums[mid] == target) {\n                return mid;\n            }\n            if (nums[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n\n        return -1;\n    }\n}"
     },
     {
-      "name": "二分查找 - 左闭右开区间",
+      "name": "Half-Open Binary Search",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(1)",
-      "description": "使用左闭右开区间 [left, right)。当 left < right 时继续循环。这种写法在某些场景下更容易避免边界错误。",
-      "code": "class Solution {\n    public int search(int[] nums, int target) {\n        int left = 0, right = nums.length;\n        \n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            \n            if (nums[mid] == target) {\n                return mid;\n            } else if (nums[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        \n        return -1;\n    }\n}"
+      "description": "## Approach\n\nMaintain a half-open interval `[left, right)`, where `right` is one position past the last candidate. The search continues while at least one candidate remains, so the loop condition is `left < right`.\n\n## Key Insight\n\nThe right endpoint is excluded. When `nums[mid]` is too large, `mid` can become the new excluded right boundary with `right = mid`; when it is too small, move the included left boundary to `mid + 1`.\n\n## Complexity Analysis\n- Time Complexity: O(log n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int search(int[] nums, int target) {\n        int left = 0;\n        int right = nums.length;\n\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (nums[mid] == target) {\n                return mid;\n            }\n            if (nums[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n\n        return -1;\n    }\n}"
     },
     {
-      "name": "递归二分查找",
+      "name": "Lower Bound Then Check",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFirst find the first index whose value is greater than or equal to `target`. After the loop, that insertion position is the only place where `target` could be located, so verify it before returning.\n\n## Key Insight\n\nThis transforms exact search into a reusable boundary-search pattern. The same lower-bound loop is the foundation for first-position, insertion-position, and many range-query problems.\n\n## Complexity Analysis\n- Time Complexity: O(log n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int search(int[] nums, int target) {\n        int left = 0;\n        int right = nums.length;\n\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (nums[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n\n        if (left < nums.length && nums[left] == target) {\n            return left;\n        }\n        return -1;\n    }\n}"
+    },
+    {
+      "name": "Recursive Binary Search",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(log n)",
-      "description": "递归实现二分查找，代码更简洁但有递归栈开销。",
-      "code": "class Solution {\n    public int search(int[] nums, int target) {\n        return binarySearch(nums, target, 0, nums.length - 1);\n    }\n    \n    private int binarySearch(int[] nums, int target, int left, int right) {\n        if (left > right) {\n            return -1;\n        }\n        \n        int mid = left + (right - left) / 2;\n        \n        if (nums[mid] == target) {\n            return mid;\n        } else if (nums[mid] < target) {\n            return binarySearch(nums, target, mid + 1, right);\n        } else {\n            return binarySearch(nums, target, left, mid - 1);\n        }\n    }\n}"
+      "description": "## Approach\n\nRepresent the current closed interval as recursive parameters. Each call handles one middle comparison, then recurses into only the half that can still contain the target.\n\n## Key Insight\n\nThe base case `left > right` means there is no candidate left. This version directly shows the divide-and-conquer definition, while also making the recursion stack cost explicit.\n\n## Complexity Analysis\n- Time Complexity: O(log n)\n- Space Complexity: O(log n)",
+      "code": "class Solution {\n    public int search(int[] nums, int target) {\n        return search(nums, target, 0, nums.length - 1);\n    }\n\n    private int search(int[] nums, int target, int left, int right) {\n        if (left > right) {\n            return -1;\n        }\n\n        int mid = left + (right - left) / 2;\n        if (nums[mid] == target) {\n            return mid;\n        }\n        if (nums[mid] < target) {\n            return search(nums, target, mid + 1, right);\n        }\n        return search(nums, target, left, mid - 1);\n    }\n}"
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "id": "128",
   "title": "Number of Islands",
-  "description": "# Number of Islands\n\nGiven an `m x n` 2D binary grid `grid` which represents a map of `'1'`s (land) and `'0'`s (water), return *the number of islands*.\n\nAn **island** is surrounded by water and is formed by connecting adjacent lands horizontally or vertically. You may assume all four edges of the grid are all surrounded by water.\n\n## Example 1:\n\n**Input:** grid = [\n  [\"1\",\"1\",\"1\",\"1\",\"0\"],\n  [\"1\",\"1\",\"0\",\"1\",\"0\"],\n  [\"1\",\"1\",\"0\",\"0\",\"0\"],\n  [\"0\",\"0\",\"0\",\"0\",\"0\"]\n]\n**Output:** 1\n\n## Example 2:\n\n**Input:** grid = [\n  [\"1\",\"1\",\"0\",\"0\",\"0\"],\n  [\"1\",\"1\",\"0\",\"0\",\"0\"],\n  [\"0\",\"0\",\"1\",\"0\",\"0\"],\n  [\"0\",\"0\",\"0\",\"1\",\"1\"]\n]\n**Output:** 3\n\n## Constraints:\n\n*   `m == grid.length`\n*   `n == grid[i].length`\n*   `1 <= m, n <= 300`\n*   `grid[i][j]` is `'0'` or `'1'`.",
+  "description": "# Number of Islands\n\nGiven an `m x n` grid of characters, where `grid[r][c]` is either `'1'` for land or `'0'` for water, return the number of islands.\n\nAll land cells reachable from one land cell through side-adjacent land form one island. Diagonal contact does not count. An isolated land cell is also an island; outside the grid is water.\n\n## Example 1:\n\n**Input:** grid = [[\"1\",\"1\",\"1\",\"1\",\"0\"],[\"1\",\"1\",\"0\",\"1\",\"0\"],[\"1\",\"1\",\"0\",\"0\",\"0\"],[\"0\",\"0\",\"0\",\"0\",\"0\"]]\n**Output:** 1\n**Explanation:** All land cells are connected through horizontal or vertical steps, so there is one island.\n\n## Example 2:\n\n**Input:** grid = [[\"1\",\"1\",\"0\",\"0\",\"0\"],[\"1\",\"1\",\"0\",\"0\",\"0\"],[\"0\",\"0\",\"1\",\"0\",\"0\"],[\"0\",\"0\",\"0\",\"1\",\"1\"]]\n**Output:** 3\n**Explanation:** The upper-left block, the middle single cell, and the lower-right pair are three separate islands.\n\n## Constraints:\n\n* `m == grid.length`\n* `n == grid[i].length`\n* `1 <= m, n <= 300`\n* `grid[i][j]` is `'0'` or `'1'`.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int numIslands(char[][] grid) {\n        // Write your code here\n        return 0;\n    }\n}",
   "tags": [
@@ -23,39 +23,78 @@
   ],
   "solutions": [
     {
-      "name": "DFS",
+      "name": "Recursive DFS Flood Fill",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "Iterate through the grid. When a '1' is found, increment count and DFS to mark all connected '1's as '0' (visited).",
-      "code": "class Solution {\n    public int numIslands(char[][] grid) {\n        int count = 0;\n        for (int i = 0; i < grid.length; i++) {\n            for (int j = 0; j < grid[0].length; j++) {\n                if (grid[i][j] == '1') {\n                    count++;\n                    dfs(grid, i, j);\n                }\n            }\n        }\n        return count;\n    }\n\n    private void dfs(char[][] grid, int i, int j) {\n        if (i < 0 || i >= grid.length || j < 0 || j >= grid[0].length || grid[i][j] != '1') return;\n        grid[i][j] = '0';\n        dfs(grid, i + 1, j);\n        dfs(grid, i - 1, j);\n        dfs(grid, i, j + 1);\n        dfs(grid, i, j - 1);\n    }\n}",
+      "description": "## Approach\n\nScan every cell in row-major order. When a land cell is found, count one new island and recursively flood-fill every land cell connected to it by four-direction moves. Each visited land cell is changed to water so later scans do not count the same island again.\n\n## Key Insight\n\nCounting islands is the same as counting connected components in the graph whose vertices are land cells and whose edges join vertical or horizontal neighbors. A flood fill consumes exactly one connected component.\n\n## Complexity Analysis\n- Time Complexity: O(m * n), because each cell is inspected and each land cell is flooded at most once\n- Space Complexity: O(m * n) in the worst case for the recursion stack when the whole grid is one island",
+      "code": "class Solution {\n    public int numIslands(char[][] grid) {\n        int islands = 0;\n        for (int row = 0; row < grid.length; row++) {\n            for (int col = 0; col < grid[0].length; col++) {\n                if (grid[row][col] == '1') {\n                    islands++;\n                    sink(grid, row, col);\n                }\n            }\n        }\n        return islands;\n    }\n\n    private void sink(char[][] grid, int row, int col) {\n        if (row < 0 || row >= grid.length || col < 0 || col >= grid[0].length || grid[row][col] != '1') {\n            return;\n        }\n\n        grid[row][col] = '0';\n        sink(grid, row + 1, col);\n        sink(grid, row - 1, col);\n        sink(grid, row, col + 1);\n        sink(grid, row, col - 1);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "BFS",
+      "name": "Iterative BFS Flood Fill",
       "timeComplexity": "O(m * n)",
-      "spaceComplexity": "O(min(m, n))",
-      "description": "Same idea but use a queue for BFS instead of recursion. Mark cells as visited when adding to queue to avoid duplicates.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int numIslands(char[][] grid) {\n        int m = grid.length, n = grid[0].length, count = 0;\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (grid[i][j] == '1') {\n                    count++;\n                    grid[i][j] = '0';\n                    Queue<int[]> queue = new LinkedList<>();\n                    queue.offer(new int[]{i, j});\n                    int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};\n                    while (!queue.isEmpty()) {\n                        int[] cell = queue.poll();\n                        for (int[] d : dirs) {\n                            int ni = cell[0] + d[0], nj = cell[1] + d[1];\n                            if (ni >= 0 && ni < m && nj >= 0 && nj < n && grid[ni][nj] == '1') {\n                                grid[ni][nj] = '0';\n                                queue.offer(new int[]{ni, nj});\n                            }\n                        }\n                    }\n                }\n            }\n        }\n        return count;\n    }\n}",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nUse the same outer scan as DFS, but flood-fill a newly discovered island with an explicit queue. Mark a land cell as water as soon as it is enqueued, then process its four neighbors until the queue is empty.\n\n## Key Insight\n\nBFS and DFS discover the same connected component. The queue version avoids relying on the Java call stack, which matters for a large `300 x 300` island.\n\n## Complexity Analysis\n- Time Complexity: O(m * n), because each cell is enqueued at most once\n- Space Complexity: O(m * n) in the worst case for the queue",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int numIslands(char[][] grid) {\n        int rows = grid.length;\n        int cols = grid[0].length;\n        int islands = 0;\n        int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (grid[row][col] != '1') {\n                    continue;\n                }\n\n                islands++;\n                grid[row][col] = '0';\n                Queue<int[]> queue = new ArrayDeque<>();\n                queue.offer(new int[]{row, col});\n\n                while (!queue.isEmpty()) {\n                    int[] cell = queue.poll();\n                    for (int[] direction : directions) {\n                        int nextRow = cell[0] + direction[0];\n                        int nextCol = cell[1] + direction[1];\n                        if (nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols) {\n                            continue;\n                        }\n                        if (grid[nextRow][nextCol] != '1') {\n                            continue;\n                        }\n                        grid[nextRow][nextCol] = '0';\n                        queue.offer(new int[]{nextRow, nextCol});\n                    }\n                }\n            }\n        }\n        return islands;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Union-Find over Land Cells",
+      "timeComplexity": "O(m * n * alpha(mn))",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nTreat every land cell as a disjoint-set node. First count the land cells as isolated components, then scan the grid and union each land cell with its right and lower land neighbors. Every successful union merges two islands and decreases the component count.\n\n## Key Insight\n\nOnly right and down edges are needed during a row-major scan; together they cover every horizontal and vertical adjacency exactly once. The final disjoint-set component count is the island count.\n\n## Complexity Analysis\n- Time Complexity: O(m * n * alpha(mn)), where alpha is the inverse Ackermann factor from disjoint-set operations\n- Space Complexity: O(m * n), for parent and rank arrays",
+      "code": "class Solution {\n    public int numIslands(char[][] grid) {\n        int rows = grid.length;\n        int cols = grid[0].length;\n        UnionFind uf = new UnionFind(rows * cols);\n        int count = 0;\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (grid[row][col] == '1') {\n                    count++;\n                }\n            }\n        }\n        uf.count = count;\n\n        int[][] directions = {{1, 0}, {0, 1}};\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (grid[row][col] != '1') {\n                    continue;\n                }\n                for (int[] direction : directions) {\n                    int nextRow = row + direction[0];\n                    int nextCol = col + direction[1];\n                    if (nextRow < rows && nextCol < cols && grid[nextRow][nextCol] == '1') {\n                        uf.union(row * cols + col, nextRow * cols + nextCol);\n                    }\n                }\n            }\n        }\n        return uf.count;\n    }\n\n    private static class UnionFind {\n        private final int[] parent;\n        private final int[] rank;\n        private int count;\n\n        UnionFind(int size) {\n            parent = new int[size];\n            rank = new int[size];\n            for (int i = 0; i < size; i++) {\n                parent[i] = i;\n            }\n        }\n\n        private int find(int node) {\n            if (parent[node] != node) {\n                parent[node] = find(parent[node]);\n            }\n            return parent[node];\n        }\n\n        private void union(int first, int second) {\n            int rootFirst = find(first);\n            int rootSecond = find(second);\n            if (rootFirst == rootSecond) {\n                return;\n            }\n            if (rank[rootFirst] < rank[rootSecond]) {\n                parent[rootFirst] = rootSecond;\n            } else if (rank[rootFirst] > rank[rootSecond]) {\n                parent[rootSecond] = rootFirst;\n            } else {\n                parent[rootSecond] = rootFirst;\n                rank[rootFirst]++;\n            }\n            count--;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two-Pass Connected Component Labeling",
+      "timeComplexity": "O(m * n * alpha(mn))",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nScan the grid once while assigning an integer label to each land cell. A new land run gets a new label; if the cell touches labeled land above and to the left, record that the two labels are equivalent with a small disjoint set. A second pass counts the distinct canonical labels that remain.\n\n## Key Insight\n\nThis is the connected-component-labeling view used in image processing. It does not flood-fill from every island start; instead, it builds component labels locally and resolves label equivalences afterward.\n\n## Complexity Analysis\n- Time Complexity: O(m * n * alpha(mn)), from scanning the grid and resolving label unions\n- Space Complexity: O(m * n), for the label grid and label parent arrays",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int numIslands(char[][] grid) {\n        int rows = grid.length;\n        int cols = grid[0].length;\n        int[][] labels = new int[rows][cols];\n        int[] parent = new int[rows * cols + 1];\n        int[] rank = new int[rows * cols + 1];\n        int nextLabel = 1;\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (grid[row][col] == '0') {\n                    continue;\n                }\n\n                int up = row > 0 ? labels[row - 1][col] : 0;\n                int left = col > 0 ? labels[row][col - 1] : 0;\n                if (up == 0 && left == 0) {\n                    labels[row][col] = nextLabel;\n                    parent[nextLabel] = nextLabel;\n                    nextLabel++;\n                } else if (up == 0 || left == 0) {\n                    labels[row][col] = up == 0 ? left : up;\n                } else {\n                    labels[row][col] = Math.min(up, left);\n                    union(parent, rank, up, left);\n                }\n            }\n        }\n\n        Set<Integer> roots = new HashSet<>();\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (labels[row][col] != 0) {\n                    roots.add(find(parent, labels[row][col]));\n                }\n            }\n        }\n        return roots.size();\n    }\n\n    private int find(int[] parent, int label) {\n        if (parent[label] != label) {\n            parent[label] = find(parent, parent[label]);\n        }\n        return parent[label];\n    }\n\n    private void union(int[] parent, int[] rank, int first, int second) {\n        int rootFirst = find(parent, first);\n        int rootSecond = find(parent, second);\n        if (rootFirst == rootSecond) {\n            return;\n        }\n        if (rank[rootFirst] < rank[rootSecond]) {\n            parent[rootFirst] = rootSecond;\n        } else if (rank[rootFirst] > rank[rootSecond]) {\n            parent[rootSecond] = rootFirst;\n        } else {\n            parent[rootSecond] = rootFirst;\n            rank[rootFirst]++;\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "grid = [[\"1\",\"1\",\"1\",\"1\",\"0\"],[\"1\",\"1\",\"0\",\"1\",\"0\"],[\"1\",\"1\",\"0\",\"0\",\"0\"],[\"0\",\"0\",\"0\",\"0\",\"0\"]]",
-      "output": "1"
+      "output": "1",
+      "description": "A canonical connected land mass with internal water still forms one island."
     },
     {
       "input": "grid = [[\"1\",\"1\",\"0\",\"0\",\"0\"],[\"1\",\"1\",\"0\",\"0\",\"0\"],[\"0\",\"0\",\"1\",\"0\",\"0\"],[\"0\",\"0\",\"0\",\"1\",\"1\"]]",
-      "output": "3"
+      "output": "3",
+      "description": "Three separated land components should be counted independently."
     },
-    { "input": "grid = [[\"1\"]]", "output": "1" },
-    { "input": "grid = [[\"0\",\"0\"],[\"0\",\"0\"]]", "output": "0" }
-  ],
-  "diagrams": [
     {
-      "id": "example1",
-      "file": "p128_islands.png",
-      "caption": "DFS traversal identifying 3 islands"
+      "input": "grid = [[\"1\"]]",
+      "output": "1",
+      "description": "A single land cell is one island."
+    },
+    {
+      "input": "grid = [[\"0\",\"0\"],[\"0\",\"0\"]]",
+      "output": "0",
+      "description": "An all-water grid has no islands."
+    },
+    {
+      "input": "grid = [[\"1\",\"0\",\"1\"],[\"0\",\"1\",\"0\"],[\"1\",\"0\",\"1\"]]",
+      "output": "5",
+      "description": "Diagonal contact must not connect islands."
+    },
+    {
+      "input": "grid = [[\"1\",\"0\",\"1\",\"1\",\"0\",\"1\"]]",
+      "output": "3",
+      "description": "A one-row grid still uses horizontal adjacency and water gaps."
+    },
+    {
+      "input": "grid = [[\"1\"],[\"1\"],[\"0\"],[\"1\"],[\"0\"],[\"1\"]]",
+      "output": "3",
+      "description": "A one-column grid uses vertical adjacency and water gaps."
+    },
+    {
+      "input": "grid = [[\"1\",\"1\",\"1\"],[\"1\",\"0\",\"1\"],[\"1\",\"1\",\"1\"]]",
+      "output": "1",
+      "description": "A ring of land around water is still one connected island."
     }
   ]
 }

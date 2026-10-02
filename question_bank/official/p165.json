@@ -1,41 +1,137 @@
 {
   "id": "165",
   "title": "Best Time to Buy and Sell Stock with Cooldown",
-  "description": "# Best Time to Buy and Sell Stock with Cooldown\n\nYou are given an array `prices` where `prices[i]` is the price of a given stock on the `i`-th day.\n\nFind the maximum profit you can achieve. You may complete as many transactions as you like (i.e., buy one and sell one share of the stock multiple times) with the following restrictions:\n\n*   After you sell your stock, you cannot buy stock on the next day (i.e., cooldown one day).\n\nNote: You may not engage in multiple transactions simultaneously (i.e., you must sell the stock before you buy again).\n\n## Example 1:\n\n**Input:** prices = [1,2,3,0,2]\n**Output:** 3\n**Explanation:** transactions = [buy, sell, cooldown, buy, sell]\n\n## Example 2:\n\n**Input:** prices = [1]\n**Output:** 0\n\n## Constraints:\n\n*   `1 <= prices.length <= 5000`\n*   `0 <= prices[i] <= 1000`",
+  "description": "# Best Time to Buy and Sell Stock with Cooldown\n\nYou are given an integer array `prices`, where `prices[i]` is the price of one stock on day `i`.\n\nReturn the maximum profit you can achieve. You may complete as many transactions as you want, but you must obey both rules:\n\n* You may hold at most one share at a time, so you must sell before buying again.\n* After you sell on day `i`, you cannot buy on day `i + 1`. That next day is a one-day cooldown.\n\nYou may also choose to make no transaction.\n\n## Example 1:\n\n**Input:** prices = [1,2,3,0,2]\n**Output:** 3\n**Explanation:** One optimal plan is buy on day 0, sell on day 1, cooldown on day 2, buy on day 3, and sell on day 4.\n\n## Example 2:\n\n**Input:** prices = [1]\n**Output:** 0\n**Explanation:** A single day cannot complete a buy-sell transaction.\n\n## Constraints:\n\n* `1 <= prices.length <= 5000`\n* `0 <= prices[i] <= 1000`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int maxProfit(int[] prices) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Dynamic Programming"],
+  "tags": [
+    "Array",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "prices = [1,2,3,0,2]", "output": "3" },
-    { "input": "prices = [1]", "output": "0" }
+    {
+      "input": "prices = [1,2,3,0,2]",
+      "output": "3"
+    },
+    {
+      "input": "prices = [1]",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
-      "name": "State Machine DP",
+      "name": "Rolling Three-State DP",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Track three states: held (holding stock), sold (just sold), rest (cooldown/idle). Transition: held = max(held, rest - price), sold = held + price, rest = max(rest, sold).",
-      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int held = Integer.MIN_VALUE, sold = 0, rest = 0;\n        for (int price : prices) {\n            int prevSold = sold;\n            sold = held + price;\n            held = Math.max(held, rest - price);\n            rest = Math.max(rest, prevSold);\n        }\n        return Math.max(sold, rest);\n    }\n}",
+      "description": "## Approach\nTrack three end-of-day states: `hold` means holding one share, `sold` means sold today, and `rest` means not holding and not just sold today. On each price, sell from the previous hold state, buy only from the previous rest state, and move a previous sold state into rest.\n\n## Key Insight\nThe cooldown is enforced by the state graph. A buy transition cannot come from `sold`; it can only come from `rest`, so the day immediately after a sale is forced to pass through rest before another buy can happen.\n\n## Complexity Analysis\nEach day updates a constant number of states, so the time complexity is O(n). Only three rolling state values are stored, so the space complexity is O(1).",
+      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int hold = -prices[0];\n        int sold = 0;\n        int rest = 0;\n\n        for (int day = 1; day < prices.length; day++) {\n            int previousHold = hold;\n            int previousSold = sold;\n            int previousRest = rest;\n\n            hold = Math.max(previousHold, previousRest - prices[day]);\n            sold = previousHold + prices[day];\n            rest = Math.max(previousRest, previousSold);\n        }\n        return Math.max(sold, rest);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "State Machine DP O(1) Space",
+      "name": "Three-Array State Table",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(1)",
-      "description": "Track three states: sold (just sold stock), held (holding stock), rest (cooldown/idle). Use O(1) space with three variables.",
-      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int sold = 0, held = Integer.MIN_VALUE, rest = 0;\n        for (int price : prices) {\n            int prevSold = sold;\n            sold = held + price;\n            held = Math.max(held, rest - price);\n            rest = Math.max(rest, prevSold);\n        }\n        return Math.max(sold, rest);\n    }\n}",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nStore the same three states in arrays so every day's transition is visible. `hold[day]` is best while holding, `sold[day]` is best after selling that day, and `rest[day]` is best while not holding and not selling that day.\n\n## Key Insight\nThe table form is a readable trace of the finite-state machine. `hold[day]` may buy only from `rest[day - 1]`, while `rest[day]` may come from either continuing to rest or cooling down from yesterday's sale.\n\n## Complexity Analysis\nThe algorithm performs one constant-time transition per state per day, so the time complexity is O(n). The three arrays each have length n, so the space complexity is O(n).",
+      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int n = prices.length;\n        int[] hold = new int[n];\n        int[] sold = new int[n];\n        int[] rest = new int[n];\n\n        hold[0] = -prices[0];\n        sold[0] = Integer.MIN_VALUE / 4;\n        rest[0] = 0;\n\n        for (int day = 1; day < n; day++) {\n            hold[day] = Math.max(hold[day - 1], rest[day - 1] - prices[day]);\n            sold[day] = hold[day - 1] + prices[day];\n            rest[day] = Math.max(rest[day - 1], sold[day - 1]);\n        }\n        return Math.max(sold[n - 1], rest[n - 1]);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Cooldown Memoization",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nUse `dfs(day, holding)` for the maximum future profit from a day and a holding state. If holding, choose between selling today and jumping to `day + 2`, or continuing to hold. If not holding, choose between buying today and skipping.\n\n## Key Insight\nSelling is the only action that creates the cooldown. The recursive transition `sell = prices[day] + dfs(day + 2, 0)` encodes the rule directly and prevents accidental rebuying on the next day.\n\n## Complexity Analysis\nThere are `2 * n` memoized states and each state compares two choices, so the time complexity is O(n). The memo table and recursion stack use O(n) space.",
+      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int[][] memo = new int[prices.length][2];\n        for (int[] row : memo) {\n            java.util.Arrays.fill(row, Integer.MIN_VALUE);\n        }\n        return dfs(prices, 0, 0, memo);\n    }\n\n    private int dfs(int[] prices, int day, int holding, int[][] memo) {\n        if (day >= prices.length) {\n            return 0;\n        }\n        if (memo[day][holding] != Integer.MIN_VALUE) {\n            return memo[day][holding];\n        }\n\n        int best;\n        if (holding == 1) {\n            int sell = prices[day] + dfs(prices, day + 2, 0, memo);\n            int keep = dfs(prices, day + 1, 1, memo);\n            best = Math.max(sell, keep);\n        } else {\n            int buy = -prices[day] + dfs(prices, day + 1, 1, memo);\n            int skip = dfs(prices, day + 1, 0, memo);\n            best = Math.max(buy, skip);\n        }\n        memo[day][holding] = best;\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Hold-Cash Cooldown Lookback",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nKeep `hold[day]` as the best profit while holding after day `day`, and `cash[day]` as the best profit while not holding after day `day`. Selling can use yesterday's hold. Buying on day `day` can only use `cash[day - 2]`, because `day - 1` would be a cooldown if it was a sell day.\n\n## Key Insight\nInstead of naming a separate cooldown state, this route shifts the buy transition back by two days. The index lookback is exactly the rule: after selling, one full day must pass before another buy.\n\n## Complexity Analysis\nThe loop visits each price once, so the time complexity is O(n). The hold and cash arrays use O(n) space.",
+      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int n = prices.length;\n        int[] hold = new int[n];\n        int[] cash = new int[n];\n        hold[0] = -prices[0];\n\n        for (int day = 1; day < n; day++) {\n            int cooledCash = day >= 2 ? cash[day - 2] : 0;\n            hold[day] = Math.max(hold[day - 1], cooledCash - prices[day]);\n            cash[day] = Math.max(cash[day - 1], hold[day - 1] + prices[day]);\n        }\n        return cash[n - 1];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Backward Decision DP",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nWork from the end of the price list toward the start. `free[day]` is the best future profit when you are free to buy, and `holding[day]` is the best future profit when you already hold a share. Buying moves from `free` to `holding`; selling moves from `holding` to `free[day + 2]`.\n\n## Key Insight\nThe cooldown can be modeled as a jump over one day after selling. This suffix DP is the bottom-up version of the buy/sell recursion and makes the `day + 2` cooldown transition explicit without recursion.\n\n## Complexity Analysis\nEach day computes two suffix states, so the time complexity is O(n). The two arrays have length `n + 2` to make cooldown jumps safe, so the space complexity is O(n).",
+      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int n = prices.length;\n        int[] free = new int[n + 2];\n        int[] holding = new int[n + 2];\n\n        for (int day = n - 1; day >= 0; day--) {\n            free[day] = Math.max(free[day + 1], -prices[day] + holding[day + 1]);\n            holding[day] = Math.max(holding[day + 1], prices[day] + free[day + 2]);\n        }\n        return free[0];\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "prices = [1,2,3,0,2]", "output": "3" },
-    { "input": "prices = [1]", "output": "0" },
-    { "input": "prices = [1,2]", "output": "1" },
-    { "input": "prices = [2,1]", "output": "0" },
-    { "input": "prices = [1,2,3,4,5]", "output": "4" },
-    { "input": "prices = [5,4,3,2,1]", "output": "0" },
-    { "input": "prices = [3,3,3,3,3]", "output": "0" },
-    { "input": "prices = [1,2,4,2,5,7,2,4,9,0]", "output": "11" }
+    {
+      "input": "prices = [1,2,3,0,2]",
+      "output": "3",
+      "description": "Canonical cooldown example where selling forces a one-day wait before the next buy."
+    },
+    {
+      "input": "prices = [1]",
+      "output": "0",
+      "description": "Single day cannot complete a transaction."
+    },
+    {
+      "input": "prices = [1,2]",
+      "output": "1",
+      "description": "Two increasing prices allow one buy-sell profit."
+    },
+    {
+      "input": "prices = [2,1]",
+      "output": "0",
+      "description": "Two decreasing prices should make no trade."
+    },
+    {
+      "input": "prices = [1,2,3,4,5]",
+      "output": "4",
+      "description": "Monotone increasing prices are best handled by one long hold."
+    },
+    {
+      "input": "prices = [5,4,3,2,1]",
+      "output": "0",
+      "description": "Monotone decreasing prices produce zero profit."
+    },
+    {
+      "input": "prices = [3,3,3,3,3]",
+      "output": "0",
+      "description": "Flat prices produce no profitable transaction."
+    },
+    {
+      "input": "prices = [1,2,4,2,5,7,2,4,9,0]",
+      "output": "11",
+      "description": "Long mixed sequence stresses cooldown state transitions across several decisions."
+    },
+    {
+      "input": "prices = [1,2,3,0,2,3]",
+      "output": "4",
+      "description": "Best plan sells early, cools down, then buys the low price after the cooldown."
+    },
+    {
+      "input": "prices = [2,1,2,0,1]",
+      "output": "1",
+      "description": "Small alternating prices catch solutions that rebuy immediately after selling."
+    },
+    {
+      "input": "prices = [6,1,6,4,3,0,2]",
+      "output": "7",
+      "description": "Two profitable windows are separated by a cooldown-aware waiting period."
+    },
+    {
+      "input": "prices = [1,2,0,4]",
+      "output": "4",
+      "description": "Skipping the early small sale enables buying the later zero and selling at four."
+    },
+    {
+      "input": "prices = [4,2,1,7,5,3,6,4]",
+      "output": "9",
+      "description": "Multiple valleys and peaks require choosing sales that do not block later buys."
+    }
   ],
-  "diagram": "images/p165_stock_cooldown.png"
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p165_stock_cooldown.png",
+      "caption": "Daily stock prices with the one-day cooldown rule"
+    }
+  ]
 }

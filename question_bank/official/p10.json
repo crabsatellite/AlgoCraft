@@ -1,44 +1,93 @@
 {
   "id": "10",
   "title": "Subarray Sum Equals K",
-  "description": "# Subarray Sum Equals K\n\nGiven an array of integers `nums` and an integer `k`, return *the total number of subarrays whose sum equals to* `k`.\n\nA subarray is a contiguous **non-empty** sequence of elements within an array.\n\n## Example 1:\n\n**Input:** nums = [1,1,1], k = 2\n**Output:** 2\n\n## Example 2:\n\n**Input:** nums = [1,2,3], k = 3\n**Output:** 2\n\n## Constraints:\n\n*   `1 <= nums.length <= 2 * 10^4`\n*   `-1000 <= nums[i] <= 1000`\n*   `-10^7 <= k <= 10^7`",
+  "description": "# Subarray Sum Equals K\n\nGiven an integer array `nums` and an integer `k`, return the total number of non-empty contiguous subarrays whose sum is exactly `k`.\n\nA subarray must use consecutive positions from the original array. Negative numbers and zeroes are allowed, so the running sum can move up, down, or stay unchanged.\n\n## Example 1:\n\n**Input:** nums = [1,1,1], k = 2\n**Output:** 2\n**Explanation:** The valid subarrays are the first two elements and the last two elements.\n\n## Example 2:\n\n**Input:** nums = [1,2,3], k = 3\n**Output:** 2\n**Explanation:** The valid subarrays are `[1,2]` and `[3]`.\n\n## Example 3:\n\n**Input:** nums = [0,0,0], k = 0\n**Output:** 6\n**Explanation:** Every non-empty subarray has sum 0, so the answer is `3 + 2 + 1 = 6`.\n\n## Constraints:\n\n*   `1 <= nums.length <= 2 * 10^4`\n*   `-1000 <= nums[i] <= 1000`\n*   `-10^7 <= k <= 10^7`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int subarraySum(int[] nums, int k) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Hash Table", "Prefix Sum"],
-  "examples": [{ "input": "nums = [1,1,1], k = 2", "output": "2" }],
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Prefix Sum"
+  ],
+  "examples": [
+    {
+      "input": "nums = [1,1,1], k = 2",
+      "output": "2",
+      "description": "two overlapping length-two subarrays"
+    },
+    {
+      "input": "nums = [1,2,3], k = 3",
+      "output": "2",
+      "description": "one length-two subarray and one single-element subarray"
+    },
+    {
+      "input": "nums = [0,0,0], k = 0",
+      "output": "6",
+      "description": "repeated prefix sums create multiple starts for each end"
+    }
+  ],
   "tests": [
-    { "input": "nums = [1,1,1], k = 2", "output": "2" },
-    { "input": "nums = [1,2,3], k = 3", "output": "2" },
-    { "input": "nums = [1,-1,1], k = 0", "output": "2" },
-    { "input": "nums = [1], k = 0", "output": "0" },
+    {
+      "input": "nums = [1,1,1], k = 2",
+      "output": "2"
+    },
+    {
+      "input": "nums = [1,2,3], k = 3",
+      "output": "2"
+    },
+    {
+      "input": "nums = [1,-1,1], k = 0",
+      "output": "2",
+      "description": "negative values make simple sliding window invalid"
+    },
+    {
+      "input": "nums = [1], k = 0",
+      "output": "0",
+      "description": "single value that does not match k"
+    },
     {
       "input": "nums = [-1,-2,-3], k = -3",
       "output": "2",
-      "description": "All negative numbers with negative k"
+      "description": "all negative numbers with negative k"
     },
     {
       "input": "nums = [1,1,1,1], k = 2",
       "output": "3",
-      "description": "Multiple overlapping subarrays"
+      "description": "multiple overlapping subarrays"
+    },
+    {
+      "input": "nums = [0,0,0], k = 0",
+      "output": "6",
+      "description": "repeated zero prefix sums must count every start"
+    },
+    {
+      "input": "nums = [3,4,7,2,-3,1,4,2], k = 7",
+      "output": "4",
+      "description": "mixed signs create several non-local matching prefixes"
+    },
+    {
+      "input": "nums = [1,-1,0], k = 0",
+      "output": "3",
+      "description": "same prefix sum may appear more than twice"
     }
   ],
   "solutions": [
     {
-      "name": "Prefix Sum with HashMap",
-      "description": "## Approach\n\nUse prefix sum and HashMap. For each position, check how many previous prefix sums equal (currentSum - k).\n\n## Key Insight\n\nIf prefixSum[j] - prefixSum[i] = k, then subarray [i+1, j] has sum k.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
-      "code": "class Solution {\n    public int subarraySum(int[] nums, int k) {\n        Map<Integer, Integer> prefixCount = new HashMap<>();\n        prefixCount.put(0, 1);  // Empty prefix has sum 0\n        \n        int sum = 0;\n        int count = 0;\n        \n        for (int num : nums) {\n            sum += num;\n            \n            // Check if there's a prefix with sum = (sum - k)\n            if (prefixCount.containsKey(sum - k)) {\n                count += prefixCount.get(sum - k);\n            }\n            \n            prefixCount.put(sum, prefixCount.getOrDefault(sum, 0) + 1);\n        }\n        \n        return count;\n    }\n}",
+      "name": "One-Pass Prefix Sum HashMap",
+      "description": "## Approach\n\nScan the array once while maintaining the current prefix sum. If the current prefix is `sum`, then a subarray ending here has sum `k` whenever an earlier prefix was `sum - k`. Store the number of times each prefix sum has appeared, and seed the map with prefix sum `0` once for subarrays that start at index 0.\n\n## Key Insight\n\nThe map stores counts, not only membership. Repeated prefix sums are exactly what create several different valid starting positions for the same ending position, especially when the array contains zeroes or positive and negative numbers cancel out.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int subarraySum(int[] nums, int k) {\n        Map<Integer, Integer> prefixCount = new HashMap<>();\n        prefixCount.put(0, 1);\n\n        int sum = 0;\n        int count = 0;\n        for (int num : nums) {\n            sum += num;\n            count += prefixCount.getOrDefault(sum - k, 0);\n            prefixCount.put(sum, prefixCount.getOrDefault(sum, 0) + 1);\n        }\n        return count;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Brute Force with Prefix Sum",
-      "description": "## Approach\n\nCalculate prefix sums, then check all possible subarrays.\n\n## Complexity Analysis\n- Time Complexity: O(n²)\n- Space Complexity: O(n) for prefix sum array",
-      "code": "class Solution {\n    public int subarraySum(int[] nums, int k) {\n        int n = nums.length;\n        int[] prefix = new int[n + 1];\n        \n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n        \n        int count = 0;\n        for (int i = 0; i < n; i++) {\n            for (int j = i + 1; j <= n; j++) {\n                if (prefix[j] - prefix[i] == k) {\n                    count++;\n                }\n            }\n        }\n        \n        return count;\n    }\n}",
+      "name": "Prefix Array then Previous-Prefix Counts",
+      "description": "## Approach\n\nFirst build a prefix array where `prefix[i]` is the sum of the first `i` values. Then scan these prefix sums from left to right. For each right boundary prefix, count how many earlier prefixes equal `prefix[right] - k`, then record the current prefix for later right boundaries.\n\n## Key Insight\n\nThis version separates the algebra from the streaming implementation. Every subarray is represented by two prefix boundaries, so the valid-pair condition is `prefix[right] - prefix[left] == k` with `left < right`.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int subarraySum(int[] nums, int k) {\n        int[] prefix = new int[nums.length + 1];\n        for (int i = 0; i < nums.length; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n\n        Map<Integer, Integer> seen = new HashMap<>();\n        int count = 0;\n        for (int sum : prefix) {\n            count += seen.getOrDefault(sum - k, 0);\n            seen.put(sum, seen.getOrDefault(sum, 0) + 1);\n        }\n        return count;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Brute Force",
-      "description": "## Approach\n\nCheck all possible subarrays and calculate their sums.\n\n## Complexity Analysis\n- Time Complexity: O(n²)\n- Space Complexity: O(1)",
-      "code": "class Solution {\n    public int subarraySum(int[] nums, int k) {\n        int count = 0;\n        \n        for (int i = 0; i < nums.length; i++) {\n            int sum = 0;\n            for (int j = i; j < nums.length; j++) {\n                sum += nums[j];\n                if (sum == k) {\n                    count++;\n                }\n            }\n        }\n        \n        return count;\n    }\n}",
+      "name": "Running-Sum Brute Force Baseline",
+      "description": "## Approach\n\nChoose each index as the start of a subarray. Extend the right boundary one step at a time, maintain the running sum for that fixed start, and count every time the running sum equals `k`.\n\n## Key Insight\n\nThis baseline enumerates the definition directly and is useful for checking the optimized prefix-sum method. It also shows why stopping early does not work when negative numbers are allowed: a later value can bring the sum back to `k`.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int subarraySum(int[] nums, int k) {\n        int count = 0;\n        for (int left = 0; left < nums.length; left++) {\n            int sum = 0;\n            for (int right = left; right < nums.length; right++) {\n                sum += nums[right];\n                if (sum == k) {\n                    count++;\n                }\n            }\n        }\n        return count;\n    }\n}",
       "language": "java"
     }
   ]

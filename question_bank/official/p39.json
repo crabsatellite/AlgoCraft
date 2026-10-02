@@ -1,44 +1,112 @@
 {
   "id": "39",
   "title": "Longest Substring with At Most K Distinct Characters",
-  "description": "# Longest Substring with At Most K Distinct Characters\n\nGiven a string `s` and an integer `k`, return *the length of the longest **substring** of* `s` *that contains at most* `k` *distinct characters*.\n\n## Example 1:\n\n**Input:** s = \"eceba\", k = 2\n**Output:** 3\n**Explanation:** The substring is \"ece\" with length 3.\n\n## Example 2:\n\n**Input:** s = \"aa\", k = 1\n**Output:** 2\n**Explanation:** The substring is \"aa\" with length 2.\n\n## Constraints:\n\n*   `1 <= s.length <= 5 * 10^4`\n*   `0 <= k <= 50`",
+  "description": "# Longest Substring with At Most K Distinct Characters\n\nGiven a string `s` and an integer `k`, return the length of the longest contiguous substring of `s` that contains at most `k` distinct characters.\n\nIf `k = 0`, no non-empty substring is valid. If `s` is empty, the answer is also `0`.\n\n## Example 1:\n\n**Input:** s = \"eceba\", k = 2\n**Output:** 3\n**Explanation:** The substring \"ece\" has length 3 and contains only two distinct characters.\n\n## Example 2:\n\n**Input:** s = \"aa\", k = 1\n**Output:** 2\n**Explanation:** The whole string is valid.\n\n## Example 3:\n\n**Input:** s = \"ccaabbb\", k = 2\n**Output:** 5\n**Explanation:** The substring \"aabbb\" has length 5.\n\n## Constraints:\n\n* `0 <= s.length <= 5 * 10^4`\n* `0 <= k <= 50`\n* `s` contains ASCII characters in the official tests.\n\n## Teaching note:\n\nThis is an at-most constraint, so the main invariant is not a fixed window length. The window must grow greedily and shrink only when its distinct-character count becomes too large.",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public int lengthOfLongestSubstringKDistinct(String s, int k) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Hash Table", "String", "Sliding Window"],
+  "initialCode": "class Solution {\n    public int lengthOfLongestSubstringKDistinct(String s, int k) {\n        // TODO: implement\n        return 0;\n    }\n}",
+  "tags": [
+    "Hash Table",
+    "String",
+    "Sliding Window"
+  ],
   "examples": [
-    { "input": "s = \"eceba\", k = 2", "output": "3" },
-    { "input": "s = \"aa\", k = 1", "output": "2" }
+    {
+      "input": "s = \"eceba\", k = 2",
+      "output": "3",
+      "explanation": "The substring \"ece\" has length 3."
+    },
+    {
+      "input": "s = \"aa\", k = 1",
+      "output": "2",
+      "explanation": "The whole string is valid."
+    }
   ],
   "tests": [
-    { "input": "s = \"eceba\", k = 2", "output": "3" },
-    { "input": "s = \"aa\", k = 1", "output": "2" },
-    { "input": "s = \"a\", k = 0", "output": "0" },
-    { "input": "s = \"abaccc\", k = 2", "output": "4" },
+    {
+      "input": "s = \"eceba\", k = 2",
+      "output": "3"
+    },
+    {
+      "input": "s = \"aa\", k = 1",
+      "output": "2"
+    },
+    {
+      "input": "s = \"\", k = 2",
+      "output": "0"
+    },
+    {
+      "input": "s = \"a\", k = 0",
+      "output": "0"
+    },
     {
       "input": "s = \"abc\", k = 10",
-      "output": "3",
-      "description": "k larger than distinct char count"
+      "output": "3"
     },
     {
       "input": "s = \"aaaaaaa\", k = 1",
-      "output": "7",
-      "description": "All same character"
+      "output": "7"
+    },
+    {
+      "input": "s = \"abaccc\", k = 2",
+      "output": "4"
+    },
+    {
+      "input": "s = \"ccaabbb\", k = 2",
+      "output": "5"
+    },
+    {
+      "input": "s = \"abcadcacacaca\", k = 3",
+      "output": "11"
+    },
+    {
+      "input": "s = \"abcd\", k = 2",
+      "output": "2"
+    },
+    {
+      "input": "s = \"aabbcc\", k = 1",
+      "output": "2"
+    },
+    {
+      "input": "s = \"aabbcc\", k = 2",
+      "output": "4"
+    },
+    {
+      "input": "s = \"abcbbbbcccbdddadacb\", k = 2",
+      "output": "10"
     }
   ],
   "solutions": [
     {
       "name": "Sliding Window with HashMap",
+      "description": "## Approach\n\nMaintain a sliding window and a `HashMap<Character, Integer>` of character counts inside that window. Expand right one character at a time. If the map has more than `k` keys, shrink left until the window is valid again.\n\n## Key Insight\n\nThe number of keys in the map is exactly the number of distinct characters in the current window. The invariant is therefore concrete: after shrinking, `count.size() <= k`.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(k)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int lengthOfLongestSubstringKDistinct(String s, int k) {\n        if (k == 0 || s.isEmpty()) {\n            return 0;\n        }\n\n        Map<Character, Integer> count = new HashMap<>();\n        int best = 0;\n        int left = 0;\n\n        for (int right = 0; right < s.length(); right++) {\n            char ch = s.charAt(right);\n            count.put(ch, count.getOrDefault(ch, 0) + 1);\n\n            while (count.size() > k) {\n                char outgoing = s.charAt(left);\n                int next = count.get(outgoing) - 1;\n                if (next == 0) {\n                    count.remove(outgoing);\n                } else {\n                    count.put(outgoing, next);\n                }\n                left++;\n            }\n\n            best = Math.max(best, right - left + 1);\n        }\n\n        return best;\n    }\n}",
+      "language": "java",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(k)",
-      "description": "Use sliding window with HashMap to track character counts. Shrink window when distinct chars exceed k.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int lengthOfLongestSubstringKDistinct(String s, int k) {\n        if (k == 0) return 0;\n        \n        Map<Character, Integer> count = new HashMap<>();\n        int maxLen = 0;\n        int left = 0;\n        \n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            count.put(c, count.getOrDefault(c, 0) + 1);\n            \n            // Shrink window if more than k distinct chars\n            while (count.size() > k) {\n                char leftChar = s.charAt(left);\n                count.put(leftChar, count.get(leftChar) - 1);\n                if (count.get(leftChar) == 0) {\n                    count.remove(leftChar);\n                }\n                left++;\n            }\n            \n            maxLen = Math.max(maxLen, right - left + 1);\n        }\n        \n        return maxLen;\n    }\n}"
+      "spaceComplexity": "O(k)"
     },
     {
-      "name": "Sliding Window with Array (Optimized)",
+      "name": "Sliding Window with ASCII Count Array",
+      "description": "## Approach\n\nUse a fixed-size count array for ASCII characters instead of a map. Track `distinct`, the number of characters whose current count is non-zero. Expand right, shrink left while `distinct > k`, then update the best length.\n\n## Key Insight\n\nThis is the same sliding-window invariant as the map solution, but the representation is specialized. It teaches when a fixed character universe can replace a hash table.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int lengthOfLongestSubstringKDistinct(String s, int k) {\n        if (k == 0 || s.isEmpty()) {\n            return 0;\n        }\n\n        int[] count = new int[128];\n        int distinct = 0;\n        int best = 0;\n        int left = 0;\n\n        for (int right = 0; right < s.length(); right++) {\n            char ch = s.charAt(right);\n            if (count[ch] == 0) {\n                distinct++;\n            }\n            count[ch]++;\n\n            while (distinct > k) {\n                char outgoing = s.charAt(left);\n                count[outgoing]--;\n                if (count[outgoing] == 0) {\n                    distinct--;\n                }\n                left++;\n            }\n\n            best = Math.max(best, right - left + 1);\n        }\n\n        return best;\n    }\n}",
+      "language": "java",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(1)",
-      "description": "Use array instead of HashMap for lowercase letters. Track distinct count separately.",
-      "code": "class Solution {\n    public int lengthOfLongestSubstringKDistinct(String s, int k) {\n        if (k == 0) return 0;\n        \n        int[] count = new int[128];\n        int distinct = 0;\n        int maxLen = 0;\n        int left = 0;\n        \n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            if (count[c] == 0) distinct++;\n            count[c]++;\n            \n            while (distinct > k) {\n                char leftChar = s.charAt(left);\n                count[leftChar]--;\n                if (count[leftChar] == 0) distinct--;\n                left++;\n            }\n            \n            maxLen = Math.max(maxLen, right - left + 1);\n        }\n        \n        return maxLen;\n    }\n}"
+      "spaceComplexity": "O(1)"
+    },
+    {
+      "name": "Last Seen Ordered Eviction",
+      "description": "## Approach\n\nStore each character's most recent index in an access-ordered `LinkedHashMap`. When adding a character makes the map too large, evict the entry whose last-seen index is oldest and move `left` just after that index.\n\n## Key Insight\n\nThe count-window solutions shrink one character at a time. This route models the invalid window as an eviction problem and jumps the left boundary past the character that must leave.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(k)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int lengthOfLongestSubstringKDistinct(String s, int k) {\n        if (k == 0 || s.isEmpty()) {\n            return 0;\n        }\n\n        LinkedHashMap<Character, Integer> lastSeen = new LinkedHashMap<>(16, 0.75f, true);\n        int left = 0;\n        int best = 0;\n\n        for (int right = 0; right < s.length(); right++) {\n            char ch = s.charAt(right);\n            lastSeen.put(ch, right);\n\n            if (lastSeen.size() > k) {\n                Iterator<Map.Entry<Character, Integer>> iterator = lastSeen.entrySet().iterator();\n                Map.Entry<Character, Integer> oldest = iterator.next();\n                left = oldest.getValue() + 1;\n                iterator.remove();\n            }\n\n            best = Math.max(best, right - left + 1);\n        }\n\n        return best;\n    }\n}",
+      "language": "java",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(k)"
+    },
+    {
+      "name": "Quadratic Distinct-Set Baseline",
+      "description": "## Approach\n\nTry every start index. Extend the end index while tracking the set of distinct characters seen in that candidate substring. Once the set size exceeds `k`, stop extending that start.\n\n## Key Insight\n\nThis baseline directly states the definition: enumerate contiguous substrings and keep the longest one whose distinct-character set is small enough. The optimized windows are faster versions of this same check.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(k)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int lengthOfLongestSubstringKDistinct(String s, int k) {\n        if (k == 0 || s.isEmpty()) {\n            return 0;\n        }\n\n        int best = 0;\n        for (int start = 0; start < s.length(); start++) {\n            Set<Character> distinct = new HashSet<>();\n            for (int end = start; end < s.length(); end++) {\n                distinct.add(s.charAt(end));\n                if (distinct.size() > k) {\n                    break;\n                }\n                best = Math.max(best, end - start + 1);\n            }\n        }\n\n        return best;\n    }\n}",
+      "language": "java",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(k)"
     }
   ]
 }

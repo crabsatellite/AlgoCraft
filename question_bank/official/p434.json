@@ -1,50 +1,115 @@
 {
   "id": "434",
-  "title": "Implement Trie (Prefix Tree)",
-  "description": "# Implement Trie (Prefix Tree)\n\nA **[trie](https://en.wikipedia.org/wiki/Trie)** (pronounced as \"try\") or **prefix tree** is a tree data structure used to efficiently store and retrieve keys in a dataset of strings. There are various applications of this data structure, such as autocomplete and spellchecker.\n\nImplement the `Trie` class:\n\n*   `Trie()` Initializes the trie object.\n*   `void insert(String word)` Inserts the string `word` into the trie.\n*   `boolean search(String word)` Returns `true` if the string `word` is in the trie (i.e., was inserted before), and `false` otherwise.\n*   `boolean startsWith(String prefix)` Returns `true` if there is a previously inserted string `word` that has the prefix `prefix`, and `false` otherwise.\n\n## Example 1:\n\n**Input**\n[\"Trie\", \"insert\", \"search\", \"search\", \"startsWith\", \"insert\", \"search\"]\n[[], [\"apple\"], [\"apple\"], [\"app\"], [\"app\"], [\"app\"], [\"app\"]]\n**Output**\n[null, null, true, false, true, null, true]\n**Explanation**\nTrie trie = new Trie();\ntrie.insert(\"apple\");\ntrie.search(\"apple\");   // return True\ntrie.search(\"app\");     // return False\ntrie.startsWith(\"app\"); // return True\ntrie.insert(\"app\");\ntrie.search(\"app\");     // return True\n\n## Constraints:\n\n*   `1 <= word.length, prefix.length <= 2000`\n*   `word` and `prefix` consist only of lowercase English letters.\n*   At most `3 * 10^4` calls in total will be made to `insert`, `search`, and `startsWith`.",
+  "title": "Shortest Alternating Color Paths",
+  "description": "# Shortest Alternating Color Paths\n\nYou are given a directed graph with `n` nodes labeled from `0` to `n - 1`. Each directed edge is colored red or blue. Return an array `answer` where `answer[i]` is the length of the shortest path from node `0` to node `i` whose edge colors strictly alternate. If node `i` cannot be reached by such a path, set `answer[i]` to `-1`.\n\nThe first edge may have either color; consecutive edges must then have different colors. Length counts edges, and the distance to node `0` itself is `0`. An entry `[u,v]` in `redEdges` or `blueEdges` is a directed edge from `u` to `v` of that color.\n\n## Example 1:\n\n**Input:** n = 3, redEdges = [[0,1],[1,2]], blueEdges = []\n**Output:** [0,1,-1]\n**Explanation:** Node `1` is reachable by one red edge. Node `2` would require two red edges in a row, so it is not reachable by an alternating path.\n\n## Example 2:\n\n**Input:** n = 3, redEdges = [[0,1]], blueEdges = [[1,2]]\n**Output:** [0,1,2]\n**Explanation:** The path `0 -> 1 -> 2` uses red then blue.\n\n## Constraints:\n\n*   `1 <= n <= 100`\n*   `0 <= redEdges.length, blueEdges.length <= 400`\n*   `redEdges[i].length == blueEdges[i].length == 2`\n*   `0 <= from, to < n` for every edge `[from, to]`.\n*   Parallel edges and self-loops may appear.",
   "difficulty": "MEDIUM",
-  "initialCode": "class Trie {\n\n    public Trie() {\n        \n    }\n    \n    public void insert(String word) {\n        \n    }\n    \n    public boolean search(String word) {\n        \n    }\n    \n    public boolean startsWith(String prefix) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int[] shortestAlternatingPaths(int n, int[][] redEdges, int[][] blueEdges) {\n        // Write your code here\n    }\n}",
   "tags": [
-    "Hash Table",
-    "String",
-    "Design",
-    "Trie"
+    "Graph",
+    "Breadth-First Search",
+    "Shortest Path"
   ],
   "examples": [
     {
-      "input": "[\"Trie\", \"insert\", \"search\", \"search\", \"startsWith\", \"insert\", \"search\"]\n[[], [\"apple\"], [\"apple\"], [\"app\"], [\"app\"], [\"app\"], [\"app\"]]",
-      "output": "[null, null, true, false, true, null, true]"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "Trie with Array Children",
-      "timeComplexity": "O(L) per operation",
-      "spaceComplexity": "O(N * L)",
-      "description": "Each trie node has an array of 26 children (one per lowercase letter) and a boolean marking end of word. Insert traverses and creates nodes. Search checks all characters exist and end node is marked. StartsWith only checks characters exist.",
-      "code": "class Trie {\n    private Trie[] children;\n    private boolean isEnd;\n\n    public Trie() {\n        children = new Trie[26];\n        isEnd = false;\n    }\n\n    public void insert(String word) {\n        Trie node = this;\n        for (char c : word.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) {\n                node.children[idx] = new Trie();\n            }\n            node = node.children[idx];\n        }\n        node.isEnd = true;\n    }\n\n    public boolean search(String word) {\n        Trie node = this;\n        for (char c : word.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) return false;\n            node = node.children[idx];\n        }\n        return node.isEnd;\n    }\n\n    public boolean startsWith(String prefix) {\n        Trie node = this;\n        for (char c : prefix.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) return false;\n            node = node.children[idx];\n        }\n        return true;\n    }\n}",
-      "language": "java"
+      "input": "n = 3, redEdges = [[0,1],[1,2]], blueEdges = []",
+      "output": "[0,1,-1]"
     },
     {
-      "name": "Trie with HashMap Children",
-      "timeComplexity": "O(L) per operation",
-      "spaceComplexity": "O(N * L)",
-      "description": "Use a trie where each node stores children in a HashMap instead of a fixed-size array. More memory-efficient for sparse alphabets. Same traversal logic for insert, search, and startsWith.",
-      "code": "import java.util.*;\n\nclass Trie {\n    private Map<Character, Trie> children;\n    private boolean isEnd;\n\n    public Trie() {\n        children = new HashMap();\n        isEnd = false;\n    }\n\n    public void insert(String word) {\n        Trie node = this;\n        for (int i = 0; i < word.length(); i++) {\n            char c = word.charAt(i);\n            if (!node.children.containsKey(c)) {\n                node.children.put(c, new Trie());\n            }\n            node = (Trie) node.children.get(c);\n        }\n        node.isEnd = true;\n    }\n\n    public boolean search(String word) {\n        Trie node = this;\n        for (int i = 0; i < word.length(); i++) {\n            char c = word.charAt(i);\n            if (!node.children.containsKey(c)) return false;\n            node = (Trie) node.children.get(c);\n        }\n        return node.isEnd;\n    }\n\n    public boolean startsWith(String prefix) {\n        Trie node = this;\n        for (int i = 0; i < prefix.length(); i++) {\n            char c = prefix.charAt(i);\n            if (!node.children.containsKey(c)) return false;\n            node = (Trie) node.children.get(c);\n        }\n        return true;\n    }\n}",
-      "language": "java"
+      "input": "n = 3, redEdges = [[0,1]], blueEdges = [[1,2]]",
+      "output": "[0,1,2]"
     }
   ],
   "tests": [
     {
-      "input": "[\"Trie\", \"insert\", \"search\", \"search\", \"startsWith\", \"insert\", \"search\"]\n[[], [\"apple\"], [\"apple\"], [\"app\"], [\"app\"], [\"app\"], [\"app\"]]",
-      "output": "[null, null, true, false, true, null, true]"
+      "input": "n = 3, redEdges = [[0,1],[1,2]], blueEdges = []",
+      "output": "[0,1,-1]"
+    },
+    {
+      "input": "n = 3, redEdges = [[0,1]], blueEdges = [[1,2]]",
+      "output": "[0,1,2]"
+    },
+    {
+      "description": "Edges pointing back toward zero do not make later nodes reachable.",
+      "input": "n = 3, redEdges = [[1,0]], blueEdges = [[2,1]]",
+      "output": "[0,-1,-1]"
+    },
+    {
+      "description": "The shortest numeric path is invalid when two consecutive blue edges would be needed.",
+      "input": "n = 4, redEdges = [[0,1],[1,2]], blueEdges = [[0,2],[2,3]]",
+      "output": "[0,1,1,-1]"
+    },
+    {
+      "input": "n = 1, redEdges = [], blueEdges = []",
+      "output": "[0]"
+    },
+    {
+      "description": "Self-loops and parallel colored edges must not break alternating BFS.",
+      "input": "n = 3, redEdges = [[0,0],[0,1]], blueEdges = [[0,1],[1,2]]",
+      "output": "[0,1,2]"
+    },
+    {
+      "description": "Node 1 must be reachable in both color states; node-only visited sets miss nodes 2 and 3.",
+      "input": "n = 4, redEdges = [[0,1],[1,2]], blueEdges = [[0,1],[2,3]]",
+      "output": "[0,1,2,3]"
+    },
+    {
+      "description": "Starting with the blue edge gives a shorter route to node 2.",
+      "input": "n = 5, redEdges = [[0,1],[1,2],[2,3]], blueEdges = [[0,2],[2,4]]",
+      "output": "[0,1,1,2,-1]"
+    },
+    {
+      "description": "Cycles should not cause infinite traversal, and same-color exits remain blocked.",
+      "input": "n = 5, redEdges = [[0,1],[1,2],[2,3],[3,4]], blueEdges = [[1,2],[2,1],[3,1]]",
+      "output": "[0,1,2,3,-1]"
+    },
+    {
+      "description": "A longer chain alternates across disconnected-looking red and blue layers.",
+      "input": "n = 6, redEdges = [[0,1],[2,3],[4,5]], blueEdges = [[0,2],[1,3],[3,4]]",
+      "output": "[0,1,1,2,3,4]"
+    },
+    {
+      "description": "Parallel edges should not change the answer or enqueue the same state repeatedly.",
+      "input": "n = 4, redEdges = [[0,1],[0,1],[2,3]], blueEdges = [[1,2],[1,2],[0,3]]",
+      "output": "[0,1,2,1]"
+    },
+    {
+      "description": "Reachability can improve after revisiting a node through the opposite last-edge color.",
+      "input": "n = 5, redEdges = [[0,1],[1,0],[1,2],[2,3]], blueEdges = [[0,2],[2,1],[3,4]]",
+      "output": "[0,1,1,2,3]"
     }
   ],
-  "diagrams": [
+  "solutions": [
     {
-      "id": "trie",
-      "file": "p434_trie.png",
-      "caption": "Magic Dictionary Trie: hello"
+      "name": "BFS With Last Color State",
+      "timeComplexity": "O(n + r + b)",
+      "spaceComplexity": "O(n + r + b)",
+      "description": "## Approach\n\nBuild two adjacency lists, one for red edges and one for blue edges. Run BFS over states `(node, lastColor)`, where `lastColor` is the color of the edge used to enter the node. From that state, only edges of the opposite color can be used next. Initialize node `0` in both last-color states so the first real edge may be red or blue.\n\n## Key Insight\n\nThe shortest-path unit is not just the node. Arriving at the same node after a red edge and after a blue edge gives different legal next moves, so the visited and distance arrays must include the last-edge color.\n\n## Complexity Analysis\n\nEach color-state is visited at most once and each colored edge is scanned from the opposite-color state. Time Complexity: O(n + r + b). Space Complexity: O(n + r + b).",
+      "code": "import java.util.*; class Solution { public int[] shortestAlternatingPaths(int n, int[][] redEdges, int[][] blueEdges) { List<Integer>[][] graph = new ArrayList[2][n]; for (int color = 0; color < 2; color++) { for (int node = 0; node < n; node++) { graph[color][node] = new ArrayList<>(); } } for (int[] edge : redEdges) { graph[0][edge[0]].add(edge[1]); } for (int[] edge : blueEdges) { graph[1][edge[0]].add(edge[1]); } int[][] distance = new int[2][n]; Arrays.fill(distance[0], -1); Arrays.fill(distance[1], -1); ArrayDeque<int[]> queue = new ArrayDeque<>(); queue.offer(new int[]{0, 0}); queue.offer(new int[]{0, 1}); distance[0][0] = 0; distance[1][0] = 0; while (!queue.isEmpty()) { int[] state = queue.poll(); int node = state[0]; int lastColor = state[1]; int nextColor = 1 - lastColor; for (int next : graph[nextColor][node]) { if (distance[nextColor][next] == -1) { distance[nextColor][next] = distance[lastColor][node] + 1; queue.offer(new int[]{next, nextColor}); } } } int[] answer = new int[n]; for (int node = 0; node < n; node++) { if (distance[0][node] == -1) { answer[node] = distance[1][node]; } else if (distance[1][node] == -1) { answer[node] = distance[0][node]; } else { answer[node] = Math.min(distance[0][node], distance[1][node]); } } return answer; } }",
+      "language": "java"
+    },
+    {
+      "name": "Layered Graph BFS",
+      "timeComplexity": "O(n + r + b)",
+      "spaceComplexity": "O(n + r + b)",
+      "description": "## Approach\n\nDuplicate the graph into two layers: one layer represents states where the last edge was red, and the other represents states where the last edge was blue. A red edge from `u` to `v` becomes an edge from the blue-last state of `u` to the red-last state of `v`; blue edges are converted symmetrically. Then run an ordinary BFS on the expanded graph.\n\n## Key Insight\n\nAlternation can be encoded into the graph topology. Once each state already remembers the last edge color, a valid alternating path is just a normal path in the expanded graph.\n\n## Complexity Analysis\n\nThe expanded graph has `2n` states and one expanded edge for every original colored edge. Time Complexity: O(n + r + b). Space Complexity: O(n + r + b).",
+      "code": "import java.util.*; class Solution { public int[] shortestAlternatingPaths(int n, int[][] redEdges, int[][] blueEdges) { List<Integer>[] expanded = new ArrayList[2 * n]; for (int i = 0; i < expanded.length; i++) { expanded[i] = new ArrayList<>(); } for (int[] edge : redEdges) { expanded[n + edge[0]].add(edge[1]); } for (int[] edge : blueEdges) { expanded[edge[0]].add(n + edge[1]); } int[] distance = new int[2 * n]; Arrays.fill(distance, -1); ArrayDeque<Integer> queue = new ArrayDeque<>(); queue.offer(0); queue.offer(n); distance[0] = 0; distance[n] = 0; while (!queue.isEmpty()) { int state = queue.poll(); for (int next : expanded[state]) { if (distance[next] == -1) { distance[next] = distance[state] + 1; queue.offer(next); } } } int[] answer = new int[n]; for (int node = 0; node < n; node++) { int redLast = distance[node]; int blueLast = distance[n + node]; if (redLast == -1) { answer[node] = blueLast; } else if (blueLast == -1) { answer[node] = redLast; } else { answer[node] = Math.min(redLast, blueLast); } } return answer; } }",
+      "language": "java"
+    },
+    {
+      "name": "Dijkstra On Color State Graph",
+      "timeComplexity": "O((n + r + b) log n)",
+      "spaceComplexity": "O(n + r + b)",
+      "description": "## Approach\n\nModel each state as `(node, lastColor)` and add every colored edge as a transition that is legal only from the opposite last color. Because all transitions have weight `1`, BFS is faster, but a priority queue Dijkstra implementation demonstrates the general shortest-path version of the same state graph.\n\n## Key Insight\n\nThe color rule is a state constraint, not a post-processing filter. Once the state includes the last color, standard shortest-path machinery can be applied directly.\n\n## Complexity Analysis\n\nThere are `2n` states and `r + b` transitions. With a priority queue, Time Complexity: O((n + r + b) log n). Space Complexity: O(n + r + b).",
+      "code": "import java.util.*; class Solution { public int[] shortestAlternatingPaths(int n, int[][] redEdges, int[][] blueEdges) { List<int[]>[] graph = new ArrayList[n]; for (int node = 0; node < n; node++) { graph[node] = new ArrayList<>(); } for (int[] edge : redEdges) { graph[edge[0]].add(new int[]{edge[1], 0}); } for (int[] edge : blueEdges) { graph[edge[0]].add(new int[]{edge[1], 1}); } int inf = 1_000_000; int[][] dist = new int[2][n]; Arrays.fill(dist[0], inf); Arrays.fill(dist[1], inf); PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(a -> a[0])); dist[0][0] = 0; dist[1][0] = 0; pq.offer(new int[]{0, 0, 0}); pq.offer(new int[]{0, 0, 1}); while (!pq.isEmpty()) { int[] state = pq.poll(); int currentDist = state[0]; int node = state[1]; int lastColor = state[2]; if (currentDist != dist[lastColor][node]) { continue; } for (int[] edge : graph[node]) { int next = edge[0]; int color = edge[1]; if (color == lastColor) { continue; } if (currentDist + 1 < dist[color][next]) { dist[color][next] = currentDist + 1; pq.offer(new int[]{dist[color][next], next, color}); } } } int[] answer = new int[n]; for (int node = 0; node < n; node++) { int best = Math.min(dist[0][node], dist[1][node]); answer[node] = best >= inf ? -1 : best; } return answer; } }",
+      "language": "java"
+    },
+    {
+      "name": "State Relaxation Bellman-Ford",
+      "timeComplexity": "O(n * (r + b))",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nKeep two distance arrays: `dist[0][v]` is the best distance to `v` ending with a red edge, and `dist[1][v]` is the best distance ending with a blue edge. Repeatedly relax every red edge from the previous blue layer and every blue edge from the previous red layer until no value changes.\n\n## Key Insight\n\nThis is the same two-layer state graph as the BFS solutions, expressed as edge relaxation. It is slower, but useful for seeing exactly which color-state transitions are legal.\n\n## Complexity Analysis\n\nAt most `2n` improving edge counts are relevant before all shortest alternating paths stabilize. Time Complexity: O(n * (r + b)). Space Complexity: O(n).",
+      "code": "import java.util.*; class Solution { public int[] shortestAlternatingPaths(int n, int[][] redEdges, int[][] blueEdges) { int inf = 1_000_000; int[][] dist = new int[2][n]; Arrays.fill(dist[0], inf); Arrays.fill(dist[1], inf); dist[0][0] = 0; dist[1][0] = 0; for (int pass = 0; pass < 2 * n; pass++) { boolean changed = false; int[][] next = new int[2][n]; next[0] = dist[0].clone(); next[1] = dist[1].clone(); for (int[] edge : redEdges) { if (dist[1][edge[0]] + 1 < next[0][edge[1]]) { next[0][edge[1]] = dist[1][edge[0]] + 1; changed = true; } } for (int[] edge : blueEdges) { if (dist[0][edge[0]] + 1 < next[1][edge[1]]) { next[1][edge[1]] = dist[0][edge[0]] + 1; changed = true; } } dist = next; if (!changed) { break; } } int[] answer = new int[n]; for (int node = 0; node < n; node++) { int best = Math.min(dist[0][node], dist[1][node]); answer[node] = best >= inf ? -1 : best; } return answer; } }",
+      "language": "java"
     }
   ]
 }

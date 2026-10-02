@@ -1,43 +1,137 @@
 {
   "id": "192",
   "title": "Plus One",
-  "description": "# Plus One\n\nYou are given a **large integer** represented as an integer array `digits`, where each `digits[i]` is the `i`-th digit of the integer. The digits are ordered from most significant to least significant in left-to-right order. The large integer does not contain any leading `0`'s.\n\nIncrement the large integer by one and return *the resulting array of digits*.\n\n## Example 1:\n\n**Input:** digits = [1,2,3]\n**Output:** [1,2,4]\n**Explanation:** The array represents the integer 123.\nIncrementing by one gives 123 + 1 = 124.\nThus, the result should be [1,2,4].\n\n## Example 2:\n\n**Input:** digits = [4,3,2,1]\n**Output:** [4,3,2,2]\n**Explanation:** The array represents the integer 4321.\nIncrementing by one gives 4321 + 1 = 4322.\nThus, the result should be [4,3,2,2].\n\n## Example 3:\n\n**Input:** digits = [9]\n**Output:** [1,0]\n**Explanation:** The array represents the integer 9.\nIncrementing by one gives 9 + 1 = 10.\nThus, the result should be [1,0].\n\n## Constraints:\n\n*   `1 <= digits.length <= 100`\n*   `0 <= digits[i] <= 9`\n*   `digits` does not contain any leading `0`'s.",
+  "description": "# Plus One\n\nYou are given a non-negative integer represented as an integer array `digits`. The digits are ordered from most significant to least significant, so `digits[0]` is the highest place value and `digits[digits.length - 1]` is the ones place. The array may be `[0]` for the number zero; otherwise it does not contain leading zeroes.\n\nIncrement the integer by one and return the resulting array of digits.\n\nDo not convert the whole array into an `int` or `long`; the number may be too large for primitive integer types.\n\n## Example 1:\n\n**Input:** digits = [1,2,3]\n**Output:** [1,2,4]\n**Explanation:** The array represents 123, and 123 + 1 = 124.\n\n## Example 2:\n\n**Input:** digits = [4,3,2,1]\n**Output:** [4,3,2,2]\n**Explanation:** The array represents 4321, and 4321 + 1 = 4322.\n\n## Example 3:\n\n**Input:** digits = [9]\n**Output:** [1,0]\n**Explanation:** A carry leaves the original one-digit array and creates a new leading digit.\n\n## Constraints:\n\n* `1 <= digits.length <= 100`\n* `0 <= digits[i] <= 9`\n* If `digits.length > 1`, then `digits[0] != 0`.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int[] plusOne(int[] digits) {\n        // Write your code here\n        return new int[0];\n    }\n}",
-  "tags": ["Array", "Math"],
+  "tags": [
+    "Array",
+    "Math",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "digits = [1,2,3]", "output": "[1,2,4]" },
-    { "input": "digits = [4,3,2,1]", "output": "[4,3,2,2]" },
-    { "input": "digits = [9]", "output": "[1,0]" }
+    {
+      "input": "digits = [1,2,3]",
+      "output": "[1,2,4]"
+    },
+    {
+      "input": "digits = [4,3,2,1]",
+      "output": "[4,3,2,2]"
+    },
+    {
+      "input": "digits = [9]",
+      "output": "[1,0]"
+    }
   ],
   "solutions": [
     {
-      "name": "Right-to-Left Carry",
+      "name": "In-Place Right-to-Left Carry",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(1)",
-      "description": "Start from the rightmost digit. If it's less than 9, increment and return. Otherwise set to 0 and carry. If all digits are 9, prepend a 1.",
+      "spaceComplexity": "O(1) extra space, excluding the returned overflow array",
+      "description": "## Approach\n\nScan from the least significant digit toward the front. If the current digit is below 9, increment it and return immediately because the carry has stopped. If the digit is 9, set it to 0 and keep carrying left. When the scan finishes, every original digit was 9, so allocate a new array with one leading 1.\n\n## Key Insight\n\nAdding one affects only the trailing suffix of 9s plus the first non-9 digit before that suffix. Digits to the left of that first non-9 digit never change.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1), except for the required O(n) returned array when all digits are 9",
       "code": "class Solution {\n    public int[] plusOne(int[] digits) {\n        for (int i = digits.length - 1; i >= 0; i--) {\n            if (digits[i] < 9) {\n                digits[i]++;\n                return digits;\n            }\n            digits[i] = 0;\n        }\n        int[] result = new int[digits.length + 1];\n        result[0] = 1;\n        return result;\n    }\n}",
       "language": "java"
     },
     {
       "name": "Explicit Carry Propagation",
       "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1) extra space, excluding the returned overflow array",
+      "description": "## Approach\n\nKeep a carry variable initialized to 1 and add it to each digit from right to left. The new digit is `sum % 10`, and the next carry is `sum / 10`. If the carry becomes 0, return the current array; otherwise allocate one extra leading digit after the loop.\n\n## Key Insight\n\nThis is elementary column addition written directly on the array. Naming the carry makes the invariant visible: after processing position `i`, the suffix to its right is already the final answer.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1), except for the required O(n) returned array when a leading carry remains",
+      "code": "class Solution {\n    public int[] plusOne(int[] digits) {\n        int n = digits.length;\n        int carry = 1;\n        for (int i = n - 1; i >= 0; i--) {\n            int sum = digits[i] + carry;\n            digits[i] = sum % 10;\n            carry = sum / 10;\n            if (carry == 0) {\n                return digits;\n            }\n        }\n        int[] result = new int[n + 1];\n        result[0] = carry;\n        for (int i = 0; i < n; i++) {\n            result[i + 1] = digits[i];\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Trailing Nine Suffix Scan",
+      "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Add 1 to the last digit and propagate carry through. Build the result in a new array to handle potential overflow (all 9s).",
-      "code": "class Solution {\n    public int[] plusOne(int[] digits) {\n        int n = digits.length;\n        int carry = 1;\n        for (int i = n - 1; i >= 0; i--) {\n            int sum = digits[i] + carry;\n            digits[i] = sum % 10;\n            carry = sum / 10;\n            if (carry == 0) return digits;\n        }\n        int[] result = new int[n + 1];\n        result[0] = carry;\n        for (int i = 0; i < n; i++) {\n            result[i + 1] = digits[i];\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nFirst find the left boundary of the trailing run of 9s. If the whole array is 9s, the result is a new array containing 1 followed by zeroes. Otherwise clone the input, increment the boundary digit, and replace every digit to its right with 0.\n\n## Key Insight\n\nThe carry does not need to be simulated step by step once we identify the exact suffix that must become zero. This view is useful for teaching why only trailing 9s matter.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int[] plusOne(int[] digits) {\n        int split = digits.length - 1;\n        while (split >= 0 && digits[split] == 9) {\n            split--;\n        }\n\n        if (split < 0) {\n            int[] answer = new int[digits.length + 1];\n            answer[0] = 1;\n            return answer;\n        }\n\n        int[] answer = digits.clone();\n        answer[split]++;\n        for (int i = split + 1; i < answer.length; i++) {\n            answer[i] = 0;\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sentinel Result Array",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nAllocate an answer array of length `n + 1` before the scan. Fill it from right to left while carrying one extra slot at the front as an overflow sentinel. If the sentinel stays 0, return the range after it; otherwise return the whole array.\n\n## Key Insight\n\nThe extra front slot removes the special case from the addition loop. The final decision is only whether that sentinel digit is needed in the returned representation.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int[] plusOne(int[] digits) {\n        int n = digits.length;\n        int[] answer = new int[n + 1];\n        int carry = 1;\n        for (int i = n - 1; i >= 0; i--) {\n            int sum = digits[i] + carry;\n            answer[i + 1] = sum % 10;\n            carry = sum / 10;\n        }\n        answer[0] = carry;\n        if (answer[0] == 0) {\n            return Arrays.copyOfRange(answer, 1, answer.length);\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Carry Propagation",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse a helper that tries to add one at index `i`. If the digit is below 9, increment it and report that no overflow remains. If it is 9, write 0 and recursively carry into `i - 1`. When the recursion moves before index 0, allocate the leading 1 result.\n\n## Key Insight\n\nThe recursive return value is the carry. This makes the same propagation rule explicit as a chain of smaller subproblems, which is useful even though the iterative version is usually preferred in production.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n) recursion depth",
+      "code": "class Solution {\n    public int[] plusOne(int[] digits) {\n        boolean overflow = addOne(digits, digits.length - 1);\n        if (!overflow) {\n            return digits;\n        }\n        int[] answer = new int[digits.length + 1];\n        answer[0] = 1;\n        return answer;\n    }\n\n    private boolean addOne(int[] digits, int index) {\n        if (index < 0) {\n            return true;\n        }\n        if (digits[index] < 9) {\n            digits[index]++;\n            return false;\n        }\n        digits[index] = 0;\n        return addOne(digits, index - 1);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "digits = [1,2,3]", "output": "[1,2,4]" },
-    { "input": "digits = [4,3,2,1]", "output": "[4,3,2,2]" },
-    { "input": "digits = [9]", "output": "[1,0]" },
-    { "input": "digits = [9,9]", "output": "[1,0,0]" },
-    { "input": "digits = [9,9,9]", "output": "[1,0,0,0]" },
-    { "input": "digits = [0]", "output": "[1]" },
-    { "input": "digits = [1,9,9]", "output": "[2,0,0]" },
-    { "input": "digits = [8,9,9,9]", "output": "[9,0,0,0]" },
-    { "input": "digits = [2,4,9]", "output": "[2,5,0]" }
+    {
+      "input": "digits = [1,2,3]",
+      "output": "[1,2,4]",
+      "description": "Simple increment without carry changes only the last digit."
+    },
+    {
+      "input": "digits = [4,3,2,1]",
+      "output": "[4,3,2,2]",
+      "description": "Longer number without carry preserves all earlier digits."
+    },
+    {
+      "input": "digits = [9]",
+      "output": "[1,0]",
+      "description": "Single nine creates a new leading digit."
+    },
+    {
+      "input": "digits = [0]",
+      "output": "[1]",
+      "description": "The zero value is represented by a single digit."
+    },
+    {
+      "input": "digits = [9,9]",
+      "output": "[1,0,0]",
+      "description": "Two nines propagate carry through the whole number."
+    },
+    {
+      "input": "digits = [9,9,9]",
+      "output": "[1,0,0,0]",
+      "description": "Three nines check full-array carry propagation."
+    },
+    {
+      "input": "digits = [1,9,9]",
+      "output": "[2,0,0]",
+      "description": "Carry through trailing nines increments the prefix digit."
+    },
+    {
+      "input": "digits = [8,9,9,9]",
+      "output": "[9,0,0,0]",
+      "description": "Carry through several trailing nines after a non-nine prefix."
+    },
+    {
+      "input": "digits = [2,4,9]",
+      "output": "[2,5,0]",
+      "description": "Carry stops immediately after the first non-nine digit."
+    },
+    {
+      "input": "digits = [1,0,0,0]",
+      "output": "[1,0,0,1]",
+      "description": "A zero suffix without carry should stay unchanged except for the last digit."
+    },
+    {
+      "input": "digits = [7,9,8,9]",
+      "output": "[7,9,9,0]",
+      "description": "Carry can stop inside the array without changing earlier digits."
+    },
+    {
+      "input": "digits = [9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9]",
+      "output": "[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]",
+      "description": "Maximum length all-nine input must allocate one extra digit."
+    }
   ],
-  "diagrams": ["p192_example1"]
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p192_example1.png",
+      "caption": "Digit-array prompt for adding one with carry propagation"
+    }
+  ]
 }

@@ -1,34 +1,124 @@
 {
   "id": "323",
-  "title": "Distinct Subsequences",
-  "description": "# Distinct Subsequences\n\nGiven two strings `s` and `t`, return *the number of distinct **subsequences** of* `s` *which equals* `t`.\n\nThe test cases are generated so that the answer fits on a 32-bit signed integer.\n\n## Example 1:\n\n**Input:** s = \"rabbbit\", t = \"rabbit\"\n**Output:** 3\n**Explanation:**\nAs shown below, there are 3 ways you can generate \"rabbit\" from s.\n**rabb**b**it**\n**ra**b**bbit**\n**rab**b**bit**\n\n## Example 2:\n\n**Input:** s = \"babgbag\", t = \"bag\"\n**Output:** 5\n**Explanation:**\nAs shown below, there are 5 ways you can generate \"bag\" from s.\n**ba**b**g**bag\n**ba**bgba**g**\n**b**abgb**ag**\nba**b**gb**ag**\nbabg**bag**\n\n## Constraints:\n\n*   `1 <= s.length, t.length <= 1000`\n*   `s` and `t` consist of English letters.",
-  "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int numDistinct(String s, String t) {\n        \n    }\n}",
-  "tags": ["String", "Dynamic Programming"],
-  "examples": [
-    { "input": "s = \"rabbbit\", t = \"rabbit\"", "output": "3" },
-    { "input": "s = \"babgbag\", t = \"bag\"", "output": "5" }
+  "title": "Minimum Rounds to Finish Tasks",
+  "description": "# Minimum Rounds to Finish Tasks\n\nYou are given an integer array `tasks`, where `tasks[i]` is the difficulty of the `i`th task. In one round, you may complete exactly two tasks or exactly three tasks, and every task completed in that round must have the same difficulty.\n\nReturn the minimum number of rounds needed to complete all tasks. If at least one task difficulty cannot be grouped under these rules, return `-1`.\n\n## Example 1:\n\n**Input:** tasks = [2,2,3,3,2,4,4,4,4,4]\n**Output:** 4\n**Explanation:** Difficulty 2 appears 3 times, difficulty 3 appears 2 times, and difficulty 4 appears 5 times. They need 1 + 1 + 2 = 4 rounds.\n\n## Example 2:\n\n**Input:** tasks = [2,3,3]\n**Output:** -1\n**Explanation:** Difficulty 2 appears only once, so it cannot be completed in a round of exactly 2 or exactly 3 equal-difficulty tasks.\n\n## Constraints:\n\n*   `1 <= tasks.length <= 10^5`\n*   `1 <= tasks[i] <= 10^9`",
+  "difficulty": "MEDIUM",
+  "initialCode": "class Solution {\n    public int minimumRounds(int[] tasks) {\n        return -1;\n    }\n}",
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Greedy",
+    "Counting"
   ],
-  "solutions": [
+  "examples": [
     {
-      "name": "Dynamic Programming",
-      "timeComplexity": "O(m * n)",
-      "spaceComplexity": "O(n)",
-      "description": "Use 1D DP where dp[j] = number of subsequences of s[0..i-1] that equal t[0..j-1]. If s[i]==t[j], dp[j] += dp[j-1]. Iterate j in reverse to avoid overwriting.",
-      "code": "class Solution {\n    public int numDistinct(String s, String t) {\n        int m = s.length(), n = t.length();\n        int[] dp = new int[n + 1];\n        dp[0] = 1;\n        for (int i = 1; i <= m; i++) {\n            for (int j = n; j >= 1; j--) {\n                if (s.charAt(i - 1) == t.charAt(j - 1)) {\n                    dp[j] += dp[j - 1];\n                }\n            }\n        }\n        return dp[n];\n    }\n}",
-      "language": "java"
+      "input": "tasks = [2,2,3,3,2,4,4,4,4,4]",
+      "output": "4"
     },
     {
-      "name": "2D Dynamic Programming",
-      "timeComplexity": "O(m * n)",
-      "spaceComplexity": "O(m * n)",
-      "description": "Use a full 2D DP table where dp[i][j] = number of distinct subsequences of s[0..i-1] that equal t[0..j-1]. If chars match, add both taking and skipping the char; otherwise only skip.",
-      "code": "class Solution {\n    public int numDistinct(String s, String t) {\n        int m = s.length(), n = t.length();\n        int[][] dp = new int[m + 1][n + 1];\n        for (int i = 0; i <= m; i++) {\n            dp[i][0] = 1;\n        }\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                dp[i][j] = dp[i - 1][j];\n                if (s.charAt(i - 1) == t.charAt(j - 1)) {\n                    dp[i][j] += dp[i - 1][j - 1];\n                }\n            }\n        }\n        return dp[m][n];\n    }\n}",
-      "language": "java"
+      "input": "tasks = [2,3,3]",
+      "output": "-1"
     }
   ],
   "tests": [
-    { "input": "s = \"rabbbit\", t = \"rabbit\"", "output": "3" },
-    { "input": "s = \"babgbag\", t = \"bag\"", "output": "5" }
+    {
+      "input": "tasks = [2,2,3,3,2,4,4,4,4,4]",
+      "output": "4",
+      "description": "sample with frequencies 3, 2, and 5"
+    },
+    {
+      "input": "tasks = [2,3,3]",
+      "output": "-1",
+      "description": "sample with a difficulty that appears once"
+    },
+    {
+      "input": "tasks = [1,1]",
+      "output": "1",
+      "description": "frequency 2 is one round"
+    },
+    {
+      "input": "tasks = [1,1,1]",
+      "output": "1",
+      "description": "frequency 3 is one round"
+    },
+    {
+      "input": "tasks = [1,1,1,1]",
+      "output": "2",
+      "description": "frequency 4 must be split as 2 + 2"
+    },
+    {
+      "input": "tasks = [7,7,7,7,7]",
+      "output": "2",
+      "description": "frequency 5 is best split as 3 + 2"
+    },
+    {
+      "input": "tasks = [4,4,4,4,4,4]",
+      "output": "2",
+      "description": "frequency 6 is two groups of 3"
+    },
+    {
+      "input": "tasks = [9,9,9,9,9,9,9]",
+      "output": "3",
+      "description": "frequency 7 is best split as 3 + 2 + 2"
+    },
+    {
+      "input": "tasks = [8,8,8,8,8,8,8,8]",
+      "output": "3",
+      "description": "frequency 8 is best split as 3 + 3 + 2"
+    },
+    {
+      "input": "tasks = [6,6,6,6,6,6,6,6,6,6]",
+      "output": "4",
+      "description": "frequency 10 checks the larger remainder-one case"
+    },
+    {
+      "input": "tasks = [5]",
+      "output": "-1",
+      "description": "single task is impossible under the two-or-three rule"
+    },
+    {
+      "input": "tasks = [1,1,2,2,2,3,3,3,3]",
+      "output": "4",
+      "description": "multiple difficulties combine independent round counts"
+    },
+    {
+      "input": "tasks = [1000000000,1000000000,1000000000,1,1,1,1,1,1,1,1]",
+      "output": "4",
+      "description": "large task values are labels only; only their frequencies matter"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Frequency Formula",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCount how many times each difficulty appears, then solve each frequency independently. If a frequency is 1, return `-1`; otherwise add `(count + 2) / 3`, which is integer ceiling division by 3.\n\n## Key Insight\n\nGroups of 3 are always as good as or better than groups of 2, except that a remainder of 1 cannot stand alone. When that happens, one `3 + 1` can be replaced by `2 + 2`, so the same ceiling formula still works for every count greater than 1.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution { public int minimumRounds(int[] tasks) { java.util.Map<Integer,Integer> count = new java.util.HashMap<>(); for (int task : tasks) count.put(task, count.getOrDefault(task, 0) + 1); int rounds = 0; for (int c : count.values()) { if (c == 1) return -1; rounds += (c + 2) / 3; } return rounds; } }",
+      "language": "java"
+    },
+    {
+      "name": "Greedy Per Count",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCount each difficulty, then repeatedly form one group from each frequency. Prefer a group of 3, but switch to a group of 2 whenever taking 3 would leave exactly one task behind.\n\n## Key Insight\n\nThis route exposes the same arithmetic as the formula route in an operational way. The only forbidden leftover is 1, so the greedy step is valid as long as it avoids creating that leftover.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution { public int minimumRounds(int[] tasks) { java.util.Map<Integer,Integer> counts = new java.util.HashMap<>(); for (int task : tasks) counts.merge(task, 1, Integer::sum); int rounds = 0; for (int count : counts.values()) { if (count == 1) return -1; while (count > 0) { if (count % 3 == 0 || count >= 5) { count -= 3; } else { count -= 2; } rounds++; } } return rounds; } }",
+      "language": "java"
+    },
+    {
+      "name": "Frequency Dynamic Programming",
+      "timeComplexity": "O(n + maxFrequency)",
+      "spaceComplexity": "O(n + maxFrequency)",
+      "description": "## Approach\n\nCount the frequency of each difficulty and remember the largest frequency. Build a small DP table where `dp[c]` is the minimum rounds needed to cover `c` equal-difficulty tasks using only groups of 2 and 3.\n\n## Key Insight\n\nAlthough the greedy formula is shorter, the DP version teaches the underlying unbounded grouping problem directly: `dp[c] = 1 + min(dp[c - 2], dp[c - 3])`. This makes the impossible state for count 1 explicit.\n\n## Complexity Analysis\n- Time Complexity: O(n + maxFrequency)\n- Space Complexity: O(n + maxFrequency)",
+      "code": "class Solution { public int minimumRounds(int[] tasks) { java.util.Map<Integer,Integer> counts = new java.util.HashMap<>(); int maxFrequency = 0; for (int task : tasks) { int next = counts.getOrDefault(task, 0) + 1; counts.put(task, next); maxFrequency = Math.max(maxFrequency, next); } int impossible = 1_000_000; int[] dp = new int[Math.max(4, maxFrequency + 1)]; java.util.Arrays.fill(dp, impossible); dp[0] = 0; dp[2] = 1; dp[3] = 1; for (int c = 4; c <= maxFrequency; c++) dp[c] = Math.min(dp[c - 2], dp[c - 3]) + 1; int rounds = 0; for (int count : counts.values()) { if (dp[count] >= impossible) return -1; rounds += dp[count]; } return rounds; } }",
+      "language": "java"
+    },
+    {
+      "name": "Sort and Scan Frequencies",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(log n)",
+      "description": "## Approach\n\nSort the task array so equal difficulties become contiguous. Scan each run, compute its length, reject a run of length 1, and otherwise add `(length + 2) / 3` rounds for that run.\n\n## Key Insight\n\nA hash map is not required for the counting idea. Sorting trades time for simpler storage and is a useful comparison point: it proves that the core problem is frequency grouping, independent of the data structure used to find the frequencies.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(log n)",
+      "code": "class Solution { public int minimumRounds(int[] tasks) { java.util.Arrays.sort(tasks); int rounds = 0; int index = 0; while (index < tasks.length) { int next = index + 1; while (next < tasks.length && tasks[next] == tasks[index]) next++; int count = next - index; if (count == 1) return -1; rounds += (count + 2) / 3; index = next; } return rounds; } }",
+      "language": "java"
+    }
   ]
 }

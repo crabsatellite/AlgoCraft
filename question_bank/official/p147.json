@@ -1,7 +1,7 @@
 {
   "id": "147",
   "title": "Swim in Rising Water",
-  "description": "# Swim in Rising Water\n\nYou are given an `n x n` integer matrix `grid` where each value `grid[i][j]` represents the elevation at that point `(i, j)`.\n\nThe rain starts to fall. At time `t`, the depth of the water everywhere is `t`. You can swim from a square to another 4-directionally adjacent square if and only if the elevation of both squares individually are at most `t`. You can swim infinite distances in zero time. Of course, you must stay within the boundaries of the grid during your swim.\n\nReturn *the least time until you can reach the bottom right square* `(n - 1, n - 1)` *if you start at the top left square* `(0, 0)`.\n\n## Example 1:\n\n**Input:** grid = [[0,2],[1,3]]\n**Output:** 3\n**Explanation:**\nAt time 0, you are in grid location (0, 0).\nYou cannot go anywhere else because 4-directionally adjacent neighbors have a higher elevation than t = 0.\nYou cannot reach point (1, 1) until time 3.\nWhen the depth of water is 3, we can swim anywhere inside the grid.\n\n## Example 2:\n\n**Input:** grid = [[0,1,2,3,4],[24,23,22,21,5],[12,13,14,15,16],[11,17,18,19,20],[10,9,8,7,6]]\n**Output:** 16\n**Explanation:** The final route is shown.\nWe need to wait until time 16 so that (0, 0) and (4, 4) are connected.\n\n## Constraints:\n\n*   `n == grid.length`\n*   `n == grid[i].length`\n*   `1 <= n <= 50`\n*   `0 <= grid[i][j] < n^2`\n*   Each value `grid[i][j]` is **unique**.",
+  "description": "# Swim in Rising Water\n\nYou are given an `n x n` integer matrix `grid`. The value `grid[r][c]` is the elevation of cell `(r, c)`.\n\nAt time `t`, the water level is `t` everywhere. You may stand on and move through a cell only when its elevation is at most `t`. From a cell, you may move to one of its 4-directionally adjacent cells, staying inside the grid.\n\nYou start at the top-left cell `(0, 0)` and want to reach the bottom-right cell `(n - 1, n - 1)`. Return the earliest time when such a path exists.\n\nEquivalently, every path has a cost equal to the maximum elevation on that path. The answer is the minimum possible path cost.\n\nMovement time is negligible; only waiting for the water level to rise adds time.\n\n## Example 1\n\n**Input:** `grid = [[0,2],[1,3]]`\n\n**Output:** `3`\n\n**Explanation:** The destination has elevation `3`, so time `3` is necessary. At time `3`, all four cells are available and the destination is reachable.\n\n## Example 2\n\n**Input:** `grid = [[0,1,2,3,4],[24,23,22,21,5],[12,13,14,15,16],[11,17,18,19,20],[10,9,8,7,6]]`\n\n**Output:** `16`\n\n**Explanation:** At time `16`, cells with elevation at most `16` connect the start to the destination. No smaller time has a complete connected route.\n\n## Constraints\n\n- `n == grid.length`\n- `n == grid[i].length`\n- `1 <= n <= 50`\n- `0 <= grid[i][j] < n^2`\n- Every value in `grid` is unique.",
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public int swimInWater(int[][] grid) {\n        // Write your code here\n        return 0;\n    }\n}",
   "tags": [
@@ -25,45 +25,85 @@
   ],
   "solutions": [
     {
-      "name": "Modified Dijkstra (Min-Heap)",
+      "name": "Minimax Dijkstra with Min-Heap",
       "timeComplexity": "O(n^2 log n)",
       "spaceComplexity": "O(n^2)",
-      "description": "Use a min-heap prioritized by the max elevation along the path. Start at (0,0) with value grid[0][0]. At each step, expand to neighbors, pushing max(current path max, neighbor elevation). First time we reach (n-1,n-1) is the answer.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int swimInWater(int[][] grid) {\n        int n = grid.length;\n        boolean[][] visited = new boolean[n][n];\n        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] - b[0]);\n        pq.offer(new int[]{grid[0][0], 0, 0});\n        int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};\n        while (!pq.isEmpty()) {\n            int[] cur = pq.poll();\n            int t = cur[0], i = cur[1], j = cur[2];\n            if (i == n - 1 && j == n - 1) return t;\n            if (visited[i][j]) continue;\n            visited[i][j] = true;\n            for (int[] d : dirs) {\n                int ni = i + d[0], nj = j + d[1];\n                if (ni >= 0 && ni < n && nj >= 0 && nj < n && !visited[ni][nj])\n                    pq.offer(new int[]{Math.max(t, grid[ni][nj]), ni, nj});\n            }\n        }\n        return -1;\n    }\n}",
+      "description": "## Approach\n\nTreat every cell as a graph node. A route's cost is not the sum of edge weights; it is the maximum elevation seen on the route. Use a min-heap ordered by the best known route cost to a cell. When a neighbor is considered, its route cost is `max(currentCost, grid[nr][nc])`.\n\n## Key Insight\n\nThis is Dijkstra on a minimax distance. Once a cell is popped from the heap, no later route can reach that same cell with a smaller maximum elevation. Therefore the first time the target is popped, its cost is the earliest swimmable time.\n\n## Complexity Analysis\n\nThere are `n^2` cells and at most `4n^2` neighbor relaxations. Heap operations give `O(n^2 log n)` time and the visited grid plus heap use `O(n^2)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int swimInWater(int[][] grid) {\n        int n = grid.length;\n        boolean[][] settled = new boolean[n][n];\n        PriorityQueue<int[]> heap = new PriorityQueue<>(Comparator.comparingInt(cell -> cell[0]));\n        heap.offer(new int[] {grid[0][0], 0, 0});\n        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n        while (!heap.isEmpty()) {\n            int[] current = heap.poll();\n            int time = current[0];\n            int r = current[1];\n            int c = current[2];\n            if (settled[r][c]) {\n                continue;\n            }\n            settled[r][c] = true;\n            if (r == n - 1 && c == n - 1) {\n                return time;\n            }\n\n            for (int[] dir : dirs) {\n                int nr = r + dir[0];\n                int nc = c + dir[1];\n                if (nr < 0 || nr >= n || nc < 0 || nc >= n || settled[nr][nc]) {\n                    continue;\n                }\n                heap.offer(new int[] {Math.max(time, grid[nr][nc]), nr, nc});\n            }\n        }\n        return -1;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Binary Search + DFS",
+      "name": "Binary Search on Water Level",
       "timeComplexity": "O(n^2 log n)",
       "spaceComplexity": "O(n^2)",
-      "description": "Binary search on the answer t. For each candidate t, use DFS to check if there is a path from (0,0) to (n-1,n-1) using only cells with elevation <= t.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int swimInWater(int[][] grid) {\n        int n = grid.length;\n        int lo = grid[0][0], hi = n * n - 1;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (canReach(grid, n, mid)) hi = mid;\n            else lo = mid + 1;\n        }\n        return lo;\n    }\n\n    private boolean canReach(int[][] grid, int n, int t) {\n        if (grid[0][0] > t) return false;\n        boolean[][] visited = new boolean[n][n];\n        return dfs(grid, visited, n, t, 0, 0);\n    }\n\n    private boolean dfs(int[][] grid, boolean[][] visited, int n, int t, int i, int j) {\n        if (i == n - 1 && j == n - 1) return true;\n        visited[i][j] = true;\n        int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};\n        for (int[] d : dirs) {\n            int ni = i + d[0], nj = j + d[1];\n            if (ni >= 0 && ni < n && nj >= 0 && nj < n && !visited[ni][nj] && grid[ni][nj] <= t) {\n                if (dfs(grid, visited, n, t, ni, nj)) return true;\n            }\n        }\n        return false;\n    }\n}",
+      "description": "## Approach\n\nBinary search the time `t`. For a candidate `t`, run a flood-fill from `(0,0)` using only cells with elevation at most `t`. If the target is reachable, try a smaller time; otherwise raise the lower bound.\n\n## Key Insight\n\nReachability is monotonic. If a water level works, every higher level works too, because it only adds more usable cells. The lower bound should include both endpoint elevations, since you cannot start or finish before those cells are underwater.\n\n## Complexity Analysis\n\nEach reachability check scans at most `n^2` cells. Binary search over the elevation range costs `O(log n^2)`, so the total time is `O(n^2 log n)` with `O(n^2)` space for the visited grid.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int swimInWater(int[][] grid) {\n        int n = grid.length;\n        int low = Math.max(grid[0][0], grid[n - 1][n - 1]);\n        int high = n * n - 1;\n        while (low < high) {\n            int mid = low + (high - low) / 2;\n            if (canReach(grid, mid)) {\n                high = mid;\n            } else {\n                low = mid + 1;\n            }\n        }\n        return low;\n    }\n\n    private boolean canReach(int[][] grid, int limit) {\n        int n = grid.length;\n        if (grid[0][0] > limit) {\n            return false;\n        }\n        boolean[][] visited = new boolean[n][n];\n        Deque<int[]> stack = new ArrayDeque<>();\n        stack.push(new int[] {0, 0});\n        visited[0][0] = true;\n        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n        while (!stack.isEmpty()) {\n            int[] current = stack.pop();\n            int r = current[0];\n            int c = current[1];\n            if (r == n - 1 && c == n - 1) {\n                return true;\n            }\n            for (int[] dir : dirs) {\n                int nr = r + dir[0];\n                int nc = c + dir[1];\n                if (nr < 0 || nr >= n || nc < 0 || nc >= n || visited[nr][nc]) {\n                    continue;\n                }\n                if (grid[nr][nc] <= limit) {\n                    visited[nr][nc] = true;\n                    stack.push(new int[] {nr, nc});\n                }\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Union-Find by Elevation Activation",
+      "timeComplexity": "O(n^2 alpha(n^2))",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nBecause the elevations are unique values from `0` to `n^2 - 1`, store the position of each elevation. Then simulate time increasing from low to high: activate the cell with that elevation and union it with already active neighbors. Stop when start and target become connected.\n\n## Key Insight\n\nAs time increases, the set of swimmable cells only grows, so connectivity only merges and never splits. The first activation time that connects the endpoints is exactly the minimum feasible water level.\n\n## Complexity Analysis\n\nThe position table and active grid use `O(n^2)` space. Each cell is activated once and unions at most four neighbors, so the running time is `O(n^2 alpha(n^2))`.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int swimInWater(int[][] grid) {\n        int n = grid.length;\n        int total = n * n;\n        int[][] position = new int[total][2];\n        for (int r = 0; r < n; r++) {\n            for (int c = 0; c < n; c++) {\n                position[grid[r][c]][0] = r;\n                position[grid[r][c]][1] = c;\n            }\n        }\n\n        UnionFind uf = new UnionFind(total);\n        boolean[][] active = new boolean[n][n];\n        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        for (int time = 0; time < total; time++) {\n            int r = position[time][0];\n            int c = position[time][1];\n            active[r][c] = true;\n            for (int[] dir : dirs) {\n                int nr = r + dir[0];\n                int nc = c + dir[1];\n                if (nr >= 0 && nr < n && nc >= 0 && nc < n && active[nr][nc]) {\n                    uf.union(r * n + c, nr * n + nc);\n                }\n            }\n            if (uf.connected(0, total - 1)) {\n                return time;\n            }\n        }\n        return -1;\n    }\n\n    static class UnionFind {\n        private final int[] parent;\n        private final int[] rank;\n\n        UnionFind(int size) {\n            parent = new int[size];\n            rank = new int[size];\n            for (int i = 0; i < size; i++) {\n                parent[i] = i;\n            }\n        }\n\n        int find(int x) {\n            if (parent[x] != x) {\n                parent[x] = find(parent[x]);\n            }\n            return parent[x];\n        }\n\n        void union(int a, int b) {\n            int rootA = find(a);\n            int rootB = find(b);\n            if (rootA == rootB) {\n                return;\n            }\n            if (rank[rootA] < rank[rootB]) {\n                parent[rootA] = rootB;\n            } else if (rank[rootA] > rank[rootB]) {\n                parent[rootB] = rootA;\n            } else {\n                parent[rootB] = rootA;\n                rank[rootA]++;\n            }\n        }\n\n        boolean connected(int a, int b) {\n            return find(a) == find(b);\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Kruskal Bottleneck Spanning Tree",
+      "timeComplexity": "O(n^2 log n)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nCreate an undirected edge between each pair of adjacent cells. Give the edge a weight equal to the larger elevation of its two endpoint cells. Sort these edges by weight and union them in that order until start and target are connected.\n\n## Key Insight\n\nIn any undirected graph, the path between two nodes in a minimum spanning tree minimizes the largest edge on the path. Here an edge weight is the earliest time both neighboring cells can be used, so the first Kruskal moment that connects the endpoints gives the answer.\n\n## Complexity Analysis\n\nThe grid has `O(n^2)` adjacent edges. Sorting them costs `O(n^2 log n)`, and union-find operations are nearly constant time. The edge list and parent arrays use `O(n^2)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int swimInWater(int[][] grid) {\n        int n = grid.length;\n        if (n == 1) {\n            return grid[0][0];\n        }\n\n        List<int[]> edges = new ArrayList<>();\n        for (int r = 0; r < n; r++) {\n            for (int c = 0; c < n; c++) {\n                int id = r * n + c;\n                if (r + 1 < n) {\n                    edges.add(new int[] {Math.max(grid[r][c], grid[r + 1][c]), id, (r + 1) * n + c});\n                }\n                if (c + 1 < n) {\n                    edges.add(new int[] {Math.max(grid[r][c], grid[r][c + 1]), id, r * n + c + 1});\n                }\n            }\n        }\n        edges.sort(Comparator.comparingInt(edge -> edge[0]));\n\n        UnionFind uf = new UnionFind(n * n);\n        for (int[] edge : edges) {\n            uf.union(edge[1], edge[2]);\n            if (uf.connected(0, n * n - 1)) {\n                return edge[0];\n            }\n        }\n        return -1;\n    }\n\n    static class UnionFind {\n        private final int[] parent;\n        private final int[] size;\n\n        UnionFind(int n) {\n            parent = new int[n];\n            size = new int[n];\n            Arrays.fill(size, 1);\n            for (int i = 0; i < n; i++) {\n                parent[i] = i;\n            }\n        }\n\n        int find(int x) {\n            while (parent[x] != x) {\n                parent[x] = parent[parent[x]];\n                x = parent[x];\n            }\n            return x;\n        }\n\n        void union(int a, int b) {\n            int rootA = find(a);\n            int rootB = find(b);\n            if (rootA == rootB) {\n                return;\n            }\n            if (size[rootA] < size[rootB]) {\n                int tmp = rootA;\n                rootA = rootB;\n                rootB = tmp;\n            }\n            parent[rootB] = rootA;\n            size[rootA] += size[rootB];\n        }\n\n        boolean connected(int a, int b) {\n            return find(a) == find(b);\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "grid = [[0,2],[1,3]]",
-      "output": "3"
+      "output": "3",
+      "description": "Small 2x2 grid requires waiting until the destination cell is available."
     },
     {
       "input": "grid = [[0,1,2,3,4],[24,23,22,21,5],[12,13,14,15,16],[11,17,18,19,20],[10,9,8,7,6]]",
-      "output": "16"
+      "output": "16",
+      "description": "Long corridor checks that the path minimizes maximum elevation, not number of steps."
     },
     {
       "input": "grid = [[0]]",
-      "output": "0"
+      "output": "0",
+      "description": "Single-cell grid starts already at the destination."
     },
     {
       "input": "grid = [[0,1],[2,3]]",
-      "output": "3"
+      "output": "3",
+      "description": "Monotone 2x2 grid still needs the target elevation."
+    },
+    {
+      "input": "grid = [[3,2],[0,1]]",
+      "output": "3",
+      "description": "Starting cell elevation can dominate the answer."
+    },
+    {
+      "input": "grid = [[0,7,8],[1,6,5],[2,3,4]]",
+      "output": "4",
+      "description": "A longer route with lower maximum elevation beats the visually direct high route."
+    },
+    {
+      "input": "grid = [[0,8,7],[1,2,6],[4,3,5]]",
+      "output": "5",
+      "description": "Bottleneck path bends around an early high barrier."
+    },
+    {
+      "input": "grid = [[8,7,6],[1,2,5],[0,3,4]]",
+      "output": "8",
+      "description": "High start elevation is a lower bound even when the remaining route is lower."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p147_example1.png",
-      "caption": "Example 1: 2x2 Elevation Grid"
+      "caption": "Elevation grid prompt for rising water traversal"
     }
   ]
 }

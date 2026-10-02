@@ -1,42 +1,157 @@
 {
   "id": "174",
   "title": "Maximum Subarray",
-  "description": "# Maximum Subarray\n\nGiven an integer array `nums`, find the **subarray** with the largest sum, and return *its sum*.\n\n## Example 1:\n\n**Input:** nums = [-2,1,-3,4,-1,2,1,-5,4]\n**Output:** 6\n**Explanation:** The subarray [4,-1,2,1] has the largest sum 6.\n\n## Example 2:\n\n**Input:** nums = [1]\n**Output:** 1\n**Explanation:** The subarray [1] has the largest sum 1.\n\n## Example 3:\n\n**Input:** nums = [5,4,-1,7,8]\n**Output:** 23\n**Explanation:** The subarray [5,4,-1,7,8] has the largest sum 23.\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^5`\n*   `-10^4 <= nums[i] <= 10^4`",
+  "description": "# Maximum Subarray\n\nGiven an integer array `nums`, return the largest possible sum of a **non-empty contiguous subarray**.\n\nA subarray must use adjacent elements from the original array. You may not skip elements inside the chosen range, and you must choose at least one element even when every number is negative.\n\n## Example 1:\n\n**Input:** nums = [-2,1,-3,4,-1,2,1,-5,4]\n**Output:** 6\n**Explanation:** The subarray [4,-1,2,1] has the largest sum 6.\n\n## Example 2:\n\n**Input:** nums = [1]\n**Output:** 1\n**Explanation:** The only non-empty subarray is [1].\n\n## Example 3:\n\n**Input:** nums = [5,4,-1,7,8]\n**Output:** 23\n**Explanation:** The whole array has the largest sum.\n\n## Constraints:\n\n* `1 <= nums.length <= 100000`\n* `-10000 <= nums[i] <= 10000`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int maxSubArray(int[] nums) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Divide and Conquer", "Dynamic Programming"],
+  "tags": [
+    "Array",
+    "Divide and Conquer",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "nums = [-2,1,-3,4,-1,2,1,-5,4]", "output": "6" },
-    { "input": "nums = [1]", "output": "1" },
-    { "input": "nums = [5,4,-1,7,8]", "output": "23" }
+    {
+      "input": "nums = [-2,1,-3,4,-1,2,1,-5,4]",
+      "output": "6"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "1"
+    },
+    {
+      "input": "nums = [5,4,-1,7,8]",
+      "output": "23"
+    }
   ],
   "solutions": [
     {
-      "name": "Kadane's Algorithm",
+      "name": "Kadane's Rolling Ending Sum",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Iterate through the array maintaining the current subarray sum. At each element, decide whether to extend the current subarray or start a new one. Track the global maximum throughout.",
-      "code": "class Solution {\n    public int maxSubArray(int[] nums) {\n        int maxSum = nums[0], curSum = nums[0];\n        for (int i = 1; i < nums.length; i++) {\n            curSum = Math.max(nums[i], curSum + nums[i]);\n            maxSum = Math.max(maxSum, curSum);\n        }\n        return maxSum;\n    }\n}",
+      "description": "## Approach\n\nTrack `current`, the best sum of a non-empty subarray that must end at the current index. For each number, either extend the previous ending subarray or start a new subarray at this number. Track the largest `current` value as `best`.\n\n## Key Insight\n\nAny optimal subarray ending at index `i` either contains the optimal ending subarray from `i - 1` or discards it completely. If the previous ending sum hurts the total, restarting is the only useful choice.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int maxSubArray(int[] nums) {\n        int current = nums[0];\n        int best = nums[0];\n        for (int i = 1; i < nums.length; i++) {\n            current = Math.max(nums[i], current + nums[i]);\n            best = Math.max(best, current);\n        }\n        return best;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Divide and Conquer",
+      "name": "DP Array of Ending Sums",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore `dp[i]` as the best sum of a non-empty subarray ending exactly at index `i`. The transition is the same as Kadane's algorithm, but the full table is kept to make the dynamic programming state visible for teaching and debugging.\n\n## Key Insight\n\nThe DP state is local: to compute the best subarray ending at `i`, only the best subarray ending at `i - 1` matters. Keeping all states shows why the rolling version is valid.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int maxSubArray(int[] nums) {\n        int[] dp = new int[nums.length];\n        dp[0] = nums[0];\n        int best = dp[0];\n        for (int i = 1; i < nums.length; i++) {\n            dp[i] = Math.max(nums[i], dp[i - 1] + nums[i]);\n            best = Math.max(best, dp[i]);\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Prefix Sum Minus Minimum Prefix",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan prefix sums. A subarray ending at the current position equals `prefix - earlierPrefix`, so the best ending here uses the smallest prefix sum seen before the current position. Update the answer before adding the current prefix to the minimum set for future positions.\n\n## Key Insight\n\nMaximum subarray can be viewed as the largest difference between two prefix sums with the smaller prefix appearing first. This explains why the chosen subarray must stay contiguous.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int maxSubArray(int[] nums) {\n        int prefix = 0;\n        int minPrefix = 0;\n        int best = Integer.MIN_VALUE;\n        for (int num : nums) {\n            prefix += num;\n            best = Math.max(best, prefix - minPrefix);\n            minPrefix = Math.min(minPrefix, prefix);\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Divide and Conquer Crossing Sum",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(log n)",
-      "description": "Recursively split the array in half. The maximum subarray is either entirely in the left half, entirely in the right half, or crosses the midpoint. Compute all three and return the maximum.",
-      "code": "class Solution {\n    public int maxSubArray(int[] nums) {\n        return helper(nums, 0, nums.length - 1);\n    }\n    private int helper(int[] nums, int left, int right) {\n        if (left == right) return nums[left];\n        int mid = left + (right - left) / 2;\n        int leftMax = helper(nums, left, mid);\n        int rightMax = helper(nums, mid + 1, right);\n        int crossMax = crossSum(nums, left, right, mid);\n        return Math.max(crossMax, Math.max(leftMax, rightMax));\n    }\n    private int crossSum(int[] nums, int left, int right, int mid) {\n        int leftSum = Integer.MIN_VALUE, sum = 0;\n        for (int i = mid; i >= left; i--) { sum += nums[i]; leftSum = Math.max(leftSum, sum); }\n        int rightSum = Integer.MIN_VALUE; sum = 0;\n        for (int i = mid + 1; i <= right; i++) { sum += nums[i]; rightSum = Math.max(rightSum, sum); }\n        return leftSum + rightSum;\n    }\n}",
+      "description": "## Approach\n\nRecursively split the array. The best subarray is either fully in the left half, fully in the right half, or crosses the midpoint. The crossing case is the best suffix sum of the left half plus the best prefix sum of the right half.\n\n## Key Insight\n\nThe divide-and-conquer proof separates the only three possible locations of the optimal subarray. It is slower than Kadane's algorithm but useful for understanding the interval structure.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(log n)",
+      "code": "class Solution {\n    public int maxSubArray(int[] nums) {\n        return solve(nums, 0, nums.length - 1);\n    }\n\n    private int solve(int[] nums, int left, int right) {\n        if (left == right) {\n            return nums[left];\n        }\n        int mid = left + (right - left) / 2;\n        int leftBest = solve(nums, left, mid);\n        int rightBest = solve(nums, mid + 1, right);\n\n        int sum = 0;\n        int bestLeftSuffix = Integer.MIN_VALUE;\n        for (int i = mid; i >= left; i--) {\n            sum += nums[i];\n            bestLeftSuffix = Math.max(bestLeftSuffix, sum);\n        }\n        sum = 0;\n        int bestRightPrefix = Integer.MIN_VALUE;\n        for (int i = mid + 1; i <= right; i++) {\n            sum += nums[i];\n            bestRightPrefix = Math.max(bestRightPrefix, sum);\n        }\n        int crossing = bestLeftSuffix + bestRightPrefix;\n        return Math.max(Math.max(leftBest, rightBest), crossing);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Segment State Monoid Merge",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nRepresent a segment by four values: total sum, best prefix sum, best suffix sum, and best subarray sum. Merge states from left to right, treating each single number as a one-element segment. The final state's best subarray sum is the answer.\n\n## Key Insight\n\nThis is the same information a segment tree node would store. It teaches a reusable merge formula and explains how maximum subarray queries can be generalized beyond a single scan.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int maxSubArray(int[] nums) {\n        State result = single(nums[0]);\n        for (int i = 1; i < nums.length; i++) {\n            result = merge(result, single(nums[i]));\n        }\n        return result.best;\n    }\n\n    private State single(int value) {\n        return new State(value, value, value, value);\n    }\n\n    private State merge(State left, State right) {\n        int total = left.total + right.total;\n        int prefix = Math.max(left.prefix, left.total + right.prefix);\n        int suffix = Math.max(right.suffix, right.total + left.suffix);\n        int best = Math.max(Math.max(left.best, right.best), left.suffix + right.prefix);\n        return new State(total, prefix, suffix, best);\n    }\n\n    private static class State {\n        final int total;\n        final int prefix;\n        final int suffix;\n        final int best;\n\n        State(int total, int prefix, int suffix, int best) {\n            this.total = total;\n            this.prefix = prefix;\n            this.suffix = suffix;\n            this.best = best;\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [-2,1,-3,4,-1,2,1,-5,4]", "output": "6" },
-    { "input": "nums = [1]", "output": "1" },
-    { "input": "nums = [5,4,-1,7,8]", "output": "23" },
-    { "input": "nums = [-1]", "output": "-1" },
-    { "input": "nums = [-2,-1]", "output": "-1" },
-    { "input": "nums = [1,2,3,4,5]", "output": "15" },
-    { "input": "nums = [-5,-4,-3,-2,-1]", "output": "-1" },
-    { "input": "nums = [1,-1,1,-1,1]", "output": "1" }
+    {
+      "input": "nums = [-2,1,-3,4,-1,2,1,-5,4]",
+      "output": "6",
+      "description": "Canonical mixed example with a best middle subarray."
+    },
+    {
+      "input": "nums = [1]",
+      "output": "1",
+      "description": "Single positive element."
+    },
+    {
+      "input": "nums = [5,4,-1,7,8]",
+      "output": "23",
+      "description": "Whole array is optimal despite one negative number."
+    },
+    {
+      "input": "nums = [-1]",
+      "output": "-1",
+      "description": "Single negative element must still be chosen."
+    },
+    {
+      "input": "nums = [-2,-3,-1]",
+      "output": "-1",
+      "description": "All-negative arrays choose the least negative single element."
+    },
+    {
+      "input": "nums = [0]",
+      "output": "0",
+      "description": "Single zero boundary."
+    },
+    {
+      "input": "nums = [0,-1,0]",
+      "output": "0",
+      "description": "Zero can beat negative-only ranges."
+    },
+    {
+      "input": "nums = [1,-2,3,4,-1,2,1,-5,4]",
+      "output": "9",
+      "description": "Best range restarts after an early loss."
+    },
+    {
+      "input": "nums = [10000,-1,10000]",
+      "output": "19999",
+      "description": "Large boundary values still fit in int and should bridge a small negative."
+    },
+    {
+      "input": "nums = [-5,4,-1,7,8]",
+      "output": "18",
+      "description": "Discarding a bad prefix is required."
+    },
+    {
+      "input": "nums = [2,-1,2,3,4,-5]",
+      "output": "10",
+      "description": "Optimal range crosses a small negative dip."
+    },
+    {
+      "input": "nums = [-2,1]",
+      "output": "1",
+      "description": "Best range can be a suffix of length one."
+    },
+    {
+      "input": "nums = [3,-2,5,-1]",
+      "output": "6",
+      "description": "Bridge a negative when surrounding positives justify it."
+    },
+    {
+      "input": "nums = [-1,-2,-3,-4]",
+      "output": "-1",
+      "description": "All-negative decreasing sequence."
+    },
+    {
+      "input": "nums = [8,-19,5,-4,20]",
+      "output": "21",
+      "description": "A very bad middle loss forces a later restart."
+    },
+    {
+      "input": "nums = [1,2,-1,2,-3,2,-5]",
+      "output": "4",
+      "description": "Multiple plausible positive windows tie the DP choices."
+    }
   ],
-  "diagram": "images/p174_max_subarray.png"
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p174_max_subarray.png",
+      "caption": "Illustrative array [3,-2,5,-1,2]; [3,-2,5] is a valid contiguous candidate of sum 6, without claiming it is optimal"
+    }
+  ]
 }

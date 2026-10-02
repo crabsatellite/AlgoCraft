@@ -1,40 +1,117 @@
 {
   "id": "257",
   "title": "Check if the Sentence Is Pangram",
-  "description": "# Check if the Sentence Is Pangram\n\nA **pangram** is a sentence where every letter of the English alphabet appears at least once.\n\nGiven a string `sentence` containing only lowercase English letters, return `true` *if* `sentence` *is a **pangram**, or* `false` *otherwise*.\n\n## Example 1:\n\n**Input:** sentence = \"thequickbrownfoxjumpsoverthelazydog\"\n**Output:** true\n**Explanation:** sentence contains at least one of every letter of the English alphabet.\n\n## Example 2:\n\n**Input:** sentence = \"leetcode\"\n**Output:** false\n\n## Constraints:\n\n*   `1 <= sentence.length <= 1000`\n*   `sentence` consists of lowercase English letters.",
+  "description": "# Check if the Sentence Is Pangram\n\nA **pangram** is a sentence that contains every letter of the English alphabet at least once.\n\nGiven a string `sentence` containing only lowercase English letters, return `true` if `sentence` is a pangram. Otherwise, return `false`.\n\n## Example 1:\n\n**Input:** sentence = \"thequickbrownfoxjumpsoverthelazydog\"\n\n**Output:** true\n\n**Explanation:** Every lowercase English letter from `a` through `z` appears at least once.\n\n## Example 2:\n\n**Input:** sentence = \"leetcode\"\n\n**Output:** false\n\n**Explanation:** Several letters, including `a`, `b`, and `f`, never appear.\n\n## Constraints:\n\n* `1 <= sentence.length <= 1000`\n* `sentence` consists only of lowercase English letters.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public boolean checkIfPangram(String sentence) {\n        // Write your code here\n        return false;\n    }\n}",
-  "tags": ["String", "HashTable"],
+  "tags": [
+    "String",
+    "HashTable"
+  ],
   "examples": [
     {
       "input": "sentence = \"thequickbrownfoxjumpsoverthelazydog\"",
       "output": "true"
     },
-    { "input": "sentence = \"leetcode\"", "output": "false" }
+    {
+      "input": "sentence = \"leetcode\"",
+      "output": "false"
+    }
   ],
   "solutions": [
     {
-      "name": "Boolean Array",
+      "name": "Boolean Seen Array With Count",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Track which of the 26 letters have been seen, then verify all are present.",
-      "code": "class Solution {\n    public boolean checkIfPangram(String sentence) {\n        boolean[] seen = new boolean[26];\n        for (char c : sentence.toCharArray()) seen[c - 'a'] = true;\n        for (boolean b : seen) if (!b) return false;\n        return true;\n    }\n}",
+      "description": "## Approach\n\nKeep a boolean array of 26 slots, one for each lowercase English letter. When a letter is seen for the first time, mark its slot and increase a unique-letter counter.\n\n## Key Insight\n\nA pangram is exactly the moment when the unique-letter counter reaches 26, so the scan can return early once every slot has been discovered.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean checkIfPangram(String sentence) {\n        boolean[] seen = new boolean[26];\n        int unique = 0;\n\n        for (int i = 0; i < sentence.length(); i++) {\n            int index = sentence.charAt(i) - 'a';\n            if (!seen[index]) {\n                seen[index] = true;\n                unique++;\n                if (unique == 26) {\n                    return true;\n                }\n            }\n        }\n        return false;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "HashSet Approach",
+      "name": "HashSet Unique Letters",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Add each character to a HashSet and check if the set size reaches 26.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean checkIfPangram(String sentence) {\n        Set<Character> seen = new HashSet<>();\n        for (char c : sentence.toCharArray()) {\n            seen.add(c);\n            if (seen.size() == 26) return true;\n        }\n        return false;\n    }\n}",
+      "description": "## Approach\n\nInsert each character into a `HashSet`. The set automatically removes duplicates, so its size is the number of different letters that have appeared so far.\n\n## Key Insight\n\nAlthough a set is a general-purpose structure, the alphabet bounds it to at most 26 entries; reaching size 26 proves the sentence is a pangram.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "import java.util.HashSet;\nimport java.util.Set;\n\nclass Solution {\n    public boolean checkIfPangram(String sentence) {\n        Set<Character> seen = new HashSet<>();\n        for (int i = 0; i < sentence.length(); i++) {\n            seen.add(sentence.charAt(i));\n            if (seen.size() == 26) {\n                return true;\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Twenty Six Bit Mask",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse the low 26 bits of an integer as a compact seen table. For each character, set the bit at position `c - 'a'` and compare the mask with the mask where all 26 bits are set.\n\n## Key Insight\n\nEach lowercase letter maps to exactly one bit, so the full pangram state can be represented by `(1 << 26) - 1`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean checkIfPangram(String sentence) {\n        int mask = 0;\n        int fullMask = (1 << 26) - 1;\n\n        for (int i = 0; i < sentence.length(); i++) {\n            mask |= 1 << (sentence.charAt(i) - 'a');\n            if (mask == fullMask) {\n                return true;\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Alphabet Index Scan",
+      "timeComplexity": "O(26n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nInstead of scanning the sentence and recording letters, scan the alphabet from `a` to `z`. For each required letter, ask whether that letter appears anywhere in the sentence.\n\n## Key Insight\n\nThis reverses the viewpoint: a sentence is a pangram only if no required alphabet letter has `indexOf` equal to `-1`.\n\n## Complexity Analysis\n\n- Time Complexity: O(26n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean checkIfPangram(String sentence) {\n        for (char letter = 'a'; letter <= 'z'; letter++) {\n            if (sentence.indexOf(letter) == -1) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "sentence = \"thequickbrownfoxjumpsoverthelazydog\"",
-      "output": "true"
+      "output": "true",
+      "description": "canonical pangram"
     },
-    { "input": "sentence = \"leetcode\"", "output": "false" }
+    {
+      "input": "sentence = \"leetcode\"",
+      "output": "false",
+      "description": "many missing letters"
+    },
+    {
+      "input": "sentence = \"abcdefghijklmnopqrstuvwxyz\"",
+      "output": "true",
+      "description": "alphabet exactly once"
+    },
+    {
+      "input": "sentence = \"abcdefghijklmnopqrstuvwxy\"",
+      "output": "false",
+      "description": "missing only z"
+    },
+    {
+      "input": "sentence = \"zzzzzzzzzzzzzzzzzzzzzzzzzz\"",
+      "output": "false",
+      "description": "one repeated letter is not enough"
+    },
+    {
+      "input": "sentence = \"thequickbrownfoxjumpsoverthelazydo\"",
+      "output": "false",
+      "description": "almost canonical pangram but missing g"
+    },
+    {
+      "input": "sentence = \"abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz\"",
+      "output": "true",
+      "description": "duplicates after a complete alphabet remain true"
+    },
+    {
+      "input": "sentence = \"abcdefghijklmnopqrstuvwxya\"",
+      "output": "false",
+      "description": "duplicate a does not replace missing z"
+    },
+    {
+      "input": "sentence = \"qwertyuiopasdfghjklzxcvbnm\"",
+      "output": "true",
+      "description": "keyboard order pangram"
+    },
+    {
+      "input": "sentence = \"aaaaaaaaaabcdefghijklmnopqrstuvwxyz\"",
+      "output": "true",
+      "description": "long prefix duplicates before complete alphabet"
+    },
+    {
+      "input": "sentence = \"bcdefghijklmnopqrstuvwxyza\"",
+      "output": "true",
+      "description": "rotated alphabet order"
+    },
+    {
+      "input": "sentence = \"abcdefghijklmnopqrstuvwxzz\"",
+      "output": "false",
+      "description": "near alphabet but missing y"
+    }
   ]
 }

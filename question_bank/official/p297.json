@@ -1,10 +1,15 @@
 {
   "id": "297",
   "title": "Sort the People",
-  "description": "# Sort the People\n\nYou are given an array of strings `names`, and an array `heights` that consists of **distinct** positive integers. Both arrays are of length `n`.\n\nFor each index `i`, `names[i]` and `heights[i]` denote the name and height of the `i`th person.\n\nReturn `names` *sorted in **descending** order by the people's heights*.\n\n## Example 1:\n\n**Input:** names = [\"Mary\",\"John\",\"Emma\"], heights = [180,165,170]\n**Output:** [\"Mary\",\"Emma\",\"John\"]\n**Explanation:** Mary is the tallest, followed by Emma and John.\n\n## Example 2:\n\n**Input:** names = [\"Alice\",\"Bob\",\"Bob\"], heights = [155,185,150]\n**Output:** [\"Bob\",\"Alice\",\"Bob\"]\n**Explanation:** The first Bob is the tallest, followed by Alice and the second Bob.\n\n## Constraints:\n\n*   `n == names.length == heights.length`\n*   `1 <= n <= 10^3`\n*   `1 <= names[i].length <= 20`\n*   `1 <= heights[i] <= 10^5`\n*   `names[i]` consists of lower and upper case English letters.\n*   All the values of `heights` are distinct.",
+  "description": "# Sort the People\n\nYou are given two arrays of equal length:\n\n* `names[i]` is the name of the `i`th person.\n* `heights[i]` is the height of the `i`th person.\n\nAll heights are **distinct**. Return the names sorted by height from tallest to shortest.\n\nNames are not guaranteed to be unique, so the height or original index must keep each person paired with the correct name.\n\n## Example 1\n\n**Input:** names = [\"Mary\",\"John\",\"Emma\"], heights = [180,165,170]\n**Output:** [\"Mary\",\"Emma\",\"John\"]\n**Explanation:** Mary is tallest, then Emma, then John.\n\n## Example 2\n\n**Input:** names = [\"Alice\",\"Bob\",\"Bob\"], heights = [155,185,150]\n**Output:** [\"Bob\",\"Alice\",\"Bob\"]\n**Explanation:** The first Bob has height `185`, while the second Bob has height `150`.\n\n## Constraints\n\n* `n == names.length == heights.length`\n* `1 <= n <= 1000`\n* `1 <= names[i].length <= 20`\n* `1 <= heights[i] <= 100000`\n* `names[i]` contains only lowercase and uppercase English letters.\n* All values in `heights` are distinct.",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public String[] sortPeople(String[] names, int[] heights) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "String", "Sorting"],
+  "initialCode": "class Solution {\n    public String[] sortPeople(String[] names, int[] heights) {\n        // Write your code here\n        return new String[]{};\n    }\n}",
+  "tags": [
+    "Array",
+    "Hash Table",
+    "String",
+    "Sorting"
+  ],
   "examples": [
     {
       "input": "names = [\"Mary\",\"John\",\"Emma\"], heights = [180,165,170]",
@@ -17,30 +22,73 @@
   ],
   "solutions": [
     {
-      "name": "Index Sort",
+      "name": "Sort Indices By Height",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Create an array of indices, sort it by heights in descending order, then build the result array using the sorted indices.",
-      "code": "class Solution {\n    public String[] sortPeople(String[] names, int[] heights) {\n        int n = names.length;\n        Integer[] idx = new Integer[n];\n        for (int i = 0; i < n; i++) idx[i] = i;\n        java.util.Arrays.sort(idx, (a, b) -> heights[b] - heights[a]);\n        String[] result = new String[n];\n        for (int i = 0; i < n; i++) result[i] = names[idx[i]];\n        return result;\n    }\n}",
+      "description": "## Approach\n\nCreate an array of indices `0..n-1`. Sort those indices by the corresponding height in descending order, then read names in that sorted index order.\n\n## Key Insight\n\nSorting indices keeps the original `names[i]` and `heights[i]` pairing intact. This matters because names can repeat, so sorting names directly would lose which height belongs to which person.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String[] sortPeople(String[] names, int[] heights) {\n        Integer[] order = new Integer[names.length];\n        for (int i = 0; i < order.length; i++) {\n            order[i] = i;\n        }\n\n        Arrays.sort(order, (a, b) -> heights[b] - heights[a]);\n\n        String[] answer = new String[names.length];\n        for (int i = 0; i < order.length; i++) {\n            answer[i] = names[order[i]];\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "TreeMap Sort",
+      "name": "TreeMap From Height To Name",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Use a TreeMap with heights as keys (descending) and names as values. Since heights are distinct, each maps to one name. Collect values in order.",
-      "code": "import java.util.TreeMap;\nimport java.util.Collections;\n\nclass Solution {\n    public String[] sortPeople(String[] names, int[] heights) {\n        TreeMap<Integer, String> map = new TreeMap<>(Collections.reverseOrder());\n        for (int i = 0; i < names.length; i++) {\n            map.put(heights[i], names[i]);\n        }\n        String[] result = new String[names.length];\n        int idx = 0;\n        for (String name : map.values()) {\n            result[idx++] = name;\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nPut each `(height, name)` pair into a `TreeMap` ordered by descending height. Since heights are unique, each height maps to exactly one person.\n\n## Key Insight\n\nThe problem gives distinct heights, so height is a safe key even when names repeat. Reading the map values in key order directly gives tallest to shortest.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String[] sortPeople(String[] names, int[] heights) {\n        TreeMap<Integer, String> byHeight = new TreeMap<>(Collections.reverseOrder());\n        for (int i = 0; i < names.length; i++) {\n            byHeight.put(heights[i], names[i]);\n        }\n\n        String[] answer = new String[names.length];\n        int index = 0;\n        for (String name : byHeight.values()) {\n            answer[index++] = name;\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Max Heap By Height",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nPush every person into a priority queue ordered by height from largest to smallest. Polling the queue repeatedly produces names in the required order.\n\n## Key Insight\n\nA max heap models the repeated operation \"take the tallest remaining person.\" Storing the original index in the heap keeps duplicate names separated.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String[] sortPeople(String[] names, int[] heights) {\n        PriorityQueue<int[]> heap = new PriorityQueue<>((a, b) -> b[0] - a[0]);\n        for (int i = 0; i < names.length; i++) {\n            heap.offer(new int[]{heights[i], i});\n        }\n\n        String[] answer = new String[names.length];\n        int index = 0;\n        while (!heap.isEmpty()) {\n            answer[index++] = names[heap.poll()[1]];\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bounded Height Table Scan",
+      "timeComplexity": "O(n + H)",
+      "spaceComplexity": "O(H)",
+      "description": "## Approach\n\nUse the constraint `1 <= heights[i] <= 100000`. Store `name` at `byHeight[height]`, then scan the table from height `100000` down to `1` and collect non-empty entries.\n\n## Key Insight\n\nWhen the value range is small enough, a direct-address table can replace a comparison sort. Distinct heights make each table slot hold at most one person.\n\n## Complexity Analysis\n- Time Complexity: O(n + H), where H = 100000\n- Space Complexity: O(H)",
+      "code": "class Solution {\n    public String[] sortPeople(String[] names, int[] heights) {\n        String[] byHeight = new String[100001];\n        for (int i = 0; i < names.length; i++) {\n            byHeight[heights[i]] = names[i];\n        }\n\n        String[] answer = new String[names.length];\n        int index = 0;\n        for (int height = byHeight.length - 1; height >= 0; height--) {\n            if (byHeight[height] != null) {\n                answer[index++] = byHeight[height];\n            }\n        }\n        return answer;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "names = [\"Mary\",\"John\",\"Emma\"], heights = [180,165,170]",
-      "output": "[\"Mary\",\"Emma\",\"John\"]"
+      "output": "[\"Mary\",\"Emma\",\"John\"]",
+      "description": "sample sorts by descending height"
     },
     {
       "input": "names = [\"Alice\",\"Bob\",\"Bob\"], heights = [155,185,150]",
-      "output": "[\"Bob\",\"Alice\",\"Bob\"]"
+      "output": "[\"Bob\",\"Alice\",\"Bob\"]",
+      "description": "duplicate names must remain paired with their own heights"
+    },
+    {
+      "input": "names = [\"A\"], heights = [1]",
+      "output": "[\"A\"]",
+      "description": "single person boundary"
+    },
+    {
+      "input": "names = [\"A\",\"B\",\"C\"], heights = [3,2,1]",
+      "output": "[\"A\",\"B\",\"C\"]",
+      "description": "already sorted descending"
+    },
+    {
+      "input": "names = [\"A\",\"B\",\"C\"], heights = [1,3,2]",
+      "output": "[\"B\",\"C\",\"A\"]",
+      "description": "middle person can become first after sorting"
+    },
+    {
+      "input": "names = [\"Zoe\",\"Yan\",\"Xiu\",\"Wei\"], heights = [160,190,170,180]",
+      "output": "[\"Yan\",\"Wei\",\"Xiu\",\"Zoe\"]",
+      "description": "four-person ordering checks all positions"
+    },
+    {
+      "input": "names = [\"Top\",\"Low\"], heights = [100000,1]",
+      "output": "[\"Top\",\"Low\"]",
+      "description": "height value boundaries are valid table indices"
     }
   ]
 }

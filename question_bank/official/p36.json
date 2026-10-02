@@ -1,7 +1,7 @@
 {
   "id": "36",
   "title": "Sliding Window Maximum",
-  "description": "# Sliding Window Maximum\n\nYou are given an array of integers `nums`, there is a sliding window of size `k` which is moving from the very left of the array to the very right. You can only see the `k` numbers in the window. Each time the sliding window moves right by one position.\n\nReturn *the max sliding window*.\n\n## Example 1:\n\n**Input:** nums = [1,3,-1,-3,5,3,6,7], k = 3\n**Output:** [3,3,5,5,6,7]\n**Explanation:** \nWindow position                Max\n---------------               -----\n[1  3  -1] -3  5  3  6  7       3\n 1 [3  -1  -3] 5  3  6  7       3\n 1  3 [-1  -3  5] 3  6  7       5\n 1  3  -1 [-3  5  3] 6  7       5\n 1  3  -1  -3 [5  3  6] 7       6\n 1  3  -1  -3  5 [3  6  7]      7\n\n## Example 2:\n\n**Input:** nums = [1], k = 1\n**Output:** [1]\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^5`\n*   `-10^4 <= nums[i] <= 10^4`\n*   `1 <= k <= nums.length`",
+  "description": "# Sliding Window Maximum\n\nYou are given an integer array `nums` and an integer `k`. A window of exactly `k` consecutive elements moves from the left side of the array to the right side, one position at a time.\n\nReturn an array where the i-th value is the maximum element inside the window `nums[i..i + k - 1]`.\n\n## Example 1:\n\n**Input:** nums = [1,3,-1,-3,5,3,6,7], k = 3\n**Output:** [3,3,5,5,6,7]\n**Explanation:** The six windows are [1,3,-1], [3,-1,-3], [-1,-3,5], [-3,5,3], [5,3,6], and [3,6,7]. Their maximum values are [3,3,5,5,6,7].\n\n## Example 2:\n\n**Input:** nums = [1], k = 1\n**Output:** [1]\n**Explanation:** The only window contains the only element.\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^5`\n*   `-10^4 <= nums[i] <= 10^4`\n*   `1 <= k <= nums.length`",
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public int[] maxSlidingWindow(int[] nums, int k) {\n        // Write your code here\n        return new int[]{};\n    }\n}",
   "tags": [
@@ -12,14 +12,36 @@
     "Monotonic Queue"
   ],
   "examples": [
-    { "input": "nums = [1,3,-1,-3,5,3,6,7], k = 3", "output": "[3,3,5,5,6,7]" },
-    { "input": "nums = [1], k = 1", "output": "[1]" }
+    {
+      "input": "nums = [1,3,-1,-3,5,3,6,7], k = 3",
+      "output": "[3,3,5,5,6,7]"
+    },
+    {
+      "input": "nums = [1], k = 1",
+      "output": "[1]"
+    }
   ],
   "tests": [
-    { "input": "nums = [1,3,-1,-3,5,3,6,7], k = 3", "output": "[3,3,5,5,6,7]" },
-    { "input": "nums = [1], k = 1", "output": "[1]" },
-    { "input": "nums = [1,-1], k = 1", "output": "[1,-1]" },
-    { "input": "nums = [9,11], k = 2", "output": "[11]" },
+    {
+      "input": "nums = [1,3,-1,-3,5,3,6,7], k = 3",
+      "output": "[3,3,5,5,6,7]",
+      "description": "Canonical mixed increasing and decreasing windows"
+    },
+    {
+      "input": "nums = [1], k = 1",
+      "output": "[1]",
+      "description": "Single element and single window"
+    },
+    {
+      "input": "nums = [1,-1], k = 1",
+      "output": "[1,-1]",
+      "description": "k = 1 returns the original array"
+    },
+    {
+      "input": "nums = [9,11], k = 2",
+      "output": "[11]",
+      "description": "Two-element full window"
+    },
     {
       "input": "nums = [1,2,3,4,5], k = 5",
       "output": "[5]",
@@ -29,6 +51,41 @@
       "input": "nums = [-5,-3,-1,-2,-4], k = 2",
       "output": "[-3,-1,-1,-2]",
       "description": "All negative numbers"
+    },
+    {
+      "input": "nums = [7,2,4], k = 2",
+      "output": "[7,4]",
+      "description": "Maximum leaves the window"
+    },
+    {
+      "input": "nums = [1,3,1,2,0,5], k = 3",
+      "output": "[3,3,2,5]",
+      "description": "Later value becomes the maximum after the old maximum leaves"
+    },
+    {
+      "input": "nums = [4,4,4,4], k = 2",
+      "output": "[4,4,4]",
+      "description": "Repeated equal maximum values"
+    },
+    {
+      "input": "nums = [9,8,7,6,5], k = 3",
+      "output": "[9,8,7]",
+      "description": "Strictly decreasing array"
+    },
+    {
+      "input": "nums = [1,2,3,4,5], k = 2",
+      "output": "[2,3,4,5]",
+      "description": "Strictly increasing array"
+    },
+    {
+      "input": "nums = [2,1,2,1,2], k = 3",
+      "output": "[2,2,2]",
+      "description": "Repeated maxima with ties across windows"
+    },
+    {
+      "input": "nums = [-1,-3,-5,-2,-1], k = 3",
+      "output": "[-1,-2,-1]",
+      "description": "Negative values with a late improving maximum"
     }
   ],
   "solutions": [
@@ -36,15 +93,29 @@
       "name": "Monotonic Deque - Optimal",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(k)",
-      "description": "Use monotonic decreasing deque to maintain potential max candidates. Deque stores indices. Remove elements outside window and smaller elements.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int[] maxSlidingWindow(int[] nums, int k) {\n        if (nums == null || k == 0) return new int[0];\n        \n        int n = nums.length;\n        int[] result = new int[n - k + 1];\n        Deque<Integer> deque = new ArrayDeque<>(); // Store indices\n        \n        for (int i = 0; i < n; i++) {\n            // Remove indices outside current window\n            while (!deque.isEmpty() && deque.peekFirst() < i - k + 1) {\n                deque.pollFirst();\n            }\n            \n            // Remove smaller elements (maintain decreasing order)\n            while (!deque.isEmpty() && nums[deque.peekLast()] < nums[i]) {\n                deque.pollLast();\n            }\n            \n            deque.offerLast(i);\n            \n            // Add to result when window is full\n            if (i >= k - 1) {\n                result[i - k + 1] = nums[deque.peekFirst()];\n            }\n        }\n        \n        return result;\n    }\n}"
+      "description": "## Approach\n\nStore indices in a deque. The values at those indices are kept in decreasing order, so the front index is always the maximum candidate for the current window. Before inserting a new index, remove expired indices from the front and remove dominated smaller or equal values from the back.\n\n## Key Insight\n\nAn older value that is no larger than the new value can never be the maximum of a future window while the new value is still inside the window. Keeping indices instead of values is what lets the algorithm expire elements exactly when they leave the window.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(k)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] maxSlidingWindow(int[] nums, int k) {\n        int n = nums.length;\n        int[] result = new int[n - k + 1];\n        Deque<Integer> deque = new ArrayDeque<>();\n\n        for (int right = 0; right < n; right++) {\n            while (!deque.isEmpty() && deque.peekFirst() <= right - k) {\n                deque.pollFirst();\n            }\n            while (!deque.isEmpty() && nums[deque.peekLast()] <= nums[right]) {\n                deque.pollLast();\n            }\n            deque.offerLast(right);\n\n            if (right >= k - 1) {\n                result[right - k + 1] = nums[deque.peekFirst()];\n            }\n        }\n\n        return result;\n    }\n}"
     },
     {
       "name": "Max Heap with Lazy Removal",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Use max heap storing (value, index) pairs. Lazily remove elements outside window when they appear at top.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int[] maxSlidingWindow(int[] nums, int k) {\n        int n = nums.length;\n        int[] result = new int[n - k + 1];\n        \n        // Max heap: store (value, index), sort by value descending\n        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> b[0] - a[0]);\n        \n        for (int i = 0; i < n; i++) {\n            pq.offer(new int[]{nums[i], i});\n            \n            // Remove elements outside window\n            while (pq.peek()[1] < i - k + 1) {\n                pq.poll();\n            }\n            \n            if (i >= k - 1) {\n                result[i - k + 1] = pq.peek()[0];\n            }\n        }\n        \n        return result;\n    }\n}"
+      "description": "## Approach\n\nPush each pair `(value, index)` into a max heap as the right edge advances. Before reading the maximum for a full window, repeatedly remove heap entries whose stored index is no longer inside the window.\n\n## Key Insight\n\nThe heap may contain stale entries, but a stale entry only matters when it reaches the top. Lazy removal keeps the implementation simple and shows a general priority-queue pattern for window problems, at the cost of logarithmic operations.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] maxSlidingWindow(int[] nums, int k) {\n        int n = nums.length;\n        int[] result = new int[n - k + 1];\n        PriorityQueue<int[]> heap = new PriorityQueue<>((a, b) -> {\n            if (a[0] != b[0]) {\n                return Integer.compare(b[0], a[0]);\n            }\n            return Integer.compare(b[1], a[1]);\n        });\n\n        for (int right = 0; right < n; right++) {\n            heap.offer(new int[] {nums[right], right});\n\n            while (heap.peek()[1] <= right - k) {\n                heap.poll();\n            }\n\n            if (right >= k - 1) {\n                result[right - k + 1] = heap.peek()[0];\n            }\n        }\n\n        return result;\n    }\n}"
+    },
+    {
+      "name": "Block Decomposition Left and Right Max",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSplit the array into blocks of length `k`. Precompute `leftMax[i]`, the maximum from the start of the block through `i`, and `rightMax[i]`, the maximum from `i` through the end of the block. A window maximum is then `max(rightMax[start], leftMax[end])`.\n\n## Key Insight\n\nEvery fixed-length window crosses at most one block boundary. The left part of the window is answered by a suffix maximum and the right part by a prefix maximum, so the query becomes constant time after preprocessing.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int[] maxSlidingWindow(int[] nums, int k) {\n        int n = nums.length;\n        int[] leftMax = new int[n];\n        int[] rightMax = new int[n];\n\n        for (int i = 0; i < n; i++) {\n            if (i % k == 0) {\n                leftMax[i] = nums[i];\n            } else {\n                leftMax[i] = Math.max(leftMax[i - 1], nums[i]);\n            }\n\n            int j = n - 1 - i;\n            if (j == n - 1 || (j + 1) % k == 0) {\n                rightMax[j] = nums[j];\n            } else {\n                rightMax[j] = Math.max(rightMax[j + 1], nums[j]);\n            }\n        }\n\n        int[] result = new int[n - k + 1];\n        for (int start = 0; start <= n - k; start++) {\n            int end = start + k - 1;\n            result[start] = Math.max(rightMax[start], leftMax[end]);\n        }\n        return result;\n    }\n}"
+    },
+    {
+      "name": "TreeMap Multiset Window",
+      "timeComplexity": "O(n log k)",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nMaintain the current window as a multiset backed by a `TreeMap` from value to count. Insert the entering value, remove one copy of the leaving value once the window is too large, and read `lastKey()` as the maximum after each full window.\n\n## Key Insight\n\nA balanced multiset is a direct baseline for sliding window extrema. It is slower than the monotonic deque but easier to reason about when equal values must be counted correctly, because removing one occurrence does not remove all equal maxima.\n\n## Complexity Analysis\n- Time Complexity: O(n log k)\n- Space Complexity: O(k)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] maxSlidingWindow(int[] nums, int k) {\n        int n = nums.length;\n        int[] result = new int[n - k + 1];\n        TreeMap<Integer, Integer> counts = new TreeMap<>();\n\n        for (int right = 0; right < n; right++) {\n            counts.merge(nums[right], 1, Integer::sum);\n\n            if (right >= k) {\n                removeOne(counts, nums[right - k]);\n            }\n\n            if (right >= k - 1) {\n                result[right - k + 1] = counts.lastKey();\n            }\n        }\n\n        return result;\n    }\n\n    private void removeOne(TreeMap<Integer, Integer> counts, int value) {\n        int nextCount = counts.get(value) - 1;\n        if (nextCount == 0) {\n            counts.remove(value);\n        } else {\n            counts.put(value, nextCount);\n        }\n    }\n}"
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "id": "73",
   "title": "LRU Cache",
-  "description": "# LRU Cache\n\nDesign a data structure that follows the constraints of a **[Least Recently Used (LRU) cache](https://en.wikipedia.org/wiki/Cache_replacement_policies#LRU)**.\n\nImplement the `LRUCache` class:\n\n*   `LRUCache(int capacity)` Initialize the LRU cache with positive size `capacity`.\n*   `int get(int key)` Return the value of the `key` if the key exists, otherwise return `-1`.\n*   `void put(int key, int value)` Update the value of the `key` if the `key` exists. Otherwise, add the `key-value` pair to the cache. If the number of keys exceeds the `capacity` from this operation, **evict** the least recently used key.\n\nThe functions `get` and `put` must each run in `O(1)` average time complexity.\n\n## Example 1:\n\n**Input**\n[\"LRUCache\", \"put\", \"put\", \"get\", \"put\", \"get\", \"put\", \"get\", \"get\", \"get\"]\n[[2], [1, 1], [2, 2], [1], [3, 3], [2], [4, 4], [1], [3], [4]]\n\n**Output**\n[null, null, null, 1, null, -1, null, -1, 3, 4]\n\n**Explanation**\nLRUCache lRUCache = new LRUCache(2);\nlRUCache.put(1, 1); // cache is {1=1}\nlRUCache.put(2, 2); // cache is {1=1, 2=2}\nlRUCache.get(1);    // return 1\nlRUCache.put(3, 3); // LRU key was 2, evicts key 2, cache is {1=1, 3=3}\nlRUCache.get(2);    // returns -1 (not found)\nlRUCache.put(4, 4); // LRU key was 1, evicts key 1, cache is {4=4, 3=3}\nlRUCache.get(1);    // return -1 (not found)\nlRUCache.get(3);    // return 3\nlRUCache.get(4);    // return 4\n\n## Constraints:\n\n*   `1 <= capacity <= 3000`\n*   `0 <= key <= 10^4`\n*   `0 <= value <= 10^5`\n*   At most `2 * 10^5` calls will be made to `get` and `put`.",
+  "description": "# LRU Cache\n\nDesign an in-memory cache with a fixed positive capacity. The cache stores integer key-value pairs. Whenever an existing key is read with `get`, updated with `put`, or inserted with `put`, that key becomes the most recently used key.\n\nImplement the `LRUCache` class:\n\n*   `LRUCache(int capacity)` initializes the cache with the given positive capacity.\n*   `int get(int key)` returns the stored value if `key` exists; otherwise returns `-1`. A successful read refreshes that key to most-recently-used.\n*   `void put(int key, int value)` updates an existing key or inserts a new key-value pair. Updating an existing key also refreshes it. If inserting a new key would exceed capacity, evict exactly the least recently used key first.\n\nBoth `get` and `put` must run in `O(1)` average time.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1\n\n**Input**\n[\"LRUCache\", \"put\", \"put\", \"get\", \"put\", \"get\", \"put\", \"get\", \"get\", \"get\"]\n[[2], [1, 1], [2, 2], [1], [3, 3], [2], [4, 4], [1], [3], [4]]\n\n**Output**\n[null, null, null, 1, null, -1, null, -1, 3, 4]\n\n**Explanation**\nLRUCache cache = new LRUCache(2);\ncache.put(1, 1); // cache stores {1=1}; key 1 is most recent.\ncache.put(2, 2); // cache stores {1=1, 2=2}; key 2 is most recent.\ncache.get(1);    // returns 1; key 1 becomes most recent.\ncache.put(3, 3); // capacity is exceeded, so least-recent key 2 is evicted.\ncache.get(2);    // returns -1 because key 2 was evicted.\ncache.put(4, 4); // least-recent key 1 is evicted.\ncache.get(1);    // returns -1.\ncache.get(3);    // returns 3.\ncache.get(4);    // returns 4.\n\n## Example 2\n\n**Input**\n[\"LRUCache\", \"put\", \"put\", \"get\", \"put\", \"get\", \"get\"]\n[[2], [1, 10], [2, 20], [1], [3, 30], [1], [2]]\n\n**Output**\n[null, null, null, 10, null, 10, -1]\n\n**Explanation**\nReading key 1 refreshes it, so inserting key 3 evicts key 2 instead.\n\n## Constraints\n\n*   `1 <= capacity <= 3000`\n*   `0 <= key <= 10^4`\n*   `0 <= value <= 10^5`\n*   At most `2 * 10^5` calls will be made to `get` and `put`.",
   "difficulty": "MEDIUM",
   "initialCode": "class LRUCache {\n\n    public LRUCache(int capacity) {\n        \n    }\n    \n    public int get(int key) {\n        return -1;\n    }\n    \n    public void put(int key, int value) {\n        \n    }\n}",
   "tags": [
@@ -13,44 +13,108 @@
   "examples": [
     {
       "input": "[\"LRUCache\", \"put\", \"put\", \"get\", \"put\", \"get\", \"put\", \"get\", \"get\", \"get\"]\n[[2], [1, 1], [2, 2], [1], [3, 3], [2], [4, 4], [1], [3], [4]]",
-      "output": "[null, null, null, 1, null, -1, null, -1, 3, 4]"
+      "output": "[null, null, null, 1, null, -1, null, -1, 3, 4]",
+      "description": "Canonical capacity-two eviction sequence"
+    },
+    {
+      "input": "[\"LRUCache\", \"put\", \"put\", \"get\", \"put\", \"get\", \"get\"]\n[[2], [1, 10], [2, 20], [1], [3, 30], [1], [2]]",
+      "output": "[null, null, null, 10, null, 10, -1]",
+      "description": "A successful get refreshes recency before the next insertion"
     }
   ],
   "tests": [
     {
       "input": "[\"LRUCache\", \"put\", \"put\", \"get\", \"put\", \"get\", \"put\", \"get\", \"get\", \"get\"]\n[[2], [1, 1], [2, 2], [1], [3, 3], [2], [4, 4], [1], [3], [4]]",
-      "output": "[null, null, null, 1, null, -1, null, -1, 3, 4]"
+      "output": "[null, null, null, 1, null, -1, null, -1, 3, 4]",
+      "description": "Canonical capacity-two eviction sequence"
     },
     {
-      "input": "[\"LRUCache\",\"put\",\"get\",\"put\",\"get\",\"get\"]\n[[1],[2,1],[2],[3,2],[2],[3]]",
-      "output": "[null,null,1,null,-1,2]"
+      "input": "[\"LRUCache\", \"put\", \"get\", \"put\", \"get\", \"get\"]\n[[1], [2, 1], [2], [3, 2], [2], [3]]",
+      "output": "[null, null, 1, null, -1, 2]",
+      "description": "Capacity-one cache evicts the previous key on every new insertion"
     },
     {
-      "input": "[\"LRUCache\",\"put\",\"put\",\"get\",\"put\",\"get\"]\n[[2],[1,1],[1,2],[1],[2,1],[1]]",
-      "output": "[null,null,null,2,null,2]",
-      "note": "更新已存在的key"
+      "input": "[\"LRUCache\", \"put\", \"put\", \"put\", \"get\", \"put\", \"get\", \"get\", \"get\"]\n[[2], [1, 1], [2, 2], [1, 10], [1], [3, 3], [2], [1], [3]]",
+      "output": "[null, null, null, null, 10, null, -1, 10, 3]",
+      "description": "Updating an existing key changes its value and refreshes recency"
     },
     {
-      "input": "[\"LRUCache\",\"get\",\"put\",\"get\"]\n[[1],[1],[1,1],[1]]",
-      "output": "[null,-1,null,1]",
-      "note": "get不存在的key"
+      "input": "[\"LRUCache\", \"get\", \"put\", \"get\"]\n[[1], [1], [1, 1], [1]]",
+      "output": "[null, -1, null, 1]",
+      "description": "Missing get returns -1 and does not corrupt later insertion"
+    },
+    {
+      "input": "[\"LRUCache\", \"put\", \"put\", \"get\", \"put\", \"get\", \"get\"]\n[[2], [1, 10], [2, 20], [1], [3, 30], [1], [2]]",
+      "output": "[null, null, null, 10, null, 10, -1]",
+      "description": "A successful get refreshes recency and protects that key from eviction"
+    },
+    {
+      "input": "[\"LRUCache\", \"put\", \"get\", \"put\", \"put\", \"get\", \"get\", \"get\"]\n[[2], [0, 0], [0], [1, 1], [2, 2], [0], [1], [2]]",
+      "output": "[null, null, 0, null, null, -1, 1, 2]",
+      "description": "Boundary key 0 and value 0 behave like normal entries"
+    },
+    {
+      "input": "[\"LRUCache\", \"put\", \"put\", \"put\", \"get\", \"put\", \"get\", \"get\", \"get\", \"get\"]\n[[3], [1, 1], [2, 2], [3, 3], [1], [4, 4], [2], [3], [4], [1]]",
+      "output": "[null, null, null, null, 1, null, -1, 3, 4, 1]",
+      "description": "Capacity-three ordering after a read evicts the correct least-recent key"
+    },
+    {
+      "input": "[\"LRUCache\", \"put\", \"put\", \"get\", \"get\", \"put\", \"get\", \"get\", \"get\"]\n[[2], [1, 1], [2, 2], [1], [1], [3, 3], [1], [2], [3]]",
+      "output": "[null, null, null, 1, 1, null, 1, -1, 3]",
+      "description": "Repeated reads keep the same key recent"
+    },
+    {
+      "input": "[\"LRUCache\", \"put\", \"put\", \"get\", \"put\", \"get\", \"get\", \"get\"]\n[[2], [10000, 5], [9999, 6], [10000], [7, 7], [9999], [10000], [7]]",
+      "output": "[null, null, null, 5, null, -1, 5, 7]",
+      "description": "Large allowed keys work with recency refresh"
+    },
+    {
+      "input": "[\"LRUCache\", \"put\", \"put\", \"get\", \"put\", \"get\", \"get\"]\n[[1], [2, 1], [2, 2], [2], [3, 3], [2], [3]]",
+      "output": "[null, null, null, 2, null, -1, 3]",
+      "description": "Overwriting in a capacity-one cache does not grow the cache"
+    },
+    {
+      "input": "[\"LRUCache\", \"put\", \"put\", \"put\", \"put\", \"get\", \"get\"]\n[[2], [2, 1], [1, 1], [2, 3], [4, 1], [1], [2]]",
+      "output": "[null, null, null, null, null, -1, 3]",
+      "description": "Updating a key before inserting another key preserves the updated value"
+    },
+    {
+      "input": "[\"LRUCache\", \"put\", \"put\", \"put\", \"get\", \"get\", \"put\", \"get\", \"get\", \"get\"]\n[[3], [1, 100], [2, 200], [3, 300], [2], [1], [4, 400], [3], [2], [4]]",
+      "output": "[null, null, null, null, 200, 100, null, -1, 200, 400]",
+      "description": "Interleaved reads across capacity three select the oldest untouched key"
     }
   ],
   "solutions": [
     {
-      "name": "HashMap + Doubly Linked List",
-      "timeComplexity": "O(1)",
+      "name": "HashMap + Sentinel Doubly Linked List",
+      "timeComplexity": "O(1) average per operation",
       "spaceComplexity": "O(capacity)",
-      "description": "Use a HashMap for O(1) key lookup and a doubly linked list to maintain access order. The head of the list is the most recently used; the tail is the least recently used. On get/put, move the node to the head. On eviction, remove from the tail.",
-      "code": "import java.util.*;\n\nclass LRUCache {\n    private class Node {\n        int key, value;\n        Node prev, next;\n        Node(int key, int value) {\n            this.key = key;\n            this.value = value;\n        }\n    }\n    \n    private int capacity;\n    private Map<Integer, Node> map;\n    private Node head, tail; // dummy nodes\n    \n    public LRUCache(int capacity) {\n        this.capacity = capacity;\n        this.map = new HashMap<>();\n        head = new Node(0, 0);\n        tail = new Node(0, 0);\n        head.next = tail;\n        tail.prev = head;\n    }\n    \n    public int get(int key) {\n        if (!map.containsKey(key)) return -1;\n        Node node = map.get(key);\n        removeNode(node);\n        addToHead(node);\n        return node.value;\n    }\n    \n    public void put(int key, int value) {\n        if (map.containsKey(key)) {\n            Node node = map.get(key);\n            node.value = value;\n            removeNode(node);\n            addToHead(node);\n        } else {\n            Node node = new Node(key, value);\n            map.put(key, node);\n            addToHead(node);\n            if (map.size() > capacity) {\n                Node lru = tail.prev;\n                removeNode(lru);\n                map.remove(lru.key);\n            }\n        }\n    }\n    \n    private void addToHead(Node node) {\n        node.next = head.next;\n        node.prev = head;\n        head.next.prev = node;\n        head.next = node;\n    }\n    \n    private void removeNode(Node node) {\n        node.prev.next = node.next;\n        node.next.prev = node.prev;\n    }\n}",
+      "description": "## Approach\n\nStore each key in a `HashMap<Integer, Node>` and store all live nodes in a doubly linked list. The list is ordered from most recent near the head sentinel to least recent near the tail sentinel. A successful `get` moves its node to the front. A `put` either updates and moves an existing node or inserts a new front node and removes the tail node when capacity is exceeded.\n\n## Key Insight\n\nThe hash table answers \"where is this key?\" in O(1), while the doubly linked list answers \"which key is least recent?\" in O(1). Sentinel nodes remove head and tail edge cases, so every move is only unlink plus insert-after-head.\n\n## Complexity Analysis\n- Time Complexity: O(1) average for `get` and `put`\n- Space Complexity: O(capacity)",
+      "code": "import java.util.*;\n\nclass LRUCache {\n    private static class Node {\n        int key;\n        int value;\n        Node prev;\n        Node next;\n\n        Node(int key, int value) {\n            this.key = key;\n            this.value = value;\n        }\n    }\n\n    private final int capacity;\n    private final Map<Integer, Node> nodes = new HashMap<>();\n    private final Node head = new Node(-1, -1);\n    private final Node tail = new Node(-1, -1);\n\n    public LRUCache(int capacity) {\n        this.capacity = capacity;\n        head.next = tail;\n        tail.prev = head;\n    }\n\n    public int get(int key) {\n        Node node = nodes.get(key);\n        if (node == null) {\n            return -1;\n        }\n        moveToFront(node);\n        return node.value;\n    }\n\n    public void put(int key, int value) {\n        Node node = nodes.get(key);\n        if (node != null) {\n            node.value = value;\n            moveToFront(node);\n            return;\n        }\n\n        Node inserted = new Node(key, value);\n        nodes.put(key, inserted);\n        insertAfterHead(inserted);\n\n        if (nodes.size() > capacity) {\n            Node leastRecent = tail.prev;\n            unlink(leastRecent);\n            nodes.remove(leastRecent.key);\n        }\n    }\n\n    private void moveToFront(Node node) {\n        unlink(node);\n        insertAfterHead(node);\n    }\n\n    private void unlink(Node node) {\n        node.prev.next = node.next;\n        node.next.prev = node.prev;\n    }\n\n    private void insertAfterHead(Node node) {\n        node.prev = head;\n        node.next = head.next;\n        head.next.prev = node;\n        head.next = node;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "LinkedHashMap (Built-in)",
-      "timeComplexity": "O(1)",
+      "name": "LinkedHashMap Access Order",
+      "timeComplexity": "O(1) average per operation",
       "spaceComplexity": "O(capacity)",
-      "description": "Use Java's LinkedHashMap with access-order mode, overriding removeEldestEntry to evict when capacity is exceeded.",
-      "code": "import java.util.*;\n\nclass LRUCache extends LinkedHashMap<Integer, Integer> {\n    private int capacity;\n    \n    public LRUCache(int capacity) {\n        super(capacity, 0.75f, true);\n        this.capacity = capacity;\n    }\n    \n    public int get(int key) {\n        return super.getOrDefault(key, -1);\n    }\n    \n    public void put(int key, int value) {\n        super.put(key, value);\n    }\n    \n    @Override\n    protected boolean removeEldestEntry(Map.Entry<Integer, Integer> eldest) {\n        return size() > capacity;\n    }\n}",
+      "description": "## Approach\n\nUse Java's `LinkedHashMap` with `accessOrder` set to `true`. In this mode, `get` and `put` automatically move touched entries to the access-order tail. Overriding `removeEldestEntry` lets the map evict the oldest entry immediately after an insertion grows beyond capacity.\n\n## Key Insight\n\n`LinkedHashMap` is the library version of HashMap plus a doubly linked list. It is useful in production Java, but students should still understand the manual list solution because that is the data-structure idea the problem is testing.\n\n## Complexity Analysis\n- Time Complexity: O(1) average for `get` and `put`\n- Space Complexity: O(capacity)",
+      "code": "import java.util.*;\n\nclass LRUCache extends LinkedHashMap<Integer, Integer> {\n    private final int capacity;\n\n    public LRUCache(int capacity) {\n        super(capacity, 0.75f, true);\n        this.capacity = capacity;\n    }\n\n    public int get(int key) {\n        return super.getOrDefault(key, -1);\n    }\n\n    public void put(int key, int value) {\n        super.put(key, value);\n    }\n\n    @Override\n    protected boolean removeEldestEntry(Map.Entry<Integer, Integer> eldest) {\n        return size() > capacity;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Direct Address Table + Doubly Linked List",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(U + capacity), where U is the key range",
+      "description": "## Approach\n\nUse the constraint `0 <= key <= 10^4` to replace the hash table with a direct-address array from key to node. The linked-list part is the same as the canonical approach: recently touched nodes move to the front, and the tail gives the least recent node for eviction.\n\n## Key Insight\n\nWhen the key universe is small and fixed, direct addressing removes hashing overhead while preserving the exact LRU invariant. The tradeoff is that memory depends on the allowed key range `U`, not only on the cache capacity.\n\n## Complexity Analysis\n- Time Complexity: O(1) worst-case for `get` and `put`\n- Space Complexity: O(U + capacity)",
+      "code": "class LRUCache {\n    private static final int MAX_KEY = 10000;\n\n    private static class Node {\n        int key;\n        int value;\n        Node prev;\n        Node next;\n\n        Node(int key, int value) {\n            this.key = key;\n            this.value = value;\n        }\n    }\n\n    private final int capacity;\n    private int size;\n    private final Node[] table = new Node[MAX_KEY + 1];\n    private final Node head = new Node(-1, -1);\n    private final Node tail = new Node(-1, -1);\n\n    public LRUCache(int capacity) {\n        this.capacity = capacity;\n        head.next = tail;\n        tail.prev = head;\n    }\n\n    public int get(int key) {\n        Node node = table[key];\n        if (node == null) {\n            return -1;\n        }\n        moveToFront(node);\n        return node.value;\n    }\n\n    public void put(int key, int value) {\n        Node node = table[key];\n        if (node != null) {\n            node.value = value;\n            moveToFront(node);\n            return;\n        }\n\n        Node inserted = new Node(key, value);\n        table[key] = inserted;\n        insertAfterHead(inserted);\n        size++;\n\n        if (size > capacity) {\n            Node leastRecent = tail.prev;\n            unlink(leastRecent);\n            table[leastRecent.key] = null;\n            size--;\n        }\n    }\n\n    private void moveToFront(Node node) {\n        unlink(node);\n        insertAfterHead(node);\n    }\n\n    private void unlink(Node node) {\n        node.prev.next = node.next;\n        node.next.prev = node.prev;\n    }\n\n    private void insertAfterHead(Node node) {\n        node.prev = head;\n        node.next = head.next;\n        head.next.prev = node;\n        head.next = node;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Array-Backed Linked List",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(U), where U is the key range",
+      "description": "## Approach\n\nRepresent the doubly linked list with integer arrays instead of node objects. For every possible key, store `prev[key]`, `next[key]`, `value[key]`, and whether the key is currently present. Two extra sentinel indices act as head and tail. Moving a key to the front is still unlink plus insert-after-head.\n\n## Key Insight\n\nThis is the same LRU invariant as the pointer solution, but it makes every list pointer an array cell. It is a useful systems-style variant when keys are bounded and object allocation overhead matters.\n\n## Complexity Analysis\n- Time Complexity: O(1) worst-case for `get` and `put`\n- Space Complexity: O(U)",
+      "code": "class LRUCache {\n    private static final int MAX_KEY = 10000;\n    private static final int HEAD = MAX_KEY + 1;\n    private static final int TAIL = MAX_KEY + 2;\n\n    private final int capacity;\n    private int size;\n    private final int[] values = new int[MAX_KEY + 3];\n    private final int[] prev = new int[MAX_KEY + 3];\n    private final int[] next = new int[MAX_KEY + 3];\n    private final boolean[] present = new boolean[MAX_KEY + 1];\n\n    public LRUCache(int capacity) {\n        this.capacity = capacity;\n        next[HEAD] = TAIL;\n        prev[TAIL] = HEAD;\n    }\n\n    public int get(int key) {\n        if (!present[key]) {\n            return -1;\n        }\n        moveToFront(key);\n        return values[key];\n    }\n\n    public void put(int key, int value) {\n        if (present[key]) {\n            values[key] = value;\n            moveToFront(key);\n            return;\n        }\n\n        if (size == capacity) {\n            int leastRecent = prev[TAIL];\n            unlink(leastRecent);\n            present[leastRecent] = false;\n            size--;\n        }\n\n        values[key] = value;\n        present[key] = true;\n        insertAfterHead(key);\n        size++;\n    }\n\n    private void moveToFront(int key) {\n        unlink(key);\n        insertAfterHead(key);\n    }\n\n    private void unlink(int key) {\n        int before = prev[key];\n        int after = next[key];\n        next[before] = after;\n        prev[after] = before;\n    }\n\n    private void insertAfterHead(int key) {\n        int first = next[HEAD];\n        prev[key] = HEAD;\n        next[key] = first;\n        prev[first] = key;\n        next[HEAD] = key;\n    }\n}",
       "language": "java"
     }
   ],
@@ -58,7 +122,7 @@
     {
       "id": "lru",
       "file": "p73_lru.png",
-      "caption": "LRU Cache: Doubly Linked List + HashMap Structure"
+      "caption": "Example 1 after put(1,1), put(2,2), get(1): key 2 is least recent and key 1 most recent"
     }
   ]
 }

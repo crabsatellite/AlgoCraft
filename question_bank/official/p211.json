@@ -1,36 +1,133 @@
 {
   "id": "211",
   "title": "Length of Last Word",
-  "description": "# Length of Last Word\n\nGiven a string `s` consisting of words and spaces, return *the length of the **last** word in the string*.\n\nA **word** is a maximal substring consisting of non-space characters only.\n\n## Example 1:\n\n**Input:** s = \"Hello World\"\n**Output:** 5\n**Explanation:** The last word is \"World\" with length 5.\n\n## Example 2:\n\n**Input:** s = \"   fly me   to   the moon  \"\n**Output:** 4\n**Explanation:** The last word is \"moon\" with length 4.\n\n## Example 3:\n\n**Input:** s = \"luffy is still joyboy\"\n**Output:** 6\n**Explanation:** The last word is \"joyboy\" with length 6.\n\n## Constraints:\n\n*   `1 <= s.length <= 10^4`\n*   `s` consists of only English letters and spaces `' '`.\n*   There will be at least one word in `s`.",
+  "description": "# Length of Last Word\n\nGiven a string `s` consisting of English letters and spaces, return the length of the **last word** in `s`.\n\nA word is a continuous group of English letters separated by spaces or string boundaries. Leading, trailing, and intervening spaces are not part of a word.\n\n## Example 1:\n\n**Input:** s = \"Hello World\"\n**Output:** 5\n**Explanation:** The last word is `\"World\"`, whose length is 5.\n\n## Example 2:\n\n**Input:** s = \"   fly me   to   the moon  \"\n**Output:** 4\n**Explanation:** The last word is `\"moon\"`; leading, repeated, and trailing spaces are ignored.\n\n## Example 3:\n\n**Input:** s = \"luffy is still joyboy\"\n**Output:** 6\n**Explanation:** The last word is `\"joyboy\"`, whose length is 6.\n\n## Constraints:\n\n* `1 <= s.length <= 10^4`\n* `s` consists only of English letters and spaces `' '`.\n* `s` contains at least one word.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int lengthOfLastWord(String s) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["String"],
+  "tags": [
+    "String",
+    "Two Pointers",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "s = \"Hello World\"", "output": "5" },
-    { "input": "s = \"   fly me   to   the moon  \"", "output": "4" },
-    { "input": "s = \"luffy is still joyboy\"", "output": "6" }
+    {
+      "input": "s = \"Hello World\"",
+      "output": "5",
+      "explanation": "The last word is \"World\"."
+    },
+    {
+      "input": "s = \"   fly me   to   the moon  \"",
+      "output": "4",
+      "explanation": "The last word is \"moon\"."
+    },
+    {
+      "input": "s = \"luffy is still joyboy\"",
+      "output": "6",
+      "explanation": "The last word is \"joyboy\"."
+    }
   ],
   "solutions": [
     {
-      "name": "Reverse Scan",
+      "name": "Reverse Boundary Scan",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Start from the end, skip trailing spaces, then count non-space characters.",
-      "code": "class Solution {\n    public int lengthOfLastWord(String s) {\n        int i = s.length() - 1;\n        while (i >= 0 && s.charAt(i) == ' ') i--;\n        int end = i;\n        while (i >= 0 && s.charAt(i) != ' ') i--;\n        return end - i;\n    }\n}",
+      "description": "## Approach\nStart at the end of the string. First skip all trailing spaces, because they are not part of the last word. Then keep moving left while the characters are non-spaces; the number of consumed characters is the answer.\n\n## Key Insight\nThe last word is the final maximal non-space block before any trailing spaces. Scanning from the right reaches exactly that block without allocating substrings or arrays.\n\n## Complexity Analysis\n- Time Complexity: O(n), in the worst case the scan may inspect every character.\n- Space Complexity: O(1), only indexes are stored.",
+      "code": "class Solution {\n    public int lengthOfLastWord(String s) {\n        int i = s.length() - 1;\n        while (i >= 0 && s.charAt(i) == ' ') {\n            i--;\n        }\n        int end = i;\n        while (i >= 0 && s.charAt(i) != ' ') {\n            i--;\n        }\n        return end - i;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Trim and Split",
+      "name": "Forward Word-Length State Machine",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nScan from left to right. `current` counts the length of the word currently being read. When a space ends a word, store `current` as `last` and reset it. At the end, the answer is the active word length if the string ends in a word, otherwise the stored last length.\n\n## Key Insight\nThis treats the string as a tiny state machine: inside a word or between words. It handles trailing spaces naturally because the most recently completed word is remembered.\n\n## Complexity Analysis\n- Time Complexity: O(n), every character is processed once.\n- Space Complexity: O(1), only two counters are needed.",
+      "code": "class Solution {\n    public int lengthOfLastWord(String s) {\n        int current = 0;\n        int last = 0;\n        for (int i = 0; i < s.length(); i++) {\n            if (s.charAt(i) == ' ') {\n                if (current > 0) {\n                    last = current;\n                    current = 0;\n                }\n            } else {\n                current++;\n            }\n        }\n        return current > 0 ? current : last;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Trim and Last Space",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Trim trailing spaces, then scan backward from the end to find the last space. The length of the last word is the difference.",
-      "code": "class Solution {\n    public int lengthOfLastWord(String s) {\n        s = s.trim();\n        int lastSpace = s.lastIndexOf(' ');\n        return s.length() - lastSpace - 1;\n    }\n}",
+      "description": "## Approach\nRemove outer spaces with `trim`, then find the last remaining space. Everything after that space is the last word; if there is no space, the entire trimmed string is one word.\n\n## Key Insight\nThis route converts the problem into a boundary-index calculation. It is concise and readable, but it may allocate a trimmed string, so it is less memory-efficient than the index-only scan.\n\n## Complexity Analysis\n- Time Complexity: O(n), trimming and searching each scan the string.\n- Space Complexity: O(n), because `trim` can create a new string.",
+      "code": "class Solution {\n    public int lengthOfLastWord(String s) {\n        String trimmed = s.trim();\n        int lastSpace = trimmed.lastIndexOf(' ');\n        return trimmed.length() - lastSpace - 1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Regex Last Token Match",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nUse a regular expression to match the final non-space token and any trailing spaces at the end of the string. The length of the trimmed match is the length of the last word.\n\n## Key Insight\nThe pattern describes the target directly: one or more non-space characters followed only by spaces until the end. This is a library-heavy route, useful for recognizing the problem as extracting the final token.\n\n## Complexity Analysis\n- Time Complexity: O(n), the matcher may scan across the input.\n- Space Complexity: O(n), regex matching and trimming may allocate helper objects or strings.",
+      "code": "class Solution {\n    private static final java.util.regex.Pattern LAST_WORD = java.util.regex.Pattern.compile(\"[^ ]+ *$\");\n\n    public int lengthOfLastWord(String s) {\n        java.util.regex.Matcher matcher = LAST_WORD.matcher(s);\n        if (matcher.find()) {\n            return matcher.group().trim().length();\n        }\n        return 0;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Split Words Baseline",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nTrim outer spaces, split the remaining string on one or more spaces, and return the length of the final array element. This follows the wording of the problem directly: turn the sentence into words, then inspect the last one.\n\n## Key Insight\nThis is the simplest baseline for learners, but it does more work than necessary because it materializes every word even though only the last word is needed.\n\n## Complexity Analysis\n- Time Complexity: O(n), splitting scans the string.\n- Space Complexity: O(n), the array and split substrings can use linear extra memory.",
+      "code": "class Solution {\n    public int lengthOfLastWord(String s) {\n        String[] words = s.trim().split(\" +\");\n        return words[words.length - 1].length();\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"Hello World\"", "output": "5" },
-    { "input": "s = \"   fly me   to   the moon  \"", "output": "4" },
-    { "input": "s = \"luffy is still joyboy\"", "output": "6" }
+    {
+      "input": "s = \"Hello World\"",
+      "output": "5",
+      "description": "Canonical two-word sentence."
+    },
+    {
+      "input": "s = \"   fly me   to   the moon  \"",
+      "output": "4",
+      "description": "Leading, repeated, and trailing spaces are ignored."
+    },
+    {
+      "input": "s = \"luffy is still joyboy\"",
+      "output": "6",
+      "description": "No trailing spaces after the last word."
+    },
+    {
+      "input": "s = \"a\"",
+      "output": "1",
+      "description": "Single one-character word."
+    },
+    {
+      "input": "s = \"a \"",
+      "output": "1",
+      "description": "Trailing spaces after a single word."
+    },
+    {
+      "input": "s = \"Today is a nice day\"",
+      "output": "3",
+      "description": "Last word after several words."
+    },
+    {
+      "input": "s = \"moon\"",
+      "output": "4",
+      "description": "Single multi-character word."
+    },
+    {
+      "input": "s = \"   single\"",
+      "output": "6",
+      "description": "Leading spaces before the only word."
+    },
+    {
+      "input": "s = \"single   \"",
+      "output": "6",
+      "description": "Trailing spaces after the only word."
+    },
+    {
+      "input": "s = \"many   spaces   inside\"",
+      "output": "6",
+      "description": "Repeated internal spaces before the last word."
+    },
+    {
+      "input": "s = \"ab cd   \"",
+      "output": "2",
+      "description": "Short last word followed by trailing spaces."
+    },
+    {
+      "input": "s = \"x y z\"",
+      "output": "1",
+      "description": "Several one-letter words."
+    }
   ]
 }

@@ -1,34 +1,138 @@
 {
   "id": "345",
-  "title": "Split Array Largest Sum",
-  "description": "# Split Array Largest Sum\n\nGiven an integer array `nums` and an integer `k`, split `nums` into `k` non-empty subarrays such that the largest sum of any subarray is minimized.\n\nReturn *the minimized largest sum of the split*.\n\nA **subarray** is a contiguous part of the array.\n\n## Example 1:\n\n**Input:** nums = [7,2,5,10,8], k = 2\n**Output:** 18\n**Explanation:**\nThere are four ways to split nums into two subarrays.\nThe best way is to split it into [7,2,5] and [10,8],\nwhere the largest sum among the two subarrays is only 18.\n\n## Example 2:\n\n**Input:** nums = [1,2,3,4,5], k = 2\n**Output:** 9\n\n## Constraints:\n\n*   `1 <= nums.length <= 1000`\n*   `0 <= nums[i] <= 10^6`\n*   `1 <= k <= min(50, nums.length)`",
-  "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int splitArray(int[] nums, int k) {\n        \n    }\n}",
-  "tags": ["Array", "Binary Search", "Dynamic Programming", "Greedy"],
+  "title": "Minimum Cost to Connect Sticks",
+  "description": "# Minimum Cost to Connect Sticks\n\nYou are given an integer array `sticks`, where `sticks[i]` is the length of the `i`th stick.\n\nIn one operation, choose any two sticks of lengths `x` and `y`, connect them into one stick of length `x + y`, and pay a cost of `x + y`.\n\nReturn the minimum total cost needed to connect all sticks into one stick.\n\nIf there is only one stick, no operation is needed and the cost is `0`.\n\n## Example 1:\n\n**Input:** sticks = [2,4,3]\n\n**Output:** 14\n\n**Explanation:** Connect 2 and 3 first, paying 5. Then connect 5 and 4, paying 9. The total cost is 14.\n\n## Example 2:\n\n**Input:** sticks = [1,8,3,5]\n\n**Output:** 30\n\n**Explanation:** One optimal sequence is 1+3=4, then 4+5=9, then 8+9=17. The total cost is 4+9+17=30.\n\n## Constraints:\n\n* `1 <= sticks.length <= 10^5`\n* `1 <= sticks[i] <= 10^6`\n* The answer fits in a 32-bit signed integer in the official tests.",
+  "difficulty": "MEDIUM",
+  "initialCode": "class Solution {\n    public int connectSticks(int[] sticks) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Greedy",
+    "Heap (Priority Queue)",
+    "Sorting",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "nums = [7,2,5,10,8], k = 2", "output": "18" },
-    { "input": "nums = [1,2,3,4,5], k = 2", "output": "9" }
+    {
+      "input": "sticks = [2,4,3]",
+      "output": "14"
+    },
+    {
+      "input": "sticks = [1,8,3,5]",
+      "output": "30"
+    }
   ],
   "solutions": [
     {
-      "name": "Binary Search on Answer",
-      "timeComplexity": "O(n log S)",
-      "spaceComplexity": "O(1)",
-      "description": "Binary search on the maximum subarray sum. For a given max sum, greedily check if we can split the array into at most k subarrays. Search range is [max(nums), sum(nums)].",
-      "code": "class Solution {\n    public int splitArray(int[] nums, int k) {\n        long lo = 0, hi = 0;\n        for (int num : nums) { lo = Math.max(lo, num); hi += num; }\n        while (lo < hi) {\n            long mid = lo + (hi - lo) / 2;\n            if (canSplit(nums, k, mid)) hi = mid;\n            else lo = mid + 1;\n        }\n        return (int) lo;\n    }\n    private boolean canSplit(int[] nums, int k, long maxSum) {\n        int count = 1;\n        long curSum = 0;\n        for (int num : nums) {\n            curSum += num;\n            if (curSum > maxSum) { count++; curSum = num; }\n        }\n        return count <= k;\n    }\n}",
+      "name": "PriorityQueue Greedy",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nPut every stick length into a min-heap. While more than one stick remains, remove the two shortest sticks, pay their sum, and insert the merged stick back into the heap.\n\n## Key Insight\n\nEvery merged stick may be paid for again in later merges. Connecting short sticks earlier keeps the values that are repeatedly carried forward as small as possible, which is the same greedy principle used by Huffman coding.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int connectSticks(int[] sticks) {\n        java.util.PriorityQueue<Long> heap = new java.util.PriorityQueue<>();\n        for (int stick : sticks) {\n            heap.add((long) stick);\n        }\n        long totalCost = 0;\n        while (heap.size() > 1) {\n            long merged = heap.poll() + heap.poll();\n            totalCost += merged;\n            heap.add(merged);\n        }\n        return (int) totalCost;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Dynamic Programming",
-      "timeComplexity": "O(n^2 * k)",
-      "spaceComplexity": "O(n * k)",
-      "description": "Use dp[i][j] = minimum largest sum when splitting nums[0..j-1] into i groups. For each split point, compute the sum of the last group using prefix sums and take the minimum over all split points.",
-      "code": "class Solution {\n    public int splitArray(int[] nums, int k) {\n        int n = nums.length;\n        long[] prefix = new long[n + 1];\n        for (int i = 0; i < n; i++) prefix[i + 1] = prefix[i] + nums[i];\n        long[][] dp = new long[k + 1][n + 1];\n        for (long[] row : dp) java.util.Arrays.fill(row, Long.MAX_VALUE);\n        dp[0][0] = 0;\n        for (int i = 1; i <= k; i++) {\n            for (int j = i; j <= n; j++) {\n                for (int m = i - 1; m < j; m++) {\n                    long lastSum = prefix[j] - prefix[m];\n                    long val = Math.max(dp[i - 1][m], lastSum);\n                    dp[i][j] = Math.min(dp[i][j], val);\n                }\n            }\n        }\n        return (int) dp[k][n];\n    }\n}",
+      "name": "Custom Binary Min-Heap",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nImplement the min-heap directly with an array. Push all stick lengths, repeatedly pop the two smallest values, add their sum to the answer, and push the merged length back.\n\n## Key Insight\n\nThe algorithmic requirement is only the min-heap operation, not Java's library class. Writing the heap out makes the invariant visible: the root is always the next shortest available stick.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int connectSticks(int[] sticks) {\n        MinHeap heap = new MinHeap(sticks.length * 2 + 1);\n        for (int stick : sticks) {\n            heap.push(stick);\n        }\n        long totalCost = 0;\n        while (heap.size() > 1) {\n            long merged = heap.poll() + heap.poll();\n            totalCost += merged;\n            heap.push(merged);\n        }\n        return (int) totalCost;\n    }\n\n    private static class MinHeap {\n        private final long[] heap;\n        private int size;\n\n        MinHeap(int capacity) {\n            heap = new long[Math.max(2, capacity + 1)];\n        }\n\n        int size() {\n            return size;\n        }\n\n        void push(long value) {\n            heap[++size] = value;\n            siftUp(size);\n        }\n\n        long poll() {\n            long result = heap[1];\n            heap[1] = heap[size--];\n            siftDown(1);\n            return result;\n        }\n\n        private void siftUp(int index) {\n            while (index > 1) {\n                int parent = index / 2;\n                if (heap[parent] <= heap[index]) {\n                    break;\n                }\n                swap(parent, index);\n                index = parent;\n            }\n        }\n\n        private void siftDown(int index) {\n            while (index * 2 <= size) {\n                int child = index * 2;\n                if (child + 1 <= size && heap[child + 1] < heap[child]) {\n                    child++;\n                }\n                if (heap[index] <= heap[child]) {\n                    break;\n                }\n                swap(index, child);\n                index = child;\n            }\n        }\n\n        private void swap(int a, int b) {\n            long temp = heap[a];\n            heap[a] = heap[b];\n            heap[b] = temp;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "TreeMap Frequency Multiset",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore stick lengths in a `TreeMap` from length to frequency. Each round removes the smallest key twice, pays their sum, and inserts the merged length back into the frequency map.\n\n## Key Insight\n\nA sorted multiset is another way to ask for the two smallest available sticks. It handles many duplicate lengths compactly and teaches the greedy choice independently from heap mechanics.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int connectSticks(int[] sticks) {\n        java.util.TreeMap<Long, Integer> counts = new java.util.TreeMap<>();\n        for (int stick : sticks) {\n            counts.merge((long) stick, 1, Integer::sum);\n        }\n        int remaining = sticks.length;\n        long totalCost = 0;\n        while (remaining > 1) {\n            long first = removeSmallest(counts);\n            long second = removeSmallest(counts);\n            long merged = first + second;\n            totalCost += merged;\n            counts.merge(merged, 1, Integer::sum);\n            remaining--;\n        }\n        return (int) totalCost;\n    }\n\n    private long removeSmallest(java.util.TreeMap<Long, Integer> counts) {\n        java.util.Map.Entry<Long, Integer> entry = counts.firstEntry();\n        long value = entry.getKey();\n        if (entry.getValue() == 1) {\n            counts.remove(value);\n        } else {\n            counts.put(value, entry.getValue() - 1);\n        }\n        return value;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two Sorted Queues",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort the original sticks once. During greedy merging, the next smallest candidate is either the next unused original stick or the front of the queue of merged sticks. Take the smaller front twice each round and append the new merged length to the merged queue.\n\n## Key Insight\n\nThe merged lengths produced by Huffman-style greedy processing are nondecreasing. Therefore two sorted streams, the original sorted array and the merged queue, can replace a heap after the initial sort.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int connectSticks(int[] sticks) {\n        java.util.Arrays.sort(sticks);\n        java.util.ArrayDeque<Long> mergedQueue = new java.util.ArrayDeque<>();\n        int[] cursor = new int[] {0};\n        long totalCost = 0;\n        for (int round = 0; round < sticks.length - 1; round++) {\n            long first = takeNext(sticks, cursor, mergedQueue);\n            long second = takeNext(sticks, cursor, mergedQueue);\n            long merged = first + second;\n            totalCost += merged;\n            mergedQueue.addLast(merged);\n        }\n        return (int) totalCost;\n    }\n\n    private long takeNext(int[] sticks, int[] cursor, java.util.ArrayDeque<Long> mergedQueue) {\n        if (cursor[0] < sticks.length\n                && (mergedQueue.isEmpty() || sticks[cursor[0]] <= mergedQueue.peekFirst())) {\n            return sticks[cursor[0]++];\n        }\n        return mergedQueue.removeFirst();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Repeated Sorting Baseline",
+      "timeComplexity": "O(n^2 log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nKeep the current stick lengths in a list. On every round, sort the list, remove the first two values, add their sum to the answer, and append the merged stick.\n\n## Key Insight\n\nThis route is intentionally slower, but it is a transparent baseline for the greedy process. It performs the same choices as the heap solution, so students can compare correctness before optimizing the data structure.\n\n## Complexity Analysis\n- Time Complexity: O(n^2 log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int connectSticks(int[] sticks) {\n        java.util.List<Long> stickList = new java.util.ArrayList<>();\n        for (int stick : sticks) {\n            stickList.add((long) stick);\n        }\n        long totalCost = 0;\n        while (stickList.size() > 1) {\n            java.util.Collections.sort(stickList);\n            long merged = stickList.remove(0) + stickList.remove(0);\n            totalCost += merged;\n            stickList.add(merged);\n        }\n        return (int) totalCost;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [7,2,5,10,8], k = 2", "output": "18" },
-    { "input": "nums = [1,2,3,4,5], k = 2", "output": "9" }
+    {
+      "input": "sticks = [2,4,3]",
+      "output": "14",
+      "description": "sample where 2 and 3 must merge before 4"
+    },
+    {
+      "input": "sticks = [1,8,3,5]",
+      "output": "30",
+      "description": "multiple greedy heap rounds"
+    },
+    {
+      "input": "sticks = [5]",
+      "output": "0",
+      "description": "one stick needs no operation"
+    },
+    {
+      "input": "sticks = [1,2]",
+      "output": "3",
+      "description": "minimum two-stick merge"
+    },
+    {
+      "input": "sticks = [1,1,1,1]",
+      "output": "8",
+      "description": "all equal even count"
+    },
+    {
+      "input": "sticks = [1,1,1,1,1]",
+      "output": "12",
+      "description": "all equal odd count"
+    },
+    {
+      "input": "sticks = [10,20,30]",
+      "output": "90",
+      "description": "three increasing sticks"
+    },
+    {
+      "input": "sticks = [1,2,3,4,5]",
+      "output": "33",
+      "description": "Huffman-style pairing beats naive left-to-right merging"
+    },
+    {
+      "input": "sticks = [1,2,3,4,5,6]",
+      "output": "51",
+      "description": "larger increasing chain"
+    },
+    {
+      "input": "sticks = [8,4,6,12]",
+      "output": "58",
+      "description": "unsorted classic merge order"
+    },
+    {
+      "input": "sticks = [1,1,100,100]",
+      "output": "306",
+      "description": "tiny sticks should merge before large duplicates"
+    },
+    {
+      "input": "sticks = [7,3,9,2,6]",
+      "output": "59",
+      "description": "mixed unsorted lengths"
+    },
+    {
+      "input": "sticks = [1000000,1000000]",
+      "output": "2000000",
+      "description": "large values still fit the official answer bound"
+    },
+    {
+      "input": "sticks = [4,4,4,4,4,4]",
+      "output": "64",
+      "description": "duplicate-heavy multiset case"
+    }
   ]
 }

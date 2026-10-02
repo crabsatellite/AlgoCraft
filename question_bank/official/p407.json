@@ -1,7 +1,7 @@
 {
   "id": "407",
   "title": "Design Circular Queue",
-  "description": "# Design Circular Queue\n\nDesign your implementation of the circular queue. The circular queue is a linear data structure in which the operations are performed based on FIFO (First In First Out) principle and the last position is connected back to the first position to make a circle. It is also called \"Ring Buffer\".\n\nOne of the benefits of the circular queue is that we can make use of the spaces in front of the queue. In a normal queue, once the queue becomes full, we cannot insert the next element even if there is a space in front of the queue. But using the circular queue, we can use the space to store new values.\n\nImplement the `MyCircularQueue` class:\n\n*   `MyCircularQueue(k)` Initializes the object with the size of the queue to be `k`.\n*   `int Front()` Gets the front item from the queue. If the queue is empty, return `-1`.\n*   `int Rear()` Gets the last item from the queue. If the queue is empty, return `-1`.\n*   `boolean enQueue(int value)` Inserts an element into the circular queue. Return `true` if the operation is successful.\n*   `boolean deQueue()` Deletes an element from the circular queue. Return `true` if the operation is successful.\n*   `boolean isEmpty()` Checks whether the circular queue is empty or not.\n*   `boolean isFull()` Checks whether the circular queue is full or not.\n\nYou must solve the problem without using the built-in queue data structure in your programming language.\n\n## Example 1:\n\n**Input:**\n[\"MyCircularQueue\", \"enQueue\", \"enQueue\", \"enQueue\", \"enQueue\", \"Rear\", \"isFull\", \"deQueue\", \"enQueue\", \"Rear\"]\n[[3], [1], [2], [3], [4], [], [], [], [4], []]\n**Output:**\n[null, true, true, true, false, 3, true, true, true, 4]\n**Explanation:**\nMyCircularQueue myCircularQueue = new MyCircularQueue(3);\nmyCircularQueue.enQueue(1); // return True\nmyCircularQueue.enQueue(2); // return True\nmyCircularQueue.enQueue(3); // return True\nmyCircularQueue.enQueue(4); // return False\nmyCircularQueue.Rear();     // return 3\nmyCircularQueue.isFull();   // return True\nmyCircularQueue.deQueue();  // return True\nmyCircularQueue.enQueue(4); // return True\nmyCircularQueue.Rear();     // return 4\n\n## Constraints:\n\n*   `1 <= k <= 1000`\n*   `0 <= value <= 1000`\n*   At most `3000` calls will be made to `enQueue`, `deQueue`, `Front`, `Rear`, `isEmpty`, and `isFull`.",
+  "description": "# Design Circular Queue\n\nDesign a fixed-capacity circular queue named `MyCircularQueue`. A circular queue stores elements in first-in-first-out order, but when the physical storage reaches the end it wraps back to the beginning and reuses slots that were freed by previous dequeues.\n\nImplement the `MyCircularQueue` class:\n\n* `MyCircularQueue(int k)` initializes the queue with capacity `k`.\n* `boolean enQueue(int value)` inserts `value` at the rear if the queue is not full, and returns whether the insert succeeded.\n* `boolean deQueue()` removes the front element if the queue is not empty, and returns whether the removal succeeded.\n* `int Front()` returns the front value, or `-1` when the queue is empty.\n* `int Rear()` returns the rear value, or `-1` when the queue is empty.\n* `boolean isEmpty()` returns whether the queue currently has no elements.\n* `boolean isFull()` returns whether the queue currently has exactly `k` elements.\n\nThe key behavior is slot reuse: after you remove elements from the front, later enqueues must be able to wrap around and occupy those freed positions. Do not use a built-in queue implementation.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1\n\n**Input:**\n[\"MyCircularQueue\", \"enQueue\", \"enQueue\", \"enQueue\", \"enQueue\", \"Rear\", \"isFull\", \"deQueue\", \"enQueue\", \"Rear\"]\n[[3], [1], [2], [3], [4], [], [], [], [4], []]\n\n**Output:**\n[null, true, true, true, false, 3, true, true, true, 4]\n\n**Explanation:**\nThe fourth insert fails because the capacity is 3. After one dequeue frees the front slot, inserting 4 succeeds and becomes the new rear.\n\n## Constraints\n\n* `1 <= k <= 1000`\n* `0 <= value <= 1000`\n* At most `3000` calls will be made to `enQueue`, `deQueue`, `Front`, `Rear`, `isEmpty`, and `isFull`.\n",
   "difficulty": "MEDIUM",
   "initialCode": "class MyCircularQueue {\n\n    public MyCircularQueue(int k) {\n        \n    }\n    \n    public boolean enQueue(int value) {\n        \n    }\n    \n    public boolean deQueue() {\n        \n    }\n    \n    public int Front() {\n        \n    }\n    \n    public int Rear() {\n        \n    }\n    \n    public boolean isEmpty() {\n        \n    }\n    \n    public boolean isFull() {\n        \n    }\n}",
   "tags": [
@@ -18,19 +18,43 @@
   ],
   "solutions": [
     {
-      "name": "Circular Array",
+      "name": "Counted Circular Array",
       "timeComplexity": "O(1) per operation",
       "spaceComplexity": "O(k)",
-      "description": "Use an array of size k with front and rear pointers and a count. Enqueue adds at rear, dequeue removes from front. Both wrap around using modulo.",
-      "code": "class MyCircularQueue {\n    private int[] data;\n    private int front, size, cap;\n    public MyCircularQueue(int k) {\n        data = new int[k]; cap = k; front = 0; size = 0;\n    }\n    public boolean enQueue(int value) {\n        if (isFull()) return false;\n        data[(front + size) % cap] = value;\n        size++;\n        return true;\n    }\n    public boolean deQueue() {\n        if (isEmpty()) return false;\n        front = (front + 1) % cap;\n        size--;\n        return true;\n    }\n    public int Front() {\n        return isEmpty() ? -1 : data[front];\n    }\n    public int Rear() {\n        return isEmpty() ? -1 : data[(front + size - 1) % cap];\n    }\n    public boolean isEmpty() { return size == 0; }\n    public boolean isFull() { return size == cap; }\n}",
+      "description": "## Approach\nUse an array of length `k`, a `front` index, and a `size` counter. The next rear position is `(front + size) % capacity`, so inserting after a dequeue naturally wraps into freed slots.\n\n## Key Insight\nThe `size` counter makes empty and full states unambiguous: empty means `size == 0`, full means `size == capacity`. The array index only describes where data lives physically.\n\n## Complexity Analysis\n- Time Complexity: O(1) per operation\n- Space Complexity: O(k)",
+      "code": "class MyCircularQueue {\n    private final int[] data;\n    private final int capacity;\n    private int front;\n    private int size;\n\n    public MyCircularQueue(int k) {\n        data = new int[k];\n        capacity = k;\n    }\n\n    public boolean enQueue(int value) {\n        if (isFull()) {\n            return false;\n        }\n        int rearIndex = (front + size) % capacity;\n        data[rearIndex] = value;\n        size++;\n        return true;\n    }\n\n    public boolean deQueue() {\n        if (isEmpty()) {\n            return false;\n        }\n        front = (front + 1) % capacity;\n        size--;\n        return true;\n    }\n\n    public int Front() {\n        return isEmpty() ? -1 : data[front];\n    }\n\n    public int Rear() {\n        if (isEmpty()) {\n            return -1;\n        }\n        return data[(front + size - 1) % capacity];\n    }\n\n    public boolean isEmpty() {\n        return size == 0;\n    }\n\n    public boolean isFull() {\n        return size == capacity;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Linked List Based Circular Queue",
+      "name": "One Empty Slot Ring Buffer",
       "timeComplexity": "O(1) per operation",
       "spaceComplexity": "O(k)",
-      "description": "Use a singly linked list with head and tail pointers. Track current size and capacity. Enqueue appends to tail, dequeue removes from head.",
-      "code": "class MyCircularQueue {\n    private int[] vals, nexts;\n    private int head, tail, size, cap, cnt;\n    public MyCircularQueue(int k) {\n        cap = k;\n        vals = new int[k + 1];\n        nexts = new int[k + 1];\n        java.util.Arrays.fill(nexts, -1);\n        head = -1; tail = -1; size = 0; cnt = 0;\n    }\n    public boolean enQueue(int value) {\n        if (isFull()) return false;\n        int node = cnt++;\n        vals[node] = value;\n        nexts[node] = -1;\n        if (isEmpty()) { head = node; tail = node; }\n        else { nexts[tail] = node; tail = node; }\n        size++;\n        return true;\n    }\n    public boolean deQueue() {\n        if (isEmpty()) return false;\n        head = nexts[head];\n        size--;\n        if (size == 0) { head = -1; tail = -1; }\n        return true;\n    }\n    public int Front() { return isEmpty() ? -1 : vals[head]; }\n    public int Rear() { return isEmpty() ? -1 : vals[tail]; }\n    public boolean isEmpty() { return size == 0; }\n    public boolean isFull() { return size == cap; }\n}",
+      "description": "## Approach\nAllocate `k + 1` slots and always leave one slot unused. `front` points at the current front value and `rear` points at the next write position.\n\n## Key Insight\nWithout a `size` counter, `front == rear` could mean either empty or full. The spare slot removes that ambiguity: empty is `front == rear`, and full is `(rear + 1) % data.length == front`.\n\n## Complexity Analysis\n- Time Complexity: O(1) per operation\n- Space Complexity: O(k)",
+      "code": "class MyCircularQueue {\n    private final int[] data;\n    private int front;\n    private int rear;\n\n    public MyCircularQueue(int k) {\n        data = new int[k + 1];\n    }\n\n    public boolean enQueue(int value) {\n        if (isFull()) {\n            return false;\n        }\n        data[rear] = value;\n        rear = (rear + 1) % data.length;\n        return true;\n    }\n\n    public boolean deQueue() {\n        if (isEmpty()) {\n            return false;\n        }\n        front = (front + 1) % data.length;\n        return true;\n    }\n\n    public int Front() {\n        return isEmpty() ? -1 : data[front];\n    }\n\n    public int Rear() {\n        return isEmpty() ? -1 : data[(rear - 1 + data.length) % data.length];\n    }\n\n    public boolean isEmpty() {\n        return front == rear;\n    }\n\n    public boolean isFull() {\n        return (rear + 1) % data.length == front;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Monotonic Index Ring Buffer",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\nKeep two increasing counters, `head` and `tail`, instead of wrapping the counters themselves. Physical array positions are `head % capacity` and `tail % capacity`.\n\n## Key Insight\nThe logical size is `tail - head`. This makes the state checks simple while still using a fixed circular array for storage.\n\n## Complexity Analysis\n- Time Complexity: O(1) per operation\n- Space Complexity: O(k)",
+      "code": "class MyCircularQueue {\n    private final int[] data;\n    private final int capacity;\n    private int head;\n    private int tail;\n\n    public MyCircularQueue(int k) {\n        data = new int[k];\n        capacity = k;\n    }\n\n    public boolean enQueue(int value) {\n        if (isFull()) {\n            return false;\n        }\n        data[tail % capacity] = value;\n        tail++;\n        return true;\n    }\n\n    public boolean deQueue() {\n        if (isEmpty()) {\n            return false;\n        }\n        head++;\n        return true;\n    }\n\n    public int Front() {\n        return isEmpty() ? -1 : data[head % capacity];\n    }\n\n    public int Rear() {\n        return isEmpty() ? -1 : data[(tail - 1) % capacity];\n    }\n\n    public boolean isEmpty() {\n        return head == tail;\n    }\n\n    public boolean isFull() {\n        return tail - head == capacity;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Object Linked List Queue",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(k) live nodes",
+      "description": "## Approach\nUse a singly linked list with `head` and `tail` node references, plus `size` and `capacity`. Enqueue appends a new node at the tail, and dequeue removes the head node.\n\n## Key Insight\nA circular queue is an interface contract, not necessarily an array-only implementation. The capacity check still enforces at most `k` live nodes, and head/tail references make all operations constant time.\n\n## Complexity Analysis\n- Time Complexity: O(1) per operation\n- Space Complexity: O(k) live nodes",
+      "code": "class MyCircularQueue {\n    private static final class Node {\n        int value;\n        Node next;\n\n        Node(int value) {\n            this.value = value;\n        }\n    }\n\n    private final int capacity;\n    private Node head;\n    private Node tail;\n    private int size;\n\n    public MyCircularQueue(int k) {\n        capacity = k;\n    }\n\n    public boolean enQueue(int value) {\n        if (isFull()) {\n            return false;\n        }\n        Node node = new Node(value);\n        if (isEmpty()) {\n            head = node;\n            tail = node;\n        } else {\n            tail.next = node;\n            tail = node;\n        }\n        size++;\n        return true;\n    }\n\n    public boolean deQueue() {\n        if (isEmpty()) {\n            return false;\n        }\n        head = head.next;\n        size--;\n        if (size == 0) {\n            tail = null;\n        }\n        return true;\n    }\n\n    public int Front() {\n        return isEmpty() ? -1 : head.value;\n    }\n\n    public int Rear() {\n        return isEmpty() ? -1 : tail.value;\n    }\n\n    public boolean isEmpty() {\n        return size == 0;\n    }\n\n    public boolean isFull() {\n        return size == capacity;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Preallocated Linked Ring Nodes",
+      "timeComplexity": "O(1) per operation",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\nCreate `k` node objects once and link them into a ring. `read` points to the front position, `write` points to the next slot to fill, and `lastWritten` remembers the rear value.\n\n## Key Insight\nThis keeps the linked-node model but reuses exactly the same `k` storage cells forever, making wrap-around explicit without using array indexes for queue logic.\n\n## Complexity Analysis\n- Time Complexity: O(1) per operation\n- Space Complexity: O(k)",
+      "code": "class MyCircularQueue {\n    private static final class Node {\n        int value;\n        Node next;\n    }\n\n    private final int capacity;\n    private Node read;\n    private Node write;\n    private Node lastWritten;\n    private int size;\n\n    public MyCircularQueue(int k) {\n        capacity = k;\n        Node first = new Node();\n        Node previous = first;\n        for (int i = 1; i < k; i++) {\n            previous.next = new Node();\n            previous = previous.next;\n        }\n        previous.next = first;\n        read = first;\n        write = first;\n    }\n\n    public boolean enQueue(int value) {\n        if (isFull()) {\n            return false;\n        }\n        write.value = value;\n        lastWritten = write;\n        write = write.next;\n        size++;\n        return true;\n    }\n\n    public boolean deQueue() {\n        if (isEmpty()) {\n            return false;\n        }\n        read = read.next;\n        size--;\n        return true;\n    }\n\n    public int Front() {\n        return isEmpty() ? -1 : read.value;\n    }\n\n    public int Rear() {\n        return isEmpty() ? -1 : lastWritten.value;\n    }\n\n    public boolean isEmpty() {\n        return size == 0;\n    }\n\n    public boolean isFull() {\n        return size == capacity;\n    }\n}",
       "language": "java"
     }
   ],
@@ -38,13 +62,48 @@
     {
       "input": "[\"MyCircularQueue\", \"enQueue\", \"enQueue\", \"enQueue\", \"enQueue\", \"Rear\", \"isFull\", \"deQueue\", \"enQueue\", \"Rear\"]\n[[3], [1], [2], [3], [4], [], [], [], [4], []]",
       "output": "[null, true, true, true, false, 3, true, true, true, 4]"
+    },
+    {
+      "description": "Empty queue operations, full detection, and wrap-around enqueue.",
+      "input": "[\"MyCircularQueue\",\"Front\",\"Rear\",\"isEmpty\",\"deQueue\",\"enQueue\",\"enQueue\",\"enQueue\",\"isFull\",\"deQueue\",\"enQueue\",\"Front\",\"Rear\"]\n[[2],[],[],[],[],[1],[2],[3],[],[],[3],[],[]]",
+      "output": "[null,-1,-1,true,false,true,true,false,true,true,true,2,3]"
+    },
+    {
+      "description": "Capacity-one queue must distinguish empty and full after each operation.",
+      "input": "[\"MyCircularQueue\",\"isEmpty\",\"isFull\",\"enQueue\",\"Front\",\"Rear\",\"isFull\",\"enQueue\",\"deQueue\",\"deQueue\",\"isEmpty\",\"Front\",\"Rear\",\"enQueue\",\"Rear\"]\n[[1],[],[],[7],[],[],[],[8],[],[],[],[],[],[9],[]]",
+      "output": "[null,true,false,true,7,7,true,false,true,false,true,-1,-1,true,9]"
+    },
+    {
+      "description": "Repeated enqueue/dequeue cycles must reuse storage instead of consuming a fresh slot forever.",
+      "input": "[\"MyCircularQueue\",\"enQueue\",\"deQueue\",\"enQueue\",\"deQueue\",\"enQueue\",\"deQueue\",\"enQueue\",\"enQueue\",\"isFull\",\"Front\",\"Rear\"]\n[[2],[1],[],[2],[],[3],[],[4],[5],[],[],[]]",
+      "output": "[null,true,true,true,true,true,true,true,true,true,4,5]"
+    },
+    {
+      "description": "Front and rear remain correct after wrap-around and partial removal.",
+      "input": "[\"MyCircularQueue\",\"enQueue\",\"enQueue\",\"deQueue\",\"enQueue\",\"enQueue\",\"Rear\",\"Front\",\"deQueue\",\"Rear\",\"Front\",\"isFull\"]\n[[3],[10],[20],[],[30],[40],[],[],[],[],[],[]]",
+      "output": "[null,true,true,true,true,true,40,20,true,40,30,false]"
+    },
+    {
+      "description": "Empty and full flags must update across alternating state transitions.",
+      "input": "[\"MyCircularQueue\",\"isFull\",\"enQueue\",\"isEmpty\",\"deQueue\",\"isEmpty\",\"isFull\",\"deQueue\",\"enQueue\",\"enQueue\",\"isFull\",\"enQueue\",\"isFull\"]\n[[3],[],[1],[],[],[],[],[],[2],[3],[],[4],[]]",
+      "output": "[null,false,true,false,true,true,false,false,true,true,false,true,true]"
+    },
+    {
+      "description": "Failed enqueue after a wrapped full state must not overwrite the existing front or rear.",
+      "input": "[\"MyCircularQueue\",\"enQueue\",\"enQueue\",\"enQueue\",\"deQueue\",\"deQueue\",\"enQueue\",\"enQueue\",\"enQueue\",\"Front\",\"Rear\",\"isFull\"]\n[[3],[1],[2],[3],[],[],[4],[5],[6],[],[],[]]",
+      "output": "[null,true,true,true,true,true,true,true,false,3,5,true]"
+    },
+    {
+      "description": "Boundary values 0 and 1000 must be preserved through front and rear queries.",
+      "input": "[\"MyCircularQueue\",\"enQueue\",\"Rear\",\"Front\",\"enQueue\",\"deQueue\",\"Front\",\"Rear\",\"deQueue\",\"Front\",\"Rear\"]\n[[2],[0],[],[],[1000],[],[],[],[],[],[]]",
+      "output": "[null,true,0,0,true,true,1000,1000,true,-1,-1]"
     }
   ],
   "diagrams": [
     {
       "id": "design",
       "file": "p407_design.png",
-      "caption": "Circular Queue (capacity=3)"
+      "caption": "Logical order [2,3,4] after the final successful enqueue in Example 1; front is 2 and rear is 4"
     }
   ]
 }

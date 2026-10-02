@@ -1,7 +1,7 @@
 {
   "id": "493",
   "title": "Find K Closest Elements",
-  "description": "# Find K Closest Elements\n\nGiven a **sorted** integer array `arr`, two integers `k` and `x`, return the `k` closest integers to `x` in the array. The result should also be sorted in ascending order.\n\nAn integer `a` is closer to `x` than an integer `b` if:\n\n*   `|a - x| < |b - x|`, or\n*   `|a - x| == |b - x|` and `a < b`\n\n## Example 1:\n\n**Input:** arr = [1,2,3,4,5], k = 4, x = 3\n**Output:** [1,2,3,4]\n\n## Example 2:\n\n**Input:** arr = [1,2,3,4,5], k = 4, x = -1\n**Output:** [1,2,3,4]\n\n## Constraints:\n\n*   `1 <= k <= arr.length`\n*   `1 <= arr.length <= 10^4`\n*   `arr` is sorted in **ascending** order.\n*   `-10^4 <= arr[i], x <= 10^4`",
+  "description": "# Find K Closest Elements\n\nGiven a nondecreasing integer array `arr` and integers `k` and `x`, return exactly `k` occurrences closest to `x`, also in nondecreasing order. Duplicate values are allowed.\n\nCloseness is compared value by value:\n\n* `a` is closer than `b` if `|a - x| < |b - x|`.\n* If `|a - x| == |b - x|`, the smaller value is considered closer.\n\nThe answer must use values from their existing occurrences in `arr`. If a value appears multiple times, each occurrence may be selected separately.\n\n## Example 1:\n\n**Input:** arr = [1,2,3,4,5], k = 4, x = 3\n**Output:** [1,2,3,4]\n**Explanation:** The four closest values to 3 are 3, 2, 4, and 1; the returned list is sorted.\n\n## Example 2:\n\n**Input:** arr = [1,2,3,4,5], k = 4, x = -1\n**Output:** [1,2,3,4]\n**Explanation:** All values are to the right of x, so the four smallest values are closest.\n\n## Constraints:\n\n* `1 <= k <= arr.length`\n* `1 <= arr.length <= 10^4`\n* `arr` is sorted in nondecreasing order.\n* `-10^4 <= arr[i], x <= 10^4`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public List<Integer> findClosestElements(int[] arr, int k, int x) {\n        \n    }\n}",
   "tags": [
@@ -12,29 +12,97 @@
     "Heap (Priority Queue)"
   ],
   "examples": [
-    { "input": "arr = [1,2,3,4,5], k = 4, x = 3", "output": "[1,2,3,4]" },
-    { "input": "arr = [1,2,3,4,5], k = 4, x = -1", "output": "[1,2,3,4]" }
+    {
+      "input": "arr = [1,2,3,4,5], k = 4, x = 3",
+      "output": "[1,2,3,4]"
+    },
+    {
+      "input": "arr = [1,2,3,4,5], k = 4, x = -1",
+      "output": "[1,2,3,4]"
+    }
   ],
   "solutions": [
     {
       "name": "Binary Search for Left Bound",
       "timeComplexity": "O(log(n-k) + k)",
       "spaceComplexity": "O(1)",
-      "description": "Binary search for the left boundary of the k-length window. Compare arr[mid] and arr[mid+k] distances to x to decide which direction to shrink the search space.",
-      "code": "class Solution {\n    public List<Integer> findClosestElements(int[] arr, int k, int x) {\n        int lo = 0, hi = arr.length - k;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (x - arr[mid] > arr[mid + k] - x) lo = mid + 1;\n            else hi = mid;\n        }\n        List<Integer> result = new ArrayList<>();\n        for (int i = lo; i < lo + k; i++) result.add(arr[i]);\n        return result;\n    }\n}",
+      "description": "## Approach\n\nThe answer is always a contiguous window of length `k` in the sorted array. Binary search the left boundary of that window between `0` and `n-k`. For a candidate `mid`, compare the value just inside the left edge with the value just after the right edge: if `x - arr[mid] > arr[mid + k] - x`, the better window must start farther right; otherwise it can stay at `mid` or move left.\n\n## Key Insight\n\nWhen the two boundary candidates are equally close, the smaller value should win, so the search keeps the left window by moving `hi = mid`. This encodes the tie rule directly without sorting by distance.\n\n## Complexity Analysis\n\nThe binary search does `O(log(n-k))` comparisons and then copies `k` values into the result. It uses only a few indices besides the output list.",
+      "code": "class Solution {\n    public java.util.List<Integer> findClosestElements(int[] arr, int k, int x) {\n        int lo = 0;\n        int hi = arr.length - k;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (x - arr[mid] > arr[mid + k] - x) {\n                lo = mid + 1;\n            } else {\n                hi = mid;\n            }\n        }\n\n        java.util.List<Integer> result = new java.util.ArrayList<>();\n        for (int i = lo; i < lo + k; i++) {\n            result.add(arr[i]);\n        }\n        return result;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Two Pointer Shrink",
-      "timeComplexity": "O(n)",
+      "name": "Two Pointer Shrink Window",
+      "timeComplexity": "O(n-k + k)",
       "spaceComplexity": "O(1)",
-      "description": "Start with the full array as candidates. Shrink from whichever end is farther from x until the window has exactly k elements.",
-      "code": "class Solution {\n    public java.util.List<Integer> findClosestElements(int[] arr, int k, int x) {\n        int lo = 0, hi = arr.length - 1;\n        while (hi - lo >= k) {\n            if (Math.abs(arr[lo] - x) > Math.abs(arr[hi] - x)) {\n                lo++;\n            } else {\n                hi--;\n            }\n        }\n        java.util.List<Integer> result = new java.util.ArrayList<>();\n        for (int i = lo; i <= hi; i++) result.add(arr[i]);\n        return result;\n    }\n}",
+      "description": "## Approach\n\nStart with the whole sorted array as the candidate window. While the window is longer than `k`, compare the two endpoints and remove the endpoint that is farther from `x`. When distances tie, remove the right endpoint because the smaller left value has priority.\n\n## Key Insight\n\nThe sorted order means the final answer is still one contiguous window. Each removal discards one value that cannot beat every remaining value under the distance and smaller-value tie rules.\n\n## Complexity Analysis\n\nThe shrink phase removes `n-k` values, then the algorithm copies `k` values. It uses constant extra state besides the returned list.",
+      "code": "class Solution {\n    public java.util.List<Integer> findClosestElements(int[] arr, int k, int x) {\n        int left = 0;\n        int right = arr.length - 1;\n        while (right - left + 1 > k) {\n            int leftDistance = Math.abs(arr[left] - x);\n            int rightDistance = Math.abs(arr[right] - x);\n            if (leftDistance <= rightDistance) {\n                right--;\n            } else {\n                left++;\n            }\n        }\n\n        java.util.List<Integer> result = new java.util.ArrayList<>();\n        for (int i = left; i <= right; i++) {\n            result.add(arr[i]);\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Expand Around Insertion Point",
+      "timeComplexity": "O(log n + k)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFirst find the insertion point of `x`: the first index whose value is at least `x`. Keep one pointer on the smaller side and one pointer on the greater-or-equal side. Expand outward until exactly `k` values lie between the pointers, choosing the closer side each time and choosing the left side on a tie.\n\n## Key Insight\n\nLower-bound search places the two pointers around the best local neighborhood. Since the array is sorted, moving outward only increases distance on each side, so a greedy expansion gives the same selected window as distance sorting.\n\n## Complexity Analysis\n\nThe lower-bound search costs `O(log n)`, expansion chooses `k` values, and output copying also visits `k` values. The algorithm stores only indices beyond the output list.",
+      "code": "class Solution {\n    public java.util.List<Integer> findClosestElements(int[] arr, int k, int x) {\n        int lo = 0;\n        int hi = arr.length;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (arr[mid] < x) {\n                lo = mid + 1;\n            } else {\n                hi = mid;\n            }\n        }\n\n        int left = lo - 1;\n        int right = lo;\n        while (right - left - 1 < k) {\n            if (left < 0) {\n                right++;\n            } else if (right == arr.length) {\n                left--;\n            } else if (x - arr[left] <= arr[right] - x) {\n                left--;\n            } else {\n                right++;\n            }\n        }\n\n        java.util.List<Integer> result = new java.util.ArrayList<>();\n        for (int i = left + 1; i < right; i++) {\n            result.add(arr[i]);\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bounded Max Heap",
+      "timeComplexity": "O(n log k + k log k)",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nScan every value and keep a priority queue of at most `k` selected candidates. The queue head is the current worst selected value: larger distance is worse, and for equal distance the larger value is worse. Whenever the queue grows beyond `k`, remove that worst candidate. Sort the survivors before returning them.\n\n## Key Insight\n\nThis method follows the problem definition directly and is a useful baseline when the input is sorted but we want to reason by ranking individual candidates. The custom comparator must reverse both the distance order and the tie order so that `poll()` removes exactly the value that should not remain.\n\n## Complexity Analysis\n\nEach array value may enter a heap of size at most `k`, so the scan costs `O(n log k)`. Sorting the final `k` survivors costs `O(k log k)`, and the heap stores `O(k)` values.",
+      "code": "class Solution {\n    public java.util.List<Integer> findClosestElements(int[] arr, int k, int x) {\n        java.util.PriorityQueue<Integer> heap = new java.util.PriorityQueue<>((a, b) -> {\n            int distanceA = Math.abs(a - x);\n            int distanceB = Math.abs(b - x);\n            if (distanceA != distanceB) {\n                return Integer.compare(distanceB, distanceA);\n            }\n            return Integer.compare(b, a);\n        });\n\n        for (int value : arr) {\n            heap.offer(value);\n            if (heap.size() > k) {\n                heap.poll();\n            }\n        }\n\n        java.util.List<Integer> result = new java.util.ArrayList<>(heap);\n        java.util.Collections.sort(result);\n        return result;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "arr = [1,2,3,4,5], k = 4, x = 3", "output": "[1,2,3,4]" },
-    { "input": "arr = [1,2,3,4,5], k = 4, x = -1", "output": "[1,2,3,4]" }
+    {
+      "input": "arr = [1,2,3,4,5], k = 4, x = 3",
+      "output": "[1,2,3,4]"
+    },
+    {
+      "input": "arr = [1,2,3,4,5], k = 4, x = -1",
+      "output": "[1,2,3,4]"
+    },
+    {
+      "input": "arr = [1,1,2,3,4,5], k = 4, x = -1",
+      "output": "[1,1,2,3]"
+    },
+    {
+      "input": "arr = [1,2,3,4,5], k = 4, x = 4",
+      "output": "[2,3,4,5]"
+    },
+    {
+      "input": "arr = [1,2,3,4,5], k = 1, x = 6",
+      "output": "[5]"
+    },
+    {
+      "input": "arr = [1,2,3,4,5], k = 4, x = 100",
+      "output": "[2,3,4,5]"
+    },
+    {
+      "input": "arr = [2,4,6], k = 3, x = 5",
+      "output": "[2,4,6]"
+    },
+    {
+      "input": "arr = [0,1,1,1,2,3,6,7,8,9], k = 9, x = 4",
+      "output": "[0,1,1,1,2,3,6,7,8]"
+    },
+    {
+      "input": "arr = [1,2,2,2,3,3,4], k = 3, x = 2",
+      "output": "[2,2,2]"
+    },
+    {
+      "input": "arr = [-10,-5,-2,0,3,4,9], k = 4, x = -3",
+      "output": "[-5,-2,0,3]"
+    },
+    {
+      "input": "arr = [1,3,5,7,9], k = 2, x = 6",
+      "output": "[5,7]"
+    },
+    {
+      "input": "arr = [-10000,-9999,0,9999,10000], k = 3, x = 9998",
+      "output": "[0,9999,10000]"
+    }
   ]
 }

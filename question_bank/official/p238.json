@@ -1,7 +1,7 @@
 {
   "id": "238",
   "title": "Range Sum of BST",
-  "description": "# Range Sum of BST\n\nGiven the `root` node of a binary search tree and two integers `low` and `high`, return *the sum of values of all nodes with a value in the **inclusive** range* `[low, high]`.\n\n## Example 1:\n\n**Input:** root = [10,5,15,3,7,null,18], low = 7, high = 15\n**Output:** 32\n**Explanation:** Nodes 7, 10, and 15 are in the range [7, 15]. 7 + 10 + 15 = 32.\n\n## Example 2:\n\n**Input:** root = [10,5,15,3,7,13,18,1,null,6], low = 6, high = 10\n**Output:** 23\n**Explanation:** Nodes 6, 7, and 10 are in the range [6, 10]. 6 + 7 + 10 = 23.\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[1, 2 * 10^4]`.\n*   `1 <= Node.val <= 10^5`\n*   `1 <= low <= high <= 10^5`\n*   All `Node.val` are **unique**.",
+  "description": "# Range Sum of BST\n\nGiven the `root` node of a binary search tree and two integers `low` and `high`, return *the sum of values of all nodes with a value in the **inclusive** range* `[low, high]`.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [10,5,15,3,7,null,18], low = 7, high = 15\n**Output:** 32\n**Explanation:** Nodes 7, 10, and 15 are in the range [7, 15]. 7 + 10 + 15 = 32.\n\n## Example 2:\n\n**Input:** root = [10,5,15,3,7,13,18,1,null,6], low = 6, high = 10\n**Output:** 23\n**Explanation:** Nodes 6, 7, and 10 are in the range [6, 10]. 6 + 7 + 10 = 23.\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[1, 2 * 10^4]`.\n*   `1 <= Node.val <= 10^5`\n*   `1 <= low <= high <= 10^5`\n*   All `Node.val` are **unique**.",
   "difficulty": "EASY",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public int rangeSumBST(TreeNode root, int low, int high) {\n        // Write your code here\n        return 0;\n    }\n}",
   "tags": [
@@ -22,37 +22,108 @@
   ],
   "solutions": [
     {
-      "name": "DFS with Pruning",
+      "name": "Recursive DFS with BST Pruning",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "Recursively traverse the BST. If node value < low, only search right subtree. If node value > high, only search left subtree. Otherwise, include the node value and search both subtrees.",
-      "code": "class Solution {\n    public int rangeSumBST(TreeNode root, int low, int high) {\n        if (root == null) return 0;\n        if (root.val < low) return rangeSumBST(root.right, low, high);\n        if (root.val > high) return rangeSumBST(root.left, low, high);\n        return root.val + rangeSumBST(root.left, low, high) + rangeSumBST(root.right, low, high);\n    }\n}",
+      "description": "## Approach\n\nUse recursion and the BST ordering to skip impossible subtrees. If the current value is below `low`, recurse only into the right subtree; if it is above `high`, recurse only into the left subtree; otherwise add the value and search both sides.\n\n## Key Insight\n\nA BST partitions values around each node. Values in the left subtree are smaller and values in the right subtree are larger, so a node outside the range can prove that one entire child subtree cannot contribute.\n\n## Complexity Analysis\n\n- Time Complexity: O(n) in the worst case, though pruning often visits fewer nodes.\n- Space Complexity: O(h), where `h` is the tree height from the recursion stack.",
+      "code": "class Solution {\n    public int rangeSumBST(TreeNode root, int low, int high) {\n        if (root == null) {\n            return 0;\n        }\n        if (root.val < low) {\n            return rangeSumBST(root.right, low, high);\n        }\n        if (root.val > high) {\n            return rangeSumBST(root.left, low, high);\n        }\n        return root.val\n                + rangeSumBST(root.left, low, high)\n                + rangeSumBST(root.right, low, high);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Iterative BFS with Pruning",
+      "name": "Iterative Stack DFS with Pruning",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nReplace recursive calls with an explicit stack. Pop one candidate node at a time, use its value to decide which children can still contain range values, and add only values inside the inclusive interval.\n\n## Key Insight\n\nThis is the same pruning invariant as recursive DFS, but making the stack explicit avoids depending on the Java call stack and makes the traversal state visible for teaching.\n\n## Complexity Analysis\n\n- Time Complexity: O(n) in the worst case.\n- Space Complexity: O(h) for a balanced tree and O(n) in the worst skewed case.",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\nclass Solution {\n    public int rangeSumBST(TreeNode root, int low, int high) {\n        int sum = 0;\n        Deque<TreeNode> stack = new ArrayDeque<>();\n        if (root != null) {\n            stack.push(root);\n        }\n        while (!stack.isEmpty()) {\n            TreeNode node = stack.pop();\n            if (node.val < low) {\n                if (node.right != null) {\n                    stack.push(node.right);\n                }\n            } else if (node.val > high) {\n                if (node.left != null) {\n                    stack.push(node.left);\n                }\n            } else {\n                sum += node.val;\n                if (node.left != null) {\n                    stack.push(node.left);\n                }\n                if (node.right != null) {\n                    stack.push(node.right);\n                }\n            }\n        }\n        return sum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative BFS Queue with Pruning",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use an iterative BFS approach with a queue. For each node, only add children that could contain values in the range.",
-      "code": "import java.util.LinkedList;\nimport java.util.Queue;\n\nclass Solution {\n    public int rangeSumBST(TreeNode root, int low, int high) {\n        if (root == null) return 0;\n        int sum = 0;\n        Queue<TreeNode> queue = new LinkedList<>();\n        queue.add(root);\n        while (!queue.isEmpty()) {\n            TreeNode node = queue.poll();\n            if (node == null) continue;\n            if (node.val >= low && node.val <= high) sum += node.val;\n            if (node.val > low) queue.add(node.left);\n            if (node.val < high) queue.add(node.right);\n        }\n        return sum;\n    }\n}",
+      "description": "## Approach\n\nProcess candidate nodes with a queue. For each node, add its value if it lies in range, enqueue the left child only when smaller values could still help, and enqueue the right child only when larger values could still help.\n\n## Key Insight\n\nBFS changes only the visit order. The same BST inequalities still decide which child subtrees are worth exploring.\n\n## Complexity Analysis\n\n- Time Complexity: O(n) in the worst case.\n- Space Complexity: O(n), because a wide tree can place many nodes in the queue.",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Queue;\n\nclass Solution {\n    public int rangeSumBST(TreeNode root, int low, int high) {\n        if (root == null) {\n            return 0;\n        }\n        int sum = 0;\n        Queue<TreeNode> queue = new ArrayDeque<>();\n        queue.add(root);\n        while (!queue.isEmpty()) {\n            TreeNode node = queue.poll();\n            if (node.val >= low && node.val <= high) {\n                sum += node.val;\n            }\n            if (node.val > low && node.left != null) {\n                queue.add(node.left);\n            }\n            if (node.val < high && node.right != null) {\n                queue.add(node.right);\n            }\n        }\n        return sum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Inorder Stack Range Scan",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nDo an iterative inorder traversal with a stack. Because inorder traversal of a BST is sorted, skip left descent when a node is still below `low`, add nodes in range, and stop as soon as the traversal passes `high`.\n\n## Key Insight\n\nThe range is contiguous in sorted BST order. Inorder traversal lets us ignore values before `low` and terminate once every future value would be too large.\n\n## Complexity Analysis\n\n- Time Complexity: O(n) in the worst case, with early stopping when the range ends early.\n- Space Complexity: O(h), where `h` is the tree height.",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\nclass Solution {\n    public int rangeSumBST(TreeNode root, int low, int high) {\n        int sum = 0;\n        Deque<TreeNode> stack = new ArrayDeque<>();\n        TreeNode node = root;\n        while (node != null || !stack.isEmpty()) {\n            while (node != null) {\n                if (node.val >= low) {\n                    stack.push(node);\n                    node = node.left;\n                } else {\n                    node = node.right;\n                }\n            }\n            if (stack.isEmpty()) {\n                break;\n            }\n            node = stack.pop();\n            if (node.val > high) {\n                break;\n            }\n            sum += node.val;\n            node = node.right;\n        }\n        return sum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Morris Inorder Constant-Space Traversal",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse Morris inorder traversal to visit the BST without a stack or recursion. Temporarily thread each node's inorder predecessor back to the node, restore that pointer when returning, and add visited values that lie in the range.\n\n## Key Insight\n\nMorris traversal trades temporary pointer rewiring for constant auxiliary space. It is less direct than pruning DFS, but it teaches how inorder traversal can be made stack-free while still restoring the tree.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each edge is followed a constant number of times.\n- Space Complexity: O(1), excluding the input tree.",
+      "code": "class Solution {\n    public int rangeSumBST(TreeNode root, int low, int high) {\n        int sum = 0;\n        TreeNode current = root;\n        while (current != null) {\n            if (current.left == null) {\n                if (current.val >= low && current.val <= high) {\n                    sum += current.val;\n                }\n                current = current.right;\n            } else {\n                TreeNode predecessor = current.left;\n                while (predecessor.right != null && predecessor.right != current) {\n                    predecessor = predecessor.right;\n                }\n                if (predecessor.right == null) {\n                    predecessor.right = current;\n                    current = current.left;\n                } else {\n                    predecessor.right = null;\n                    if (current.val >= low && current.val <= high) {\n                        sum += current.val;\n                    }\n                    current = current.right;\n                }\n            }\n        }\n        return sum;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "root = [10,5,15,3,7,null,18], low = 7, high = 15",
-      "output": "32"
+      "output": "32",
+      "description": "The example sums nodes 7, 10, and 15."
     },
     {
       "input": "root = [10,5,15,3,7,13,18,1,null,6], low = 6, high = 10",
-      "output": "23"
+      "output": "23",
+      "description": "The range includes a lower subtree node and the root."
+    },
+    {
+      "input": "root = [10], low = 5, high = 15",
+      "output": "10",
+      "description": "A single root inside the range is included."
+    },
+    {
+      "input": "root = [10,5,15], low = 16, high = 20",
+      "output": "0",
+      "description": "A valid range can contain no tree values above the tree."
+    },
+    {
+      "input": "root = [18,9,27,6,15,24,30], low = 10, high = 25",
+      "output": "57",
+      "description": "BST pruning must still include values from both sides of the root."
+    },
+    {
+      "input": "root = [5,3,8,2,4,6,10], low = 3, high = 8",
+      "output": "26",
+      "description": "Inclusive bounds include both endpoints when present."
+    },
+    {
+      "input": "root = [8,3,10,1,6,null,14,null,null,4,7,13], low = 4, high = 13",
+      "output": "48",
+      "description": "A sparse tree with null slots requires correct level-order parsing and cross-subtree summing."
+    },
+    {
+      "input": "root = [20,10,30,5,15,25,35,3,7,13,17], low = 3, high = 35",
+      "output": "180",
+      "description": "A range spanning the full tree should include every node exactly once."
+    },
+    {
+      "input": "root = [20,10,30,5,15,25,35], low = 14, high = 16",
+      "output": "15",
+      "description": "A narrow range can match exactly one interior node."
+    },
+    {
+      "input": "root = [4,2,6,1,3,5,7], low = 1, high = 1",
+      "output": "1",
+      "description": "A single-value range includes the low endpoint when it exists."
+    },
+    {
+      "input": "root = [4,2,6,1,3,5,7], low = 7, high = 7",
+      "output": "7",
+      "description": "A single-value range includes the high endpoint when it exists."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p238_example1.png",
-      "caption": "Example 1: BST [10,5,15,3,7,null,18] with range [7,15] highlighted"
+      "caption": "BST input with low and high values"
     }
   ]
 }

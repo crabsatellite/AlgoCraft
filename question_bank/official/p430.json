@@ -1,10 +1,15 @@
 {
   "id": "430",
   "title": "Design File System",
-  "description": "# Design File System\n\nYou are asked to design a file system that allows you to create new paths and associate them with different values.\n\nThe format of a path is one or more concatenated strings of the form: `/` followed by one or more lowercase English letters. For example, `/leetcode` and `/leetcode/problems` are valid paths while an empty string `\"\"` and `/` are not.\n\nImplement the `FileSystem` class:\n\n*   `FileSystem()` Initializes the object of the system.\n*   `boolean createPath(string path, int value)` Creates a new `path` and associates a `value` to it if and only if all the following conditions are met:\n    *   The `path` does not exist in `FileSystem`.\n    *   The parent of the `path` exists in `FileSystem`.\n    *   Returns `true` if the path is successfully created, or `false` otherwise.\n*   `int get(string path)` Returns the value associated with `path` or `-1` if the `path` does not exist.\n\n## Example 1:\n\n**Input:**\n[\"FileSystem\",\"createPath\",\"get\"]\n[[],[\"/a\",1],[\"/a\"]]\n**Output:**\n[null,true,1]\n**Explanation:**\nFileSystem fileSystem = new FileSystem();\n\nfileSystem.createPath(\"/a\", 1); // return true\nfileSystem.get(\"/a\"); // return 1\n\n## Example 2:\n\n**Input:**\n[\"FileSystem\",\"createPath\",\"createPath\",\"get\",\"createPath\",\"get\"]\n[[],[\"/leet\",1],[\"/leet/code\",2],[\"/leet/code\"],[\"/c/d\",1],[\"/c\"]]\n**Output:**\n[null,true,true,2,false,-1]\n**Explanation:**\nFileSystem fileSystem = new FileSystem();\n\nfileSystem.createPath(\"/leet\", 1); // return true\nfileSystem.createPath(\"/leet/code\", 2); // return true\nfileSystem.get(\"/leet/code\"); // return 2\nfileSystem.createPath(\"/c/d\", 1); // return false because the parent path \"/c\" doesn't exist.\nfileSystem.get(\"/c\"); // return -1 because this path doesn't exist.\n\n## Constraints:\n\n*   `2 <= path.length <= 100`\n*   `1 <= value <= 10^9`\n*   Each `path` and parent path consists of lowercase English letters.\n*   At most `10^4` calls will be made to `createPath` and `get`.",
+  "description": "# Design File System\n\nDesign a file system that can create paths and associate each created path with an integer value.\n\nA valid path consists of one or more path segments. Each segment has the form `/` followed by one or more lowercase English letters. For example, `/leetcode` and `/leetcode/problems` are valid paths, while an empty string `\"\"` and `/` are not valid paths.\n\nImplement the `FileSystem` class:\n\n*   `FileSystem()` initializes an empty file system.\n*   `boolean createPath(String path, int value)` creates `path` and associates it with `value` only if `path` does not already exist and its parent path already exists. Return `true` if creation succeeds, otherwise return `false`.\n*   `int get(String path)` returns the value associated with `path`, or `-1` if `path` does not exist.\n\nThe parent of a path is determined by the last `/` separator, not by a string prefix. For example, `/a` is not the parent of `/ab/c`; the parent of `/ab/c` is `/ab`.\n\nA top-level path such as `/a` can be created directly. The implicit root `/` needs no creation and stores no integer value. Deeper paths require their immediate parent to exist.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1:\n\n**Input:**\n[\"FileSystem\",\"createPath\",\"get\"]\n[[],[\"/a\",1],[\"/a\"]]\n**Output:**\n[null,true,1]\n\n## Example 2:\n\n**Input:**\n[\"FileSystem\",\"createPath\",\"createPath\",\"get\",\"createPath\",\"get\"]\n[[],[\"/leet\",1],[\"/leet/code\",2],[\"/leet/code\"],[\"/c/d\",1],[\"/c\"]]\n**Output:**\n[null,true,true,2,false,-1]\n\n**Explanation:**\n`/leet/code` can be created because `/leet` exists. `/c/d` cannot be created because its parent `/c` does not exist.\n\n## Constraints:\n\n*   `2 <= path.length <= 100`\n*   `1 <= value <= 10^9`\n*   Each `path` and parent path consists of lowercase English letters separated by `/`.\n*   At most `10^4` calls will be made to `createPath` and `get`.",
   "difficulty": "MEDIUM",
   "initialCode": "class FileSystem {\n\n    public FileSystem() {\n        \n    }\n    \n    public boolean createPath(String path, int value) {\n        \n    }\n    \n    public int get(String path) {\n        \n    }\n}",
-  "tags": ["Hash Table", "String", "Design", "Trie"],
+  "tags": [
+    "Hash Table",
+    "String",
+    "Design",
+    "Trie"
+  ],
   "examples": [
     {
       "input": "[\"FileSystem\",\"createPath\",\"get\"]\n[[],[\"/a\",1],[\"/a\"]]",
@@ -15,24 +20,6 @@
       "output": "[null,true,true,2,false,-1]"
     }
   ],
-  "solutions": [
-    {
-      "name": "HashMap of Paths",
-      "timeComplexity": "O(L) per operation",
-      "spaceComplexity": "O(n * L)",
-      "description": "Use a HashMap mapping full path strings to values. createPath checks if path already exists and if parent path exists (by trimming last segment). get does a direct lookup.",
-      "code": "class FileSystem {\n    private java.util.Map<String, Integer> map = new java.util.HashMap<>();\n    public FileSystem() { map.put(\"\", 0); }\n    public boolean createPath(String path, int value) {\n        if (map.containsKey(path)) return false;\n        String parent = path.substring(0, path.lastIndexOf('/'));\n        if (!map.containsKey(parent)) return false;\n        map.put(path, value);\n        return true;\n    }\n    public int get(String path) {\n        return map.getOrDefault(path, -1);\n    }\n}",
-      "language": "java"
-    },
-    {
-      "name": "Trie Based File System",
-      "timeComplexity": "O(L) per operation",
-      "spaceComplexity": "O(n * L)",
-      "description": "Use a Trie where each node represents a path component. createPath splits the path by '/' and traverses the trie, checking that the parent exists. get traverses to the target node.",
-      "code": "import java.util.*;\n\nclass FileSystem {\n    private Map<String, Integer>[] children;\n    private int[] values;\n    private int cnt;\n    public FileSystem() {\n        children = new HashMap[100001];\n        values = new int[100001];\n        Arrays.fill(values, -1);\n        children[0] = new HashMap();\n        cnt = 1;\n    }\n    public boolean createPath(String path, int value) {\n        String[] parts = path.split(\"/\");\n        int node = 0;\n        for (int i = 1; i < parts.length - 1; i++) {\n            if (!children[node].containsKey(parts[i])) return false;\n            node = children[node].get(parts[i]).intValue();\n        }\n        String last = parts[parts.length - 1];\n        if (children[node].containsKey(last)) return false;\n        int newNode = cnt++;\n        children[newNode] = new HashMap();\n        values[newNode] = value;\n        children[node].put(last, newNode);\n        return true;\n    }\n    public int get(String path) {\n        String[] parts = path.split(\"/\");\n        int node = 0;\n        for (int i = 1; i < parts.length; i++) {\n            if (!children[node].containsKey(parts[i])) return -1;\n            node = children[node].get(parts[i]).intValue();\n        }\n        return values[node];\n    }\n}",
-      "language": "java"
-    }
-  ],
   "tests": [
     {
       "input": "[\"FileSystem\",\"createPath\",\"get\"]\n[[],[\"/a\",1],[\"/a\"]]",
@@ -41,6 +28,73 @@
     {
       "input": "[\"FileSystem\",\"createPath\",\"createPath\",\"get\",\"createPath\",\"get\"]\n[[],[\"/leet\",1],[\"/leet/code\",2],[\"/leet/code\"],[\"/c/d\",1],[\"/c\"]]",
       "output": "[null,true,true,2,false,-1]"
+    },
+    {
+      "description": "Duplicate paths fail and a missing parent prevents deeper creation.",
+      "input": "[\"FileSystem\",\"createPath\",\"createPath\",\"createPath\",\"get\",\"get\"]\n[[],[\"/a\",1],[\"/a\",2],[\"/a/b/c\",3],[\"/a\"],[\"/a/b\"]]",
+      "output": "[null,true,false,false,1,-1]"
+    },
+    {
+      "description": "Independent root branches keep their own descendants and values.",
+      "input": "[\"FileSystem\",\"createPath\",\"createPath\",\"createPath\",\"createPath\",\"get\",\"get\"]\n[[],[\"/a\",1],[\"/a/b\",2],[\"/c\",3],[\"/c/d\",4],[\"/a/b\"],[\"/c/d\"]]",
+      "output": "[null,true,true,true,true,2,4]"
+    },
+    {
+      "description": "A child creation can fail before its parent exists and later succeed after the parent is created.",
+      "input": "[\"FileSystem\",\"createPath\",\"createPath\",\"createPath\",\"get\",\"get\"]\n[[],[\"/a/b\",10],[\"/a\",5],[\"/a/b\",10],[\"/a/b\"],[\"/a\"]]",
+      "output": "[null,false,true,true,10,5]"
+    },
+    {
+      "description": "A string prefix is not enough to be a parent path.",
+      "input": "[\"FileSystem\",\"createPath\",\"createPath\",\"createPath\",\"createPath\",\"get\",\"get\"]\n[[],[\"/a\",1],[\"/ab/c\",2],[\"/ab\",3],[\"/ab/c\",4],[\"/ab/c\"],[\"/a\"]]",
+      "output": "[null,true,false,true,true,4,1]"
+    },
+    {
+      "description": "Large values are stored exactly and duplicate creation preserves the original value.",
+      "input": "[\"FileSystem\",\"createPath\",\"createPath\",\"createPath\",\"get\",\"get\"]\n[[],[\"/root\",1000000000],[\"/root/child\",7],[\"/root/child\",8],[\"/root/child\"],[\"/missing\"]]",
+      "output": "[null,true,true,false,7,-1]"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Full Path HashMap",
+      "timeComplexity": "O(L) createPath, O(1) average get",
+      "spaceComplexity": "O(n * L)",
+      "description": "## Approach\n\nStore every created full path in a `HashMap` from path string to value. Treat the empty string as the virtual root. To create a path, reject it if it already exists, find its parent by the last slash, and check that the parent path is already in the map.\n\n## Key Insight\n\nThe parent path is not a string prefix; it is exactly the substring before the final slash. Storing full paths makes the parent-existence rule simple and direct.\n\n## Complexity Analysis\n- Time Complexity: O(L) for createPath because it extracts the parent string, and O(1) average for get\n- Space Complexity: O(n * L)",
+      "code": "import java.util.HashMap;\nimport java.util.Map;\n\nclass FileSystem {\n    private Map<String, Integer> values;\n\n    public FileSystem() {\n        values = new HashMap<>();\n        values.put(\"\", 0);\n    }\n\n    public boolean createPath(String path, int value) {\n        if (values.containsKey(path)) {\n            return false;\n        }\n        int split = path.lastIndexOf('/');\n        String parent = path.substring(0, split);\n        if (!values.containsKey(parent)) {\n            return false;\n        }\n        values.put(path, value);\n        return true;\n    }\n\n    public int get(String path) {\n        return values.getOrDefault(path, -1);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Object Trie Nodes",
+      "timeComplexity": "O(L) per operation",
+      "spaceComplexity": "O(total path segments)",
+      "description": "## Approach\n\nRepresent the file system as a trie of path segments. Each node owns a map from child segment name to child node and stores the value associated with the path ending at that node. Creating a path walks to the parent node first, then inserts the final child segment.\n\n## Key Insight\n\nThe problem is hierarchical, so a trie mirrors the real parent-child structure. A missing intermediate segment immediately proves that the parent path does not exist.\n\n## Complexity Analysis\n- Time Complexity: O(L) per operation\n- Space Complexity: O(total path segments)",
+      "code": "import java.util.HashMap;\nimport java.util.Map;\n\nclass FileSystem {\n    private static class Node {\n        Map<String, Node> children = new HashMap<>();\n        int value = -1;\n    }\n\n    private Node root;\n\n    public FileSystem() {\n        root = new Node();\n    }\n\n    public boolean createPath(String path, int value) {\n        String[] parts = path.split(\"/\");\n        Node current = root;\n        for (int i = 1; i < parts.length - 1; i++) {\n            current = current.children.get(parts[i]);\n            if (current == null) {\n                return false;\n            }\n        }\n        String leaf = parts[parts.length - 1];\n        if (current.children.containsKey(leaf)) {\n            return false;\n        }\n        Node child = new Node();\n        child.value = value;\n        current.children.put(leaf, child);\n        return true;\n    }\n\n    public int get(String path) {\n        String[] parts = path.split(\"/\");\n        Node current = root;\n        for (int i = 1; i < parts.length; i++) {\n            current = current.children.get(parts[i]);\n            if (current == null) {\n                return -1;\n            }\n        }\n        return current.value;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Array Indexed Trie",
+      "timeComplexity": "O(L) per operation",
+      "spaceComplexity": "O(total path segments)",
+      "description": "## Approach\n\nUse integer node ids for trie nodes. Each node id has a child map from segment name to child node id, and a value array stores the value for each node. `createPath` walks to the parent id, creates a new id for the leaf segment, and stores the value there.\n\n## Key Insight\n\nThis is the same trie structure as object nodes, but the node state is stored in arrays. It is useful for teaching how object graphs can be represented with compact ids and parallel arrays.\n\n## Complexity Analysis\n- Time Complexity: O(L) per operation\n- Space Complexity: O(total path segments)",
+      "code": "import java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.Map;\n\nclass FileSystem {\n    private Map<String, Integer>[] children;\n    private int[] nodeValues;\n    private int nextId;\n\n    public FileSystem() {\n        children = new HashMap[100001];\n        nodeValues = new int[100001];\n        Arrays.fill(nodeValues, -1);\n        children[0] = new HashMap<>();\n        nextId = 1;\n    }\n\n    public boolean createPath(String path, int value) {\n        String[] parts = path.split(\"/\");\n        int node = 0;\n        for (int i = 1; i < parts.length - 1; i++) {\n            Integer child = children[node].get(parts[i]);\n            if (child == null) {\n                return false;\n            }\n            node = child;\n        }\n        String leaf = parts[parts.length - 1];\n        if (children[node].containsKey(leaf)) {\n            return false;\n        }\n        int newNode = nextId++;\n        children[newNode] = new HashMap<>();\n        nodeValues[newNode] = value;\n        children[node].put(leaf, newNode);\n        return true;\n    }\n\n    public int get(String path) {\n        String[] parts = path.split(\"/\");\n        int node = 0;\n        for (int i = 1; i < parts.length; i++) {\n            Integer child = children[node].get(parts[i]);\n            if (child == null) {\n                return -1;\n            }\n            node = child;\n        }\n        return nodeValues[node];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Path Id Registry",
+      "timeComplexity": "O(L) createPath, O(1) average get",
+      "spaceComplexity": "O(n * L)",
+      "description": "## Approach\n\nMaintain a registry from full path string to a stable integer id. A parallel list stores each id's value. The virtual root gets id zero. Creating a path validates the parent path in the registry, assigns a new id to the new path, and stores the value at that id.\n\n## Key Insight\n\nThe full path is still the lookup key, but internal state uses ids. This separates external path identity from internal storage and makes it easy to attach more metadata to nodes later.\n\n## Complexity Analysis\n- Time Complexity: O(L) for createPath and O(1) average for get\n- Space Complexity: O(n * L)",
+      "code": "import java.util.ArrayList;\nimport java.util.HashMap;\nimport java.util.List;\nimport java.util.Map;\n\nclass FileSystem {\n    private Map<String, Integer> idByPath;\n    private List<Integer> values;\n\n    public FileSystem() {\n        idByPath = new HashMap<>();\n        values = new ArrayList<>();\n        idByPath.put(\"\", 0);\n        values.add(-1);\n    }\n\n    public boolean createPath(String path, int value) {\n        if (idByPath.containsKey(path)) {\n            return false;\n        }\n        int split = path.lastIndexOf('/');\n        String parent = path.substring(0, split);\n        if (!idByPath.containsKey(parent)) {\n            return false;\n        }\n        idByPath.put(path, values.size());\n        values.add(value);\n        return true;\n    }\n\n    public int get(String path) {\n        Integer id = idByPath.get(path);\n        if (id == null) {\n            return -1;\n        }\n        return values.get(id);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Parent Children Index",
+      "timeComplexity": "O(L) createPath, O(1) average get",
+      "spaceComplexity": "O(n * L)",
+      "description": "## Approach\n\nKeep a value map for full paths and a second map from each parent path to the set of its child segment names. To create a path, split out the parent path and leaf segment, require that the parent has a child set, then add the leaf under that parent and create a new child set for the new path.\n\n## Key Insight\n\nThis representation explicitly indexes parent-to-children relationships. It still supports direct value lookup, but the create operation is phrased in terms of a parent's child table.\n\n## Complexity Analysis\n- Time Complexity: O(L) for createPath and O(1) average for get\n- Space Complexity: O(n * L)",
+      "code": "import java.util.HashMap;\nimport java.util.HashSet;\nimport java.util.Map;\nimport java.util.Set;\n\nclass FileSystem {\n    private Map<String, Integer> values;\n    private Map<String, Set<String>> childrenByParent;\n\n    public FileSystem() {\n        values = new HashMap<>();\n        childrenByParent = new HashMap<>();\n        values.put(\"\", 0);\n        childrenByParent.put(\"\", new HashSet<>());\n    }\n\n    public boolean createPath(String path, int value) {\n        if (values.containsKey(path)) {\n            return false;\n        }\n        int split = path.lastIndexOf('/');\n        String parent = path.substring(0, split);\n        String leaf = path.substring(split + 1);\n        if (!childrenByParent.containsKey(parent)) {\n            return false;\n        }\n        childrenByParent.get(parent).add(leaf);\n        childrenByParent.put(path, new HashSet<>());\n        values.put(path, value);\n        return true;\n    }\n\n    public int get(String path) {\n        return values.getOrDefault(path, -1);\n    }\n}",
+      "language": "java"
     }
   ]
 }

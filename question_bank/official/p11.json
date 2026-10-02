@@ -1,38 +1,99 @@
 {
   "id": "11",
   "title": "First Missing Positive",
-  "description": "# First Missing Positive\n\nGiven an unsorted integer array `nums`, return the smallest missing positive integer.\n\nYou must implement an algorithm that runs in `O(n)` time and uses `O(1)` auxiliary space.\n\n## Example 1:\n\n**Input:** nums = [1,2,0]\n**Output:** 3\n**Explanation:** The numbers in the range [1,2] are all in the array.\n\n## Example 2:\n\n**Input:** nums = [3,4,-1,1]\n**Output:** 2\n**Explanation:** 1 is in the array but 2 is missing.\n\n## Example 3:\n\n**Input:** nums = [7,8,9,11,12]\n**Output:** 1\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^5`\n*   `-2^31 <= nums[i] <= 2^31 - 1`",
+  "description": "# First Missing Positive\n\nGiven an unsorted integer array `nums`, return the smallest missing positive integer.\n\nThe answer is always in the range `1` through `nums.length + 1`: if every value from `1` to `n` appears, then the answer is `n + 1`; otherwise the first missing value inside that range is the answer. Values less than `1`, values greater than `n`, and duplicates cannot create a smaller missing positive.\n\nYou must implement an algorithm that runs in `O(n)` time and uses `O(1)` auxiliary space.\n\n## Example 1:\n\n**Input:** nums = [1,2,0]\n**Output:** 3\n**Explanation:** The numbers `1` and `2` are present, so the first missing positive is `3`.\n\n## Example 2:\n\n**Input:** nums = [3,4,-1,1]\n**Output:** 2\n**Explanation:** `1` is present, but `2` is missing.\n\n## Example 3:\n\n**Input:** nums = [7,8,9,11,12]\n**Output:** 1\n**Explanation:** None of the values can occupy the position for `1`.\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^5`\n*   `-2^31 <= nums[i] <= 2^31 - 1`",
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public int firstMissingPositive(int[] nums) {\n        // Write your code here\n        return 1;\n    }\n}",
-  "tags": ["Array", "Hash Table"],
+  "tags": [
+    "Array",
+    "Hash Table"
+  ],
   "examples": [
-    { "input": "nums = [1,2,0]", "output": "3" },
-    { "input": "nums = [3,4,-1,1]", "output": "2" }
+    {
+      "input": "nums = [1,2,0]",
+      "output": "3",
+      "description": "complete prefix 1 through 2"
+    },
+    {
+      "input": "nums = [3,4,-1,1]",
+      "output": "2",
+      "description": "out-of-range and negative values are ignored"
+    },
+    {
+      "input": "nums = [7,8,9,11,12]",
+      "output": "1",
+      "description": "no value can represent positive one"
+    }
   ],
   "tests": [
-    { "input": "nums = [1,2,0]", "output": "3" },
-    { "input": "nums = [3,4,-1,1]", "output": "2" },
-    { "input": "nums = [7,8,9,11,12]", "output": "1" },
-    { "input": "nums = [1]", "output": "2" },
-    { "input": "nums = [2]", "output": "1" }
+    {
+      "input": "nums = [1,2,0]",
+      "output": "3"
+    },
+    {
+      "input": "nums = [3,4,-1,1]",
+      "output": "2"
+    },
+    {
+      "input": "nums = [7,8,9,11,12]",
+      "output": "1"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "2"
+    },
+    {
+      "input": "nums = [2]",
+      "output": "1"
+    },
+    {
+      "input": "nums = [1,1]",
+      "output": "2",
+      "description": "duplicate one should not cause an infinite swap or double mark"
+    },
+    {
+      "input": "nums = [2,2]",
+      "output": "1",
+      "description": "duplicates of a non-one value still leave one missing"
+    },
+    {
+      "input": "nums = [2,1]",
+      "output": "3",
+      "description": "unsorted complete prefix"
+    },
+    {
+      "input": "nums = [1,2,3,4]",
+      "output": "5",
+      "description": "all positions from one through n are present"
+    },
+    {
+      "input": "nums = [-2147483648,2147483647,1]",
+      "output": "2",
+      "description": "integer extremes must be ignored safely"
+    },
+    {
+      "input": "nums = [4,3,2,7,8,2,3,1]",
+      "output": "5",
+      "description": "duplicates and gaps inside the relevant range"
+    }
   ],
   "solutions": [
     {
       "name": "Index as Hash Key (Cyclic Sort)",
-      "description": "## Approach\n\nUse the array itself as a hash table. For each number in range [1, n], place it at index (num-1). Then scan to find the first position where nums[i] != i+1.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
-      "code": "class Solution {\n    public int firstMissingPositive(int[] nums) {\n        int n = nums.length;\n        \n        // Place each number at its correct position\n        for (int i = 0; i < n; i++) {\n            while (nums[i] > 0 && nums[i] <= n && nums[nums[i] - 1] != nums[i]) {\n                int temp = nums[nums[i] - 1];\n                nums[nums[i] - 1] = nums[i];\n                nums[i] = temp;\n            }\n        }\n        \n        // Find first missing positive\n        for (int i = 0; i < n; i++) {\n            if (nums[i] != i + 1) {\n                return i + 1;\n            }\n        }\n        \n        return n + 1;\n    }\n}",
+      "description": "## Approach\n\nUse the input array as an index table. While `nums[i]` is in the range `[1, n]` and is not already sitting at index `nums[i] - 1`, swap it toward its correct position. After this placement phase, the first index `i` where `nums[i] != i + 1` reveals the smallest missing positive.\n\n## Key Insight\n\nOnly values from `1` to `n` can affect the answer. Values outside that range are ignored, and duplicates naturally stop moving once their target position already contains the same value.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int firstMissingPositive(int[] nums) {\n        int n = nums.length;\n\n        for (int i = 0; i < n; i++) {\n            while (nums[i] >= 1 && nums[i] <= n && nums[nums[i] - 1] != nums[i]) {\n                int target = nums[i] - 1;\n                int temp = nums[target];\n                nums[target] = nums[i];\n                nums[i] = temp;\n            }\n        }\n\n        for (int i = 0; i < n; i++) {\n            if (nums[i] != i + 1) {\n                return i + 1;\n            }\n        }\n        return n + 1;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Mark Negative (In-place Hash)",
-      "description": "## Approach\n\n1. Convert all non-positive numbers to n+1\n2. For each number in [1, n], mark the position (num-1) as negative\n3. The first positive position indicates the missing number\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
-      "code": "class Solution {\n    public int firstMissingPositive(int[] nums) {\n        int n = nums.length;\n        \n        // Step 1: Mark non-positive numbers as n+1\n        for (int i = 0; i < n; i++) {\n            if (nums[i] <= 0) {\n                nums[i] = n + 1;\n            }\n        }\n        \n        // Step 2: Mark presence by making values negative\n        for (int i = 0; i < n; i++) {\n            int num = Math.abs(nums[i]);\n            if (num <= n) {\n                nums[num - 1] = -Math.abs(nums[num - 1]);\n            }\n        }\n        \n        // Step 3: Find first positive index\n        for (int i = 0; i < n; i++) {\n            if (nums[i] > 0) {\n                return i + 1;\n            }\n        }\n        \n        return n + 1;\n    }\n}",
+      "name": "Sign Marking In-place Hash",
+      "description": "## Approach\n\nFirst replace every value outside `[1, n]` with a harmless sentinel `n + 1`. Then, for each remaining value `v`, mark that `v` exists by making `nums[v - 1]` negative. A final scan finds the first positive slot, which corresponds to the missing number.\n\n## Key Insight\n\nThe sign of each index becomes a presence bit. Taking `abs` before reading a value is essential because an earlier mark may already have made that slot negative.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int firstMissingPositive(int[] nums) {\n        int n = nums.length;\n\n        for (int i = 0; i < n; i++) {\n            if (nums[i] <= 0 || nums[i] > n) {\n                nums[i] = n + 1;\n            }\n        }\n\n        for (int i = 0; i < n; i++) {\n            int value = Math.abs(nums[i]);\n            if (value >= 1 && value <= n) {\n                nums[value - 1] = -Math.abs(nums[value - 1]);\n            }\n        }\n\n        for (int i = 0; i < n; i++) {\n            if (nums[i] > 0) {\n                return i + 1;\n            }\n        }\n        return n + 1;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "HashSet (O(n) Space)",
-      "description": "## Approach\n\nUse a HashSet to store all positive numbers, then check from 1 upwards.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
-      "code": "class Solution {\n    public int firstMissingPositive(int[] nums) {\n        Set<Integer> set = new HashSet<>();\n        for (int num : nums) {\n            if (num > 0) {\n                set.add(num);\n            }\n        }\n        \n        for (int i = 1; i <= nums.length + 1; i++) {\n            if (!set.contains(i)) {\n                return i;\n            }\n        }\n        \n        return 1;\n    }\n}",
+      "name": "Additive Marker In-place Hash",
+      "description": "## Approach\n\nNormalize every irrelevant value to `0`, then use `base = n + 1` as a marker. When a value `v` in `[1, n]` is seen, add `base` to `nums[v - 1]` once. Reading `nums[i] % base` recovers the original normalized value even after a slot has been marked.\n\n## Key Insight\n\nThis is another O(1)-space in-place hash table. The guard `nums[v - 1] < base` prevents duplicate values from repeatedly adding the marker, so the method avoids overflow pressure while still preserving enough information to keep scanning.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int firstMissingPositive(int[] nums) {\n        int n = nums.length;\n        int base = n + 1;\n\n        for (int i = 0; i < n; i++) {\n            if (nums[i] < 1 || nums[i] > n) {\n                nums[i] = 0;\n            }\n        }\n\n        for (int i = 0; i < n; i++) {\n            int value = nums[i] % base;\n            if (value >= 1 && value <= n && nums[value - 1] < base) {\n                nums[value - 1] += base;\n            }\n        }\n\n        for (int i = 0; i < n; i++) {\n            if (nums[i] < base) {\n                return i + 1;\n            }\n        }\n        return n + 1;\n    }\n}",
       "language": "java"
     }
   ]

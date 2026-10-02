@@ -1,43 +1,129 @@
 {
   "id": "196",
   "title": "Single Number",
-  "description": "# Single Number\n\nGiven a **non-empty** array of integers `nums`, every element appears *twice* except for one. Find that single one.\n\nYou must implement a solution with a linear runtime complexity and use only constant extra space.\n\n## Example 1:\n\n**Input:** nums = [2,2,1]\n**Output:** 1\n\n## Example 2:\n\n**Input:** nums = [4,1,2,1,2]\n**Output:** 4\n\n## Example 3:\n\n**Input:** nums = [1]\n**Output:** 1\n\n## Constraints:\n\n*   `1 <= nums.length <= 3 * 10^4`\n*   `-3 * 10^4 <= nums[i] <= 3 * 10^4`\n*   Each element in the array appears twice except for one element which appears only once.",
+  "description": "# Single Number\n\nGiven a non-empty integer array `nums`, every value appears exactly twice except for one value that appears exactly once. Return the value that appears once.\n\nThe expected optimal solution runs in linear time and uses constant extra space.\n\n## Example 1:\n\n**Input:** nums = [2,2,1]\n**Output:** 1\n\n## Example 2:\n\n**Input:** nums = [4,1,2,1,2]\n**Output:** 4\n\n## Example 3:\n\n**Input:** nums = [1]\n**Output:** 1\n\n## Constraints:\n\n* `1 <= nums.length <= 3 * 10^4`\n* `-3 * 10^4 <= nums[i] <= 3 * 10^4`\n* Exactly one element appears once.\n* Every other element appears exactly twice.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int singleNumber(int[] nums) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Bit Manipulation", "Array"],
+  "tags": [
+    "Bit Manipulation",
+    "Array"
+  ],
   "examples": [
-    { "input": "nums = [2,2,1]", "output": "1" },
-    { "input": "nums = [4,1,2,1,2]", "output": "4" },
-    { "input": "nums = [1]", "output": "1" }
+    {
+      "input": "nums = [2,2,1]",
+      "output": "1"
+    },
+    {
+      "input": "nums = [4,1,2,1,2]",
+      "output": "4"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "1"
+    }
   ],
   "solutions": [
     {
-      "name": "XOR",
+      "name": "XOR Pair Cancellation",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "XOR all numbers together. Pairs cancel out (a ^ a = 0), leaving only the single number.",
-      "code": "class Solution {\n    public int singleNumber(int[] nums) {\n        int result = 0;\n        for (int num : nums) result ^= num;\n        return result;\n    }\n}",
+      "description": "## Approach\nXOR every number into one accumulator. A duplicated value cancels itself because `a ^ a = 0`, and `0 ^ x = x`, so after all pairs disappear the accumulator equals the value that appears once.\n\n## Key Insight\nXOR is associative and commutative, so pair cancellation works even when equal values are far apart. This is the optimal route because it satisfies both the linear-time and constant-extra-space requirements.\n\n## Complexity Analysis\nTime Complexity: O(n). Space Complexity: O(1).",
+      "code": "class Solution {\n    public int singleNumber(int[] nums) {\n        int result = 0;\n        for (int num : nums) {\n            result ^= num;\n        }\n        return result;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "HashSet",
+      "name": "Bit Count Parity",
+      "timeComplexity": "O(32n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nFor each of the 32 integer bit positions, count how many array values have that bit set. Since duplicated numbers contribute two copies of every set bit, only the single number can make a bit count odd.\n\n## Key Insight\nThis is the bit-by-bit version of the same parity invariant used by XOR. It is especially useful as a bridge to variants where every other number appears three times and counts are taken modulo a different value.\n\n## Complexity Analysis\nTime Complexity: O(32n), which is O(n) for fixed-width integers. Space Complexity: O(1).",
+      "code": "class Solution {\n    public int singleNumber(int[] nums) {\n        int result = 0;\n        for (int bit = 0; bit < 32; bit++) {\n            int count = 0;\n            for (int num : nums) {\n                if (((num >>> bit) & 1) == 1) {\n                    count++;\n                }\n            }\n            if ((count & 1) == 1) {\n                result |= (1 << bit);\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "HashSet Toggle",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Add each number to a set if not present, remove it if already present. The last remaining element in the set is the single number.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int singleNumber(int[] nums) {\n        Set<Integer> set = new HashSet<>();\n        for (int num : nums) {\n            if (!set.add(num)) {\n                set.remove(num);\n            }\n        }\n        return set.iterator().next();\n    }\n}",
+      "description": "## Approach\nMaintain a set of values currently seen an odd number of times. Insert a value the first time it appears, and remove it when its duplicate appears. At the end, the set contains only the single value.\n\n## Key Insight\nThis makes the cancellation idea explicit before replacing the set with XOR. It is not the optimal space solution, but it is a useful correctness model for why pairs should vanish.\n\n## Complexity Analysis\nTime Complexity: O(n) expected. Space Complexity: O(n).",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int singleNumber(int[] nums) {\n        Set<Integer> pending = new HashSet<>();\n        for (int num : nums) {\n            if (!pending.add(num)) {\n                pending.remove(num);\n            }\n        }\n        return pending.iterator().next();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Frequency Map Count",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nCount how many times every value appears, then scan the frequency table and return the key whose count is one. This directly checks the statement of the problem.\n\n## Key Insight\nA frequency table is the most general counting baseline. It uses more memory than necessary here, but it remains easy to adapt when the exact occurrence counts or number of exceptional values changes.\n\n## Complexity Analysis\nTime Complexity: O(n). Space Complexity: O(n).",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int singleNumber(int[] nums) {\n        Map<Integer, Integer> frequencies = new HashMap<>();\n        for (int num : nums) {\n            frequencies.merge(num, 1, Integer::sum);\n        }\n        for (Map.Entry<Integer, Integer> entry : frequencies.entrySet()) {\n            if (entry.getValue() == 1) {\n                return entry.getKey();\n            }\n        }\n        throw new IllegalArgumentException(\"input violates problem guarantee\");\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sort and Pair Scan",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(log n)",
+      "description": "## Approach\nSort the array so equal values become adjacent. Then scan by pairs: if `nums[i]` differs from `nums[i + 1]`, `nums[i]` is the single value. If every earlier pair matches, the last element is the answer.\n\n## Key Insight\nSorting turns the global pairing problem into a local neighbor check. This route violates the optimal linear-time requirement, but it is a clear baseline and helps expose why the XOR route is stronger.\n\n## Complexity Analysis\nTime Complexity: O(n log n). Space Complexity: O(log n) for the primitive-array sort recursion stack used by the standard library.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int singleNumber(int[] nums) {\n        Arrays.sort(nums);\n        for (int i = 0; i < nums.length - 1; i += 2) {\n            if (nums[i] != nums[i + 1]) {\n                return nums[i];\n            }\n        }\n        return nums[nums.length - 1];\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [2,2,1]", "output": "1" },
-    { "input": "nums = [4,1,2,1,2]", "output": "4" },
-    { "input": "nums = [1]", "output": "1" },
-    { "input": "nums = [0,1,0]", "output": "1" },
-    { "input": "nums = [-1,-1,2]", "output": "2" },
-    { "input": "nums = [1,3,1,2,2]", "output": "3" },
-    { "input": "nums = [100,200,100]", "output": "200" },
-    { "input": "nums = [-5,3,3,-5,7]", "output": "7" },
-    { "input": "nums = [0]", "output": "0" }
-  ],
-  "diagrams": ["p196_example1"]
+    {
+      "input": "nums = [2,2,1]",
+      "output": "1",
+      "description": "Only one number remains after canceling one duplicate pair."
+    },
+    {
+      "input": "nums = [4,1,2,1,2]",
+      "output": "4",
+      "description": "Canonical mixed array leaves the non-duplicated four."
+    },
+    {
+      "input": "nums = [1]",
+      "output": "1",
+      "description": "Single-element array returns that element."
+    },
+    {
+      "input": "nums = [0,1,0]",
+      "output": "1",
+      "description": "Zero can participate in duplicate cancellation."
+    },
+    {
+      "input": "nums = [-1,-1,2]",
+      "output": "2",
+      "description": "Negative duplicate pair cancels just like positive values."
+    },
+    {
+      "input": "nums = [1,3,1,2,2]",
+      "output": "3",
+      "description": "Unique value appears between two duplicate pairs."
+    },
+    {
+      "input": "nums = [100,200,100]",
+      "output": "200",
+      "description": "Larger positive values are handled without special cases."
+    },
+    {
+      "input": "nums = [-5,3,3,-5,7]",
+      "output": "7",
+      "description": "Negative and positive values can mix with the same invariant."
+    },
+    {
+      "input": "nums = [0]",
+      "output": "0",
+      "description": "Single zero is a valid unique value."
+    },
+    {
+      "input": "nums = [-30000,1,1]",
+      "output": "-30000",
+      "description": "The lower constraint boundary can be the unique value."
+    },
+    {
+      "input": "nums = [-2,-2,0,0,30000]",
+      "output": "30000",
+      "description": "The upper constraint boundary can appear after all sorted pairs."
+    },
+    {
+      "input": "nums = [6,1,2,1,2,6,9,8,8]",
+      "output": "9",
+      "description": "Several separated duplicate pairs cancel regardless of order."
+    }
+  ]
 }

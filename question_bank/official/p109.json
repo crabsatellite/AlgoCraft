@@ -1,9 +1,9 @@
 {
   "id": "109",
   "title": "Kth Largest Element in an Array",
-  "description": "# Kth Largest Element in an Array\n\nGiven an integer array `nums` and an integer `k`, return *the* `kth` *largest element in the array*.\n\nNote that it is the `kth` largest element in the sorted order, not the `kth` distinct element.\n\nCan you solve it without sorting?\n\n## Example 1:\n\n**Input:** nums = [3,2,1,5,6,4], k = 2\n**Output:** 5\n\n## Example 2:\n\n**Input:** nums = [3,2,3,1,2,4,5,5,6], k = 4\n**Output:** 4\n\n## Constraints:\n\n*   `1 <= k <= nums.length <= 10^5`\n*   `-10^4 <= nums[i] <= 10^4`",
+  "description": "# Kth Largest Element in an Array\n\nGiven an integer array `nums` and an integer `k`, return the kth largest element in sorted order.\n\nCount duplicate occurrences separately. For example, `[3,3,2]` sorted from largest to smallest is still `[3,3,2]`, so its second largest value is `3`.\n\n## Example\n\nInput: `nums = [3,2,1,5,6,4], k = 2`\n\nOutput: `5`\n\n## Constraints\n\n`1 <= k <= nums.length <= 10^5`. Values may be negative, repeated many times, already sorted, reverse sorted, or near the stated value boundary `-10^4 <= nums[i] <= 10^4`.",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public int findKthLargest(int[] nums, int k) {\n        // Write your code here\n        return 0;\n    }\n}",
+  "initialCode": "class Solution { public int findKthLargest(int[] nums, int k) { return 0; } }",
   "tags": [
     "Array",
     "Divide and Conquer",
@@ -12,31 +12,96 @@
     "Quickselect"
   ],
   "examples": [
-    { "input": "nums = [3,2,1,5,6,4], k = 2", "output": "5" },
-    { "input": "nums = [3,2,3,1,2,4,5,5,6], k = 4", "output": "4" }
+    {
+      "input": "nums = [3,2,1,5,6,4], k = 2",
+      "output": "5"
+    },
+    {
+      "input": "nums = [3,2,3,1,2,4,5,5,6], k = 4",
+      "output": "4"
+    }
   ],
   "tests": [
-    { "input": "nums = [3,2,1,5,6,4], k = 2", "output": "5" },
-    { "input": "nums = [3,2,3,1,2,4,5,5,6], k = 4", "output": "4" },
-    { "input": "nums = [1], k = 1", "output": "1" },
-    { "input": "nums = [7,7,7,7,7], k = 3", "output": "7" },
-    { "input": "nums = [1,2,3,4,5], k = 5", "output": "1" }
+    {
+      "input": "nums = [3,2,1,5,6,4], k = 2",
+      "output": "5"
+    },
+    {
+      "input": "nums = [3,2,3,1,2,4,5,5,6], k = 4",
+      "output": "4"
+    },
+    {
+      "input": "nums = [1], k = 1",
+      "output": "1"
+    },
+    {
+      "input": "nums = [7,7,7,7,7], k = 3",
+      "output": "7"
+    },
+    {
+      "input": "nums = [1,2,3,4,5], k = 5",
+      "output": "1"
+    },
+    {
+      "input": "nums = [-1,2,0,4], k = 1",
+      "output": "4"
+    },
+    {
+      "input": "nums = [2,1,2,1,2,3], k = 4",
+      "output": "2"
+    },
+    {
+      "input": "nums = [-1,-2,-3,-4], k = 2",
+      "output": "-2"
+    },
+    {
+      "input": "nums = [10000,-10000,0,9999,-9999], k = 2",
+      "output": "9999"
+    },
+    {
+      "input": "nums = [9,8,7,6,5], k = 3",
+      "output": "7"
+    },
+    {
+      "input": "nums = [1,1,2,2,3,3], k = 5",
+      "output": "1"
+    },
+    {
+      "input": "nums = [5,3,1,6,4,2,9,8,7], k = 6",
+      "output": "4"
+    }
   ],
   "solutions": [
     {
       "name": "Min Heap of Size k",
       "timeComplexity": "O(n log k)",
       "spaceComplexity": "O(k)",
-      "description": "Maintain a min-heap of size k. After processing all elements, the heap root is the kth largest.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int findKthLargest(int[] nums, int k) {\n        PriorityQueue<Integer> minHeap = new PriorityQueue<>();\n        \n        for (int num : nums) {\n            minHeap.offer(num);\n            if (minHeap.size() > k) minHeap.poll();\n        }\n        \n        return minHeap.peek();\n    }\n}",
+      "description": "## Approach\n\nMaintain a min heap containing the largest `k` values seen so far. Push each number into the heap; when the heap grows beyond `k`, remove the smallest kept value. After every number has been processed, the heap root is the kth largest value.\n\n## Key Insight\n\nThe heap stores the current top-k multiset, not the top-k distinct values. Its smallest value is exactly the boundary element that would be at position `k` in descending order.\n\n## Complexity Analysis\n\nEach of the `n` values performs a heap operation on a heap of size at most `k`, so the time complexity is `O(n log k)`. The heap stores `O(k)` values.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int findKthLargest(int[] nums, int k) {\n        PriorityQueue<Integer> minHeap = new PriorityQueue<>();\n        for (int num : nums) {\n            minHeap.offer(num);\n            if (minHeap.size() > k) {\n                minHeap.poll();\n            }\n        }\n        return minHeap.peek();\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Quickselect",
-      "timeComplexity": "O(n) average, O(n^2) worst",
+      "name": "Quickselect Partition",
+      "timeComplexity": "O(n) average, O(n^2) worst case",
       "spaceComplexity": "O(1)",
-      "description": "Partition the array like quicksort. After partitioning, the pivot is at its sorted position. If pivot index matches target, we found the answer; otherwise recurse on the correct half.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int findKthLargest(int[] nums, int k) {\n        int target = nums.length - k;\n        int left = 0, right = nums.length - 1;\n        \n        Random rand = new Random();\n        while (left < right) {\n            int pivotIdx = left + rand.nextInt(right - left + 1);\n            int pivot = nums[pivotIdx];\n            // Move pivot to end\n            int temp = nums[pivotIdx];\n            nums[pivotIdx] = nums[right];\n            nums[right] = temp;\n            \n            int store = left;\n            for (int i = left; i < right; i++) {\n                if (nums[i] < pivot) {\n                    temp = nums[i];\n                    nums[i] = nums[store];\n                    nums[store] = temp;\n                    store++;\n                }\n            }\n            temp = nums[store];\n            nums[store] = nums[right];\n            nums[right] = temp;\n            \n            if (store == target) return nums[store];\n            else if (store < target) left = store + 1;\n            else right = store - 1;\n        }\n        return nums[left];\n    }\n}",
+      "description": "## Approach\n\nConvert kth largest into index `nums.length - k` in ascending order. Partition the array around a pivot until that target index is placed in its final sorted position, then return the value at that index.\n\n## Key Insight\n\nSelection needs only the target position, not a fully sorted array. Partitioning discards the side that cannot contain the target after each step, which is why quickselect is the standard expected-linear route.\n\n## Complexity Analysis\n\nRandomized pivots give expected `O(n)` time, while consistently unlucky pivots can degrade to `O(n^2)`. The partitioning is in-place, so auxiliary space is `O(1)`.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private final Random random = new Random(0);\n\n    public int findKthLargest(int[] nums, int k) {\n        int target = nums.length - k;\n        int left = 0;\n        int right = nums.length - 1;\n        while (left <= right) {\n            int pivotIndex = left + random.nextInt(right - left + 1);\n            pivotIndex = partition(nums, left, right, pivotIndex);\n            if (pivotIndex == target) {\n                return nums[pivotIndex];\n            }\n            if (pivotIndex < target) {\n                left = pivotIndex + 1;\n            } else {\n                right = pivotIndex - 1;\n            }\n        }\n        return nums[target];\n    }\n\n    private int partition(int[] nums, int left, int right, int pivotIndex) {\n        int pivot = nums[pivotIndex];\n        swap(nums, pivotIndex, right);\n        int store = left;\n        for (int i = left; i < right; i++) {\n            if (nums[i] < pivot) {\n                swap(nums, store, i);\n                store++;\n            }\n        }\n        swap(nums, store, right);\n        return store;\n    }\n\n    private void swap(int[] nums, int i, int j) {\n        int temp = nums[i];\n        nums[i] = nums[j];\n        nums[j] = temp;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Counting Buckets by Value Range",
+      "timeComplexity": "O(n + R)",
+      "spaceComplexity": "O(R)",
+      "description": "## Approach\n\nUse the value bounds to count how many times each integer appears. Scan counts from the largest value down, subtracting frequencies from `k` until the kth position lands inside one bucket.\n\n## Key Insight\n\nBecause the value range is small and fixed, positions in descending sorted order can be recovered from frequencies without comparing or moving individual elements.\n\n## Complexity Analysis\n\nLet `R` be the value range size. Counting costs `O(n)`, scanning the buckets costs `O(R)`, and the count array stores `O(R)` integers.",
+      "code": "class Solution {\n    public int findKthLargest(int[] nums, int k) {\n        int offset = 10000;\n        int[] counts = new int[20001];\n        for (int num : nums) {\n            counts[num + offset]++;\n        }\n        for (int value = 10000; value >= -10000; value--) {\n            k -= counts[value + offset];\n            if (k <= 0) {\n                return value;\n            }\n        }\n        return 0;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Full Sort Baseline",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(log n)",
+      "description": "## Approach\n\nSort the whole array in ascending order and return `nums[nums.length - k]`. This is the simplest way to verify the meaning of kth largest and duplicate counting.\n\n## Key Insight\n\nAfter ascending sort, the largest element is at index `n - 1`, so the kth largest is exactly `n - k`. This baseline is slower than selection but is a useful correctness anchor.\n\n## Complexity Analysis\n\nSorting costs `O(n log n)` time. Java's primitive array sort is in-place aside from recursion/implementation stack space, commonly described as `O(log n)` auxiliary space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int findKthLargest(int[] nums, int k) {\n        Arrays.sort(nums);\n        return nums[nums.length - k];\n    }\n}",
       "language": "java"
     }
   ]

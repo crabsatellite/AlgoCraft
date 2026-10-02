@@ -1,42 +1,143 @@
 {
   "id": "191",
   "title": "Happy Number",
-  "description": "# Happy Number\n\nWrite an algorithm to determine if a number `n` is happy.\n\nA **happy number** is a number defined by the following process:\n\n*   Starting with any positive integer, replace the number by the sum of the squares of its digits.\n*   Repeat the process until the number equals 1 (where it will stay), or it loops endlessly in a cycle which does not include 1.\n*   Those numbers for which this process ends in 1 are happy.\n\nReturn `true` *if* `n` *is a happy number, and* `false` *if not*.\n\n## Example 1:\n\n**Input:** n = 19\n**Output:** true\n**Explanation:**\n1^2 + 9^2 = 82\n8^2 + 2^2 = 68\n6^2 + 8^2 = 100\n1^2 + 0^2 + 0^2 = 1\n\n## Example 2:\n\n**Input:** n = 2\n**Output:** false\n\n## Constraints:\n\n*   `1 <= n <= 2^31 - 1`",
+  "description": "# Happy Number\n\nWrite an algorithm to determine whether a positive integer `n` is happy.\n\nA **happy number** is defined by this repeated process:\n\n*   Replace the number by the sum of the squares of its decimal digits.\n*   Repeat the replacement until the number becomes `1`, where it will stay forever, or until the process enters a cycle that does not contain `1`.\n*   A number is happy if and only if the process eventually reaches `1`.\n\nReturn `true` if `n` is happy, and return `false` otherwise.\n\nThe sequence is deterministic: each value has exactly one next value. That means every starting value either reaches `1` or eventually repeats a previous value and forms a cycle.\n\n## Example 1:\n\n**Input:** n = 19\n**Output:** true\n**Explanation:**\n1^2 + 9^2 = 82\n8^2 + 2^2 = 68\n6^2 + 8^2 = 100\n1^2 + 0^2 + 0^2 = 1\n\n## Example 2:\n\n**Input:** n = 2\n**Output:** false\n**Explanation:** The sequence enters a non-1 cycle instead of reaching `1`.\n\n## Constraints:\n\n*   `1 <= n <= 2^31 - 1`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public boolean isHappy(int n) {\n        // Write your code here\n        return false;\n    }\n}",
-  "tags": ["Hash Table", "Math", "Two Pointers"],
+  "tags": [
+    "Hash Table",
+    "Math",
+    "Two Pointers"
+  ],
   "examples": [
-    { "input": "n = 19", "output": "true" },
-    { "input": "n = 2", "output": "false" }
+    {
+      "input": "n = 19",
+      "output": "true"
+    },
+    {
+      "input": "n = 2",
+      "output": "false"
+    }
   ],
   "solutions": [
     {
       "name": "Floyd's Cycle Detection",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(1)",
-      "description": "Use slow and fast pointers on the digit-square-sum sequence. If they meet at 1, it's happy. If they meet elsewhere, there's a cycle.",
-      "code": "class Solution {\n    public boolean isHappy(int n) {\n        int slow = n, fast = getNext(n);\n        while (fast != 1 && slow != fast) {\n            slow = getNext(slow);\n            fast = getNext(getNext(fast));\n        }\n        return fast == 1;\n    }\n    \n    private int getNext(int n) {\n        int sum = 0;\n        while (n > 0) {\n            int d = n % 10;\n            sum += d * d;\n            n /= 10;\n        }\n        return sum;\n    }\n}",
+      "description": "## Approach\n\nTreat the digit-square transition as a linked list where each number points to exactly one next number. Move a slow pointer by one transition and a fast pointer by two transitions. If the fast pointer reaches `1`, the number is happy. If the slow and fast pointers meet before reaching `1`, the sequence has entered a non-1 cycle.\n\n## Key Insight\n\nThe process is a deterministic functional graph. Floyd's cycle detection can distinguish reaching the terminal happy state from getting trapped in a loop without storing every intermediate number.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n) for each transition, and the sequence quickly falls into a small bounded state space for 32-bit integers.\n- Space Complexity: O(1), because only two pointers are stored.",
+      "code": "class Solution {\n    public boolean isHappy(int n) {\n        int slow = n;\n        int fast = next(n);\n        while (fast != 1 && slow != fast) {\n            slow = next(slow);\n            fast = next(next(fast));\n        }\n        return fast == 1;\n    }\n\n    private int next(int n) {\n        int sum = 0;\n        while (n > 0) {\n            int digit = n % 10;\n            sum += digit * digit;\n            n /= 10;\n        }\n        return sum;\n    }\n}",
       "language": "java"
     },
     {
       "name": "HashSet Cycle Detection",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(log n)",
-      "description": "Compute digit-square sums iteratively. Use a HashSet to detect cycles. If 1 is reached, it's happy. If a repeated value appears, it's not.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isHappy(int n) {\n        Set<Integer> seen = new HashSet<>();\n        while (n != 1) {\n            if (!seen.add(n)) return false;\n            int sum = 0;\n            while (n > 0) {\n                int d = n % 10;\n                sum += d * d;\n                n /= 10;\n            }\n            n = sum;\n        }\n        return true;\n    }\n}",
+      "description": "## Approach\n\nStore every intermediate value in a `HashSet`. If the process reaches `1`, return `true`. If the current value has already appeared, the sequence has looped without reaching `1`, so return `false`.\n\n## Key Insight\n\nA repeated value means the future will repeat exactly the same values again. Recording visited states makes the cycle argument explicit and is the clearest baseline for learners.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n) per digit-square transition, with only a bounded number of distinct states for 32-bit input.\n- Space Complexity: O(log n) for the visited values before the sequence enters the bounded region.",
+      "code": "import java.util.HashSet;\nimport java.util.Set;\n\nclass Solution {\n    public boolean isHappy(int n) {\n        Set<Integer> seen = new HashSet<>();\n        while (n != 1) {\n            if (!seen.add(n)) {\n                return false;\n            }\n            n = next(n);\n        }\n        return true;\n    }\n\n    private int next(int n) {\n        int sum = 0;\n        while (n > 0) {\n            int digit = n % 10;\n            sum += digit * digit;\n            n /= 10;\n        }\n        return sum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Known Unhappy Cycle",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nRepeatedly apply the digit-square transition. Stop when the value reaches `1` or when it enters the known unhappy cycle `4 -> 16 -> 37 -> 58 -> 89 -> 145 -> 42 -> 20 -> 4`.\n\n## Key Insight\n\nFor base-10 happy numbers, every unhappy sequence eventually enters this one cycle. Recognizing the cycle gives a compact constant-space solution and makes the terminal non-happy loop concrete.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n) per transition, with a short bounded tail for 32-bit inputs.\n- Space Complexity: O(1), because the unhappy cycle is checked with constants.",
+      "code": "class Solution {\n    public boolean isHappy(int n) {\n        while (n != 1 && !isKnownUnhappyCycle(n)) {\n            n = next(n);\n        }\n        return n == 1;\n    }\n\n    private int next(int n) {\n        int sum = 0;\n        while (n > 0) {\n            int digit = n % 10;\n            sum += digit * digit;\n            n /= 10;\n        }\n        return sum;\n    }\n\n    private boolean isKnownUnhappyCycle(int n) {\n        return n == 4 || n == 16 || n == 37 || n == 58\n                || n == 89 || n == 145 || n == 42 || n == 20;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bounded State Boolean Table",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nAfter one digit-square transition, any 32-bit positive integer becomes at most `10 * 9^2 = 810`. Use a fixed boolean array to record which reduced states have appeared. Repeating a reduced state means the sequence is cycling; reaching `1` means the number is happy.\n\n## Key Insight\n\nThe input may be large, but the transition quickly collapses it into a tiny state space. A fixed-size table gives the clarity of visited-state detection without unbounded storage.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n) per transition, with all later values inside a constant-size state space.\n- Space Complexity: O(1), because the table size is fixed for 32-bit integers.",
+      "code": "class Solution {\n    public boolean isHappy(int n) {\n        boolean[] seen = new boolean[811];\n        while (n != 1) {\n            n = next(n);\n            if (seen[n]) {\n                return false;\n            }\n            seen[n] = true;\n        }\n        return true;\n    }\n\n    private int next(int n) {\n        int sum = 0;\n        while (n > 0) {\n            int digit = n % 10;\n            sum += digit * digit;\n            n /= 10;\n        }\n        return sum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Memoized Functional Graph Classification",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nClassify states in the bounded digit-square graph with DFS-style memoization. State `1` is happy. While exploring a state, mark it as visiting; reaching a visiting state proves an unhappy cycle. Cache whether each bounded state is happy or unhappy so repeated subpaths are not reprocessed.\n\n## Key Insight\n\nThe digit-square process is a functional graph: each node has one outgoing edge. Memoized graph classification teaches the same cycle idea in terms of graph states rather than pointer movement or a visited set.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n) for the first reduction and then constant bounded graph work.\n- Space Complexity: O(1), because the memo table has fixed size for 32-bit input.",
+      "code": "class Solution {\n    public boolean isHappy(int n) {\n        int[] state = new int[811];\n        return isHappyState(n, state);\n    }\n\n    private boolean isHappyState(int n, int[] state) {\n        if (n == 1) {\n            return true;\n        }\n        if (n >= state.length) {\n            return isHappyState(next(n), state);\n        }\n        if (state[n] == 1) {\n            return false;\n        }\n        if (state[n] == 2) {\n            return true;\n        }\n        if (state[n] == 3) {\n            return false;\n        }\n        state[n] = 1;\n        boolean happy = isHappyState(next(n), state);\n        state[n] = happy ? 2 : 3;\n        return happy;\n    }\n\n    private int next(int n) {\n        int sum = 0;\n        while (n > 0) {\n            int digit = n % 10;\n            sum += digit * digit;\n            n /= 10;\n        }\n        return sum;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "n = 19", "output": "true" },
-    { "input": "n = 2", "output": "false" },
-    { "input": "n = 7", "output": "true" },
-    { "input": "n = 1", "output": "true" },
-    { "input": "n = 10", "output": "true" },
-    { "input": "n = 100", "output": "true" },
-    { "input": "n = 4", "output": "false" },
-    { "input": "n = 116", "output": "false" },
-    { "input": "n = 1111111", "output": "true" }
+    {
+      "input": "n = 19",
+      "output": "true",
+      "description": "Canonical happy number reaches one after several digit-square transitions."
+    },
+    {
+      "input": "n = 2",
+      "output": "false",
+      "description": "Two enters a non-one cycle."
+    },
+    {
+      "input": "n = 7",
+      "output": "true",
+      "description": "Single digit seven is a happy number."
+    },
+    {
+      "input": "n = 1",
+      "output": "true",
+      "description": "One is already happy by definition."
+    },
+    {
+      "input": "n = 10",
+      "output": "true",
+      "description": "Ten immediately reduces to one."
+    },
+    {
+      "input": "n = 100",
+      "output": "true",
+      "description": "Trailing zeros do not change the transition to one."
+    },
+    {
+      "input": "n = 4",
+      "output": "false",
+      "description": "Four is the entry point of the classic unhappy cycle."
+    },
+    {
+      "input": "n = 20",
+      "output": "false",
+      "description": "Twenty is another member of the known unhappy cycle."
+    },
+    {
+      "input": "n = 116",
+      "output": "false",
+      "description": "Larger unhappy number checks repeated digit-square reduction."
+    },
+    {
+      "input": "n = 1111111",
+      "output": "true",
+      "description": "Many repeated ones reduce to seven and then follow a happy path."
+    },
+    {
+      "input": "n = 2147483647",
+      "output": "false",
+      "description": "Maximum signed 32-bit integer checks the upper input boundary."
+    },
+    {
+      "input": "n = 999999999",
+      "output": "false",
+      "description": "Many large digits collapse into the bounded unhappy state space."
+    },
+    {
+      "input": "n = 986543210",
+      "output": "true",
+      "description": "Large mixed digits can still follow a happy path."
+    },
+    {
+      "input": "n = 123456789",
+      "output": "false",
+      "description": "Large mixed digits can also enter a non-one cycle."
+    }
   ],
-  "diagrams": ["p191_example1"]
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p191_example1.png",
+      "caption": "Digit-square transition prompt for deciding whether a number becomes happy"
+    }
+  ]
 }

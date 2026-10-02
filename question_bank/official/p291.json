@@ -1,34 +1,113 @@
 {
   "id": "291",
   "title": "Percentage of Letter in String",
-  "description": "# Percentage of Letter in String\n\nGiven a string `s` and a character `letter`, return *the **percentage** of characters in* `s` *that equal* `letter` *rounded down to the nearest whole percent.*\n\n## Example 1:\n\n**Input:** s = \"foobar\", letter = \"o\"\n**Output:** 33\n**Explanation:**\nThe character 'o' appears 2 times in the string \"foobar\".\nThe percentage of characters that are 'o' is 2 / 6 * 100% = 33%.\n\n## Example 2:\n\n**Input:** s = \"jjjj\", letter = \"k\"\n**Output:** 0\n**Explanation:**\nThe character 'k' appears 0 times in the string \"jjjj\".\nThe percentage of characters that are 'k' is 0 / 4 * 100% = 0%.\n\n## Constraints:\n\n*   `1 <= s.length <= 100`\n*   `s` consists of lowercase English letters.\n*   `letter` is a lowercase English letter.",
+  "description": "# Percentage of Letter in String\n\nGiven a lowercase string `s` and a lowercase character `letter`, count how many characters in `s` are equal to `letter`.\n\nReturn the percentage of matching characters in `s`, rounded down to the nearest whole percent. In other words, if `count` characters match and `n == s.length()`, return `count * 100 / n` using integer division.\n\n## Example 1\n\n**Input**\ns = \"foobar\", letter = 'o'\n\n**Output**\n33\n\n**Explanation**\nThe letter `'o'` appears `2` times in a string of length `6`. The percentage is `2 * 100 / 6 = 33` after rounding down.\n\n## Example 2\n\n**Input**\ns = \"jjjj\", letter = 'k'\n\n**Output**\n0\n\n**Explanation**\nThe letter `'k'` does not appear, so the matching percentage is `0`.\n\n## Constraints\n\n* `1 <= s.length <= 100`\n* `s` consists of lowercase English letters.\n* `letter` is a lowercase English letter.",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public int percentageLetter(String s, char letter) {\n        \n    }\n}",
-  "tags": ["String", "Math"],
+  "initialCode": "class Solution {\n    public int percentageLetter(String s, char letter) {\n        // Write your code here\n        return 0;\n    }\n}",
+  "tags": [
+    "String",
+    "Math",
+    "Counting"
+  ],
   "examples": [
-    { "input": "s = \"foobar\", letter = 'o'", "output": "33" },
-    { "input": "s = \"jjjj\", letter = 'k'", "output": "0" }
+    {
+      "input": "s = \"foobar\", letter = 'o'",
+      "output": "33"
+    },
+    {
+      "input": "s = \"jjjj\", letter = 'k'",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
-      "name": "Count and Divide",
+      "name": "Count And Divide",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Count occurrences of the letter, then compute count * 100 / length using integer division which floors automatically.",
-      "code": "class Solution {\n    public int percentageLetter(String s, char letter) {\n        int count = 0;\n        for (int i = 0; i < s.length(); i++) {\n            if (s.charAt(i) == letter) count++;\n        }\n        return count * 100 / s.length();\n    }\n}",
+      "description": "## Approach\nScan the string once and increment a counter whenever `s.charAt(i) == letter`. After the scan, compute `count * 100 / s.length()`.\n\n## Key Insight\nThe required rounding is exactly Java integer division for non-negative values. Multiplying by `100` before dividing preserves the whole-percent value instead of truncating the fraction too early.\n\n## Complexity Analysis\nThe scan visits each character once, so the time complexity is O(n). Only one counter is stored, so the extra space complexity is O(1).",
+      "code": "class Solution {\n    public int percentageLetter(String s, char letter) {\n        int count = 0;\n        for (int i = 0; i < s.length(); i++) {\n            if (s.charAt(i) == letter) {\n                count++;\n            }\n        }\n        return count * 100 / s.length();\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Replace and Length Difference",
+      "name": "Frequency Array",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nUse the lowercase-letter constraint to build a frequency array of length `26`. Count every character, then read the bucket for `letter` and convert that count to a percentage.\n\n## Key Insight\nThis route is more general when several letter queries are needed. For one query it does extra counting, but it teaches the fixed-alphabet frequency-table pattern used by many string problems.\n\n## Complexity Analysis\nBuilding the table scans all `n` characters, so the time complexity is O(n). The table length is always 26, so the extra space complexity is O(1).",
+      "code": "class Solution {\n    public int percentageLetter(String s, char letter) {\n        int[] frequency = new int[26];\n        for (int i = 0; i < s.length(); i++) {\n            frequency[s.charAt(i) - 'a']++;\n        }\n        int count = frequency[letter - 'a'];\n        return count * 100 / s.length();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Remove Letter And Compare Length",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use String replace to remove all occurrences of the letter. The count is the difference in lengths. Then compute the percentage.",
-      "code": "class Solution {\n    public int percentageLetter(String s, char letter) {\n        String removed = s.replace(String.valueOf(letter), \"\");\n        int count = s.length() - removed.length();\n        return count * 100 / s.length();\n    }\n}",
+      "description": "## Approach\nConvert `letter` to a one-character string and remove all occurrences from `s` with `replace`. The difference between the original length and the new length is the number of removed matching characters.\n\n## Key Insight\nLength difference is another way to count removed characters. This is not the most memory-efficient route, but it highlights that counting can sometimes be derived from a transformation.\n\n## Complexity Analysis\nThe replacement operation scans the string and creates a new string, so the time complexity is O(n) and the extra space complexity is O(n).",
+      "code": "class Solution {\n    public int percentageLetter(String s, char letter) {\n        String target = String.valueOf(letter);\n        int count = s.length() - s.replace(target, \"\").length();\n        return count * 100 / s.length();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Stream Count",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nUse `s.chars()` to create an integer stream, filter characters equal to `letter`, and count the remaining items. Convert the resulting count to the required integer percentage.\n\n## Key Insight\nThe stream version expresses the same logic as a filter-and-count pipeline. It is useful for connecting imperative loops with higher-level operations while preserving the same integer percentage formula.\n\n## Complexity Analysis\nThe stream checks each character once, so the time complexity is O(n). Apart from stream iteration machinery, the algorithm stores only the count, so the extra space complexity is O(1).",
+      "code": "class Solution {\n    public int percentageLetter(String s, char letter) {\n        long count = s.chars().filter(ch -> ch == letter).count();\n        return (int) (count * 100 / s.length());\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"foobar\", letter = 'o'", "output": "33" },
-    { "input": "s = \"jjjj\", letter = 'k'", "output": "0" }
+    {
+      "input": "s = \"foobar\", letter = 'o'",
+      "output": "33",
+      "description": "sample truncates 2/6 * 100 to 33"
+    },
+    {
+      "input": "s = \"jjjj\", letter = 'k'",
+      "output": "0",
+      "description": "sample no occurrences"
+    },
+    {
+      "input": "s = \"aaaa\", letter = 'a'",
+      "output": "100",
+      "description": "all characters match"
+    },
+    {
+      "input": "s = \"abc\", letter = 'a'",
+      "output": "33",
+      "description": "integer division truncates one third to 33"
+    },
+    {
+      "input": "s = \"abc\", letter = 'd'",
+      "output": "0",
+      "description": "letter absent from a short string"
+    },
+    {
+      "input": "s = \"a\", letter = 'a'",
+      "output": "100",
+      "description": "single-character matching boundary"
+    },
+    {
+      "input": "s = \"z\", letter = 'a'",
+      "output": "0",
+      "description": "single-character non-matching boundary"
+    },
+    {
+      "input": "s = \"mississippi\", letter = 's'",
+      "output": "36",
+      "description": "four out of eleven characters truncates to 36"
+    },
+    {
+      "input": "s = \"abab\", letter = 'a'",
+      "output": "50",
+      "description": "exact half should return 50"
+    },
+    {
+      "input": "s = \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab\", letter = 'a'",
+      "output": "99",
+      "description": "99 out of 100 characters tests the upper length and near-full percentage"
+    },
+    {
+      "input": "s = \"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\", letter = 'b'",
+      "output": "100",
+      "description": "length 100 all-match upper boundary"
+    }
   ]
 }

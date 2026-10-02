@@ -1,45 +1,141 @@
 {
   "id": "164",
   "title": "Longest Common Subsequence",
-  "description": "# Longest Common Subsequence\n\nGiven two strings `text1` and `text2`, return *the length of their longest **common subsequence***. If there is no common subsequence, return `0`.\n\nA **subsequence** of a string is a new string generated from the original string with some characters (can be none) deleted without changing the relative order of the remaining characters.\n\n*   For example, `\"ace\"` is a subsequence of `\"abcde\"`.\n\nA **common subsequence** of two strings is a subsequence that is common to both strings.\n\n## Example 1:\n\n**Input:** text1 = \"abcde\", text2 = \"ace\"\n**Output:** 3\n**Explanation:** The longest common subsequence is \"ace\" and its length is 3.\n\n## Example 2:\n\n**Input:** text1 = \"abc\", text2 = \"abc\"\n**Output:** 3\n**Explanation:** The longest common subsequence is \"abc\" and its length is 3.\n\n## Example 3:\n\n**Input:** text1 = \"abc\", text2 = \"def\"\n**Output:** 0\n**Explanation:** There is no such common subsequence, so the result is 0.\n\n## Constraints:\n\n*   `1 <= text1.length, text2.length <= 1000`\n*   `text1` and `text2` consist of only lowercase English characters.",
+  "description": "# Longest Common Subsequence\n\nGiven two strings `text1` and `text2`, return the length of their longest **common subsequence**. If they do not share any character in order, return `0`.\n\nA **subsequence** is formed by deleting zero or more characters without changing the relative order of the characters that remain. The characters do not need to be adjacent.\n\nA **common subsequence** must be a subsequence of both strings. Only the length is required; you do not need to return the subsequence itself.\n\n## Example 1:\n\n**Input:** text1 = \"abcde\", text2 = \"ace\"\n**Output:** 3\n**Explanation:** \"ace\" appears in both strings in the same relative order.\n\n## Example 2:\n\n**Input:** text1 = \"abc\", text2 = \"abc\"\n**Output:** 3\n**Explanation:** The whole string is common to both strings.\n\n## Example 3:\n\n**Input:** text1 = \"abc\", text2 = \"def\"\n**Output:** 0\n**Explanation:** The two strings share no character, so there is no non-empty common subsequence.\n\n## Constraints:\n\n* `1 <= text1.length, text2.length <= 1000`\n* `text1` and `text2` consist of only lowercase English letters.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int longestCommonSubsequence(String text1, String text2) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["String", "Dynamic Programming"],
+  "tags": [
+    "String",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "text1 = \"abcde\", text2 = \"ace\"", "output": "3" },
-    { "input": "text1 = \"abc\", text2 = \"abc\"", "output": "3" },
-    { "input": "text1 = \"abc\", text2 = \"def\"", "output": "0" }
+    {
+      "input": "text1 = \"abcde\", text2 = \"ace\"",
+      "output": "3"
+    },
+    {
+      "input": "text1 = \"abc\", text2 = \"abc\"",
+      "output": "3"
+    },
+    {
+      "input": "text1 = \"abc\", text2 = \"def\"",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
-      "name": "2D Dynamic Programming",
+      "name": "Prefix Table Dynamic Programming",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "Classic LCS DP. If characters match, dp[i][j] = dp[i-1][j-1] + 1. Otherwise take max of dp[i-1][j] and dp[i][j-1].",
-      "code": "class Solution {\n    public int longestCommonSubsequence(String text1, String text2) {\n        int m = text1.length(), n = text2.length();\n        int[][] dp = new int[m + 1][n + 1];\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                if (text1.charAt(i - 1) == text2.charAt(j - 1)) {\n                    dp[i][j] = dp[i - 1][j - 1] + 1;\n                } else {\n                    dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);\n                }\n            }\n        }\n        return dp[m][n];\n    }\n}",
+      "description": "## Approach\nLet `dp[i][j]` be the LCS length for the first `i` characters of `text1` and the first `j` characters of `text2`. If the two newest characters match, extend the diagonal state. Otherwise, skip one newest character from either string and keep the better prefix answer.\n\n## Key Insight\nLCS is a two-prefix problem: every decision can be represented by how many characters have already been considered in each string. The extra zero row and zero column represent empty prefixes, so boundary cases do not need special branches.\n\n## Complexity Analysis\nThere are `m * n` non-empty prefix pairs and each transition is constant time, so the time complexity is O(m * n). The table stores all prefix states, so the space complexity is O(m * n).",
+      "code": "class Solution {\n    public int longestCommonSubsequence(String text1, String text2) {\n        int m = text1.length();\n        int n = text2.length();\n        int[][] dp = new int[m + 1][n + 1];\n\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                if (text1.charAt(i - 1) == text2.charAt(j - 1)) {\n                    dp[i][j] = dp[i - 1][j - 1] + 1;\n                } else {\n                    dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);\n                }\n            }\n        }\n        return dp[m][n];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Space-Optimized DP",
+      "name": "One-Row Rolling DP",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(n)",
-      "description": "Use only two rows (or one row with a prev variable) to reduce space complexity.",
-      "code": "class Solution {\n    public int longestCommonSubsequence(String text1, String text2) {\n        int m = text1.length(), n = text2.length();\n        int[] dp = new int[n + 1];\n        for (int i = 1; i <= m; i++) {\n            int prev = 0;\n            for (int j = 1; j <= n; j++) {\n                int temp = dp[j];\n                if (text1.charAt(i - 1) == text2.charAt(j - 1)) {\n                    dp[j] = prev + 1;\n                } else {\n                    dp[j] = Math.max(dp[j], dp[j - 1]);\n                }\n                prev = temp;\n            }\n        }\n        return dp[n];\n    }\n}",
+      "description": "## Approach\nCompress the prefix table into one row for `text2`. Before overwriting `dp[j]`, save its old value as the next column's diagonal state. `dp[j]` is the old value from above and `dp[j - 1]` is the already-updated value from the left.\n\n## Key Insight\nThe full recurrence only needs three neighboring states: above, left, and diagonal. Updating left to right preserves the left state naturally, while one scalar `previousDiagonal` preserves the diagonal value that would otherwise be overwritten.\n\n## Complexity Analysis\nThe algorithm still evaluates all `m * n` prefix pairs, so the time complexity is O(m * n). The rolling row has `n + 1` entries and one scalar, so the space complexity is O(n).",
+      "code": "class Solution {\n    public int longestCommonSubsequence(String text1, String text2) {\n        int m = text1.length();\n        int n = text2.length();\n        int[] dp = new int[n + 1];\n\n        for (int i = 1; i <= m; i++) {\n            int previousDiagonal = 0;\n            for (int j = 1; j <= n; j++) {\n                int oldAbove = dp[j];\n                if (text1.charAt(i - 1) == text2.charAt(j - 1)) {\n                    dp[j] = previousDiagonal + 1;\n                } else {\n                    dp[j] = Math.max(dp[j], dp[j - 1]);\n                }\n                previousDiagonal = oldAbove;\n            }\n        }\n        return dp[n];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Memoized Suffix DFS",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\nDefine `lcs(i, j)` as the best answer using the suffixes starting at `text1[i]` and `text2[j]`. Matching characters are taken together. On a mismatch, recursively try skipping one character from either suffix and memoize the better result.\n\n## Key Insight\nThe recursive tree has many repeated `(i, j)` suffix states. Memoization turns the exponential skip-or-take search into the same `m * n` state graph as the bottom-up table, while keeping the reasoning close to the definition of a subsequence.\n\n## Complexity Analysis\nEach suffix pair is computed once and does O(1) work after recursive calls, so the time complexity is O(m * n). The memo table stores `m * n` states and the recursion stack is at most O(m + n), dominated by O(m * n) space.",
+      "code": "class Solution {\n    public int longestCommonSubsequence(String text1, String text2) {\n        int[][] memo = new int[text1.length()][text2.length()];\n        for (int[] row : memo) {\n            java.util.Arrays.fill(row, -1);\n        }\n        return lcs(text1, text2, 0, 0, memo);\n    }\n\n    private int lcs(String text1, String text2, int i, int j, int[][] memo) {\n        if (i == text1.length() || j == text2.length()) {\n            return 0;\n        }\n        if (memo[i][j] != -1) {\n            return memo[i][j];\n        }\n        if (text1.charAt(i) == text2.charAt(j)) {\n            memo[i][j] = 1 + lcs(text1, text2, i + 1, j + 1, memo);\n        } else {\n            memo[i][j] = Math.max(lcs(text1, text2, i + 1, j, memo),\n                    lcs(text1, text2, i, j + 1, memo));\n        }\n        return memo[i][j];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Suffix Table Dynamic Programming",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\nBuild a table from the end of both strings toward the front. `dp[i][j]` stores the LCS length for the suffixes `text1[i..]` and `text2[j..]`. Matching current characters use the down-right suffix; mismatches take the better of advancing either index.\n\n## Key Insight\nThis is the bottom-up form of the memoized suffix DFS. It is useful for teaching because the indices match the recursive definition directly, and the answer appears at `dp[0][0]` after all shorter suffixes are known.\n\n## Complexity Analysis\nThe nested reverse loops fill every suffix pair once, so the time complexity is O(m * n). The suffix table has `(m + 1) * (n + 1)` entries, so the space complexity is O(m * n).",
+      "code": "class Solution {\n    public int longestCommonSubsequence(String text1, String text2) {\n        int m = text1.length();\n        int n = text2.length();\n        int[][] dp = new int[m + 1][n + 1];\n\n        for (int i = m - 1; i >= 0; i--) {\n            for (int j = n - 1; j >= 0; j--) {\n                if (text1.charAt(i) == text2.charAt(j)) {\n                    dp[i][j] = 1 + dp[i + 1][j + 1];\n                } else {\n                    dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);\n                }\n            }\n        }\n        return dp[0][0];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Match Positions to LIS",
+      "timeComplexity": "O((m + k) log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nStore all positions of each character in `text2`. Scan `text1`; for each matching character, visit its positions in reverse order and maintain the shortest ending position for each possible subsequence length, exactly like patience sorting for LIS.\n\n## Key Insight\nA common subsequence is an increasing sequence of matched positions in `text2` while characters are scanned in `text1` order. Processing each character's positions from right to left prevents one `text1` character from being used more than once in the same update round.\n\n## Complexity Analysis\nLet `k` be the number of matching character pairs between the two strings. Each pair performs one binary search, so the time complexity is O((m + k) log n). The position lists and LIS tails array use O(n) space.",
+      "code": "class Solution {\n    public int longestCommonSubsequence(String text1, String text2) {\n        java.util.List<Integer>[] positions = new java.util.ArrayList[26];\n        for (int i = 0; i < 26; i++) {\n            positions[i] = new java.util.ArrayList<>();\n        }\n        for (int index = 0; index < text2.length(); index++) {\n            positions[text2.charAt(index) - 'a'].add(index);\n        }\n\n        int[] tails = new int[Math.min(text1.length(), text2.length())];\n        int size = 0;\n        for (int index = 0; index < text1.length(); index++) {\n            java.util.List<Integer> list = positions[text1.charAt(index) - 'a'];\n            for (int k = list.size() - 1; k >= 0; k--) {\n                int position = list.get(k);\n                int slot = lowerBound(tails, size, position);\n                tails[slot] = position;\n                if (slot == size) {\n                    size++;\n                }\n            }\n        }\n        return size;\n    }\n\n    private int lowerBound(int[] values, int size, int target) {\n        int lo = 0;\n        int hi = size;\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (values[mid] < target) {\n                lo = mid + 1;\n            } else {\n                hi = mid;\n            }\n        }\n        return lo;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "text1 = \"abcde\", text2 = \"ace\"", "output": "3" },
-    { "input": "text1 = \"abc\", text2 = \"abc\"", "output": "3" },
-    { "input": "text1 = \"abc\", text2 = \"def\"", "output": "0" },
-    { "input": "text1 = \"a\", text2 = \"a\"", "output": "1" },
-    { "input": "text1 = \"a\", text2 = \"b\"", "output": "0" },
-    { "input": "text1 = \"abcdef\", text2 = \"acf\"", "output": "3" },
+    {
+      "input": "text1 = \"abcde\", text2 = \"ace\"",
+      "output": "3",
+      "description": "Canonical example where the common subsequence ace has length three."
+    },
+    {
+      "input": "text1 = \"abc\", text2 = \"abc\"",
+      "output": "3",
+      "description": "Identical strings make the whole string the longest common subsequence."
+    },
+    {
+      "input": "text1 = \"abc\", text2 = \"def\"",
+      "output": "0",
+      "description": "Disjoint character sets produce length zero."
+    },
+    {
+      "input": "text1 = \"a\", text2 = \"a\"",
+      "output": "1",
+      "description": "Single matching character boundary returns one."
+    },
+    {
+      "input": "text1 = \"a\", text2 = \"b\"",
+      "output": "0",
+      "description": "Single nonmatching characters return zero."
+    },
+    {
+      "input": "text1 = \"abcdef\", text2 = \"acf\"",
+      "output": "3",
+      "description": "Skipped characters in the first string still allow acf as a subsequence."
+    },
     {
       "input": "text1 = \"oxcpqrsvwf\", text2 = \"shmtulqrypy\"",
-      "output": "2"
+      "output": "2",
+      "description": "Longer strings with sparse overlap test ordinary DP table behavior."
     },
-    { "input": "text1 = \"bsbininm\", text2 = \"jmjkbkjkv\"", "output": "1" }
+    {
+      "input": "text1 = \"bsbininm\", text2 = \"jmjkbkjkv\"",
+      "output": "1",
+      "description": "Low-overlap strings prevent solutions from relying on obvious prefixes."
+    },
+    {
+      "input": "text1 = \"abcba\", text2 = \"abcbc\"",
+      "output": "4",
+      "description": "Repeated letters require preserving order while choosing the better duplicate positions."
+    },
+    {
+      "input": "text1 = \"abcbdab\", text2 = \"bdcaba\"",
+      "output": "4",
+      "description": "Classic LCS case with several optimal subsequences of the same length."
+    },
+    {
+      "input": "text1 = \"aaaa\", text2 = \"aa\"",
+      "output": "2",
+      "description": "Repeated equal characters must be counted only as many times as both strings can supply them."
+    },
+    {
+      "input": "text1 = \"aggtab\", text2 = \"gxtxayb\"",
+      "output": "4",
+      "description": "Non-adjacent matches form the subsequence gtab."
+    },
+    {
+      "input": "text1 = \"abc\", text2 = \"bac\"",
+      "output": "2",
+      "description": "Crossing choices verify that the answer is a subsequence, not a set intersection."
+    }
   ],
-  "diagram": "images/p164_lcs.png"
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p164_lcs.png",
+      "caption": "Matched letters stay in relative order while skipped gaps are allowed"
+    }
+  ]
 }

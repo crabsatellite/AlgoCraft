@@ -1,13 +1,23 @@
 {
   "id": "351",
   "title": "Smallest Good Base",
-  "description": "# Smallest Good Base\n\nGiven an integer `n` represented as a string, return *the smallest **good base** of* `n`.\n\nWe call `k >= 2` a **good base** of `n`, if all digits of `n` base `k` are `1`'s.\n\n## Example 1:\n\n**Input:** n = \"13\"\n**Output:** \"3\"\n**Explanation:** 13 base 3 is 111.\n\n## Example 2:\n\n**Input:** n = \"4681\"\n**Output:** \"8\"\n**Explanation:** 4681 base 8 is 11111.\n\n## Example 3:\n\n**Input:** n = \"1000000000000000000\"\n**Output:** \"999999999999999999\"\n**Explanation:** 1000000000000000000 base 999999999999999999 is 11.\n\n## Constraints:\n\n*   `n` is an integer in the range `[3, 10^18]`.\n*   `n` does not contain any leading zeros.",
+  "description": "# Smallest Good Base\n\nGiven an integer `n` represented as a string, return the smallest good base of `n`.\n\nA base `k >= 2` is a good base when the representation of `n` in base `k` uses only the digit `1`. In other words, for some digit count `m >= 2`, `n = 1 + k + k^2 + ... + k^(m - 1)`.\n\nThe answer is returned as a string because `n` can be as large as `10^18`.\n\n## Example 1:\n\n**Input:** n = \"13\"\n**Output:** \"3\"\n**Explanation:** 13 = 1 + 3 + 9, so 13 is written as 111 in base 3.\n\n## Example 2:\n\n**Input:** n = \"4681\"\n**Output:** \"8\"\n**Explanation:** 4681 = 1 + 8 + 8^2 + 8^3 + 8^4, so it is 11111 in base 8.\n\n## Example 3:\n\n**Input:** n = \"1000000000000000000\"\n**Output:** \"999999999999999999\"\n**Explanation:** No longer all-one representation exists, so the two-digit representation 11 in base n - 1 is the smallest good base.\n\n## Constraints:\n\n* `n` is an integer in the range `[3, 10^18]`.\n* `n` does not contain leading zeros.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public String smallestGoodBase(String n) {\n        \n    }\n}",
-  "tags": ["Math", "Binary Search"],
+  "initialCode": "class Solution {\n    public String smallestGoodBase(String n) {\n        return \"\";\n    }\n}",
+  "tags": [
+    "Math",
+    "Number Theory",
+    "Binary Search"
+  ],
   "examples": [
-    { "input": "n = \"13\"", "output": "\"3\"" },
-    { "input": "n = \"4681\"", "output": "\"8\"" },
+    {
+      "input": "n = \"13\"",
+      "output": "\"3\""
+    },
+    {
+      "input": "n = \"4681\"",
+      "output": "\"8\""
+    },
     {
       "input": "n = \"1000000000000000000\"",
       "output": "\"999999999999999999\""
@@ -15,28 +25,121 @@
   ],
   "solutions": [
     {
-      "name": "Binary Search on Digits and Base",
-      "timeComplexity": "O(log^2 n)",
+      "name": "Overflow-Guarded Binary Search per Digit Count",
+      "timeComplexity": "O(log^3 n)",
       "spaceComplexity": "O(1)",
-      "description": "n = 1 + k + k^2 + ... + k^(m-1) for some base k and m digits. Try each possible number of digits m from largest to smallest. For each m, binary search for k. The smallest valid k gives the answer.",
-      "code": "class Solution {\n    public String smallestGoodBase(String n) {\n        long num = Long.parseLong(n);\n        for (int m = (int)(Math.log(num) / Math.log(2)) + 1; m >= 2; m--) {\n            long lo = 2, hi = (long) Math.pow(num, 1.0 / (m - 1)) + 1;\n            while (lo <= hi) {\n                long mid = lo + (hi - lo) / 2;\n                long sum = 0, cur = 1;\n                for (int i = 0; i < m; i++) { sum += cur; cur *= mid; }\n                if (sum == num) return String.valueOf(mid);\n                else if (sum < num) lo = mid + 1;\n                else hi = mid - 1;\n            }\n        }\n        return String.valueOf(num - 1);\n    }\n}",
+      "description": "## Approach\n\nTry all possible digit counts from longest to shortest. For a fixed digit count, the geometric sum `1 + k + ... + k^(m - 1)` grows monotonically with the base, so binary-search the base and compare the sum with explicit overflow guards.\n\n## Key Insight\n\nThe smallest base is produced by the longest valid all-one representation. The overflow guard compares before multiplying, so values near `10^18` never wrap around while checking a candidate base.\n\n## Complexity Analysis\n- Time Complexity: O(log^3 n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public String smallestGoodBase(String n) {\n        long num = Long.parseLong(n);\n        int maxDigits = 64 - Long.numberOfLeadingZeros(num);\n        for (int digits = maxDigits; digits >= 3; digits--) {\n            long lo = 2;\n            long hi = (long) Math.pow(num, 1.0 / (digits - 1)) + 2;\n            while (lo <= hi) {\n                long base = lo + (hi - lo) / 2;\n                int cmp = compareGeometricSum(base, digits, num);\n                if (cmp == 0) return String.valueOf(base);\n                if (cmp < 0) lo = base + 1;\n                else hi = base - 1;\n            }\n        }\n        return String.valueOf(num - 1);\n    }\n\n    private int compareGeometricSum(long base, int digits, long limit) {\n        long sum = 1;\n        long term = 1;\n        for (int i = 1; i < digits; i++) {\n            if (term > (limit - sum) / base) return 1;\n            term *= base;\n            sum += term;\n        }\n        return Long.compare(sum, limit);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Enumerate Digit Count with Direct Computation",
+      "name": "Integer Nth Root Candidate Search",
+      "timeComplexity": "O(log^3 n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFor a representation with `digits` ones, the base is close to the integer `(digits - 1)`-th root of `n`. Compute that root using integer binary search, then validate the nearby candidates exactly with the same guarded geometric comparison.\n\n## Key Insight\n\nThe root is only a bound; it is not the proof. Checking the small neighborhood around the integer root keeps the search exact and avoids trusting floating-point rounding for the final answer.\n\n## Complexity Analysis\n- Time Complexity: O(log^3 n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public String smallestGoodBase(String n) {\n        long num = Long.parseLong(n);\n        int maxDigits = 64 - Long.numberOfLeadingZeros(num);\n        for (int digits = maxDigits; digits >= 3; digits--) {\n            long root = integerNthRoot(num, digits - 1);\n            for (long base = Math.max(2, root - 2); base <= root + 2; base++) {\n                if (compareGeometricSum(base, digits, num) == 0) return String.valueOf(base);\n            }\n        }\n        return String.valueOf(num - 1);\n    }\n\n    private long integerNthRoot(long value, int power) {\n        long lo = 2;\n        long hi = (long) Math.sqrt(value) + 1;\n        long answer = 1;\n        while (lo <= hi) {\n            long mid = lo + (hi - lo) / 2;\n            int cmp = comparePower(mid, power, value);\n            if (cmp <= 0) {\n                answer = mid;\n                lo = mid + 1;\n            } else {\n                hi = mid - 1;\n            }\n        }\n        return answer;\n    }\n\n    private int comparePower(long base, int power, long value) {\n        long product = 1;\n        for (int i = 0; i < power; i++) {\n            if (product > value / base) return 1;\n            product *= base;\n        }\n        return Long.compare(product, value);\n    }\n\n    private int compareGeometricSum(long base, int digits, long limit) {\n        long sum = 1;\n        long term = 1;\n        for (int i = 1; i < digits; i++) {\n            if (term > (limit - sum) / base) return 1;\n            term *= base;\n            sum += term;\n        }\n        return Long.compare(sum, limit);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Floating Root Estimate with Exact Neighborhood Check",
       "timeComplexity": "O(log^2 n)",
       "spaceComplexity": "O(1)",
-      "description": "For each possible number of digits m from largest down, directly compute k = floor(n^(1/(m-1))). Check if 1 + k + k^2 + ... + k^(m-1) equals n using a geometric sum evaluation. Return the first valid k found.",
-      "code": "class Solution {\n    public String smallestGoodBase(String n) {\n        long num = Long.parseLong(n);\n        for (int m = (int)(Math.log(num) / Math.log(2)) + 1; m >= 2; m--) {\n            long k = (long) Math.pow(num, 1.0 / (m - 1));\n            if (k < 2) continue;\n            long sum = 0;\n            long cur = 1;\n            boolean overflow = false;\n            for (int i = 0; i < m; i++) {\n                sum += cur;\n                if (sum > num) { overflow = true; break; }\n                if (i < m - 1) cur *= k;\n            }\n            if (!overflow && sum == num) return String.valueOf(k);\n        }\n        return String.valueOf(num - 1);\n    }\n}",
+      "description": "## Approach\n\nEnumerate the digit count and use `Math.pow` only to get a small candidate region for the base. Probe several bases around that estimate and validate each one with overflow-safe integer arithmetic.\n\n## Key Insight\n\nFloating point is acceptable for narrowing the candidate set, but never for accepting an answer. The exact geometric sum check is what makes this compact implementation reliable near powers and near `10^18`.\n\n## Complexity Analysis\n- Time Complexity: O(log^2 n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public String smallestGoodBase(String n) {\n        long num = Long.parseLong(n);\n        int maxDigits = 64 - Long.numberOfLeadingZeros(num);\n        for (int digits = maxDigits; digits >= 3; digits--) {\n            long estimate = (long) Math.pow(num, 1.0 / (digits - 1));\n            for (long base = Math.max(2, estimate - 3); base <= estimate + 3; base++) {\n                if (compareGeometricSum(base, digits, num) == 0) return String.valueOf(base);\n            }\n        }\n        return String.valueOf(num - 1);\n    }\n\n    private int compareGeometricSum(long base, int digits, long limit) {\n        long sum = 1;\n        long term = 1;\n        for (int i = 1; i < digits; i++) {\n            if (term > (limit - sum) / base) return 1;\n            term *= base;\n            sum += term;\n        }\n        return Long.compare(sum, limit);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "BigInteger Exact Sum Search",
+      "timeComplexity": "O(log^3 n)",
+      "spaceComplexity": "O(log n)",
+      "description": "## Approach\n\nKeep the same length-first binary search, but compute every candidate geometric sum with `BigInteger`. This removes manual overflow handling from the comparison and makes the number-theory equation visible.\n\n## Key Insight\n\nThe monotonic search over bases is unchanged; only the arithmetic backend changes. This route is useful for teaching the equation cleanly before optimizing the comparison back down to primitive longs.\n\n## Complexity Analysis\n- Time Complexity: O(log^3 n)\n- Space Complexity: O(log n)",
+      "code": "import java.math.BigInteger;\n\nclass Solution {\n    public String smallestGoodBase(String n) {\n        long value = Long.parseLong(n);\n        BigInteger target = new BigInteger(n);\n        int maxDigits = 64 - Long.numberOfLeadingZeros(value);\n        for (int digits = maxDigits; digits >= 3; digits--) {\n            long lo = 2;\n            long hi = (long) Math.pow(value, 1.0 / (digits - 1)) + 2;\n            while (lo <= hi) {\n                long base = lo + (hi - lo) / 2;\n                int cmp = geometricSum(base, digits, target).compareTo(target);\n                if (cmp == 0) return String.valueOf(base);\n                if (cmp < 0) lo = base + 1;\n                else hi = base - 1;\n            }\n        }\n        return String.valueOf(value - 1);\n    }\n\n    private BigInteger geometricSum(long base, int digits, BigInteger limit) {\n        BigInteger b = BigInteger.valueOf(base);\n        BigInteger term = BigInteger.ONE;\n        BigInteger sum = BigInteger.ONE;\n        for (int i = 1; i < digits; i++) {\n            term = term.multiply(b);\n            sum = sum.add(term);\n            if (sum.compareTo(limit) > 0) return sum;\n        }\n        return sum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Horner-Style Repunit Comparator",
+      "timeComplexity": "O(log^3 n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nInterpret the all-one value as a recurrence: starting from `1`, append another digit `1` by computing `value = value * base + 1`. Use this Horner-style comparator inside the same longest-length-first binary search.\n\n## Key Insight\n\nThe recurrence compares the base-k repunit without separately tracking every power. It is a different way to evaluate the same expression and gives another clean overflow check: test whether the next append would exceed the target before multiplying.\n\n## Complexity Analysis\n- Time Complexity: O(log^3 n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public String smallestGoodBase(String n) {\n        long target = Long.parseLong(n);\n        int maxDigits = 64 - Long.numberOfLeadingZeros(target);\n        for (int digits = maxDigits; digits >= 3; digits--) {\n            long left = 2;\n            long right = maxPossibleBase(target, digits);\n            while (left <= right) {\n                long mid = left + (right - left) / 2;\n                int cmp = compareRepunit(mid, digits, target);\n                if (cmp == 0) return String.valueOf(mid);\n                if (cmp < 0) left = mid + 1;\n                else right = mid - 1;\n            }\n        }\n        return String.valueOf(target - 1);\n    }\n\n    private long maxPossibleBase(long target, int digits) {\n        long right = 2;\n        while (right <= target / 2 && compareRepunit(right, digits, target) <= 0) {\n            right *= 2;\n        }\n        return Math.min(right, target - 1);\n    }\n\n    private int compareRepunit(long base, int digits, long target) {\n        long value = 1;\n        for (int i = 1; i < digits; i++) {\n            if (value > (target - 1) / base) return 1;\n            value = value * base + 1;\n        }\n        return Long.compare(value, target);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "n = \"13\"", "output": "\"3\"" },
-    { "input": "n = \"4681\"", "output": "\"8\"" },
+    {
+      "input": "n = \"13\"",
+      "output": "\"3\"",
+      "description": "sample with three ones in base 3"
+    },
+    {
+      "input": "n = \"4681\"",
+      "output": "\"8\"",
+      "description": "sample with five ones in base 8"
+    },
     {
       "input": "n = \"1000000000000000000\"",
-      "output": "\"999999999999999999\""
+      "output": "\"999999999999999999\"",
+      "description": "upper-limit fallback to the two-digit representation"
+    },
+    {
+      "input": "n = \"3\"",
+      "output": "\"2\"",
+      "description": "smallest possible input"
+    },
+    {
+      "input": "n = \"7\"",
+      "output": "\"2\"",
+      "description": "111 in base 2"
+    },
+    {
+      "input": "n = \"15\"",
+      "output": "\"2\"",
+      "description": "1111 in base 2"
+    },
+    {
+      "input": "n = \"21\"",
+      "output": "\"4\"",
+      "description": "111 in base 4"
+    },
+    {
+      "input": "n = \"31\"",
+      "output": "\"2\"",
+      "description": "five ones in base 2"
+    },
+    {
+      "input": "n = \"40\"",
+      "output": "\"3\"",
+      "description": "four ones in base 3"
+    },
+    {
+      "input": "n = \"121\"",
+      "output": "\"3\"",
+      "description": "five ones in base 3"
+    },
+    {
+      "input": "n = \"127\"",
+      "output": "\"2\"",
+      "description": "seven ones in base 2"
+    },
+    {
+      "input": "n = \"1093\"",
+      "output": "\"3\"",
+      "description": "seven ones in base 3"
+    },
+    {
+      "input": "n = \"1000001000001\"",
+      "output": "\"1000000\"",
+      "description": "large three-digit representation with a million as the base"
+    },
+    {
+      "input": "n = \"999999999000000001\"",
+      "output": "\"999999999\"",
+      "description": "near 10^18 three-digit representation with a very large base"
+    },
+    {
+      "input": "n = \"576460752303423487\"",
+      "output": "\"2\"",
+      "description": "large Mersenne value requiring the longest representation"
     }
   ]
 }

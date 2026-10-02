@@ -1,36 +1,129 @@
 {
   "id": "217",
   "title": "Excel Sheet Column Number",
-  "description": "# Excel Sheet Column Number\n\nGiven a string `columnTitle` that represents the column title as appears in an Excel sheet, return *its corresponding column number*.\n\nFor example:\n\n```\nA -> 1\nB -> 2\nC -> 3\n...\nZ -> 26\nAA -> 27\nAB -> 28\n...\n```\n\n## Example 1:\n\n**Input:** columnTitle = \"A\"\n**Output:** 1\n\n## Example 2:\n\n**Input:** columnTitle = \"AB\"\n**Output:** 28\n\n## Example 3:\n\n**Input:** columnTitle = \"ZY\"\n**Output:** 701\n\n## Constraints:\n\n*   `1 <= columnTitle.length <= 7`\n*   `columnTitle` consists only of uppercase English letters.\n*   `columnTitle` is in the range `[\"A\", \"FXSHRXW\"]`.",
+  "description": "# Excel Sheet Column Number\n\nGiven a string `columnTitle` that represents a column title in an Excel sheet, return its corresponding column number.\n\nColumn titles proceed as `A, B, ..., Z, AA, AB, ..., AZ, BA, ...`, with column numbers starting at `1`.\n\nFor example:\n\n```\nA -> 1\nB -> 2\nC -> 3\n...\nZ -> 26\nAA -> 27\nAB -> 28\n...\n```\n\n## Example 1:\n\n**Input:** columnTitle = \"A\"\n**Output:** 1\n\n## Example 2:\n\n**Input:** columnTitle = \"AB\"\n**Output:** 28\n\n## Example 3:\n\n**Input:** columnTitle = \"ZY\"\n**Output:** 701\n\n## Constraints:\n\n*   `1 <= columnTitle.length <= 7`\n*   `columnTitle` consists only of uppercase English letters.\n*   The column number represented by `columnTitle` is in `[1, 2^31 - 1]`.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int titleToNumber(String columnTitle) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Math", "String"],
+  "tags": [
+    "Math",
+    "String"
+  ],
   "examples": [
-    { "input": "columnTitle = \"A\"", "output": "1" },
-    { "input": "columnTitle = \"AB\"", "output": "28" },
-    { "input": "columnTitle = \"ZY\"", "output": "701" }
+    {
+      "input": "columnTitle = \"A\"",
+      "output": "1"
+    },
+    {
+      "input": "columnTitle = \"AB\"",
+      "output": "28"
+    },
+    {
+      "input": "columnTitle = \"ZY\"",
+      "output": "701"
+    }
   ],
   "solutions": [
     {
-      "name": "Base-26 Conversion",
+      "name": "Left-to-Right Horner Accumulation",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Process each character left to right. Multiply running total by 26 and add the current character's value (A=1, B=2, etc.).",
-      "code": "class Solution {\n    public int titleToNumber(String columnTitle) {\n        int result = 0;\n        for (char c : columnTitle.toCharArray()) {\n            result = result * 26 + (c - 'A' + 1);\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nScan the title from left to right. For each character, multiply the accumulated value by 26 and add the one-based letter value `c - 'A' + 1`.\n\n## Key Insight\n\nThis is Horner's rule for positional notation. Each new character shifts the existing prefix one base-26 position to the left, then contributes its own one-indexed digit value.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), where n is the title length.\n- Space Complexity: O(1), because only the running value is stored.",
+      "code": "class Solution {\n    public int titleToNumber(String columnTitle) {\n        int value = 0;\n        for (int i = 0; i < columnTitle.length(); i++) {\n            int digit = columnTitle.charAt(i) - 'A' + 1;\n            value = value * 26 + digit;\n        }\n        return value;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Right-to-Left with Power",
+      "name": "Right-to-Left Place Values",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Process characters from right to left, multiplying each character's value by the appropriate power of 26.",
-      "code": "class Solution {\n    public int titleToNumber(String columnTitle) {\n        int result = 0;\n        int power = 1;\n        for (int i = columnTitle.length() - 1; i >= 0; i--) {\n            result += (columnTitle.charAt(i) - 'A' + 1) * power;\n            power *= 26;\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nScan from the last character to the first. Maintain the current place value, starting at 1 and multiplying by 26 after each character. Add `digit * place` for every position.\n\n## Key Insight\n\nThis version exposes the positional weights directly: the rightmost character has weight 1, the next has weight 26, then 26^2, and so on. The letter digit itself is still one-based.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because every character is processed once.\n- Space Complexity: O(1), because only the result and current place value are stored.",
+      "code": "class Solution {\n    public int titleToNumber(String columnTitle) {\n        int result = 0;\n        int place = 1;\n        for (int i = columnTitle.length() - 1; i >= 0; i--) {\n            int digit = columnTitle.charAt(i) - 'A' + 1;\n            result += digit * place;\n            place *= 26;\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Prefix Fold",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse a helper that stores the value of the prefix already read. At each index, multiply that prefix value by 26, add the current one-based digit, and recurse to the next index.\n\n## Key Insight\n\nThe recursive state is exactly the same as the iterative left-to-right accumulator. Writing it recursively makes the invariant explicit: `value` always represents the prefix before `index`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because the helper visits every character once.\n- Space Complexity: O(n), because the recursion stack has one frame per character.",
+      "code": "class Solution {\n    public int titleToNumber(String columnTitle) {\n        return fold(columnTitle, 0, 0);\n    }\n\n    private int fold(String title, int index, int value) {\n        if (index == title.length()) {\n            return value;\n        }\n        int digit = title.charAt(index) - 'A' + 1;\n        return fold(title, index + 1, value * 26 + digit);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Precomputed Powers Table",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nPrecompute powers of 26 for each position from the right, then multiply each character's one-based digit by the power assigned to its position and sum the products.\n\n## Key Insight\n\nThis separates the two ideas in the formula: a character contributes its digit value, and its index determines the power of 26. It is useful for teaching the exact numeric expansion of a title such as `ZY`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because powers and contributions are each computed in linear time.\n- Space Complexity: O(n), for the powers table.",
+      "code": "class Solution {\n    public int titleToNumber(String columnTitle) {\n        int n = columnTitle.length();\n        int[] powers = new int[n];\n        powers[n - 1] = 1;\n        for (int i = n - 2; i >= 0; i--) {\n            powers[i] = powers[i + 1] * 26;\n        }\n\n        int result = 0;\n        for (int i = 0; i < n; i++) {\n            int digit = columnTitle.charAt(i) - 'A' + 1;\n            result += digit * powers[i];\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Digit Lookup Table Fold",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nBuild a small lookup table that maps `'A'` through `'Z'` to values 1 through 26. Then perform the normal left-to-right fold using the table value for each character.\n\n## Key Insight\n\nThis version makes digit decoding explicit and leaves the positional fold separate. The table is constant size, so it does not change the asymptotic memory usage.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because the title is scanned once after initializing a constant-size table.\n- Space Complexity: O(1), because the table has exactly 26 entries.",
+      "code": "class Solution {\n    public int titleToNumber(String columnTitle) {\n        int[] digitValue = new int[26];\n        for (int i = 0; i < 26; i++) {\n            digitValue[i] = i + 1;\n        }\n\n        int result = 0;\n        for (int i = 0; i < columnTitle.length(); i++) {\n            int digit = digitValue[columnTitle.charAt(i) - 'A'];\n            result = result * 26 + digit;\n        }\n        return result;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "columnTitle = \"A\"", "output": "1" },
-    { "input": "columnTitle = \"AB\"", "output": "28" },
-    { "input": "columnTitle = \"ZY\"", "output": "701" }
+    {
+      "input": "columnTitle = \"A\"",
+      "output": "1",
+      "description": "Single first column title maps to one."
+    },
+    {
+      "input": "columnTitle = \"Z\"",
+      "output": "26",
+      "description": "Single Z maps to twenty-six."
+    },
+    {
+      "input": "columnTitle = \"AA\"",
+      "output": "27",
+      "description": "AA is the first value after Z."
+    },
+    {
+      "input": "columnTitle = \"AB\"",
+      "output": "28",
+      "description": "Two-letter title accumulates base-26 value."
+    },
+    {
+      "input": "columnTitle = \"AZ\"",
+      "output": "52",
+      "description": "AZ checks a trailing maximum digit."
+    },
+    {
+      "input": "columnTitle = \"BA\"",
+      "output": "53",
+      "description": "BA is the first value after AZ."
+    },
+    {
+      "input": "columnTitle = \"ZY\"",
+      "output": "701",
+      "description": "Canonical large two-letter title."
+    },
+    {
+      "input": "columnTitle = \"ZZ\"",
+      "output": "702",
+      "description": "Largest two-letter title before AAA."
+    },
+    {
+      "input": "columnTitle = \"AAA\"",
+      "output": "703",
+      "description": "First three-letter title checks positional accumulation."
+    },
+    {
+      "input": "columnTitle = \"ZZZ\"",
+      "output": "18278",
+      "description": "Largest three-letter title before AAAA."
+    },
+    {
+      "input": "columnTitle = \"AAAA\"",
+      "output": "18279",
+      "description": "First four-letter title checks repeated carries."
+    },
+    {
+      "input": "columnTitle = \"FXSHRXW\"",
+      "output": "2147483647",
+      "description": "Maximum int title checks large base-26 accumulation."
+    }
   ]
 }

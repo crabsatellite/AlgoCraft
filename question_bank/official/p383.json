@@ -1,9 +1,9 @@
 {
   "id": "383",
   "title": "Minimize Malware Spread",
-  "description": "# Minimize Malware Spread\n\nYou are given a network of `n` nodes represented as an `n x n` adjacency matrix `graph`, where the `i-th` node is directly connected to the `j-th` node if `graph[i][j] == 1`.\n\nSome nodes `initial` are initially infected by malware. Whenever two nodes are directly connected and at least one of those two nodes is infected by malware, both nodes will be infected by malware. This spread of malware will continue until no more nodes can be infected in this manner.\n\nSuppose `M(initial)` is the final number of nodes infected with malware in the entire network, after the spread of malware stops.\n\nWe will remove one node from the initial infected list. Return the node that if removed, would minimize `M(initial)`. If multiple nodes could be removed to minimize `M(initial)`, return such a node with the smallest index.\n\nNote that if a node was removed from the `initial` list of infected nodes, it may still be infected later as a result of the malware spread.\n\n## Example 1:\n\n**Input:** graph = [[1,1,0],[1,1,0],[0,0,1]], initial = [0,1]\n**Output:** 0\n\n## Example 2:\n\n**Input:** graph = [[1,0,0],[0,1,0],[0,0,1]], initial = [0,2]\n**Output:** 0\n\n## Example 3:\n\n**Input:** graph = [[1,1,1],[1,1,1],[1,1,1]], initial = [1,2]\n**Output:** 1\n\n## Constraints:\n\n*   `n == graph.length`\n*   `n == graph[i].length`\n*   `2 <= n <= 300`\n*   `graph[i][j]` is `0` or `1`.\n*   `graph[i][j] == graph[j][i]`\n*   `graph[i][i] == 1`\n*   `1 <= initial.length <= n`\n*   `0 <= initial[i] <= n - 1`\n*   All the integers in `initial` are unique.",
+  "description": "# Minimize Malware Spread\n\nYou are given a network of `n` nodes represented as an `n x n` adjacency matrix `graph`, where `graph[i][j] == 1` means nodes `i` and `j` are directly connected.\n\nSome nodes in `initial` are infected before the spread starts. Infection spreads through direct connections until every node in any connected component that contains an infected source is infected.\n\nYou may remove exactly one node from the `initial` infected list before the spread starts. Return the node whose removal minimizes the final number of infected nodes. If several removals produce the same minimum, return the smallest node index.\n\nThe removed node is not deleted from the graph. It is only removed from the initial infected list, so it may still become infected later if another infected node can reach it.\n\n## Example 1\n\n**Input:** graph = [[1,1,0],[1,1,0],[0,0,1]], initial = [0,1]\n\n**Output:** 0\n\n**Explanation:** Nodes 0 and 1 are in the same connected component, so removing either one still leaves the other as an infection source. Both choices save no extra node, and the smaller index is 0.\n\n## Example 2\n\n**Input:** graph = [[1,0,0],[0,1,0],[0,0,1]], initial = [0,2]\n\n**Output:** 0\n\n**Explanation:** Removing 0 or 2 saves one isolated component. The saved size ties, so return the smaller node index.\n\n## Example 3\n\n**Input:** graph = [[1,1,1],[1,1,1],[1,1,1]], initial = [1,2]\n\n**Output:** 1\n\n**Explanation:** The whole graph is one infected component with two initial sources. Removing either source does not stop infection, so the tie is broken by index.\n\n## Constraints\n\n* `n == graph.length`\n* `n == graph[i].length`\n* `2 <= n <= 300`\n* `graph[i][j]` is `0` or `1`.\n* `graph[i][j] == graph[j][i]`\n* `graph[i][i] == 1`\n* `1 <= initial.length <= n`\n* `0 <= initial[i] <= n - 1`\n* All integers in `initial` are unique.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int minMalwareSpread(int[][] graph, int[] initial) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int minMalwareSpread(int[][] graph, int[] initial) {\n        return 0;\n    }\n}",
   "tags": [
     "Depth-First Search",
     "Breadth-First Search",
@@ -30,38 +30,110 @@
       "name": "Union Find with Component Analysis",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n)",
-      "description": "Build connected components using Union Find. For each component, count how many initially infected nodes it contains. If exactly one infected node in a component, removing it saves the entire component. Pick the node that saves the most; break ties by smallest index.",
-      "code": "class Solution {\n    private int[] parent, rank, size;\n    public int minMalwareSpread(int[][] graph, int[] initial) {\n        int n = graph.length;\n        parent = new int[n]; rank = new int[n]; size = new int[n];\n        for (int i = 0; i < n; i++) { parent[i] = i; size[i] = 1; }\n        for (int i = 0; i < n; i++)\n            for (int j = i + 1; j < n; j++)\n                if (graph[i][j] == 1) union(i, j);\n        java.util.Map<Integer, Integer> compInfected = new java.util.HashMap<>();\n        java.util.Set<Integer> initSet = new java.util.HashSet<>();\n        for (int node : initial) initSet.add(node);\n        for (int node : initial) {\n            int root = find(node);\n            compInfected.merge(root, 1, Integer::sum);\n        }\n        java.util.Arrays.sort(initial);\n        int bestNode = initial[0], bestSave = 0;\n        for (int node : initial) {\n            int root = find(node);\n            if (compInfected.get(root) == 1) {\n                if (size[root] > bestSave) { bestSave = size[root]; bestNode = node; }\n            }\n        }\n        return bestNode;\n    }\n    private int find(int x) { if (parent[x] != x) parent[x] = find(parent[x]); return parent[x]; }\n    private void union(int a, int b) {\n        int ra = find(a), rb = find(b);\n        if (ra == rb) return;\n        if (rank[ra] < rank[rb]) { int t = ra; ra = rb; rb = t; }\n        parent[rb] = ra; size[ra] += size[rb];\n        if (rank[ra] == rank[rb]) rank[ra]++;\n    }\n}",
+      "description": "## Approach\n\nBuild connected components with Union Find, store each component size, and count how many initially infected nodes land in each component. A candidate only saves nodes when it is the unique initial infection in its component.\n\n## Key Insight\n\nMalware eventually fills an entire connected component if at least one source remains in that component. Removing one source changes the final count only for components whose initial infection count drops from one to zero.\n\n## Complexity Analysis\n- Time Complexity: O(n^2), because the adjacency matrix is scanned once.\n- Space Complexity: O(n), for Union Find arrays and component infection counts.",
+      "code": "class Solution {\n    private int[] parent;\n    private int[] rank;\n    private int[] size;\n\n    public int minMalwareSpread(int[][] graph, int[] initial) {\n        int n = graph.length;\n        parent = new int[n];\n        rank = new int[n];\n        size = new int[n];\n        for (int i = 0; i < n; i++) {\n            parent[i] = i;\n            size[i] = 1;\n        }\n        for (int i = 0; i < n; i++) {\n            for (int j = i + 1; j < n; j++) {\n                if (graph[i][j] == 1) {\n                    union(i, j);\n                }\n            }\n        }\n\n        java.util.Map<Integer, Integer> compInfected = new java.util.HashMap<>();\n        for (int node : initial) {\n            int root = find(node);\n            compInfected.merge(root, 1, Integer::sum);\n        }\n\n        java.util.Arrays.sort(initial);\n        int bestNode = initial[0];\n        int bestSave = 0;\n        for (int node : initial) {\n            int root = find(node);\n            if (compInfected.get(root) == 1 && size[root] > bestSave) {\n                bestSave = size[root];\n                bestNode = node;\n            }\n        }\n        return bestNode;\n    }\n\n    private int find(int x) {\n        if (parent[x] != x) {\n            parent[x] = find(parent[x]);\n        }\n        return parent[x];\n    }\n\n    private void union(int a, int b) {\n        int ra = find(a);\n        int rb = find(b);\n        if (ra == rb) {\n            return;\n        }\n        if (rank[ra] < rank[rb]) {\n            int temp = ra;\n            ra = rb;\n            rb = temp;\n        }\n        parent[rb] = ra;\n        size[ra] += size[rb];\n        if (rank[ra] == rank[rb]) {\n            rank[ra]++;\n        }\n    }\n}",
       "language": "java"
     },
     {
       "name": "DFS Component Labeling",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n)",
-      "description": "Use DFS to label connected components and compute their sizes. For each component, count how many initial infected nodes it contains. If exactly one, removing that node saves the entire component. Compare all such savings and pick the best node (smallest index on tie).",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int minMalwareSpread(int[][] graph, int[] initial) {\n        int n = graph.length;\n        int[] componentId = new int[n];\n        Arrays.fill(componentId, -1);\n        int label = 0;\n        List<Integer> compSize = new ArrayList<>();\n        for (int i = 0; i < n; i++) {\n            if (componentId[i] == -1) {\n                int size = dfs(graph, i, componentId, label, n);\n                compSize.add(size);\n                label++;\n            }\n        }\n        Map<Integer, Integer> compInfectedCount = new HashMap<>();\n        Set<Integer> initSet = new HashSet<>();\n        for (int node : initial) initSet.add(node);\n        for (int node : initial) {\n            int comp = componentId[node];\n            compInfectedCount.merge(comp, 1, Integer::sum);\n        }\n        Arrays.sort(initial);\n        int bestNode = initial[0];\n        int bestSave = 0;\n        for (int node : initial) {\n            int comp = componentId[node];\n            if (compInfectedCount.get(comp) == 1) {\n                int save = compSize.get(comp);\n                if (save > bestSave) {\n                    bestSave = save;\n                    bestNode = node;\n                }\n            }\n        }\n        return bestNode;\n    }\n    private int dfs(int[][] graph, int node, int[] componentId, int label, int n) {\n        componentId[node] = label;\n        int size = 1;\n        for (int j = 0; j < n; j++) {\n            if (graph[node][j] == 1 && componentId[j] == -1) {\n                size += dfs(graph, j, componentId, label, n);\n            }\n        }\n        return size;\n    }\n}",
+      "description": "## Approach\n\nUse DFS to assign every node a component id and record component sizes. Then count the initial infections per component and evaluate each initial node in sorted order.\n\n## Key Insight\n\nThe graph structure matters only through connected components. Once a component has two or more initial infections, removing one of them cannot prevent that component from becoming fully infected.\n\n## Complexity Analysis\n- Time Complexity: O(n^2), because each DFS step scans a matrix row.\n- Space Complexity: O(n), for component labels, sizes, infection counts, and recursion depth.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minMalwareSpread(int[][] graph, int[] initial) {\n        int n = graph.length;\n        int[] componentId = new int[n];\n        Arrays.fill(componentId, -1);\n        List<Integer> compSize = new ArrayList<>();\n        int label = 0;\n        for (int i = 0; i < n; i++) {\n            if (componentId[i] == -1) {\n                compSize.add(dfs(graph, i, componentId, label));\n                label++;\n            }\n        }\n\n        Map<Integer, Integer> compInfectedCount = new HashMap<>();\n        for (int node : initial) {\n            int comp = componentId[node];\n            compInfectedCount.merge(comp, 1, Integer::sum);\n        }\n\n        Arrays.sort(initial);\n        int bestNode = initial[0];\n        int bestSave = 0;\n        for (int node : initial) {\n            int comp = componentId[node];\n            if (compInfectedCount.get(comp) == 1) {\n                int save = compSize.get(comp);\n                if (save > bestSave) {\n                    bestSave = save;\n                    bestNode = node;\n                }\n            }\n        }\n        return bestNode;\n    }\n\n    private int dfs(int[][] graph, int node, int[] componentId, int label) {\n        componentId[node] = label;\n        int size = 1;\n        for (int next = 0; next < graph.length; next++) {\n            if (graph[node][next] == 1 && componentId[next] == -1) {\n                size += dfs(graph, next, componentId, label);\n            }\n        }\n        return size;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Simulation per Removed Initial Node",
+      "timeComplexity": "O(k * n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort the initial list, then try removing each candidate from the initial infection set. For each removal, run BFS from the remaining infection sources and count the nodes reached by malware.\n\n## Key Insight\n\nThis baseline follows the problem statement directly and is useful for checking the optimized component formula. It removes a node only from the initial list, so that node may still be reached by another source.\n\n## Complexity Analysis\n- Time Complexity: O(k * n^2), where k is initial.length and each BFS scans matrix rows.\n- Space Complexity: O(n), for the queue and infected array.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minMalwareSpread(int[][] graph, int[] initial) {\n        Arrays.sort(initial);\n        int n = graph.length;\n        int bestNode = initial[0];\n        int bestCount = Integer.MAX_VALUE;\n        for (int removed : initial) {\n            boolean[] infected = new boolean[n];\n            Queue<Integer> queue = new ArrayDeque<>();\n            for (int node : initial) {\n                if (node != removed && !infected[node]) {\n                    infected[node] = true;\n                    queue.offer(node);\n                }\n            }\n            while (!queue.isEmpty()) {\n                int node = queue.poll();\n                for (int next = 0; next < n; next++) {\n                    if (graph[node][next] == 1 && !infected[next]) {\n                        infected[next] = true;\n                        queue.offer(next);\n                    }\n                }\n            }\n            int count = 0;\n            for (boolean value : infected) {\n                if (value) {\n                    count++;\n                }\n            }\n            if (count < bestCount) {\n                bestCount = count;\n                bestNode = removed;\n            }\n        }\n        return bestNode;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "BFS Component Owner Accumulation",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nTraverse each connected component once with BFS. While scanning a component, remember whether it has zero, one, or multiple initial infection owners. If it has exactly one owner, add the component size to that owner's saved-node score.\n\n## Key Insight\n\nInstead of asking every candidate what it saves, each component can assign its whole size to the only candidate that can save it. Components with multiple owners assign their size to nobody.\n\n## Complexity Analysis\n- Time Complexity: O(n^2), because each matrix row is scanned while discovering components.\n- Space Complexity: O(n), for visited flags, the BFS queue, and saved scores.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minMalwareSpread(int[][] graph, int[] initial) {\n        int n = graph.length;\n        boolean[] initiallyInfected = new boolean[n];\n        for (int node : initial) {\n            initiallyInfected[node] = true;\n        }\n\n        int[] savedByNode = new int[n];\n        boolean[] visited = new boolean[n];\n        for (int start = 0; start < n; start++) {\n            if (visited[start]) {\n                continue;\n            }\n            ArrayDeque<Integer> queue = new ArrayDeque<>();\n            List<Integer> component = new ArrayList<>();\n            queue.offer(start);\n            visited[start] = true;\n            int owner = -1;\n            boolean multipleOwners = false;\n\n            while (!queue.isEmpty()) {\n                int node = queue.poll();\n                component.add(node);\n                if (initiallyInfected[node]) {\n                    if (owner == -1) {\n                        owner = node;\n                    } else {\n                        multipleOwners = true;\n                    }\n                }\n                for (int next = 0; next < n; next++) {\n                    if (graph[node][next] == 1 && !visited[next]) {\n                        visited[next] = true;\n                        queue.offer(next);\n                    }\n                }\n            }\n\n            if (owner != -1 && !multipleOwners) {\n                savedByNode[owner] += component.size();\n            }\n        }\n\n        Arrays.sort(initial);\n        int bestNode = initial[0];\n        for (int node : initial) {\n            if (savedByNode[node] > savedByNode[bestNode]) {\n                bestNode = node;\n            }\n        }\n        return bestNode;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Transitive Closure Spread Evaluation",
+      "timeComplexity": "O(n^3)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nCompute reachability between all pairs of nodes with a transitive closure over the adjacency matrix. Then evaluate each removed initial node by counting which nodes remain reachable from any other initial infection source.\n\n## Key Insight\n\nThe closure makes the spreading process explicit: after removing one initial source, a node is infected exactly when it is reachable from at least one remaining source. This also reinforces that the removed node can still be infected later.\n\n## Complexity Analysis\n- Time Complexity: O(n^3), dominated by the closure and candidate scans.\n- Space Complexity: O(n^2), for the reachability matrix.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minMalwareSpread(int[][] graph, int[] initial) {\n        int n = graph.length;\n        boolean[][] reach = new boolean[n][n];\n        for (int i = 0; i < n; i++) {\n            for (int j = 0; j < n; j++) {\n                reach[i][j] = graph[i][j] == 1;\n            }\n        }\n\n        for (int k = 0; k < n; k++) {\n            for (int i = 0; i < n; i++) {\n                if (!reach[i][k]) {\n                    continue;\n                }\n                for (int j = 0; j < n; j++) {\n                    reach[i][j] = reach[i][j] || reach[k][j];\n                }\n            }\n        }\n\n        Arrays.sort(initial);\n        int bestNode = initial[0];\n        int bestInfected = Integer.MAX_VALUE;\n        for (int removed : initial) {\n            int infectedCount = 0;\n            for (int node = 0; node < n; node++) {\n                boolean infected = false;\n                for (int source : initial) {\n                    if (source != removed && reach[source][node]) {\n                        infected = true;\n                        break;\n                    }\n                }\n                if (infected) {\n                    infectedCount++;\n                }\n            }\n            if (infectedCount < bestInfected) {\n                bestInfected = infectedCount;\n                bestNode = removed;\n            }\n        }\n        return bestNode;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "graph = [[1,1,0],[1,1,0],[0,0,1]], initial = [0,1]",
-      "output": "0"
+      "output": "0",
+      "description": "two infections in the same component save nothing and fall back to the smallest index"
     },
     {
       "input": "graph = [[1,0,0],[0,1,0],[0,0,1]], initial = [0,2]",
-      "output": "0"
+      "output": "0",
+      "description": "same saved size across isolated components ties by node index"
     },
     {
       "input": "graph = [[1,1,1],[1,1,1],[1,1,1]], initial = [1,2]",
-      "output": "1"
+      "output": "1",
+      "description": "fully connected component has multiple infection sources"
+    },
+    {
+      "input": "graph = [[1,1,0,0],[1,1,0,0],[0,0,1,1],[0,0,1,1]], initial = [0,2]",
+      "output": "0",
+      "description": "two equal separate components tie by lower candidate index"
+    },
+    {
+      "input": "graph = [[1,1,1,0,0],[1,1,1,0,0],[1,1,1,0,0],[0,0,0,1,1],[0,0,0,1,1]], initial = [4,1]",
+      "output": "1",
+      "description": "larger uniquely infected component beats a smaller one even when initial is unsorted"
+    },
+    {
+      "input": "graph = [[1,0,0],[0,1,0],[0,0,1]], initial = [2,1]",
+      "output": "1",
+      "description": "unsorted initial list must still tie-break by smallest node"
+    },
+    {
+      "input": "graph = [[1,1,0],[1,1,0],[0,0,1]], initial = [0,1,2]",
+      "output": "2",
+      "description": "removal only edits the initial list, so nodes 0 and 1 can reinfect each other while node 2 saves its singleton component"
+    },
+    {
+      "input": "graph = [[1,1,0,0],[1,1,0,0],[0,0,1,1],[0,0,1,1]], initial = [1,0,3,2]",
+      "output": "0",
+      "description": "if every infected component has multiple sources, fall back to the smallest initial node"
+    },
+    {
+      "input": "graph = [[1,1,1,0,0],[1,1,1,0,0],[1,1,1,0,0],[0,0,0,1,1],[0,0,0,1,1]], initial = [0,1,4]",
+      "output": "4",
+      "description": "a unique smaller component source beats lower-index sources in already dirty components"
+    },
+    {
+      "input": "graph = [[1,1,1,0,0,0],[1,1,1,0,0,0],[1,1,1,0,0,0],[0,0,0,1,1,1],[0,0,0,1,1,1],[0,0,0,1,1,1]], initial = [5,2]",
+      "output": "2",
+      "description": "equal saved component sizes tie by candidate index, not input order"
+    },
+    {
+      "input": "graph = [[1,1,0,0],[1,1,1,0],[0,1,1,1],[0,0,1,1]], initial = [2]",
+      "output": "2",
+      "description": "single initial source is always the returned candidate"
+    },
+    {
+      "input": "graph = [[1,1,1,0,0,0],[1,1,1,0,0,0],[1,1,1,0,0,0],[0,0,0,1,1,0],[0,0,0,1,1,0],[0,0,0,0,0,1]], initial = [3,5]",
+      "output": "3",
+      "description": "components with no initial infection stay irrelevant while infected components compare by saved size"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p383_example1.png",
-      "caption": "Example 1: Graph with infected nodes (red)"
+      "caption": "Example graph: nodes 0 and 1 start infected; node 2 is isolated and uninfected."
     }
   ]
 }

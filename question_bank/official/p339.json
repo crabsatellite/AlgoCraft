@@ -1,40 +1,127 @@
 {
   "id": "339",
-  "title": "Kth Largest Element in an Array",
-  "description": "# Kth Largest Element in an Array\n\nGiven an integer array `nums` and an integer `k`, return *the* `kth` *largest element in the array*.\n\nNote that it is the `kth` largest element in the sorted order, not the `kth` distinct element.\n\nCan you solve it without sorting?\n\n## Example 1:\n\n**Input:** nums = [3,2,1,5,6,4], k = 2\n**Output:** 5\n\n## Example 2:\n\n**Input:** nums = [3,2,3,1,2,4,5,5,6], k = 4\n**Output:** 4\n\n## Constraints:\n\n*   `1 <= k <= nums.length <= 10^5`\n*   `-10^4 <= nums[i] <= 10^4`",
-  "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public int findKthLargest(int[] nums, int k) {\n        \n    }\n}",
+  "title": "Minimum Jumps to Target With Forbidden",
+  "description": "# Minimum Jumps to Target With Forbidden\n\nYou start at position `0` on a number line. In one move, you may jump forward by exactly `a` or backward by exactly `b`.\n\nSome positions are forbidden and may never be visited. You also may not make two backward jumps in a row. Return the minimum number of jumps needed to reach position `x`, or `-1` if reaching `x` is impossible.\n\n## Example 1:\n\n**Input:** forbidden = [14,4,18,1,15], a = 3, b = 15, x = 9\n**Output:** 3\n\nOne shortest path is `0 -> 3 -> 6 -> 9`.\n\n## Example 2:\n\n**Input:** forbidden = [8,3,16,6,12,20], a = 15, b = 13, x = 11\n**Output:** -1\n\n## Important Details\n\nPositions below `0` are forbidden. You may jump beyond the target and come back, but never land on a forbidden position or make two backward jumps consecutively.\n\n## Constraints:\n\n* `1 <= forbidden.length <= 1000`\n* `1 <= a, b, x <= 2000`\n* `0 <= forbidden[i] <= 2000`\n* All forbidden positions are distinct.\n* `forbidden[i] != 0`.",
+  "difficulty": "HARD",
+  "initialCode": "class Solution {\n    public int minimumJumps(int[] forbidden, int a, int b, int x) {\n        return -1;\n    }\n}",
   "tags": [
     "Array",
-    "Divide and Conquer",
-    "Sorting",
-    "Heap (Priority Queue)",
-    "Quickselect"
+    "Breadth-First Search"
   ],
   "examples": [
-    { "input": "nums = [3,2,1,5,6,4], k = 2", "output": "5" },
-    { "input": "nums = [3,2,3,1,2,4,5,5,6], k = 4", "output": "4" }
+    {
+      "input": "forbidden = [14,4,18,1,15], a = 3, b = 15, x = 9",
+      "output": "3"
+    },
+    {
+      "input": "forbidden = [8,3,16,6,12,20], a = 15, b = 13, x = 11",
+      "output": "-1"
+    }
   ],
   "solutions": [
     {
-      "name": "Min Heap of Size K",
-      "timeComplexity": "O(n log k)",
-      "spaceComplexity": "O(k)",
-      "description": "Maintain a min-heap of size k. For each element, add to heap; if size exceeds k, remove the smallest. The root of the heap is the kth largest.",
-      "code": "class Solution {\n    public int findKthLargest(int[] nums, int k) {\n        java.util.PriorityQueue<Integer> pq = new java.util.PriorityQueue<>();\n        for (int num : nums) {\n            pq.offer(num);\n            if (pq.size() > k) pq.poll();\n        }\n        return pq.peek();\n    }\n}",
+      "name": "BFS With Direction State",
+      "timeComplexity": "O(U)",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\n\nRun BFS over states `(position, previousMoveWasBackward)`. From each state, the forward jump always goes to `(position + a, false)`. The backward jump is allowed only when the previous move was not backward, and it goes to `(position - b, true)`. Track forbidden positions and a finite upper bound so the queue cannot grow forever.\n\n## Key Insight\n\nThe same position is not enough to describe the future. If you reached position `p` by a forward jump, a backward jump may be legal next; if you reached `p` by a backward jump, another backward jump is illegal. Therefore the visited set must distinguish those two states.\n\n## Complexity Analysis\n- Time Complexity: O(U)\n- Space Complexity: O(U)\n\nHere `U` is the chosen finite search bound.",
+      "code": "class Solution {\n    public int minimumJumps(int[] forbidden, int a, int b, int x) {\n        java.util.Set<Integer> blocked = new java.util.HashSet<>();\n        int farthest = x;\n        for (int value : forbidden) {\n            blocked.add(value);\n            farthest = Math.max(farthest, value);\n        }\n        if (blocked.contains(x)) {\n            return -1;\n        }\n\n        int limit = farthest + a + b + 2000;\n        boolean[][] seen = new boolean[limit + 1][2];\n        java.util.Queue<int[]> queue = new java.util.ArrayDeque<>();\n        queue.offer(new int[]{0, 0, 0});\n        seen[0][0] = true;\n\n        while (!queue.isEmpty()) {\n            int[] state = queue.poll();\n            int position = state[0];\n            int previousBack = state[1];\n            int distance = state[2];\n            if (position == x) {\n                return distance;\n            }\n\n            int forward = position + a;\n            if (forward <= limit && !blocked.contains(forward) && !seen[forward][0]) {\n                seen[forward][0] = true;\n                queue.offer(new int[]{forward, 0, distance + 1});\n            }\n\n            int backward = position - b;\n            if (previousBack == 0 && backward >= 0 && !blocked.contains(backward) && !seen[backward][1]) {\n                seen[backward][1] = true;\n                queue.offer(new int[]{backward, 1, distance + 1});\n            }\n        }\n        return -1;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Quickselect (Hoare's Partition)",
-      "timeComplexity": "O(n) average, O(n^2) worst",
-      "spaceComplexity": "O(1)",
-      "description": "Use quickselect to find the kth largest element in O(n) average time. Partition the array and recurse only into the half containing the target index. Shuffle the array first to avoid worst case.",
-      "code": "class Solution {\n    public int findKthLargest(int[] nums, int k) {\n        int target = nums.length - k;\n        int lo = 0, hi = nums.length - 1;\n        java.util.Random rand = new java.util.Random();\n        while (lo < hi) {\n            int pivotIdx = lo + rand.nextInt(hi - lo + 1);\n            int temp = nums[pivotIdx];\n            nums[pivotIdx] = nums[lo];\n            nums[lo] = temp;\n            int pivot = nums[lo];\n            int i = lo, j = hi;\n            while (i < j) {\n                while (i < j && nums[j] >= pivot) j--;\n                nums[i] = nums[j];\n                while (i < j && nums[i] <= pivot) i++;\n                nums[j] = nums[i];\n            }\n            nums[i] = pivot;\n            if (i == target) return nums[i];\n            else if (i < target) lo = i + 1;\n            else hi = i - 1;\n        }\n        return nums[lo];\n    }\n}",
+      "name": "Level-Order BFS",
+      "timeComplexity": "O(U)",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\n\nProcess the BFS queue one level at a time. Each outer-loop iteration represents one more jump. Store states as encoded integers so the visited set is compact, and stop immediately when the current level reaches `x`.\n\n## Key Insight\n\nBFS levels correspond exactly to jump counts in an unweighted graph. The first time a target state is removed from the queue, the current level is the minimum number of jumps.\n\n## Complexity Analysis\n- Time Complexity: O(U)\n- Space Complexity: O(U)",
+      "code": "class Solution {\n    public int minimumJumps(int[] forbidden, int a, int b, int x) {\n        java.util.Set<Integer> blocked = new java.util.HashSet<>();\n        int farthest = x;\n        for (int value : forbidden) {\n            blocked.add(value);\n            farthest = Math.max(farthest, value);\n        }\n        if (blocked.contains(x)) {\n            return -1;\n        }\n\n        int limit = farthest + a + b + 2000;\n        boolean[][] seen = new boolean[limit + 1][2];\n        java.util.Queue<int[]> queue = new java.util.ArrayDeque<>();\n        queue.offer(new int[]{0, 0});\n        seen[0][0] = true;\n\n        for (int jumps = 0; !queue.isEmpty(); jumps++) {\n            for (int size = queue.size(); size > 0; size--) {\n                int[] state = queue.poll();\n                int position = state[0];\n                int previousBack = state[1];\n                if (position == x) {\n                    return jumps;\n                }\n\n                int forward = position + a;\n                if (forward <= limit && !blocked.contains(forward) && !seen[forward][0]) {\n                    seen[forward][0] = true;\n                    queue.offer(new int[]{forward, 0});\n                }\n\n                int backward = position - b;\n                if (previousBack == 0 && backward >= 0 && !blocked.contains(backward) && !seen[backward][1]) {\n                    seen[backward][1] = true;\n                    queue.offer(new int[]{backward, 1});\n                }\n            }\n        }\n        return -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Reverse State BFS",
+      "timeComplexity": "O(U)",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\n\nSearch the directed state graph backward. Start from both possible target states `(x, false)` and `(x, true)`. A reverse step into a state whose previous move was forward can come from either previous direction at `position - a`; a reverse step into a state whose previous move was backward must come from `(position + b, false)`. Stop when the original start state `(0, false)` is reached.\n\n## Key Insight\n\nThe graph is directed because backward jumps cannot repeat. Reversing the edges is still valid if the direction flag is interpreted as part of the state, and it provides an independent way to reason about the same shortest-path structure.\n\n## Complexity Analysis\n- Time Complexity: O(U)\n- Space Complexity: O(U)",
+      "code": "class Solution {\n    public int minimumJumps(int[] forbidden, int a, int b, int x) {\n        java.util.Set<Integer> blocked = new java.util.HashSet<>();\n        int farthest = x;\n        for (int value : forbidden) {\n            blocked.add(value);\n            farthest = Math.max(farthest, value);\n        }\n        if (blocked.contains(x)) {\n            return -1;\n        }\n\n        int limit = farthest + a + b + 2000;\n        boolean[][] seen = new boolean[limit + 1][2];\n        java.util.Queue<int[]> queue = new java.util.ArrayDeque<>();\n        queue.offer(new int[]{x, 0, 0});\n        queue.offer(new int[]{x, 1, 0});\n        seen[x][0] = true;\n        seen[x][1] = true;\n\n        while (!queue.isEmpty()) {\n            int[] state = queue.poll();\n            int position = state[0];\n            int previousBack = state[1];\n            int distance = state[2];\n            if (position == 0 && previousBack == 0) {\n                return distance;\n            }\n\n            if (previousBack == 0) {\n                int previous = position - a;\n                if (previous >= 0 && !blocked.contains(previous)) {\n                    if (!seen[previous][0]) {\n                        seen[previous][0] = true;\n                        queue.offer(new int[]{previous, 0, distance + 1});\n                    }\n                    if (!seen[previous][1]) {\n                        seen[previous][1] = true;\n                        queue.offer(new int[]{previous, 1, distance + 1});\n                    }\n                }\n            } else {\n                int previous = position + b;\n                if (previous <= limit && !blocked.contains(previous) && !seen[previous][0]) {\n                    seen[previous][0] = true;\n                    queue.offer(new int[]{previous, 0, distance + 1});\n                }\n            }\n        }\n        return -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bidirectional State BFS",
+      "timeComplexity": "O(U)",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\n\nRun BFS from the start state and from the two target states at the same time. The start side expands normal outgoing moves, while the target side expands reversed incoming moves. Always expand the smaller frontier and stop when the two visited regions meet.\n\n## Key Insight\n\nFor directed graphs, bidirectional BFS must use outgoing edges on the start side and incoming edges on the target side. Keeping the direction flag inside the encoded state makes those two edge generators precise and prevents illegal repeated-backward paths from leaking into the search.\n\n## Complexity Analysis\n- Time Complexity: O(U)\n- Space Complexity: O(U)",
+      "code": "class Solution {\n    private java.util.Set<Integer> blocked;\n    private int a;\n    private int b;\n    private int limit;\n\n    public int minimumJumps(int[] forbidden, int a, int b, int x) {\n        this.a = a;\n        this.b = b;\n        blocked = new java.util.HashSet<>();\n        int farthest = x;\n        for (int value : forbidden) {\n            blocked.add(value);\n            farthest = Math.max(farthest, value);\n        }\n        if (blocked.contains(x)) {\n            return -1;\n        }\n        limit = farthest + a + b + 2000;\n\n        java.util.Set<Integer> front = new java.util.HashSet<>();\n        java.util.Set<Integer> back = new java.util.HashSet<>();\n        java.util.Set<Integer> seenFront = new java.util.HashSet<>();\n        java.util.Set<Integer> seenBack = new java.util.HashSet<>();\n        front.add(encode(0, 0));\n        seenFront.add(encode(0, 0));\n        back.add(encode(x, 0));\n        back.add(encode(x, 1));\n        seenBack.add(encode(x, 0));\n        seenBack.add(encode(x, 1));\n\n        boolean fromStart = true;\n        int jumps = 0;\n        while (!front.isEmpty() && !back.isEmpty()) {\n            if (front.size() > back.size()) {\n                java.util.Set<Integer> temp = front;\n                front = back;\n                back = temp;\n                temp = seenFront;\n                seenFront = seenBack;\n                seenBack = temp;\n                fromStart = !fromStart;\n            }\n\n            java.util.Set<Integer> nextFront = new java.util.HashSet<>();\n            for (int state : front) {\n                if (back.contains(state)) {\n                    return jumps;\n                }\n                for (int next : neighbors(state, fromStart)) {\n                    if (seenBack.contains(next)) {\n                        return jumps + 1;\n                    }\n                    if (seenFront.add(next)) {\n                        nextFront.add(next);\n                    }\n                }\n            }\n            front = nextFront;\n            jumps++;\n        }\n        return -1;\n    }\n\n    private java.util.List<Integer> neighbors(int state, boolean fromStart) {\n        int position = state / 2;\n        int previousBack = state % 2;\n        java.util.List<Integer> next = new java.util.ArrayList<>();\n        if (fromStart) {\n            int forward = position + a;\n            if (forward <= limit && !blocked.contains(forward)) {\n                next.add(encode(forward, 0));\n            }\n            int backward = position - b;\n            if (previousBack == 0 && backward >= 0 && !blocked.contains(backward)) {\n                next.add(encode(backward, 1));\n            }\n        } else if (previousBack == 0) {\n            int previous = position - a;\n            if (previous >= 0 && !blocked.contains(previous)) {\n                next.add(encode(previous, 0));\n                next.add(encode(previous, 1));\n            }\n        } else {\n            int previous = position + b;\n            if (previous <= limit && !blocked.contains(previous)) {\n                next.add(encode(previous, 0));\n            }\n        }\n        return next;\n    }\n\n    private int encode(int position, int previousBack) {\n        return position * 2 + previousBack;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [3,2,1,5,6,4], k = 2", "output": "5" },
-    { "input": "nums = [3,2,3,1,2,4,5,5,6], k = 4", "output": "4" }
+    {
+      "input": "forbidden = [14,4,18,1,15], a = 3, b = 15, x = 9",
+      "output": "3",
+      "description": "sample reaches target with forward jumps"
+    },
+    {
+      "input": "forbidden = [8,3,16,6,12,20], a = 15, b = 13, x = 11",
+      "output": "-1",
+      "description": "forbidden positions and backward restriction block the target"
+    },
+    {
+      "input": "forbidden = [1,6,2,14,5,17,4], a = 16, b = 9, x = 7",
+      "output": "2",
+      "description": "large forward jump then one backward jump"
+    },
+    {
+      "input": "forbidden = [5], a = 2, b = 1, x = 4",
+      "output": "2",
+      "description": "simple forward-forward path with a forbidden position elsewhere"
+    },
+    {
+      "input": "forbidden = [2], a = 2, b = 1, x = 1",
+      "output": "-1",
+      "description": "cannot jump onto the forbidden forward position"
+    },
+    {
+      "input": "forbidden = [4], a = 3, b = 2, x = 6",
+      "output": "2",
+      "description": "target can be reached before needing any backward jump"
+    },
+    {
+      "input": "forbidden = [6,7], a = 2, b = 3, x = 5",
+      "output": "5",
+      "description": "same position requires different previous-direction states"
+    },
+    {
+      "input": "forbidden = [10], a = 4, b = 2, x = 8",
+      "output": "2",
+      "description": "overshoot is unnecessary when two forward jumps reach target"
+    },
+    {
+      "input": "forbidden = [9], a = 3, b = 2, x = 9",
+      "output": "-1",
+      "description": "target itself is forbidden"
+    },
+    {
+      "input": "forbidden = [4], a = 5, b = 3, x = 7",
+      "output": "3",
+      "description": "must overshoot the target and jump backward"
+    },
+    {
+      "input": "forbidden = [1], a = 4, b = 2, x = 6",
+      "output": "3",
+      "description": "backward jump after an overshoot reaches target"
+    },
+    {
+      "input": "forbidden = [2,4], a = 3, b = 1, x = 5",
+      "output": "3",
+      "description": "forbidden positions force a forward overshoot and one backward jump"
+    },
+    {
+      "input": "forbidden = [8], a = 5, b = 2, x = 3",
+      "output": "2",
+      "description": "target is behind the first forward jump"
+    },
+    {
+      "input": "forbidden = [11], a = 7, b = 3, x = 10",
+      "output": "-1",
+      "description": "apparently close positions are unreachable under the no-double-back rule"
+    }
   ]
 }

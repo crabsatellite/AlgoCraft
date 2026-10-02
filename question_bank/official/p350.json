@@ -1,10 +1,18 @@
 {
   "id": "350",
   "title": "Sliding Window Median",
-  "description": "# Sliding Window Median\n\nThe **median** is the middle value in an ordered integer list. If the size of the list is even, there is no middle value. So the median is the mean of the two middle values.\n\n*   For examples, if `arr = [2,3,4]`, the median is `3`.\n*   For examples, if `arr = [2,3]`, the median is `(2 + 3) / 2 = 2.5`.\n\nYou are given an integer array `nums` and an integer `k`. There is a sliding window of size `k` which is moving from the very left of the array to the very right. You can only see the `k` numbers in the window. Each time the sliding window moves right by one position.\n\nReturn *the median array for each window in the original array*. Answers within `10^-5` of the actual value will be accepted.\n\n## Example 1:\n\n**Input:** nums = [1,3,-1,-3,5,3,6,7], k = 3\n**Output:** [1.00000,-1.00000,-1.00000,3.00000,5.00000,6.00000]\n**Explanation:** \nWindow position                Median\n---------------                -----\n[1  3  -1] -3  5  3  6  7      1\n 1 [3  -1  -3] 5  3  6  7     -1\n 1  3 [-1  -3  5] 3  6  7     -1\n 1  3  -1 [-3  5  3] 6  7      3\n 1  3  -1  -3 [5  3  6] 7      5\n 1  3  -1  -3  5 [3  6  7]     6\n\n## Example 2:\n\n**Input:** nums = [1,2,3,4,2,3,1,4,2], k = 3\n**Output:** [2.00000,3.00000,3.00000,3.00000,2.00000,3.00000,2.00000]\n\n## Constraints:\n\n*   `1 <= k <= nums.length <= 10^5`\n*   `-2^31 <= nums[i] <= 2^31 - 1`",
+  "description": "# Sliding Window Median\n\nThe median is the middle value after a list is sorted. If the list has even length, the median is the average of the two middle values.\n\nYou are given an integer array `nums` and an integer `k`. A window of exactly `k` consecutive values slides from left to right across `nums`. Return the median of every window in order.\n\nAnswers within `10^-5` of the actual value are accepted.\n\n## Example 1:\n\n**Input:** nums = [1,3,-1,-3,5,3,6,7], k = 3\n\n**Output:** [1.00000,-1.00000,-1.00000,3.00000,5.00000,6.00000]\n\n**Explanation:** The medians of the six windows are `1`, `-1`, `-1`, `3`, `5`, and `6`.\n\n## Example 2:\n\n**Input:** nums = [1,2,3,4,2,3,1,4,2], k = 3\n\n**Output:** [2.00000,3.00000,3.00000,3.00000,2.00000,3.00000,2.00000]\n\n## Constraints:\n\n* `1 <= k <= nums.length <= 10^5`\n* `-2^31 <= nums[i] <= 2^31 - 1`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public double[] medianSlidingWindow(int[] nums, int k) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Sliding Window", "Heap (Priority Queue)"],
+  "initialCode": "class Solution {\n    public double[] medianSlidingWindow(int[] nums, int k) {\n        return new double[0];\n    }\n}",
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Sliding Window",
+    "Heap (Priority Queue)",
+    "Ordered Set",
+    "Binary Indexed Tree",
+    "Sorting"
+  ],
   "examples": [
     {
       "input": "nums = [1,3,-1,-3,5,3,6,7], k = 3",
@@ -17,30 +25,116 @@
   ],
   "solutions": [
     {
-      "name": "Two TreeMaps (Dual Heaps)",
+      "name": "Two TreeMap Multisets",
       "timeComplexity": "O(n log k)",
       "spaceComplexity": "O(k)",
-      "description": "Maintain two TreeMaps acting as a max-heap (small) and min-heap (large) to find the median efficiently. Rebalance after each insertion and removal. Use lazy deletion for the sliding window.",
-      "code": "class Solution {\n    public double[] medianSlidingWindow(int[] nums, int k) {\n        java.util.TreeMap<Integer, Integer> lo = new java.util.TreeMap<>(java.util.Collections.reverseOrder());\n        java.util.TreeMap<Integer, Integer> hi = new java.util.TreeMap<>();\n        int loSize = 0, hiSize = 0;\n        double[] result = new double[nums.length - k + 1];\n        for (int i = 0; i < nums.length; i++) {\n            if (loSize == 0 || nums[i] <= lo.firstKey()) { add(lo, nums[i]); loSize++; }\n            else { add(hi, nums[i]); hiSize++; }\n            while (loSize > hiSize + 1) { int v = lo.firstKey(); remove(lo, v); add(hi, v); loSize--; hiSize++; }\n            while (hiSize > loSize) { int v = hi.firstKey(); remove(hi, v); add(lo, v); hiSize--; loSize++; }\n            if (i >= k - 1) {\n                if (k % 2 == 1) result[i - k + 1] = lo.firstKey();\n                else result[i - k + 1] = ((long) lo.firstKey() + hi.firstKey()) / 2.0;\n                int out = nums[i - k + 1];\n                if (out <= lo.firstKey()) { remove(lo, out); loSize--; }\n                else { remove(hi, out); hiSize--; }\n                while (loSize > hiSize + 1) { int v = lo.firstKey(); remove(lo, v); add(hi, v); loSize--; hiSize++; }\n                while (hiSize > loSize) { int v = hi.firstKey(); remove(hi, v); add(lo, v); hiSize--; loSize++; }\n            }\n        }\n        return result;\n    }\n    private void add(java.util.TreeMap<Integer, Integer> map, int val) { map.merge(val, 1, Integer::sum); }\n    private void remove(java.util.TreeMap<Integer, Integer> map, int val) {\n        int cnt = map.get(val);\n        if (cnt == 1) map.remove(val); else map.put(val, cnt - 1);\n    }\n}",
+      "description": "## Approach\n\nMaintain two ordered multisets with `TreeMap`: `lower` stores the smaller half of the window and `upper` stores the larger half. Insert and remove values by count, then rebalance so `lower` has either the same size as `upper` or one extra value.\n\n## Key Insight\n\nThe median only depends on the largest value in the smaller half and, for even `k`, the smallest value in the larger half. A multiset handles duplicates while still exposing those boundary values in logarithmic time.\n\n## Complexity Analysis\n- Time Complexity: O(n log k)\n- Space Complexity: O(k)",
+      "code": "class Solution {\n    private java.util.TreeMap<Integer, Integer> lower;\n    private java.util.TreeMap<Integer, Integer> upper;\n    private int lowerSize;\n    private int upperSize;\n\n    public double[] medianSlidingWindow(int[] nums, int k) {\n        lower = new java.util.TreeMap<>();\n        upper = new java.util.TreeMap<>();\n        lowerSize = 0;\n        upperSize = 0;\n        double[] result = new double[nums.length - k + 1];\n        for (int i = 0; i < nums.length; i++) {\n            addValue(nums[i]);\n            if (i >= k) {\n                removeValue(nums[i - k]);\n            }\n            if (i >= k - 1) {\n                result[i - k + 1] = median(k);\n            }\n        }\n        return result;\n    }\n\n    private void addValue(int value) {\n        if (lowerSize == 0 || value <= lower.lastKey()) {\n            addOne(lower, value);\n            lowerSize++;\n        } else {\n            addOne(upper, value);\n            upperSize++;\n        }\n        rebalance();\n    }\n\n    private void removeValue(int value) {\n        if (lower.containsKey(value)) {\n            removeOne(lower, value);\n            lowerSize--;\n        } else {\n            removeOne(upper, value);\n            upperSize--;\n        }\n        rebalance();\n    }\n\n    private void rebalance() {\n        while (lowerSize > upperSize + 1) {\n            int value = lower.lastKey();\n            removeOne(lower, value);\n            addOne(upper, value);\n            lowerSize--;\n            upperSize++;\n        }\n        while (lowerSize < upperSize) {\n            int value = upper.firstKey();\n            removeOne(upper, value);\n            addOne(lower, value);\n            upperSize--;\n            lowerSize++;\n        }\n    }\n\n    private double median(int k) {\n        if ((k & 1) == 1) {\n            return lower.lastKey();\n        }\n        return ((long) lower.lastKey() + upper.firstKey()) / 2.0;\n    }\n\n    private void addOne(java.util.TreeMap<Integer, Integer> map, int value) {\n        map.put(value, map.getOrDefault(value, 0) + 1);\n    }\n\n    private void removeOne(java.util.TreeMap<Integer, Integer> map, int value) {\n        int count = map.get(value);\n        if (count == 1) {\n            map.remove(value);\n        } else {\n            map.put(value, count - 1);\n        }\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Sorted List with Binary Search Insertion",
+      "name": "Lazy Deletion Dual Heaps",
+      "timeComplexity": "O(n log k)",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nUse a max-heap for the lower half and a min-heap for the upper half. When a value leaves the window but is not currently at the top of its heap, record it in a delayed-deletion map. Prune invalid heap tops whenever they are about to affect balancing or the median.\n\n## Key Insight\n\nJava priority queues cannot remove arbitrary values in logarithmic time. Lazy deletion keeps the asymptotic bound by postponing physical removal until the stale value reaches the top.\n\n## Complexity Analysis\n- Time Complexity: O(n log k)\n- Space Complexity: O(k)",
+      "code": "class Solution {\n    private java.util.PriorityQueue<Integer> small;\n    private java.util.PriorityQueue<Integer> large;\n    private java.util.Map<Integer, Integer> delayed;\n    private int smallSize;\n    private int largeSize;\n\n    public double[] medianSlidingWindow(int[] nums, int k) {\n        small = new java.util.PriorityQueue<>(java.util.Collections.reverseOrder());\n        large = new java.util.PriorityQueue<>();\n        delayed = new java.util.HashMap<>();\n        smallSize = 0;\n        largeSize = 0;\n        double[] result = new double[nums.length - k + 1];\n        for (int i = 0; i < nums.length; i++) {\n            add(nums[i]);\n            if (i >= k) {\n                erase(nums[i - k]);\n            }\n            if (i >= k - 1) {\n                result[i - k + 1] = median(k);\n            }\n        }\n        return result;\n    }\n\n    private void add(int value) {\n        if (small.isEmpty() || value <= small.peek()) {\n            small.offer(value);\n            smallSize++;\n        } else {\n            large.offer(value);\n            largeSize++;\n        }\n        rebalance();\n    }\n\n    private void erase(int value) {\n        delayed.put(value, delayed.getOrDefault(value, 0) + 1);\n        if (!small.isEmpty() && value <= small.peek()) {\n            smallSize--;\n            if (value == small.peek()) {\n                prune(small);\n            }\n        } else {\n            largeSize--;\n            if (!large.isEmpty() && value == large.peek()) {\n                prune(large);\n            }\n        }\n        rebalance();\n    }\n\n    private void rebalance() {\n        if (smallSize > largeSize + 1) {\n            large.offer(small.poll());\n            smallSize--;\n            largeSize++;\n            prune(small);\n        } else if (smallSize < largeSize) {\n            small.offer(large.poll());\n            smallSize++;\n            largeSize--;\n            prune(large);\n        }\n    }\n\n    private void prune(java.util.PriorityQueue<Integer> heap) {\n        while (!heap.isEmpty()) {\n            int value = heap.peek();\n            int count = delayed.getOrDefault(value, 0);\n            if (count == 0) {\n                break;\n            }\n            if (count == 1) {\n                delayed.remove(value);\n            } else {\n                delayed.put(value, count - 1);\n            }\n            heap.poll();\n        }\n    }\n\n    private double median(int k) {\n        if ((k & 1) == 1) {\n            return small.peek();\n        }\n        return ((long) small.peek() + large.peek()) / 2.0;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Fenwick Tree over Compressed Values",
+      "timeComplexity": "O(n log m)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nCoordinate-compress all values in `nums`. A Fenwick tree stores how many current-window values have each compressed rank. To get a median, find the rank of the k-th smallest value with a Fenwick order-statistic search.\n\n## Key Insight\n\nThe window changes by one deletion and one insertion. If values are compressed, frequency updates and k-th value queries both become logarithmic and duplicates are handled naturally by counts.\n\n## Complexity Analysis\n- Time Complexity: O(n log m), where `m` is the number of distinct values\n- Space Complexity: O(m)",
+      "code": "class Solution {\n    private int[] values;\n    private Fenwick fenwick;\n\n    public double[] medianSlidingWindow(int[] nums, int k) {\n        values = compressedValues(nums);\n        fenwick = new Fenwick(values.length);\n        double[] result = new double[nums.length - k + 1];\n        for (int i = 0; i < nums.length; i++) {\n            fenwick.add(indexOf(nums[i]), 1);\n            if (i >= k) {\n                fenwick.add(indexOf(nums[i - k]), -1);\n            }\n            if (i >= k - 1) {\n                result[i - k + 1] = median(k);\n            }\n        }\n        return result;\n    }\n\n    private double median(int k) {\n        if ((k & 1) == 1) {\n            return values[fenwick.select(k / 2 + 1) - 1];\n        }\n        int left = values[fenwick.select(k / 2) - 1];\n        int right = values[fenwick.select(k / 2 + 1) - 1];\n        return ((long) left + right) / 2.0;\n    }\n\n    private int indexOf(int value) {\n        return java.util.Arrays.binarySearch(values, value) + 1;\n    }\n\n    private int[] compressedValues(int[] nums) {\n        int[] sorted = java.util.Arrays.copyOf(nums, nums.length);\n        java.util.Arrays.sort(sorted);\n        int size = 0;\n        for (int value : sorted) {\n            if (size == 0 || sorted[size - 1] != value) {\n                sorted[size++] = value;\n            }\n        }\n        return java.util.Arrays.copyOf(sorted, size);\n    }\n\n    private static class Fenwick {\n        private final int[] tree;\n\n        Fenwick(int size) {\n            tree = new int[size + 1];\n        }\n\n        void add(int index, int delta) {\n            for (int i = index; i < tree.length; i += i & -i) {\n                tree[i] += delta;\n            }\n        }\n\n        int select(int order) {\n            int index = 0;\n            for (int step = Integer.highestOneBit(tree.length - 1); step > 0; step >>= 1) {\n                int next = index + step;\n                if (next < tree.length && tree[next] < order) {\n                    index = next;\n                    order -= tree[next];\n                }\n            }\n            return index + 1;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted List Baseline",
       "timeComplexity": "O(n * k)",
       "spaceComplexity": "O(k)",
-      "description": "Maintain a sorted list of the current window. Use binary search to find insertion and removal positions. The median is at the middle index (or average of two middle indices).",
-      "code": "import java.util.*;\n\nclass Solution {\n    public double[] medianSlidingWindow(int[] nums, int k) {\n        List<Integer> window = new ArrayList<>();\n        double[] result = new double[nums.length - k + 1];\n        for (int i = 0; i < nums.length; i++) {\n            int pos = Collections.binarySearch(window, nums[i]);\n            if (pos < 0) pos = -(pos + 1);\n            window.add(pos, nums[i]);\n            if (window.size() > k) {\n                int removeIdx = Collections.binarySearch(window, nums[i - k]);\n                window.remove(removeIdx);\n            }\n            if (i >= k - 1) {\n                if (k % 2 == 1) {\n                    result[i - k + 1] = window.get(k / 2);\n                } else {\n                    result[i - k + 1] = ((long) window.get(k / 2 - 1) + window.get(k / 2)) / 2.0;\n                }\n            }\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nMaintain the current window in a sorted `ArrayList`. Use binary search to find where the incoming value belongs and where the outgoing value currently sits, then read the middle element or average the two middle elements.\n\n## Key Insight\n\nThis baseline is slower because insertions and removals shift array elements, but it is easy to reason about and is a useful oracle for the more advanced balanced-structure approaches.\n\n## Complexity Analysis\n- Time Complexity: O(n * k)\n- Space Complexity: O(k)",
+      "code": "class Solution {\n    public double[] medianSlidingWindow(int[] nums, int k) {\n        java.util.ArrayList<Integer> window = new java.util.ArrayList<>();\n        double[] result = new double[nums.length - k + 1];\n        for (int i = 0; i < nums.length; i++) {\n            int insertAt = java.util.Collections.binarySearch(window, nums[i]);\n            if (insertAt < 0) {\n                insertAt = -insertAt - 1;\n            }\n            window.add(insertAt, nums[i]);\n            if (window.size() > k) {\n                int removeAt = java.util.Collections.binarySearch(window, nums[i - k]);\n                window.remove(removeAt);\n            }\n            if (i >= k - 1) {\n                if ((k & 1) == 1) {\n                    result[i - k + 1] = window.get(k / 2);\n                } else {\n                    result[i - k + 1] = ((long) window.get(k / 2 - 1) + window.get(k / 2)) / 2.0;\n                }\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two TreeSets of Indices",
+      "timeComplexity": "O(n log k)",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nStore indices rather than values in two `TreeSet`s ordered by `(nums[index], index)`. The lower set holds the smaller half of the window, and the upper set holds the larger half. The index tie-breaker makes duplicate values distinct.\n\n## Key Insight\n\nUsing indices avoids count bookkeeping. The outgoing element has a known index, so it can be removed directly from one of the two ordered sets even when many equal values are present.\n\n## Complexity Analysis\n- Time Complexity: O(n log k)\n- Space Complexity: O(k)",
+      "code": "class Solution {\n    private int[] values;\n    private java.util.TreeSet<Integer> lower;\n    private java.util.TreeSet<Integer> upper;\n\n    public double[] medianSlidingWindow(int[] nums, int k) {\n        values = nums;\n        java.util.Comparator<Integer> byValueThenIndex = (a, b) -> {\n            int cmp = Integer.compare(values[a], values[b]);\n            return cmp != 0 ? cmp : Integer.compare(a, b);\n        };\n        lower = new java.util.TreeSet<>(byValueThenIndex);\n        upper = new java.util.TreeSet<>(byValueThenIndex);\n        double[] result = new double[nums.length - k + 1];\n        for (int i = 0; i < nums.length; i++) {\n            addIndex(i);\n            if (i >= k) {\n                removeIndex(i - k);\n            }\n            if (i >= k - 1) {\n                result[i - k + 1] = median(k);\n            }\n        }\n        return result;\n    }\n\n    private void addIndex(int index) {\n        if (lower.isEmpty() || compare(index, lower.last()) <= 0) {\n            lower.add(index);\n        } else {\n            upper.add(index);\n        }\n        rebalance();\n    }\n\n    private void removeIndex(int index) {\n        if (!lower.remove(index)) {\n            upper.remove(index);\n        }\n        rebalance();\n    }\n\n    private void rebalance() {\n        while (lower.size() > upper.size() + 1) {\n            upper.add(lower.pollLast());\n        }\n        while (lower.size() < upper.size()) {\n            lower.add(upper.pollFirst());\n        }\n    }\n\n    private double median(int k) {\n        if ((k & 1) == 1) {\n            return values[lower.last()];\n        }\n        return ((long) values[lower.last()] + values[upper.first()]) / 2.0;\n    }\n\n    private int compare(int a, int b) {\n        int cmp = Integer.compare(values[a], values[b]);\n        return cmp != 0 ? cmp : Integer.compare(a, b);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "nums = [1,3,-1,-3,5,3,6,7], k = 3",
-      "output": "[1.00000,-1.00000,-1.00000,3.00000,5.00000,6.00000]"
+      "output": "[1,-1,-1,3,5,6]",
+      "description": "canonical odd window medians"
     },
     {
       "input": "nums = [1,2,3,4,2,3,1,4,2], k = 3",
-      "output": "[2.00000,3.00000,3.00000,3.00000,2.00000,3.00000,2.00000]"
+      "output": "[2,3,3,3,2,3,2]",
+      "description": "duplicates enter and leave the window"
+    },
+    {
+      "input": "nums = [5,2,2,7], k = 1",
+      "output": "[5,2,2,7]",
+      "description": "window size one returns each element"
+    },
+    {
+      "input": "nums = [1,4,2,3], k = 4",
+      "output": "[2.5]",
+      "description": "single full-length even window"
+    },
+    {
+      "input": "nums = [1,1,1,1], k = 2",
+      "output": "[1,1,1]",
+      "description": "all duplicate windows"
+    },
+    {
+      "input": "nums = [-1,-3,-5,-7], k = 2",
+      "output": "[-2,-4,-6]",
+      "description": "negative even-window medians"
+    },
+    {
+      "input": "nums = [2147483647,2147483646,-2147483648,-2147483647], k = 2",
+      "output": "[2147483646.5,-1,-2147483647.5]",
+      "description": "averaging near integer limits must not overflow"
+    },
+    {
+      "input": "nums = [8,2,2,2,9,2,2,3], k = 4",
+      "output": "[2,2,2,2,2.5]",
+      "description": "many equal values stress deletion accounting"
+    },
+    {
+      "input": "nums = [9,8,7,6,5], k = 3",
+      "output": "[8,7,6]",
+      "description": "strictly descending odd windows"
+    },
+    {
+      "input": "nums = [1,100,2,99,3,98], k = 2",
+      "output": "[50.5,51,50.5,51,50.5]",
+      "description": "alternating small and large values with even windows"
+    },
+    {
+      "input": "nums = [5,15,1,3,8,7,9,10,6,11], k = 5",
+      "output": "[5,7,7,8,8,9]",
+      "description": "longer odd window with changing center"
+    },
+    {
+      "input": "nums = [0,-1,-1,-1,0,1,1], k = 3",
+      "output": "[-1,-1,-1,0,1]",
+      "description": "negative duplicates then positive duplicates"
+    },
+    {
+      "input": "nums = [4,4,4,5,5,5], k = 4",
+      "output": "[4,4.5,5]",
+      "description": "duplicate boundary values move between halves"
+    },
+    {
+      "input": "nums = [100000,1,2,3,4], k = 5",
+      "output": "[3]",
+      "description": "one full odd window with an outlier"
     }
   ]
 }

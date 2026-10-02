@@ -1,12 +1,13 @@
 {
   "id": "84",
   "title": "Balanced Binary Tree",
-  "description": "# Balanced Binary Tree\n\nGiven a binary tree, determine if it is **height-balanced**.\n\nA **height-balanced** binary tree is a binary tree in which the depth of the two subtrees of every node never differs by more than one.\n\n## Example 1:\n\n**Input:** root = [3,9,20,null,null,15,7]\n**Output:** true\n\n## Example 2:\n\n**Input:** root = [1,2,2,3,3,null,null,4,4]\n**Output:** false\n\n## Example 3:\n\n**Input:** root = []\n**Output:** true\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[0, 5000]`.\n*   `-10^4 <= Node.val <= 10^4`",
+  "description": "# Balanced Binary Tree\n\nGiven the `root` of a binary tree, determine whether it is height-balanced.\n\nA height-balanced binary tree is a binary tree where, for every node, the depths of the left and right subtrees differ by no more than one. It is not enough for the root alone to look balanced; every subtree must satisfy the same rule.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [3,9,20,null,null,15,7]\n**Output:** true\n\n## Example 2:\n\n**Input:** root = [1,2,2,3,3,null,null,4,4]\n**Output:** false\n\n## Example 3:\n\n**Input:** root = []\n**Output:** true\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[0, 5000]`.\n*   `-10^4 <= Node.val <= 10^4`.",
   "difficulty": "EASY",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public boolean isBalanced(TreeNode root) {\n        // Write your code here\n        return false;\n    }\n}",
   "tags": [
     "Tree",
     "Depth-First Search",
+    "Breadth-First Search",
     "Binary Tree"
   ],
   "examples": [
@@ -26,48 +27,101 @@
   "tests": [
     {
       "input": "root = [3,9,20,null,null,15,7]",
-      "output": "true"
+      "output": "true",
+      "description": "Canonical balanced tree"
     },
     {
       "input": "root = [1,2,2,3,3,null,null,4,4]",
-      "output": "false"
+      "output": "false",
+      "description": "Canonical unbalanced example"
     },
     {
       "input": "root = []",
-      "output": "true"
-    },
-    {
-      "input": "root = [1,2,2,3,null,null,3,4,null,null,4]",
-      "output": "false"
+      "output": "true",
+      "description": "Empty tree is balanced"
     },
     {
       "input": "root = [1]",
-      "output": "true"
+      "output": "true",
+      "description": "Single-node tree"
     },
     {
       "input": "root = [1,2,null,3,null,4]",
-      "output": "false"
+      "output": "false",
+      "description": "Left-skewed chain"
     },
     {
       "input": "root = [1,null,2,null,3]",
-      "output": "false"
+      "output": "false",
+      "description": "Right-skewed chain"
+    },
+    {
+      "input": "root = [1,2,2,3,null,null,3,4,null,null,4]",
+      "output": "false",
+      "description": "Root heights look close but a lower subtree is not balanced"
+    },
+    {
+      "input": "root = [1,2,3,4,5,6,7]",
+      "output": "true",
+      "description": "Perfect tree"
+    },
+    {
+      "input": "root = [1,2,3,4,5,6,null,8]",
+      "output": "true",
+      "description": "Almost complete tree that remains balanced"
+    },
+    {
+      "input": "root = [10000,-10000,0,-5,null,null,5]",
+      "output": "true",
+      "description": "Boundary values with balanced shape"
+    },
+    {
+      "input": "root = [-1,-2,-3,-4,null,null,-5,-6]",
+      "output": "false",
+      "description": "Negative values with a deep unbalanced branch"
+    },
+    {
+      "input": "root = [5,5,5,5,null,null,5,5]",
+      "output": "false",
+      "description": "Duplicate values should not hide structural imbalance"
+    },
+    {
+      "input": "root = [1,2,3,4,null,null,5,6,null,null,7]",
+      "output": "false",
+      "description": "Deep uneven branches across both sides"
     }
   ],
   "solutions": [
     {
-      "name": "Bottom-Up DFS (Optimal)",
+      "name": "Bottom-Up DFS Sentinel",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "Compute height bottom-up. Return -1 immediately if any subtree is unbalanced. This avoids repeated height computations.",
-      "code": "class Solution {\n    public boolean isBalanced(TreeNode root) {\n        return height(root) != -1;\n    }\n    \n    private int height(TreeNode node) {\n        if (node == null) return 0;\n        \n        int left = height(node.left);\n        if (left == -1) return -1;\n        \n        int right = height(node.right);\n        if (right == -1) return -1;\n        \n        if (Math.abs(left - right) > 1) return -1;\n        \n        return 1 + Math.max(left, right);\n    }\n}",
+      "description": "## Approach\n\nUse a postorder DFS that returns the height of a balanced subtree. If a subtree is already unbalanced, return `-1` as a sentinel and stop doing further useful work above it.\n\n## Key Insight\n\nBalance is a bottom-up property: a node is balanced only if both child subtrees are balanced and their heights differ by at most one. Returning height and failure in the same value avoids repeated height computation.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h), where `h` is the tree height",
+      "code": "class Solution {\n    public boolean isBalanced(TreeNode root) {\n        return heightOrUnbalanced(root) != -1;\n    }\n\n    private int heightOrUnbalanced(TreeNode node) {\n        if (node == null) return 0;\n\n        int left = heightOrUnbalanced(node.left);\n        if (left == -1) return -1;\n\n        int right = heightOrUnbalanced(node.right);\n        if (right == -1) return -1;\n\n        if (Math.abs(left - right) > 1) return -1;\n        return 1 + Math.max(left, right);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Top-Down (Brute Force)",
-      "timeComplexity": "O(n log n)",
+      "name": "Top-Down Height Check",
+      "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(h)",
-      "description": "For each node, check if the height difference of left and right subtrees is <= 1, then recursively check both subtrees.",
-      "code": "class Solution {\n    public boolean isBalanced(TreeNode root) {\n        if (root == null) return true;\n        \n        int leftH = getHeight(root.left);\n        int rightH = getHeight(root.right);\n        \n        return Math.abs(leftH - rightH) <= 1 \n            && isBalanced(root.left) \n            && isBalanced(root.right);\n    }\n    \n    private int getHeight(TreeNode node) {\n        if (node == null) return 0;\n        return 1 + Math.max(getHeight(node.left), getHeight(node.right));\n    }\n}",
+      "description": "## Approach\n\nFor each node, compute the height of its left and right subtrees, check whether their difference is at most one, then recursively check both children.\n\n## Key Insight\n\nThis is the most direct translation of the definition and is useful as a baseline. Its weakness is repeated height computation: the same lower subtrees can be measured many times.\n\n## Complexity Analysis\n- Time Complexity: O(n^2) in the worst case\n- Space Complexity: O(h), where `h` is the tree height",
+      "code": "class Solution {\n    public boolean isBalanced(TreeNode root) {\n        if (root == null) return true;\n\n        int leftHeight = height(root.left);\n        int rightHeight = height(root.right);\n        if (Math.abs(leftHeight - rightHeight) > 1) return false;\n\n        return isBalanced(root.left) && isBalanced(root.right);\n    }\n\n    private int height(TreeNode node) {\n        if (node == null) return 0;\n        return 1 + Math.max(height(node.left), height(node.right));\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative Postorder Height Map",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSimulate postorder traversal with a stack and a `lastVisited` pointer. After both children of a node have been processed, read their heights from a map, check the balance condition, and store the node's height.\n\n## Key Insight\n\nThe recursive sentinel route depends on child heights being ready before the parent. Iterative postorder preserves that dependency order without relying on the Java call stack.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isBalanced(TreeNode root) {\n        Map<TreeNode, Integer> height = new HashMap<>();\n        Deque<TreeNode> stack = new ArrayDeque<>();\n        TreeNode current = root;\n        TreeNode lastVisited = null;\n\n        while (current != null || !stack.isEmpty()) {\n            while (current != null) {\n                stack.push(current);\n                current = current.left;\n            }\n\n            TreeNode peek = stack.peek();\n            if (peek.right != null && lastVisited != peek.right) {\n                current = peek.right;\n            } else {\n                int leftHeight = height.getOrDefault(peek.left, 0);\n                int rightHeight = height.getOrDefault(peek.right, 0);\n                if (Math.abs(leftHeight - rightHeight) > 1) return false;\n                height.put(peek, 1 + Math.max(leftHeight, rightHeight));\n                lastVisited = stack.pop();\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Reverse Level Order Heights",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFirst collect all nodes in level-order with a queue. Then scan that list backward so children are handled before parents. Store each node's height in a map and reject the tree when a node's child heights differ by more than one.\n\n## Key Insight\n\nReversing a breadth-first node list gives another bottom-up order. This route is useful for teaching that the key requirement is dependency order, not recursion specifically.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isBalanced(TreeNode root) {\n        if (root == null) return true;\n\n        List<TreeNode> order = new ArrayList<>();\n        Queue<TreeNode> queue = new ArrayDeque<>();\n        queue.offer(root);\n        while (!queue.isEmpty()) {\n            TreeNode node = queue.poll();\n            order.add(node);\n            if (node.left != null) queue.offer(node.left);\n            if (node.right != null) queue.offer(node.right);\n        }\n\n        Map<TreeNode, Integer> height = new HashMap<>();\n        for (int i = order.size() - 1; i >= 0; i--) {\n            TreeNode node = order.get(i);\n            int leftHeight = height.getOrDefault(node.left, 0);\n            int rightHeight = height.getOrDefault(node.right, 0);\n            if (Math.abs(leftHeight - rightHeight) > 1) return false;\n            height.put(node, 1 + Math.max(leftHeight, rightHeight));\n        }\n        return true;\n    }\n}",
       "language": "java"
     }
   ],
@@ -75,12 +129,12 @@
     {
       "id": "example1",
       "file": "p84_example1.png",
-      "caption": "Example 1: Balanced Tree [3,9,20,null,null,15,7]"
+      "caption": "Balanced input tree"
     },
     {
       "id": "example2",
       "file": "p84_example2.png",
-      "caption": "Example 2: Unbalanced Tree [1,2,2,3,3,null,null,4,4]"
+      "caption": "Unbalanced input tree"
     }
   ]
 }

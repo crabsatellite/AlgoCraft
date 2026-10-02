@@ -1,10 +1,15 @@
 {
   "id": "137",
   "title": "Graph Valid Tree",
-  "description": "# Graph Valid Tree\n\nYou have a graph of `n` nodes labeled from `0` to `n - 1`. You are given an integer `n` and a list of `edges` where `edges[i] = [ai, bi]` indicates that there is an undirected edge between nodes `ai` and `bi` in the graph.\n\nReturn `true` *if the edges of the given graph make up a valid tree, and* `false` *otherwise*.\n\n## Example 1:\n\n**Input:** n = 5, edges = [[0,1],[0,2],[0,3],[1,4]]\n**Output:** true\n\n## Example 2:\n\n**Input:** n = 5, edges = [[0,1],[1,2],[2,3],[1,3],[1,4]]\n**Output:** false\n\n## Constraints:\n\n*   `1 <= n <= 2000`\n*   `0 <= edges.length <= 5000`\n*   `edges[i].length == 2`\n*   `0 <= ai, bi < n`\n*   `ai != bi`\n*   There are no self-loops or repeated edges.",
+  "description": "# Graph Valid Tree\n\nYou have an undirected graph with `n` nodes labeled from `0` to `n - 1`. You are given an integer `n` and an array `edges`, where `edges[i] = [ai, bi]` means nodes `ai` and `bi` are connected by one undirected edge.\n\nReturn `true` if these edges form exactly one valid tree; otherwise return `false`.\n\nA valid tree must satisfy both requirements:\n\n* Any two nodes can be reached from each other along edges: the graph is connected.\n* You cannot follow a loop of edges back to its start without simply retracing an edge: the graph has no cycle.\n\nA single node with no edges is also a valid tree.\n\n## Example 1:\n\n**Input:** n = 5, edges = [[0,1],[0,2],[0,3],[1,4]]\n**Output:** true\n**Explanation:** All five nodes are connected, and the four edges do not create a cycle.\n\n## Example 2:\n\n**Input:** n = 5, edges = [[0,1],[1,2],[2,3],[1,3],[1,4]]\n**Output:** false\n**Explanation:** Edges [1,2], [2,3], and [1,3] form a cycle.\n\n## Constraints:\n\n*   `1 <= n <= 2000`\n*   `0 <= edges.length <= 5000`\n*   `edges[i].length == 2`\n*   `0 <= ai, bi < n`\n*   `ai != bi`\n*   There are no self-loops or repeated edges.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public boolean validTree(int n, int[][] edges) {\n        // Write your code here\n        return false;\n    }\n}",
-  "tags": ["Depth-First Search", "Breadth-First Search", "Union Find", "Graph"],
+  "tags": [
+    "Depth-First Search",
+    "Breadth-First Search",
+    "Union Find",
+    "Graph"
+  ],
   "examples": [
     {
       "input": "n = 5, edges = [[0,1],[0,2],[0,3],[1,4]]",
@@ -17,39 +22,95 @@
   ],
   "solutions": [
     {
-      "name": "Union Find",
-      "timeComplexity": "O(n * α(n))",
+      "name": "Union Find With Edge Count",
+      "timeComplexity": "O(n + E alpha(n))",
       "spaceComplexity": "O(n)",
-      "description": "A valid tree has exactly n-1 edges and is connected. Use Union Find: if adding an edge connects already-connected nodes, there's a cycle. Also check edge count.",
-      "code": "class Solution {\n    private int[] parent, rank;\n\n    public boolean validTree(int n, int[][] edges) {\n        if (edges.length != n - 1) return false;\n        parent = new int[n];\n        rank = new int[n];\n        for (int i = 0; i < n; i++) parent[i] = i;\n        for (int[] e : edges)\n            if (!union(e[0], e[1])) return false;\n        return true;\n    }\n\n    private int find(int x) {\n        if (parent[x] != x) parent[x] = find(parent[x]);\n        return parent[x];\n    }\n\n    private boolean union(int a, int b) {\n        int ra = find(a), rb = find(b);\n        if (ra == rb) return false;\n        if (rank[ra] < rank[rb]) { int t = ra; ra = rb; rb = t; }\n        parent[rb] = ra;\n        if (rank[ra] == rank[rb]) rank[ra]++;\n        return true;\n    }\n}",
+      "description": "## Approach\n\nFirst reject any graph whose edge count is not exactly `n - 1`. Then use Union-Find to add every undirected edge. If an edge connects two nodes already in the same component, that edge closes a cycle and the graph cannot be a tree.\n\n## Key Insight\n\nFor an undirected graph with exactly `n - 1` edges, avoiding cycles is enough to force all nodes into one connected component. Union-Find is the cleanest way to prove the no-cycle part while the edge-count check handles the size condition.\n\n## Complexity Analysis\n- Time Complexity: O(n + E alpha(n))\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private int[] parent;\n    private int[] rank;\n\n    public boolean validTree(int n, int[][] edges) {\n        if (edges.length != n - 1) {\n            return false;\n        }\n\n        parent = new int[n];\n        rank = new int[n];\n        for (int node = 0; node < n; node++) {\n            parent[node] = node;\n        }\n\n        for (int[] edge : edges) {\n            if (!union(edge[0], edge[1])) {\n                return false;\n            }\n        }\n        return true;\n    }\n\n    private int find(int node) {\n        if (parent[node] != node) {\n            parent[node] = find(parent[node]);\n        }\n        return parent[node];\n    }\n\n    private boolean union(int a, int b) {\n        int rootA = find(a);\n        int rootB = find(b);\n        if (rootA == rootB) {\n            return false;\n        }\n        if (rank[rootA] < rank[rootB]) {\n            int temp = rootA;\n            rootA = rootB;\n            rootB = temp;\n        }\n        parent[rootB] = rootA;\n        if (rank[rootA] == rank[rootB]) {\n            rank[rootA]++;\n        }\n        return true;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "DFS/BFS Connectivity Check",
-      "timeComplexity": "O(V + E)",
-      "spaceComplexity": "O(V + E)",
-      "description": "A valid tree has exactly n-1 edges and is connected. Check edge count first, then BFS from node 0 to verify all nodes are reachable.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean validTree(int n, int[][] edges) {\n        if (edges.length != n - 1) return false;\n        List<List<Integer>> adj = new ArrayList<>();\n        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());\n        for (int[] e : edges) {\n            adj.get(e[0]).add(e[1]);\n            adj.get(e[1]).add(e[0]);\n        }\n        boolean[] visited = new boolean[n];\n        Queue<Integer> queue = new LinkedList<>();\n        queue.offer(0);\n        visited[0] = true;\n        int count = 0;\n        while (!queue.isEmpty()) {\n            int node = queue.poll();\n            count++;\n            for (int neighbor : adj.get(node)) {\n                if (!visited[neighbor]) {\n                    visited[neighbor] = true;\n                    queue.offer(neighbor);\n                }\n            }\n        }\n        return count == n;\n    }\n}",
+      "name": "BFS Connectivity Plus Edge Count",
+      "timeComplexity": "O(n + E)",
+      "spaceComplexity": "O(n + E)",
+      "description": "## Approach\n\nCheck that the graph has exactly `n - 1` edges, build an adjacency list, and run BFS from node 0. The BFS counts how many nodes are reachable from the starting component.\n\n## Key Insight\n\nEdge count alone is not enough because a graph can have `n - 1` edges while one component has a cycle and another node is disconnected. BFS proves connectivity, and the `n - 1` edge count then rules out any cycle in a connected undirected graph.\n\n## Complexity Analysis\n- Time Complexity: O(n + E)\n- Space Complexity: O(n + E)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean validTree(int n, int[][] edges) {\n        if (edges.length != n - 1) {\n            return false;\n        }\n\n        List<List<Integer>> graph = new ArrayList<>();\n        for (int node = 0; node < n; node++) {\n            graph.add(new ArrayList<>());\n        }\n        for (int[] edge : edges) {\n            graph.get(edge[0]).add(edge[1]);\n            graph.get(edge[1]).add(edge[0]);\n        }\n\n        boolean[] seen = new boolean[n];\n        Queue<Integer> queue = new ArrayDeque<>();\n        queue.offer(0);\n        seen[0] = true;\n        int visited = 0;\n\n        while (!queue.isEmpty()) {\n            int node = queue.poll();\n            visited++;\n            for (int next : graph.get(node)) {\n                if (!seen[next]) {\n                    seen[next] = true;\n                    queue.offer(next);\n                }\n            }\n        }\n\n        return visited == n;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "DFS Parent Cycle Detection",
+      "timeComplexity": "O(n + E)",
+      "spaceComplexity": "O(n + E)",
+      "description": "## Approach\n\nBuild the undirected adjacency list and run DFS from node 0. During DFS, pass the parent node so the immediate back edge to the parent is ignored. Reaching any already visited non-parent neighbor means a real cycle exists. After DFS, every node must have been visited.\n\n## Key Insight\n\nThis route proves the two tree requirements directly: parent-aware DFS rejects cycles, and the final visited scan rejects disconnected components. It does not rely on edge count as the main proof, so it is useful for understanding the graph property itself.\n\n## Complexity Analysis\n- Time Complexity: O(n + E)\n- Space Complexity: O(n + E)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean validTree(int n, int[][] edges) {\n        List<List<Integer>> graph = new ArrayList<>();\n        for (int node = 0; node < n; node++) {\n            graph.add(new ArrayList<>());\n        }\n        for (int[] edge : edges) {\n            graph.get(edge[0]).add(edge[1]);\n            graph.get(edge[1]).add(edge[0]);\n        }\n\n        boolean[] visited = new boolean[n];\n        if (hasCycle(0, -1, graph, visited)) {\n            return false;\n        }\n        for (boolean wasVisited : visited) {\n            if (!wasVisited) {\n                return false;\n            }\n        }\n        return true;\n    }\n\n    private boolean hasCycle(int node, int parent, List<List<Integer>> graph, boolean[] visited) {\n        visited[node] = true;\n        for (int next : graph.get(node)) {\n            if (next == parent) {\n                continue;\n            }\n            if (visited[next]) {\n                return true;\n            }\n            if (hasCycle(next, node, graph, visited)) {\n                return true;\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Leaf Peeling",
+      "timeComplexity": "O(n + E)",
+      "spaceComplexity": "O(n + E)",
+      "description": "## Approach\n\nRequire exactly `n - 1` edges, compute every node degree, and put all leaves into a queue. Repeatedly remove leaves and reduce their neighbors' degrees. A tree can be peeled completely; a cyclic core cannot disappear by leaf removal.\n\n## Key Insight\n\nThis is the same invariant used by topological trimming on undirected trees. It gives students a different mental model from traversal and Union-Find: a valid tree always has leaves until no nodes remain.\n\n## Complexity Analysis\n- Time Complexity: O(n + E)\n- Space Complexity: O(n + E)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean validTree(int n, int[][] edges) {\n        if (edges.length != n - 1) {\n            return false;\n        }\n        if (n == 1) {\n            return true;\n        }\n\n        List<List<Integer>> graph = new ArrayList<>();\n        int[] degree = new int[n];\n        for (int node = 0; node < n; node++) {\n            graph.add(new ArrayList<>());\n        }\n        for (int[] edge : edges) {\n            graph.get(edge[0]).add(edge[1]);\n            graph.get(edge[1]).add(edge[0]);\n            degree[edge[0]]++;\n            degree[edge[1]]++;\n        }\n\n        Queue<Integer> leaves = new ArrayDeque<>();\n        for (int node = 0; node < n; node++) {\n            if (degree[node] == 1) {\n                leaves.offer(node);\n            }\n        }\n\n        int removed = 0;\n        while (!leaves.isEmpty()) {\n            int node = leaves.poll();\n            removed++;\n            for (int next : graph.get(node)) {\n                degree[next]--;\n                if (degree[next] == 1) {\n                    leaves.offer(next);\n                }\n            }\n        }\n        return removed == n;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "n = 5, edges = [[0,1],[0,2],[0,3],[1,4]]",
-      "output": "true"
+      "output": "true",
+      "description": "Connected acyclic graph is a valid tree."
     },
     {
       "input": "n = 5, edges = [[0,1],[1,2],[2,3],[1,3],[1,4]]",
-      "output": "false"
+      "output": "false",
+      "description": "Connected graph with a cycle is not a tree."
     },
-    { "input": "n = 1, edges = []", "output": "true" },
-    { "input": "n = 4, edges = [[0,1],[2,3]]", "output": "false" }
+    {
+      "input": "n = 1, edges = []",
+      "output": "true",
+      "description": "Single node with no edges is a valid tree."
+    },
+    {
+      "input": "n = 4, edges = [[0,1],[2,3]]",
+      "output": "false",
+      "description": "Disconnected acyclic graph is not a tree."
+    },
+    {
+      "input": "n = 5, edges = [[0,1],[1,2],[2,0],[3,4]]",
+      "output": "false",
+      "description": "Edge count is n - 1, but one component has a cycle and another is disconnected."
+    },
+    {
+      "input": "n = 4, edges = [[0,1],[1,2],[2,3]]",
+      "output": "true",
+      "description": "A simple chain connects all nodes without a cycle."
+    },
+    {
+      "input": "n = 6, edges = [[0,1],[0,2],[0,3],[3,4],[4,5]]",
+      "output": "true",
+      "description": "A branching tree with all nodes connected."
+    },
+    {
+      "input": "n = 2, edges = []",
+      "output": "false",
+      "description": "Two nodes with no edge are disconnected."
+    },
+    {
+      "input": "n = 2, edges = [[0,1]]",
+      "output": "true",
+      "description": "Two nodes connected by one edge form a valid tree."
+    },
+    {
+      "input": "n = 4, edges = [[0,1],[1,2],[2,0],[2,3]]",
+      "output": "false",
+      "description": "Connected graph with too many edges contains a cycle."
+    }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p137_example1.png",
-      "caption": "Example 1"
+      "caption": "Undirected graph prompt for tree validation"
     }
   ]
 }

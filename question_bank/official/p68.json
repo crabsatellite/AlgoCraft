@@ -1,15 +1,14 @@
 {
   "id": "68",
   "title": "Remove Nth Node From End of List",
-  "description": "# Remove Nth Node From End of List\n\nGiven the `head` of a linked list, remove the `n`th node from the end of the list and return its head.\n\n## Example 1:\n\n**Input:** head = [1,2,3,4,5], n = 2\n**Output:** [1,2,3,5]\n\n## Example 2:\n\n**Input:** head = [1], n = 1\n**Output:** []\n\n## Example 3:\n\n**Input:** head = [1,2], n = 1\n**Output:** [1]\n\n## Constraints:\n\n*   The number of nodes in the list is `sz`.\n*   `1 <= sz <= 30`\n*   `0 <= Node.val <= 100`\n*   `1 <= n <= sz`",
+  "description": "# Remove Nth Node From End of List\n\nGiven the `head` of a linked list, remove the `n`th node from the end of the list and return the head of the remaining list.\n\nThe removal must be done by changing links between existing nodes. If the removed node is the original head, return the new head. The output arrays below describe the final linked-list order, not a separate array data structure.\n\nExample arrays display values in `next` order; `[]` denotes an empty list (`null`). A node stores its value in `val` and its next node in `next`. Use node objects for list parameters and results as shown in the initial code.\n\n## Example 1:\n\n**Input:** head = [1,2,3,4,5], n = 2\n**Output:** [1,2,3,5]\n\n## Example 2:\n\n**Input:** head = [1], n = 1\n**Output:** []\n\n## Example 3:\n\n**Input:** head = [1,2], n = 1\n**Output:** [1]\n\n## Constraints:\n\n*   The number of nodes in the list is `sz`.\n*   `1 <= sz <= 30`\n*   `0 <= Node.val <= 100`\n*   `1 <= n <= sz`",
   "difficulty": "MEDIUM",
-  "images": [
-    "images/p68_remove_nth.png"
-  ],
   "initialCode": "/**\n * Definition for singly-linked list.\n * public class ListNode {\n *     int val;\n *     ListNode next;\n *     ListNode() {}\n *     ListNode(int val) { this.val = val; }\n *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n * }\n */\nclass Solution {\n    public ListNode removeNthFromEnd(ListNode head, int n) {\n        // Write your code here\n        return null;\n    }\n}",
   "tags": [
     "Linked List",
-    "Two Pointers"
+    "Two Pointers",
+    "Stack",
+    "Recursion"
   ],
   "examples": [
     {
@@ -28,51 +27,96 @@
   "tests": [
     {
       "input": "head = [1,2,3,4,5], n = 2",
-      "output": "[1,2,3,5]"
+      "output": "[1,2,3,5]",
+      "description": "Canonical case removes the second node from the end"
     },
     {
       "input": "head = [1], n = 1",
-      "output": "[]"
+      "output": "[]",
+      "description": "Remove the only node"
     },
     {
       "input": "head = [1,2], n = 1",
-      "output": "[1]"
+      "output": "[1]",
+      "description": "Remove the tail from a two-node list"
     },
     {
       "input": "head = [1,2], n = 2",
-      "output": "[2]"
+      "output": "[2]",
+      "description": "Remove the head from a two-node list"
     },
     {
       "input": "head = [1,2,3,4,5], n = 5",
       "output": "[2,3,4,5]",
-      "note": "移除首节点"
+      "description": "Remove the head from a longer list"
     },
     {
       "input": "head = [1,2,3,4,5], n = 3",
       "output": "[1,2,4,5]",
-      "note": "移除中间节点"
+      "description": "Remove a middle node"
     },
     {
       "input": "head = [1,2,3], n = 1",
       "output": "[1,2]",
-      "note": "移除尾节点"
+      "description": "Remove the tail node from a three-node list"
+    },
+    {
+      "input": "head = [1,2,3], n = 3",
+      "output": "[2,3]",
+      "description": "Remove the head from a three-node list"
+    },
+    {
+      "input": "head = [0,0,0,0], n = 2",
+      "output": "[0,0,0]",
+      "description": "Duplicate values prove the target is positional"
+    },
+    {
+      "input": "head = [10,20,30,40,50,60], n = 4",
+      "output": "[10,20,40,50,60]",
+      "description": "Remove an interior node from an even-length list"
+    },
+    {
+      "input": "head = [100,0,100,0,100], n = 4",
+      "output": "[100,100,0,100]",
+      "description": "Boundary values with repeated zeros"
+    },
+    {
+      "input": "head = [1,2,3,4,5,6,7,8,9,10], n = 7",
+      "output": "[1,2,3,5,6,7,8,9,10]",
+      "description": "Longer list checks the maintained pointer gap"
     }
   ],
   "solutions": [
     {
-      "name": "Two Pointers - One Pass",
+      "name": "One-Pass Fast/Slow Gap",
       "timeComplexity": "O(L)",
       "spaceComplexity": "O(1)",
-      "description": "Use two pointers with a gap of n between them. When the fast pointer reaches the end, the slow pointer is right before the node to remove. A dummy node handles the edge case of removing the head.",
-      "code": "class Solution {\n    public ListNode removeNthFromEnd(ListNode head, int n) {\n        ListNode dummy = new ListNode(0, head);\n        ListNode fast = dummy;\n        ListNode slow = dummy;\n        \n        // Advance fast by n+1 steps\n        for (int i = 0; i <= n; i++) {\n            fast = fast.next;\n        }\n        \n        // Move both until fast reaches the end\n        while (fast != null) {\n            fast = fast.next;\n            slow = slow.next;\n        }\n        \n        // Remove the nth node from end\n        slow.next = slow.next.next;\n        \n        return dummy.next;\n    }\n}",
+      "description": "## Approach\n\nCreate a dummy node before `head`. Move `fast` forward `n + 1` steps from the dummy so that the distance between `fast` and `slow` is exactly `n` nodes. Then advance both pointers until `fast` reaches `null`; at that moment `slow` is immediately before the node to remove.\n\n## Key Insight\n\nA fixed gap turns a position measured from the end into a predecessor found from the front in one traversal. The dummy node makes removing the original head use the same pointer rewrite as every other deletion.\n\n## Complexity Analysis\n- Time Complexity: O(L)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode removeNthFromEnd(ListNode head, int n) {\n        ListNode dummy = new ListNode(0, head);\n        ListNode fast = dummy;\n        ListNode slow = dummy;\n\n        for (int i = 0; i <= n; i++) {\n            fast = fast.next;\n        }\n\n        while (fast != null) {\n            fast = fast.next;\n            slow = slow.next;\n        }\n\n        slow.next = slow.next.next;\n        return dummy.next;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Two Pass - Count Length",
+      "name": "Two-Pass Length Conversion",
       "timeComplexity": "O(L)",
       "spaceComplexity": "O(1)",
-      "description": "First pass: count the total length L. Second pass: remove the (L - n + 1)th node from the beginning.",
-      "code": "class Solution {\n    public ListNode removeNthFromEnd(ListNode head, int n) {\n        ListNode dummy = new ListNode(0, head);\n        \n        // Count length\n        int length = 0;\n        ListNode curr = head;\n        while (curr != null) {\n            length++;\n            curr = curr.next;\n        }\n        \n        // Find the node before the target\n        curr = dummy;\n        for (int i = 0; i < length - n; i++) {\n            curr = curr.next;\n        }\n        \n        curr.next = curr.next.next;\n        \n        return dummy.next;\n    }\n}",
+      "description": "## Approach\n\nFirst count the total length `L`. The `n`th node from the end is the `(L - n + 1)`th node from the front, so its predecessor is reached by moving `L - n` steps from a dummy node. Then bypass the target node.\n\n## Key Insight\n\nThis route makes the index conversion explicit. It is slightly longer than the one-pass method, but it is often the clearest way to verify the off-by-one details.\n\n## Complexity Analysis\n- Time Complexity: O(L)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode removeNthFromEnd(ListNode head, int n) {\n        ListNode dummy = new ListNode(0, head);\n\n        int length = 0;\n        ListNode curr = head;\n        while (curr != null) {\n            length++;\n            curr = curr.next;\n        }\n\n        curr = dummy;\n        for (int i = 0; i < length - n; i++) {\n            curr = curr.next;\n        }\n\n        curr.next = curr.next.next;\n        return dummy.next;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Stack of Predecessors",
+      "timeComplexity": "O(L)",
+      "spaceComplexity": "O(L)",
+      "description": "## Approach\n\nPush the dummy node and every list node onto a stack. Popping `n` nodes removes the suffix after the target from consideration, and the next stack top is the predecessor of the node that must be removed.\n\n## Key Insight\n\nThe stack turns “count from the end” into literal pops from the end. Keeping the dummy node in the stack also handles deleting the head without a special branch.\n\n## Complexity Analysis\n- Time Complexity: O(L)\n- Space Complexity: O(L)",
+      "code": "class Solution {\n    public ListNode removeNthFromEnd(ListNode head, int n) {\n        ListNode dummy = new ListNode(0, head);\n        Deque<ListNode> stack = new ArrayDeque<>();\n        ListNode curr = dummy;\n\n        while (curr != null) {\n            stack.push(curr);\n            curr = curr.next;\n        }\n\n        for (int i = 0; i < n; i++) {\n            stack.pop();\n        }\n\n        ListNode prev = stack.peek();\n        prev.next = prev.next.next;\n        return dummy.next;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Index From End",
+      "timeComplexity": "O(L)",
+      "spaceComplexity": "O(L)",
+      "description": "## Approach\n\nPlace a dummy node before the head and recursively walk to the end. Each stack frame returns its one-based distance from the end. When a frame represents the predecessor whose distance is `n + 1`, bypass its next node.\n\n## Key Insight\n\nRecursion naturally counts nodes while unwinding from the tail. Checking for distance `n + 1` targets the predecessor, which is the node that can actually rewrite `next` safely.\n\n## Complexity Analysis\n- Time Complexity: O(L)\n- Space Complexity: O(L)",
+      "code": "class Solution {\n    public ListNode removeNthFromEnd(ListNode head, int n) {\n        ListNode dummy = new ListNode(0, head);\n        remove(dummy, n);\n        return dummy.next;\n    }\n\n    private int remove(ListNode node, int n) {\n        if (node == null) {\n            return 0;\n        }\n        int indexFromEnd = remove(node.next, n) + 1;\n        if (indexFromEnd == n + 1) {\n            node.next = node.next.next;\n        }\n        return indexFromEnd;\n    }\n}",
       "language": "java"
     }
   ],
@@ -80,7 +124,7 @@
     {
       "id": "example1",
       "file": "p68_example1.png",
-      "caption": "Example 1: Linked List [1,2,3,4,5], remove 2nd from end"
+      "caption": "Input list with n measured from the tail before deletion"
     }
   ]
 }

@@ -1,34 +1,107 @@
 {
   "id": "456",
   "title": "Walking Robot Simulation",
-  "description": "# Walking Robot Simulation\n\nA robot on an infinite XY-plane starts at point `(0, 0)` facing north. The robot can receive a sequence of these three possible types of `commands`:\n\n*   `-2`: Turn left `90` degrees.\n*   `-1`: Turn right `90` degrees.\n*   `1 <= k <= 9`: Move forward `k` units, one unit at a time.\n\nSome of the grid squares are `obstacles`. The `i-th` obstacle is at grid point `obstacles[i] = (xi, yi)`. If the robot runs into an obstacle, then it will instead stay in its current location and move on to the next command.\n\nReturn the **maximum Euclidean distance squared** that the robot ever gets from the origin squared (i.e., if the distance is `5`, return `25`).\n\n## Example 1:\n\n**Input:** commands = [4,-1,3], obstacles = []\n**Output:** 25\n**Explanation:** The robot starts at (0, 0):\n1. Move north 4 units to (0, 4).\n2. Turn right.\n3. Move east 3 units to (3, 4).\nThe furthest point the robot ever gets from the origin is (3, 4), which squared is 3^2 + 4^2 = 25.\n\n## Example 2:\n\n**Input:** commands = [4,-1,4,-2,4], obstacles = [[2,4]]\n**Output:** 65\n**Explanation:** The robot starts at (0, 0):\n1. Move north 4 units to (0, 4).\n2. Turn right.\n3. Move east 1 unit and get blocked by the obstacle at (2, 4), robot is at (1, 4).\n4. Turn left.\n5. Move north 4 units to (1, 8).\nThe furthest point the robot ever gets from the origin is (1, 8), which squared is 1^2 + 8^2 = 65.\n\n## Constraints:\n\n*   `1 <= commands.length <= 10^4`\n*   `commands[i]` is either `-2`, `-1`, or an integer in the range `[1, 9]`.\n*   `0 <= obstacles.length <= 10^4`\n*   `-3 * 10^4 <= xi, yi <= 3 * 10^4`\n*   The answer is guaranteed to be less than `2^31`.",
+  "description": "# Walking Robot Simulation\n\nA robot on an infinite XY-plane starts at point `(0, 0)` facing north. It executes each command in `commands` from left to right:\n\n* `-2`: turn left by `90` degrees.\n* `-1`: turn right by `90` degrees.\n* `1 <= k <= 9`: try to move forward `k` units, one unit at a time.\n\nSome grid points contain obstacles. The obstacle `obstacles[i] = [xi, yi]` blocks the grid point `(xi, yi)`. During a forward command, if the next one-unit step would enter an obstacle, the robot stays on its current point, stops the current forward command, and continues with the next command in the list. Obstacles that are not on the robot's current straight-line path do not affect that command.\n\nReturn the maximum squared Euclidean distance from the origin that the robot reaches at any time during the simulation. If the robot reaches `(x, y)`, that squared distance is `x * x + y * y`.\n\n## Example 1:\n\n**Input:** commands = [4,-1,3], obstacles = []\n**Output:** 25\n**Explanation:** The robot moves north to `(0, 4)`, turns right, and moves east to `(3, 4)`. The largest squared distance is `3 * 3 + 4 * 4 = 25`.\n\n## Example 2:\n\n**Input:** commands = [4,-1,4,-2,4], obstacles = [[2,4]]\n**Output:** 65\n**Explanation:** The robot moves to `(0, 4)`, turns right, and then tries to move east. It reaches `(1, 4)`, but `(2, 4)` is blocked, so that forward command stops early. After turning left, it moves north to `(1, 8)`. The largest squared distance is `1 * 1 + 8 * 8 = 65`.\n\n## Constraints:\n\n* `1 <= commands.length <= 10^4`\n* `commands[i]` is either `-2`, `-1`, or an integer in the range `[1, 9]`.\n* `0 <= obstacles.length <= 10^4`\n* `-3 * 10^4 <= xi, yi <= 3 * 10^4`\n* The answer is less than `2^31`.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int robotSim(int[] commands, int[][] obstacles) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Simulation"],
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Simulation",
+    "Binary Search"
+  ],
   "examples": [
-    { "input": "commands = [4,-1,3], obstacles = []", "output": "25" },
-    { "input": "commands = [4,-1,4,-2,4], obstacles = [[2,4]]", "output": "65" }
+    {
+      "input": "commands = [4,-1,3], obstacles = []",
+      "output": "25"
+    },
+    {
+      "input": "commands = [4,-1,4,-2,4], obstacles = [[2,4]]",
+      "output": "65"
+    }
   ],
   "solutions": [
     {
-      "name": "HashSet Simulation",
-      "timeComplexity": "O(n + k)",
-      "spaceComplexity": "O(k)",
-      "description": "Store obstacles in a HashSet for O(1) lookup. Simulate movement step by step. Use direction arrays for N/E/S/W. Track maximum distance squared.",
-      "code": "class Solution {\n    public int robotSim(int[] commands, int[][] obstacles) {\n        java.util.Set<Long> obstacleSet = new java.util.HashSet<>();\n        for (int[] o : obstacles) {\n            obstacleSet.add(encode(o[0], o[1]));\n        }\n        int[] dx = {0, 1, 0, -1};\n        int[] dy = {1, 0, -1, 0};\n        int x = 0, y = 0, dir = 0;\n        int maxDist = 0;\n        for (int cmd : commands) {\n            if (cmd == -2) { dir = (dir + 3) % 4; }\n            else if (cmd == -1) { dir = (dir + 1) % 4; }\n            else {\n                for (int i = 0; i < cmd; i++) {\n                    int nx = x + dx[dir], ny = y + dy[dir];\n                    if (obstacleSet.contains(encode(nx, ny))) break;\n                    x = nx; y = ny;\n                    maxDist = Math.max(maxDist, x * x + y * y);\n                }\n            }\n        }\n        return maxDist;\n    }\n\n    private long encode(int x, int y) {\n        return ((long) x + 30001) * 60003 + (y + 30001);\n    }\n}",
+      "name": "Encoded HashSet Step Simulation",
+      "timeComplexity": "O(m + S)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nEncode every obstacle coordinate into a `long` and store it in a `HashSet`. Keep a direction index for north, east, south, and west. For each positive command, try the movement one unit at a time; if the next encoded point is blocked, stop that command immediately.\n\n## Key Insight\n\nEven though a command may say to move up to nine units, obstacles can stop it in the middle. Step-level simulation is therefore the simplest correct model, and the distance must be updated after each successful step.\n\n## Complexity Analysis\n\nLet `m` be the number of obstacles and `S` be the total number of attempted unit steps. Time Complexity: O(m + S). Space Complexity: O(m).",
+      "code": "class Solution {\n    public int robotSim(int[] commands, int[][] obstacles) {\n        java.util.Set<Long> blocked = new java.util.HashSet<>();\n        for (int[] obstacle : obstacles) {\n            blocked.add(key(obstacle[0], obstacle[1]));\n        }\n\n        int[][] directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};\n        int direction = 0;\n        int x = 0;\n        int y = 0;\n        int best = 0;\n\n        for (int command : commands) {\n            if (command == -2) {\n                direction = (direction + 3) % 4;\n            } else if (command == -1) {\n                direction = (direction + 1) % 4;\n            } else {\n                for (int step = 0; step < command; step++) {\n                    int nextX = x + directions[direction][0];\n                    int nextY = y + directions[direction][1];\n                    if (blocked.contains(key(nextX, nextY))) {\n                        break;\n                    }\n                    x = nextX;\n                    y = nextY;\n                    best = Math.max(best, x * x + y * y);\n                }\n            }\n        }\n\n        return best;\n    }\n\n    private long key(int x, int y) {\n        return (((long) x) << 32) ^ (y & 0xffffffffL);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "String HashSet Simulation",
-      "timeComplexity": "O(n + k)",
-      "spaceComplexity": "O(k)",
-      "description": "Same simulation approach but use string-encoded obstacle coordinates in a HashSet instead of long encoding. This is simpler to understand and avoids potential hash collisions with numeric encoding.",
-      "code": "class Solution {\n    public int robotSim(int[] commands, int[][] obstacles) {\n        java.util.Set<String> obstacleSet = new java.util.HashSet<>();\n        for (int[] o : obstacles) obstacleSet.add(o[0] + \",\" + o[1]);\n        int[] dx = {0, 1, 0, -1};\n        int[] dy = {1, 0, -1, 0};\n        int x = 0, y = 0, dir = 0, maxDist = 0;\n        for (int cmd : commands) {\n            if (cmd == -2) {\n                dir = (dir + 3) % 4;\n            } else if (cmd == -1) {\n                dir = (dir + 1) % 4;\n            } else {\n                for (int i = 0; i < cmd; i++) {\n                    int nx = x + dx[dir], ny = y + dy[dir];\n                    if (obstacleSet.contains(nx + \",\" + ny)) break;\n                    x = nx;\n                    y = ny;\n                    maxDist = Math.max(maxDist, x * x + y * y);\n                }\n            }\n        }\n        return maxDist;\n    }\n}",
+      "name": "Direction Vector Rotation Simulation",
+      "timeComplexity": "O(m + S)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nStore obstacles as readable string keys such as `x,y`, but represent the current facing direction directly as a vector `(dx, dy)`. A left turn transforms `(dx, dy)` into `(-dy, dx)`, and a right turn transforms it into `(dy, -dx)`. Forward commands still probe one unit at a time.\n\n## Key Insight\n\nThis version teaches the rotation math behind the four directions. It avoids an explicit direction table, which makes the turn rules visible while preserving the same obstacle-blocking semantics.\n\n## Complexity Analysis\n\nLet `m` be the number of obstacles and `S` be the total number of attempted unit steps. Time Complexity: O(m + S). Space Complexity: O(m).",
+      "code": "class Solution {\n    public int robotSim(int[] commands, int[][] obstacles) {\n        java.util.Set<String> blocked = new java.util.HashSet<>();\n        for (int[] obstacle : obstacles) {\n            blocked.add(obstacle[0] + \",\" + obstacle[1]);\n        }\n\n        int x = 0;\n        int y = 0;\n        int dx = 0;\n        int dy = 1;\n        int best = 0;\n\n        for (int command : commands) {\n            if (command == -2) {\n                int oldDx = dx;\n                dx = -dy;\n                dy = oldDx;\n            } else if (command == -1) {\n                int oldDx = dx;\n                dx = dy;\n                dy = -oldDx;\n            } else {\n                for (int step = 0; step < command; step++) {\n                    int nextX = x + dx;\n                    int nextY = y + dy;\n                    if (blocked.contains(nextX + \",\" + nextY)) {\n                        break;\n                    }\n                    x = nextX;\n                    y = nextY;\n                    best = Math.max(best, x * x + y * y);\n                }\n            }\n        }\n\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Axis Obstacle TreeSets",
+      "timeComplexity": "O((m + c) log m)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nGroup obstacles by their `x` coordinate and by their `y` coordinate. When the robot moves north or south, query the sorted obstacle `y` values on the current `x`; when it moves east or west, query the sorted obstacle `x` values on the current `y`. Jump directly to the target point or to the square before the next blocking obstacle.\n\n## Key Insight\n\nThe robot moves along one axis at a time. A sorted set can find the first obstacle ahead on that axis, so the simulation can skip per-unit probing while still respecting the same blocking rule.\n\n## Complexity Analysis\n\nLet `m` be the number of obstacles and `c` be the number of commands. Time Complexity: O((m + c) log m). Space Complexity: O(m).",
+      "code": "class Solution {\n    public int robotSim(int[] commands, int[][] obstacles) {\n        java.util.Map<Integer, java.util.TreeSet<Integer>> byX = new java.util.HashMap<>();\n        java.util.Map<Integer, java.util.TreeSet<Integer>> byY = new java.util.HashMap<>();\n        for (int[] obstacle : obstacles) {\n            byX.computeIfAbsent(obstacle[0], key -> new java.util.TreeSet<>()).add(obstacle[1]);\n            byY.computeIfAbsent(obstacle[1], key -> new java.util.TreeSet<>()).add(obstacle[0]);\n        }\n\n        int x = 0;\n        int y = 0;\n        int direction = 0;\n        int best = 0;\n\n        for (int command : commands) {\n            if (command == -2) {\n                direction = (direction + 3) % 4;\n            } else if (command == -1) {\n                direction = (direction + 1) % 4;\n            } else if (direction == 0) {\n                int target = y + command;\n                java.util.TreeSet<Integer> ys = byX.get(x);\n                Integer block = ys == null ? null : ys.ceiling(y + 1);\n                y = block != null && block <= target ? block - 1 : target;\n            } else if (direction == 1) {\n                int target = x + command;\n                java.util.TreeSet<Integer> xs = byY.get(y);\n                Integer block = xs == null ? null : xs.ceiling(x + 1);\n                x = block != null && block <= target ? block - 1 : target;\n            } else if (direction == 2) {\n                int target = y - command;\n                java.util.TreeSet<Integer> ys = byX.get(x);\n                Integer block = ys == null ? null : ys.floor(y - 1);\n                y = block != null && block >= target ? block + 1 : target;\n            } else {\n                int target = x - command;\n                java.util.TreeSet<Integer> xs = byY.get(y);\n                Integer block = xs == null ? null : xs.floor(x - 1);\n                x = block != null && block >= target ? block + 1 : target;\n            }\n            best = Math.max(best, x * x + y * y);\n        }\n\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Axis Lists With Binary Search",
+      "timeComplexity": "O(m log m + c log m)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nBuild the same row and column obstacle index as the TreeSet approach, but store each row or column as a sorted `ArrayList`. For every forward command, binary search the sorted list to find the nearest obstacle strictly ahead of the robot and clamp the target point if needed.\n\n## Key Insight\n\nThe obstacle set is static. Sorting once and using binary search gives the same axis-jump behavior as ordered sets, while showing the lower-level upper-bound and lower-bound operations explicitly.\n\n## Complexity Analysis\n\nLet `m` be the number of obstacles and `c` be the number of commands. Time Complexity: O(m log m + c log m). Space Complexity: O(m).",
+      "code": "class Solution {\n    public int robotSim(int[] commands, int[][] obstacles) {\n        java.util.Map<Integer, java.util.List<Integer>> byX = new java.util.HashMap<>();\n        java.util.Map<Integer, java.util.List<Integer>> byY = new java.util.HashMap<>();\n        for (int[] obstacle : obstacles) {\n            byX.computeIfAbsent(obstacle[0], key -> new java.util.ArrayList<>()).add(obstacle[1]);\n            byY.computeIfAbsent(obstacle[1], key -> new java.util.ArrayList<>()).add(obstacle[0]);\n        }\n        for (java.util.List<Integer> values : byX.values()) {\n            java.util.Collections.sort(values);\n        }\n        for (java.util.List<Integer> values : byY.values()) {\n            java.util.Collections.sort(values);\n        }\n\n        int x = 0;\n        int y = 0;\n        int direction = 0;\n        int best = 0;\n\n        for (int command : commands) {\n            if (command == -2) {\n                direction = (direction + 3) % 4;\n            } else if (command == -1) {\n                direction = (direction + 1) % 4;\n            } else if (direction == 0) {\n                y = movePositive(y, y + command, byX.get(x));\n            } else if (direction == 1) {\n                x = movePositive(x, x + command, byY.get(y));\n            } else if (direction == 2) {\n                y = moveNegative(y, y - command, byX.get(x));\n            } else {\n                x = moveNegative(x, x - command, byY.get(y));\n            }\n            best = Math.max(best, x * x + y * y);\n        }\n\n        return best;\n    }\n\n    private int movePositive(int current, int target, java.util.List<Integer> obstacles) {\n        if (obstacles == null) {\n            return target;\n        }\n        int index = upperBound(obstacles, current);\n        if (index < obstacles.size() && obstacles.get(index) <= target) {\n            return obstacles.get(index) - 1;\n        }\n        return target;\n    }\n\n    private int moveNegative(int current, int target, java.util.List<Integer> obstacles) {\n        if (obstacles == null) {\n            return target;\n        }\n        int index = lowerBound(obstacles, current) - 1;\n        if (index >= 0 && obstacles.get(index) >= target) {\n            return obstacles.get(index) + 1;\n        }\n        return target;\n    }\n\n    private int lowerBound(java.util.List<Integer> values, int target) {\n        int left = 0;\n        int right = values.size();\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (values.get(mid) < target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n\n    private int upperBound(java.util.List<Integer> values, int target) {\n        int left = 0;\n        int right = values.size();\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (values.get(mid) <= target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "commands = [4,-1,3], obstacles = []", "output": "25" },
-    { "input": "commands = [4,-1,4,-2,4], obstacles = [[2,4]]", "output": "65" }
+    {
+      "input": "commands = [4,-1,3], obstacles = []",
+      "output": "25"
+    },
+    {
+      "input": "commands = [4,-1,4,-2,4], obstacles = [[2,4]]",
+      "output": "65"
+    },
+    {
+      "input": "commands = [1,1,1], obstacles = [[0,1]]",
+      "output": "0"
+    },
+    {
+      "input": "commands = [-1,-1,2], obstacles = []",
+      "output": "4"
+    },
+    {
+      "input": "commands = [2,-2,2], obstacles = [[0,2]]",
+      "output": "5"
+    },
+    {
+      "input": "commands = [3,-1,3,-1,3,-1,3], obstacles = []",
+      "output": "18"
+    },
+    {
+      "input": "commands = [-2,5,-2,5], obstacles = [[-3,0]]",
+      "output": "29"
+    },
+    {
+      "input": "commands = [9,-1,9,-1,9,-1,9], obstacles = [[0,5],[5,4]]",
+      "output": "50"
+    },
+    {
+      "input": "commands = [9,9,-1,9], obstacles = [[30000,30000],[-30000,-30000]]",
+      "output": "405"
+    },
+    {
+      "input": "commands = [1,-1,1], obstacles = [[0,0]]",
+      "output": "2"
+    },
+    {
+      "input": "commands = [4,-1,4,-1,4,-1,4], obstacles = []",
+      "output": "32"
+    },
+    {
+      "input": "commands = [-2,4], obstacles = [[-2,0]]",
+      "output": "1"
+    }
   ]
 }

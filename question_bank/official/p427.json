@@ -1,38 +1,113 @@
 {
   "id": "427",
-  "title": "Design Ordered Stream",
-  "description": "# Design Ordered Stream\n\nThere is a stream of `n` `(idKey, value)` pairs arriving in an arbitrary order, where `idKey` is an integer between `1` and `n` and `value` is a string. No two pairs have the same `id`.\n\nDesign a stream that returns the values in increasing order of their IDs by returning a **chunk** (list) of values after each insertion. The concatenation of all the **chunks** should result in a list of the sorted values.\n\nImplement the `OrderedStream` class:\n\n*   `OrderedStream(int n)` Constructs the stream to take `n` values.\n*   `List<String> insert(int idKey, String value)` Inserts the pair `(idKey, value)` into the stream, then returns the **largest possible chunk** of currently inserted values that appear next in the order.\n\n## Example 1:\n\n**Input:**\n[\"OrderedStream\", \"insert\", \"insert\", \"insert\", \"insert\", \"insert\"]\n[[5], [3, \"ccccc\"], [1, \"aaaaa\"], [2, \"bbbbb\"], [5, \"eeeee\"], [4, \"ddddd\"]]\n**Output:**\n[null, [], [\"aaaaa\"], [\"bbbbb\", \"ccccc\"], [], [\"ddddd\", \"eeeee\"]]\n**Explanation:**\n// Note that the values ordered by ID is [\"aaaaa\", \"bbbbb\", \"ccccc\", \"ddddd\", \"eeeee\"].\nOrderedStream os = new OrderedStream(5);\nos.insert(3, \"ccccc\"); // Inserts (3, \"ccccc\"), returns [].\nos.insert(1, \"aaaaa\"); // Inserts (1, \"aaaaa\"), returns [\"aaaaa\"].\nos.insert(2, \"bbbbb\"); // Inserts (2, \"bbbbb\"), returns [\"bbbbb\", \"ccccc\"].\nos.insert(5, \"eeeee\"); // Inserts (5, \"eeeee\"), returns [].\nos.insert(4, \"ddddd\"); // Inserts (4, \"ddddd\"), returns [\"ddddd\", \"eeeee\"].\n// Concatentating all the chunks returned:\n// [] + [\"aaaaa\"] + [\"bbbbb\", \"ccccc\"] + [] + [\"ddddd\", \"eeeee\"] = [\"aaaaa\", \"bbbbb\", \"ccccc\", \"ddddd\", \"eeeee\"]\n// The resulting order is the same as the order above.\n\n## Constraints:\n\n*   `1 <= n <= 1000`\n*   `1 <= id <= n`\n*   `value.length == 5`\n*   `value` consists only of lowercase letters.\n*   Each call to `insert` will have a unique `id`.\n*   Exactly `n` calls will be made to `insert`.",
+  "title": "Circular Sentence Check",
+  "description": "# Circular Sentence Check\n\nA sentence is circular if every word links to the next word: the last character of each word must equal the first character of the following word. The final word must also link back to the first word. Given a sentence whose words are separated by single spaces, return whether the whole sentence is circular.\n\nComparisons are case-sensitive, so `a` and `A` are different characters.\n\n## Example 1:\n\n**Input:** sentence = \"leetcode exercises sound delightful\"\n**Output:** true\n\n**Explanation:** `leetcode` ends with `e`, `exercises` starts with `e`; `exercises` ends with `s`, `sound` starts with `s`; `sound` ends with `d`, `delightful` starts with `d`; and `delightful` ends with `l`, matching the first word's first character `l`.\n\n## Example 2:\n\n**Input:** sentence = \"eetcode\"\n**Output:** true\n\n**Explanation:** A one-word sentence is circular when that word's last character equals its first character.\n\n## Example 3:\n\n**Input:** sentence = \"ab bc cd\"\n**Output:** false\n\n**Explanation:** The internal links pass, but the last word `cd` ends with `d`, which does not match the first word's first character `a`.\n\n## Constraints:\n\n*   `1 <= sentence.length <= 500`\n*   `sentence` contains one or more words separated by single spaces.\n*   There are no leading or trailing spaces.\n*   Each word contains English letters, and comparisons are case-sensitive.",
   "difficulty": "EASY",
-  "initialCode": "class OrderedStream {\n\n    public OrderedStream(int n) {\n        \n    }\n    \n    public List<String> insert(int idKey, String value) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Design", "Data Stream"],
+  "initialCode": "class Solution {\n    public boolean isCircularSentence(String sentence) {\n        // Write your code here\n    }\n}",
+  "tags": [
+    "String"
+  ],
   "examples": [
     {
-      "input": "[\"OrderedStream\", \"insert\", \"insert\", \"insert\", \"insert\", \"insert\"]\n[[5], [3, \"ccccc\"], [1, \"aaaaa\"], [2, \"bbbbb\"], [5, \"eeeee\"], [4, \"ddddd\"]]",
-      "output": "[null, [], [\"aaaaa\"], [\"bbbbb\", \"ccccc\"], [], [\"ddddd\", \"eeeee\"]]"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "Array with Pointer",
-      "timeComplexity": "O(n) total",
-      "spaceComplexity": "O(n)",
-      "description": "Store values in array by id. Maintain pointer to next expected id. On insert, advance pointer over consecutive filled slots and collect values.",
-      "code": "class OrderedStream {\n    private String[] data;\n    private int ptr;\n    public OrderedStream(int n) { data = new String[n + 1]; ptr = 1; }\n    public java.util.List<String> insert(int idKey, String value) {\n        data[idKey] = value;\n        java.util.List<String> res = new java.util.ArrayList<>();\n        while (ptr < data.length && data[ptr] != null) res.add(data[ptr++]);\n        return res;\n    }\n}",
-      "language": "java"
+      "input": "sentence = \"leetcode exercises sound delightful\"",
+      "output": "true"
     },
     {
-      "name": "HashMap with Pointer",
-      "timeComplexity": "O(n) total",
-      "spaceComplexity": "O(n)",
-      "description": "Use a HashMap instead of an array to store id-value pairs. Maintain a pointer to the next expected id and collect consecutive filled entries on each insert.",
-      "code": "import java.util.*;\n\nclass OrderedStream {\n    private Map<Integer, String> map;\n    private int ptr;\n    private int n;\n    public OrderedStream(int n) {\n        this.n = n;\n        map = new HashMap();\n        ptr = 1;\n    }\n    public List<String> insert(int idKey, String value) {\n        map.put(idKey, value);\n        List<String> result = new ArrayList();\n        while (ptr <= n && map.containsKey(ptr)) {\n            result.add(map.get(ptr));\n            ptr++;\n        }\n        return result;\n    }\n}",
-      "language": "java"
+      "input": "sentence = \"eetcode\"",
+      "output": "true"
+    },
+    {
+      "input": "sentence = \"ab bc cd\"",
+      "output": "false"
     }
   ],
   "tests": [
     {
-      "input": "[\"OrderedStream\", \"insert\", \"insert\", \"insert\", \"insert\", \"insert\"]\n[[5], [3, \"ccccc\"], [1, \"aaaaa\"], [2, \"bbbbb\"], [5, \"eeeee\"], [4, \"ddddd\"]]",
-      "output": "[null, [], [\"aaaaa\"], [\"bbbbb\", \"ccccc\"], [], [\"ddddd\", \"eeeee\"]]"
+      "input": "sentence = \"leetcode exercises sound delightful\"",
+      "output": "true"
+    },
+    {
+      "input": "sentence = \"eetcode\"",
+      "output": "true"
+    },
+    {
+      "input": "sentence = \"Leetcode is cool\"",
+      "output": "false"
+    },
+    {
+      "input": "sentence = \"a b a\"",
+      "output": "false"
+    },
+    {
+      "input": "sentence = \"ab ba\"",
+      "output": "true"
+    },
+    {
+      "description": "Letter comparisons are case-sensitive.",
+      "input": "sentence = \"a A a\"",
+      "output": "false"
+    },
+    {
+      "description": "A multi-word sentence can be circular when every boundary and the wraparound match.",
+      "input": "sentence = \"ab bc ca\"",
+      "output": "true"
+    },
+    {
+      "description": "The final word must link back to the first word.",
+      "input": "sentence = \"ab bc cd\"",
+      "output": "false"
+    },
+    {
+      "description": "An internal boundary failure is enough to reject the sentence even if wraparound matches.",
+      "input": "sentence = \"ab cd da\"",
+      "output": "false"
+    },
+    {
+      "description": "A one-character word links to itself.",
+      "input": "sentence = \"z\"",
+      "output": "true"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Split Word Boundary Check",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSplit the sentence into words, then compare each word's last character with the next word's first character. The next index uses modulo arithmetic so the final word naturally compares with the first word.\n\n## Key Insight\n\nThe circular condition is just a set of adjacent boundary checks, plus the wraparound boundary from the last word back to the first. Splitting turns those boundaries into simple word-index comparisons.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public boolean isCircularSentence(String sentence) {\n        String[] words = sentence.split(\" \");\n        for (int i = 0; i < words.length; i++) {\n            String current = words[i];\n            String next = words[(i + 1) % words.length];\n            if (current.charAt(current.length() - 1) != next.charAt(0)) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Space Boundary Scan",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan the original string and only pay attention to spaces. For each space, the character before it is the previous word's last character and the character after it is the next word's first character. After all internal spaces pass, check the last character against the first character.\n\n## Key Insight\n\nBecause the input has exactly one space between adjacent words and no edge spaces, every needed internal comparison is located immediately around a space. No word array is necessary.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean isCircularSentence(String sentence) {\n        for (int i = 1; i + 1 < sentence.length(); i++) {\n            if (sentence.charAt(i) == ' ' && sentence.charAt(i - 1) != sentence.charAt(i + 1)) {\n                return false;\n            }\n        }\n        return sentence.charAt(0) == sentence.charAt(sentence.length() - 1);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Delimiter Jump Scan",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse `indexOf` to jump from one space delimiter to the next. At each delimiter, compare the character immediately before the space with the character immediately after it. When no more spaces exist, check the final-to-first wraparound.\n\n## Key Insight\n\nThis keeps the O(1)-space boundary idea but avoids testing every non-space character explicitly. The delimiter positions are the only places where internal word links can fail.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean isCircularSentence(String sentence) {\n        int boundary = sentence.indexOf(' ');\n        while (boundary != -1) {\n            if (sentence.charAt(boundary - 1) != sentence.charAt(boundary + 1)) {\n                return false;\n            }\n            boundary = sentence.indexOf(' ', boundary + 1);\n        }\n        return sentence.charAt(0) == sentence.charAt(sentence.length() - 1);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Boundary Character Arrays",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(w)",
+      "description": "## Approach\n\nSplit the sentence, store each word's first and last character in separate arrays, then compare `last[i]` with `first[i + 1]` using modulo indexing for the final word. This separates parsing from validation.\n\n## Key Insight\n\nThe sentence is circular exactly when the boundary-character arrays line up after a one-position shift. This representation is useful when teaching the constraint as a ring of word boundaries.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(w)",
+      "code": "class Solution {\n    public boolean isCircularSentence(String sentence) {\n        String[] words = sentence.split(\" \");\n        char[] first = new char[words.length];\n        char[] last = new char[words.length];\n        for (int i = 0; i < words.length; i++) {\n            first[i] = words[i].charAt(0);\n            last[i] = words[i].charAt(words[i].length() - 1);\n        }\n        for (int i = 0; i < words.length; i++) {\n            if (last[i] != first[(i + 1) % words.length]) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Word Link Check",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(w)",
+      "description": "## Approach\n\nSplit the sentence into words and recursively verify one boundary at a time. The helper checks the boundary from `words[index]` to the next word, then recurses to the following index until every word has been checked.\n\n## Key Insight\n\nThe circular rule can be viewed as a recursive chain of local constraints. The base case comes after checking `words.length` boundaries, including the final boundary back to index zero.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(w)",
+      "code": "class Solution {\n    public boolean isCircularSentence(String sentence) {\n        String[] words = sentence.split(\" \");\n        return check(words, 0);\n    }\n\n    private boolean check(String[] words, int index) {\n        if (index == words.length) {\n            return true;\n        }\n        String current = words[index];\n        String next = words[(index + 1) % words.length];\n        if (current.charAt(current.length() - 1) != next.charAt(0)) {\n            return false;\n        }\n        return check(words, index + 1);\n    }\n}",
+      "language": "java"
     }
   ]
 }

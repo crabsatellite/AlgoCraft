@@ -1,46 +1,125 @@
 {
   "id": "116",
   "title": "Subsets",
-  "description": "# Subsets\n\nGiven an integer array `nums` of **unique** elements, return *all possible subsets (the power set)*.\n\nThe solution set **must not** contain duplicate subsets. Return the solution in **any order**.\n\n## Example 1:\n\n**Input:** nums = [1,2,3]\n**Output:** [[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]\n\n## Example 2:\n\n**Input:** nums = [0]\n**Output:** [[],[0]]\n\n## Constraints:\n\n*   `1 <= nums.length <= 10`\n*   `-10 <= nums[i] <= 10`\n*   All the numbers of `nums` are **unique**.",
+  "description": "# Subsets\n\nGiven an integer array `nums` whose elements are all **unique**, return all possible subsets, also called the power set.\n\nA subset may contain zero or more elements from `nums`. Each input index can be used at most once. Because every value in `nums` is unique, the answer must contain exactly `2^nums.length` distinct subsets.\n\nBoth the subsets and the elements within each subset may appear in any order. Include the empty subset `[]`.\n\n## Example 1\n\n**Input**\nnums = [1,2,3]\n\n**Output**\n[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]\n\n## Example 2\n\n**Input**\nnums = [0]\n\n**Output**\n[[],[0]]\n\n## Constraints\n\n* `1 <= nums.length <= 10`\n* `-10 <= nums[i] <= 10`\n* All values in `nums` are unique.\n\n## Follow-up\n\nCan you explain why every correct algorithm must produce `2^n` subsets before accounting for the cost of copying elements into the answer?",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public List<List<Integer>> subsets(int[] nums) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["Array", "Backtracking", "Bit Manipulation"],
-  "images": ["images/p116_subsets.png"],
+  "initialCode": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> subsets(int[] nums) {\n        return new ArrayList<>();\n    }\n}",
+  "tags": [
+    "Array",
+    "Backtracking",
+    "Bit Manipulation"
+  ],
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p116_subsets.png",
+      "caption": "Input set before subset generation"
+    }
+  ],
   "examples": [
     {
       "input": "nums = [1,2,3]",
       "output": "[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]"
     },
-    { "input": "nums = [0]", "output": "[[],[0]]" }
+    {
+      "input": "nums = [0]",
+      "output": "[[],[0]]"
+    }
   ],
   "solutions": [
     {
-      "name": "Backtracking",
+      "name": "Backtracking with Growing Start Index",
       "timeComplexity": "O(n * 2^n)",
-      "spaceComplexity": "O(n)",
-      "description": "Use DFS backtracking. At each index, choose to include or not include the current element. Collect subsets at every node.",
+      "spaceComplexity": "O(n) excluding the output",
+      "description": "## Approach\n\nTreat the current path as a valid subset at every recursion node, append a copy of it to the answer, and then try every later value as the next chosen element. After returning from recursion, remove that value so the next branch starts from the previous path.\n\n## Key Insight\n\nThe `start` index is the invariant that prevents reusing an element or generating the same subset through a different order. Recording each intermediate path is correct because subsets have no fixed target length.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * 2^n), because there are `2^n` subsets and copying each subset can cost up to `n`.\n- Space Complexity: O(n) for the recursion path, excluding the returned answer.",
       "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> subsets(int[] nums) {\n        List<List<Integer>> result = new ArrayList<>();\n        backtrack(nums, 0, new ArrayList<>(), result);\n        return result;\n    }\n\n    private void backtrack(int[] nums, int start, List<Integer> path, List<List<Integer>> result) {\n        result.add(new ArrayList<>(path));\n        for (int i = start; i < nums.length; i++) {\n            path.add(nums[i]);\n            backtrack(nums, i + 1, path, result);\n            path.remove(path.size() - 1);\n        }\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Bit Manipulation",
+      "name": "Include-or-Skip Recursion",
       "timeComplexity": "O(n * 2^n)",
-      "spaceComplexity": "O(1)",
-      "description": "There are 2^n subsets. Each subset corresponds to a bitmask from 0 to 2^n - 1. For each mask, include nums[i] if bit i is set.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> subsets(int[] nums) {\n        List<List<Integer>> result = new ArrayList<>();\n        int n = nums.length;\n        for (int mask = 0; mask < (1 << n); mask++) {\n            List<Integer> subset = new ArrayList<>();\n            for (int i = 0; i < n; i++) {\n                if ((mask & (1 << i)) != 0) {\n                    subset.add(nums[i]);\n                }\n            }\n            result.add(subset);\n        }\n        return result;\n    }\n}",
+      "spaceComplexity": "O(n) excluding the output",
+      "description": "## Approach\n\nProcess positions from left to right. At each index, first recurse without the current value, then add the value and recurse again. When the index reaches the end of the array, copy the current path into the answer.\n\n## Key Insight\n\nEvery element has exactly two states: excluded or included. This forms a binary decision tree with `2^n` leaves, which is the direct definition of the power set.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * 2^n), because each leaf copies a subset.\n- Space Complexity: O(n) for the recursion stack and path, excluding the returned answer.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> subsets(int[] nums) {\n        List<List<Integer>> result = new ArrayList<>();\n        dfs(nums, 0, new ArrayList<>(), result);\n        return result;\n    }\n\n    private void dfs(int[] nums, int index, List<Integer> path, List<List<Integer>> result) {\n        if (index == nums.length) {\n            result.add(new ArrayList<>(path));\n            return;\n        }\n\n        dfs(nums, index + 1, path, result);\n        path.add(nums[index]);\n        dfs(nums, index + 1, path, result);\n        path.remove(path.size() - 1);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bit Mask Enumeration",
+      "timeComplexity": "O(n * 2^n)",
+      "spaceComplexity": "O(1) excluding the output",
+      "description": "## Approach\n\nLoop through every integer mask from `0` to `2^n - 1`. Bit `i` of the mask says whether `nums[i]` belongs to the current subset. Build one subset per mask and append it to the answer.\n\n## Key Insight\n\nA subset is a binary choice vector. Integer masks encode that vector compactly and make the exact count of subsets visible in the loop bounds.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * 2^n), because each mask checks `n` bits.\n- Space Complexity: O(1) auxiliary space beyond the subset currently being copied and the returned answer.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> subsets(int[] nums) {\n        List<List<Integer>> result = new ArrayList<>();\n        int n = nums.length;\n        int totalMasks = 1 << n;\n        for (int mask = 0; mask < totalMasks; mask++) {\n            List<Integer> subset = new ArrayList<>();\n            for (int i = 0; i < n; i++) {\n                if ((mask & (1 << i)) != 0) {\n                    subset.add(nums[i]);\n                }\n            }\n            result.add(subset);\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative Cascading",
+      "timeComplexity": "O(n * 2^n)",
+      "spaceComplexity": "O(n * 2^n)",
+      "description": "## Approach\n\nStart with only the empty subset. For each value in `nums`, take a snapshot of the subsets already present, copy each one, append the new value to the copy, and add the copy to the answer.\n\n## Key Insight\n\nEach new value doubles the number of known subsets: every old subset has one version without the value and one version with it. This route makes the output growth easy to see without recursion.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * 2^n), because every generated subset may be copied as it grows.\n- Space Complexity: O(n * 2^n) for the returned answer.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> subsets(int[] nums) {\n        List<List<Integer>> answer = new ArrayList<>();\n        answer.add(new ArrayList<>());\n\n        for (int num : nums) {\n            int sizeBefore = answer.size();\n            for (int i = 0; i < sizeBefore; i++) {\n                List<Integer> next = new ArrayList<>(answer.get(i));\n                next.add(num);\n                answer.add(next);\n            }\n        }\n\n        return answer;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "nums = [1,2,3]",
-      "output": "[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]"
+      "output": "[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3]]",
+      "description": "Canonical three-value example produces eight subsets."
     },
-    { "input": "nums = [0]", "output": "[[],[0]]" },
-    { "input": "nums = [1,2]", "output": "[[],[1],[2],[1,2]]" },
+    {
+      "input": "nums = [0]",
+      "output": "[[],[0]]",
+      "description": "Single zero verifies the empty subset and singleton subset are both present."
+    },
+    {
+      "input": "nums = [1,2]",
+      "output": "[[],[1],[2],[1,2]]",
+      "description": "Two values produce four subsets."
+    },
     {
       "input": "nums = [-1,0,1]",
-      "output": "[[],[-1],[0],[-1,0],[1],[-1,1],[0,1],[-1,0,1]]"
+      "output": "[[],[-1],[0],[-1,0],[1],[-1,1],[0,1],[-1,0,1]]",
+      "description": "Negative, zero, and positive values must be preserved."
+    },
+    {
+      "input": "nums = [-10,10]",
+      "output": "[[],[-10],[10],[-10,10]]",
+      "description": "Constraint boundary values are valid subset elements."
+    },
+    {
+      "input": "nums = [3,1]",
+      "output": "[[],[3],[1],[3,1]]",
+      "description": "Input does not need to be sorted; subset membership matters, not global ordering."
+    },
+    {
+      "input": "nums = [1,2,3,4]",
+      "output": "[[],[1],[2],[1,2],[3],[1,3],[2,3],[1,2,3],[4],[1,4],[2,4],[1,2,4],[3,4],[1,3,4],[2,3,4],[1,2,3,4]]",
+      "description": "Four values produce sixteen subsets and expose exponential growth."
+    },
+    {
+      "input": "nums = [-2,-1,0,1]",
+      "output": "[[],[-2],[-1],[-2,-1],[0],[-2,0],[-1,0],[-2,-1,0],[1],[-2,1],[-1,1],[-2,-1,1],[0,1],[-2,0,1],[-1,0,1],[-2,-1,0,1]]",
+      "description": "Four mixed-sign values verify larger output with negative numbers."
+    },
+    {
+      "input": "nums = [10,-10,0]",
+      "output": "[[],[10],[-10],[10,-10],[0],[10,0],[-10,0],[10,-10,0]]",
+      "description": "Unsorted boundary and zero values verify no hidden sorting assumption."
+    },
+    {
+      "input": "nums = [5,6,7]",
+      "output": "[[],[5],[6],[5,6],[7],[5,7],[6,7],[5,6,7]]",
+      "description": "A simple positive triple catches implementations that omit size-two subsets."
+    },
+    {
+      "input": "nums = [8,4,2,1]",
+      "output": "[[],[8],[4],[8,4],[2],[8,2],[4,2],[8,4,2],[1],[8,1],[4,1],[8,4,1],[2,1],[8,2,1],[4,2,1],[8,4,2,1]]",
+      "description": "Descending input checks that all positions are considered independently."
+    },
+    {
+      "input": "nums = [-3,4,9]",
+      "output": "[[],[-3],[4],[-3,4],[9],[-3,9],[4,9],[-3,4,9]]",
+      "description": "Another mixed set broadens value coverage without changing subset semantics."
     }
   ]
 }

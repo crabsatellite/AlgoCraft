@@ -1,36 +1,123 @@
 {
   "id": "275",
   "title": "Number of Good Pairs",
-  "description": "# Number of Good Pairs\n\nGiven an array of integers `nums`, return *the number of **good pairs***.\n\nA pair `(i, j)` is called good if `nums[i] == nums[j]` and `i < j`.\n\n## Example 1:\n\n**Input:** nums = [1,2,3,1,1,3]\n**Output:** 4\n**Explanation:** There are 4 good pairs (0,3), (0,4), (3,4), (2,5) 0-indexed.\n\n## Example 2:\n\n**Input:** nums = [1,1,1,1]\n**Output:** 6\n**Explanation:** Each pair in the array are good.\n\n## Example 3:\n\n**Input:** nums = [1,2,3]\n**Output:** 0\n\n## Constraints:\n\n*   `1 <= nums.length <= 100`\n*   `1 <= nums[i] <= 100`",
+  "description": "# Number of Good Pairs\n\nYou are given an integer array `nums`. A pair of indices `(i, j)` is called a good pair if:\n\n* `i < j`\n* `nums[i] == nums[j]`\n\nReturn the number of good pairs.\n\nPairs are counted by indices, not just by values. For example, three equal values form three different good pairs.\n\n## Example 1:\n\n**Input:** nums = [1,2,3,1,1,3]\n**Output:** 4\n**Explanation:** The good pairs are (0,3), (0,4), (3,4), and (2,5).\n\n## Example 2:\n\n**Input:** nums = [1,1,1,1]\n**Output:** 6\n**Explanation:** Every pair of different indices is good, so the answer is 4 * 3 / 2 = 6.\n\n## Example 3:\n\n**Input:** nums = [1,2,3]\n**Output:** 0\n\n## Constraints:\n\n*   `1 <= nums.length <= 100`\n*   `1 <= nums[i] <= 100`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int numIdenticalPairs(int[] nums) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "HashTable", "Math", "Counting"],
+  "tags": [
+    "Array",
+    "HashTable",
+    "Math",
+    "Counting"
+  ],
   "examples": [
-    { "input": "nums = [1,2,3,1,1,3]", "output": "4" },
-    { "input": "nums = [1,1,1,1]", "output": "6" },
-    { "input": "nums = [1,2,3]", "output": "0" }
+    {
+      "input": "nums = [1,2,3,1,1,3]",
+      "output": "4"
+    },
+    {
+      "input": "nums = [1,1,1,1]",
+      "output": "6"
+    },
+    {
+      "input": "nums = [1,2,3]",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
-      "name": "Counting Array",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(k)",
-      "description": "Use a counting array. For each number, the count of new pairs formed equals the current count of that number (before incrementing).",
-      "code": "class Solution {\n    public int numIdenticalPairs(int[] nums) {\n        int[] count = new int[101];\n        int pairs = 0;\n        for (int n : nums) {\n            pairs += count[n];\n            count[n]++;\n        }\n        return pairs;\n    }\n}",
+      "name": "Brute Force Pair Enumeration",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nTry every ordered index pair with `i < j`. When the two values are equal, count the pair.\n\n## Key Insight\n\nThis follows the definition exactly. It is not the fastest method, but it is the simplest correctness baseline and makes the index-pair condition explicit.\n\n## Complexity Analysis\n- Time Complexity: O(n^2), because every pair of indices is considered.\n- Space Complexity: O(1), because only the counter is stored.",
+      "code": "class Solution {\n    public int numIdenticalPairs(int[] nums) {\n        int pairs = 0;\n        for (int i = 0; i < nums.length; i++) {\n            for (int j = i + 1; j < nums.length; j++) {\n                if (nums[i] == nums[j]) {\n                    pairs++;\n                }\n            }\n        }\n        return pairs;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Brute Force",
-      "timeComplexity": "O(n^2)",
+      "name": "Online Frequency Counting",
+      "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Check all pairs (i, j) with i < j and count those where nums[i] == nums[j].",
-      "code": "class Solution {\n    public int numIdenticalPairs(int[] nums) {\n        int pairs = 0;\n        for (int i = 0; i < nums.length; i++) {\n            for (int j = i + 1; j < nums.length; j++) {\n                if (nums[i] == nums[j]) pairs++;\n            }\n        }\n        return pairs;\n    }\n}",
+      "description": "## Approach\n\nScan from left to right and keep a frequency table for values already seen. When the current value is `value`, it forms one good pair with each previous same value, so add `frequency[value]` before incrementing it.\n\n## Key Insight\n\nCounting pairs by their right endpoint avoids looking backward one index at a time. Every pair is counted exactly when its second index is processed.\n\n## Complexity Analysis\n- Time Complexity: O(n), because each number is processed once.\n- Space Complexity: O(1), because values are limited to 1 through 100.",
+      "code": "class Solution {\n    public int numIdenticalPairs(int[] nums) {\n        int[] frequency = new int[101];\n        int pairs = 0;\n        for (int value : nums) {\n            pairs += frequency[value];\n            frequency[value]++;\n        }\n        return pairs;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Combination Count Per Value",
+      "timeComplexity": "O(n + U)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFirst count how often each value appears. If a value appears `count` times, all pairs among those positions are good, contributing `count * (count - 1) / 2`.\n\n## Key Insight\n\nThe order of equal values does not matter once their frequency is known. The problem becomes choosing two indices from every equal-value group.\n\n## Complexity Analysis\n- Time Complexity: O(n + U), where `U = 100` is the fixed value range.\n- Space Complexity: O(1), because the frequency table size is fixed.",
+      "code": "class Solution {\n    public int numIdenticalPairs(int[] nums) {\n        int[] frequency = new int[101];\n        for (int value : nums) {\n            frequency[value]++;\n        }\n\n        int pairs = 0;\n        for (int count : frequency) {\n            pairs += count * (count - 1) / 2;\n        }\n        return pairs;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sort And Count Equal Runs",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nSort the array so equal values become contiguous. Scan the sorted array, measure each run of equal values, and add `runLength * (runLength - 1) / 2` for that run.\n\n## Key Insight\n\nGood pairs depend only on how many times each value appears, not on the original order. Sorting is another way to reveal the same frequency groups without a value-indexed table.\n\n## Complexity Analysis\n- Time Complexity: O(n log n), because of sorting.\n- Space Complexity: O(1) besides the sorting implementation's internal storage.",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int numIdenticalPairs(int[] nums) {\n        Arrays.sort(nums);\n        int pairs = 0;\n        int runLength = 1;\n\n        for (int i = 1; i < nums.length; i++) {\n            if (nums[i] == nums[i - 1]) {\n                runLength++;\n            } else {\n                pairs += runLength * (runLength - 1) / 2;\n                runLength = 1;\n            }\n        }\n        pairs += runLength * (runLength - 1) / 2;\n        return pairs;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [1,2,3,1,1,3]", "output": "4" },
-    { "input": "nums = [1,1,1,1]", "output": "6" },
-    { "input": "nums = [1,2,3]", "output": "0" }
+    {
+      "input": "nums = [1,2,3,1,1,3]",
+      "output": "4",
+      "description": "sample with two different values forming pairs"
+    },
+    {
+      "input": "nums = [1,1,1,1]",
+      "output": "6",
+      "description": "sample where every index pair is good"
+    },
+    {
+      "input": "nums = [1,2,3]",
+      "output": "0",
+      "description": "sample with all values unique"
+    },
+    {
+      "input": "nums = [5]",
+      "output": "0",
+      "description": "single element cannot form a pair"
+    },
+    {
+      "input": "nums = [1,1]",
+      "output": "1",
+      "description": "minimum positive pair case"
+    },
+    {
+      "input": "nums = [2,2,2,3,3]",
+      "output": "4",
+      "description": "sum combinations across multiple value groups"
+    },
+    {
+      "input": "nums = [100,100,100,100]",
+      "output": "6",
+      "description": "upper value duplicates still count by indices"
+    },
+    {
+      "input": "nums = [1,2,1,2,1,2]",
+      "output": "6",
+      "description": "alternating equal values should still group by value"
+    },
+    {
+      "input": "nums = [1,1,2,2,3,3]",
+      "output": "3",
+      "description": "several groups with exactly one pair each"
+    },
+    {
+      "input": "nums = [4,4,4,4,4]",
+      "output": "10",
+      "description": "five equal values form 5 choose 2 pairs"
+    },
+    {
+      "input": "nums = [1,100,1,100,1,100,50]",
+      "output": "6",
+      "description": "lower and upper bounds both appear in repeated groups"
+    },
+    {
+      "input": "nums = [7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7]",
+      "output": "4950",
+      "description": "maximum length all equal values stress the combinatorial count"
+    }
   ]
 }

@@ -1,9 +1,9 @@
 {
   "id": "382",
   "title": "Unique Paths III",
-  "description": "# Unique Paths III\n\nYou are given an `m x n` integer array `grid` where `grid[i][j]` could be:\n\n*   `1` representing the starting square. There is exactly one starting square.\n*   `2` representing the ending square. There is exactly one ending square.\n*   `0` representing empty squares we can walk over.\n*   `-1` representing obstacles that we cannot walk over.\n\nReturn *the number of 4-directional walks from the starting square to the ending square, that walk over every non-obstacle square exactly once*.\n\n## Example 1:\n\n**Input:** grid = [[1,0,0,0],[0,0,0,0],[0,0,2,-1]]\n**Output:** 2\n**Explanation:** We have the following two paths:\n1. (0,0),(0,1),(0,2),(0,3),(1,3),(1,2),(1,1),(1,0),(2,0),(2,1),(2,2)\n2. (0,0),(1,0),(2,0),(2,1),(1,1),(0,1),(0,2),(0,3),(1,3),(1,2),(2,2)\n\n## Example 2:\n\n**Input:** grid = [[1,0,0,0],[0,0,0,0],[0,0,0,2]]\n**Output:** 4\n**Explanation:** We have the following four paths:\n1. (0,0),(0,1),(0,2),(0,3),(1,3),(1,2),(1,1),(1,0),(2,0),(2,1),(2,2),(2,3)\n2. (0,0),(0,1),(1,1),(1,0),(2,0),(2,1),(2,2),(1,2),(0,2),(0,3),(1,3),(2,3)\n3. (0,0),(1,0),(2,0),(2,1),(2,2),(1,2),(1,1),(0,1),(0,2),(0,3),(1,3),(2,3)\n4. (0,0),(1,0),(2,0),(2,1),(1,1),(0,1),(0,2),(0,3),(1,3),(1,2),(2,2),(2,3)\n\n## Example 3:\n\n**Input:** grid = [[0,1],[2,0]]\n**Output:** 0\n**Explanation:** There is no path that walks over every empty square exactly once.\nNote that the starting and ending square can be anywhere in the grid.\n\n## Constraints:\n\n*   `m == grid.length`\n*   `n == grid[i].length`\n*   `1 <= m, n <= 20`\n*   `1 <= m * n <= 20`\n*   `-1 <= grid[i][j] <= 2`\n*   There is exactly one starting cell and one ending cell.",
+  "description": "# Unique Paths III\n\nYou are given an `m x n` integer grid. Each cell is one of:\n\n* `1`: the starting square. There is exactly one starting square.\n* `2`: the ending square. There is exactly one ending square.\n* `0`: an empty square that can be walked over.\n* `-1`: an obstacle that cannot be walked over.\n\nReturn the number of 4-directional walks from the start to the end that visit every non-obstacle square exactly once. The start and end squares are also non-obstacle squares, so a path is valid only when it reaches the end after all walkable cells have been used.\n\n## Example 1\n\n**Input:** grid = [[1,0,0,0],[0,0,0,0],[0,0,2,-1]]\n\n**Output:** 2\n\n**Explanation:** There are two walks that start at `1`, end at `2`, avoid the obstacle, and cover every non-obstacle square exactly once.\n\n## Example 2\n\n**Input:** grid = [[1,0,0,0],[0,0,0,0],[0,0,0,2]]\n\n**Output:** 4\n\n**Explanation:** Without the obstacle, four Hamiltonian walks from the start to the end cover the whole grid.\n\n## Example 3\n\n**Input:** grid = [[0,1],[2,0]]\n\n**Output:** 0\n\n**Explanation:** Although the start and end are close, no walk can visit both empty squares exactly once before reaching the end.\n\n## Constraints\n\n* `m == grid.length`\n* `n == grid[i].length`\n* `1 <= m, n <= 20`\n* `1 <= m * n <= 20`\n* `-1 <= grid[i][j] <= 2`\n* There is exactly one starting square and one ending square.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int uniquePathsIII(int[][] grid) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int uniquePathsIII(int[][] grid) {\n        return 0;\n    }\n}",
   "tags": [
     "Backtracking",
     "Bit Manipulation",
@@ -25,41 +25,113 @@
   ],
   "solutions": [
     {
-      "name": "Backtracking",
-      "timeComplexity": "O(4^(m*n))",
+      "name": "In-Place Backtracking over Remaining Squares",
+      "timeComplexity": "O(3^(m*n))",
       "spaceComplexity": "O(m*n)",
-      "description": "Count empty cells (including start). DFS from start, marking visited cells. When reaching end, check if all empty cells are visited. Count valid paths.",
-      "code": "class Solution {\n    private int result = 0;\n    private int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n    public int uniquePathsIII(int[][] grid) {\n        int m = grid.length, n = grid[0].length;\n        int sr = 0, sc = 0, empty = 1;\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++) {\n                if (grid[i][j] == 1) { sr = i; sc = j; }\n                else if (grid[i][j] == 0) empty++;\n            }\n        dfs(grid, sr, sc, empty, m, n);\n        return result;\n    }\n    private void dfs(int[][] grid, int r, int c, int remaining, int m, int n) {\n        if (r < 0 || r >= m || c < 0 || c >= n || grid[r][c] == -1) return;\n        if (grid[r][c] == 2) { if (remaining == 0) result++; return; }\n        grid[r][c] = -1;\n        for (int[] d : dirs) dfs(grid, r + d[0], c + d[1], remaining - 1, m, n);\n        grid[r][c] = 0;\n    }\n}",
+      "description": "## Approach\n\nCount every non-obstacle square, then DFS from the start. Mark the current cell as blocked while it is on the path, decrement the remaining count, and restore the cell when backtracking.\n\n## Key Insight\n\nA path is valid only if the first visit to the ending square happens when the remaining count is exactly one. That single invariant prevents early arrivals at the end from being counted.\n\n## Complexity Analysis\n- Time Complexity: O(3^(m*n)) in the worst case after the first move, because each step avoids immediately returning to the previous cell.\n- Space Complexity: O(m*n) for recursion depth.",
+      "code": "class Solution {\n    private static final int[][] DIRS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n    private int answer;\n\n    public int uniquePathsIII(int[][] grid) {\n        int m = grid.length;\n        int n = grid[0].length;\n        int startRow = 0;\n        int startCol = 0;\n        int walkable = 0;\n\n        for (int r = 0; r < m; r++) {\n            for (int c = 0; c < n; c++) {\n                if (grid[r][c] != -1) {\n                    walkable++;\n                }\n                if (grid[r][c] == 1) {\n                    startRow = r;\n                    startCol = c;\n                }\n            }\n        }\n\n        answer = 0;\n        dfs(grid, startRow, startCol, walkable);\n        return answer;\n    }\n\n    private void dfs(int[][] grid, int row, int col, int remaining) {\n        if (row < 0 || row >= grid.length || col < 0 || col >= grid[0].length || grid[row][col] == -1) {\n            return;\n        }\n        if (grid[row][col] == 2) {\n            if (remaining == 1) {\n                answer++;\n            }\n            return;\n        }\n\n        int original = grid[row][col];\n        grid[row][col] = -1;\n        for (int[] dir : DIRS) {\n            dfs(grid, row + dir[0], col + dir[1], remaining - 1);\n        }\n        grid[row][col] = original;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Bitmask DP",
-      "timeComplexity": "O(m*n * 2^(m*n))",
-      "spaceComplexity": "O(2^(m*n))",
-      "description": "Since m*n <= 20, use bitmask DP. State is the set of visited cells. For each state and current position, try moving to adjacent unvisited cells. Count paths that visit all walkable cells and end at the target.",
-      "code": "class Solution {\n    public int uniquePathsIII(int[][] grid) {\n        int m = grid.length, n = grid[0].length;\n        int sr = 0, sc = 0, target = 0;\n        int allMask = 0;\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++) {\n                if (grid[i][j] != -1) allMask |= (1 << (i * n + j));\n                if (grid[i][j] == 1) { sr = i; sc = j; }\n                if (grid[i][j] == 2) target = i * n + j;\n            }\n        int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n        java.util.Map<Long, Integer> memo = new java.util.HashMap<>();\n        return solve(sr, sc, 1 << (sr * n + sc), allMask, target, m, n, grid, dirs, memo);\n    }\n    private int solve(int r, int c, int mask, int allMask, int target, int m, int n, int[][] grid, int[][] dirs, java.util.Map<Long, Integer> memo) {\n        int pos = r * n + c;\n        if (pos == target) return mask == allMask ? 1 : 0;\n        long key = ((long) mask << 20) | pos;\n        if (memo.containsKey(key)) return memo.get(key);\n        int count = 0;\n        for (int[] d : dirs) {\n            int nr = r + d[0], nc = c + d[1];\n            if (nr >= 0 && nr < m && nc >= 0 && nc < n && grid[nr][nc] != -1) {\n                int bit = 1 << (nr * n + nc);\n                if ((mask & bit) == 0) {\n                    count += solve(nr, nc, mask | bit, allMask, target, m, n, grid, dirs, memo);\n                }\n            }\n        }\n        memo.put(key, count);\n        return count;\n    }\n}",
+      "name": "Top-Down Bitmask DP by Position",
+      "timeComplexity": "O(2^v * v)",
+      "spaceComplexity": "O(2^v * v)",
+      "description": "## Approach\n\nEncode every grid cell position as a bit in a mask. Memoize the number of valid completions from `(position, visitedMask)`, moving only to non-obstacle cells whose bit is not set.\n\n## Key Insight\n\nThe constraint `m * n <= 20` makes the visited set small enough to store in an integer. Once position and visited mask are fixed, the future count no longer depends on the exact order used to reach the state.\n\n## Complexity Analysis\n- Time Complexity: O(2^v * v), where `v` is the number of non-obstacle cells.\n- Space Complexity: O(2^v * v) for memoized states and recursion.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n    private int rows;\n    private int cols;\n    private int target;\n    private int allMask;\n    private int[][] grid;\n    private Map<Long, Integer> memo;\n\n    public int uniquePathsIII(int[][] grid) {\n        this.grid = grid;\n        rows = grid.length;\n        cols = grid[0].length;\n        int start = 0;\n        allMask = 0;\n        target = 0;\n\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                int bit = 1 << (r * cols + c);\n                if (grid[r][c] != -1) {\n                    allMask |= bit;\n                }\n                if (grid[r][c] == 1) {\n                    start = r * cols + c;\n                } else if (grid[r][c] == 2) {\n                    target = r * cols + c;\n                }\n            }\n        }\n\n        memo = new HashMap<>();\n        return count(start, 1 << start);\n    }\n\n    private int count(int position, int mask) {\n        if (position == target) {\n            return mask == allMask ? 1 : 0;\n        }\n        long key = (((long) mask) << 20) | position;\n        Integer cached = memo.get(key);\n        if (cached != null) {\n            return cached;\n        }\n\n        int row = position / cols;\n        int col = position % cols;\n        int total = 0;\n        for (int[] dir : DIRS) {\n            int nr = row + dir[0];\n            int nc = col + dir[1];\n            if (nr < 0 || nr >= rows || nc < 0 || nc >= cols || grid[nr][nc] == -1) {\n                continue;\n            }\n            int next = nr * cols + nc;\n            int bit = 1 << next;\n            if ((mask & bit) == 0) {\n                total += count(next, mask | bit);\n            }\n        }\n        memo.put(key, total);\n        return total;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bottom-Up Subset DP over Compressed Cells",
+      "timeComplexity": "O(2^v * v)",
+      "spaceComplexity": "O(2^v * v)",
+      "description": "## Approach\n\nCompress non-obstacle cells to ids from `0` to `v - 1`, precompute adjacency masks, then fill `dp[mask][node]` as the number of ways to stand on `node` after visiting exactly `mask`.\n\n## Key Insight\n\nThis is the iterative Hamiltonian-path version of the problem. Stopping transitions out of the end node ensures that paths only count when the end is reached as the final cell.\n\n## Complexity Analysis\n- Time Complexity: O(2^v * v) states times constant-degree transitions.\n- Space Complexity: O(2^v * v) for the table.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int uniquePathsIII(int[][] grid) {\n        int rows = grid.length;\n        int cols = grid[0].length;\n        int[][] id = new int[rows][cols];\n        for (int[] row : id) {\n            Arrays.fill(row, -1);\n        }\n\n        int cells = 0;\n        int start = -1;\n        int end = -1;\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                if (grid[r][c] == -1) {\n                    continue;\n                }\n                id[r][c] = cells;\n                if (grid[r][c] == 1) {\n                    start = cells;\n                } else if (grid[r][c] == 2) {\n                    end = cells;\n                }\n                cells++;\n            }\n        }\n\n        int[] adjacency = new int[cells];\n        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                if (id[r][c] < 0) {\n                    continue;\n                }\n                int mask = 0;\n                for (int[] dir : dirs) {\n                    int nr = r + dir[0];\n                    int nc = c + dir[1];\n                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && id[nr][nc] >= 0) {\n                        mask |= 1 << id[nr][nc];\n                    }\n                }\n                adjacency[id[r][c]] = mask;\n            }\n        }\n\n        int allMask = (1 << cells) - 1;\n        int[][] dp = new int[1 << cells][cells];\n        dp[1 << start][start] = 1;\n        for (int mask = 0; mask <= allMask; mask++) {\n            for (int node = 0; node < cells; node++) {\n                int ways = dp[mask][node];\n                if (ways == 0 || node == end) {\n                    continue;\n                }\n                int choices = adjacency[node] & ~mask;\n                while (choices != 0) {\n                    int bit = choices & -choices;\n                    int next = Integer.numberOfTrailingZeros(bit);\n                    dp[mask | bit][next] += ways;\n                    choices -= bit;\n                }\n            }\n        }\n        return dp[allMask][end];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Connectivity-Pruned Backtracking",
+      "timeComplexity": "O(3^(m*n) * m*n)",
+      "spaceComplexity": "O(m*n)",
+      "description": "## Approach\n\nUse the same exact DFS as the baseline, but after marking the current square, flood-fill the still-unvisited region reachable from a possible next step. Prune immediately if not every remaining square is reachable.\n\n## Key Insight\n\nA Hamiltonian walk cannot recover from splitting the remaining unvisited cells into disconnected regions. The reachability check is a safe pruning rule: it may keep hard states, but it never removes a valid path.\n\n## Complexity Analysis\n- Time Complexity: O(3^(m*n) * m*n) in the worst case because each DFS node may run a flood fill.\n- Space Complexity: O(m*n) for recursion, visited flood-fill state, and queue.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public int uniquePathsIII(int[][] grid) {\n        int startRow = 0;\n        int startCol = 0;\n        int walkable = 0;\n        for (int r = 0; r < grid.length; r++) {\n            for (int c = 0; c < grid[0].length; c++) {\n                if (grid[r][c] != -1) {\n                    walkable++;\n                }\n                if (grid[r][c] == 1) {\n                    startRow = r;\n                    startCol = c;\n                }\n            }\n        }\n        return dfs(grid, startRow, startCol, walkable);\n    }\n\n    private int dfs(int[][] grid, int row, int col, int remaining) {\n        if (row < 0 || row >= grid.length || col < 0 || col >= grid[0].length || grid[row][col] == -1) {\n            return 0;\n        }\n        if (grid[row][col] == 2) {\n            return remaining == 1 ? 1 : 0;\n        }\n\n        int original = grid[row][col];\n        grid[row][col] = -1;\n        if (!canStillReachAllRemaining(grid, row, col, remaining - 1)) {\n            grid[row][col] = original;\n            return 0;\n        }\n\n        int total = 0;\n        for (int[] dir : DIRS) {\n            total += dfs(grid, row + dir[0], col + dir[1], remaining - 1);\n        }\n        grid[row][col] = original;\n        return total;\n    }\n\n    private boolean canStillReachAllRemaining(int[][] grid, int row, int col, int expected) {\n        if (expected == 0) {\n            return true;\n        }\n        int rows = grid.length;\n        int cols = grid[0].length;\n        boolean[][] seen = new boolean[rows][cols];\n        ArrayDeque<int[]> queue = new ArrayDeque<>();\n        for (int[] dir : DIRS) {\n            int nr = row + dir[0];\n            int nc = col + dir[1];\n            if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] != -1) {\n                seen[nr][nc] = true;\n                queue.offer(new int[]{nr, nc});\n                break;\n            }\n        }\n        if (queue.isEmpty()) {\n            return false;\n        }\n\n        int reached = 0;\n        while (!queue.isEmpty()) {\n            int[] cell = queue.poll();\n            reached++;\n            for (int[] dir : DIRS) {\n                int nr = cell[0] + dir[0];\n                int nc = cell[1] + dir[1];\n                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols\n                        && !seen[nr][nc] && grid[nr][nc] != -1) {\n                    seen[nr][nc] = true;\n                    queue.offer(new int[]{nr, nc});\n                }\n            }\n        }\n        return reached == expected;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Compressed Graph Hamiltonian DFS",
+      "timeComplexity": "O(2^v * v)",
+      "spaceComplexity": "O(v)",
+      "description": "## Approach\n\nConvert the grid into a compact graph of walkable cells and store each node's neighbors as a bitmask. DFS over `(node, visitedMask)` using bit operations instead of mutating the grid.\n\n## Key Insight\n\nAfter compression, Unique Paths III is exactly a Hamiltonian path count from the start node to the end node. The grid boundaries and obstacles disappear into the precomputed adjacency masks.\n\n## Complexity Analysis\n- Time Complexity: O(2^v * v) in the state-space view, with low constants from bit iteration.\n- Space Complexity: O(v) for adjacency and recursion depth.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private int end;\n    private int allVisited;\n    private int[] adjacency;\n\n    public int uniquePathsIII(int[][] grid) {\n        int rows = grid.length;\n        int cols = grid[0].length;\n        int[][] id = new int[rows][cols];\n        for (int[] row : id) {\n            Arrays.fill(row, -1);\n        }\n\n        int cells = 0;\n        int start = -1;\n        end = -1;\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                if (grid[r][c] == -1) {\n                    continue;\n                }\n                id[r][c] = cells;\n                if (grid[r][c] == 1) {\n                    start = cells;\n                } else if (grid[r][c] == 2) {\n                    end = cells;\n                }\n                cells++;\n            }\n        }\n\n        adjacency = new int[cells];\n        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        for (int r = 0; r < rows; r++) {\n            for (int c = 0; c < cols; c++) {\n                if (id[r][c] < 0) {\n                    continue;\n                }\n                int mask = 0;\n                for (int[] dir : dirs) {\n                    int nr = r + dir[0];\n                    int nc = c + dir[1];\n                    if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && id[nr][nc] >= 0) {\n                        mask |= 1 << id[nr][nc];\n                    }\n                }\n                adjacency[id[r][c]] = mask;\n            }\n        }\n\n        allVisited = (1 << cells) - 1;\n        return dfs(start, 1 << start);\n    }\n\n    private int dfs(int node, int visited) {\n        if (node == end) {\n            return visited == allVisited ? 1 : 0;\n        }\n        int choices = adjacency[node] & ~visited;\n        int total = 0;\n        while (choices != 0) {\n            int bit = choices & -choices;\n            choices -= bit;\n            total += dfs(Integer.numberOfTrailingZeros(bit), visited | bit);\n        }\n        return total;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "grid = [[1,0,0,0],[0,0,0,0],[0,0,2,-1]]",
-      "output": "2"
+      "output": "2",
+      "description": "canonical grid with one obstacle and two Hamiltonian walks"
     },
     {
       "input": "grid = [[1,0,0,0],[0,0,0,0],[0,0,0,2]]",
-      "output": "4"
+      "output": "4",
+      "description": "canonical grid without obstacle has four complete walks"
     },
     {
       "input": "grid = [[0,1],[2,0]]",
-      "output": "0"
+      "output": "0",
+      "description": "start and end placement prevents covering both empty cells"
+    },
+    {
+      "input": "grid = [[1,2]]",
+      "output": "1",
+      "description": "adjacent start and end with no empty cells"
+    },
+    {
+      "input": "grid = [[1,0,2]]",
+      "output": "1",
+      "description": "single-row path must visit the only empty cell before ending"
+    },
+    {
+      "input": "grid = [[-1,1],[2,-1]]",
+      "output": "0",
+      "description": "obstacles isolate start from end"
+    },
+    {
+      "input": "grid = [[1,0],[0,2]]",
+      "output": "0",
+      "description": "reaching the end too early leaves an unvisited empty cell"
+    },
+    {
+      "input": "grid = [[1,0,2],[0,0,0],[0,0,0]]",
+      "output": "2",
+      "description": "3x3 grid with two full-coverage walks"
+    },
+    {
+      "input": "grid = [[1,0,0],[0,0,2]]",
+      "output": "1",
+      "description": "small rectangle with exactly one Hamiltonian walk"
+    },
+    {
+      "input": "grid = [[1,0,0,0],[0,0,0,2]]",
+      "output": "0",
+      "description": "narrow rectangle where parity and endpoint placement rule out completion"
+    },
+    {
+      "input": "grid = [[1],[0],[0],[2]]",
+      "output": "1",
+      "description": "single-column path exercises one-dimensional indexing"
+    },
+    {
+      "input": "grid = [[1,0,0],[0,-1,0],[0,0,2]]",
+      "output": "0",
+      "description": "central obstacle creates a tempting but incomplete route"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p382_example1.png",
-      "caption": "3x4 Path Grid (1=start, 2=end, -1=obstacle)"
+      "caption": "3x4 input grid: 1=start, 2=end, 0=empty, -1=obstacle"
     }
   ]
 }

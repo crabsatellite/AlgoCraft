@@ -1,19 +1,21 @@
 # AlgoCraft Diagram Review Tracker
 
-> Review all 500 problems for diagram needs from a LeetCode expert perspective.
-> Diagrams should help readers understand the **problem** (not the solution).
+> Current first-reader record: [FIRST_READER_REVIEW_2026-09-30.md](FIRST_READER_REVIEW_2026-09-30.md).
+> Illustrations must explain the rules or a labeled example. Valid example
+> outcomes are allowed; algorithm recipes and misleading input states are not.
 
 ## Summary
 
 | Category | Count | Status |
 |----------|-------|--------|
-| Already has diagrams (OK) | 62 | Done |
-| Added diagrams (visual problems) | 97 | **Done** |
-| Skipped (too abstract for visual) | 23 | Reviewed - No diagram needed |
-| Missing image files fixed | 1 | **Done** |
-| No diagram needed | 317 | Done |
+| Questions with referenced diagrams | 184 | All 188 PNGs visually read at 384px width |
+| Questions without existing diagrams | 316 | Statements read in the first-reader audit |
+| PNGs redrawn in this round | 37 | Generator source and layout receipt updated; visually rechecked |
+| Bilingual diagram captions revised | 38 | Real example state or rule context identified |
 
-**Total: 500/500 reviewed**
+**Total: 500 question statements and all 188 referenced pictures read.**
+This is a manual reading record; build/render results are in the handoff report.
+The older addition batches below are historical and do not define current counts.
 
 ## Patch Progress
 
@@ -59,12 +61,12 @@
 - [x] p389 - Binary Tree Cameras
 - [x] p395 - Recover a Tree From Preorder Traversal
 - [x] p396 - Stream of Characters *(skipped: abstract trie design)*
-- [x] p420 - Range Sum Query - Mutable *(skipped: abstract segment tree)*
+- [x] p420 - Range Sum Query - Mutable *(added current-array update/query diagram)*
 - [x] p430 - Design File System *(skipped: abstract trie design)*
-- [x] p431 - Design a File System *(skipped: duplicate of p430)*
-- [x] p433 - Design Most Recently Used Queue *(added DLL diagram)*
-- [x] p434 - Implement Magic Dictionary *(added trie diagram)*
-- [x] p436 - Design Search Autocomplete System *(skipped: abstract trie design)*
+- [x] p431 - Count Pairs Below Target *(skipped: pair-counting rule is clearer in text)*
+- [x] p433 - Append Characters to Make Subsequence *(skipped: prefix/subsequence rule is clearer in text)*
+- [x] p434 - Shortest Alternating Color Paths *(skipped: state graph rule is clearer in text for now; no bad prompt image exists)*
+- [x] p436 - Count Words With Prefix *(skipped: prefix check is clear from examples)*
 - [x] p449 - My Calendar I *(added timeline diagram)*
 - [x] p450 - My Calendar II *(added timeline diagram)*
 - [x] p451 - My Calendar III *(skipped: similar to p450)*
@@ -101,9 +103,9 @@
 - [x] p408 - Design Circular Deque *(added ring buffer diagram)*
 - [x] p409 - Design Front Middle Back Queue *(added queue diagram)*
 - [x] p424 - Design a Text Editor *(added DLL diagram)*
-- [x] p435 - Design a Doubly Linked List *(added DLL diagram)*
+- [x] p435 - Minimum Deletions to Make String Balanced *(skipped: deletion marks would reveal answer choices)*
 - [x] p438 - LFU Cache *(added frequency bucket diagram)*
-- [x] p441 - All O'one Data Structure *(added DLL by count diagram)*
+- [x] p441 - All O(1) Data Structure *(added DLL by count diagram; refreshed title)*
 - [x] p448 - Design Text Editor *(added dual stack diagram)*
 
 ### Graphs (8 problems)

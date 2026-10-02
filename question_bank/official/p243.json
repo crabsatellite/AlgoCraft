@@ -1,36 +1,135 @@
 {
   "id": "243",
   "title": "Height Checker",
-  "description": "# Height Checker\n\nA school is trying to take an annual photo of all the students. The students are asked to stand in a single file line in **non-decreasing order** by height. Let this ordering be represented by the integer array `expected` where `expected[i]` is the expected height of the `i-th` student in line.\n\nYou are given an integer array `heights` representing the **current order** that the students are standing in. Each `heights[i]` is the height of the `i-th` student in line (**0-indexed**).\n\nReturn *the number of indices where* `heights[i] != expected[i]`.\n\n## Example 1:\n\n**Input:** heights = [1,1,4,2,1,3]\n**Output:** 3\n**Explanation:** \nheights:  [1,1,4,2,1,3]\nexpected: [1,1,1,2,3,4]\nIndices 2, 4, and 5 do not match.\n\n## Example 2:\n\n**Input:** heights = [5,1,2,3,4]\n**Output:** 5\n**Explanation:**\nheights:  [5,1,2,3,4]\nexpected: [1,2,3,4,5]\nAll indices do not match.\n\n## Example 3:\n\n**Input:** heights = [1,2,3,4,5]\n**Output:** 0\n**Explanation:**\nheights:  [1,2,3,4,5]\nexpected: [1,2,3,4,5]\nAll indices match.\n\n## Constraints:\n\n*   `1 <= heights.length <= 100`\n*   `1 <= heights[i] <= 100`",
+  "description": "# Height Checker\n\nA school is trying to take an annual photo of all students. Students are expected to stand in nondecreasing order by height.\n\nYou are given an integer array `heights`, where `heights[i]` is the height of the student currently standing at position `i`.\n\nReturn the number of positions where the current order differs from the expected sorted order.\n\nThe task is not asking how many students must be moved. It asks how many indices have a different height after sorting the whole line.\n\n## Example 1:\n\n**Input:** heights = [1,1,4,2,1,3]\n**Output:** 3\n**Explanation:** The expected order is [1,1,1,2,3,4]. Positions 2, 4, and 5 have different heights.\n\n## Example 2:\n\n**Input:** heights = [5,1,2,3,4]\n**Output:** 5\n**Explanation:** The expected order is [1,2,3,4,5], and every position differs.\n\n## Example 3:\n\n**Input:** heights = [1,2,3,4,5]\n**Output:** 0\n**Explanation:** The students are already in nondecreasing order.\n\n## Constraints:\n\n* `1 <= heights.length <= 100`\n* `1 <= heights[i] <= 100`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int heightChecker(int[] heights) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Sorting", "Counting Sort"],
+  "tags": [
+    "Array",
+    "Sorting",
+    "Counting Sort"
+  ],
   "examples": [
-    { "input": "heights = [1,1,4,2,1,3]", "output": "3" },
-    { "input": "heights = [5,1,2,3,4]", "output": "5" },
-    { "input": "heights = [1,2,3,4,5]", "output": "0" }
+    {
+      "input": "heights = [1,1,4,2,1,3]",
+      "output": "3"
+    },
+    {
+      "input": "heights = [5,1,2,3,4]",
+      "output": "5"
+    },
+    {
+      "input": "heights = [1,2,3,4,5]",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
-      "name": "Counting Sort",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(1)",
-      "description": "Use counting sort (values 1-100) to build the expected sorted order, then count mismatches.",
-      "code": "class Solution {\n    public int heightChecker(int[] heights) {\n        int[] count = new int[101];\n        for (int h : heights) count[h]++;\n        int mismatch = 0, idx = 0;\n        for (int h = 1; h <= 100; h++) {\n            while (count[h]-- > 0) {\n                if (heights[idx++] != h) mismatch++;\n            }\n        }\n        return mismatch;\n    }\n}",
+      "name": "Counting Sort Expected Stream",
+      "timeComplexity": "O(n + H)",
+      "spaceComplexity": "O(H)",
+      "description": "## Approach\n\nCount how many students have each height from 1 to 100. Then replay the expected sorted order directly from the counts and compare each generated expected height with the original array.\n\n## Key Insight\n\nThe height range is tiny. We do not need a comparison sort to know the sorted order; the frequency table already tells us how many times every height should appear in the expected line.\n\n## Complexity Analysis\n\n- Time Complexity: O(n + H), where `H = 100` is the height range.\n- Space Complexity: O(H), for the count array.",
+      "code": "class Solution {\n    public int heightChecker(int[] heights) {\n        int[] counts = new int[101];\n        for (int height : heights) {\n            counts[height]++;\n        }\n\n        int expectedHeight = 1;\n        int mismatches = 0;\n        for (int height : heights) {\n            while (counts[expectedHeight] == 0) {\n                expectedHeight++;\n            }\n            if (height != expectedHeight) {\n                mismatches++;\n            }\n            counts[expectedHeight]--;\n        }\n        return mismatches;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Clone and Sort",
+      "name": "Clone and Library Sort",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Clone the array, sort the clone, then compare element by element to count mismatches.",
-      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int heightChecker(int[] heights) {\n        int[] expected = heights.clone();\n        Arrays.sort(expected);\n        int count = 0;\n        for (int i = 0; i < heights.length; i++) {\n            if (heights[i] != expected[i]) count++;\n        }\n        return count;\n    }\n}",
+      "description": "## Approach\n\nClone `heights`, sort the clone with `Arrays.sort`, then compare the sorted copy against the original array index by index.\n\n## Key Insight\n\nThe expected line is exactly the sorted version of the current line. Building that expected line first mirrors the problem statement and is the simplest correctness baseline.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), dominated by sorting.\n- Space Complexity: O(n), for the cloned expected array.",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int heightChecker(int[] heights) {\n        int[] expected = heights.clone();\n        Arrays.sort(expected);\n        int mismatches = 0;\n        for (int i = 0; i < heights.length; i++) {\n            if (heights[i] != expected[i]) {\n                mismatches++;\n            }\n        }\n        return mismatches;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Manual Insertion Sort Copy",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCopy the input, sort the copy with insertion sort, then compare the sorted copy with the original positions.\n\n## Key Insight\n\nFor the small constraints in this problem, a simple hand-written sorting algorithm is acceptable as a teaching route. It makes the sorted-order construction explicit without relying on a library call.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), because insertion sort can shift many earlier values for each element.\n- Space Complexity: O(n), for the copied expected order.",
+      "code": "class Solution {\n    public int heightChecker(int[] heights) {\n        int[] expected = heights.clone();\n        for (int i = 1; i < expected.length; i++) {\n            int value = expected[i];\n            int j = i - 1;\n            while (j >= 0 && expected[j] > value) {\n                expected[j + 1] = expected[j];\n                j--;\n            }\n            expected[j + 1] = value;\n        }\n\n        int mismatches = 0;\n        for (int i = 0; i < heights.length; i++) {\n            if (heights[i] != expected[i]) {\n                mismatches++;\n            }\n        }\n        return mismatches;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "TreeMap Multiset Replay",
+      "timeComplexity": "O(n log k)",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nStore height frequencies in a `TreeMap`, which keeps heights in sorted order. Walk the map from smallest to largest height and compare each repeated height against the corresponding original position.\n\n## Key Insight\n\nThis is a sorted multiset view of the line. It generalizes the counting-array idea when the value range is not fixed to 1..100, while still generating the expected order without storing a full sorted copy.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log k), where `k` is the number of distinct heights.\n- Space Complexity: O(k), for the ordered frequency map.",
+      "code": "import java.util.Map;\nimport java.util.TreeMap;\n\nclass Solution {\n    public int heightChecker(int[] heights) {\n        TreeMap<Integer, Integer> frequencies = new TreeMap<>();\n        for (int height : heights) {\n            frequencies.put(height, frequencies.getOrDefault(height, 0) + 1);\n        }\n\n        int index = 0;\n        int mismatches = 0;\n        for (Map.Entry<Integer, Integer> entry : frequencies.entrySet()) {\n            int height = entry.getKey();\n            int times = entry.getValue();\n            for (int count = 0; count < times; count++) {\n                if (heights[index] != height) {\n                    mismatches++;\n                }\n                index++;\n            }\n        }\n        return mismatches;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Selection Minimum Baseline",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nRepeatedly select the smallest unused height from the input to construct the next expected position. Compare each selected value with the original array position as it is produced.\n\n## Key Insight\n\nThis is intentionally slow, but it exposes what sorting is doing: each expected position receives the smallest remaining height. It is useful as a correctness baseline for understanding the target order.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), because each expected position may scan the whole array.\n- Space Complexity: O(n), for the used-position markers.",
+      "code": "class Solution {\n    public int heightChecker(int[] heights) {\n        boolean[] used = new boolean[heights.length];\n        int mismatches = 0;\n\n        for (int expectedIndex = 0; expectedIndex < heights.length; expectedIndex++) {\n            int bestIndex = -1;\n            for (int i = 0; i < heights.length; i++) {\n                if (!used[i] && (bestIndex == -1 || heights[i] < heights[bestIndex])) {\n                    bestIndex = i;\n                }\n            }\n            used[bestIndex] = true;\n            if (heights[expectedIndex] != heights[bestIndex]) {\n                mismatches++;\n            }\n        }\n        return mismatches;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "heights = [1,1,4,2,1,3]", "output": "3" },
-    { "input": "heights = [5,1,2,3,4]", "output": "5" },
-    { "input": "heights = [1,2,3,4,5]", "output": "0" }
+    {
+      "input": "heights = [1,1,4,2,1,3]",
+      "output": "3",
+      "description": "Canonical example with repeated small heights."
+    },
+    {
+      "input": "heights = [5,1,2,3,4]",
+      "output": "5",
+      "description": "Every position changes after sorting."
+    },
+    {
+      "input": "heights = [1,2,3,4,5]",
+      "output": "0",
+      "description": "Already sorted increasing order."
+    },
+    {
+      "input": "heights = [1]",
+      "output": "0",
+      "description": "Single student is already sorted."
+    },
+    {
+      "input": "heights = [2,1]",
+      "output": "2",
+      "description": "Two students in reverse order."
+    },
+    {
+      "input": "heights = [100,1,100,1]",
+      "output": "2",
+      "description": "Both height bounds appear and only endpoint groups differ."
+    },
+    {
+      "input": "heights = [1,1,1,1]",
+      "output": "0",
+      "description": "All heights equal."
+    },
+    {
+      "input": "heights = [2,2,1,1]",
+      "output": "4",
+      "description": "Two duplicate groups completely swap order."
+    },
+    {
+      "input": "heights = [1,3,2,2,3,1]",
+      "output": "2",
+      "description": "Only the two misplaced outer duplicate values differ."
+    },
+    {
+      "input": "heights = [10,6,6,10,10,6]",
+      "output": "2",
+      "description": "Repeated middle values with two mismatched endpoints."
+    },
+    {
+      "input": "heights = [100,99,98,97]",
+      "output": "4",
+      "description": "Strictly decreasing high values."
+    },
+    {
+      "input": "heights = [1,100,1,100,1]",
+      "output": "2",
+      "description": "Alternating lower and upper bound values."
+    },
+    {
+      "input": "heights = [3,3,2,2,1,1]",
+      "output": "4",
+      "description": "Descending duplicate blocks."
+    }
   ]
 }

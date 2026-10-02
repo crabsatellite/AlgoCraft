@@ -1,51 +1,115 @@
 {
   "id": "30",
   "title": "Squares of a Sorted Array",
-  "description": "# Squares of a Sorted Array\n\nGiven an integer array `nums` sorted in **non-decreasing** order, return *an array of the squares of each number sorted in non-decreasing order*.\n\n## Example 1:\n\n**Input:** nums = [-4,-1,0,3,10]\n**Output:** [0,1,9,16,100]\n**Explanation:** After squaring, the array becomes [16,1,0,9,100].\nAfter sorting, it becomes [0,1,9,16,100].\n\n## Example 2:\n\n**Input:** nums = [-7,-3,2,3,11]\n**Output:** [4,9,9,49,121]\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^4`\n*   `-10^4 <= nums[i] <= 10^4`\n*   `nums` is sorted in **non-decreasing** order.\n\n## Follow up:\n\nSquaring each element and sorting the new array is very trivial, could you find an `O(n)` solution using a different approach?",
+  "description": "# Squares of a Sorted Array\n\nGiven an integer array `nums` sorted in **non-decreasing** order, return a new array containing the square of each value, also sorted in non-decreasing order.\n\nSquaring means multiplying a value by itself. For `[-3,-1,2]`, the squares are `9,1,4`; return them sorted as `[1,4,9]`.\n\n## Example 1:\n\n**Input:** nums = [-4,-1,0,3,10]\n**Output:** [0,1,9,16,100]\n**Explanation:** Squaring in input order gives [16,1,0,9,100]. Sorting those squares gives [0,1,9,16,100].\n\n## Example 2:\n\n**Input:** nums = [-7,-3,2,3,11]\n**Output:** [4,9,9,49,121]\n**Explanation:** Both -3 and 3 contribute the square 9, so duplicate square values must be preserved.\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^4`\n*   `-10^4 <= nums[i] <= 10^4`\n*   `nums` is sorted in **non-decreasing** order.\n\n## Follow up:\n\n*   Can you solve it in linear time by using the sorted input structure?\n*   Can you explain why the largest remaining square is always at one of the two ends?\n*   Can you compare two-pointer, split-and-merge, sorting baseline, and counting-bucket approaches?",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public int[] sortedSquares(int[] nums) {\n        // Write your code here\n        return new int[]{};\n    }\n}",
-  "tags": ["Array", "Two Pointers", "Sorting"],
+  "initialCode": "class Solution {\n    public int[] sortedSquares(int[] nums) {\n        // Write your code here\n        return new int[0];\n    }\n}",
+  "tags": [
+    "Array",
+    "Two Pointers",
+    "Sorting",
+    "Counting Sort"
+  ],
   "examples": [
-    { "input": "nums = [-4,-1,0,3,10]", "output": "[0,1,9,16,100]" },
-    { "input": "nums = [-7,-3,2,3,11]", "output": "[4,9,9,49,121]" }
+    {
+      "input": "nums = [-4,-1,0,3,10]",
+      "output": "[0,1,9,16,100]"
+    },
+    {
+      "input": "nums = [-7,-3,2,3,11]",
+      "output": "[4,9,9,49,121]"
+    }
   ],
   "tests": [
-    { "input": "nums = [-4,-1,0,3,10]", "output": "[0,1,9,16,100]" },
-    { "input": "nums = [-7,-3,2,3,11]", "output": "[4,9,9,49,121]" },
-    { "input": "nums = [0,1,2]", "output": "[0,1,4]" },
-    { "input": "nums = [-3,-2,-1]", "output": "[1,4,9]" },
+    {
+      "input": "nums = [-4,-1,0,3,10]",
+      "output": "[0,1,9,16,100]",
+      "description": "Canonical mixed-sign case with zero"
+    },
+    {
+      "input": "nums = [-7,-3,2,3,11]",
+      "output": "[4,9,9,49,121]",
+      "description": "Mixed signs with duplicate square values"
+    },
+    {
+      "input": "nums = [0,1,2]",
+      "output": "[0,1,4]",
+      "description": "Already non-negative with zero"
+    },
+    {
+      "input": "nums = [-3,-2,-1]",
+      "output": "[1,4,9]",
+      "description": "All negative values must be reversed after squaring"
+    },
     {
       "input": "nums = [5]",
       "output": "[25]",
-      "description": "Single element"
+      "description": "Single positive element"
     },
     {
       "input": "nums = [1,2,3,4,5]",
       "output": "[1,4,9,16,25]",
-      "description": "All positive numbers"
+      "description": "All positive values keep order"
+    },
+    {
+      "input": "nums = [-5,-4,-1,0]",
+      "output": "[0,1,16,25]",
+      "description": "All non-positive values with zero"
+    },
+    {
+      "input": "nums = [-2,-2,-1,0,0,3]",
+      "output": "[0,0,1,4,4,9]",
+      "description": "Repeated negatives and repeated zeros"
+    },
+    {
+      "input": "nums = [-10000,-1,1,10000]",
+      "output": "[1,1,100000000,100000000]",
+      "description": "Constraint-boundary values"
+    },
+    {
+      "input": "nums = [-6,-4,-2,1,3,5]",
+      "output": "[1,4,9,16,25,36]",
+      "description": "Alternating absolute-value order across zero"
+    },
+    {
+      "input": "nums = [-1,0,0,0,1]",
+      "output": "[0,0,0,1,1]",
+      "description": "Multiple zeros between symmetric values"
+    },
+    {
+      "input": "nums = [-8,-7,-6]",
+      "output": "[36,49,64]",
+      "description": "All negative values with descending squared magnitudes"
     }
   ],
   "solutions": [
     {
-      "name": "Two Pointers - From Both Ends",
+      "name": "Two Pointers from Both Ends",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use two pointers from both ends. Compare absolute values and place the larger square at the end of result array, moving inward.",
-      "code": "class Solution {\n    public int[] sortedSquares(int[] nums) {\n        int n = nums.length;\n        int[] result = new int[n];\n        \n        int left = 0, right = n - 1;\n        int pos = n - 1; // Fill from the end (largest squares)\n        \n        while (left <= right) {\n            int leftSq = nums[left] * nums[left];\n            int rightSq = nums[right] * nums[right];\n            \n            if (leftSq > rightSq) {\n                result[pos] = leftSq;\n                left++;\n            } else {\n                result[pos] = rightSq;\n                right--;\n            }\n            pos--;\n        }\n        \n        return result;\n    }\n}"
+      "description": "## Approach\n\nPlace one pointer at the left end and one at the right end. The largest remaining square must come from the value with the larger absolute value, so write that square into the answer from right to left and move the corresponding pointer inward.\n\n## Key Insight\n\nIn a sorted array, absolute values are largest at the extremes and smallest near zero. Filling the output from the back turns that structure into a single linear pass.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int[] sortedSquares(int[] nums) {\n        int n = nums.length;\n        int[] result = new int[n];\n        int left = 0;\n        int right = n - 1;\n        int write = n - 1;\n\n        while (left <= right) {\n            int leftSquare = nums[left] * nums[left];\n            int rightSquare = nums[right] * nums[right];\n            if (leftSquare > rightSquare) {\n                result[write] = leftSquare;\n                left++;\n            } else {\n                result[write] = rightSquare;\n                right--;\n            }\n            write--;\n        }\n\n        return result;\n    }\n}"
     },
     {
-      "name": "Sort After Squaring",
+      "name": "Find Split Point and Merge",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFind the first non-negative index. The negative side, when squared from right to left, is sorted; the non-negative side, when squared from left to right, is also sorted. Merge those two sorted streams into the answer.\n\n## Key Insight\n\nSquaring folds the number line around zero. The split-and-merge route makes that geometry explicit and turns the problem into the standard merge step from merge sort.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int[] sortedSquares(int[] nums) {\n        int n = nums.length;\n        int split = 0;\n        while (split < n && nums[split] < 0) {\n            split++;\n        }\n\n        int left = split - 1;\n        int right = split;\n        int write = 0;\n        int[] result = new int[n];\n\n        while (left >= 0 && right < n) {\n            int leftSquare = nums[left] * nums[left];\n            int rightSquare = nums[right] * nums[right];\n            if (leftSquare <= rightSquare) {\n                result[write++] = leftSquare;\n                left--;\n            } else {\n                result[write++] = rightSquare;\n                right++;\n            }\n        }\n        while (left >= 0) {\n            result[write++] = nums[left] * nums[left];\n            left--;\n        }\n        while (right < n) {\n            result[write++] = nums[right] * nums[right];\n            right++;\n        }\n\n        return result;\n    }\n}"
+    },
+    {
+      "name": "Square Then Sort Baseline",
       "timeComplexity": "O(n log n)",
-      "spaceComplexity": "O(log n)",
-      "description": "Square all elements then sort. Simple but not optimal due to sorting overhead.",
-      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int[] sortedSquares(int[] nums) {\n        int[] result = new int[nums.length];\n        \n        for (int i = 0; i < nums.length; i++) {\n            result[i] = nums[i] * nums[i];\n        }\n        \n        Arrays.sort(result);\n        return result;\n    }\n}"
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCreate an array of all squared values, then sort that array before returning it.\n\n## Key Insight\n\nThis baseline is deliberately simple: it proves the output definition directly but ignores the sorted structure of the input, which is why it is slower than the linear routes.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int[] sortedSquares(int[] nums) {\n        int[] squares = new int[nums.length];\n        for (int i = 0; i < nums.length; i++) {\n            squares[i] = nums[i] * nums[i];\n        }\n        Arrays.sort(squares);\n        return squares;\n    }\n}"
     },
     {
-      "name": "Find Split Point & Merge",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Find the split point where numbers change from negative to non-negative. Then merge two halves like merge sort.",
-      "code": "class Solution {\n    public int[] sortedSquares(int[] nums) {\n        int n = nums.length;\n        \n        // Find first non-negative index\n        int split = 0;\n        while (split < n && nums[split] < 0) {\n            split++;\n        }\n        \n        int[] result = new int[n];\n        int left = split - 1; // Negative numbers (go left)\n        int right = split;     // Non-negative numbers (go right)\n        int pos = 0;\n        \n        // Merge two halves\n        while (left >= 0 && right < n) {\n            int leftSq = nums[left] * nums[left];\n            int rightSq = nums[right] * nums[right];\n            \n            if (leftSq < rightSq) {\n                result[pos++] = leftSq;\n                left--;\n            } else {\n                result[pos++] = rightSq;\n                right++;\n            }\n        }\n        \n        // Remaining negative squares\n        while (left >= 0) {\n            result[pos++] = nums[left] * nums[left];\n            left--;\n        }\n        \n        // Remaining positive squares\n        while (right < n) {\n            result[pos++] = nums[right] * nums[right];\n            right++;\n        }\n        \n        return result;\n    }\n}"
+      "name": "Counting Buckets by Absolute Value",
+      "timeComplexity": "O(n + M)",
+      "spaceComplexity": "O(M)",
+      "description": "## Approach\n\nUse the value bound to count how many times each absolute value appears. Then emit squares from absolute value `0` upward, repeating each square by its recorded count.\n\n## Key Insight\n\nThe square depends only on absolute value. When the value range is bounded, a counting bucket route sorts the squares by absolute value instead of comparing individual elements.\n\n## Complexity Analysis\n- Time Complexity: O(n + M)\n- Space Complexity: O(M)",
+      "code": "class Solution {\n    public int[] sortedSquares(int[] nums) {\n        int maxAbs = 0;\n        for (int num : nums) {\n            maxAbs = Math.max(maxAbs, Math.abs(num));\n        }\n\n        int[] counts = new int[maxAbs + 1];\n        for (int num : nums) {\n            counts[Math.abs(num)]++;\n        }\n\n        int[] result = new int[nums.length];\n        int write = 0;\n        for (int value = 0; value < counts.length; value++) {\n            int square = value * value;\n            while (counts[value] > 0) {\n                result[write++] = square;\n                counts[value]--;\n            }\n        }\n        return result;\n    }\n}"
     }
   ]
 }

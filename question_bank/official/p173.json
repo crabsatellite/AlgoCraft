@@ -1,43 +1,157 @@
 {
   "id": "173",
   "title": "Regular Expression Matching",
-  "description": "# Regular Expression Matching\n\nGiven an input string `s` and a pattern `p`, implement regular expression matching with support for `'.'` and `'*'` where:\n\n*   `'.'` Matches any single character.\n*   `'*'` Matches zero or more of the preceding element.\n\nThe matching should cover the **entire** input string (not partial).\n\n## Example 1:\n\n**Input:** s = \"aa\", p = \"a\"\n**Output:** false\n**Explanation:** \"a\" does not match the entire string \"aa\".\n\n## Example 2:\n\n**Input:** s = \"aa\", p = \"a*\"\n**Output:** true\n**Explanation:** '*' means zero or more of the preceding element, 'a'. Therefore, by repeating 'a' once, it becomes \"aa\".\n\n## Example 3:\n\n**Input:** s = \"ab\", p = \".*\"\n**Output:** true\n**Explanation:** \".*\" means \"zero or more (*) of any character (.)\".\n\n## Constraints:\n\n*   `1 <= s.length <= 20`\n*   `1 <= p.length <= 20`\n*   `s` contains only lowercase English letters.\n*   `p` contains only lowercase English letters, `'.'`, and `'*'`.\n*   It is guaranteed for each appearance of the character `'*'`, there will be a previous valid character to match.",
+  "description": "# Regular Expression Matching\n\nGiven string `s` and pattern `p`, return whether the pattern matches the entire string. Ordinary lowercase letters match themselves. Two special symbols are supported:\n\n* `.` matches any one character.\n* `*` allows the immediately preceding letter or `.` to occur zero, one, or more times.\n\nFor example, `\"a*\"` matches `\"\"`, `\"a\"`, or `\"aaa\"`; `\".*\"` matches any string. `*` does not match a literal star or repeat the entire preceding pattern.\n\nThe match must consume the whole string and pattern. Return `true` for a complete match and `false` otherwise.\n\n## Example 1:\n\n**Input:** s = \"aa\", p = \"a\"\n**Output:** false\n**Explanation:** The pattern `a` matches one character, not the entire string `aa`.\n\n## Example 2:\n\n**Input:** s = \"aa\", p = \"a*\"\n**Output:** true\n**Explanation:** `a*` may repeat `a` twice.\n\n## Example 3:\n\n**Input:** s = \"aab\", p = \"c*a*b\"\n**Output:** true\n**Explanation:** `c*` contributes zero `c` characters, `a*` contributes two `a` characters, and `b` matches the final character.\n\n## Constraints:\n\n* `0 <= s.length <= 20`\n* `0 <= p.length <= 20`\n* `s` contains only lowercase English letters.\n* `p` contains only lowercase English letters, `'.'`, and `'*'`.\n* For every `'*'` in `p`, there is a valid preceding element to repeat.",
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public boolean isMatch(String s, String p) {\n        // Write your code here\n        return false;\n    }\n}",
-  "tags": ["String", "Dynamic Programming", "Recursion"],
+  "tags": [
+    "String",
+    "Dynamic Programming",
+    "Recursion"
+  ],
   "examples": [
-    { "input": "s = \"aa\", p = \"a\"", "output": "false" },
-    { "input": "s = \"aa\", p = \"a*\"", "output": "true" },
-    { "input": "s = \"ab\", p = \".*\"", "output": "true" }
+    {
+      "input": "s = \"aa\", p = \"a\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \"aa\", p = \"a*\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"aab\", p = \"c*a*b\"",
+      "output": "true"
+    }
   ],
   "solutions": [
     {
-      "name": "Bottom-Up DP",
-      "timeComplexity": "O(m*n)",
-      "spaceComplexity": "O(m*n)",
-      "description": "Build a 2D DP table where dp[i][j] indicates whether s[0..i-1] matches p[0..j-1]. Handle '*' by checking zero occurrences (dp[i][j-2]) or one+ occurrences when the preceding character matches.",
-      "code": "class Solution {\n    public boolean isMatch(String s, String p) {\n        int m = s.length(), n = p.length();\n        boolean[][] dp = new boolean[m + 1][n + 1];\n        dp[0][0] = true;\n        for (int j = 1; j <= n; j++) {\n            if (p.charAt(j - 1) == '*') dp[0][j] = dp[0][j - 2];\n        }\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                if (p.charAt(j - 1) == '*') {\n                    dp[i][j] = dp[i][j - 2];\n                    if (p.charAt(j - 2) == '.' || p.charAt(j - 2) == s.charAt(i - 1)) {\n                        dp[i][j] = dp[i][j] || dp[i - 1][j];\n                    }\n                } else if (p.charAt(j - 1) == '.' || p.charAt(j - 1) == s.charAt(i - 1)) {\n                    dp[i][j] = dp[i - 1][j - 1];\n                }\n            }\n        }\n        return dp[m][n];\n    }\n}",
+      "name": "Prefix Table Dynamic Programming",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nLet `dp[i][j]` mean the prefix `s[0..i)` matches the pattern prefix `p[0..j)`. Ordinary characters and `.` consume one character from both strings. A `*` either removes its preceding token with zero copies or consumes one matching character while staying at the same pattern prefix.\n\n## Key Insight\n\nThe hard part is that `*` belongs to the previous pattern element, so the table transition for `p[j - 1] == '*'` looks two columns back for zero copies and one row up for another repeated copy.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public boolean isMatch(String s, String p) {\n        int m = s.length();\n        int n = p.length();\n        boolean[][] dp = new boolean[m + 1][n + 1];\n        dp[0][0] = true;\n        for (int j = 2; j <= n; j++) {\n            if (p.charAt(j - 1) == '*') {\n                dp[0][j] = dp[0][j - 2];\n            }\n        }\n        for (int i = 1; i <= m; i++) {\n            for (int j = 1; j <= n; j++) {\n                char pattern = p.charAt(j - 1);\n                if (pattern == '*') {\n                    dp[i][j] = dp[i][j - 2];\n                    char previous = p.charAt(j - 2);\n                    if (matches(s.charAt(i - 1), previous)) {\n                        dp[i][j] = dp[i][j] || dp[i - 1][j];\n                    }\n                } else if (matches(s.charAt(i - 1), pattern)) {\n                    dp[i][j] = dp[i - 1][j - 1];\n                }\n            }\n        }\n        return dp[m][n];\n    }\n\n    private boolean matches(char value, char pattern) {\n        return pattern == '.' || value == pattern;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Recursive with Memoization",
-      "timeComplexity": "O(m*n)",
-      "spaceComplexity": "O(m*n)",
-      "description": "Recursively match from left to right with memoization. At each position, check if the next pattern character is '*' to handle zero or more matches, otherwise match single characters directly.",
-      "code": "class Solution {\n    private Boolean[][] memo;\n    public boolean isMatch(String s, String p) {\n        memo = new Boolean[s.length() + 1][p.length() + 1];\n        return dp(s, p, 0, 0);\n    }\n    private boolean dp(String s, String p, int i, int j) {\n        if (j == p.length()) return i == s.length();\n        if (memo[i][j] != null) return memo[i][j];\n        boolean firstMatch = i < s.length() && (p.charAt(j) == '.' || p.charAt(j) == s.charAt(i));\n        boolean result;\n        if (j + 1 < p.length() && p.charAt(j + 1) == '*') {\n            result = dp(s, p, i, j + 2) || (firstMatch && dp(s, p, i + 1, j));\n        } else {\n            result = firstMatch && dp(s, p, i + 1, j + 1);\n        }\n        memo[i][j] = result;\n        return result;\n    }\n}",
+      "name": "Top-Down Index Memoization",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nUse recursion on index pair `(i, j)`, where `i` is the next string character and `j` is the next pattern token. If the next pattern token is followed by `*`, branch between skipping that two-character group and consuming one matching character. Cache every index pair.\n\n## Key Insight\n\nThe recursive definition reads like the grammar of the pattern: a starred token has a zero-copy branch and a one-or-more branch, while a plain token must consume exactly one matching character.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    private Boolean[][] memo;\n\n    public boolean isMatch(String s, String p) {\n        memo = new Boolean[s.length() + 1][p.length() + 1];\n        return solve(s, p, 0, 0);\n    }\n\n    private boolean solve(String s, String p, int i, int j) {\n        if (memo[i][j] != null) {\n            return memo[i][j];\n        }\n        if (j == p.length()) {\n            memo[i][j] = i == s.length();\n            return memo[i][j];\n        }\n        boolean firstMatch = i < s.length()\n                && (p.charAt(j) == '.' || p.charAt(j) == s.charAt(i));\n        boolean answer;\n        if (j + 1 < p.length() && p.charAt(j + 1) == '*') {\n            answer = solve(s, p, i, j + 2)\n                    || (firstMatch && solve(s, p, i + 1, j));\n        } else {\n            answer = firstMatch && solve(s, p, i + 1, j + 1);\n        }\n        memo[i][j] = answer;\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Backward Suffix Dynamic Programming",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\n\nLet `suffix[i][j]` mean the suffix `s[i..]` matches the pattern suffix `p[j..]`. Fill states from the ends toward the front. The same starred-token recurrence appears, but now it is written as a suffix decision instead of a prefix table.\n\n## Key Insight\n\nThe base case `suffix[m][n] = true` represents both strings being fully consumed. Starred tokens can still match an empty string by jumping from `j` to `j + 2`.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m * n)",
+      "code": "class Solution {\n    public boolean isMatch(String s, String p) {\n        int m = s.length();\n        int n = p.length();\n        boolean[][] suffix = new boolean[m + 1][n + 1];\n        suffix[m][n] = true;\n        for (int i = m; i >= 0; i--) {\n            for (int j = n - 1; j >= 0; j--) {\n                boolean firstMatch = i < m\n                        && (p.charAt(j) == '.' || p.charAt(j) == s.charAt(i));\n                if (j + 1 < n && p.charAt(j + 1) == '*') {\n                    suffix[i][j] = suffix[i][j + 2]\n                            || (firstMatch && suffix[i + 1][j]);\n                } else {\n                    suffix[i][j] = firstMatch && suffix[i + 1][j + 1];\n                }\n            }\n        }\n        return suffix[0][0];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Tokenized Pattern Dynamic Programming",
+      "timeComplexity": "O(m * t)",
+      "spaceComplexity": "O(m * t)",
+      "description": "## Approach\n\nCompile the pattern into tokens, where each token stores a character and whether it has a trailing `*`. Then run DP over token count and consumed string length. A starred token first inherits the zero-copy row and then extends itself as long as the current character matches.\n\n## Key Insight\n\nTokenizing separates `a*` from two raw pattern characters. That makes the recurrence easier to teach because every DP column is one logical pattern item.\n\n## Complexity Analysis\n- Time Complexity: O(m * t), where `t` is the number of pattern tokens\n- Space Complexity: O(m * t)",
+      "code": "class Solution {\n    public boolean isMatch(String s, String p) {\n        java.util.List<Token> tokens = tokenize(p);\n        int m = s.length();\n        int t = tokens.size();\n        boolean[][] dp = new boolean[t + 1][m + 1];\n        dp[0][0] = true;\n        for (int tokenIndex = 1; tokenIndex <= t; tokenIndex++) {\n            Token token = tokens.get(tokenIndex - 1);\n            if (token.star) {\n                for (int length = 0; length <= m; length++) {\n                    dp[tokenIndex][length] = dp[tokenIndex - 1][length];\n                }\n                for (int length = 1; length <= m; length++) {\n                    if (matches(s.charAt(length - 1), token.ch) && dp[tokenIndex][length - 1]) {\n                        dp[tokenIndex][length] = true;\n                    }\n                }\n            } else {\n                for (int length = 1; length <= m; length++) {\n                    dp[tokenIndex][length] = dp[tokenIndex - 1][length - 1]\n                            && matches(s.charAt(length - 1), token.ch);\n                }\n            }\n        }\n        return dp[t][m];\n    }\n\n    private java.util.List<Token> tokenize(String p) {\n        java.util.ArrayList<Token> tokens = new java.util.ArrayList<>();\n        for (int i = 0; i < p.length(); i++) {\n            boolean star = i + 1 < p.length() && p.charAt(i + 1) == '*';\n            tokens.add(new Token(p.charAt(i), star));\n            if (star) {\n                i++;\n            }\n        }\n        return tokens;\n    }\n\n    private boolean matches(char value, char pattern) {\n        return pattern == '.' || value == pattern;\n    }\n\n    private static class Token {\n        final char ch;\n        final boolean star;\n\n        Token(char ch, boolean star) {\n            this.ch = ch;\n            this.star = star;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "NFA Epsilon-Closure Simulation",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nTreat pattern indices as states in a small nondeterministic automaton. The epsilon closure skips any `x*` group with zero copies. For each input character, advance every state that can consume it, keep starred tokens active for repeated consumption, and close the state set again.\n\n## Key Insight\n\nThis route explains the same rules operationally: `*` adds a free skip edge and a loop edge, while ordinary tokens have one consume edge. Matching succeeds only if the accepting state at the end of the pattern remains reachable after all characters are consumed.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public boolean isMatch(String s, String p) {\n        java.util.Set<Integer> current = closure(java.util.Set.of(0), p);\n        for (int index = 0; index < s.length(); index++) {\n            char value = s.charAt(index);\n            java.util.Set<Integer> next = new java.util.HashSet<>();\n            for (int state : current) {\n                if (state >= p.length()) {\n                    continue;\n                }\n                char pattern = p.charAt(state);\n                boolean starred = state + 1 < p.length() && p.charAt(state + 1) == '*';\n                if (matches(value, pattern)) {\n                    if (starred) {\n                        next.add(state);\n                    } else {\n                        next.add(state + 1);\n                    }\n                }\n            }\n            current = closure(next, p);\n        }\n        return current.contains(p.length());\n    }\n\n    private java.util.Set<Integer> closure(java.util.Set<Integer> seeds, String p) {\n        java.util.HashSet<Integer> reached = new java.util.HashSet<>();\n        java.util.ArrayDeque<Integer> queue = new java.util.ArrayDeque<>(seeds);\n        while (!queue.isEmpty()) {\n            int state = queue.removeFirst();\n            if (!reached.add(state)) {\n                continue;\n            }\n            if (state + 1 < p.length() && p.charAt(state + 1) == '*') {\n                queue.addLast(state + 2);\n            }\n        }\n        return reached;\n    }\n\n    private boolean matches(char value, char pattern) {\n        return pattern == '.' || value == pattern;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"aa\", p = \"a\"", "output": "false" },
-    { "input": "s = \"aa\", p = \"a*\"", "output": "true" },
-    { "input": "s = \"ab\", p = \".*\"", "output": "true" },
-    { "input": "s = \"aab\", p = \"c*a*b\"", "output": "true" },
-    { "input": "s = \"mississippi\", p = \"mis*is*p*.\"", "output": "false" },
-    { "input": "s = \"a\", p = \"a\"", "output": "true" },
-    { "input": "s = \"abc\", p = \"a.c\"", "output": "true" },
-    { "input": "s = \"aaa\", p = \"a*a\"", "output": "true" },
-    { "input": "s = \"ab\", p = \".*c\"", "output": "false" }
+    {
+      "input": "s = \"aa\", p = \"a\"",
+      "output": "false",
+      "description": "A plain token does not cover two characters."
+    },
+    {
+      "input": "s = \"aa\", p = \"a*\"",
+      "output": "true",
+      "description": "A starred token may repeat enough times to cover the string."
+    },
+    {
+      "input": "s = \"ab\", p = \".*\"",
+      "output": "true",
+      "description": "Dot-star can consume any full string."
+    },
+    {
+      "input": "s = \"aab\", p = \"c*a*b\"",
+      "output": "true",
+      "description": "Classic example with both zero-copy and multi-copy starred tokens."
+    },
+    {
+      "input": "s = \"mississippi\", p = \"mis*is*p*.\"",
+      "output": "false",
+      "description": "A tempting but invalid starred pattern must still match the full string."
+    },
+    {
+      "input": "s = \"\", p = \"c*\"",
+      "output": "true",
+      "description": "A starred token can disappear completely."
+    },
+    {
+      "input": "s = \"\", p = \".*\"",
+      "output": "true",
+      "description": "Dot-star can also match the empty string."
+    },
+    {
+      "input": "s = \"\", p = \"\"",
+      "output": "true",
+      "description": "Both sides empty is a valid complete match."
+    },
+    {
+      "input": "s = \"a\", p = \"\"",
+      "output": "false",
+      "description": "A non-empty string cannot match an empty pattern."
+    },
+    {
+      "input": "s = \"ab\", p = \".*c\"",
+      "output": "false",
+      "description": "The final literal still has to be matched."
+    },
+    {
+      "input": "s = \"aaa\", p = \"a*a\"",
+      "output": "true",
+      "description": "A starred token can leave one character for the following literal."
+    },
+    {
+      "input": "s = \"aaa\", p = \"ab*a*c*a\"",
+      "output": "true",
+      "description": "Multiple starred groups can mix zero-copy and repeated-copy choices."
+    },
+    {
+      "input": "s = \"aaa\", p = \"aaaa\"",
+      "output": "false",
+      "description": "A longer plain pattern cannot be partially matched."
+    },
+    {
+      "input": "s = \"a\", p = \"ab*\"",
+      "output": "true",
+      "description": "A trailing starred token may contribute zero copies."
+    },
+    {
+      "input": "s = \"bbbba\", p = \".*a*a\"",
+      "output": "true",
+      "description": "Dot-star and a starred literal can cooperate before the final literal."
+    },
+    {
+      "input": "s = \"abcd\", p = \"d*\"",
+      "output": "false",
+      "description": "A starred literal cannot skip unmatched leading input characters."
+    }
   ],
-  "diagram": "images/p173_regex.png"
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p173_regex.png",
+      "caption": "`c*` can be skipped, `a*` can consume repeated `a` characters, then `b` must match the end"
+    }
+  ]
 }

@@ -25,6 +25,8 @@ class SolutionTestSuite {
 
     private static final String QUESTION_BANK_PATH = "question_bank/official";
     private static final Gson GSON = new Gson();
+    private static final int PROBLEM_START = Integer.getInteger("algocraft.officialProblemStart", 1);
+    private static final int PROBLEM_END = Integer.getInteger("algocraft.officialProblemEnd", 500);
 
     // ─── Problem type detection ─────────────────────────────────────
 
@@ -92,19 +94,45 @@ class SolutionTestSuite {
 
     static Stream<Arguments> problemProvider() {
         Path questionBank = Paths.get(System.getProperty("user.dir"), QUESTION_BANK_PATH);
+        return problemProvider(questionBank, PROBLEM_START, PROBLEM_END);
+    }
+
+    static Stream<Arguments> problemProvider(Path questionBank, int problemStart, int problemEnd) {
+        if (problemStart > problemEnd) {
+            throw new AssertionError("Invalid official question bank range: p" + problemStart + "-p" + problemEnd);
+        }
         if (!Files.isDirectory(questionBank)) {
-            return Stream.empty();
+            throw new AssertionError("Official question bank directory is missing: " + questionBank);
         }
 
+        List<Path> problemFiles;
         try {
-            return Files.list(questionBank)
+            try (Stream<Path> files = Files.list(questionBank)) {
+                problemFiles = files
                     .filter(p -> p.toString().endsWith(".json"))
                     .filter(p -> p.getFileName().toString().matches("p\\d+\\.json"))
+                    .filter(p -> isProblemInConfiguredRange(extractNumber(p.getFileName().toString()),
+                            problemStart, problemEnd))
                     .sorted(Comparator.comparingInt(p -> extractNumber(p.getFileName().toString())))
-                    .flatMap(SolutionTestSuite::loadProblemTests);
+                    .toList();
+            }
         } catch (IOException e) {
-            return Stream.empty();
+            throw new AssertionError("Failed to list official question bank directory: " + questionBank, e);
         }
+        if (problemFiles.isEmpty()) {
+            throw new AssertionError("No official problem files found in configured range p"
+                    + problemStart + "-p" + problemEnd + " under " + questionBank);
+        }
+
+        List<Arguments> arguments = new ArrayList<>();
+        for (Path problemFile : problemFiles) {
+            arguments.addAll(loadProblemTests(problemFile));
+        }
+        if (arguments.isEmpty()) {
+            throw new AssertionError("Official question bank range p" + problemStart + "-p" + problemEnd
+                    + " produced no executable solution tests");
+        }
+        return arguments.stream();
     }
 
     private static int extractNumber(String filename) {
@@ -112,10 +140,14 @@ class SolutionTestSuite {
         return m.find() ? Integer.parseInt(m.group(1)) : 0;
     }
 
+    private static boolean isProblemInConfiguredRange(int problemNumber, int problemStart, int problemEnd) {
+        return problemNumber >= problemStart && problemNumber <= problemEnd;
+    }
+
     /**
      * Load a problem JSON and generate one Argument per (solution, testCase) pair.
      */
-    private static Stream<Arguments> loadProblemTests(Path file) {
+    private static List<Arguments> loadProblemTests(Path file) {
         try {
             String content = Files.readString(file, java.nio.charset.StandardCharsets.UTF_8);
             JsonObject json = JsonParser.parseString(content).getAsJsonObject();
@@ -124,47 +156,66 @@ class SolutionTestSuite {
             String title = json.has("title") ? json.get("title").getAsString() : "";
             String initialCode = json.has("initialCode") ? json.get("initialCode").getAsString() : "";
 
-            if (!json.has("solutions") || !json.has("tests")) return Stream.empty();
+            if (!json.has("solutions")) {
+                throw new AssertionError(file.getFileName() + " is missing solutions");
+            }
+            if (!json.has("tests")) {
+                throw new AssertionError(file.getFileName() + " is missing tests");
+            }
 
             JsonArray solutionsArr = json.getAsJsonArray("solutions");
             JsonArray testsArr = json.getAsJsonArray("tests");
 
             List<SolutionData> solutions = new ArrayList<>();
-            for (JsonElement sol : solutionsArr) {
+            for (int i = 0; i < solutionsArr.size(); i++) {
+                JsonElement sol = solutionsArr.get(i);
                 JsonObject s = sol.getAsJsonObject();
                 String name = s.has("name") ? s.get("name").getAsString() : "Solution";
                 String code = s.has("code") ? s.get("code").getAsString() : "";
-                if (!code.isEmpty()) solutions.add(new SolutionData(name, code));
+                if (code.isBlank()) {
+                    throw new AssertionError(file.getFileName() + " solution[" + i + "] has blank code");
+                }
+                solutions.add(new SolutionData(name, code));
             }
 
             List<TestCaseData> tests = new ArrayList<>();
-            for (JsonElement test : testsArr) {
+            for (int i = 0; i < testsArr.size(); i++) {
+                JsonElement test = testsArr.get(i);
                 JsonObject t = test.getAsJsonObject();
                 String input = t.has("input") ? t.get("input").getAsString() : "";
                 String output = t.has("output") ? t.get("output").getAsString() : "";
-                if (!input.isEmpty() && !output.isEmpty()) tests.add(new TestCaseData(input, output));
+                if (input.isBlank()) {
+                    throw new AssertionError(file.getFileName() + " tests[" + i + "] has blank input");
+                }
+                if (output.isBlank()) {
+                    throw new AssertionError(file.getFileName() + " tests[" + i + "] has blank output");
+                }
+                tests.add(new TestCaseData(input, output));
             }
 
-            if (solutions.isEmpty() || tests.isEmpty()) return Stream.empty();
+            if (solutions.isEmpty()) {
+                throw new AssertionError(file.getFileName() + " has no executable solutions");
+            }
+            if (tests.isEmpty()) {
+                throw new AssertionError(file.getFileName() + " has no executable tests");
+            }
 
             ProblemType type = detectType(initialCode);
             String className = extractClassName(initialCode);
 
-            // Generate one argument per (solution, test) pair
+            // Generate one argument per solution. Recompiling for every test case
+            // makes the 500-problem bank slow enough to hide real hangs.
             List<Arguments> args = new ArrayList<>();
             for (int si = 0; si < solutions.size(); si++) {
                 SolutionData sol = solutions.get(si);
-                for (int ti = 0; ti < tests.size(); ti++) {
-                    TestCaseData tc = tests.get(ti);
-                    String displayName = String.format("P%s [%s] %s | Test %d",
-                            id, type.name().substring(0, 3), sol.name(), ti + 1);
-                    args.add(Arguments.of(displayName, type.name(), className, sol.code(), tc.input(), tc.output()));
-                }
+                String displayName = String.format("P%s [%s] %s",
+                        id, type.name().substring(0, 3), sol.name());
+                args.add(Arguments.of(displayName, id, type.name(), className, sol.code(), List.copyOf(tests)));
             }
-            return args.stream();
+            return args;
         } catch (Exception e) {
-            System.err.println("Error loading " + file.getFileName() + ": " + e.getMessage());
-            return Stream.empty();
+            throw new AssertionError("Failed to load official solution tests from " + file.getFileName()
+                    + ": " + e.getMessage(), e);
         }
     }
 
@@ -172,32 +223,36 @@ class SolutionTestSuite {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("problemProvider")
-    void testSolution(String displayName, String problemType, String className,
-                      String solutionCode, String input, String expected) {
+    void testSolution(String displayName, String problemId, String problemType, String className,
+                      String solutionCode, List<TestCaseData> tests) {
         ProblemType type = ProblemType.valueOf(problemType);
 
         try (CompilerService compiler = new CompilerService()) {
             Class<?> compiledClass = compiler.compile(className, solutionCode);
 
-            TestResult result;
-            if (type == ProblemType.DESIGN_CLASS) {
-                result = DesignClassAdapter.run(compiledClass, input, expected);
-            } else if (type == ProblemType.CODEC) {
-                result = CodecAdapter.run(compiledClass, input, expected);
-            } else {
-                result = StandardAdapter.run(compiledClass, input, expected);
-            }
-
-            if (!result.passed) {
-                if (result.error != null) {
-                    fail(result.error);
+            for (int i = 0; i < tests.size(); i++) {
+                TestCaseData test = tests.get(i);
+                TestResult result;
+                if (type == ProblemType.DESIGN_CLASS) {
+                    result = DesignClassAdapter.run(compiledClass, test.input(), test.output());
+                } else if (type == ProblemType.CODEC) {
+                    result = CodecAdapter.run(compiledClass, test.input(), test.output());
                 } else {
-                    fail(String.format("Expected: %s%nActual: %s%nInput: %s",
-                            result.expected, result.actual, result.input));
+                    result = StandardAdapter.run(compiledClass, test.input(), test.output(), problemId);
+                }
+
+                if (!result.passed) {
+                    String testLabel = displayName + " | Test " + (i + 1);
+                    if (result.error != null) {
+                        fail(testLabel + System.lineSeparator() + result.error);
+                    } else {
+                        fail(String.format("%s%nExpected: %s%nActual: %s%nInput: %s",
+                                testLabel, result.expected, result.actual, result.input));
+                    }
                 }
             }
         } catch (Exception e) {
-            fail("Compilation/execution error: " + e.getMessage());
+            fail(displayName + System.lineSeparator() + "Compilation/execution error: " + e.getMessage());
         }
     }
 }

@@ -1,34 +1,101 @@
 {
   "id": "477",
   "title": "Maximum Distance in Arrays",
-  "description": "# Maximum Distance in Arrays\n\nYou are given `m` `arrays`, where each array is sorted in **ascending order**.\n\nYou can pick up two integers from two different arrays (each array picks one) and calculate the distance. We define the distance between two integers `a` and `b` to be their absolute difference `|a - b|`.\n\nReturn *the maximum distance*.\n\n## Example 1:\n\n**Input:** arrays = [[1,2,3],[4,5],[1,2,3]]\n**Output:** 4\n**Explanation:** One way to reach the maximum distance 4 is to pick 1 in the first or third array and pick 5 in the second array.\n\n## Example 2:\n\n**Input:** arrays = [[1],[1]]\n**Output:** 0\n\n## Constraints:\n\n*   `m == arrays.length`\n*   `2 <= m <= 10^5`\n*   `1 <= arrays[i].length <= 500`\n*   `-10^4 <= arrays[i][j] <= 10^4`\n*   `arrays[i]` is sorted in **ascending order**.\n*   There are at most `10^5` integers in all the arrays.",
+  "description": "# Maximum Distance in Arrays\n\nYou are given `m` arrays. Each array is sorted in non-decreasing order.\n\nChoose one integer from one array and one integer from a different array. The distance between two chosen integers `a` and `b` is `|a - b|`.\n\nReturn the maximum possible distance.\n\nBecause the two integers must come from different arrays, you may not use the first and last value of the same array as a pair, even if they are the global minimum and global maximum.\n\n## Example 1:\n\n**Input:** arrays = [[1,2,3],[4,5],[1,2,3]]\n**Output:** 4\n**Explanation:** Pick `1` from the first or third array and `5` from the second array.\n\n## Example 2:\n\n**Input:** arrays = [[1],[1]]\n**Output:** 0\n**Explanation:** The only possible pair has equal values from two different arrays.\n\n## Example 3:\n\n**Input:** arrays = [[1,100],[2],[3]]\n**Output:** 98\n**Explanation:** The values `1` and `100` are in the same array, so they cannot be paired. The best valid pair is `100` and `2`.\n\n## Constraints:\n\n* `m == arrays.length`\n* `2 <= m <= 10^5`\n* `1 <= arrays[i].length <= 500`\n* `-10^4 <= arrays[i][j] <= 10^4`\n* `arrays[i]` is sorted in non-decreasing order.\n* There are at most `10^5` integers in all the arrays.",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public int maxDistance(List<List<Integer>> arrays) {\n        \n    }\n}",
-  "tags": ["Array", "Greedy"],
+  "initialCode": "class Solution {\n    public int maxDistance(java.util.List<java.util.List<Integer>> arrays) {\n        \n    }\n}",
+  "tags": [
+    "Array",
+    "Greedy"
+  ],
   "examples": [
-    { "input": "arrays = [[1,2,3],[4,5],[1,2,3]]", "output": "4" },
-    { "input": "arrays = [[1],[1]]", "output": "0" }
+    {
+      "input": "arrays = [[1,2,3],[4,5],[1,2,3]]",
+      "output": "4"
+    },
+    {
+      "input": "arrays = [[1],[1]]",
+      "output": "0"
+    },
+    {
+      "input": "arrays = [[1,100],[2],[3]]",
+      "output": "98"
+    }
   ],
   "solutions": [
     {
       "name": "Track Global Min and Max",
       "timeComplexity": "O(m)",
       "spaceComplexity": "O(1)",
-      "description": "Track the global min and max seen so far. For each new array, compute distance using current array's max with global min and current array's min with global max. Update global min and max.",
-      "code": "class Solution {\n    public int maxDistance(java.util.List<java.util.List<Integer>> arrays) {\n        int globalMin = arrays.get(0).get(0);\n        int globalMax = arrays.get(0).get(arrays.get(0).size() - 1);\n        int result = 0;\n        for (int i = 1; i < arrays.size(); i++) {\n            java.util.List<Integer> arr = arrays.get(i);\n            int curMin = arr.get(0);\n            int curMax = arr.get(arr.size() - 1);\n            result = Math.max(result, Math.abs(curMax - globalMin));\n            result = Math.max(result, Math.abs(globalMax - curMin));\n            globalMin = Math.min(globalMin, curMin);\n            globalMax = Math.max(globalMax, curMax);\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nScan arrays from left to right. Before updating the global minimum first value and global maximum last value, compare the current array's last value with the previous global minimum and compare the previous global maximum with the current array's first value.\n\n## Key Insight\n\nThe order of operations enforces the different-array rule. At index `i`, the stored global endpoints come only from arrays `0..i-1`, so pairing them with the current array cannot accidentally choose two numbers from the same array.\n\n## Complexity Analysis\n\nOnly the first and last value of each array are read. If `m` is the number of arrays, the time complexity is O(m), and the extra space complexity is O(1).",
+      "code": "class Solution {\n    public int maxDistance(java.util.List<java.util.List<Integer>> arrays) {\n        int globalMin = arrays.get(0).get(0);\n        int globalMax = arrays.get(0).get(arrays.get(0).size() - 1);\n        int result = 0;\n\n        for (int i = 1; i < arrays.size(); i++) {\n            java.util.List<Integer> arr = arrays.get(i);\n            int curMin = arr.get(0);\n            int curMax = arr.get(arr.size() - 1);\n\n            result = Math.max(result, curMax - globalMin);\n            result = Math.max(result, globalMax - curMin);\n\n            globalMin = Math.min(globalMin, curMin);\n            globalMax = Math.max(globalMax, curMax);\n        }\n\n        return result;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Sort Min-Max Pairs",
+      "name": "Sort Endpoint Candidates",
       "timeComplexity": "O(m log m)",
       "spaceComplexity": "O(m)",
-      "description": "Extract (min, max, index) from each array. Sort by min, then check max of earlier arrays against min of later arrays, and vice versa. Actually simpler: collect all (min, arrayIndex) and (max, arrayIndex) and find the max difference ensuring different arrays.",
-      "code": "class Solution {\n    public int maxDistance(java.util.List<java.util.List<Integer>> arrays) {\n        int m = arrays.size();\n        int[][] minArr = new int[m][2];\n        int[][] maxArr = new int[m][2];\n        for (int i = 0; i < m; i++) {\n            java.util.List<Integer> arr = arrays.get(i);\n            minArr[i] = new int[]{arr.get(0), i};\n            maxArr[i] = new int[]{arr.get(arr.size() - 1), i};\n        }\n        java.util.Arrays.sort(minArr, (a, b) -> a[0] - b[0]);\n        java.util.Arrays.sort(maxArr, (a, b) -> b[0] - a[0]);\n        if (minArr[0][1] != maxArr[0][1]) {\n            return maxArr[0][0] - minArr[0][0];\n        }\n        return Math.max(maxArr[0][0] - minArr[1][0], maxArr[1][0] - minArr[0][0]);\n    }\n}",
+      "description": "## Approach\n\nFor each array, record `(minimum value, array index)` and `(maximum value, array index)`. Sort minimum candidates ascending and maximum candidates descending. If the best minimum and best maximum come from different arrays, use them; otherwise try the two alternatives that replace exactly one endpoint with the next best candidate.\n\n## Key Insight\n\nA maximum distance always uses an endpoint: either a smallest first value or a largest last value. When the strongest endpoints come from the same array, only two second-best repairs can beat all other choices: keep the largest maximum with the second-smallest minimum, or keep the smallest minimum with the second-largest maximum.\n\n## Complexity Analysis\n\nBuilding candidate arrays takes O(m) time, sorting them takes O(m log m), and the final comparison is O(1). The candidate arrays use O(m) extra space.",
+      "code": "class Solution {\n    public int maxDistance(java.util.List<java.util.List<Integer>> arrays) {\n        int m = arrays.size();\n        int[][] minArr = new int[m][2];\n        int[][] maxArr = new int[m][2];\n\n        for (int i = 0; i < m; i++) {\n            java.util.List<Integer> arr = arrays.get(i);\n            minArr[i] = new int[]{arr.get(0), i};\n            maxArr[i] = new int[]{arr.get(arr.size() - 1), i};\n        }\n\n        java.util.Arrays.sort(minArr, (a, b) -> Integer.compare(a[0], b[0]));\n        java.util.Arrays.sort(maxArr, (a, b) -> Integer.compare(b[0], a[0]));\n\n        if (minArr[0][1] != maxArr[0][1]) {\n            return maxArr[0][0] - minArr[0][0];\n        }\n        return Math.max(maxArr[0][0] - minArr[1][0], maxArr[1][0] - minArr[0][0]);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Prefix and Suffix Extremes",
+      "timeComplexity": "O(m)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nPrecompute the minimum first value and maximum last value available on each prefix and suffix of the array list. Then enumerate each array and combine its endpoints only with extremes from indices strictly before it or strictly after it.\n\n## Key Insight\n\nThis route makes the different-array rule explicit. Instead of relying on update order, every candidate pair uses current index `i` on one side and prefix or suffix data that excludes `i` on the other side.\n\n## Complexity Analysis\n\nThe algorithm scans the `m` arrays a constant number of times, so the time complexity is O(m). The four prefix/suffix arrays require O(m) extra space.",
+      "code": "class Solution {\n    public int maxDistance(java.util.List<java.util.List<Integer>> arrays) {\n        int m = arrays.size();\n        int[] prefixMin = new int[m];\n        int[] prefixMax = new int[m];\n        int[] suffixMin = new int[m];\n        int[] suffixMax = new int[m];\n\n        for (int i = 0; i < m; i++) {\n            java.util.List<Integer> arr = arrays.get(i);\n            int first = arr.get(0);\n            int last = arr.get(arr.size() - 1);\n            if (i == 0) {\n                prefixMin[i] = first;\n                prefixMax[i] = last;\n            } else {\n                prefixMin[i] = Math.min(prefixMin[i - 1], first);\n                prefixMax[i] = Math.max(prefixMax[i - 1], last);\n            }\n        }\n\n        for (int i = m - 1; i >= 0; i--) {\n            java.util.List<Integer> arr = arrays.get(i);\n            int first = arr.get(0);\n            int last = arr.get(arr.size() - 1);\n            if (i == m - 1) {\n                suffixMin[i] = first;\n                suffixMax[i] = last;\n            } else {\n                suffixMin[i] = Math.min(suffixMin[i + 1], first);\n                suffixMax[i] = Math.max(suffixMax[i + 1], last);\n            }\n        }\n\n        int best = 0;\n        for (int i = 0; i < m; i++) {\n            java.util.List<Integer> arr = arrays.get(i);\n            int first = arr.get(0);\n            int last = arr.get(arr.size() - 1);\n            if (i > 0) {\n                best = Math.max(best, last - prefixMin[i - 1]);\n                best = Math.max(best, prefixMax[i - 1] - first);\n            }\n            if (i + 1 < m) {\n                best = Math.max(best, last - suffixMin[i + 1]);\n                best = Math.max(best, suffixMax[i + 1] - first);\n            }\n        }\n        return best;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "arrays = [[1,2,3],[4,5],[1,2,3]]", "output": "4" },
-    { "input": "arrays = [[1],[1]]", "output": "0" }
+    {
+      "input": "arrays = [[1,2,3],[4,5],[1,2,3]]",
+      "output": "4"
+    },
+    {
+      "input": "arrays = [[1],[1]]",
+      "output": "0"
+    },
+    {
+      "input": "arrays = [[-5,-4],[-3,-2],[10]]",
+      "output": "15"
+    },
+    {
+      "input": "arrays = [[1,100],[2],[3]]",
+      "output": "98"
+    },
+    {
+      "input": "arrays = [[-10,-5],[0],[5,10]]",
+      "output": "20"
+    },
+    {
+      "input": "arrays = [[1,2],[3,4],[5,6]]",
+      "output": "5"
+    },
+    {
+      "input": "arrays = [[-10000],[10000]]",
+      "output": "20000"
+    },
+    {
+      "input": "arrays = [[1,10],[2,9],[3,8]]",
+      "output": "8"
+    },
+    {
+      "input": "arrays = [[-3,-2,-1],[-10],[-5,0,5]]",
+      "output": "15"
+    },
+    {
+      "input": "arrays = [[7],[3,4,5],[6,7,8]]",
+      "output": "5"
+    },
+    {
+      "input": "arrays = [[-1,0],[0,1],[1,2],[2,3]]",
+      "output": "4"
+    },
+    {
+      "input": "arrays = [[0,0],[0],[0,0,0]]",
+      "output": "0"
+    }
   ]
 }

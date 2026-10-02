@@ -1,38 +1,66 @@
 {
   "id": "3",
   "title": "Valid Anagram",
-  "description": "# Valid Anagram\n\nGiven two strings `s` and `t`, return `true` *if* `t` *is an anagram of* `s`*, and* `false` *otherwise*.\n\nAn **Anagram** is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.\n\n## Example 1:\n\n**Input:** s = \"anagram\", t = \"nagaram\"\n**Output:** true\n\n## Example 2:\n\n**Input:** s = \"rat\", t = \"car\"\n**Output:** false\n\n## Constraints:\n\n*   `1 <= s.length, t.length <= 5 * 10^4`\n*   `s` and `t` consist of lowercase English letters.",
+  "description": "# Valid Anagram\n\nGiven two strings `s` and `t`, return `true` if they are anagrams; otherwise return `false`.\n\nTwo strings are anagrams when rearranging the letters of one produces the other. Every letter must occur the same number of times in both strings. For example, `\"aab\"` and `\"aba\"` are anagrams, but `\"aab\"` and `\"abb\"` are not.\n\n## Example 1:\n\n**Input:** s = \"anagram\", t = \"nagaram\"\n**Output:** true\n\n## Example 2:\n\n**Input:** s = \"rat\", t = \"car\"\n**Output:** false\n\n## Constraints:\n\n*   `1 <= s.length, t.length <= 5 * 10^4`\n*   `s` and `t` consist of lowercase English letters.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public boolean isAnagram(String s, String t) {\n        // Write your code here\n        return false;\n    }\n}",
-  "tags": ["String", "Hash Table", "Sorting"],
+  "tags": [
+    "String",
+    "Hash Table",
+    "Sorting"
+  ],
   "examples": [
-    { "input": "s = \"anagram\", t = \"nagaram\"", "output": "true" },
-    { "input": "s = \"rat\", t = \"car\"", "output": "false" }
+    {
+      "input": "s = \"anagram\", t = \"nagaram\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"rat\", t = \"car\"",
+      "output": "false"
+    }
   ],
   "tests": [
-    { "input": "s = \"anagram\", t = \"nagaram\"", "output": "true" },
-    { "input": "s = \"rat\", t = \"car\"", "output": "false" },
-    { "input": "s = \"a\", t = \"ab\"", "output": "false" },
-    { "input": "s = \"ab\", t = \"a\"", "output": "false" },
-    { "input": "s = \"listen\", t = \"silent\"", "output": "true" },
-    { "input": "s = \"aabbcc\", t = \"abcabc\"", "output": "true" }
+    {
+      "input": "s = \"anagram\", t = \"nagaram\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"rat\", t = \"car\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \"a\", t = \"ab\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \"ab\", t = \"a\"",
+      "output": "false"
+    },
+    {
+      "input": "s = \"listen\", t = \"silent\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"aabbcc\", t = \"abcabc\"",
+      "output": "true"
+    }
   ],
   "solutions": [
     {
       "name": "Character Count Array",
-      "description": "## Approach\n\nUse an array of size 26 to count character frequencies. Increment for first string, decrement for second. If all counts are zero, strings are anagrams.\n\n## Complexity Analysis\n- Time Complexity: O(n) - Two passes through strings\n- Space Complexity: O(1) - Fixed size array of 26",
+      "description": "## Approach\n\nUse a fixed array of length 26 to store character balances. Increment the count for each character in `s`, decrement the count for each character in `t`, and finally verify that every count returns to zero.\n\n## Key Insight\n\nThe prompt restricts the input to lowercase English letters, so a fixed-size array is enough and is faster than a map. The length check matters: strings of different lengths cannot be anagrams even if some prefix balances out.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
       "code": "class Solution {\n    public boolean isAnagram(String s, String t) {\n        if (s.length() != t.length()) {\n            return false;\n        }\n        \n        int[] count = new int[26];\n        \n        for (int i = 0; i < s.length(); i++) {\n            count[s.charAt(i) - 'a']++;\n            count[t.charAt(i) - 'a']--;\n        }\n        \n        for (int c : count) {\n            if (c != 0) {\n                return false;\n            }\n        }\n        \n        return true;\n    }\n}",
       "language": "java"
     },
     {
       "name": "Sorting",
-      "description": "## Approach\n\nSort both strings and compare. Anagrams will be identical after sorting.\n\n## Complexity Analysis\n- Time Complexity: O(n log n) - Due to sorting\n- Space Complexity: O(n) - Creating char arrays",
+      "description": "## Approach\n\nConvert both strings into character arrays, sort them, and compare the sorted arrays. Two strings are anagrams exactly when they contain the same multiset of characters, and sorting gives a canonical order for that multiset.\n\n## Key Insight\n\nThis is a general baseline that is easy to reason about. Its cost is the sorting step, so it is not as efficient as fixed alphabet counting under the lowercase-letter constraint.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
       "code": "class Solution {\n    public boolean isAnagram(String s, String t) {\n        if (s.length() != t.length()) {\n            return false;\n        }\n        \n        char[] sArr = s.toCharArray();\n        char[] tArr = t.toCharArray();\n        \n        Arrays.sort(sArr);\n        Arrays.sort(tArr);\n        \n        return Arrays.equals(sArr, tArr);\n    }\n}",
       "language": "java"
     },
     {
       "name": "HashMap",
-      "description": "## Approach\n\nUse HashMap to count characters. This approach works for any character set (Unicode).\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(k) where k is the character set size",
+      "description": "## Approach\n\nUse a `HashMap<Character, Integer>` to count character balances instead of a fixed array. Increment for `s`, decrement for `t`, and ensure all counts end at zero.\n\n## Key Insight\n\nThe map version teaches the same frequency invariant in a character-set-independent way. It is the right mental model when the alphabet is large, sparse, or not known in advance.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(k), where k is the number of distinct characters",
       "code": "class Solution {\n    public boolean isAnagram(String s, String t) {\n        if (s.length() != t.length()) {\n            return false;\n        }\n        \n        Map<Character, Integer> count = new HashMap<>();\n        \n        for (char c : s.toCharArray()) {\n            count.put(c, count.getOrDefault(c, 0) + 1);\n        }\n        \n        for (char c : t.toCharArray()) {\n            count.put(c, count.getOrDefault(c, 0) - 1);\n            if (count.get(c) < 0) {\n                return false;\n            }\n        }\n        \n        return true;\n    }\n}",
       "language": "java"
     }

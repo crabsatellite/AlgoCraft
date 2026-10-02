@@ -1,9 +1,9 @@
 {
   "id": "20",
   "title": "Set Matrix Zeroes",
-  "description": "# Set Matrix Zeroes\n\nGiven an `m x n` integer matrix `matrix`, if an element is `0`, set its entire row and column to `0`'s.\n\nYou must do it **in place**.\n\n## Example 1:\n\n**Input:** matrix = [[1,1,1],[1,0,1],[1,1,1]]\n**Output:** [[1,0,1],[0,0,0],[1,0,1]]\n\n## Example 2:\n\n**Input:** matrix = [[0,1,2,0],[3,4,5,2],[1,3,1,5]]\n**Output:** [[0,0,0,0],[0,4,5,0],[0,3,1,0]]\n\n## Constraints:\n\n*   `m == matrix.length`\n*   `n == matrix[0].length`\n*   `1 <= m, n <= 200`\n*   `-2^31 <= matrix[i][j] <= 2^31 - 1`\n\n## Follow up:\n\n*   A straightforward solution using `O(mn)` space is probably a bad idea.\n*   A simple improvement uses `O(m + n)` space, but still not the best solution.\n*   Could you devise a constant space solution?",
+  "description": "# Set Matrix Zeroes\n\nGiven an `m x n` integer matrix `matrix`, if a cell is `0`, set its entire row and entire column to `0`.\n\nModify `matrix` in place. The judge checks the contents of `matrix` after `setZeroes` returns; the method itself does not return a new matrix.\n\nA zero introduced by the algorithm must not create new rows or columns to clear. Only cells that were `0` in the original matrix determine which rows and columns become zero.\n\n## Example 1:\n\n**Input:** matrix = [[1,1,1],[1,0,1],[1,1,1]]\n\n**Output:** [[1,0,1],[0,0,0],[1,0,1]]\n\n## Example 2:\n\n**Input:** matrix = [[0,1,2,0],[3,4,5,2],[1,3,1,5]]\n\n**Output:** [[0,0,0,0],[0,4,5,0],[0,3,1,0]]\n\n## Constraints:\n\n* `m == matrix.length`\n* `n == matrix[0].length`\n* `1 <= m, n <= 200`\n* `-2^31 <= matrix[i][j] <= 2^31 - 1`\n\n## Follow-up Questions:\n\n* Why does a one-pass approach that immediately clears rows and columns give the wrong result?\n* How does the `O(m + n)` row/column marker idea work?\n* How can the first row and first column become marker storage without losing their original zero state?\n* Why is a sentinel value unsafe when matrix values may use the full 32-bit integer range?",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public void setZeroes(int[][] matrix) {\n        // Write your code here\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public void setZeroes(int[][] matrix) {\n        \n    }\n}",
   "tags": ["Array", "Hash Table", "Matrix"],
   "examples": [
     {
@@ -24,43 +24,60 @@
       "input": "matrix = [[0,1,2,0],[3,4,5,2],[1,3,1,5]]",
       "output": "[[0,0,0,0],[0,4,5,0],[0,3,1,0]]"
     },
-    { "input": "matrix = [[1]]", "output": "[[1]]" },
-    { "input": "matrix = [[0]]", "output": "[[0]]" },
     {
-      "input": "matrix = [[1,2,3,4]]",
-      "output": "[[1,2,3,4]]",
-      "description": "Single row matrix without zero"
+      "input": "matrix = [[1,2,3],[4,5,6]]",
+      "output": "[[1,2,3],[4,5,6]]"
+    },
+    {
+      "input": "matrix = [[1]]",
+      "output": "[[1]]"
+    },
+    {
+      "input": "matrix = [[0]]",
+      "output": "[[0]]"
+    },
+    {
+      "input": "matrix = [[1,0,3,4]]",
+      "output": "[[0,0,0,0]]"
     },
     {
       "input": "matrix = [[1],[0],[3]]",
-      "output": "[[0],[0],[0]]",
-      "description": "Single column matrix with zero"
-    }
-  ],
-  "diagrams": [
+      "output": "[[0],[0],[0]]"
+    },
     {
-      "id": "example1",
-      "file": "p20_example1.png",
-      "caption": "Matrix transformation - Set zeros"
+      "input": "matrix = [[5,0,7],[8,9,10],[11,12,13]]",
+      "output": "[[0,0,0],[8,0,10],[11,0,13]]"
+    },
+    {
+      "input": "matrix = [[5,6,7],[0,9,10],[11,12,13]]",
+      "output": "[[0,6,7],[0,0,0],[0,12,13]]"
+    },
+    {
+      "input": "matrix = [[1,-2,3],[4,0,6],[0,8,9]]",
+      "output": "[[0,0,3],[0,0,0],[0,0,0]]"
+    },
+    {
+      "input": "matrix = [[-2147483648,1],[2,0]]",
+      "output": "[[-2147483648,0],[0,0]]"
     }
   ],
   "solutions": [
     {
-      "name": "O(1) Space - Use First Row/Column as Markers",
-      "description": "## Approach\n\nUse first row and column to mark which rows/columns should be zeroed. Handle first row/column separately.\n\n## Complexity Analysis\n- Time Complexity: O(m*n)\n- Space Complexity: O(1)",
-      "code": "class Solution {\n    public int[][] setZeroes(int[][] matrix) {\n        int m = matrix.length, n = matrix[0].length;\n        boolean firstRowZero = false, firstColZero = false;\n        \n        // Check if first row/column has zeros\n        for (int j = 0; j < n; j++) {\n            if (matrix[0][j] == 0) firstRowZero = true;\n        }\n        for (int i = 0; i < m; i++) {\n            if (matrix[i][0] == 0) firstColZero = true;\n        }\n        \n        // Use first row/column as markers\n        for (int i = 1; i < m; i++) {\n            for (int j = 1; j < n; j++) {\n                if (matrix[i][j] == 0) {\n                    matrix[i][0] = 0;\n                    matrix[0][j] = 0;\n                }\n            }\n        }\n        \n        // Zero out cells based on markers\n        for (int i = 1; i < m; i++) {\n            for (int j = 1; j < n; j++) {\n                if (matrix[i][0] == 0 || matrix[0][j] == 0) {\n                    matrix[i][j] = 0;\n                }\n            }\n        }\n        \n        // Handle first row and column\n        if (firstRowZero) {\n            for (int j = 0; j < n; j++) matrix[0][j] = 0;\n        }\n        if (firstColZero) {\n            for (int i = 0; i < m; i++) matrix[i][0] = 0;\n        }\n        \n        return matrix;\n    }\n}",
+      "name": "First Row and First Column Markers",
+      "description": "## Approach\n\nUse the first row and first column as marker storage. First record whether the first row and first column originally contain zero. Then scan the interior cells and write row markers into `matrix[i][0]` and column markers into `matrix[0][j]`. After the marking pass, clear interior cells from those markers, then clear the first row and first column if their saved flags require it.\n\n## Key Insight\n\nThe first row and first column are both data and marker space. Their original zero state must be saved before marker writes begin; otherwise the algorithm cannot tell whether those border cells were zero originally or became zero only because they were used as markers.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public void setZeroes(int[][] matrix) {\n        int m = matrix.length;\n        int n = matrix[0].length;\n        boolean firstRowZero = false;\n        boolean firstColZero = false;\n        \n        for (int col = 0; col < n; col++) {\n            if (matrix[0][col] == 0) {\n                firstRowZero = true;\n            }\n        }\n        for (int row = 0; row < m; row++) {\n            if (matrix[row][0] == 0) {\n                firstColZero = true;\n            }\n        }\n        \n        for (int row = 1; row < m; row++) {\n            for (int col = 1; col < n; col++) {\n                if (matrix[row][col] == 0) {\n                    matrix[row][0] = 0;\n                    matrix[0][col] = 0;\n                }\n            }\n        }\n        \n        for (int row = 1; row < m; row++) {\n            for (int col = 1; col < n; col++) {\n                if (matrix[row][0] == 0 || matrix[0][col] == 0) {\n                    matrix[row][col] = 0;\n                }\n            }\n        }\n        \n        if (firstRowZero) {\n            for (int col = 0; col < n; col++) {\n                matrix[0][col] = 0;\n            }\n        }\n        if (firstColZero) {\n            for (int row = 0; row < m; row++) {\n                matrix[row][0] = 0;\n            }\n        }\n    }\n}",
       "language": "java"
     },
     {
-      "name": "O(m+n) Space - Boolean Arrays",
-      "description": "## Approach\n\nUse two boolean arrays to track which rows and columns need to be zeroed.\n\n## Complexity Analysis\n- Time Complexity: O(m*n)\n- Space Complexity: O(m+n)",
-      "code": "class Solution {\n    public int[][] setZeroes(int[][] matrix) {\n        int m = matrix.length, n = matrix[0].length;\n        boolean[] rowZero = new boolean[m];\n        boolean[] colZero = new boolean[n];\n        \n        // Find zeros\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (matrix[i][j] == 0) {\n                    rowZero[i] = true;\n                    colZero[j] = true;\n                }\n            }\n        }\n        \n        // Set zeros\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (rowZero[i] || colZero[j]) {\n                    matrix[i][j] = 0;\n                }\n            }\n        }\n        \n        return matrix;\n    }\n}",
+      "name": "Boolean Row and Column Arrays",
+      "description": "## Approach\n\nUse two boolean arrays: `zeroRows[row]` records that a row contains an original zero, and `zeroCols[col]` records that a column contains an original zero. After the marking pass, scan the matrix again and clear any cell whose row or column is marked.\n\n## Key Insight\n\nThis is the cleanest version of the two-phase rule. Separating discovery from mutation prevents newly written zeroes from spreading beyond the rows and columns determined by the original matrix.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m + n)",
+      "code": "class Solution {\n    public void setZeroes(int[][] matrix) {\n        int m = matrix.length;\n        int n = matrix[0].length;\n        boolean[] zeroRows = new boolean[m];\n        boolean[] zeroCols = new boolean[n];\n        \n        for (int row = 0; row < m; row++) {\n            for (int col = 0; col < n; col++) {\n                if (matrix[row][col] == 0) {\n                    zeroRows[row] = true;\n                    zeroCols[col] = true;\n                }\n            }\n        }\n        \n        for (int row = 0; row < m; row++) {\n            for (int col = 0; col < n; col++) {\n                if (zeroRows[row] || zeroCols[col]) {\n                    matrix[row][col] = 0;\n                }\n            }\n        }\n    }\n}",
       "language": "java"
     },
     {
-      "name": "HashSet Approach",
-      "description": "## Approach\n\nStore zero positions in HashSets, then iterate and set zeros.\n\n## Complexity Analysis\n- Time Complexity: O(m*n)\n- Space Complexity: O(m+n)",
-      "code": "class Solution {\n    public int[][] setZeroes(int[][] matrix) {\n        Set<Integer> rows = new HashSet<>();\n        Set<Integer> cols = new HashSet<>();\n        int m = matrix.length, n = matrix[0].length;\n        \n        // Find all zero positions\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (matrix[i][j] == 0) {\n                    rows.add(i);\n                    cols.add(j);\n                }\n            }\n        }\n        \n        // Set zeros\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                if (rows.contains(i) || cols.contains(j)) {\n                    matrix[i][j] = 0;\n                }\n            }\n        }\n        \n        return matrix;\n    }\n}",
+      "name": "HashSet Row and Column Membership",
+      "description": "## Approach\n\nStore affected row indices in one set and affected column indices in another set. During the second pass, clear a cell when its row is in the row set or its column is in the column set.\n\n## Key Insight\n\nThe set version teaches the same two-phase invariant as boolean arrays, but describes the state as membership in the affected row and affected column collections. It is a useful bridge before compressing the markers into the matrix border.\n\n## Complexity Analysis\n- Time Complexity: O(m * n)\n- Space Complexity: O(m + n)",
+      "code": "class Solution {\n    public void setZeroes(int[][] matrix) {\n        Set<Integer> zeroRows = new HashSet<>();\n        Set<Integer> zeroCols = new HashSet<>();\n        int m = matrix.length;\n        int n = matrix[0].length;\n        \n        for (int row = 0; row < m; row++) {\n            for (int col = 0; col < n; col++) {\n                if (matrix[row][col] == 0) {\n                    zeroRows.add(row);\n                    zeroCols.add(col);\n                }\n            }\n        }\n        \n        for (int row = 0; row < m; row++) {\n            for (int col = 0; col < n; col++) {\n                if (zeroRows.contains(row) || zeroCols.contains(col)) {\n                    matrix[row][col] = 0;\n                }\n            }\n        }\n    }\n}",
       "language": "java"
     }
   ]

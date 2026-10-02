@@ -1,57 +1,132 @@
 {
   "id": "318",
-  "title": "Largest Rectangle in Histogram",
-  "description": "# Largest Rectangle in Histogram\n\nGiven an array of integers `heights` representing the histogram's bar height where the width of each bar is `1`, return *the area of the largest rectangle in the histogram*.\n\n## Example 1:\n\n**Input:** heights = [2,1,5,6,2,3]\n**Output:** 10\n**Explanation:** The above is a histogram where width of each bar is 1.\nThe largest rectangle is shown in the red area, which has an area = 10 units.\n\n## Example 2:\n\n**Input:** heights = [2,4]\n**Output:** 4\n\n## Constraints:\n\n*   `1 <= heights.length <= 10^5`\n*   `0 <= heights[i] <= 10^4`",
+  "title": "Maximum Score From Multipliers",
+  "description": "# Maximum Score From Multipliers\n\nYou are given two integer arrays, `nums` and `multipliers`. You must perform exactly `multipliers.length` operations.\n\nOn operation `i`, using `multipliers[i]`, choose either the leftmost or the rightmost remaining number from `nums`. Add `multipliers[i] * chosenNumber` to your score, then remove that chosen number from `nums`.\n\nReturn the maximum possible score after all multipliers have been used.\n\nOnly the two ends of `nums` are ever directly available. Numbers in the middle may remain unused when `nums.length` is larger than `multipliers.length`.\n\n## Example 1:\n\n**Input:** nums = [1,2,3], multipliers = [3,2,1]\n**Output:** 14\n\n**Explanation:** Choose `3`, then `2`, then `1`: `3 * 3 + 2 * 2 + 1 * 1 = 14`.\n\n## Example 2:\n\n**Input:** nums = [-5,-3,-3,-2,7,1], multipliers = [-10,-5,3,4,6]\n**Output:** 102\n\n**Explanation:** Mixed positive and negative values make local greedy choices unreliable; the best plan must account for future multipliers.\n\n## Constraints:\n\n* `1 <= multipliers.length <= nums.length <= 10^5`\n* `multipliers.length <= 1000`\n* `-1000 <= nums[i], multipliers[i] <= 1000`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int largestRectangleArea(int[] heights) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int maximumScore(int[] nums, int[] multipliers) {\n        return 0;\n    }\n}",
   "tags": [
     "Array",
-    "Stack",
-    "Monotonic Stack"
+    "Dynamic Programming"
   ],
   "examples": [
     {
-      "input": "heights = [2,1,5,6,2,3]",
-      "output": "10"
+      "input": "nums = [1,2,3], multipliers = [3,2,1]",
+      "output": "14"
     },
     {
-      "input": "heights = [2,4]",
-      "output": "4"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "Monotonic Stack",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Maintain a stack of indices with increasing heights. When a shorter bar is found, pop and calculate area using the popped height and the width between current index and new stack top.",
-      "code": "class Solution {\n    public int largestRectangleArea(int[] heights) {\n        java.util.Deque<Integer> stack = new java.util.ArrayDeque<>();\n        int maxArea = 0, n = heights.length;\n        for (int i = 0; i <= n; i++) {\n            int h = (i == n) ? 0 : heights[i];\n            while (!stack.isEmpty() && h < heights[stack.peek()]) {\n                int height = heights[stack.pop()];\n                int width = stack.isEmpty() ? i : i - stack.peek() - 1;\n                maxArea = Math.max(maxArea, height * width);\n            }\n            stack.push(i);\n        }\n        return maxArea;\n    }\n}",
-      "language": "java"
-    },
-    {
-      "name": "Divide and Conquer",
-      "timeComplexity": "O(n log n)",
-      "spaceComplexity": "O(log n)",
-      "description": "Recursively split the histogram into left and right halves. The largest rectangle is either in the left half, right half, or spanning the middle. For the crossing case, expand from the middle outward, always choosing the taller side.",
-      "code": "class Solution {\n    public int largestRectangleArea(int[] heights) {\n        return helper(heights, 0, heights.length - 1);\n    }\n    private int helper(int[] heights, int lo, int hi) {\n        if (lo > hi) return 0;\n        if (lo == hi) return heights[lo];\n        int mid = lo + (hi - lo) / 2;\n        int left = helper(heights, lo, mid);\n        int right = helper(heights, mid + 1, hi);\n        int cross = crossArea(heights, lo, hi, mid);\n        return Math.max(cross, Math.max(left, right));\n    }\n    private int crossArea(int[] heights, int lo, int hi, int mid) {\n        int l = mid, r = mid + 1;\n        int minH = Math.min(heights[l], heights[r]);\n        int maxArea = minH * 2;\n        while (l > lo || r < hi) {\n            if (r < hi && (l == lo || heights[r + 1] >= heights[l - 1])) {\n                r++;\n                minH = Math.min(minH, heights[r]);\n            } else {\n                l--;\n                minH = Math.min(minH, heights[l]);\n            }\n            maxArea = Math.max(maxArea, minH * (r - l + 1));\n        }\n        return maxArea;\n    }\n}",
-      "language": "java"
+      "input": "nums = [-5,-3,-3,-2,7,1], multipliers = [-10,-5,3,4,6]",
+      "output": "102"
     }
   ],
   "tests": [
     {
-      "input": "heights = [2,1,5,6,2,3]",
-      "output": "10"
+      "input": "nums = [1,2,3], multipliers = [3,2,1]",
+      "output": "14",
+      "description": "sample where taking from the right first is optimal"
     },
     {
-      "input": "heights = [2,4]",
-      "output": "4"
+      "input": "nums = [-5,-3,-3,-2,7,1], multipliers = [-10,-5,3,4,6]",
+      "output": "102",
+      "description": "mixed signs make greedy local choices fail"
+    },
+    {
+      "input": "nums = [1], multipliers = [5]",
+      "output": "5",
+      "description": "single pick"
+    },
+    {
+      "input": "nums = [2,3,1], multipliers = [3,1]",
+      "output": "9",
+      "description": "left-first beats right-first"
+    },
+    {
+      "input": "nums = [4,-2,5], multipliers = [-3,2]",
+      "output": "-2",
+      "description": "negative multiplier changes which side should be consumed"
+    },
+    {
+      "input": "nums = [-1,-2,-3], multipliers = [-1,-2]",
+      "output": "7",
+      "description": "negative numbers and negative multipliers can create positive score"
+    },
+    {
+      "input": "nums = [5,4,3], multipliers = [1,2]",
+      "output": "13",
+      "description": "best sequence may save a larger number for a later multiplier"
+    },
+    {
+      "input": "nums = [-10,5,6,-2], multipliers = [3,-4,2]",
+      "output": "46",
+      "description": "three-step mixed-sign dynamic decision"
+    },
+    {
+      "input": "nums = [1,2,3,4], multipliers = [4,3,2]",
+      "output": "29",
+      "description": "right side is repeatedly better under descending multipliers"
+    },
+    {
+      "input": "nums = [10,-5,-5,-5,10], multipliers = [1,1]",
+      "output": "20",
+      "description": "middle values can remain unused when there are fewer multipliers"
+    },
+    {
+      "input": "nums = [100,-100,100], multipliers = [-1,1]",
+      "output": "0",
+      "description": "avoid pairing the large negative multiplier with the middle negative later"
+    },
+    {
+      "input": "nums = [-3,7,-2,5], multipliers = [2,-3,4]",
+      "output": "47",
+      "description": "future negative multiplier changes the best first pick"
+    },
+    {
+      "input": "nums = [0,10,-10,5], multipliers = [0,5,-2]",
+      "output": "70",
+      "description": "zero multiplier should still consume an endpoint strategically"
+    },
+    {
+      "input": "nums = [8,-1,3,4,2], multipliers = [-2,7,-3]",
+      "output": "55",
+      "description": "mixed signs and unused middle require global planning"
+    },
+    {
+      "input": "nums = [2,-1,3,-4,5], multipliers = [-3,6,-2,4]",
+      "output": "44",
+      "description": "four operations combine both positive and negative future effects"
     }
   ],
-  "diagrams": [
+  "solutions": [
     {
-      "id": "example1",
-      "file": "p318_example1.png",
-      "caption": "Histogram: [2,1,5,6,2,3]"
+      "name": "Bottom-Up Choice Table",
+      "timeComplexity": "O(m^2)",
+      "spaceComplexity": "O(m^2)",
+      "description": "## Approach\n\nLet `m = multipliers.length`. Define `dp[operation][leftTaken]` as the best score obtainable from operation `operation` onward after already taking `leftTaken` numbers from the left side. The number taken from the right is `operation - leftTaken`, so the current right index is determined by the state.\n\n## Key Insight\n\nEven though `nums` can be much longer than `multipliers`, only at most `m` numbers can be removed. The state does not need the whole remaining interval; it only needs how many picks came from the left and how many total operations have already happened.\n\n## Complexity Analysis\n\n- Time Complexity: O(m^2)\n- Space Complexity: O(m^2)",
+      "code": "class Solution {\n    public int maximumScore(int[] nums, int[] multipliers) {\n        int n = nums.length;\n        int m = multipliers.length;\n        int[][] dp = new int[m + 1][m + 1];\n\n        for (int operation = m - 1; operation >= 0; operation--) {\n            int multiplier = multipliers[operation];\n            for (int leftTaken = operation; leftTaken >= 0; leftTaken--) {\n                int rightIndex = n - 1 - (operation - leftTaken);\n                int takeLeft = multiplier * nums[leftTaken] + dp[operation + 1][leftTaken + 1];\n                int takeRight = multiplier * nums[rightIndex] + dp[operation + 1][leftTaken];\n                dp[operation][leftTaken] = Math.max(takeLeft, takeRight);\n            }\n        }\n        return dp[0][0];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Memoized Endpoint Choice",
+      "timeComplexity": "O(m^2)",
+      "spaceComplexity": "O(m^2)",
+      "description": "## Approach\n\nUse the same state in top-down form. The recursive function receives the operation index and the number of left picks already made. It tries taking the current left endpoint or the current right endpoint, then memoizes the better score.\n\n## Key Insight\n\nThe right endpoint can be derived from `operation - leftTaken`, so the recursion has only O(m^2) states. Memoization keeps the natural decision tree from expanding into `2^m` repeated subproblems.\n\n## Complexity Analysis\n\n- Time Complexity: O(m^2)\n- Space Complexity: O(m^2)",
+      "code": "class Solution {\n    private int[] nums;\n    private int[] multipliers;\n    private Integer[][] memo;\n\n    public int maximumScore(int[] nums, int[] multipliers) {\n        this.nums = nums;\n        this.multipliers = multipliers;\n        this.memo = new Integer[multipliers.length][multipliers.length + 1];\n        return dfs(0, 0);\n    }\n\n    private int dfs(int operation, int leftTaken) {\n        if (operation == multipliers.length) {\n            return 0;\n        }\n        if (memo[operation][leftTaken] != null) {\n            return memo[operation][leftTaken];\n        }\n\n        int rightIndex = nums.length - 1 - (operation - leftTaken);\n        int multiplier = multipliers[operation];\n        int takeLeft = multiplier * nums[leftTaken] + dfs(operation + 1, leftTaken + 1);\n        int takeRight = multiplier * nums[rightIndex] + dfs(operation + 1, leftTaken);\n        memo[operation][leftTaken] = Math.max(takeLeft, takeRight);\n        return memo[operation][leftTaken];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Rolling One-Dimensional DP",
+      "timeComplexity": "O(m^2)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nThe bottom-up recurrence for operation `i` depends only on operation `i + 1`. Store that next layer in a one-dimensional array, build the current layer, then replace the next layer with it.\n\n## Key Insight\n\nThe full table is useful for explanation, but not for computation. Because every transition reads only from the next operation layer, the memory can be reduced from O(m^2) to O(m) without changing the state definition.\n\n## Complexity Analysis\n\n- Time Complexity: O(m^2)\n- Space Complexity: O(m)",
+      "code": "class Solution {\n    public int maximumScore(int[] nums, int[] multipliers) {\n        int n = nums.length;\n        int m = multipliers.length;\n        int[] next = new int[m + 1];\n\n        for (int operation = m - 1; operation >= 0; operation--) {\n            int[] current = new int[m + 1];\n            int multiplier = multipliers[operation];\n            for (int leftTaken = operation; leftTaken >= 0; leftTaken--) {\n                int rightIndex = n - 1 - (operation - leftTaken);\n                int takeLeft = multiplier * nums[leftTaken] + next[leftTaken + 1];\n                int takeRight = multiplier * nums[rightIndex] + next[leftTaken];\n                current[leftTaken] = Math.max(takeLeft, takeRight);\n            }\n            next = current;\n        }\n        return next[0];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Forward Layer DP",
+      "timeComplexity": "O(m^2)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nBuild scores from the start instead of from the end. `current[leftTaken]` stores the best score after a fixed number of operations with exactly `leftTaken` picks from the left. For the next multiplier, push that score to either `leftTaken + 1` after taking left, or `leftTaken` after taking right.\n\n## Key Insight\n\nThis is the same state graph viewed as reachable layers. It makes clear that each operation adds one pick, and the number of right picks is always `operation - leftTaken`.\n\n## Complexity Analysis\n\n- Time Complexity: O(m^2)\n- Space Complexity: O(m)",
+      "code": "class Solution {\n    public int maximumScore(int[] nums, int[] multipliers) {\n        int n = nums.length;\n        int m = multipliers.length;\n        int unreachable = Integer.MIN_VALUE / 4;\n        int[] current = new int[m + 1];\n        java.util.Arrays.fill(current, unreachable);\n        current[0] = 0;\n\n        for (int operation = 0; operation < m; operation++) {\n            int[] next = new int[m + 1];\n            java.util.Arrays.fill(next, unreachable);\n            int multiplier = multipliers[operation];\n            for (int leftTaken = 0; leftTaken <= operation; leftTaken++) {\n                int score = current[leftTaken];\n                if (score == unreachable) {\n                    continue;\n                }\n                int rightIndex = n - 1 - (operation - leftTaken);\n                next[leftTaken + 1] = Math.max(next[leftTaken + 1], score + multiplier * nums[leftTaken]);\n                next[leftTaken] = Math.max(next[leftTaken], score + multiplier * nums[rightIndex]);\n            }\n            current = next;\n        }\n\n        int answer = Integer.MIN_VALUE;\n        for (int leftTaken = 0; leftTaken <= m; leftTaken++) {\n            answer = Math.max(answer, current[leftTaken]);\n        }\n        return answer;\n    }\n}",
+      "language": "java"
     }
   ]
 }

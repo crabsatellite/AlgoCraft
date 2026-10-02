@@ -1,43 +1,107 @@
 {
   "id": "123",
   "title": "Letter Combinations of a Phone Number",
-  "description": "# Letter Combinations of a Phone Number\n\nGiven a string containing digits from `2-9` inclusive, return all possible letter combinations that the number could represent. Return the answer in **any order**.\n\nA mapping of digits to letters (just like on the telephone buttons) is given below. Note that 1 does not map to any letters.\n\n*   2: \"abc\"\n*   3: \"def\"\n*   4: \"ghi\"\n*   5: \"jkl\"\n*   6: \"mno\"\n*   7: \"pqrs\"\n*   8: \"tuv\"\n*   9: \"wxyz\"\n\n## Example 1:\n\n**Input:** digits = \"23\"\n**Output:** [\"ad\",\"ae\",\"af\",\"bd\",\"be\",\"bf\",\"cd\",\"ce\",\"cf\"]\n\n## Example 2:\n\n**Input:** digits = \"\"\n**Output:** []\n\n## Example 3:\n\n**Input:** digits = \"2\"\n**Output:** [\"a\",\"b\",\"c\"]\n\n## Constraints:\n\n*   `0 <= digits.length <= 4`\n*   `digits[i]` is a digit in the range `['2', '9']`.",
+  "description": "# Letter Combinations of a Phone Number\n\nGiven a string `digits` containing only digits from `2` through `9`, return all possible letter strings that the number could represent on a telephone keypad.\n\nEach output string must choose exactly one letter for each digit, in the same left-to-right order as `digits`. The judge accepts the combinations in any order. If `digits` is empty, return an empty list rather than a list containing the empty string.\n\nThe digit-to-letter mapping is:\n\n* `2`: `abc`\n* `3`: `def`\n* `4`: `ghi`\n* `5`: `jkl`\n* `6`: `mno`\n* `7`: `pqrs`\n* `8`: `tuv`\n* `9`: `wxyz`\n\n## Example 1:\n\n**Input:** digits = \"23\"\n**Output:** [\"ad\",\"ae\",\"af\",\"bd\",\"be\",\"bf\",\"cd\",\"ce\",\"cf\"]\n\n## Example 2:\n\n**Input:** digits = \"\"\n**Output:** []\n\n## Example 3:\n\n**Input:** digits = \"2\"\n**Output:** [\"a\",\"b\",\"c\"]\n\n## Constraints:\n\n* `0 <= digits.length <= 4`\n* `digits[i]` is in the range `['2', '9']`.",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public List<String> letterCombinations(String digits) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["Hash Table", "String", "Backtracking"],
+  "initialCode": "import java.util.*;\n\nclass Solution {\n    public List<String> letterCombinations(String digits) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
+  "tags": [
+    "Hash Table",
+    "String",
+    "Backtracking"
+  ],
   "examples": [
     {
       "input": "digits = \"23\"",
       "output": "[\"ad\",\"ae\",\"af\",\"bd\",\"be\",\"bf\",\"cd\",\"ce\",\"cf\"]"
     },
-    { "input": "digits = \"\"", "output": "[]" },
-    { "input": "digits = \"2\"", "output": "[\"a\",\"b\",\"c\"]" }
+    {
+      "input": "digits = \"\"",
+      "output": "[]"
+    },
+    {
+      "input": "digits = \"2\"",
+      "output": "[\"a\",\"b\",\"c\"]"
+    }
   ],
   "solutions": [
     {
-      "name": "Backtracking",
-      "timeComplexity": "O(4^n) where n = digits length",
+      "name": "StringBuilder Backtracking",
+      "timeComplexity": "O(n * 4^n)",
       "spaceComplexity": "O(n)",
-      "description": "Map each digit to its letters. Backtrack through each digit, appending each possible letter and recursing to the next digit.",
-      "code": "import java.util.*;\n\nclass Solution {\n    private static final String[] MAPPING = {\n        \"\", \"\", \"abc\", \"def\", \"ghi\", \"jkl\", \"mno\", \"pqrs\", \"tuv\", \"wxyz\"\n    };\n\n    public List<String> letterCombinations(String digits) {\n        List<String> result = new ArrayList<>();\n        if (digits.isEmpty()) return result;\n        backtrack(digits, 0, new StringBuilder(), result);\n        return result;\n    }\n\n    private void backtrack(String digits, int idx, StringBuilder sb, List<String> result) {\n        if (idx == digits.length()) {\n            result.add(sb.toString());\n            return;\n        }\n        String letters = MAPPING[digits.charAt(idx) - '0'];\n        for (char c : letters.toCharArray()) {\n            sb.append(c);\n            backtrack(digits, idx + 1, sb, result);\n            sb.deleteCharAt(sb.length() - 1);\n        }\n    }\n}",
+      "description": "## Approach\n\nMap each digit to its keypad letters and build one candidate string from left to right. At recursion index `i`, append each possible letter for `digits[i]`, recurse to `i + 1`, then remove that letter before trying the next branch.\n\n## Key Insight\n\nThe problem is a Cartesian product of small letter sets. Backtracking makes one choice per digit and keeps only the current partial word on the recursion stack.\n\n## Complexity Analysis\n- Time Complexity: O(n * 4^n), because there can be at most 4^n strings and each emitted string has length n\n- Space Complexity: O(n) excluding the returned list",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final String[] MAPPING = {\n        \"\", \"\", \"abc\", \"def\", \"ghi\", \"jkl\", \"mno\", \"pqrs\", \"tuv\", \"wxyz\"\n    };\n\n    public List<String> letterCombinations(String digits) {\n        List<String> answer = new ArrayList<>();\n        if (digits.isEmpty()) {\n            return answer;\n        }\n        backtrack(digits, 0, new StringBuilder(), answer);\n        return answer;\n    }\n\n    private void backtrack(String digits, int index, StringBuilder builder, List<String> answer) {\n        if (index == digits.length()) {\n            answer.add(builder.toString());\n            return;\n        }\n        String letters = MAPPING[digits.charAt(index) - '0'];\n        for (char letter : letters.toCharArray()) {\n            builder.append(letter);\n            backtrack(digits, index + 1, builder, answer);\n            builder.deleteCharAt(builder.length() - 1);\n        }\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Iterative BFS-style",
-      "timeComplexity": "O(4^n) where n = digits length",
-      "spaceComplexity": "O(4^n)",
-      "description": "Iteratively build combinations. Start with an empty string in the result. For each digit, take every existing string and append each letter of the current digit to form new strings.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> letterCombinations(String digits) {\n        List<String> result = new ArrayList<>();\n        if (digits.isEmpty()) return result;\n        String[] mapping = {\"\", \"\", \"abc\", \"def\", \"ghi\", \"jkl\", \"mno\", \"pqrs\", \"tuv\", \"wxyz\"};\n        result.add(\"\");\n        for (int i = 0; i < digits.length(); i++) {\n            String letters = mapping[digits.charAt(i) - '0'];\n            List<String> next = new ArrayList<>();\n            for (String prev : result) {\n                for (char c : letters.toCharArray()) {\n                    next.add(prev + c);\n                }\n            }\n            result = next;\n        }\n        return result;\n    }\n}",
+      "name": "Iterative Layer Expansion",
+      "timeComplexity": "O(n * 4^n)",
+      "spaceComplexity": "O(n * 4^n)",
+      "description": "## Approach\n\nStart with one empty prefix. For each digit, create a new layer by appending every mapped letter to every prefix from the previous layer. After all digits are processed, the current layer is the answer.\n\n## Key Insight\n\nThe recursion tree can also be viewed level by level. Each level fixes one more digit, so the list of prefixes grows exactly like a breadth-first traversal of the product space.\n\n## Complexity Analysis\n- Time Complexity: O(n * 4^n)\n- Space Complexity: O(n * 4^n) for the generated prefixes and final answers",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final String[] MAPPING = {\n        \"\", \"\", \"abc\", \"def\", \"ghi\", \"jkl\", \"mno\", \"pqrs\", \"tuv\", \"wxyz\"\n    };\n\n    public List<String> letterCombinations(String digits) {\n        List<String> answer = new ArrayList<>();\n        if (digits.isEmpty()) {\n            return answer;\n        }\n        answer.add(\"\");\n        for (int i = 0; i < digits.length(); i++) {\n            String letters = MAPPING[digits.charAt(i) - '0'];\n            List<String> next = new ArrayList<>();\n            for (String prefix : answer) {\n                for (char letter : letters.toCharArray()) {\n                    next.add(prefix + letter);\n                }\n            }\n            answer = next;\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Suffix Cartesian Product",
+      "timeComplexity": "O(n * 4^n)",
+      "spaceComplexity": "O(n * 4^n)",
+      "description": "## Approach\n\nSolve the suffix first. `combine(index)` returns every string that can be formed from `digits[index..]`. The current digit then prepends each of its letters to every suffix string.\n\n## Key Insight\n\nThis is the same Cartesian product as backtracking, but the subproblem boundary is explicit: combinations for the current digit are formed from one current letter plus every valid suffix combination.\n\n## Complexity Analysis\n- Time Complexity: O(n * 4^n)\n- Space Complexity: O(n * 4^n), because suffix result lists are materialized",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final String[] MAPPING = {\n        \"\", \"\", \"abc\", \"def\", \"ghi\", \"jkl\", \"mno\", \"pqrs\", \"tuv\", \"wxyz\"\n    };\n\n    public List<String> letterCombinations(String digits) {\n        if (digits.isEmpty()) {\n            return new ArrayList<>();\n        }\n        return combine(digits, 0);\n    }\n\n    private List<String> combine(String digits, int index) {\n        if (index == digits.length()) {\n            return new ArrayList<>(Collections.singletonList(\"\"));\n        }\n        List<String> suffixes = combine(digits, index + 1);\n        List<String> result = new ArrayList<>();\n        String letters = MAPPING[digits.charAt(index) - '0'];\n        for (int i = 0; i < letters.length(); i++) {\n            for (String suffix : suffixes) {\n                result.add(letters.charAt(i) + suffix);\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Mixed-Radix Index Enumeration",
+      "timeComplexity": "O(n * 4^n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nTreat the answer list as counting in a mixed-radix number system. Each digit position has radix 3 or 4 depending on how many letters that key owns. For each counter value, read one letter from every position and then increment the rightmost position with carry.\n\n## Key Insight\n\nBacktracking is not required to enumerate the Cartesian product. Because `digits.length` is small, an index vector can represent the current choice for every digit and advance through all combinations iteratively.\n\n## Complexity Analysis\n- Time Complexity: O(n * 4^n)\n- Space Complexity: O(n) excluding the returned list",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final String[] MAPPING = {\n        \"\", \"\", \"abc\", \"def\", \"ghi\", \"jkl\", \"mno\", \"pqrs\", \"tuv\", \"wxyz\"\n    };\n\n    public List<String> letterCombinations(String digits) {\n        List<String> answer = new ArrayList<>();\n        if (digits.isEmpty()) {\n            return answer;\n        }\n\n        int n = digits.length();\n        String[] lettersByIndex = new String[n];\n        int total = 1;\n        for (int i = 0; i < n; i++) {\n            lettersByIndex[i] = MAPPING[digits.charAt(i) - '0'];\n            total *= lettersByIndex[i].length();\n        }\n\n        int[] indexes = new int[n];\n        for (int count = 0; count < total; count++) {\n            StringBuilder builder = new StringBuilder();\n            for (int i = 0; i < n; i++) {\n                builder.append(lettersByIndex[i].charAt(indexes[i]));\n            }\n            answer.add(builder.toString());\n\n            for (int pos = n - 1; pos >= 0; pos--) {\n                indexes[pos]++;\n                if (indexes[pos] < lettersByIndex[pos].length()) {\n                    break;\n                }\n                indexes[pos] = 0;\n            }\n        }\n        return answer;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "digits = \"23\"",
-      "output": "[\"ad\",\"ae\",\"af\",\"bd\",\"be\",\"bf\",\"cd\",\"ce\",\"cf\"]"
+      "output": "[\"ad\",\"ae\",\"af\",\"bd\",\"be\",\"bf\",\"cd\",\"ce\",\"cf\"]",
+      "description": "Canonical two-digit input forms the Cartesian product of two three-letter keys."
     },
-    { "input": "digits = \"\"", "output": "[]" },
-    { "input": "digits = \"2\"", "output": "[\"a\",\"b\",\"c\"]" },
-    { "input": "digits = \"7\"", "output": "[\"p\",\"q\",\"r\",\"s\"]" }
+    {
+      "input": "digits = \"\"",
+      "output": "[]",
+      "description": "Empty input returns no combinations, not a single empty string."
+    },
+    {
+      "input": "digits = \"2\"",
+      "output": "[\"a\",\"b\",\"c\"]",
+      "description": "Single three-letter key."
+    },
+    {
+      "input": "digits = \"7\"",
+      "output": "[\"p\",\"q\",\"r\",\"s\"]",
+      "description": "Single four-letter key verifies that 7 has four letters."
+    },
+    {
+      "input": "digits = \"9\"",
+      "output": "[\"w\",\"x\",\"y\",\"z\"]",
+      "description": "The other four-letter key should also produce four choices."
+    },
+    {
+      "input": "digits = \"79\"",
+      "output": "[\"pw\",\"px\",\"py\",\"pz\",\"qw\",\"qx\",\"qy\",\"qz\",\"rw\",\"rx\",\"ry\",\"rz\",\"sw\",\"sx\",\"sy\",\"sz\"]",
+      "description": "Two four-letter keys produce sixteen combinations."
+    },
+    {
+      "input": "digits = \"22\"",
+      "output": "[\"aa\",\"ab\",\"ac\",\"ba\",\"bb\",\"bc\",\"ca\",\"cb\",\"cc\"]",
+      "description": "Repeated digits still represent independent choices."
+    },
+    {
+      "input": "digits = \"234\"",
+      "output": "[\"adg\",\"adh\",\"adi\",\"aeg\",\"aeh\",\"aei\",\"afg\",\"afh\",\"afi\",\"bdg\",\"bdh\",\"bdi\",\"beg\",\"beh\",\"bei\",\"bfg\",\"bfh\",\"bfi\",\"cdg\",\"cdh\",\"cdi\",\"ceg\",\"ceh\",\"cei\",\"cfg\",\"cfh\",\"cfi\"]",
+      "description": "Three three-letter keys verify deeper Cartesian-product layering."
+    },
+    {
+      "input": "digits = \"568\"",
+      "output": "[\"jmt\",\"jmu\",\"jmv\",\"jnt\",\"jnu\",\"jnv\",\"jot\",\"jou\",\"jov\",\"kmt\",\"kmu\",\"kmv\",\"knt\",\"knu\",\"knv\",\"kot\",\"kou\",\"kov\",\"lmt\",\"lmu\",\"lmv\",\"lnt\",\"lnu\",\"lnv\",\"lot\",\"lou\",\"lov\"]",
+      "description": "A mixed set of middle keypad digits checks mapping positions beyond the common examples."
+    }
   ]
 }

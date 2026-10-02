@@ -10,21 +10,20 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 public class NetworkHandler {
     @SubscribeEvent
     public static void register(final RegisterPayloadHandlersEvent event) {
-        final PayloadRegistrar registrar = event.registrar("1");
+        final PayloadRegistrar registrar = event.registrar("2");
+        registrar.playToClient(PacketCatalogManifest.TYPE, PacketCatalogManifest.STREAM_CODEC, PacketCatalogManifest::handle);
+        registrar.playToClient(PacketCatalogChunk.TYPE, PacketCatalogChunk.STREAM_CODEC, PacketCatalogChunk::handle);
+        registrar.playToClient(PacketSubmissionResult.TYPE, PacketSubmissionResult.STREAM_CODEC, PacketSubmissionResult::handle);
+        registrar.playToServer(PacketRequestCatalog.TYPE, PacketRequestCatalog.STREAM_CODEC, PacketRequestCatalog::handle);
         registrar.playToServer(
-            PacketSolveProblem.TYPE,
-            PacketSolveProblem.STREAM_CODEC,
-            PacketSolveProblem::handle
+            PacketSubmitSolution.TYPE,
+            PacketSubmitSolution.STREAM_CODEC,
+            PacketSubmitSolution::handle
         );
         registrar.playToServer(
             PacketSetSolvingState.TYPE,
             PacketSetSolvingState.STREAM_CODEC,
             PacketSetSolvingState::handle
-        );
-        registrar.playToServer(
-            PacketSubmissionFailed.TYPE,
-            PacketSubmissionFailed.STREAM_CODEC,
-            PacketSubmissionFailed::handle
         );
         registrar.playToClient(
             PacketSyncProgress.TYPE,

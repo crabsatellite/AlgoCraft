@@ -1,35 +1,111 @@
 {
   "id": "455",
   "title": "Find Missing Observations",
-  "description": "# Find Missing Observations\n\nYou have observations of `n + m` **6-sided** dice rolls with each face numbered from `1` to `6`. `n` of the observations went missing, and you only have the observations of `m` rolls. Fortunately, you have also calculated the **average value** of the `n + m` rolls.\n\nYou are given an integer array `rolls` of length `m` where `rolls[i]` is the value of the `i-th` observation. You are also given the two integers `mean` and `n`.\n\nReturn an array of length `n` containing the missing observations such that the **average value** of the `n + m` rolls is exactly `mean`. If there are multiple valid answers, return any of them. If no such array exists, return an empty array.\n\nThe average value of a set of `k` numbers is the sum of the numbers divided by `k`.\n\n## Example 1:\n\n**Input:** rolls = [3,2,4,3], mean = 4, n = 2\n**Output:** [6,6]\n**Explanation:** The mean of all n + m rolls is (3 + 2 + 4 + 3 + 6 + 6) / 6 = 24 / 6 = 4.\n\n## Example 2:\n\n**Input:** rolls = [1,5,6], mean = 3, n = 4\n**Output:** [2,3,2,2]\n**Explanation:** The mean of all n + m rolls is (1 + 5 + 6 + 2 + 3 + 2 + 2) / 7 = 21 / 7 = 3.\n\n## Example 3:\n\n**Input:** rolls = [1,2,3,4], mean = 6, n = 4\n**Output:** []\n**Explanation:** It is impossible for the mean to be 6 no matter what the 4 missing rolls are.\n\n## Constraints:\n\n*   `m == rolls.length`\n*   `1 <= n, m <= 10^5`\n*   `1 <= rolls[i], mean <= 6`",
+  "description": "# Find Missing Observations\n\nYou have `n + m` observations from rolls of a standard 6-sided die. Each roll is an integer from `1` to `6`.\n\nExactly `n` observations are missing. You are given the remaining `m` observations in the integer array `rolls`, and you are given the integer `mean`, the average value of all `n + m` observations.\n\nReturn an integer array of length `n` representing any possible missing observations that make the average of all observations exactly `mean`. If no such missing observations exist, return an empty array.\n\nThe average value of `k` numbers is their sum divided by `k`. Because any valid missing array is accepted, the order of the returned values does not matter.\n\n## Example 1:\n\n**Input:** rolls = [3,2,4,3], mean = 4, n = 2\n**Output:** [6,6]\n**Explanation:** The total sum must be `4 * 6 = 24`. The known rolls sum to `12`, so the two missing rolls must sum to `12`, and `[6,6]` works.\n\n## Example 2:\n\n**Input:** rolls = [1,5,6], mean = 3, n = 4\n**Output:** [3,2,2,2]\n**Explanation:** The total sum must be `3 * 7 = 21`. The known rolls sum to `12`, so the four missing rolls must sum to `9`. Many arrays work, including `[3,2,2,2]`.\n\n## Example 3:\n\n**Input:** rolls = [1,2,3,4], mean = 6, n = 4\n**Output:** []\n**Explanation:** The total sum would need to be `6 * 8 = 48`. The missing rolls would need to sum to `38`, but four dice can sum to at most `24`.\n\n## Constraints:\n\n*   `m == rolls.length`\n*   `1 <= n, m <= 10^5`\n*   `1 <= rolls[i], mean <= 6`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int[] missingRolls(int[] rolls, int mean, int n) {\n        \n    }\n}",
-  "tags": ["Array", "Math", "Simulation"],
+  "tags": [
+    "Array",
+    "Math",
+    "Simulation",
+    "Greedy"
+  ],
   "examples": [
-    { "input": "rolls = [3,2,4,3], mean = 4, n = 2", "output": "[6,6]" },
-    { "input": "rolls = [1,5,6], mean = 3, n = 4", "output": "[3,2,2,2]" }
+    {
+      "input": "rolls = [3,2,4,3], mean = 4, n = 2",
+      "output": "[6,6]"
+    },
+    {
+      "input": "rolls = [1,5,6], mean = 3, n = 4",
+      "output": "[3,2,2,2]"
+    },
+    {
+      "input": "rolls = [1,2,3,4], mean = 6, n = 4",
+      "output": "[]"
+    }
   ],
   "solutions": [
     {
-      "name": "Math Distribution",
+      "name": "Even Quotient Remainder Distribution",
       "timeComplexity": "O(n + m)",
       "spaceComplexity": "O(n)",
-      "description": "Compute the total sum needed for n missing dice. Check if it's feasible (between n and 6n). Distribute evenly: each die gets missingSum/n, and the first missingSum%n dice get one extra.",
-      "code": "class Solution {\n    public int[] missingRolls(int[] rolls, int mean, int n) {\n        int m = rolls.length;\n        int totalSum = mean * (n + m);\n        int existingSum = 0;\n        for (int r : rolls) existingSum += r;\n        int missingSum = totalSum - existingSum;\n        if (missingSum < n || missingSum > 6 * n) return new int[0];\n        int[] result = new int[n];\n        int base = missingSum / n;\n        int extra = missingSum % n;\n        for (int i = 0; i < n; i++) {\n            result[i] = base + (i < extra ? 1 : 0);\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nCompute the total sum required by the mean, subtract the known roll sum, and get the missing sum. If the missing sum is outside `[n, 6n]`, no dice values can realize it. Otherwise give every missing die the quotient `missingSum / n`, and distribute the remainder by adding one to the first few dice.\n\n## Key Insight\n\nThe problem is only about building any length-`n` array with values from `1` to `6` and the correct sum. Once the missing sum is feasible, quotient-and-remainder distribution gives a balanced construction immediately.\n\n## Complexity Analysis\n\nThe known rolls are scanned once and the answer array is filled once. The running time is `O(n + m)` and the extra space is `O(n)` for the returned array.",
+      "code": "class Solution {\n    public int[] missingRolls(int[] rolls, int mean, int n) {\n        int missingSum = mean * (rolls.length + n);\n        for (int roll : rolls) {\n            missingSum -= roll;\n        }\n        if (missingSum < n || missingSum > 6 * n) {\n            return new int[0];\n        }\n\n        int[] result = new int[n];\n        int base = missingSum / n;\n        int extra = missingSum % n;\n        for (int i = 0; i < n; i++) {\n            result[i] = base + (i < extra ? 1 : 0);\n        }\n        return result;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Greedy Fill from Max",
+      "name": "Start From Ones Greedy Top-Up",
       "timeComplexity": "O(n + m)",
       "spaceComplexity": "O(n)",
-      "description": "Compute missing sum needed. Start by filling all dice with 1, then greedily add to each die (up to 5 more to reach 6) until the remaining deficit is distributed.",
-      "code": "class Solution {\n    public int[] missingRolls(int[] rolls, int mean, int n) {\n        int m = rolls.length;\n        int totalSum = mean * (n + m);\n        int existingSum = 0;\n        for (int r : rolls) existingSum += r;\n        int missingSum = totalSum - existingSum;\n        if (missingSum < n || missingSum > 6 * n) return new int[0];\n        int[] result = new int[n];\n        int base = missingSum / n;\n        int extra = missingSum % n;\n        for (int i = 0; i < n; i++) {\n            result[i] = base + (i < extra ? 1 : 0);\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nAfter computing the missing sum and checking feasibility, initialize all missing dice to `1`. This spends the mandatory minimum sum. Then greedily add up to `5` more points to each die until the remaining extra sum is exhausted.\n\n## Key Insight\n\nEach die can be viewed as one required point plus five optional capacity points. Feasibility means the total extra demand fits inside those capacities, so a simple left-to-right fill is enough.\n\n## Complexity Analysis\n\nThe algorithm scans `rolls`, initializes `n` answers, and performs one more pass over the answer. The running time is `O(n + m)` and the extra space is `O(n)`.",
+      "code": "class Solution {\n    public int[] missingRolls(int[] rolls, int mean, int n) {\n        int missingSum = mean * (rolls.length + n);\n        for (int roll : rolls) {\n            missingSum -= roll;\n        }\n        if (missingSum < n || missingSum > 6 * n) {\n            return new int[0];\n        }\n\n        int[] result = new int[n];\n        java.util.Arrays.fill(result, 1);\n        int remaining = missingSum - n;\n        for (int i = 0; i < n && remaining > 0; i++) {\n            int add = Math.min(5, remaining);\n            result[i] += add;\n            remaining -= add;\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Feasibility-Preserving Lower Bound Fill",
+      "timeComplexity": "O(n + m)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFill the answer from left to right. At each slot, choose the smallest value that still lets all remaining slots, even if they become `6`, reach the remaining sum.\n\n## Key Insight\n\nThe construction maintains an invariant: after choosing the current value, the remaining sum still lies between the minimum and maximum possible sums of the remaining dice.\n\n## Complexity Analysis\n\nThe known rolls and missing slots are each processed once. The running time is `O(n + m)` and the extra space is `O(n)`.",
+      "code": "class Solution {\n    public int[] missingRolls(int[] rolls, int mean, int n) {\n        int missingSum = mean * (rolls.length + n);\n        for (int roll : rolls) {\n            missingSum -= roll;\n        }\n        if (missingSum < n || missingSum > 6 * n) {\n            return new int[0];\n        }\n\n        int[] answer = new int[n];\n        for (int i = 0; i < n; i++) {\n            int remainingSlots = n - i - 1;\n            int value = Math.max(1, missingSum - 6 * remainingSlots);\n            answer[i] = value;\n            missingSum -= value;\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Upper Reserve Fill",
+      "timeComplexity": "O(n + m)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFill from left to right, but choose the largest value that still leaves at least `1` for every remaining slot. This is the mirror image of the lower-bound fill.\n\n## Key Insight\n\nA valid partial construction only needs to reserve enough minimum capacity for the suffix. Taking the largest safe current value produces a valid array without balancing the values.\n\n## Complexity Analysis\n\nThe method uses one pass over the known rolls and one pass over the missing slots. The running time is `O(n + m)` and the extra space is `O(n)`.",
+      "code": "class Solution {\n    public int[] missingRolls(int[] rolls, int mean, int n) {\n        int missingSum = mean * (rolls.length + n);\n        for (int roll : rolls) {\n            missingSum -= roll;\n        }\n        if (missingSum < n || missingSum > 6 * n) {\n            return new int[0];\n        }\n\n        int[] answer = new int[n];\n        for (int i = 0; i < n; i++) {\n            int remainingSlots = n - i - 1;\n            int value = Math.min(6, missingSum - remainingSlots);\n            answer[i] = value;\n            missingSum -= value;\n        }\n        return answer;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "rolls = [3,2,4,3], mean = 4, n = 2", "output": "[6,6]" },
-    { "input": "rolls = [1,5,6], mean = 3, n = 4", "output": "[3,2,2,2]" },
-    { "input": "rolls = [1,2,3,4], mean = 6, n = 4", "output": "[]" }
+    {
+      "input": "rolls = [3,2,4,3], mean = 4, n = 2",
+      "output": "[6,6]"
+    },
+    {
+      "input": "rolls = [1,5,6], mean = 3, n = 4",
+      "output": "[3,2,2,2]"
+    },
+    {
+      "input": "rolls = [1,2,3,4], mean = 6, n = 4",
+      "output": "[]"
+    },
+    {
+      "input": "rolls = [1], mean = 1, n = 1",
+      "output": "[1]"
+    },
+    {
+      "input": "rolls = [6], mean = 1, n = 1",
+      "output": "[]"
+    },
+    {
+      "input": "rolls = [6,6], mean = 6, n = 2",
+      "output": "[6,6]"
+    },
+    {
+      "input": "rolls = [1,1,1], mean = 1, n = 4",
+      "output": "[1,1,1,1]"
+    },
+    {
+      "input": "rolls = [2,3], mean = 2, n = 3",
+      "output": "[2,2,1]"
+    },
+    {
+      "input": "rolls = [1,2], mean = 3, n = 4",
+      "output": "[4,4,4,3]"
+    },
+    {
+      "input": "rolls = [5,5], mean = 6, n = 3",
+      "output": "[]"
+    },
+    {
+      "input": "rolls = [2,4], mean = 3, n = 4",
+      "output": "[3,3,3,3]"
+    },
+    {
+      "input": "rolls = [6,1,5], mean = 3, n = 10",
+      "output": "[3,3,3,3,3,3,3,2,2,2]"
+    }
   ]
 }

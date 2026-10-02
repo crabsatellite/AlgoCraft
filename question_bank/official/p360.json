@@ -1,68 +1,156 @@
 {
   "id": "360",
-  "title": "Longest Increasing Path in a Matrix",
-  "description": "# Longest Increasing Path in a Matrix\n\nGiven an `m x n` integers `matrix`, return *the length of the longest increasing path in* `matrix`.\n\nFrom each cell, you can either move in four directions: left, right, up, or down. You **may not** move diagonally or move outside the boundary (i.e., wrap-around is not allowed).\n\n## Example 1:\n\n**Input:** matrix = [[9,9,4],[6,6,8],[2,1,1]]\n**Output:** 4\n**Explanation:** The longest increasing path is [1, 2, 6, 9].\n\n## Example 2:\n\n**Input:** matrix = [[3,4,5],[3,2,6],[2,2,1]]\n**Output:** 4\n**Explanation:** The longest increasing path is [3, 4, 5, 6]. Moving diagonally is not allowed.\n\n## Example 3:\n\n**Input:** matrix = [[1]]\n**Output:** 1\n\n## Constraints:\n\n*   `m == matrix.length`\n*   `n == matrix[i].length`\n*   `1 <= m, n <= 200`\n*   `0 <= matrix[i][j] <= 2^31 - 1`",
-  "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int longestIncreasingPath(int[][] matrix) {\n        \n    }\n}",
+  "title": "Divide Players Into Teams",
+  "description": "# Divide Players Into Teams\n\nYou are given an even-length array `skill`, where `skill[i]` is one player's skill. Divide all players into pairs so that every pair has exactly the same total skill.\n\nThe chemistry of one pair is the product of the two skills in that pair. Return the sum of the chemistry values of all pairs. If no such division exists, return `-1`.\n\n## Example 1:\n\n**Input:** skill = [3,2,5,1,3,4]\n**Output:** 22\n**Explanation:** The pairs can be `(1,5)`, `(2,4)`, and `(3,3)`. Their chemistry sum is `1 * 5 + 2 * 4 + 3 * 3 = 22`.\n\n## Example 2:\n\n**Input:** skill = [3,4]\n**Output:** 12\n**Explanation:** There is only one pair, so it is always valid.\n\n## Example 3:\n\n**Input:** skill = [1,1,2,2,2,4]\n**Output:** -1\n**Explanation:** The total skill is divisible by the number of pairs, but there is no way to give every pair the same sum.\n\n## Constraints:\n\n* `2 <= skill.length <= 10^5`\n* `skill.length` is even.\n* `1 <= skill[i] <= 10^6`\n* The answer fits in a 64-bit signed integer.",
+  "difficulty": "MEDIUM",
+  "initialCode": "class Solution {\n    public long dividePlayers(int[] skill) {\n        return 0L;\n    }\n}",
   "tags": [
-    "Dynamic Programming",
-    "Depth-First Search",
-    "Breadth-First Search",
-    "Graph",
-    "Topological Sort",
-    "Memoization"
+    "Array",
+    "Hash Table",
+    "Sorting",
+    "Two Pointers"
   ],
   "examples": [
     {
-      "input": "matrix = [[9,9,4],[6,6,8],[2,1,1]]",
-      "output": "4"
+      "input": "skill = [3,2,5,1,3,4]",
+      "output": "22"
     },
     {
-      "input": "matrix = [[3,4,5],[3,2,6],[2,2,1]]",
-      "output": "4"
+      "input": "skill = [3,4]",
+      "output": "12"
     },
     {
-      "input": "matrix = [[1]]",
-      "output": "1"
+      "input": "skill = [1,1,2,2,2,4]",
+      "output": "-1"
     }
   ],
   "solutions": [
     {
-      "name": "DFS with Memoization",
-      "timeComplexity": "O(m * n)",
-      "spaceComplexity": "O(m * n)",
-      "description": "For each cell, DFS to find the longest increasing path starting from it. Cache results in a memo array. Since we only move to strictly larger values, there are no cycles and no visited array is needed.",
-      "code": "class Solution {\n    private int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n    public int longestIncreasingPath(int[][] matrix) {\n        int m = matrix.length, n = matrix[0].length;\n        int[][] memo = new int[m][n];\n        int result = 0;\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++)\n                result = Math.max(result, dfs(matrix, i, j, memo));\n        return result;\n    }\n    private int dfs(int[][] matrix, int r, int c, int[][] memo) {\n        if (memo[r][c] != 0) return memo[r][c];\n        int best = 1;\n        for (int[] d : dirs) {\n            int nr = r + d[0], nc = c + d[1];\n            if (nr >= 0 && nr < matrix.length && nc >= 0 && nc < matrix[0].length && matrix[nr][nc] > matrix[r][c]) {\n                best = Math.max(best, 1 + dfs(matrix, nr, nc, memo));\n            }\n        }\n        memo[r][c] = best;\n        return best;\n    }\n}",
+      "name": "Sort Pair Ends",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nSort the skills. In any valid division, the smallest remaining player must pair with the largest remaining player; otherwise the smallest player would need someone even larger later. After sorting, repeatedly pair `left` and `right`, verify their sum equals the first target sum, and add their product to the answer.\n\n## Key Insight\n\nThe sorted extremes force each other. Once the minimum and maximum are paired, the same argument applies to the remaining subarray. This gives a short correctness proof and catches invalid inputs as soon as one extreme pair has the wrong sum.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n)\n- Space Complexity: O(1), ignoring the sorting implementation's stack or buffer",
+      "code": "import java.util.*;\n\nclass Solution {\n    public long dividePlayers(int[] skill) {\n        Arrays.sort(skill);\n        int target = skill[0] + skill[skill.length - 1];\n        long chemistry = 0;\n        for (int left = 0, right = skill.length - 1; left < right; left++, right--) {\n            if (skill[left] + skill[right] != target) {\n                return -1;\n            }\n            chemistry += (long) skill[left] * skill[right];\n        }\n        return chemistry;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "BFS Topological Sort (Kahn's Algorithm)",
-      "timeComplexity": "O(m * n)",
-      "spaceComplexity": "O(m * n)",
-      "description": "Build a DAG where edges go from smaller to larger adjacent cells. Compute in-degrees. Start BFS from cells with in-degree 0 (local minima). Process level by level; the number of levels is the longest increasing path.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int longestIncreasingPath(int[][] matrix) {\n        int m = matrix.length, n = matrix[0].length;\n        int[][] indegree = new int[m][n];\n        int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                for (int[] d : dirs) {\n                    int ni = i + d[0], nj = j + d[1];\n                    if (ni >= 0 && ni < m && nj >= 0 && nj < n && matrix[ni][nj] < matrix[i][j]) {\n                        indegree[i][j]++;\n                    }\n                }\n            }\n        }\n        Queue<int[]> queue = new LinkedList<>();\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++)\n                if (indegree[i][j] == 0) queue.offer(new int[]{i, j});\n        int levels = 0;\n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            levels++;\n            for (int q = 0; q < size; q++) {\n                int[] cell = queue.poll();\n                for (int[] d : dirs) {\n                    int ni = cell[0] + d[0], nj = cell[1] + d[1];\n                    if (ni >= 0 && ni < m && nj >= 0 && nj < n && matrix[ni][nj] > matrix[cell[0]][cell[1]]) {\n                        indegree[ni][nj]--;\n                        if (indegree[ni][nj] == 0) queue.offer(new int[]{ni, nj});\n                    }\n                }\n            }\n        }\n        return levels;\n    }\n}",
+      "name": "HashMap Complement Consumption",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nThe required pair sum must be the total skill divided by the number of pairs. If that division is not integral, return `-1`. Otherwise count each skill in a hash map. For each player skill `x`, consume one `x`, then consume one `target - x`; if the complement is unavailable, the division is impossible.\n\n## Key Insight\n\nA valid answer is a perfect matching by complement around one target sum. The total-skill check is only a necessary condition; the frequency map is what proves every individual value has enough matching complements.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public long dividePlayers(int[] skill) {\n        long total = 0;\n        for (int x : skill) total += x;\n        int pairs = skill.length / 2;\n        if (total % pairs != 0) return -1;\n        int target = (int) (total / pairs);\n\n        Map<Integer, Integer> count = new HashMap<>();\n        for (int x : skill) {\n            count.put(x, count.getOrDefault(x, 0) + 1);\n        }\n\n        long chemistry = 0;\n        for (int x : skill) {\n            if (count.getOrDefault(x, 0) == 0) continue;\n            count.put(x, count.get(x) - 1);\n            int y = target - x;\n            if (count.getOrDefault(y, 0) == 0) return -1;\n            count.put(y, count.get(y) - 1);\n            chemistry += (long) x * y;\n        }\n        return chemistry;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Counting Array Complement Sweep",
+      "timeComplexity": "O(n + U)",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\n\nUse the constraint `skill[i] <= 10^6`. Compute the required target sum from the total, build a counting array, and sweep possible skill values. For each value `x`, its only legal partner is `target - x`. The counts must match, except when `x` equals its own complement, where the count must be even.\n\n## Key Insight\n\nThe bounded skill range lets us replace hashing with direct indexing. Sweeping counts also makes the self-complement case explicit: values equal to half of the target must be paired among themselves two at a time.\n\n## Complexity Analysis\n\n- Time Complexity: O(n + U), where `U` is the larger of the maximum skill and the target sum\n- Space Complexity: O(U)",
+      "code": "class Solution {\n    public long dividePlayers(int[] skill) {\n        long total = 0;\n        int maxSkill = 0;\n        for (int x : skill) {\n            total += x;\n            maxSkill = Math.max(maxSkill, x);\n        }\n        int pairs = skill.length / 2;\n        if (total % pairs != 0) return -1;\n        int target = (int) (total / pairs);\n        if (target < 0) return -1;\n\n        int[] count = new int[Math.max(maxSkill, target) + 1];\n        for (int x : skill) count[x]++;\n\n        long chemistry = 0;\n        for (int x = 1; x < count.length; x++) {\n            if (count[x] == 0) continue;\n            int y = target - x;\n            if (y < 0 || y >= count.length || count[y] == 0) return -1;\n            if (x == y) {\n                if (count[x] % 2 != 0) return -1;\n                chemistry += (long) (count[x] / 2) * x * y;\n                count[x] = 0;\n            } else {\n                if (count[x] != count[y]) return -1;\n                chemistry += (long) count[x] * x * y;\n                count[y] = 0;\n                count[x] = 0;\n            }\n        }\n        return chemistry;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Ordered Multiset Min-Max Peel",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore all skills in a `TreeMap` as an ordered multiset. The first pair determines the target as the current minimum plus current maximum. Repeatedly remove one minimum and one maximum; every removed pair must have the same target sum.\n\n## Key Insight\n\nThis is the sorting proof written as a live data structure. It is useful when teaching the invariant: at every step, the smallest remaining value has only one possible extreme partner if all pairs must share the same sum.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public long dividePlayers(int[] skill) {\n        TreeMap<Integer, Integer> multiset = new TreeMap<>();\n        for (int x : skill) {\n            multiset.put(x, multiset.getOrDefault(x, 0) + 1);\n        }\n        int target = multiset.firstKey() + multiset.lastKey();\n        long chemistry = 0;\n        while (!multiset.isEmpty()) {\n            int low = multiset.firstKey();\n            int high = multiset.lastKey();\n            if (low + high != target) return -1;\n            if (!take(multiset, low)) return -1;\n            if (!take(multiset, high)) return -1;\n            chemistry += (long) low * high;\n        }\n        return chemistry;\n    }\n\n    private boolean take(TreeMap<Integer, Integer> multiset, int value) {\n        Integer count = multiset.get(value);\n        if (count == null || count == 0) return false;\n        if (count == 1) multiset.remove(value);\n        else multiset.put(value, count - 1);\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Complement Balance Formula",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCompute the target pair sum from the total skill, count every skill, and inspect each distinct value once. For value `x`, let `y = target - x`. If `x != y`, the two frequencies must be equal. If `x == y`, the frequency must be even. Add the chemistry for the whole group at once.\n\n## Key Insight\n\nInstead of consuming players one by one, this route validates balance between complementary buckets. It gives a compact way to reason about duplicates and avoids accidentally double-counting chemistry by marking both sides as seen.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public long dividePlayers(int[] skill) {\n        long total = 0;\n        Map<Integer, Integer> count = new HashMap<>();\n        for (int x : skill) {\n            total += x;\n            count.put(x, count.getOrDefault(x, 0) + 1);\n        }\n        int pairs = skill.length / 2;\n        if (total % pairs != 0) return -1;\n        int target = (int) (total / pairs);\n\n        Set<Integer> seen = new HashSet<>();\n        long chemistry = 0;\n        for (Map.Entry<Integer, Integer> entry : count.entrySet()) {\n            int x = entry.getKey();\n            if (seen.contains(x)) continue;\n            int y = target - x;\n            int countX = entry.getValue();\n            int countY = count.getOrDefault(y, 0);\n            if (x == y) {\n                if (countX % 2 != 0) return -1;\n                chemistry += (long) (countX / 2) * x * x;\n            } else {\n                if (countX != countY) return -1;\n                chemistry += (long) countX * x * y;\n            }\n            seen.add(x);\n            seen.add(y);\n        }\n        return chemistry;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
-      "input": "matrix = [[9,9,4],[6,6,8],[2,1,1]]",
-      "output": "4"
+      "input": "skill = [3,2,5,1,3,4]",
+      "output": "22",
+      "description": "canonical valid pairing with duplicate middle value"
     },
     {
-      "input": "matrix = [[3,4,5],[3,2,6],[2,2,1]]",
-      "output": "4"
+      "input": "skill = [3,4]",
+      "output": "12",
+      "description": "single pair is always valid"
     },
     {
-      "input": "matrix = [[1]]",
-      "output": "1"
-    }
-  ],
-  "diagrams": [
+      "input": "skill = [1,1,2,3]",
+      "output": "-1",
+      "description": "total skill is not divisible by the pair count"
+    },
     {
-      "id": "example1",
-      "file": "p360_example1.png",
-      "caption": "Grid with Obstacles"
+      "input": "skill = [2,2,2,2]",
+      "output": "8",
+      "description": "all skills equal and self-complement counts are even"
+    },
+    {
+      "input": "skill = [1,5,2,4]",
+      "output": "13",
+      "description": "sorted extremes create equal sums"
+    },
+    {
+      "input": "skill = [1,1,1,1]",
+      "output": "2",
+      "description": "all identical minimum skills"
+    },
+    {
+      "input": "skill = [1,2,3,4]",
+      "output": "10",
+      "description": "two distinct pairs share one target sum"
+    },
+    {
+      "input": "skill = [1,1,2,2,2,4]",
+      "output": "-1",
+      "description": "total divisibility alone does not guarantee complement counts"
+    },
+    {
+      "input": "skill = [3,1,4,4]",
+      "output": "-1",
+      "description": "self-complement and non-complement counts conflict"
+    },
+    {
+      "input": "skill = [1000000,1000000,1000000,1000000,1000000,1000000]",
+      "output": "3000000000000",
+      "description": "chemistry sum exceeds 32-bit integer range"
+    },
+    {
+      "input": "skill = [1,1,5,5,2,4,2,4]",
+      "output": "26",
+      "description": "multiple duplicate complement buckets"
+    },
+    {
+      "input": "skill = [1,999999,500000,500000]",
+      "output": "250000999999",
+      "description": "large values with a self-complement pair"
+    },
+    {
+      "input": "skill = [6,2,5,3,4,4]",
+      "output": "43",
+      "description": "mixed ordered pairs and one equal-value pair"
+    },
+    {
+      "input": "skill = [6,6,2,3,4,3]",
+      "output": "-1",
+      "description": "target sum is integral but the smallest skill lacks enough complements"
+    },
+    {
+      "input": "skill = [1000000,1,999999,2,999998,3,999997,4]",
+      "output": "9999980",
+      "description": "several high-bound complements"
+    },
+    {
+      "input": "skill = [7,3,7,3,5,5,4,6]",
+      "output": "91",
+      "description": "repeated min and max pairs plus a middle pair"
+    },
+    {
+      "input": "skill = [1,2,2,3,3,4,4,5]",
+      "output": "30",
+      "description": "balanced duplicate counts across several complements"
     }
   ]
 }

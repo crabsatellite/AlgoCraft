@@ -1,41 +1,156 @@
 {
   "id": "178",
   "title": "Hand of Straights",
-  "description": "# Hand of Straights\n\nAlice has some number of cards and she wants to rearrange the cards into groups so that each group is of size `groupSize`, and consists of `groupSize` consecutive cards.\n\nGiven an integer array `hand` where `hand[i]` is the value written on the `i`-th card and an integer `groupSize`, return `true` if she can rearrange the cards, or `false` otherwise.\n\n## Example 1:\n\n**Input:** hand = [1,2,3,6,2,3,4,7,8], groupSize = 3\n**Output:** true\n**Explanation:** Alice's hand can be rearranged as [1,2,3],[2,3,4],[6,7,8]\n\n## Example 2:\n\n**Input:** hand = [1,2,3,4,5], groupSize = 4\n**Output:** false\n**Explanation:** Alice's hand can not be rearranged into groups of 4.\n\n## Constraints:\n\n*   `1 <= hand.length <= 10^4`\n*   `0 <= hand[i] <= 10^9`\n*   `1 <= groupSize <= hand.length`",
+  "description": "# Hand of Straights\n\nAlice has a hand of cards. The value written on the `i`-th card is `hand[i]`, and duplicate values represent separate physical cards.\n\nRearrange every card into groups of exactly `groupSize` cards. Each group must contain `groupSize` consecutive integer values, such as `[4,5,6]` when `groupSize = 3`. The order of the groups does not matter, but every card must be used exactly once.\n\nReturn `true` if such a rearrangement is possible. Return `false` otherwise.\n\n## Example 1:\n\n**Input:** hand = [1,2,3,6,2,3,4,7,8], groupSize = 3\n**Output:** true\n**Explanation:** The cards can be rearranged as [1,2,3], [2,3,4], and [6,7,8].\n\n## Example 2:\n\n**Input:** hand = [1,2,3,4,5], groupSize = 4\n**Output:** false\n**Explanation:** Five cards cannot be partitioned into groups of four cards.\n\n## Constraints:\n\n*   `1 <= hand.length <= 10^4`\n*   `0 <= hand[i] <= 10^9`\n*   `1 <= groupSize <= hand.length`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public boolean isNStraightHand(int[] hand, int groupSize) {\n        // Write your code here\n        return false;\n    }\n}",
-  "tags": ["Array", "Hash Table", "Greedy", "Sorting"],
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Greedy",
+    "Sorting",
+    "Ordered Set",
+    "Heap (Priority Queue)"
+  ],
   "examples": [
-    { "input": "hand = [1,2,3,6,2,3,4,7,8], groupSize = 3", "output": "true" },
-    { "input": "hand = [1,2,3,4,5], groupSize = 4", "output": "false" }
+    {
+      "input": "hand = [1,2,3,6,2,3,4,7,8], groupSize = 3",
+      "output": "true"
+    },
+    {
+      "input": "hand = [1,2,3,4,5], groupSize = 4",
+      "output": "false"
+    }
   ],
   "solutions": [
     {
-      "name": "TreeMap Greedy",
+      "name": "TreeMap Smallest-Card Greedy",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Use a TreeMap to count card frequencies. Always start a group from the smallest available card and try to form a consecutive sequence of groupSize.",
-      "code": "class Solution {\n    public boolean isNStraightHand(int[] hand, int groupSize) {\n        if (hand.length % groupSize != 0) return false;\n        java.util.TreeMap<Integer, Integer> map = new java.util.TreeMap<>();\n        for (int card : hand) map.merge(card, 1, Integer::sum);\n        while (!map.isEmpty()) {\n            int first = map.firstKey();\n            for (int i = first; i < first + groupSize; i++) {\n                if (!map.containsKey(i)) return false;\n                if (map.get(i) == 1) map.remove(i);\n                else map.merge(i, -1, Integer::sum);\n            }\n        }\n        return true;\n    }\n}",
+      "description": "## Approach\nCount each card value in a `TreeMap`. While cards remain, the smallest remaining value must be the start of some group, so consume that value and the next `groupSize - 1` values one card at a time.\n\n## Key Insight\nThe smallest unused card cannot be placed after any smaller value because no smaller value remains. Therefore it must open a consecutive group, and every required successor must be present immediately.\n\n## Complexity Analysis\nEach card is removed once, and ordered-map operations cost O(log n), so the total time complexity is O(n log n). The frequency map stores up to n distinct values, so the space complexity is O(n).",
+      "code": "class Solution {\n    public boolean isNStraightHand(int[] hand, int groupSize) {\n        if (hand.length % groupSize != 0) {\n            return false;\n        }\n\n        java.util.TreeMap<Integer, Integer> counts = new java.util.TreeMap<>();\n        for (int card : hand) {\n            counts.merge(card, 1, Integer::sum);\n        }\n\n        while (!counts.isEmpty()) {\n            int start = counts.firstKey();\n            for (int value = start; value < start + groupSize; value++) {\n                Integer amount = counts.get(value);\n                if (amount == null) {\n                    return false;\n                }\n                if (amount == 1) {\n                    counts.remove(value);\n                } else {\n                    counts.put(value, amount - 1);\n                }\n            }\n        }\n        return true;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Sort and HashMap",
+      "name": "Sorted Hand and HashMap Greedy",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Sort the array, then use a HashMap for frequency counts. Iterate through sorted cards, and for each card that still has remaining count, try to build a consecutive group of groupSize starting from that card.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isNStraightHand(int[] hand, int groupSize) {\n        if (hand.length % groupSize != 0) return false;\n        Arrays.sort(hand);\n        HashMap<Integer, Integer> freq = new HashMap<>();\n        for (int card : hand) freq.put(card, freq.getOrDefault(card, 0) + 1);\n        for (int card : hand) {\n            if (freq.get(card) == 0) continue;\n            for (int j = 0; j < groupSize; j++) {\n                int cur = card + j;\n                int count = freq.getOrDefault(cur, 0);\n                if (count == 0) return false;\n                freq.put(cur, count - 1);\n            }\n        }\n        return true;\n    }\n}",
+      "description": "## Approach\nSort the hand, then count values in a hash map. Scan the sorted cards; whenever a card still has positive frequency, start a group there and decrement every consecutive value needed by that group.\n\n## Key Insight\nSorting gives the same smallest-unused-card invariant without requiring an ordered map during removal. If an early remaining card is skipped as a start, no later card can cover it.\n\n## Complexity Analysis\nSorting costs O(n log n), and the successful group decrements touch n cards in total, so the overall time complexity is O(n log n). The frequency table uses O(n) space.",
+      "code": "class Solution {\n    public boolean isNStraightHand(int[] hand, int groupSize) {\n        if (hand.length % groupSize != 0) {\n            return false;\n        }\n\n        java.util.Arrays.sort(hand);\n        java.util.HashMap<Integer, Integer> freq = new java.util.HashMap<>();\n        for (int card : hand) {\n            freq.put(card, freq.getOrDefault(card, 0) + 1);\n        }\n\n        for (int card : hand) {\n            if (freq.get(card) == 0) {\n                continue;\n            }\n            for (int offset = 0; offset < groupSize; offset++) {\n                int value = card + offset;\n                int amount = freq.getOrDefault(value, 0);\n                if (amount == 0) {\n                    return false;\n                }\n                freq.put(value, amount - 1);\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Open Groups Queue by Value Batches",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nSort the cards and process equal values as one batch. Track how many consecutive groups are currently open and waiting for the next value. A queue records how many groups started at each distinct value so they can close after `groupSize` distinct steps.\n\n## Key Insight\nAt value `x`, every open group must receive one `x`. If there is a gap while groups are open, or if the count of `x` is smaller than the number of open groups, the hand cannot be partitioned.\n\n## Complexity Analysis\nSorting dominates the work at O(n log n). The batch scan and queue operations are linear, and the queue stores at most the number of distinct values, so the space complexity is O(n).",
+      "code": "class Solution {\n    public boolean isNStraightHand(int[] hand, int groupSize) {\n        if (hand.length % groupSize != 0) {\n            return false;\n        }\n\n        java.util.Arrays.sort(hand);\n        java.util.ArrayDeque<Integer> started = new java.util.ArrayDeque<>();\n        int openGroups = 0;\n        int previous = Integer.MIN_VALUE;\n\n        for (int i = 0; i < hand.length; ) {\n            int value = hand[i];\n            int count = 0;\n            while (i < hand.length && hand[i] == value) {\n                count++;\n                i++;\n            }\n\n            if (openGroups > 0 && value != previous + 1) {\n                return false;\n            }\n            if (count < openGroups) {\n                return false;\n            }\n\n            started.offerLast(count - openGroups);\n            openGroups = count;\n            if (started.size() == groupSize) {\n                openGroups -= started.pollFirst();\n            }\n            previous = value;\n        }\n\n        return openGroups == 0;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "TreeMap Batch Frequency Subtraction",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nUse a `TreeMap`, but subtract groups in batches. If the smallest remaining card has frequency `k`, then `k` groups must start at that value. Subtract `k` from each of the next `groupSize` consecutive values.\n\n## Key Insight\nAll copies of the current smallest value are forced to be group starts. Consuming them together exposes frequency deficits immediately and avoids repeating the same proof for identical cards.\n\n## Complexity Analysis\nEvery distinct value is removed once and each ordered-map access costs O(log n), so for valid partitions the time complexity is O(n log n). The ordered frequency map uses O(n) space.",
+      "code": "class Solution {\n    public boolean isNStraightHand(int[] hand, int groupSize) {\n        if (hand.length % groupSize != 0) {\n            return false;\n        }\n\n        java.util.TreeMap<Integer, Integer> counts = new java.util.TreeMap<>();\n        for (int card : hand) {\n            counts.put(card, counts.getOrDefault(card, 0) + 1);\n        }\n\n        while (!counts.isEmpty()) {\n            int start = counts.firstKey();\n            int groups = counts.get(start);\n            for (int value = start; value < start + groupSize; value++) {\n                Integer amount = counts.get(value);\n                if (amount == null || amount < groups) {\n                    return false;\n                }\n                if (amount == groups) {\n                    counts.remove(value);\n                } else {\n                    counts.put(value, amount - groups);\n                }\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Priority Queue of Unfinished Groups",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nSort the hand and maintain unfinished groups in a priority queue ordered by their last card value. Each incoming card extends the group that currently ends earliest if it needs this card; otherwise it starts a new group.\n\n## Key Insight\nAn unfinished group with the smallest ending value has the earliest deadline. If the current card is already larger than its required next value, that group can never be completed, so the answer is false.\n\n## Complexity Analysis\nSorting costs O(n log n), and each card creates or updates one priority-queue entry in O(log n), so the time complexity is O(n log n). The queue can hold O(n) unfinished groups.",
+      "code": "class Solution {\n    public boolean isNStraightHand(int[] hand, int groupSize) {\n        if (hand.length % groupSize != 0) {\n            return false;\n        }\n        if (groupSize == 1) {\n            return true;\n        }\n\n        java.util.Arrays.sort(hand);\n        java.util.PriorityQueue<int[]> groups = new java.util.PriorityQueue<>((a, b) -> {\n            if (a[0] != b[0]) {\n                return Integer.compare(a[0], b[0]);\n            }\n            return Integer.compare(a[1], b[1]);\n        });\n\n        for (int card : hand) {\n            if (!groups.isEmpty() && groups.peek()[0] + 1 < card) {\n                return false;\n            }\n            if (!groups.isEmpty() && groups.peek()[0] + 1 == card) {\n                int[] group = groups.poll();\n                group[0] = card;\n                group[1]++;\n                if (group[1] < groupSize) {\n                    groups.offer(group);\n                }\n            } else {\n                groups.offer(new int[] {card, 1});\n            }\n        }\n\n        return groups.isEmpty();\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "hand = [1,2,3,6,2,3,4,7,8], groupSize = 3", "output": "true" },
-    { "input": "hand = [1,2,3,4,5], groupSize = 4", "output": "false" },
-    { "input": "hand = [1], groupSize = 1", "output": "true" },
-    { "input": "hand = [1,2,3], groupSize = 3", "output": "true" },
-    { "input": "hand = [1,2,3], groupSize = 1", "output": "true" },
-    { "input": "hand = [1,1,2,2,3,3], groupSize = 3", "output": "true" },
-    { "input": "hand = [1,2,3,4,5,6], groupSize = 2", "output": "true" },
-    { "input": "hand = [1,1,1,1], groupSize = 2", "output": "false" }
+    {
+      "input": "hand = [1,2,3,6,2,3,4,7,8], groupSize = 3",
+      "output": "true",
+      "description": "Canonical hand can be split into consecutive groups 1-2-3, 2-3-4, and 6-7-8."
+    },
+    {
+      "input": "hand = [1,2,3,4,5], groupSize = 4",
+      "output": "false",
+      "description": "The number of cards is not divisible by the group size."
+    },
+    {
+      "input": "hand = [1], groupSize = 1",
+      "output": "true",
+      "description": "A single card forms one group of size one."
+    },
+    {
+      "input": "hand = [1,2,3], groupSize = 3",
+      "output": "true",
+      "description": "One complete consecutive group uses all cards."
+    },
+    {
+      "input": "hand = [1,2,3], groupSize = 1",
+      "output": "true",
+      "description": "Group size one makes every individual card valid."
+    },
+    {
+      "input": "hand = [1,1,2,2,3,3], groupSize = 3",
+      "output": "true",
+      "description": "Duplicate counts can form two identical consecutive groups."
+    },
+    {
+      "input": "hand = [1,2,3,4,5,6], groupSize = 2",
+      "output": "true",
+      "description": "A sorted run can be partitioned into adjacent pairs."
+    },
+    {
+      "input": "hand = [1,1,1,1], groupSize = 2",
+      "output": "false",
+      "description": "Equal cards alone cannot form consecutive groups of size two."
+    },
+    {
+      "input": "hand = [0,1,2,2,3,4], groupSize = 3",
+      "output": "true",
+      "description": "Zero is a valid card value and can start a consecutive group."
+    },
+    {
+      "input": "hand = [1,2,3,4,4,5,6,7], groupSize = 4",
+      "output": "true",
+      "description": "A shared boundary value can start the second group after the first group uses another copy."
+    },
+    {
+      "input": "hand = [1,2,3,4,4,5,6,8], groupSize = 4",
+      "output": "false",
+      "description": "The second group would need 7, but the hand jumps from 6 to 8."
+    },
+    {
+      "input": "hand = [1,1,2,2,3,4], groupSize = 3",
+      "output": "false",
+      "description": "The duplicated low cards create a second group that lacks a 3."
+    },
+    {
+      "input": "hand = [999999998,999999999,1000000000], groupSize = 3",
+      "output": "true",
+      "description": "Large card values near the constraint limit still form a normal consecutive group."
+    },
+    {
+      "input": "hand = [1,2,3,4,5,6,7,8,10], groupSize = 3",
+      "output": "false",
+      "description": "A late gap after 8 prevents the final group from being consecutive."
+    },
+    {
+      "input": "hand = [1,1,2,2,3,3,6,7,8], groupSize = 3",
+      "output": "true",
+      "description": "Two duplicate low groups and one separate high group can coexist."
+    },
+    {
+      "input": "hand = [1,2,3,4,5,6,8,9,10,11,12,13], groupSize = 4",
+      "output": "false",
+      "description": "The hand has enough cards but a missing 7 blocks any full partition."
+    }
   ],
-  "diagram": "images/p178_hand_straights.png"
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p178_hand_straights.png",
+      "caption": "Unarranged cards and the required group size."
+    }
+  ]
 }

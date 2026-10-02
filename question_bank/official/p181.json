@@ -1,44 +1,158 @@
 {
   "id": "181",
   "title": "Valid Parenthesis String",
-  "description": "# Valid Parenthesis String\n\nGiven a string `s` containing only three types of characters: `'('`, `')'` and `'*'`, return `true` *if* `s` *is **valid***.\n\nThe following rules define a **valid** string:\n\n*   Any left parenthesis `'('` must have a corresponding right parenthesis `')'`.\n*   Any right parenthesis `')'` must have a corresponding left parenthesis `'('`.\n*   Left parenthesis `'('` must go before the corresponding right parenthesis `')'`.\n*   `'*'` could be treated as a single right parenthesis `')'` or a single left parenthesis `'('` or an empty string `\"\"`.\n\n## Example 1:\n\n**Input:** s = \"()\"\n**Output:** true\n\n## Example 2:\n\n**Input:** s = \"(*)\"\n**Output:** true\n\n## Example 3:\n\n**Input:** s = \"(*))\"\n**Output:** true\n\n## Constraints:\n\n*   `1 <= s.length <= 100`\n*   `s[i]` is `'('`, `')'` or `'*'`. ",
+  "description": "# Valid Parenthesis String\n\nYou are given a string `s` containing only `'('`, `')'`, and `'*'`.\n\nReturn `true` if there is at least one way to replace every `'*'` so that the final string is a valid parenthesis string. Each `'*'` may become `'('`, become `')'`, or become an empty string.\n\nA valid parenthesis string must satisfy all of these rules:\n\n*   every `'('` has a matching `')'` after it;\n*   every `')'` has a matching `'('` before it;\n*   matched parentheses are properly nested.\n\n## Example 1:\n\n**Input:** s = \"()\"\n**Output:** true\n**Explanation:** The string is already balanced.\n\n## Example 2:\n\n**Input:** s = \"(*)\"\n**Output:** true\n**Explanation:** The `'*'` can be empty.\n\n## Example 3:\n\n**Input:** s = \"(*))\"\n**Output:** true\n**Explanation:** The `'*'` can become `'('`, producing `(())`.\n\n## Constraints:\n\n*   `1 <= s.length <= 100`\n*   `s[i]` is `'('`, `')'`, or `'*'`.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public boolean checkValidString(String s) {\n        // Write your code here\n        return false;\n    }\n}",
-  "tags": ["String", "Dynamic Programming", "Stack", "Greedy"],
+  "tags": [
+    "String",
+    "Dynamic Programming",
+    "Stack",
+    "Greedy"
+  ],
   "examples": [
-    { "input": "s = \"()\"", "output": "true" },
-    { "input": "s = \"(*)\"", "output": "true" },
-    { "input": "s = \"(*))\"", "output": "true" }
+    {
+      "input": "s = \"()\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"(*)\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"(*))\"",
+      "output": "true"
+    }
   ],
   "solutions": [
     {
-      "name": "Greedy (Min/Max Open Count)",
+      "name": "Greedy Possible Balance Range",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Track the range [lo, hi] of possible open parenthesis counts. '(' increments both, ')' decrements both, '*' decrements lo and increments hi. If hi < 0, invalid. Keep lo >= 0.",
-      "code": "class Solution {\n    public boolean checkValidString(String s) {\n        int lo = 0, hi = 0;\n        for (char c : s.toCharArray()) {\n            if (c == '(') { lo++; hi++; }\n            else if (c == ')') { lo--; hi--; }\n            else { lo--; hi++; }\n            if (hi < 0) return false;\n            lo = Math.max(lo, 0);\n        }\n        return lo == 0;\n    }\n}",
+      "description": "## Approach\nMaintain a range `[low, high]` of possible unmatched opening-parenthesis counts after each prefix. A real `'('` raises both bounds, a real `')'` lowers both bounds, and `'*'` lowers `low` but raises `high` because it can act as `')'`, empty, or `'('`. Clamp `low` to zero and fail if `high` becomes negative.\n\n## Key Insight\nThe exact set of possible balances is always a continuous range. `high < 0` means even treating all flexible characters as openings cannot save the prefix. At the end, `low == 0` means zero unmatched openings is one of the reachable balances.\n\n## Complexity Analysis\nThe algorithm scans the string once, so the time complexity is O(n). It stores only two counters, so the space complexity is O(1).",
+      "code": "class Solution {\n    public boolean checkValidString(String s) {\n        int low = 0;\n        int high = 0;\n\n        for (char c : s.toCharArray()) {\n            if (c == '(') {\n                low++;\n                high++;\n            } else if (c == ')') {\n                low--;\n                high--;\n            } else {\n                low--;\n                high++;\n            }\n            if (high < 0) {\n                return false;\n            }\n            low = Math.max(low, 0);\n        }\n\n        return low == 0;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Two Stack Approach",
+      "name": "Two Stack Index Matching",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use two stacks: one for indices of '(' and one for indices of '*'. After processing, try to match remaining '(' with remaining '*' (star must appear after the parenthesis).",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean checkValidString(String s) {\n        Deque<Integer> openStack = new ArrayDeque<>();\n        Deque<Integer> starStack = new ArrayDeque<>();\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (c == '(') {\n                openStack.push(i);\n            } else if (c == '*') {\n                starStack.push(i);\n            } else {\n                if (!openStack.isEmpty()) {\n                    openStack.pop();\n                } else if (!starStack.isEmpty()) {\n                    starStack.pop();\n                } else {\n                    return false;\n                }\n            }\n        }\n        while (!openStack.isEmpty() && !starStack.isEmpty()) {\n            if (openStack.pop() > starStack.pop()) return false;\n        }\n        return openStack.isEmpty();\n    }\n}",
+      "description": "## Approach\nStore indices of real `'('` characters in one stack and indices of `'*'` characters in another stack. A `')'` first matches a real opening if possible, otherwise a previous star can act as `'('`. After the scan, every remaining real opening must be matched by a later star acting as `')'`.\n\n## Key Insight\nA star can replace a missing parenthesis only if its index is on the correct side of the pair it is forming. The second phase is necessary because an earlier star cannot close a later opening parenthesis.\n\n## Complexity Analysis\nThe string is scanned once and each index is pushed and popped at most once, so the time complexity is O(n). The stacks may hold O(n) indices.",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\nclass Solution {\n    public boolean checkValidString(String s) {\n        Deque<Integer> openStack = new ArrayDeque<>();\n        Deque<Integer> starStack = new ArrayDeque<>();\n\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (c == '(') {\n                openStack.push(i);\n            } else if (c == '*') {\n                starStack.push(i);\n            } else if (!openStack.isEmpty()) {\n                openStack.pop();\n            } else if (!starStack.isEmpty()) {\n                starStack.pop();\n            } else {\n                return false;\n            }\n        }\n\n        while (!openStack.isEmpty() && !starStack.isEmpty()) {\n            if (openStack.pop() > starStack.pop()) {\n                return false;\n            }\n        }\n        return openStack.isEmpty();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Balance Memoization",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\nUse DFS over `(index, balance)`, where `balance` is the number of unmatched opening parentheses. A star branches into three choices. Memoization prevents repeated exploration of the same suffix state, and impossible negative or too-large balances are pruned immediately.\n\n## Key Insight\nThis method models the definition directly: choose one meaning for every star and track whether the final balance can be zero without any prefix going negative. It is slower than greedy, but it exposes the state space that the greedy range compresses.\n\n## Complexity Analysis\nThere are O(n^2) reachable `(index, balance)` states and each state does constant branching work after memoization. The memo table also uses O(n^2) space.",
+      "code": "class Solution {\n    public boolean checkValidString(String s) {\n        Boolean[][] memo = new Boolean[s.length() + 1][s.length() + 1];\n        return dfs(s, 0, 0, memo);\n    }\n\n    private boolean dfs(String s, int index, int balance, Boolean[][] memo) {\n        if (balance < 0) {\n            return false;\n        }\n        if (balance > s.length() - index) {\n            return false;\n        }\n        if (index == s.length()) {\n            return balance == 0;\n        }\n        if (memo[index][balance] != null) {\n            return memo[index][balance];\n        }\n\n        char c = s.charAt(index);\n        boolean valid;\n        if (c == '(') {\n            valid = dfs(s, index + 1, balance + 1, memo);\n        } else if (c == ')') {\n            valid = dfs(s, index + 1, balance - 1, memo);\n        } else {\n            valid = dfs(s, index + 1, balance + 1, memo)\n                    || dfs(s, index + 1, balance, memo)\n                    || dfs(s, index + 1, balance - 1, memo);\n        }\n        memo[index][balance] = valid;\n        return valid;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bottom-Up Reachable Balance DP",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nIteratively maintain a boolean array of reachable balances after each processed prefix. For `'('`, shift balances up; for `')'`, shift balances down when possible; for `'*'`, keep the same balance and also try both shifts. The string is valid if balance zero is reachable after the final character.\n\n## Key Insight\nThis is the iterative version of the memoized search. It makes every reachable balance explicit, which is useful for teaching before showing how the greedy method compresses the reachable set into one interval.\n\n## Complexity Analysis\nThere are at most n + 1 balances for each of n characters, so the time complexity is O(n^2). Only the current and next balance arrays are stored, so the space complexity is O(n).",
+      "code": "class Solution {\n    public boolean checkValidString(String s) {\n        int n = s.length();\n        boolean[] reachable = new boolean[n + 1];\n        reachable[0] = true;\n\n        for (char c : s.toCharArray()) {\n            boolean[] next = new boolean[n + 1];\n            for (int balance = 0; balance <= n; balance++) {\n                if (!reachable[balance]) {\n                    continue;\n                }\n                if (c == '(') {\n                    if (balance + 1 <= n) {\n                        next[balance + 1] = true;\n                    }\n                } else if (c == ')') {\n                    if (balance > 0) {\n                        next[balance - 1] = true;\n                    }\n                } else {\n                    next[balance] = true;\n                    if (balance + 1 <= n) {\n                        next[balance + 1] = true;\n                    }\n                    if (balance > 0) {\n                        next[balance - 1] = true;\n                    }\n                }\n            }\n            reachable = next;\n        }\n\n        return reachable[0];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two-Pass Directional Greedy",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nRun one pass from left to right, treating every `'*'` as a potential `'('`; this verifies no prefix has too many closing parentheses. Then run one pass from right to left, treating every `'*'` as a potential `')'`; this verifies no suffix has too many opening parentheses.\n\n## Key Insight\nA valid assignment must satisfy both directional prefix conditions. The first pass proves every `')'` can be matched by something before it, and the second pass proves every `'('` can be matched by something after it.\n\n## Complexity Analysis\nThe algorithm scans the string twice, so the time complexity is O(n). It stores only one counter in each pass, so the space complexity is O(1).",
+      "code": "class Solution {\n    public boolean checkValidString(String s) {\n        int balance = 0;\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (c == ')') {\n                balance--;\n            } else {\n                balance++;\n            }\n            if (balance < 0) {\n                return false;\n            }\n        }\n\n        balance = 0;\n        for (int i = s.length() - 1; i >= 0; i--) {\n            char c = s.charAt(i);\n            if (c == '(') {\n                balance--;\n            } else {\n                balance++;\n            }\n            if (balance < 0) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"()\"", "output": "true" },
-    { "input": "s = \"(*)\"", "output": "true" },
-    { "input": "s = \"(*))\"", "output": "true" },
-    { "input": "s = \"*\"", "output": "true" },
-    { "input": "s = \"(\"", "output": "false" },
-    { "input": "s = \")\"", "output": "false" },
-    { "input": "s = \"((*)\"", "output": "true" },
-    { "input": "s = \"((*))\"", "output": "true" },
-    { "input": "s = \"(((******))\"", "output": "true" },
-    { "input": "s = \"(*)(*\"", "output": "true" }
+    {
+      "input": "s = \"()\"",
+      "output": "true",
+      "description": "Already balanced parentheses without wildcard choices."
+    },
+    {
+      "input": "s = \"(*)\"",
+      "output": "true",
+      "description": "Single star can be interpreted as the empty string between a matched pair."
+    },
+    {
+      "input": "s = \"(*))\"",
+      "output": "true",
+      "description": "Star can become a left parenthesis to balance the extra closing parenthesis."
+    },
+    {
+      "input": "s = \"*\"",
+      "output": "true",
+      "description": "A lone star may be treated as empty."
+    },
+    {
+      "input": "s = \"(\"",
+      "output": "false",
+      "description": "A lone opening parenthesis cannot be closed."
+    },
+    {
+      "input": "s = \")\"",
+      "output": "false",
+      "description": "A lone closing parenthesis has no earlier match."
+    },
+    {
+      "input": "s = \"((*)\"",
+      "output": "true",
+      "description": "The star can close one of the two openings."
+    },
+    {
+      "input": "s = \"((*))\"",
+      "output": "true",
+      "description": "Nested parentheses remain valid when the star is empty."
+    },
+    {
+      "input": "s = \"(((******))\"",
+      "output": "true",
+      "description": "Many stars can provide enough closing parentheses."
+    },
+    {
+      "input": "s = \"(*)(*\"",
+      "output": "true",
+      "description": "A trailing star can close the final opening."
+    },
+    {
+      "input": "s = \")*(\"",
+      "output": "false",
+      "description": "A leading closing parenthesis cannot be fixed by later characters."
+    },
+    {
+      "input": "s = \"())*\"",
+      "output": "false",
+      "description": "The extra closing parenthesis appears before the star can act as an opening."
+    },
+    {
+      "input": "s = \"(*)))\"",
+      "output": "false",
+      "description": "One star cannot cover two extra closing parentheses."
+    },
+    {
+      "input": "s = \"((((****\"",
+      "output": "true",
+      "description": "Four stars can close four preceding openings."
+    },
+    {
+      "input": "s = \"((((***\"",
+      "output": "false",
+      "description": "Three stars cannot close four preceding openings."
+    },
+    {
+      "input": "s = \"****\"",
+      "output": "true",
+      "description": "All stars can be empty."
+    }
   ],
-  "diagram": "images/p181_valid_paren.png"
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p181_valid_paren.png",
+      "caption": "Wildcard parenthesis prompt where a star may be left, right, or empty."
+    }
+  ]
 }

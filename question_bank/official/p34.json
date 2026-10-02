@@ -1,18 +1,38 @@
 {
   "id": "34",
   "title": "Permutation in String",
-  "description": "# Permutation in String\n\nGiven two strings `s1` and `s2`, return `true` *if* `s2` *contains a permutation of* `s1`*, or* `false` *otherwise*.\n\nIn other words, return `true` if one of `s1`'s permutations is the substring of `s2`.\n\n## Example 1:\n\n**Input:** s1 = \"ab\", s2 = \"eidbaooo\"\n**Output:** true\n**Explanation:** s2 contains one permutation of s1 (\"ba\").\n\n## Example 2:\n\n**Input:** s1 = \"ab\", s2 = \"eidboaoo\"\n**Output:** false\n\n## Constraints:\n\n*   `1 <= s1.length, s2.length <= 10^4`\n*   `s1` and `s2` consist of lowercase English letters.",
+  "description": "# Permutation in String\n\nGiven two strings `s1` and `s2`, return `true` if `s2` contains a contiguous substring that is a permutation of `s1`. Otherwise, return `false`.\n\nA permutation uses exactly the same characters with the same multiplicities, only possibly in a different order.\n\n## Example 1:\n\n**Input:** s1 = \"ab\", s2 = \"eidbaooo\"\n**Output:** true\n**Explanation:** The substring \"ba\" is a permutation of \"ab\".\n\n## Example 2:\n\n**Input:** s1 = \"ab\", s2 = \"eidboaoo\"\n**Output:** false\n**Explanation:** No length-2 substring of `s2` has one 'a' and one 'b'.\n\n## Constraints:\n\n*   `1 <= s1.length, s2.length <= 10^4`\n*   `s1` and `s2` consist of lowercase English letters.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public boolean checkInclusion(String s1, String s2) {\n        // Write your code here\n        return false;\n    }\n}",
-  "tags": ["Hash Table", "Two Pointers", "String", "Sliding Window"],
+  "tags": [
+    "Hash Table",
+    "Two Pointers",
+    "String",
+    "Sliding Window"
+  ],
   "examples": [
-    { "input": "s1 = \"ab\", s2 = \"eidbaooo\"", "output": "true" },
-    { "input": "s1 = \"ab\", s2 = \"eidboaoo\"", "output": "false" }
+    {
+      "input": "s1 = \"ab\", s2 = \"eidbaooo\"",
+      "output": "true"
+    },
+    {
+      "input": "s1 = \"ab\", s2 = \"eidboaoo\"",
+      "output": "false"
+    }
   ],
   "tests": [
-    { "input": "s1 = \"ab\", s2 = \"eidbaooo\"", "output": "true" },
-    { "input": "s1 = \"ab\", s2 = \"eidboaoo\"", "output": "false" },
-    { "input": "s1 = \"adc\", s2 = \"dcda\"", "output": "true" },
+    {
+      "input": "s1 = \"ab\", s2 = \"eidbaooo\"",
+      "output": "true"
+    },
+    {
+      "input": "s1 = \"ab\", s2 = \"eidboaoo\"",
+      "output": "false"
+    },
+    {
+      "input": "s1 = \"adc\", s2 = \"dcda\"",
+      "output": "true"
+    },
     {
       "input": "s1 = \"abc\", s2 = \"ab\"",
       "output": "false",
@@ -27,6 +47,36 @@
       "input": "s1 = \"aab\", s2 = \"cbadabaa\"",
       "output": "true",
       "description": "s1 with duplicate characters"
+    },
+    {
+      "input": "s1 = \"ab\", s2 = \"baeid\"",
+      "output": "true",
+      "description": "Permutation appears at the start of s2"
+    },
+    {
+      "input": "s1 = \"ab\", s2 = \"eidab\"",
+      "output": "true",
+      "description": "Permutation appears at the end of s2"
+    },
+    {
+      "input": "s1 = \"a\", s2 = \"b\"",
+      "output": "false",
+      "description": "Single-character pattern not present"
+    },
+    {
+      "input": "s1 = \"a\", s2 = \"a\"",
+      "output": "true",
+      "description": "Single-character exact match"
+    },
+    {
+      "input": "s1 = \"aabc\", s2 = \"caaebabac\"",
+      "output": "true",
+      "description": "Duplicate-count permutation appears late"
+    },
+    {
+      "input": "s1 = \"aabc\", s2 = \"caaebbac\"",
+      "output": "false",
+      "description": "All required letters appear but no fixed window has the right counts"
     }
   ],
   "solutions": [
@@ -34,15 +84,29 @@
       "name": "Sliding Window with Frequency Array",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use fixed-size sliding window equal to s1 length. Compare character frequencies of current window with s1.",
+      "description": "## Approach\n\nBuild a frequency array for `s1`, then slide a fixed-size window of length `s1.length()` over `s2`. Update the window counts by adding the entering character and removing the leaving character, and compare the two frequency arrays.\n\n## Key Insight\n\nA permutation is exactly a string with the same character multiset. Because the window length is fixed, every candidate substring can be represented by its 26-letter frequency vector.\n\n## Complexity Analysis\n- Time Complexity: O(26 * n), simplified to O(n)\n- Space Complexity: O(1)",
       "code": "class Solution {\n    public boolean checkInclusion(String s1, String s2) {\n        if (s1.length() > s2.length()) return false;\n        \n        int[] s1Count = new int[26];\n        int[] windowCount = new int[26];\n        \n        // Build s1 frequency map\n        for (char c : s1.toCharArray()) {\n            s1Count[c - 'a']++;\n        }\n        \n        int windowSize = s1.length();\n        \n        for (int i = 0; i < s2.length(); i++) {\n            // Add current character\n            windowCount[s2.charAt(i) - 'a']++;\n            \n            // Remove character leaving window\n            if (i >= windowSize) {\n                windowCount[s2.charAt(i - windowSize) - 'a']--;\n            }\n            \n            // Check if frequencies match\n            if (java.util.Arrays.equals(s1Count, windowCount)) {\n                return true;\n            }\n        }\n        \n        return false;\n    }\n}"
     },
     {
       "name": "Sliding Window with Match Count",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Track number of characters that have matching frequency. When matches == 26, we found a permutation.",
+      "description": "## Approach\n\nMaintain the same fixed-size window, but track how many character counts currently match between the target and the window. When a character count changes, update the match count instead of comparing all 26 entries every time.\n\n## Key Insight\n\nThis is an incremental optimization of the frequency-array invariant. It is worth keeping as a second solution because it teaches how to avoid repeated full-state comparisons.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
       "code": "class Solution {\n    public boolean checkInclusion(String s1, String s2) {\n        if (s1.length() > s2.length()) return false;\n        \n        int[] s1Count = new int[26];\n        int[] s2Count = new int[26];\n        \n        for (char c : s1.toCharArray()) {\n            s1Count[c - 'a']++;\n        }\n        \n        int matches = 0;\n        int windowSize = s1.length();\n        \n        // Initialize: count matches for empty s2Count\n        for (int i = 0; i < 26; i++) {\n            if (s1Count[i] == 0) matches++;\n        }\n        \n        for (int i = 0; i < s2.length(); i++) {\n            // Add character to window\n            int idx = s2.charAt(i) - 'a';\n            s2Count[idx]++;\n            if (s2Count[idx] == s1Count[idx]) matches++;\n            else if (s2Count[idx] == s1Count[idx] + 1) matches--;\n            \n            // Remove character leaving window\n            if (i >= windowSize) {\n                int leftIdx = s2.charAt(i - windowSize) - 'a';\n                s2Count[leftIdx]--;\n                if (s2Count[leftIdx] == s1Count[leftIdx]) matches++;\n                else if (s2Count[leftIdx] == s1Count[leftIdx] - 1) matches--;\n            }\n            \n            if (matches == 26) return true;\n        }\n        \n        return false;\n    }\n}"
+    },
+    {
+      "name": "Sliding Window with Deficit Count",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nStore how many copies of each character are still needed from `s1`. As the fixed-size window moves through `s2`, decrease the deficit for entering characters, restore the deficit for leaving characters, and track the total number of still-missing characters.\n\n## Key Insight\n\nInstead of asking whether two full frequency vectors are equal, this approach asks whether the current window has paid off every required character. It is often easier to adapt to related minimum-window problems.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean checkInclusion(String s1, String s2) {\n        if (s1.length() > s2.length()) return false;\n        \n        int[] need = new int[26];\n        for (int i = 0; i < s1.length(); i++) {\n            need[s1.charAt(i) - 'a']++;\n        }\n        \n        int missing = s1.length();\n        int windowSize = s1.length();\n        \n        for (int right = 0; right < s2.length(); right++) {\n            int in = s2.charAt(right) - 'a';\n            if (need[in] > 0) {\n                missing--;\n            }\n            need[in]--;\n            \n            if (right >= windowSize) {\n                int out = s2.charAt(right - windowSize) - 'a';\n                need[out]++;\n                if (need[out] > 0) {\n                    missing++;\n                }\n            }\n            \n            if (missing == 0) {\n                return true;\n            }\n        }\n        \n        return false;\n    }\n}"
+    },
+    {
+      "name": "Sort Each Candidate Window Baseline",
+      "timeComplexity": "O((n - m + 1) * m log m)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nSort the characters of `s1`. Then examine every contiguous window of `s2` with the same length, sort that window, and compare it to the sorted pattern.\n\n## Key Insight\n\nTwo strings are permutations of each other exactly when their sorted character lists are equal. This baseline follows the definition directly before optimizing the comparison into frequency counters.\n\n## Complexity Analysis\n- Time Complexity: O((n - m + 1) * m log m), where `m = s1.length()` and `n = s2.length()`\n- Space Complexity: O(m)",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public boolean checkInclusion(String s1, String s2) {\n        int patternLength = s1.length();\n        if (patternLength > s2.length()) {\n            return false;\n        }\n\n        char[] sortedPattern = s1.toCharArray();\n        Arrays.sort(sortedPattern);\n\n        for (int start = 0; start + patternLength <= s2.length(); start++) {\n            char[] window = s2.substring(start, start + patternLength).toCharArray();\n            Arrays.sort(window);\n            if (Arrays.equals(sortedPattern, window)) {\n                return true;\n            }\n        }\n\n        return false;\n    }\n}"
     }
   ]
 }

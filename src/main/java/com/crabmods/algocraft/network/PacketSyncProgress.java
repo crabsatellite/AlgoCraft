@@ -7,6 +7,8 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.HashMap;
@@ -30,5 +32,14 @@ public record PacketSyncProgress(Map<String, Long> progress) implements CustomPa
             // Update client side progress
             ProgressManager.updateFromPacket(payload.progress());
         });
+    }
+
+    public static void sendSafely(ServerPlayer player, Map<String, Long> progress) {
+        try {
+            PacketDistributor.sendToPlayer(player, new PacketSyncProgress(progress));
+        } catch (UnsupportedOperationException e) {
+            AlgoCraft.LOGGER.debug("Skipping progress sync for client without algocraft progress payload support: {}",
+                    e.getMessage());
+        }
     }
 }

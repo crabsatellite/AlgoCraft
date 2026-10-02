@@ -1,65 +1,102 @@
 {
   "id": "478",
-  "title": "Maximum Product of Three Numbers",
-  "description": "# Maximum Product of Three Numbers\n\nGiven an integer array `nums`, find three numbers whose product is maximum and return the maximum product.\n\n## Example 1:\n\n**Input:** nums = [1,2,3]\n**Output:** 6\n\n## Example 2:\n\n**Input:** nums = [1,2,3,4]\n**Output:** 24\n\n## Example 3:\n\n**Input:** nums = [-1,-2,-3]\n**Output:** -6\n\n## Constraints:\n\n*   `3 <= nums.length <= 10^4`\n*   `-1000 <= nums[i] <= 1000`",
-  "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public int maximumProduct(int[] nums) {\n        \n    }\n}",
+  "title": "Count Complete Subarrays",
+  "description": "# Count Complete Subarrays\n\nYou are given an integer array `nums`.\n\nA subarray is complete if it contains every distinct value that appears anywhere in the whole array `nums` at least once.\n\nReturn the number of complete subarrays.\n\nThe empty array has no subarrays, so its answer is `0`.\n\n## Example 1:\n\n**Input:** nums = [1,3,1,2,2]\n**Output:** 4\n**Explanation:** The complete subarrays are `[1,3,1,2]`, `[1,3,1,2,2]`, `[3,1,2]`, and `[3,1,2,2]`.\n\n## Example 2:\n\n**Input:** nums = [5,5,5,5]\n**Output:** 10\n**Explanation:** The whole array has one distinct value, so every non-empty subarray is complete.\n\n## Example 3:\n\n**Input:** nums = [1,2,3]\n**Output:** 1\n**Explanation:** Every value is distinct, so only the whole array contains all distinct values.\n\n## Constraints:\n\n* `0 <= nums.length <= 1000`\n* `1 <= nums[i] <= 2000`",
+  "difficulty": "MEDIUM",
+  "initialCode": "class Solution {\n    public int countCompleteSubarrays(int[] nums) {\n        \n    }\n}",
   "tags": [
     "Array",
-    "Math",
-    "Sorting"
+    "Hash Table",
+    "Sliding Window"
   ],
   "examples": [
     {
+      "input": "nums = [1,3,1,2,2]",
+      "output": "4"
+    },
+    {
+      "input": "nums = [5,5,5,5]",
+      "output": "10"
+    },
+    {
       "input": "nums = [1,2,3]",
-      "output": "6"
-    },
-    {
-      "input": "nums = [1,2,3,4]",
-      "output": "24"
-    },
-    {
-      "input": "nums = [-1,-2,-3]",
-      "output": "-6"
+      "output": "1"
     }
   ],
   "solutions": [
     {
-      "name": "Sort and Compare Two Candidates",
-      "timeComplexity": "O(n log n)",
-      "spaceComplexity": "O(1)",
-      "description": "Sort the array. The max product is either the three largest numbers, or the two smallest (most negative) times the largest. Compare both candidates.",
-      "code": "class Solution {\n    public int maximumProduct(int[] nums) {\n        java.util.Arrays.sort(nums);\n        int n = nums.length;\n        return Math.max(nums[n - 1] * nums[n - 2] * nums[n - 3],\n                        nums[0] * nums[1] * nums[n - 1]);\n    }\n}",
+      "name": "HashMap Sliding Window",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFirst count how many distinct values appear in the whole array. Then move a right pointer across the array while a frequency map tracks the current window. Whenever the window contains all required distinct values, every subarray with the same left endpoint and any farther right endpoint is complete, so add `nums.length - right` and shrink from the left.\n\n## Key Insight\n\nCompleteness is monotonic with respect to extending the right endpoint: once a window `[left, right]` contains every distinct value, `[left, right + 1]`, `[left, right + 2]`, and all later extensions also remain complete. That lets one window event count many subarrays at once.\n\n## Complexity Analysis\n\nEach index enters and leaves the sliding window at most once. The time complexity is O(n), and the frequency map stores at most the number of distinct values, which is O(n) in the worst case.",
+      "code": "class Solution {\n    public int countCompleteSubarrays(int[] nums) {\n        java.util.Set<Integer> allValues = new java.util.HashSet<>();\n        for (int value : nums) {\n            allValues.add(value);\n        }\n        int requiredDistinct = allValues.size();\n\n        java.util.Map<Integer, Integer> window = new java.util.HashMap<>();\n        int answer = 0;\n        int left = 0;\n        for (int right = 0; right < nums.length; right++) {\n            window.put(nums[right], window.getOrDefault(nums[right], 0) + 1);\n            while (window.size() == requiredDistinct) {\n                answer += nums.length - right;\n                int leaving = nums[left++];\n                int nextCount = window.get(leaving) - 1;\n                if (nextCount == 0) {\n                    window.remove(leaving);\n                } else {\n                    window.put(leaving, nextCount);\n                }\n            }\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Linear Scan Track Extremes",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(1)",
-      "description": "Single pass to find the three largest and two smallest values. The max product is either the product of the three largest or the product of the two smallest and the largest.",
-      "code": "class Solution {\n    public int maximumProduct(int[] nums) {\n        int max1 = Integer.MIN_VALUE, max2 = Integer.MIN_VALUE, max3 = Integer.MIN_VALUE;\n        int min1 = Integer.MAX_VALUE, min2 = Integer.MAX_VALUE;\n        for (int n : nums) {\n            if (n >= max1) {\n                max3 = max2; max2 = max1; max1 = n;\n            } else if (n >= max2) {\n                max3 = max2; max2 = n;\n            } else if (n >= max3) {\n                max3 = n;\n            }\n            if (n <= min1) {\n                min2 = min1; min1 = n;\n            } else if (n <= min2) {\n                min2 = n;\n            }\n        }\n        return Math.max(max1 * max2 * max3, min1 * min2 * max1);\n    }\n}",
+      "name": "Enumerate Subarrays Baseline",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCompute the global number of distinct values, then enumerate every start index. Extend the end index one step at a time while a set records which values are inside the current subarray. Every time the set size reaches the global distinct count, count that subarray.\n\n## Key Insight\n\nThis route mirrors the definition directly, so it is a useful correctness baseline. It also shows why the optimized sliding-window version is allowed to batch-count later endings: this baseline would count those complete endings one by one.\n\n## Complexity Analysis\n\nThere are O(n^2) start/end pairs, and each extension updates a set in expected O(1) time. The time complexity is O(n^2), and the set uses O(n) space in the worst case.",
+      "code": "class Solution {\n    public int countCompleteSubarrays(int[] nums) {\n        java.util.Set<Integer> allValues = new java.util.HashSet<>();\n        for (int value : nums) {\n            allValues.add(value);\n        }\n        int requiredDistinct = allValues.size();\n\n        int answer = 0;\n        for (int left = 0; left < nums.length; left++) {\n            java.util.Set<Integer> seen = new java.util.HashSet<>();\n            for (int right = left; right < nums.length; right++) {\n                seen.add(nums[right]);\n                if (seen.size() == requiredDistinct) {\n                    answer++;\n                }\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Frequency Array Sliding Window",
+      "timeComplexity": "O(n + V)",
+      "spaceComplexity": "O(V)",
+      "description": "## Approach\n\nUse the value bound `1 <= nums[i] <= 2000` to replace hash tables with arrays. A boolean array counts the total distinct values in `nums`; a frequency array maintains the sliding window and the number of distinct values currently inside it.\n\n## Key Insight\n\nThis is the same monotonic-window idea as the HashMap route, but the bounded value domain makes frequency updates deterministic and compact. It is useful when the value range is small compared with object-heavy hash table overhead.\n\n## Complexity Analysis\n\nLet `V` be the value domain size, here `2000`. Initializing and scanning take O(n + V) time, and the frequency arrays use O(V) space.",
+      "code": "class Solution {\n    public int countCompleteSubarrays(int[] nums) {\n        boolean[] exists = new boolean[2001];\n        int totalDistinct = 0;\n        for (int num : nums) {\n            if (!exists[num]) {\n                exists[num] = true;\n                totalDistinct++;\n            }\n        }\n\n        int[] freq = new int[2001];\n        int inside = 0;\n        int left = 0;\n        int answer = 0;\n        for (int right = 0; right < nums.length; right++) {\n            if (freq[nums[right]]++ == 0) {\n                inside++;\n            }\n            while (inside == totalDistinct) {\n                answer += nums.length - right;\n                if (--freq[nums[left]] == 0) {\n                    inside--;\n                }\n                left++;\n            }\n        }\n        return answer;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
+      "input": "nums = [1,3,1,2,2]",
+      "output": "4"
+    },
+    {
+      "input": "nums = [5,5,5,5]",
+      "output": "10"
+    },
+    {
       "input": "nums = [1,2,3]",
+      "output": "1"
+    },
+    {
+      "input": "nums = []",
+      "output": "0"
+    },
+    {
+      "input": "nums = [1,2,1,2]",
       "output": "6"
     },
     {
-      "input": "nums = [1,2,3,4]",
-      "output": "24"
+      "input": "nums = [1]",
+      "output": "1"
     },
     {
-      "input": "nums = [-1,-2,-3]",
-      "output": "-6"
-    }
-  ],
-  "diagrams": [
+      "input": "nums = [1,2,3,1,2,3]",
+      "output": "10"
+    },
     {
-      "id": "example1",
-      "file": "p478_example1.png",
-      "caption": "4x5 Binary Matrix"
+      "input": "nums = [1,1,2,2,3,3]",
+      "output": "4"
+    },
+    {
+      "input": "nums = [1,2,1,3,2]",
+      "output": "5"
+    },
+    {
+      "input": "nums = [2000,1,2000,1]",
+      "output": "6"
+    },
+    {
+      "input": "nums = [1,2,2,1,3]",
+      "output": "3"
+    },
+    {
+      "input": "nums = [2,2,1,1,2]",
+      "output": "8"
     }
   ]
 }

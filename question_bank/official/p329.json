@@ -1,36 +1,121 @@
 {
   "id": "329",
   "title": "Palindrome Partitioning II",
-  "description": "# Palindrome Partitioning II\n\nGiven a string `s`, partition `s` such that every substring of the partition is a palindrome.\n\nReturn *the minimum cuts needed for a palindrome partitioning of* `s`.\n\n## Example 1:\n\n**Input:** s = \"aab\"\n**Output:** 1\n**Explanation:** The palindrome partitioning [\"aa\",\"b\"] could be produced using 1 cut.\n\n## Example 2:\n\n**Input:** s = \"a\"\n**Output:** 0\n\n## Example 3:\n\n**Input:** s = \"ab\"\n**Output:** 1\n\n## Constraints:\n\n*   `1 <= s.length <= 2000`\n*   `s` consists of lowercase English letters.",
+  "description": "# Palindrome Partitioning II\n\nGiven a string `s`, split it into one or more substrings so that every substring is a palindrome. Return the minimum number of cuts needed to make such a partition.\n\nA cut is placed between two adjacent characters. If the whole string is already a palindrome, the answer is `0`.\n\nA palindrome reads the same forward and backward, such as `\"aba\"` or `\"aa\"`. A single character is also a palindrome.\n\n## Example 1:\n\n**Input:** s = \"aab\"\n**Output:** 1\n**Explanation:** Split as `[\"aa\", \"b\"]`, which uses one cut.\n\n## Example 2:\n\n**Input:** s = \"a\"\n**Output:** 0\n**Explanation:** A single character is already a palindrome.\n\n## Example 3:\n\n**Input:** s = \"ab\"\n**Output:** 1\n**Explanation:** Split as `[\"a\", \"b\"]`.\n\n## Constraints:\n\n*   `1 <= s.length <= 2000`\n*   `s` consists of lowercase English letters.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int minCut(String s) {\n        \n    }\n}",
-  "tags": ["String", "Dynamic Programming"],
+  "initialCode": "class Solution {\n    public int minCut(String s) {\n        return 0;\n    }\n}",
+  "tags": [
+    "String",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "s = \"aab\"", "output": "1" },
-    { "input": "s = \"a\"", "output": "0" },
-    { "input": "s = \"ab\"", "output": "1" }
+    {
+      "input": "s = \"aab\"",
+      "output": "1"
+    },
+    {
+      "input": "s = \"a\"",
+      "output": "0"
+    },
+    {
+      "input": "s = \"ab\"",
+      "output": "1"
+    }
+  ],
+  "tests": [
+    {
+      "input": "s = \"aab\"",
+      "output": "1",
+      "description": "sample partition aa | b"
+    },
+    {
+      "input": "s = \"a\"",
+      "output": "0",
+      "description": "single character is already a palindrome"
+    },
+    {
+      "input": "s = \"ab\"",
+      "output": "1",
+      "description": "two different characters need one cut"
+    },
+    {
+      "input": "s = \"aabaa\"",
+      "output": "0",
+      "description": "the whole odd-length string is a palindrome"
+    },
+    {
+      "input": "s = \"banana\"",
+      "output": "1",
+      "description": "b | anana uses one cut"
+    },
+    {
+      "input": "s = \"cabababcbc\"",
+      "output": "3",
+      "description": "mixed repeated pattern needs several cuts"
+    },
+    {
+      "input": "s = \"noonabbad\"",
+      "output": "2",
+      "description": "noon | abba | d checks multiple long palindromes"
+    },
+    {
+      "input": "s = \"abcdef\"",
+      "output": "5",
+      "description": "no multi-character palindrome exists"
+    },
+    {
+      "input": "s = \"aaaaa\"",
+      "output": "0",
+      "description": "all repeated characters form one palindrome"
+    },
+    {
+      "input": "s = \"racecarannakayak\"",
+      "output": "2",
+      "description": "racecar | anna | kayak combines several long palindromes"
+    },
+    {
+      "input": "s = \"ababbbabbababa\"",
+      "output": "3",
+      "description": "classic case with overlapping palindrome choices"
+    },
+    {
+      "input": "s = \"abccbc\"",
+      "output": "2",
+      "description": "a | bccb | c checks an even-length middle palindrome"
+    }
   ],
   "solutions": [
     {
       "name": "Expand Around Center DP",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n)",
-      "description": "Use dp[i] = min cuts for s[0..i]. Expand palindromes from each center (both odd and even length). When s[j..i] is a palindrome, update dp[i] = min(dp[i], dp[j-1] + 1).",
-      "code": "class Solution {\n    public int minCut(String s) {\n        int n = s.length();\n        int[] dp = new int[n];\n        for (int i = 0; i < n; i++) dp[i] = i;\n        for (int mid = 0; mid < n; mid++) {\n            for (int d = 0; mid - d >= 0 && mid + d < n && s.charAt(mid - d) == s.charAt(mid + d); d++) {\n                dp[mid + d] = mid - d == 0 ? 0 : Math.min(dp[mid + d], dp[mid - d - 1] + 1);\n            }\n            for (int d = 0; mid - d >= 0 && mid + d + 1 < n && s.charAt(mid - d) == s.charAt(mid + d + 1); d++) {\n                dp[mid + d + 1] = mid - d == 0 ? 0 : Math.min(dp[mid + d + 1], dp[mid - d - 1] + 1);\n            }\n        }\n        return dp[n - 1];\n    }\n}",
+      "description": "## Approach\n\nLet `cuts[r]` be the minimum cuts needed for prefix `s[0..r]`. Expand every odd and even palindrome center; whenever `s[left..right]` is a palindrome, update `cuts[right]` from the best answer before `left`.\n\n## Key Insight\n\nCenter expansion discovers palindromes in the same order as they are needed by the prefix DP. This avoids storing the full palindrome table while still considering every possible last segment.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), because a string can have O(n^2) palindrome substrings.\n- Space Complexity: O(n), for the prefix cut array.",
+      "code": "class Solution { public int minCut(String s) { int n = s.length(); int[] cuts = new int[n]; for (int i = 0; i < n; i++) cuts[i] = i; for (int center = 0; center < n; center++) { for (int left = center, right = center; left >= 0 && right < n && s.charAt(left) == s.charAt(right); left--, right++) { cuts[right] = left == 0 ? 0 : Math.min(cuts[right], cuts[left - 1] + 1); } for (int left = center, right = center + 1; left >= 0 && right < n && s.charAt(left) == s.charAt(right); left--, right++) { cuts[right] = left == 0 ? 0 : Math.min(cuts[right], cuts[left - 1] + 1); } } return cuts[n - 1]; } }",
       "language": "java"
     },
     {
-      "name": "Palindrome Table + DP",
+      "name": "Palindrome Table and Prefix DP",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n^2)",
-      "description": "First build a 2D boolean table isPalin[i][j] indicating whether s[i..j] is a palindrome. Then use dp[i] = min cuts for s[0..i], checking all j where s[j..i] is a palindrome.",
-      "code": "class Solution {\n    public int minCut(String s) {\n        int n = s.length();\n        boolean[][] isPalin = new boolean[n][n];\n        for (int i = n - 1; i >= 0; i--) {\n            for (int j = i; j < n; j++) {\n                if (s.charAt(i) == s.charAt(j) && (j - i <= 2 || isPalin[i + 1][j - 1])) {\n                    isPalin[i][j] = true;\n                }\n            }\n        }\n        int[] dp = new int[n];\n        for (int i = 0; i < n; i++) {\n            if (isPalin[0][i]) {\n                dp[i] = 0;\n            } else {\n                dp[i] = i;\n                for (int j = 1; j <= i; j++) {\n                    if (isPalin[j][i]) {\n                        dp[i] = Math.min(dp[i], dp[j - 1] + 1);\n                    }\n                }\n            }\n        }\n        return dp[n - 1];\n    }\n}",
+      "description": "## Approach\n\nPrecompute `isPalindrome[left][right]` for every substring. Then compute the best prefix answer by choosing the start of the last palindrome segment ending at each index.\n\n## Key Insight\n\nThis route separates two concerns: first recognize palindromes, then solve the minimum-cut DP. It is often the clearest version to prove correct.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), for table construction and DP transitions.\n- Space Complexity: O(n^2), for the palindrome table.",
+      "code": "class Solution { public int minCut(String s) { int n = s.length(); boolean[][] isPalindrome = new boolean[n][n]; for (int left = n - 1; left >= 0; left--) { for (int right = left; right < n; right++) { isPalindrome[left][right] = s.charAt(left) == s.charAt(right) && (right - left <= 2 || isPalindrome[left + 1][right - 1]); } } int[] cuts = new int[n]; for (int right = 0; right < n; right++) { if (isPalindrome[0][right]) { cuts[right] = 0; } else { cuts[right] = right; for (int left = 1; left <= right; left++) { if (isPalindrome[left][right]) cuts[right] = Math.min(cuts[right], cuts[left - 1] + 1); } } } return cuts[n - 1]; } }",
+      "language": "java"
+    },
+    {
+      "name": "Shortest Path over Palindrome Edges",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nTreat each cut position as a graph node. Add an edge from `left` to `right + 1` when `s[left..right]` is a palindrome. The minimum number of palindrome pieces is the shortest path from `0` to `n`, and cuts equal pieces minus one.\n\n## Key Insight\n\nThe problem can be viewed as an unweighted shortest-path problem over palindrome edges. This framing is useful for explaining why minimizing segments and minimizing cuts are equivalent.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), after the palindrome table is known.\n- Space Complexity: O(n^2), for palindrome recognition plus the queue state.",
+      "code": "class Solution { public int minCut(String s) { int n = s.length(); boolean[][] palindrome = new boolean[n][n]; for (int left = n - 1; left >= 0; left--) { for (int right = left; right < n; right++) { palindrome[left][right] = s.charAt(left) == s.charAt(right) && (right - left < 2 || palindrome[left + 1][right - 1]); } } int[] pieces = new int[n + 1]; java.util.Arrays.fill(pieces, Integer.MAX_VALUE / 4); pieces[0] = 0; java.util.ArrayDeque<Integer> queue = new java.util.ArrayDeque<>(); queue.offer(0); while (!queue.isEmpty()) { int start = queue.poll(); for (int end = start; end < n; end++) { if (palindrome[start][end] && pieces[end + 1] > pieces[start] + 1) { pieces[end + 1] = pieces[start] + 1; queue.offer(end + 1); } } } return pieces[n] - 1; } }",
+      "language": "java"
+    },
+    {
+      "name": "Manacher Radii Cut Relaxation",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCompute odd and even palindrome radii with Manacher's algorithm. Then relax the cut DP using the palindromes represented by those radii, updating the right endpoint from the best answer before the left endpoint.\n\n## Key Insight\n\nManacher's algorithm isolates palindrome discovery from cut optimization. The relaxation step is still O(n^2) in the worst case because there may be O(n^2) palindromic substrings, but character comparisons are not repeated.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), dominated by relaxing all palindromic intervals.\n- Space Complexity: O(n), for radii and the cut array.",
+      "code": "class Solution { public int minCut(String s) { int n = s.length(); int[] odd = oddRadii(s); int[] even = evenRadii(s); int[] cuts = new int[n]; for (int i = 0; i < n; i++) cuts[i] = i; for (int center = 0; center < n; center++) { for (int radius = 0; radius < odd[center]; radius++) { int left = center - radius; int right = center + radius; cuts[right] = left == 0 ? 0 : Math.min(cuts[right], cuts[left - 1] + 1); } for (int radius = 1; radius <= even[center]; radius++) { int left = center - radius; int right = center + radius - 1; cuts[right] = left == 0 ? 0 : Math.min(cuts[right], cuts[left - 1] + 1); } } return cuts[n - 1]; } private int[] oddRadii(String s) { int n = s.length(); int[] radius = new int[n]; int left = 0, right = -1; for (int i = 0; i < n; i++) { int k = i > right ? 1 : Math.min(radius[left + right - i], right - i + 1); while (i - k >= 0 && i + k < n && s.charAt(i - k) == s.charAt(i + k)) k++; radius[i] = k; if (i + k - 1 > right) { left = i - k + 1; right = i + k - 1; } } return radius; } private int[] evenRadii(String s) { int n = s.length(); int[] radius = new int[n]; int left = 0, right = -1; for (int i = 0; i < n; i++) { int k = i > right ? 0 : Math.min(radius[left + right - i + 1], right - i + 1); while (i - k - 1 >= 0 && i + k < n && s.charAt(i - k - 1) == s.charAt(i + k)) k++; radius[i] = k; if (i + k - 1 > right) { left = i - k; right = i + k - 1; } } return radius; } }",
       "language": "java"
     }
-  ],
-  "tests": [
-    { "input": "s = \"aab\"", "output": "1" },
-    { "input": "s = \"a\"", "output": "0" },
-    { "input": "s = \"ab\"", "output": "1" }
   ]
 }

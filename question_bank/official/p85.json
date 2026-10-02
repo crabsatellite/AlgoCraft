@@ -1,7 +1,7 @@
 {
   "id": "85",
   "title": "Same Tree",
-  "description": "# Same Tree\n\nGiven the roots of two binary trees `p` and `q`, write a function to check if they are the same or not.\n\nTwo binary trees are considered the same if they are structurally identical, and the nodes have the same value.\n\n## Example 1:\n\n**Input:** p = [1,2,3], q = [1,2,3]\n**Output:** true\n\n## Example 2:\n\n**Input:** p = [1,2], q = [1,null,2]\n**Output:** false\n\n## Example 3:\n\n**Input:** p = [1,2,1], q = [1,1,2]\n**Output:** false\n\n## Constraints:\n\n*   The number of nodes in both trees is in the range `[0, 100]`.\n*   `-10^4 <= Node.val <= 10^4`",
+  "description": "# Same Tree\n\nGiven the roots of two binary trees `p` and `q`, return `true` if the two trees are the same tree, and `false` otherwise.\n\nTwo binary trees are the same only when every corresponding position matches: both nodes are missing, or both nodes exist with the same value and their left and right subtrees are also the same. A value that appears on the wrong side is not a match.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** p = [1,2,3], q = [1,2,3]\n**Output:** true\n**Explanation:** The two trees have the same shape and the same value at every position.\n\n## Example 2:\n\n**Input:** p = [1,2], q = [1,null,2]\n**Output:** false\n**Explanation:** Both trees contain values 1 and 2, but the node with value 2 is in a different child position.\n\n## Example 3:\n\n**Input:** p = [1,2,1], q = [1,1,2]\n**Output:** false\n**Explanation:** The root values match, but the left and right child values are swapped.\n\n## Constraints:\n\n* The number of nodes in both trees is in the range `[0, 100]`.\n* `-10^4 <= Node.val <= 10^4`",
   "difficulty": "EASY",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public boolean isSameTree(TreeNode p, TreeNode q) {\n        // Write your code here\n        return false;\n    }\n}",
   "tags": [
@@ -27,48 +27,101 @@
   "tests": [
     {
       "input": "p = [1,2,3], q = [1,2,3]",
-      "output": "true"
+      "output": "true",
+      "description": "Canonical identical trees should match."
     },
     {
       "input": "p = [1,2], q = [1,null,2]",
-      "output": "false"
+      "output": "false",
+      "description": "The same values in different child positions are not the same tree."
     },
     {
       "input": "p = [1,2,1], q = [1,1,2]",
-      "output": "false"
+      "output": "false",
+      "description": "Equal shape but swapped child values should fail."
     },
     {
       "input": "p = [], q = []",
-      "output": "true"
+      "output": "true",
+      "description": "Two empty trees are the same."
     },
     {
       "input": "p = [], q = [1]",
-      "output": "false"
+      "output": "false",
+      "description": "Exactly one empty root should fail."
     },
     {
       "input": "p = [1], q = [1]",
-      "output": "true"
+      "output": "true",
+      "description": "Single-node trees with the same value match."
+    },
+    {
+      "input": "p = [1], q = [-1]",
+      "output": "false",
+      "description": "Single-node trees with different values fail, including negative values."
     },
     {
       "input": "p = [1,2,3,4,5], q = [1,2,3,4,6]",
-      "output": "false"
+      "output": "false",
+      "description": "A deep leaf value difference should be detected."
+    },
+    {
+      "input": "p = [1,2,3,null,4], q = [1,2,3,4,null]",
+      "output": "false",
+      "description": "A left-child versus right-child null placement difference should fail."
+    },
+    {
+      "input": "p = [0,-10000,10000], q = [0,-10000,10000]",
+      "output": "true",
+      "description": "Boundary values should be compared normally."
+    },
+    {
+      "input": "p = [5,5,5,5,null,null,5], q = [5,5,5,null,5,5,null]",
+      "output": "false",
+      "description": "Duplicate values cannot hide structural differences."
+    },
+    {
+      "input": "p = [1,2,2,3,null,null,3], q = [1,2,2,3,null,null,3]",
+      "output": "true",
+      "description": "A symmetric tree with duplicates should still match when every position matches."
+    },
+    {
+      "input": "p = [1,2,3,4,null,null,5,6], q = [1,2,3,4,null,null,5,null,6]",
+      "output": "false",
+      "description": "A deeper null placement difference should be detected."
     }
   ],
   "solutions": [
     {
-      "name": "Recursive DFS",
+      "name": "Recursive DFS Definition",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "Two trees are the same if roots have the same value and left/right subtrees are the same.",
-      "code": "class Solution {\n    public boolean isSameTree(TreeNode p, TreeNode q) {\n        if (p == null && q == null) return true;\n        if (p == null || q == null) return false;\n        \n        return p.val == q.val \n            && isSameTree(p.left, q.left) \n            && isSameTree(p.right, q.right);\n    }\n}",
+      "description": "## Approach\n\nCompare the two current nodes first. If both are null, that position matches. If exactly one is null, or the values differ, the trees are different. Otherwise recursively compare the left children and the right children.\n\n## Key Insight\n\nThe recursive checks match the definition of tree equality exactly: each position must agree in both structure and value. This avoids the common mistake of only comparing a traversal's values.\n\n## Complexity Analysis\n- Time Complexity: O(n), where n is the number of matched positions visited before a difference is found or both trees are exhausted.\n- Space Complexity: O(h), where h is the height of the deeper tree due to the recursion stack.",
+      "code": "class Solution {\n    public boolean isSameTree(TreeNode p, TreeNode q) {\n        if (p == null && q == null) {\n            return true;\n        }\n        if (p == null || q == null) {\n            return false;\n        }\n        if (p.val != q.val) {\n            return false;\n        }\n        return isSameTree(p.left, q.left) && isSameTree(p.right, q.right);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Iterative BFS",
+      "name": "Parallel BFS Queue",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(w)",
+      "description": "## Approach\n\nTraverse both trees level by level with a queue of node pairs. Each dequeued pair must be two nulls, or two non-null nodes with the same value. When a pair matches, enqueue the left-left pair and the right-right pair.\n\n## Key Insight\n\nBreadth-first order is safe only because the queue stores corresponding positions together. A plain list of visited values would lose null placement and could accept different trees.\n\n## Complexity Analysis\n- Time Complexity: O(n), because every corresponding node position is checked at most once.\n- Space Complexity: O(w), where w is the maximum number of queued node pairs at one level.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isSameTree(TreeNode p, TreeNode q) {\n        Queue<TreeNode[]> queue = new ArrayDeque<>();\n        queue.offer(new TreeNode[] {p, q});\n\n        while (!queue.isEmpty()) {\n            TreeNode[] pair = queue.poll();\n            TreeNode a = pair[0];\n            TreeNode b = pair[1];\n\n            if (a == null && b == null) {\n                continue;\n            }\n            if (a == null || b == null || a.val != b.val) {\n                return false;\n            }\n\n            queue.offer(new TreeNode[] {a.left, b.left});\n            queue.offer(new TreeNode[] {a.right, b.right});\n        }\n\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative DFS Pair Stack",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nUse a stack instead of recursive calls. Each stack entry is an explicit `Pair` object containing nodes from the same position in the two trees. Pop a pair, verify null state and value with a helper, then push the matching child pairs.\n\n## Key Insight\n\nThe stack is a hand-written recursion stack. The `Pair` type makes the invariant visible: every item compares one exact position from `p` with the same position from `q`.\n\n## Complexity Analysis\n- Time Complexity: O(n), since each corresponding tree position is pushed and popped at most once.\n- Space Complexity: O(h) for balanced traversal depth in typical DFS order, and O(n) in the worst case for highly branching trees.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isSameTree(TreeNode p, TreeNode q) {\n        Deque<Pair> stack = new ArrayDeque<>();\n        stack.push(new Pair(p, q));\n\n        while (!stack.isEmpty()) {\n            Pair current = stack.pop();\n            if (!same(current.left, current.right)) {\n                return false;\n            }\n            if (current.left != null) {\n                stack.push(new Pair(current.left.left, current.right.left));\n                stack.push(new Pair(current.left.right, current.right.right));\n            }\n        }\n\n        return true;\n    }\n\n    private boolean same(TreeNode a, TreeNode b) {\n        if (a == null || b == null) {\n            return a == b;\n        }\n        return a.val == b.val;\n    }\n\n    private static class Pair {\n        TreeNode left;\n        TreeNode right;\n\n        Pair(TreeNode left, TreeNode right) {\n            this.left = left;\n            this.right = right;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Preorder Serialization with Null Markers",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use two queues to traverse both trees in parallel. Compare nodes at each step.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isSameTree(TreeNode p, TreeNode q) {\n        Queue<TreeNode> queue = new LinkedList<>();\n        queue.offer(p);\n        queue.offer(q);\n        \n        while (!queue.isEmpty()) {\n            TreeNode n1 = queue.poll();\n            TreeNode n2 = queue.poll();\n            \n            if (n1 == null && n2 == null) continue;\n            if (n1 == null || n2 == null) return false;\n            if (n1.val != n2.val) return false;\n            \n            queue.offer(n1.left);\n            queue.offer(n2.left);\n            queue.offer(n1.right);\n            queue.offer(n2.right);\n        }\n        \n        return true;\n    }\n}",
+      "description": "## Approach\n\nSerialize each tree with preorder traversal. Write the node value for real nodes and a special marker for every null child, then compare the two resulting token lists.\n\n## Key Insight\n\nNull markers are required. Without them, different structures such as a left child versus a right child can produce the same value sequence and be incorrectly accepted.\n\n## Complexity Analysis\n- Time Complexity: O(n), because both trees are traversed once and the two token lists are compared once.\n- Space Complexity: O(n), because the serialized token lists store values and null markers for both trees.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isSameTree(TreeNode p, TreeNode q) {\n        List<String> first = new ArrayList<>();\n        List<String> second = new ArrayList<>();\n        serialize(p, first);\n        serialize(q, second);\n        return first.equals(second);\n    }\n\n    private void serialize(TreeNode node, List<String> output) {\n        if (node == null) {\n            output.add(\"#\");\n            return;\n        }\n        output.add(Integer.toString(node.val));\n        serialize(node.left, output);\n        serialize(node.right, output);\n    }\n}",
       "language": "java"
     }
   ],
@@ -76,12 +129,12 @@
     {
       "id": "example1",
       "file": "p85_example1.png",
-      "caption": "Example 1: Same Trees p=[1,2,3], q=[1,2,3]"
+      "caption": "Example 1 input trees p and q"
     },
     {
       "id": "example2",
       "file": "p85_example2.png",
-      "caption": "Example 2: Different Structure p=[1,2], q=[1,null,2]"
+      "caption": "Example 2 input trees p and q"
     }
   ]
 }

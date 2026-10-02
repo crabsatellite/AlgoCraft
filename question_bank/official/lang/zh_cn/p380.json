@@ -1,0 +1,32 @@
+{
+  "title": "赛车",
+  "description": "# 赛车\n\n赛车从位置 `0`、速度 `+1` 出发，可以在无限数轴上移动，也可以经过负位置。你可以发送两种指令：\n\n* `A` 表示加速：先执行 `position += speed`，再让 `speed *= 2`。\n* `R` 表示反向：如果速度为正，则速度变成 `-1`；否则变成 `+1`。位置不变。\n\n给定正整数目标位置 `target`，返回让赛车到达该位置所需的最短指令长度。\n\n## 示例 1\n\n**输入：** target = 3\n\n**输出：** 2\n\n**解释：** 指令 `AA` 的位置变化是 `0 -> 1 -> 3`。\n\n## 示例 2\n\n**输入：** target = 6\n\n**输出：** 5\n\n**解释：** 一个最短指令序列是 `AAARA`，位置变化为 `0 -> 1 -> 3 -> 7 -> 7 -> 6`。\n\n## 约束\n\n* `1 <= target <= 10000`",
+  "diagrams": [
+    {
+      "id": "aaara-example",
+      "caption": "目标 6 的示例路径：AAARA。"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "自底向上距离动态规划",
+      "description": "## 思路\n\n设 `dp[d]` 为从位置 0、速度 +1 到达距离 `d` 的最短指令数。对每个距离比较精确加速、先越过再回头、以及先停在前一个完美距离再倒车调整。\n\n## 关键洞察\n\n连续加速 k 次会到达 `2^k - 1`。最优方案一定围绕这些完美距离做越过或少走一段的选择。\n\n## 复杂度分析\n- 时间复杂度：O(target log target)\n- 空间复杂度：O(target)"
+    },
+    {
+      "name": "位置速度状态分层 BFS",
+      "description": "## 思路\n\n把 `(position, speed)` 当作图状态，每层追加一个 `A` 或 `R` 指令，并剪掉远离目标的状态。\n\n## 关键洞察\n\n所有边代价相同，因此 BFS 第一次到达目标位置的层数就是最短指令长度。\n\n## 复杂度分析\n- 时间复杂度：O(target log target)\n- 空间复杂度：O(target log target)"
+    },
+    {
+      "name": "自顶向下记忆化距离递推",
+      "description": "## 思路\n\n只递归求当前需要的目标距离。每个距离比较一次越过目标后折返，以及所有少走后倒车再前进的选择。\n\n## 关键洞察\n\n子问题都是更小的距离；记忆化保证每个距离只计算一次。\n\n## 复杂度分析\n- 时间复杂度：O(target log target)\n- 空间复杂度：O(target)"
+    },
+    {
+      "name": "状态图上的统一代价优先搜索",
+      "description": "## 思路\n\n在同一个 `(position, speed)` 图上运行 Dijkstra 式统一代价搜索，优先队列总是先结算当前指令数最小的状态。\n\n## 关键洞察\n\n这是最短路视角；状态一旦以最小指令数出队，就不需要再被更差路径更新。\n\n## 复杂度分析\n- 时间复杂度：O(target log target log target)\n- 空间复杂度：O(target log target)"
+    },
+    {
+      "name": "打包状态的有界 BFS",
+      "description": "## 思路\n\n仍然使用 BFS，但把 `(position, speed)` 编码成一个 `long`，并允许目标附近的正负有界窗口。\n\n## 关键洞察\n\n打包 visited key 降低状态管理成本；在足够的窗口内，BFS 的最短路性质不变。\n\n## 复杂度分析\n- 时间复杂度：O(target log target)\n- 空间复杂度：O(target log target)"
+    }
+  ]
+}

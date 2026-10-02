@@ -1,7 +1,7 @@
 {
   "id": "475",
   "title": "Construct String from Binary Tree",
-  "description": "# Construct String from Binary Tree\n\nGiven the `root` of a binary tree, construct a string consisting of parenthesis and integers from a binary tree with the preorder traversal way, and return it.\n\nOmit all the empty parenthesis pairs that do not affect the one-to-one mapping relationship between the string and the original binary tree.\n\n## Example 1:\n\n**Input:** root = [1,2,3,4]\n**Output:** \"1(2(4))(3)\"\n**Explanation:** Originally, it needs to be \"1(2(4)())(3()())\", but you need to omit all the unnecessary empty parenthesis pairs. And it will be \"1(2(4))(3)\"\n\n## Example 2:\n\n**Input:** root = [1,2,3,null,4]\n**Output:** \"1(2()(4))(3)\"\n**Explanation:** Almost the same as the first example, except we cannot omit the first parenthesis pair to break the one-to-one mapping relationship between the input and the output.\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[1, 10^4]`.\n*   `-1000 <= Node.val <= 1000`",
+  "description": "# Construct String from Binary Tree\n\nGiven binary tree root `root`, return its string using these rules. Write a node's decimal value first, then its left subtree, then its right subtree, applying the same rules recursively:\n\n* A leaf is just its value, without empty parentheses.\n* If a left child exists, append `(left-subtree string)`.\n* If a right child exists, append `(right-subtree string)`. When the left child is absent but the right exists, append empty left parentheses `()` before the right subtree.\n\nFor root `1` with only right child `2`, return `\"1()(2)\"`, preserving which side the child belongs to.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n![Example input tree](images/p475_example1.png)\n\n**Input:** root = [1,2,3,4]\n**Output:** \"1(2(4))(3)\"\n**Explanation:** The full form would be \"1(2(4)())(3()())\", but empty child pairs that do not affect reconstruction are omitted.\n\n## Example 2:\n\n**Input:** root = [1,2,3,null,4]\n**Output:** \"1(2()(4))(3)\"\n**Explanation:** Node `2` has no left child but has right child `4`, so the empty left parentheses must be preserved.\n\n## Example 3:\n\n**Input:** root = [1,null,2]\n**Output:** \"1()(2)\"\n**Explanation:** The root has only a right child, so the missing left child must be written as `()`.\n\n## Constraints:\n\n* The number of nodes in the tree is in the range `[1, 10^4]`.\n* `-1000 <= Node.val <= 1000`",
   "difficulty": "EASY",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public String tree2str(TreeNode root) {\n        \n    }\n}",
   "tags": [
@@ -18,23 +18,35 @@
     {
       "input": "root = [1,2,3,null,4]",
       "output": "\"1(2()(4))(3)\""
+    },
+    {
+      "input": "root = [1,null,2]",
+      "output": "\"1()(2)\""
     }
   ],
   "solutions": [
     {
-      "name": "Recursive Preorder",
+      "name": "Recursive StringBuilder Preorder",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "Preorder traversal building the string. For each node, append its value. Add left child in parentheses (or empty parentheses if left is null but right exists). Add right child in parentheses if it exists.",
-      "code": "class Solution {\n    public String tree2str(TreeNode root) {\n        if (root == null) return \"\";\n        StringBuilder sb = new StringBuilder();\n        build(root, sb);\n        return sb.toString();\n    }\n\n    private void build(TreeNode node, StringBuilder sb) {\n        if (node == null) return;\n        sb.append(node.val);\n        if (node.left != null || node.right != null) {\n            sb.append('(');\n            build(node.left, sb);\n            sb.append(')');\n        }\n        if (node.right != null) {\n            sb.append('(');\n            build(node.right, sb);\n            sb.append(')');\n        }\n    }\n}",
+      "description": "## Approach\n\nRun preorder traversal and append directly into one `StringBuilder`. Write the current node value first, then append the left subtree in parentheses when any child exists, and append the right subtree in parentheses only when it exists.\n\n## Key Insight\n\nThe only empty parentheses that matter are the missing-left marker before an existing right child. The condition `node.left != null || node.right != null` emits the left pair exactly when it is needed for either a real left subtree or that missing-left marker.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), where n is the number of nodes.\n- Space Complexity: O(h), where h is the tree height from the recursion stack.",
+      "code": "class Solution {\n    public String tree2str(TreeNode root) {\n        StringBuilder builder = new StringBuilder();\n        appendPreorder(root, builder);\n        return builder.toString();\n    }\n\n    private void appendPreorder(TreeNode node, StringBuilder builder) {\n        if (node == null) {\n            return;\n        }\n        builder.append(node.val);\n        if (node.left != null || node.right != null) {\n            builder.append('(');\n            appendPreorder(node.left, builder);\n            builder.append(')');\n        }\n        if (node.right != null) {\n            builder.append('(');\n            appendPreorder(node.right, builder);\n            builder.append(')');\n        }\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Iterative Stack-based Preorder",
+      "name": "Recursive Returned Strings",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nLet each recursive call return the complete string for its subtree. A leaf returns only its value. A node with only a left child returns `value(left)`, while a node with any right child returns `value(left)(right)`, preserving an empty left string when needed.\n\n## Key Insight\n\nThis route mirrors the grammar of the output string. It is less efficient than the shared `StringBuilder` route because repeated string concatenation may copy already-built text, but it is useful as a compact definition-first baseline.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2) in the worst case for a skewed tree because concatenation may repeatedly copy long partial strings.\n- Space Complexity: O(h), excluding the returned strings, for the recursion stack.",
+      "code": "class Solution {\n    public String tree2str(TreeNode root) {\n        if (root == null) {\n            return \"\";\n        }\n        String value = String.valueOf(root.val);\n        if (root.left == null && root.right == null) {\n            return value;\n        }\n        if (root.right == null) {\n            return value + \"(\" + tree2str(root.left) + \")\";\n        }\n        return value + \"(\" + tree2str(root.left) + \")(\" + tree2str(root.right) + \")\";\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Explicit Stack Token Simulation",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use an explicit stack to perform iterative preorder traversal, building the string with parentheses. Track whether to add opening or closing parentheses by storing state with each node.",
-      "code": "class Solution {\n    public String tree2str(TreeNode root) {\n        if (root == null) return \"\";\n        StringBuilder sb = new StringBuilder();\n        java.util.Deque<TreeNode> stack = new java.util.ArrayDeque<>();\n        java.util.Set<TreeNode> visited = new java.util.HashSet<>();\n        stack.push(root);\n        while (!stack.isEmpty()) {\n            TreeNode node = stack.peek();\n            if (visited.contains(node)) {\n                stack.pop();\n                sb.append(')');\n            } else {\n                visited.add(node);\n                sb.append('(').append(node.val);\n                if (node.left == null && node.right != null) {\n                    sb.append(\"()\");\n                }\n                if (node.right != null) stack.push(node.right);\n                if (node.left != null) stack.push(node.left);\n            }\n        }\n        return sb.substring(1, sb.length() - 1);\n    }\n}",
+      "description": "## Approach\n\nSimulate the recursive output process with an explicit stack of nodes and parenthesis tokens. For each node, push the right subtree tokens first and then the left subtree tokens so that the stack emits preorder text in the required order.\n\n## Key Insight\n\nThe output can be treated as a stream of three token kinds: node values, opening parentheses, and closing parentheses. This avoids recursive calls while still preserving the exact missing-left `()` rule before a right subtree.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each node and each required parenthesis token is processed once.\n- Space Complexity: O(n), for the explicit stack in the worst case.",
+      "code": "class Solution {\n    public String tree2str(TreeNode root) {\n        if (root == null) {\n            return \"\";\n        }\n\n        class Frame {\n            TreeNode node;\n            char token;\n\n            Frame(TreeNode node) {\n                this.node = node;\n            }\n\n            Frame(char token) {\n                this.token = token;\n            }\n        }\n\n        StringBuilder builder = new StringBuilder();\n        java.util.Deque<Frame> stack = new java.util.ArrayDeque<>();\n        stack.push(new Frame(root));\n        while (!stack.isEmpty()) {\n            Frame frame = stack.pop();\n            if (frame.node == null) {\n                builder.append(frame.token);\n                continue;\n            }\n\n            TreeNode node = frame.node;\n            builder.append(node.val);\n            if (node.right != null) {\n                stack.push(new Frame(')'));\n                stack.push(new Frame(node.right));\n                stack.push(new Frame('('));\n            }\n            if (node.left != null || node.right != null) {\n                stack.push(new Frame(')'));\n                if (node.left != null) {\n                    stack.push(new Frame(node.left));\n                }\n                stack.push(new Frame('('));\n            }\n        }\n        return builder.toString();\n    }\n}",
       "language": "java"
     }
   ],
@@ -46,13 +58,53 @@
     {
       "input": "root = [1,2,3,null,4]",
       "output": "\"1(2()(4))(3)\""
+    },
+    {
+      "input": "root = [1]",
+      "output": "\"1\""
+    },
+    {
+      "input": "root = [1,null,2]",
+      "output": "\"1()(2)\""
+    },
+    {
+      "input": "root = [-1]",
+      "output": "\"-1\""
+    },
+    {
+      "input": "root = [1,2]",
+      "output": "\"1(2)\""
+    },
+    {
+      "input": "root = [1,2,null,3]",
+      "output": "\"1(2(3))\""
+    },
+    {
+      "input": "root = [1,2,null,null,3]",
+      "output": "\"1(2()(3))\""
+    },
+    {
+      "input": "root = [1,null,2,3]",
+      "output": "\"1()(2(3))\""
+    },
+    {
+      "input": "root = [1,2,3,4,5,6,7]",
+      "output": "\"1(2(4)(5))(3(6)(7))\""
+    },
+    {
+      "input": "root = [0,-1000,1000,null,-5]",
+      "output": "\"0(-1000()(-5))(1000)\""
+    },
+    {
+      "input": "root = [1,2,3,null,null,4]",
+      "output": "\"1(2)(3(4))\""
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p475_example1.png",
-      "caption": "Example 1: Tree [1,2,3,4]"
+      "caption": "Example input tree"
     }
   ]
 }

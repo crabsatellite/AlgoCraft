@@ -1,44 +1,103 @@
 {
   "id": "13",
   "title": "Move Zeroes",
-  "description": "# Move Zeroes\n\nGiven an integer array `nums`, move all `0`'s to the end of it while maintaining the relative order of the non-zero elements.\n\n**Note** that you must do this in-place without making a copy of the array.\n\n## Example 1:\n\n**Input:** nums = [0,1,0,3,12]\n**Output:** [1,3,12,0,0]\n\n## Example 2:\n\n**Input:** nums = [0]\n**Output:** [0]\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^4`\n*   `-2^31 <= nums[i] <= 2^31 - 1`",
+  "description": "# Move Zeroes\n\nGiven an integer array `nums`, move all `0` values to the end of the array while preserving the relative order of every non-zero value.\n\nYou must modify `nums` in-place without making a copy of the array. The examples show the final state of `nums` after your method returns.\n\n## Example 1:\n\n**Input:** nums = [0,1,0,3,12]\n**Output:** [1,3,12,0,0]\n**Explanation:** The non-zero values `1`, `3`, and `12` keep their original order, and both zeroes move to the end.\n\n## Example 2:\n\n**Input:** nums = [0]\n**Output:** [0]\n**Explanation:** A single zero is already in the only possible position.\n\n## Example 3:\n\n**Input:** nums = [0,-1,0,-2,0,3]\n**Output:** [-1,-2,3,0,0,0]\n**Explanation:** Negative values are non-zero values and must keep their relative order.\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^4`\n*   `-2^31 <= nums[i] <= 2^31 - 1`",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public void moveZeroes(int[] nums) {\n        // Write your code here\n        \n    }\n}",
-  "tags": ["Array", "Two Pointers"],
-  "examples": [{ "input": "nums = [0,1,0,3,12]", "output": "[1,3,12,0,0]" }],
+  "initialCode": "class Solution {\n    public void moveZeroes(int[] nums) {\n        // Write your code here\n    }\n}",
+  "tags": [
+    "Array",
+    "Two Pointers"
+  ],
+  "examples": [
+    {
+      "input": "nums = [0,1,0,3,12]",
+      "output": "[1,3,12,0,0]",
+      "description": "Stable compaction keeps the non-zero order."
+    },
+    {
+      "input": "nums = [0]",
+      "output": "[0]",
+      "description": "Single zero array."
+    },
+    {
+      "input": "nums = [0,-1,0,-2,0,3]",
+      "output": "[-1,-2,3,0,0,0]",
+      "description": "Negative non-zero values keep their order."
+    }
+  ],
   "tests": [
-    { "input": "nums = [0,1,0,3,12]", "output": "[1,3,12,0,0]" },
-    { "input": "nums = [0]", "output": "[0]" },
-    { "input": "nums = [1,2,3]", "output": "[1,2,3]" },
-    { "input": "nums = [0,0,1]", "output": "[1,0,0]" },
+    {
+      "input": "nums = [0,1,0,3,12]",
+      "output": "[1,3,12,0,0]"
+    },
+    {
+      "input": "nums = [0]",
+      "output": "[0]",
+      "description": "Single zero"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "[1]",
+      "description": "Single non-zero"
+    },
+    {
+      "input": "nums = [1,2,3]",
+      "output": "[1,2,3]",
+      "description": "No zeroes"
+    },
+    {
+      "input": "nums = [0,0,1]",
+      "output": "[1,0,0]",
+      "description": "Leading zero run"
+    },
     {
       "input": "nums = [0,0,0,0]",
       "output": "[0,0,0,0]",
-      "description": "All zeros"
+      "description": "All zeroes"
     },
     {
       "input": "nums = [1,0]",
       "output": "[1,0]",
-      "description": "Single zero at end position"
+      "description": "Trailing zero already belongs at the end"
+    },
+    {
+      "input": "nums = [0,-1,0,-2,0,3]",
+      "output": "[-1,-2,3,0,0,0]",
+      "description": "Negative values and multiple zero gaps"
+    },
+    {
+      "input": "nums = [4,0,5,0,0,6]",
+      "output": "[4,5,6,0,0,0]",
+      "description": "Several gaps between non-zero values"
+    },
+    {
+      "input": "nums = [0,1,0,1,0,1]",
+      "output": "[1,1,1,0,0,0]",
+      "description": "Duplicate non-zero values must keep their count and order"
+    },
+    {
+      "input": "nums = [0,-2147483648,0,2147483647]",
+      "output": "[-2147483648,2147483647,0,0]",
+      "description": "Integer boundary values are non-zero"
     }
   ],
   "solutions": [
     {
-      "name": "Two Pointers - Optimal",
-      "description": "## Approach\n\nUse a slow pointer to track position for next non-zero. Fast pointer scans array. When non-zero found, swap with slow position.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
-      "code": "class Solution {\n    public int[] moveZeroes(int[] nums) {\n        int slow = 0;\n        \n        for (int fast = 0; fast < nums.length; fast++) {\n            if (nums[fast] != 0) {\n                int temp = nums[slow];\n                nums[slow] = nums[fast];\n                nums[fast] = temp;\n                slow++;\n            }\n        }\n        \n        return nums;\n    }\n}",
+      "name": "Two Pointers - Swap into Non-zero Prefix",
+      "description": "## Approach\n\nKeep a `write` pointer for the next position that should contain a non-zero value. Scan with `read`; when `nums[read]` is non-zero, swap it into `write` and advance `write`.\n\n## Key Insight\n\nThe prefix before `write` is always the stable list of non-zero values already processed. Since `read` visits the array from left to right, each non-zero value enters that prefix in original order. When `read == write`, no physical swap is needed.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public void moveZeroes(int[] nums) {\n        int write = 0;\n\n        for (int read = 0; read < nums.length; read++) {\n            if (nums[read] != 0) {\n                if (write != read) {\n                    int temp = nums[write];\n                    nums[write] = nums[read];\n                    nums[read] = temp;\n                }\n                write++;\n            }\n        }\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Two Pass - Shift and Fill",
-      "description": "## Approach\n\nFirst pass: copy all non-zero elements to front. Second pass: fill remaining with zeros.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
-      "code": "class Solution {\n    public int[] moveZeroes(int[] nums) {\n        int insertPos = 0;\n        \n        // Move all non-zero elements to front\n        for (int num : nums) {\n            if (num != 0) {\n                nums[insertPos++] = num;\n            }\n        }\n        \n        // Fill rest with zeros\n        while (insertPos < nums.length) {\n            nums[insertPos++] = 0;\n        }\n        \n        return nums;\n    }\n}",
+      "name": "Two Pass - Stable Compact then Fill",
+      "description": "## Approach\n\nFirst write every non-zero value into the front of the array in the order it is read. After the non-zero prefix is complete, fill the remaining suffix with zeroes.\n\n## Key Insight\n\nThis separates the problem into two simple invariants: build the stable non-zero prefix, then repair the tail. It is often the clearest implementation because it never needs to swap a zero backward and never uses another array.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public void moveZeroes(int[] nums) {\n        int write = 0;\n\n        for (int read = 0; read < nums.length; read++) {\n            if (nums[read] != 0) {\n                nums[write] = nums[read];\n                write++;\n            }\n        }\n\n        while (write < nums.length) {\n            nums[write] = 0;\n            write++;\n        }\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Snowball - Count Zeros",
-      "description": "## Approach\n\nCount zeros (snowball size). When we find non-zero and snowball exists, swap it with the first zero in the snowball.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
-      "code": "class Solution {\n    public int[] moveZeroes(int[] nums) {\n        int snowBall = 0;\n        \n        for (int i = 0; i < nums.length; i++) {\n            if (nums[i] == 0) {\n                snowBall++;\n            } else if (snowBall > 0) {\n                nums[i - snowBall] = nums[i];\n                nums[i] = 0;\n            }\n        }\n        \n        return nums;\n    }\n}",
+      "name": "Zero Gap - Snowball",
+      "description": "## Approach\n\nTrack the number of zeroes seen so far. When a non-zero value appears after one or more zeroes, move it left by that zero count and write zero into its old position.\n\n## Key Insight\n\nThe zero count is the size of the gap that non-zero values must cross. Each non-zero value crosses that gap at most once, so the method stays linear while preserving the original order of all non-zero values.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public void moveZeroes(int[] nums) {\n        int zeroes = 0;\n\n        for (int i = 0; i < nums.length; i++) {\n            if (nums[i] == 0) {\n                zeroes++;\n            } else if (zeroes > 0) {\n                nums[i - zeroes] = nums[i];\n                nums[i] = 0;\n            }\n        }\n    }\n}",
       "language": "java"
     }
   ]

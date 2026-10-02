@@ -1,10 +1,21 @@
 {
   "id": "418",
   "title": "Range Sum Query - Immutable",
-  "description": "# Range Sum Query - Immutable\n\nGiven an integer array `nums`, handle multiple queries of the following type:\n\n1.  Calculate the **sum** of the elements of `nums` between indices `left` and `right` **inclusive** where `left <= right`.\n\nImplement the `NumArray` class:\n\n*   `NumArray(int[] nums)` Initializes the object with the integer array `nums`.\n*   `int sumRange(int left, int right)` Returns the sum of the elements of `nums` between indices `left` and `right` inclusive (i.e. `nums[left] + nums[left + 1] + ... + nums[right]`).\n\n## Example 1:\n\n**Input:**\n[\"NumArray\", \"sumRange\", \"sumRange\", \"sumRange\"]\n[[[-2, 0, 3, -5, 2, -1]], [0, 2], [2, 5], [0, 5]]\n**Output:**\n[null, 1, -1, -3]\n**Explanation:**\nNumArray numArray = new NumArray([-2, 0, 3, -5, 2, -1]);\nnumArray.sumRange(0, 2); // return (-2) + 0 + 3 = 1\nnumArray.sumRange(2, 5); // return 3 + (-5) + 2 + (-1) = -1\nnumArray.sumRange(0, 5); // return (-2) + 0 + 3 + (-5) + 2 + (-1) = -3\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^4`\n*   `-10^5 <= nums[i] <= 10^5`\n*   `0 <= left <= right < nums.length`\n*   At most `10^4` calls will be made to `sumRange`.",
+  "description": "# Range Sum Query - Immutable\n\nGiven an integer array `nums`, handle repeated range-sum queries on the same array.\n\nImplement the `NumArray` class:\n\n* `NumArray(int[] nums)` initializes the object with the array `nums`.\n* `int sumRange(int left, int right)` returns the sum of the elements from index `left` through index `right`, inclusive.\n\nThe array is immutable after construction: there is no operation that changes an element of `nums`. Every query is guaranteed to satisfy `0 <= left <= right < nums.length`.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1:\n\n**Input:**\n[\"NumArray\", \"sumRange\", \"sumRange\", \"sumRange\"]\n[[[-2, 0, 3, -5, 2, -1]], [0, 2], [2, 5], [0, 5]]\n\n**Output:**\n[null, 1, -1, -3]\n\n**Explanation:**\n`sumRange(0, 2)` returns `(-2) + 0 + 3 = 1`.\n`sumRange(2, 5)` returns `3 + (-5) + 2 + (-1) = -1`.\n`sumRange(0, 5)` returns `(-2) + 0 + 3 + (-5) + 2 + (-1) = -3`.\n\n## Constraints:\n\n* `1 <= nums.length <= 10^4`\n* `-10^5 <= nums[i] <= 10^5`\n* `0 <= left <= right < nums.length`\n* At most `10^4` calls will be made to `sumRange`.\n",
   "difficulty": "EASY",
   "initialCode": "class NumArray {\n\n    public NumArray(int[] nums) {\n        \n    }\n    \n    public int sumRange(int left, int right) {\n        \n    }\n}",
-  "tags": ["Array", "Design", "Prefix Sum"],
+  "tags": [
+    "Array",
+    "Design",
+    "Prefix Sum"
+  ],
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p418_example1.png",
+      "caption": "Array indices and the queried inclusive range"
+    }
+  ],
   "examples": [
     {
       "input": "[\"NumArray\", \"sumRange\", \"sumRange\", \"sumRange\"]\n[[[-2, 0, 3, -5, 2, -1]], [0, 2], [2, 5], [0, 5]]",
@@ -16,16 +27,40 @@
       "name": "Prefix Sum Array",
       "timeComplexity": "O(n) init, O(1) query",
       "spaceComplexity": "O(n)",
-      "description": "Build a prefix sum array where prefix[i+1] = prefix[i] + nums[i]. Range sum from left to right = prefix[right+1] - prefix[left].",
-      "code": "class NumArray {\n    private int[] prefix;\n    public NumArray(int[] nums) {\n        prefix = new int[nums.length + 1];\n        for (int i = 0; i < nums.length; i++) prefix[i + 1] = prefix[i] + nums[i];\n    }\n    public int sumRange(int left, int right) {\n        return prefix[right + 1] - prefix[left];\n    }\n}",
+      "description": "## Approach\n\nBuild a one-based prefix sum array where `prefix[i + 1]` stores the sum of `nums[0]` through `nums[i]`. A query `[left, right]` is answered by subtracting the prefix before the interval from the prefix after the interval.\n\n## Key Insight\n\nBecause the array never changes, every query asks for the difference between two fixed cumulative sums. The extra leading zero avoids special cases for ranges that start at index `0`.\n\n## Complexity Analysis\n\nInitialization takes O(n) time. Each `sumRange` call takes O(1) time. The prefix array uses O(n) extra space.",
+      "code": "class NumArray {\n    private int[] prefix;\n\n    public NumArray(int[] nums) {\n        prefix = new int[nums.length + 1];\n        for (int i = 0; i < nums.length; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n    }\n\n    public int sumRange(int left, int right) {\n        return prefix[right + 1] - prefix[left];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Block Decomposition (Sqrt Decomposition)",
+      "name": "Fenwick Tree Without Updates",
+      "timeComplexity": "O(n log n) init, O(log n) query",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nInsert each array value into a Binary Indexed Tree during construction. To answer `[left, right]`, compute the tree prefix sum up to `right + 1` and subtract the tree prefix sum up to `left`.\n\n## Key Insight\n\nA Fenwick tree is normally used for mutable prefix sums, but it is also a valid static teaching route. It exposes the same prefix-difference idea while showing how range sums can be decomposed into low-bit buckets.\n\n## Complexity Analysis\n\nBuilding with point additions takes O(n log n) time. Each query reads two Fenwick prefixes in O(log n) time. The tree uses O(n) space.",
+      "code": "class NumArray {\n    private int[] bit;\n\n    public NumArray(int[] nums) {\n        bit = new int[nums.length + 1];\n        for (int i = 0; i < nums.length; i++) {\n            add(i + 1, nums[i]);\n        }\n    }\n\n    public int sumRange(int left, int right) {\n        return prefix(right + 1) - prefix(left);\n    }\n\n    private void add(int index, int delta) {\n        for (int i = index; i < bit.length; i += i & -i) {\n            bit[i] += delta;\n        }\n    }\n\n    private int prefix(int count) {\n        int sum = 0;\n        for (int i = count; i > 0; i -= i & -i) {\n            sum += bit[i];\n        }\n        return sum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Static Segment Tree",
+      "timeComplexity": "O(n) init, O(log n) query",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nBuild a segment tree whose nodes store sums of fixed subarrays. `sumRange` recursively skips nodes outside the query, returns nodes completely inside it, and splits only when a node partially overlaps the query.\n\n## Key Insight\n\nEven without updates, the segment tree is a useful contrast to prefix sums: it answers range sums by combining disjoint stored intervals instead of subtracting two cumulative totals.\n\n## Complexity Analysis\n\nThe tree is built in O(n) time. Each query visits O(log n) relevant tree levels in this static range-sum setting. The tree array uses O(n) space.",
+      "code": "class NumArray {\n    private int n;\n    private int[] tree;\n\n    public NumArray(int[] nums) {\n        n = nums.length;\n        tree = new int[n * 4];\n        build(1, 0, n - 1, nums);\n    }\n\n    public int sumRange(int left, int right) {\n        return query(1, 0, n - 1, left, right);\n    }\n\n    private void build(int node, int start, int end, int[] nums) {\n        if (start == end) {\n            tree[node] = nums[start];\n            return;\n        }\n        int mid = start + (end - start) / 2;\n        build(node * 2, start, mid, nums);\n        build(node * 2 + 1, mid + 1, end, nums);\n        tree[node] = tree[node * 2] + tree[node * 2 + 1];\n    }\n\n    private int query(int node, int start, int end, int left, int right) {\n        if (right < start || end < left) {\n            return 0;\n        }\n        if (left <= start && end <= right) {\n            return tree[node];\n        }\n        int mid = start + (end - start) / 2;\n        return query(node * 2, start, mid, left, right)\n                + query(node * 2 + 1, mid + 1, end, left, right);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Block Decomposition",
       "timeComplexity": "O(n) init, O(sqrt(n)) query",
       "spaceComplexity": "O(n)",
-      "description": "Divide the array into blocks of size sqrt(n). Precompute sum for each block. Range query sums partial blocks at edges and whole blocks in the middle.",
-      "code": "class NumArray {\n    private int[] nums;\n    private int[] blockSum;\n    private int blockSize;\n    public NumArray(int[] nums) {\n        this.nums = nums;\n        blockSize = (int) Math.ceil(Math.sqrt(nums.length));\n        blockSum = new int[blockSize + 1];\n        for (int i = 0; i < nums.length; i++) {\n            blockSum[i / blockSize] += nums[i];\n        }\n    }\n    public int sumRange(int left, int right) {\n        int sum = 0;\n        int startBlock = left / blockSize;\n        int endBlock = right / blockSize;\n        if (startBlock == endBlock) {\n            for (int i = left; i <= right; i++) sum += nums[i];\n        } else {\n            for (int i = left; i < (startBlock + 1) * blockSize; i++) sum += nums[i];\n            for (int b = startBlock + 1; b < endBlock; b++) sum += blockSum[b];\n            for (int i = endBlock * blockSize; i <= right; i++) sum += nums[i];\n        }\n        return sum;\n    }\n}",
+      "description": "## Approach\n\nCopy the array, split it into blocks of about `sqrt(n)` elements, and precompute each block sum. A query directly scans the partial block at each end and adds full block sums in the middle.\n\n## Key Insight\n\nBlock decomposition sits between direct scanning and full prefix sums. It keeps the original values visible while reducing repeated work for long ranges.\n\n## Complexity Analysis\n\nInitialization takes O(n) time. A query touches at most two partial blocks plus the complete blocks between them, so it takes O(sqrt(n)) time. Stored values and block sums use O(n) space.",
+      "code": "class NumArray {\n    private int[] nums;\n    private int[] blockSum;\n    private int blockSize;\n\n    public NumArray(int[] nums) {\n        this.nums = nums.clone();\n        blockSize = (int) Math.ceil(Math.sqrt(nums.length));\n        int blocks = (nums.length + blockSize - 1) / blockSize;\n        blockSum = new int[blocks];\n        for (int i = 0; i < nums.length; i++) {\n            blockSum[i / blockSize] += nums[i];\n        }\n    }\n\n    public int sumRange(int left, int right) {\n        int sum = 0;\n        int startBlock = left / blockSize;\n        int endBlock = right / blockSize;\n        if (startBlock == endBlock) {\n            for (int i = left; i <= right; i++) {\n                sum += nums[i];\n            }\n            return sum;\n        }\n        int endOfStartBlock = Math.min(nums.length - 1, (startBlock + 1) * blockSize - 1);\n        for (int i = left; i <= endOfStartBlock; i++) {\n            sum += nums[i];\n        }\n        for (int block = startBlock + 1; block < endBlock; block++) {\n            sum += blockSum[block];\n        }\n        for (int i = endBlock * blockSize; i <= right; i++) {\n            sum += nums[i];\n        }\n        return sum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Direct Scan Baseline",
+      "timeComplexity": "O(1) init, O(n) query",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore a copy of the input array. For each query, loop from `left` to `right` and add the elements one by one.\n\n## Key Insight\n\nThis is the simplest correct baseline and is useful pedagogically because it makes the repeated-work problem obvious. Every faster method improves on this by remembering some aggregate information from construction.\n\n## Complexity Analysis\n\nConstruction only copies the array, so it is O(n) time in this implementation. Each query can scan the whole array in the worst case, so it is O(n). The copied array uses O(n) space.",
+      "code": "class NumArray {\n    private int[] nums;\n\n    public NumArray(int[] nums) {\n        this.nums = nums.clone();\n    }\n\n    public int sumRange(int left, int right) {\n        int sum = 0;\n        for (int i = left; i <= right; i++) {\n            sum += nums[i];\n        }\n        return sum;\n    }\n}",
       "language": "java"
     }
   ],
@@ -33,6 +68,34 @@
     {
       "input": "[\"NumArray\", \"sumRange\", \"sumRange\", \"sumRange\"]\n[[[-2, 0, 3, -5, 2, -1]], [0, 2], [2, 5], [0, 5]]",
       "output": "[null, 1, -1, -3]"
+    },
+    {
+      "input": "[\"NumArray\",\"sumRange\",\"sumRange\",\"sumRange\"]\n[[[1,2,3,4]],[1,3],[0,0],[3,3]]",
+      "output": "[null,9,1,4]"
+    },
+    {
+      "input": "[\"NumArray\",\"sumRange\"]\n[[[-7]],[0,0]]",
+      "output": "[null,-7]"
+    },
+    {
+      "input": "[\"NumArray\",\"sumRange\",\"sumRange\",\"sumRange\"]\n[[[-5,-4,-3,-2]],[0,3],[1,2],[2,2]]",
+      "output": "[null,-14,-7,-3]"
+    },
+    {
+      "input": "[\"NumArray\",\"sumRange\",\"sumRange\",\"sumRange\"]\n[[[0,0,0,0]],[0,3],[1,1],[2,3]]",
+      "output": "[null,0,0,0]"
+    },
+    {
+      "input": "[\"NumArray\",\"sumRange\",\"sumRange\",\"sumRange\"]\n[[[100000,100000,100000,100000,-100000,-100000]],[0,5],[0,3],[4,5]]",
+      "output": "[null,200000,400000,-200000]"
+    },
+    {
+      "input": "[\"NumArray\",\"sumRange\",\"sumRange\",\"sumRange\",\"sumRange\"]\n[[[8,-3,6,1,-2,4]],[0,5],[2,4],[2,4],[1,1]]",
+      "output": "[null,14,5,5,-3]"
+    },
+    {
+      "input": "[\"NumArray\",\"sumRange\",\"sumRange\",\"sumRange\",\"sumRange\"]\n[[[5,-2,7,-4,6,-1,3]],[0,0],[6,6],[1,5],[0,6]]",
+      "output": "[null,5,3,6,14]"
     }
   ]
 }

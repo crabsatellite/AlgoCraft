@@ -1,34 +1,116 @@
 {
   "id": "271",
   "title": "Subtract the Product and Sum of Digits of an Integer",
-  "description": "# Subtract the Product and Sum of Digits of an Integer\n\nGiven an integer number `n`, return the difference between the product of its digits and the sum of its digits.\n\n## Example 1:\n\n**Input:** n = 234\n**Output:** 15 \n**Explanation:** \nProduct of digits = 2 * 3 * 4 = 24 \nSum of digits = 2 + 3 + 4 = 9 \nResult = 24 - 9 = 15\n\n## Example 2:\n\n**Input:** n = 4421\n**Output:** 21\n**Explanation:** \nProduct of digits = 4 * 4 * 2 * 1 = 32 \nSum of digits = 4 + 4 + 2 + 1 = 11 \nResult = 32 - 11 = 21\n\n## Constraints:\n\n*   `1 <= n <= 10^5`",
+  "description": "# Subtract the Product and Sum of Digits of an Integer\n\nGiven an integer `n`, compute:\n\n* the product of all decimal digits of `n`, and\n* the sum of all decimal digits of `n`.\n\nReturn the product minus the sum.\n\nA digit `0` makes the product `0`, but it still contributes `0` to the sum.\n\n## Example 1:\n\n**Input:** n = 234\n**Output:** 15\n**Explanation:** Product of digits = 2 * 3 * 4 = 24. Sum of digits = 2 + 3 + 4 = 9. The answer is 24 - 9 = 15.\n\n## Example 2:\n\n**Input:** n = 4421\n**Output:** 21\n**Explanation:** Product of digits = 4 * 4 * 2 * 1 = 32. Sum of digits = 4 + 4 + 2 + 1 = 11. The answer is 32 - 11 = 21.\n\n## Constraints:\n\n*   `1 <= n <= 100000`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int subtractProductAndSum(int n) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Math"],
+  "tags": [
+    "Math"
+  ],
   "examples": [
-    { "input": "n = 234", "output": "15" },
-    { "input": "n = 4421", "output": "21" }
+    {
+      "input": "n = 234",
+      "output": "15"
+    },
+    {
+      "input": "n = 4421",
+      "output": "21"
+    }
   ],
   "solutions": [
     {
-      "name": "Digit Extraction",
+      "name": "Arithmetic Digit Loop",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(1)",
-      "description": "Extract digits one by one using modulo. Compute product and sum simultaneously.",
-      "code": "class Solution {\n    public int subtractProductAndSum(int n) {\n        int product = 1, sum = 0;\n        while (n > 0) {\n            int d = n % 10;\n            product *= d;\n            sum += d;\n            n /= 10;\n        }\n        return product - sum;\n    }\n}",
+      "description": "## Approach\n\nRepeatedly take `n % 10` to read the last digit. Multiply that digit into `product`, add it into `sum`, then remove it with integer division by 10.\n\n## Key Insight\n\nThe decimal representation can be processed from right to left with modulo and division. Initializing `product` to 1 is required so the first digit is multiplied correctly.\n\n## Complexity Analysis\n- Time Complexity: O(log n), proportional to the number of decimal digits.\n- Space Complexity: O(1), because only a few integer variables are stored.",
+      "code": "class Solution {\n    public int subtractProductAndSum(int n) {\n        int product = 1;\n        int sum = 0;\n        while (n > 0) {\n            int digit = n % 10;\n            product *= digit;\n            sum += digit;\n            n /= 10;\n        }\n        return product - sum;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "String Conversion",
-      "timeComplexity": "O(log n)",
-      "spaceComplexity": "O(log n)",
-      "description": "Convert the number to a string, then iterate over each character digit to compute product and sum.",
-      "code": "class Solution {\n    public int subtractProductAndSum(int n) {\n        String s = String.valueOf(n);\n        int product = 1, sum = 0;\n        for (int i = 0; i < s.length(); i++) {\n            int d = s.charAt(i) - '0';\n            product *= d;\n            sum += d;\n        }\n        return product - sum;\n    }\n}",
+      "name": "String Digit Scan",
+      "timeComplexity": "O(d)",
+      "spaceComplexity": "O(d)",
+      "description": "## Approach\n\nConvert `n` to a decimal string and scan each character. Convert each character to its digit value with `charAt(i) - '0'`, then update the product and sum.\n\n## Key Insight\n\nThis route trades a little extra memory for readability. It makes each decimal digit explicit and avoids explaining modulo arithmetic to beginners first.\n\n## Complexity Analysis\n- Time Complexity: O(d), where `d` is the number of decimal digits.\n- Space Complexity: O(d), because the decimal string is stored.",
+      "code": "class Solution {\n    public int subtractProductAndSum(int n) {\n        String digits = Integer.toString(n);\n        int product = 1;\n        int sum = 0;\n        for (int i = 0; i < digits.length(); i++) {\n            int digit = digits.charAt(i) - '0';\n            product *= digit;\n            sum += digit;\n        }\n        return product - sum;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Digit Pair",
+      "timeComplexity": "O(d)",
+      "spaceComplexity": "O(d)",
+      "description": "## Approach\n\nUse a helper that returns two values: product and sum for the processed prefix. Recursively solve `n / 10`, then merge the current last digit `n % 10` into the returned pair.\n\n## Key Insight\n\nThe number naturally decomposes into a prefix and its last digit. Recursion makes that decomposition explicit, while the public method only subtracts the final two accumulated values.\n\n## Complexity Analysis\n- Time Complexity: O(d), because each digit is visited once.\n- Space Complexity: O(d), due to the recursive call stack.",
+      "code": "class Solution {\n    public int subtractProductAndSum(int n) {\n        int[] values = productAndSum(n);\n        return values[0] - values[1];\n    }\n\n    private int[] productAndSum(int n) {\n        if (n < 10) {\n            return new int[]{n, n};\n        }\n        int[] values = productAndSum(n / 10);\n        int digit = n % 10;\n        values[0] *= digit;\n        values[1] += digit;\n        return values;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Place Value Left To Right",
+      "timeComplexity": "O(d)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFind the largest power of 10 not greater than `n`, then read digits from left to right. Each step divides by the current place value to get the next digit, removes that digit with modulo, and moves to the next lower place.\n\n## Key Insight\n\nModulo reads digits from the right, but place values can read the same number from the left without building a string. This reinforces how decimal positions encode digits.\n\n## Complexity Analysis\n- Time Complexity: O(d), because finding the first divisor and scanning digits are both linear in the number of digits.\n- Space Complexity: O(1), because no digit array or string is needed.",
+      "code": "class Solution {\n    public int subtractProductAndSum(int n) {\n        int divisor = 1;\n        while (divisor <= n / 10) {\n            divisor *= 10;\n        }\n\n        int product = 1;\n        int sum = 0;\n        while (divisor > 0) {\n            int digit = n / divisor;\n            product *= digit;\n            sum += digit;\n            n %= divisor;\n            divisor /= 10;\n        }\n        return product - sum;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "n = 234", "output": "15" },
-    { "input": "n = 4421", "output": "21" }
+    {
+      "input": "n = 234",
+      "output": "15",
+      "description": "sample with three nonzero digits"
+    },
+    {
+      "input": "n = 4421",
+      "output": "21",
+      "description": "sample with repeated digits"
+    },
+    {
+      "input": "n = 10",
+      "output": "-1",
+      "description": "zero digit makes the product zero"
+    },
+    {
+      "input": "n = 5",
+      "output": "0",
+      "description": "single digit has product equal to sum"
+    },
+    {
+      "input": "n = 1",
+      "output": "0",
+      "description": "lower boundary"
+    },
+    {
+      "input": "n = 9",
+      "output": "0",
+      "description": "largest single digit"
+    },
+    {
+      "input": "n = 101",
+      "output": "-2",
+      "description": "internal zero with ones around it"
+    },
+    {
+      "input": "n = 1203",
+      "output": "-6",
+      "description": "zero inside a longer mixed number"
+    },
+    {
+      "input": "n = 12345",
+      "output": "105",
+      "description": "increasing digits without zero"
+    },
+    {
+      "input": "n = 22222",
+      "output": "22",
+      "description": "repeated nonzero digits"
+    },
+    {
+      "input": "n = 99999",
+      "output": "59004",
+      "description": "maximum product within five nonzero digits"
+    },
+    {
+      "input": "n = 100000",
+      "output": "-1",
+      "description": "upper boundary with many zero digits"
+    }
   ]
 }

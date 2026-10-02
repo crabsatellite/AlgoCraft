@@ -1,37 +1,122 @@
 {
   "id": "152",
   "title": "Min Cost Climbing Stairs",
-  "description": "# Min Cost Climbing Stairs\n\nYou are given an integer array `cost` where `cost[i]` is the cost of `i`-th step on a staircase. Once you pay the cost, you can either climb one or two steps.\n\nYou can either start from the step with index `0`, or the step with index `1`.\n\nReturn *the minimum cost to reach the top of the floor*.\n\n## Example 1:\n\n**Input:** cost = [10,15,20]\n**Output:** 15\n**Explanation:** You will start at index 1.\n- Pay 15 and climb two steps to reach the top.\nThe total cost is 15.\n\n## Example 2:\n\n**Input:** cost = [1,100,1,1,1,100,1,1,100,1]\n**Output:** 6\n**Explanation:** You will start at index 0.\n- Pay 1 and climb two steps to reach index 2.\n- Pay 1 and climb two steps to reach index 4.\n- Pay 1 and climb two steps to reach index 6.\n- Pay 1 and climb one step to reach index 7.\n- Pay 1 and climb two steps to reach index 9.\n- Pay 1 and climb one step to reach the top.\nThe total cost is 6.\n\n## Constraints:\n\n*   `2 <= cost.length <= 1000`\n*   `0 <= cost[i] <= 999`",
+  "description": "# Min Cost Climbing Stairs\n\nArray `cost` gives the costs of stairs `0` through `cost.length - 1`. Pay `cost[i]` when stepping onto stair `i`, then climb `1` or `2` levels.\n\nStart at stair `0` or `1`, paying that starting stair's cost too. The top is level `cost.length` and has no cost. Return the lowest total cost to reach the top.\n\n## Example 1\n\n**Input:** `cost = [10,15,20]`\n\n**Output:** `15`\n\n**Explanation:** Start on stair `1`, pay `15`, then climb two steps to the top.\n\n## Example 2\n\n**Input:** `cost = [1,100,1,1,1,100,1,1,100,1]`\n\n**Output:** `6`\n\n**Explanation:** One optimal route pays the six `1`-cost stairs at indices `0`, `2`, `4`, `6`, `7`, and `9`, then climbs to the virtual top.\n\n## Example 3\n\n**Input:** `cost = [10,15]`\n\n**Output:** `10`\n\n**Explanation:** With only two stairs, you may start on either stair and then climb directly to the top, so the answer is the cheaper of the two costs.\n\n## Constraints\n\n- `2 <= cost.length <= 1000`\n- `0 <= cost[i] <= 999`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int minCostClimbingStairs(int[] cost) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Dynamic Programming"],
+  "tags": [
+    "Array",
+    "Dynamic Programming",
+    "Graph"
+  ],
   "examples": [
-    { "input": "cost = [10,15,20]", "output": "15" },
-    { "input": "cost = [1,100,1,1,1,100,1,1,100,1]", "output": "6" }
+    {
+      "input": "cost = [10,15,20]",
+      "output": "15"
+    },
+    {
+      "input": "cost = [1,100,1,1,1,100,1,1,100,1]",
+      "output": "6"
+    },
+    {
+      "input": "cost = [10,15]",
+      "output": "10"
+    }
   ],
   "solutions": [
     {
-      "name": "DP (Space Optimized)",
+      "name": "Bottom-Up DP Table",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(1)",
-      "description": "dp[i] = min(dp[i-1] + cost[i-1], dp[i-2] + cost[i-2]). Use two variables for the last two DP values.",
-      "code": "class Solution {\n    public int minCostClimbingStairs(int[] cost) {\n        int prev2 = 0, prev1 = 0;\n        for (int i = 2; i <= cost.length; i++) {\n            int cur = Math.min(prev1 + cost[i - 1], prev2 + cost[i - 2]);\n            prev2 = prev1;\n            prev1 = cur;\n        }\n        return prev1;\n    }\n}",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nLet `dp[step]` be the minimum cost to stand at position `step`, where `step == cost.length` is the virtual top. Positions `0` and `1` both cost `0` before stepping, because the prompt lets us choose either starting stair. For each later position, the last move came from one step below or two steps below, so we add the cost of the stair we just left.\n\n## Key Insight\n\nThe top is not a paid stair. The recurrence computes the cost to arrive at virtual position `n`, using `cost[step - 1]` or `cost[step - 2]` only for the paid stair that was actually stepped on.\n\n## Complexity Analysis\n\nThe loop fills one DP value for each position from `2` through `n`, so the time complexity is `O(n)`. The table stores `n + 1` integers, so the space complexity is `O(n)`.",
+      "code": "class Solution {\n    public int minCostClimbingStairs(int[] cost) {\n        int n = cost.length;\n        int[] dp = new int[n + 1];\n        dp[0] = 0;\n        dp[1] = 0;\n        for (int step = 2; step <= n; step++) {\n            int fromOneBelow = dp[step - 1] + cost[step - 1];\n            int fromTwoBelow = dp[step - 2] + cost[step - 2];\n            dp[step] = Math.min(fromOneBelow, fromTwoBelow);\n        }\n        return dp[n];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Bottom-Up O(1) Space",
+      "name": "Space-Optimized Dynamic Programming",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Track just two previous cost values and update in-place, avoiding the need for a DP array.",
-      "code": "class Solution {\n    public int minCostClimbingStairs(int[] cost) {\n        int a = cost[0], b = cost[1];\n        for (int i = 2; i < cost.length; i++) {\n            int c = cost[i] + Math.min(a, b);\n            a = b;\n            b = c;\n        }\n        return Math.min(a, b);\n    }\n}",
+      "description": "## Approach\n\nUse the same recurrence as the DP table, but keep only the minimum cost for the two previous positions. For each virtual position `step`, compute the better cost from `step - 1` and `step - 2`, then roll the two variables forward.\n\n## Key Insight\n\nThe recurrence never needs values older than two positions. This keeps the exact same state definition as the teaching table while removing the storage that no later transition can read.\n\n## Complexity Analysis\n\nThe algorithm visits each position once, so the time complexity is `O(n)`. It stores only the two previous costs and the current cost, so the space complexity is `O(1)`.",
+      "code": "class Solution {\n    public int minCostClimbingStairs(int[] cost) {\n        int twoStepsBack = 0;\n        int oneStepBack = 0;\n        for (int step = 2; step <= cost.length; step++) {\n            int current = Math.min(oneStepBack + cost[step - 1], twoStepsBack + cost[step - 2]);\n            twoStepsBack = oneStepBack;\n            oneStepBack = current;\n        }\n        return oneStepBack;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Memoized Recursion",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nDefine `minCost(step)` as the minimum cost to reach position `step`, again treating `step == cost.length` as the virtual top. The recursive answer is the cheaper of reaching `step - 1` and paying that stair, or reaching `step - 2` and paying that stair. Memoize each `step` so the recursion tree collapses into one computation per state.\n\n## Key Insight\n\nThe base cases are `step <= 1`, because starting at stair `0` or `1` is allowed with zero cost before the first paid stair. This makes the recursive version match the prompt instead of accidentally charging for a fake starting move.\n\n## Complexity Analysis\n\nThere are `n + 1` possible step positions, and each one does constant work after its recursive calls. The time complexity is `O(n)`, and the memo array plus recursion stack use `O(n)` space.",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int minCostClimbingStairs(int[] cost) {\n        int[] memo = new int[cost.length + 1];\n        Arrays.fill(memo, -1);\n        return minCost(cost, cost.length, memo);\n    }\n\n    private int minCost(int[] cost, int step, int[] memo) {\n        if (step <= 1) {\n            return 0;\n        }\n        if (memo[step] != -1) {\n            return memo[step];\n        }\n        int fromOneBelow = minCost(cost, step - 1, memo) + cost[step - 1];\n        int fromTwoBelow = minCost(cost, step - 2, memo) + cost[step - 2];\n        memo[step] = Math.min(fromOneBelow, fromTwoBelow);\n        return memo[step];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "In-Place Cost Accumulation",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nReuse the input array as the DP table. After processing index `i`, `cost[i]` stores the cheapest total cost to land on stair `i`. Each stair can be reached from `i - 1` or `i - 2`, so add the cheaper previous accumulated cost. The top is reached from either of the last two stairs.\n\n## Key Insight\n\nThis route is useful when mutation is acceptable: it changes the state definition from virtual positions to paid stair positions. Because the top has no cost, the final answer is `min(cost[n - 1], cost[n - 2])` after accumulation.\n\n## Complexity Analysis\n\nEach stair is updated once, so the time complexity is `O(n)`. The input array holds the accumulated costs, so the extra space complexity is `O(1)`.",
+      "code": "class Solution {\n    public int minCostClimbingStairs(int[] cost) {\n        int n = cost.length;\n        for (int i = 2; i < n; i++) {\n            cost[i] += Math.min(cost[i - 1], cost[i - 2]);\n        }\n        return Math.min(cost[n - 1], cost[n - 2]);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "DAG Shortest Path Relaxation",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nView the staircase as a directed acyclic graph. Nodes are stairs plus the virtual top, and edges jump one or two positions forward. Starting at stair `0` or `1` pays that stair's cost, entering any later stair pays its cost, and entering the virtual top pays `0`. Relax edges from left to right.\n\n## Key Insight\n\nThis is the same problem as the DP recurrence, expressed as shortest paths in a DAG. The graph view explains why local greedy choices are unsafe: the right state is the best known cost to each position, not only the next cheapest stair.\n\n## Complexity Analysis\n\nThere are `n + 1` nodes and at most two outgoing edges from each stair, so the time complexity is `O(n)`. The distance array stores one value per position, so the space complexity is `O(n)`.",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int minCostClimbingStairs(int[] cost) {\n        int n = cost.length;\n        int[] dist = new int[n + 1];\n        Arrays.fill(dist, Integer.MAX_VALUE / 4);\n        dist[0] = cost[0];\n        dist[1] = cost[1];\n\n        for (int step = 0; step < n; step++) {\n            for (int jump = 1; jump <= 2; jump++) {\n                int next = step + jump;\n                if (next > n) {\n                    continue;\n                }\n                int nextCost = next == n ? 0 : cost[next];\n                dist[next] = Math.min(dist[next], dist[step] + nextCost);\n            }\n        }\n\n        return dist[n];\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "cost = [10,15,20]", "output": "15" },
-    { "input": "cost = [1,100,1,1,1,100,1,1,100,1]", "output": "6" },
-    { "input": "cost = [10, 15]", "output": "10" },
-    { "input": "cost = [0,0,0,0]", "output": "0" },
-    { "input": "cost = [1,2,3]", "output": "2" }
+    {
+      "input": "cost = [10,15,20]",
+      "output": "15",
+      "description": "Canonical three-step example where starting on stair 1 is optimal."
+    },
+    {
+      "input": "cost = [1,100,1,1,1,100,1,1,100,1]",
+      "output": "6",
+      "description": "Longer mixed-cost case rewards skipping expensive stairs when possible."
+    },
+    {
+      "input": "cost = [10,15]",
+      "output": "10",
+      "description": "Minimum length input should return the cheaper starting stair."
+    },
+    {
+      "input": "cost = [0,0,0,0]",
+      "output": "0",
+      "description": "All zero costs should stay zero and catch accidental top charges."
+    },
+    {
+      "input": "cost = [1,2,3]",
+      "output": "2",
+      "description": "Increasing three-step input checks the virtual-top recurrence."
+    },
+    {
+      "input": "cost = [100,1,1]",
+      "output": "1",
+      "description": "Forces the solution to allow starting at index 1."
+    },
+    {
+      "input": "cost = [10,1,10,1,10,1,10]",
+      "output": "3",
+      "description": "Alternating high and low costs catch implementations that always start at index 0."
+    },
+    {
+      "input": "cost = [999,0,999,0,999,0]",
+      "output": "0",
+      "description": "Maximum and zero values together expose unnecessary paid steps."
+    },
+    {
+      "input": "cost = [2,2,2,2]",
+      "output": "4",
+      "description": "Flat costs check tie handling and one-step/two-step equivalence."
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p152_min_cost_climbing_stairs.png",
+      "caption": "Example 1: start and pay at index 0 or 1, move one or two steps, and reach the free top at index 3"
+    }
   ]
 }

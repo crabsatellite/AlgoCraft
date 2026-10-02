@@ -1,44 +1,17 @@
 {
   "id": "371",
   "title": "Cut Off Trees for Golf Event",
-  "description": "# Cut Off Trees for Golf Event\n\nYou are asked to cut off trees in a forest for a golf event. The forest is represented as a non-negative 2D map, in this map:\n\n*   `0` represents the obstacle can't be reached.\n*   `1` represents the ground can be walked through.\n*   The place with number bigger than `1` represents a tree can be walked through, and this positive number represents the tree's height.\n\nIn one step, you can walk in any of the four directions: north, south, east, west (one unit step) if the neighbor is not an obstacle.\n\nYou are asked to cut off **all** the trees in this forest in the order of tree's height - always cut off the tree with lowest height first. And after cutting, the original place has the tree will become a grass (value 1).\n\nYou will start from the point `(0, 0)` and you should output the minimum steps you need to walk to cut off all the trees. If you can't cut off all the trees, output `-1` in that situation.\n\nYou are guaranteed that no two trees have the same height and there is at least one tree needs to be cut off.\n\n## Example 1:\n\n**Input:** forest = [[1,2,3],[0,0,4],[7,6,5]]\n**Output:** 6\n**Explanation:** Following the path [1->2->3->4->5->6->7], which is 1 step for each target, so 6 steps in total.\n\n## Example 2:\n\n**Input:** forest = [[1,2,3],[0,0,0],[7,6,5]]\n**Output:** -1\n**Explanation:** The trees in the bottom row cannot be reached.\n\n## Example 3:\n\n**Input:** forest = [[2,3,4],[0,0,5],[8,7,6]]\n**Output:** 6\n**Explanation:** You can start from (0,0) and return to (0,0) to cut off tree 2. Then cut off 3, 4, 5, 6, 7, 8.\n\n## Constraints:\n\n*   `m == forest.length`\n*   `n == forest[i].length`\n*   `1 <= m, n <= 50`\n*   `0 <= forest[i][j] <= 10^9`",
+  "description": "# Cut Off Trees for Golf Event\n\nA forest is represented by an `m x n` grid of non-negative integers.\n\n* `0` is an obstacle and cannot be walked through.\n* `1` is empty ground.\n* A value greater than `1` is a tree. The value is that tree's height, and the cell is still walkable before and after the tree is cut.\n\nYou start at cell `(0, 0)`. In one step you may move one cell up, down, left, or right, but only onto a non-obstacle cell.\n\nCut every tree in strictly increasing order of height. After a tree is cut, its cell becomes normal ground. Return the minimum number of walking steps needed to cut all trees. If any required tree cannot be reached when it is time to cut it, return `-1`.\n\nTree heights are unique, and the forest contains at least one tree.\n\n## Example 1\n\n**Input:** forest = [[1,2,3],[0,0,4],[7,6,5]]\n**Output:** 6\n**Explanation:** The required order is heights `2, 3, 4, 5, 6, 7`. Each consecutive target is one step away.\n\n## Example 2\n\n**Input:** forest = [[1,2,3],[0,0,0],[7,6,5]]\n**Output:** -1\n**Explanation:** The lower row contains trees, but the obstacle row separates them from the start.\n\n## Example 3\n\n**Input:** forest = [[2,3,4],[0,0,5],[8,7,6]]\n**Output:** 6\n**Explanation:** The start cell is already the smallest tree, so cutting it costs zero steps before moving to the rest.\n\n## Constraints\n\n* `m == forest.length`\n* `n == forest[i].length`\n* `1 <= m, n <= 50`\n* `0 <= forest[i][j] <= 10^9`\n* All tree heights greater than `1` are distinct.\n* At least one tree exists.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int cutOffTree(int[][] forest) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int cutOffTree(int[][] forest) {\n        return -1;\n    }\n}",
   "tags": [
     "Breadth-First Search",
     "Array",
     "Matrix",
-    "Heap (Priority Queue)"
+    "Heap (Priority Queue)",
+    "Shortest Path"
   ],
   "examples": [
-    {
-      "input": "forest = [[1,2,3],[0,0,4],[7,6,5]]",
-      "output": "6"
-    },
-    {
-      "input": "forest = [[1,2,3],[0,0,0],[7,6,5]]",
-      "output": "-1"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "Sort Trees + BFS",
-      "timeComplexity": "O(m^2 * n^2)",
-      "spaceComplexity": "O(m * n)",
-      "description": "Collect all trees with height > 1, sort by height. Starting from (0,0), BFS to each tree in order. Sum up all shortest distances. If any tree is unreachable, return -1.",
-      "code": "class Solution {\n    public int cutOffTree(int[][] forest) {\n        int m = forest.length, n = forest[0].length;\n        java.util.List<int[]> trees = new java.util.ArrayList<>();\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++)\n                if (forest[i][j] > 1) trees.add(new int[]{forest[i][j], i, j});\n        trees.sort((a, b) -> a[0] - b[0]);\n        int sr = 0, sc = 0, total = 0;\n        for (int[] t : trees) {\n            int d = bfs(forest, sr, sc, t[1], t[2], m, n);\n            if (d == -1) return -1;\n            total += d;\n            sr = t[1]; sc = t[2];\n        }\n        return total;\n    }\n    private int bfs(int[][] forest, int sr, int sc, int tr, int tc, int m, int n) {\n        if (sr == tr && sc == tc) return 0;\n        boolean[][] visited = new boolean[m][n];\n        java.util.Queue<int[]> q = new java.util.LinkedList<>();\n        q.offer(new int[]{sr, sc});\n        visited[sr][sc] = true;\n        int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n        int steps = 0;\n        while (!q.isEmpty()) {\n            steps++;\n            int size = q.size();\n            for (int i = 0; i < size; i++) {\n                int[] cur = q.poll();\n                for (int[] d : dirs) {\n                    int nr = cur[0] + d[0], nc = cur[1] + d[1];\n                    if (nr >= 0 && nr < m && nc >= 0 && nc < n && !visited[nr][nc] && forest[nr][nc] > 0) {\n                        if (nr == tr && nc == tc) return steps;\n                        visited[nr][nc] = true;\n                        q.offer(new int[]{nr, nc});\n                    }\n                }\n            }\n        }\n        return -1;\n    }\n}",
-      "language": "java"
-    },
-    {
-      "name": "Sort Trees + A* Search",
-      "timeComplexity": "O(m^2 * n^2)",
-      "spaceComplexity": "O(m * n)",
-      "description": "Same tree sorting strategy, but use A* (priority queue with Manhattan distance heuristic) instead of BFS for shortest path between consecutive trees. This can be faster in practice for sparse grids.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int cutOffTree(int[][] forest) {\n        int m = forest.length, n = forest[0].length;\n        List<int[]> trees = new ArrayList<>();\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++)\n                if (forest[i][j] > 1) trees.add(new int[]{forest[i][j], i, j});\n        trees.sort((a, b) -> a[0] - b[0]);\n        int sr = 0, sc = 0, total = 0;\n        for (int[] t : trees) {\n            int d = astar(forest, sr, sc, t[1], t[2], m, n);\n            if (d == -1) return -1;\n            total += d;\n            sr = t[1]; sc = t[2];\n        }\n        return total;\n    }\n    private int astar(int[][] forest, int sr, int sc, int tr, int tc, int m, int n) {\n        if (sr == tr && sc == tc) return 0;\n        int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n        int[][] dist = new int[m][n];\n        for (int[] row : dist) Arrays.fill(row, Integer.MAX_VALUE);\n        dist[sr][sc] = 0;\n        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[2] - b[2]);\n        pq.offer(new int[]{sr, sc, Math.abs(sr - tr) + Math.abs(sc - tc)});\n        while (!pq.isEmpty()) {\n            int[] cur = pq.poll();\n            int r = cur[0], c = cur[1];\n            if (r == tr && c == tc) return dist[r][c];\n            for (int[] d : dirs) {\n                int nr = r + d[0], nc = c + d[1];\n                if (nr >= 0 && nr < m && nc >= 0 && nc < n && forest[nr][nc] > 0) {\n                    int nd = dist[r][c] + 1;\n                    if (nd < dist[nr][nc]) {\n                        dist[nr][nc] = nd;\n                        pq.offer(new int[]{nr, nc, nd + Math.abs(nr - tr) + Math.abs(nc - tc)});\n                    }\n                }\n            }\n        }\n        return -1;\n    }\n}",
-      "language": "java"
-    }
-  ],
-  "tests": [
     {
       "input": "forest = [[1,2,3],[0,0,4],[7,6,5]]",
       "output": "6"
@@ -52,11 +25,115 @@
       "output": "6"
     }
   ],
+  "solutions": [
+    {
+      "name": "Sorted Tree List with Layered BFS",
+      "timeComplexity": "O(T log T + T * m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\nCollect every tree as `(height, row, col)`, sort by height, and repeatedly run a normal layered BFS from the current position to the next required tree. Add each shortest distance to the answer and move the current position to that tree.\n\n## Key Insight\nThe cutting order is completely fixed by height, so the only optimization left is the shortest path between consecutive required targets. Because every move has equal cost, BFS gives the exact minimum distance for each segment; if one segment is unreachable, the whole task is impossible.\n\n## Complexity Analysis\nLet `T` be the number of trees. Sorting costs `O(T log T)`, and each BFS may scan all `m * n` cells, so the time complexity is `O(T log T + T * m * n)`. The BFS queue and visited grid use `O(m * n)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public int cutOffTree(int[][] forest) {\n        int m = forest.length;\n        int n = forest[0].length;\n        List<int[]> trees = new ArrayList<>();\n        for (int r = 0; r < m; r++) {\n            for (int c = 0; c < n; c++) {\n                if (forest[r][c] > 1) {\n                    trees.add(new int[]{forest[r][c], r, c});\n                }\n            }\n        }\n        if (trees.isEmpty()) {\n            return 0;\n        }\n        if (forest[0][0] == 0) {\n            return -1;\n        }\n\n        trees.sort(Comparator.comparingInt(a -> a[0]));\n        int row = 0;\n        int col = 0;\n        int total = 0;\n        for (int[] tree : trees) {\n            int distance = shortestByBfs(forest, row, col, tree[1], tree[2]);\n            if (distance < 0) {\n                return -1;\n            }\n            total += distance;\n            row = tree[1];\n            col = tree[2];\n        }\n        return total;\n    }\n\n    private int shortestByBfs(int[][] forest, int sr, int sc, int tr, int tc) {\n        if (sr == tr && sc == tc) {\n            return 0;\n        }\n        int m = forest.length;\n        int n = forest[0].length;\n        boolean[][] seen = new boolean[m][n];\n        ArrayDeque<int[]> queue = new ArrayDeque<>();\n        queue.offer(new int[]{sr, sc});\n        seen[sr][sc] = true;\n        int steps = 0;\n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            for (int i = 0; i < size; i++) {\n                int[] current = queue.poll();\n                if (current[0] == tr && current[1] == tc) {\n                    return steps;\n                }\n                for (int[] dir : DIRS) {\n                    int nr = current[0] + dir[0];\n                    int nc = current[1] + dir[1];\n                    if (nr < 0 || nr >= m || nc < 0 || nc >= n || seen[nr][nc] || forest[nr][nc] == 0) {\n                        continue;\n                    }\n                    seen[nr][nc] = true;\n                    queue.offer(new int[]{nr, nc});\n                }\n            }\n            steps++;\n        }\n        return -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Minimum-Height Tree Heap with BFS",
+      "timeComplexity": "O(T log T + T * m * n)",
+      "spaceComplexity": "O(T + m * n)",
+      "description": "## Approach\nPut all trees into a min-heap ordered by height. Poll the next tree from the heap, use BFS to find the shortest route from the current cell to that tree, and accumulate the distances until the heap is empty.\n\n## Key Insight\nA heap expresses the required height order without a separate sorted list. The path problem is unchanged: the next tree is fixed, higher trees may be crossed as walkable cells, and BFS remains the correct shortest-path primitive for an unweighted grid.\n\n## Complexity Analysis\nThe heap stores `T` trees and costs `O(T log T)` across all insertions and removals. In the worst case, each of the `T` BFS searches scans `m * n` cells, so total time is `O(T log T + T * m * n)`. The heap, queue, and visited grid use `O(T + m * n)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public int cutOffTree(int[][] forest) {\n        if (forest[0][0] == 0) {\n            return -1;\n        }\n        PriorityQueue<int[]> trees = new PriorityQueue<>(Comparator.comparingInt(a -> a[0]));\n        for (int r = 0; r < forest.length; r++) {\n            for (int c = 0; c < forest[0].length; c++) {\n                if (forest[r][c] > 1) {\n                    trees.offer(new int[]{forest[r][c], r, c});\n                }\n            }\n        }\n\n        int row = 0;\n        int col = 0;\n        int total = 0;\n        while (!trees.isEmpty()) {\n            int[] nextTree = trees.poll();\n            int distance = distanceByBfs(forest, row, col, nextTree[1], nextTree[2]);\n            if (distance == -1) {\n                return -1;\n            }\n            total += distance;\n            row = nextTree[1];\n            col = nextTree[2];\n        }\n        return total;\n    }\n\n    private int distanceByBfs(int[][] forest, int sr, int sc, int tr, int tc) {\n        int m = forest.length;\n        int n = forest[0].length;\n        boolean[][] visited = new boolean[m][n];\n        ArrayDeque<int[]> queue = new ArrayDeque<>();\n        queue.offer(new int[]{sr, sc, 0});\n        visited[sr][sc] = true;\n        while (!queue.isEmpty()) {\n            int[] current = queue.poll();\n            if (current[0] == tr && current[1] == tc) {\n                return current[2];\n            }\n            for (int[] dir : DIRS) {\n                int nr = current[0] + dir[0];\n                int nc = current[1] + dir[1];\n                if (nr < 0 || nr >= m || nc < 0 || nc >= n || visited[nr][nc] || forest[nr][nc] == 0) {\n                    continue;\n                }\n                visited[nr][nc] = true;\n                queue.offer(new int[]{nr, nc, current[2] + 1});\n            }\n        }\n        return -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Trees with A* Search",
+      "timeComplexity": "O(T * m * n log(m * n))",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\nSort the trees by height, but replace each plain BFS segment with A* search. The priority queue orders states by the distance already walked plus the Manhattan distance to the current target.\n\n## Key Insight\nManhattan distance never overestimates the remaining path length on a four-direction grid, even when obstacles force detours. That makes it an admissible heuristic: A* can focus toward the target while still returning the same shortest distance as BFS.\n\n## Complexity Analysis\nIn the worst case A* may still expand every cell for each tree, and priority queue operations add a logarithmic factor. The time complexity is `O(T * m * n log(m * n))`, and the distance table plus priority queue use `O(m * n)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public int cutOffTree(int[][] forest) {\n        int m = forest.length;\n        int n = forest[0].length;\n        if (forest[0][0] == 0) {\n            return -1;\n        }\n        List<int[]> trees = new ArrayList<>();\n        for (int r = 0; r < m; r++) {\n            for (int c = 0; c < n; c++) {\n                if (forest[r][c] > 1) {\n                    trees.add(new int[]{forest[r][c], r, c});\n                }\n            }\n        }\n        trees.sort(Comparator.comparingInt(a -> a[0]));\n\n        int total = 0;\n        int row = 0;\n        int col = 0;\n        for (int[] tree : trees) {\n            int distance = aStarDistance(forest, row, col, tree[1], tree[2]);\n            if (distance < 0) {\n                return -1;\n            }\n            total += distance;\n            row = tree[1];\n            col = tree[2];\n        }\n        return total;\n    }\n\n    private int aStarDistance(int[][] forest, int sr, int sc, int tr, int tc) {\n        int m = forest.length;\n        int n = forest[0].length;\n        int[][] best = new int[m][n];\n        for (int[] row : best) {\n            Arrays.fill(row, Integer.MAX_VALUE);\n        }\n        PriorityQueue<int[]> open = new PriorityQueue<>(Comparator.comparingInt(a -> a[3]));\n        best[sr][sc] = 0;\n        open.offer(new int[]{sr, sc, 0, manhattan(sr, sc, tr, tc)});\n        while (!open.isEmpty()) {\n            int[] current = open.poll();\n            int r = current[0];\n            int c = current[1];\n            int walked = current[2];\n            if (walked != best[r][c]) {\n                continue;\n            }\n            if (r == tr && c == tc) {\n                return walked;\n            }\n            for (int[] dir : DIRS) {\n                int nr = r + dir[0];\n                int nc = c + dir[1];\n                if (nr < 0 || nr >= m || nc < 0 || nc >= n || forest[nr][nc] == 0) {\n                    continue;\n                }\n                int nextWalked = walked + 1;\n                if (nextWalked < best[nr][nc]) {\n                    best[nr][nc] = nextWalked;\n                    open.offer(new int[]{nr, nc, nextWalked, nextWalked + manhattan(nr, nc, tr, tc)});\n                }\n            }\n        }\n        return -1;\n    }\n\n    private int manhattan(int r, int c, int tr, int tc) {\n        return Math.abs(r - tr) + Math.abs(c - tc);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Trees with Bidirectional BFS",
+      "timeComplexity": "O(T * m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\nSort the trees by height and find each segment distance with bidirectional BFS. The search grows from both the current position and the target tree, always expanding the smaller frontier when possible.\n\n## Key Insight\nThe grid is unweighted and movement is reversible, so the shortest path from `A` to `B` is the same as from `B` to `A`. Meeting in the middle can reduce the number of expanded cells while preserving the same correctness argument as ordinary BFS levels.\n\n## Complexity Analysis\nBidirectional BFS is still `O(m * n)` per segment in the worst case, so the total time is `O(T * m * n)` after sorting. The two visited grids and frontiers use `O(m * n)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public int cutOffTree(int[][] forest) {\n        if (forest[0][0] == 0) {\n            return -1;\n        }\n        List<int[]> trees = new ArrayList<>();\n        for (int r = 0; r < forest.length; r++) {\n            for (int c = 0; c < forest[0].length; c++) {\n                if (forest[r][c] > 1) {\n                    trees.add(new int[]{forest[r][c], r, c});\n                }\n            }\n        }\n        trees.sort(Comparator.comparingInt(a -> a[0]));\n\n        int row = 0;\n        int col = 0;\n        int total = 0;\n        for (int[] tree : trees) {\n            int distance = bidirectionalBfs(forest, row, col, tree[1], tree[2]);\n            if (distance < 0) {\n                return -1;\n            }\n            total += distance;\n            row = tree[1];\n            col = tree[2];\n        }\n        return total;\n    }\n\n    private int bidirectionalBfs(int[][] forest, int sr, int sc, int tr, int tc) {\n        if (sr == tr && sc == tc) {\n            return 0;\n        }\n        int m = forest.length;\n        int n = forest[0].length;\n        Set<Integer> forward = new HashSet<>();\n        Set<Integer> backward = new HashSet<>();\n        boolean[][] forwardSeen = new boolean[m][n];\n        boolean[][] backwardSeen = new boolean[m][n];\n        forward.add(sr * n + sc);\n        backward.add(tr * n + tc);\n        forwardSeen[sr][sc] = true;\n        backwardSeen[tr][tc] = true;\n        int steps = 0;\n        while (!forward.isEmpty() && !backward.isEmpty()) {\n            if (forward.size() > backward.size()) {\n                Set<Integer> tmp = forward;\n                forward = backward;\n                backward = tmp;\n                boolean[][] tmpSeen = forwardSeen;\n                forwardSeen = backwardSeen;\n                backwardSeen = tmpSeen;\n            }\n            Set<Integer> next = new HashSet<>();\n            steps++;\n            for (int cell : forward) {\n                int r = cell / n;\n                int c = cell % n;\n                for (int[] dir : DIRS) {\n                    int nr = r + dir[0];\n                    int nc = c + dir[1];\n                    if (nr < 0 || nr >= m || nc < 0 || nc >= n || forest[nr][nc] == 0 || forwardSeen[nr][nc]) {\n                        continue;\n                    }\n                    if (backwardSeen[nr][nc]) {\n                        return steps;\n                    }\n                    forwardSeen[nr][nc] = true;\n                    next.add(nr * n + nc);\n                }\n            }\n            forward = next;\n        }\n        return -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Trees with Uniform-Cost Search",
+      "timeComplexity": "O(T * m * n log(m * n))",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\nSort the trees by height and compute each segment with Dijkstra's algorithm, also called uniform-cost search. Each grid edge has cost `1`, so the priority queue is ordered only by the distance walked so far.\n\n## Key Insight\nDijkstra is more general than BFS and is useful to teach because it still proves correctness by finalizing the smallest known distance first. On this problem it returns the same distances as BFS, while making clear that all movement costs are equal.\n\n## Complexity Analysis\nFor each tree, Dijkstra may push every walkable cell into the priority queue, giving `O(m * n log(m * n))` time per segment and `O(T * m * n log(m * n))` overall. The distance table and queue use `O(m * n)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public int cutOffTree(int[][] forest) {\n        if (forest[0][0] == 0) {\n            return -1;\n        }\n        List<int[]> trees = new ArrayList<>();\n        for (int r = 0; r < forest.length; r++) {\n            for (int c = 0; c < forest[0].length; c++) {\n                if (forest[r][c] > 1) {\n                    trees.add(new int[]{forest[r][c], r, c});\n                }\n            }\n        }\n        trees.sort(Comparator.comparingInt(a -> a[0]));\n\n        int total = 0;\n        int row = 0;\n        int col = 0;\n        for (int[] tree : trees) {\n            int distance = uniformCostDistance(forest, row, col, tree[1], tree[2]);\n            if (distance == -1) {\n                return -1;\n            }\n            total += distance;\n            row = tree[1];\n            col = tree[2];\n        }\n        return total;\n    }\n\n    private int uniformCostDistance(int[][] forest, int sr, int sc, int tr, int tc) {\n        int m = forest.length;\n        int n = forest[0].length;\n        int[][] dist = new int[m][n];\n        for (int[] row : dist) {\n            Arrays.fill(row, Integer.MAX_VALUE);\n        }\n        PriorityQueue<int[]> frontier = new PriorityQueue<>(Comparator.comparingInt(a -> a[2]));\n        dist[sr][sc] = 0;\n        frontier.offer(new int[]{sr, sc, 0});\n        while (!frontier.isEmpty()) {\n            int[] current = frontier.poll();\n            int r = current[0];\n            int c = current[1];\n            int cost = current[2];\n            if (cost != dist[r][c]) {\n                continue;\n            }\n            if (r == tr && c == tc) {\n                return cost;\n            }\n            for (int[] dir : DIRS) {\n                int nr = r + dir[0];\n                int nc = c + dir[1];\n                if (nr < 0 || nr >= m || nc < 0 || nc >= n || forest[nr][nc] == 0) {\n                    continue;\n                }\n                int nextCost = cost + 1;\n                if (nextCost < dist[nr][nc]) {\n                    dist[nr][nc] = nextCost;\n                    frontier.offer(new int[]{nr, nc, nextCost});\n                }\n            }\n        }\n        return -1;\n    }\n}",
+      "language": "java"
+    }
+  ],
+  "tests": [
+    {
+      "input": "forest = [[1,2,3],[0,0,4],[7,6,5]]",
+      "output": "6",
+      "description": "canonical reachable route"
+    },
+    {
+      "input": "forest = [[1,2,3],[0,0,0],[7,6,5]]",
+      "output": "-1",
+      "description": "obstacle row separates later trees"
+    },
+    {
+      "input": "forest = [[2,3,4],[0,0,5],[8,7,6]]",
+      "output": "6",
+      "description": "start cell is itself the first tree"
+    },
+    {
+      "input": "forest = [[2]]",
+      "output": "0",
+      "description": "single tree at the starting cell"
+    },
+    {
+      "input": "forest = [[1,0,2]]",
+      "output": "-1",
+      "description": "single-row obstacle blocks the only tree"
+    },
+    {
+      "input": "forest = [[1,2],[3,4]]",
+      "output": "4",
+      "description": "small grid requires moving through already cut cells"
+    },
+    {
+      "input": "forest = [[0,2],[3,4]]",
+      "output": "-1",
+      "description": "starting position is an obstacle"
+    },
+    {
+      "input": "forest = [[1,100,2],[1,1,3]]",
+      "output": "5",
+      "description": "height order differs from the easiest visible path"
+    },
+    {
+      "input": "forest = [[1,2,0,3],[1,1,1,4],[0,0,1,5],[8,7,6,1]]",
+      "output": "11",
+      "description": "maze-like detour between consecutive targets"
+    },
+    {
+      "input": "forest = [[1],[2],[3],[4]]",
+      "output": "3",
+      "description": "single-column reachable forest"
+    },
+    {
+      "input": "forest = [[1,2,3],[0,0,4],[7,0,5]]",
+      "output": "-1",
+      "description": "early trees are reachable but a later required tree is isolated"
+    },
+    {
+      "input": "forest = [[1,9,8],[2,0,7],[3,4,6]]",
+      "output": "7",
+      "description": "walk through taller uncut trees while following height order"
+    }
+  ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p371_example1.png",
-      "caption": "3x3 Forest Grid (0=obstacle)"
+      "caption": "Forest grid with obstacles and tree heights"
     }
   ]
 }

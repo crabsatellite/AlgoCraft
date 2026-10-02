@@ -1,10 +1,17 @@
 {
   "id": "148",
   "title": "Shortest Path in Binary Matrix",
-  "description": "# Shortest Path in Binary Matrix\n\nGiven an `n x n` binary matrix `grid`, return *the length of the shortest **clear path** in the matrix*. If there is no clear path, return `-1`.\n\nA **clear path** in a binary matrix is a path from the **top-left** cell (i.e., `(0, 0)`) to the **bottom-right** cell (i.e., `(n - 1, n - 1)`) such that:\n\n1.  All the visited cells of the path are `0`.\n2.  All the adjacent cells of the path are **8-directionally** connected (i.e., they are different and they share an edge or a corner).\n\nThe **length of a clear path** is the number of visited cells of this path.\n\n## Example 1:\n\n**Input:** grid = [[0,1],[1,0]]\n**Output:** 2\n\n## Example 2:\n\n**Input:** grid = [[0,0,0],[1,1,0],[1,1,0]]\n**Output:** 4\n\n## Example 3:\n\n**Input:** grid = [[1,0,0],[1,1,0],[1,1,0]]\n**Output:** -1\n\n## Constraints:\n\n*   `n == grid.length`\n*   `n == grid[i].length`\n*   `1 <= n <= 100`\n*   `grid[i][j] is 0 or 1`",
+  "description": "# Shortest Path in Binary Matrix\n\nYou are given an `n x n` binary matrix `grid`. A `0` cell is open and a `1` cell is blocked.\n\nReturn the length of the shortest clear path from the top-left cell `(0, 0)` to the bottom-right cell `(n - 1, n - 1)`. If no such path exists, return `-1`.\n\nA clear path must satisfy all of these rules:\n\n- Every visited cell is open, so every cell on the path has value `0`.\n- Consecutive cells are 8-directionally adjacent: they may share an edge or a corner.\n- The path length is the number of visited cells, including both the start and the target.\n\nIf either the start cell or the target cell is blocked, the answer is immediately `-1`. For a single open cell, the shortest path length is `1`.\n\n## Example 1\n\n**Input:** `grid = [[0,1],[1,0]]`\n\n**Output:** `2`\n\n**Explanation:** Diagonal movement is allowed, so the path can visit `(0,0)` and then `(1,1)`.\n\n## Example 2\n\n**Input:** `grid = [[0,0,0],[1,1,0],[1,1,0]]`\n\n**Output:** `4`\n\n**Explanation:** One shortest path is `(0,0) -> (0,1) -> (1,2) -> (2,2)`, so the path length is `4`.\n\n## Example 3\n\n**Input:** `grid = [[1,0,0],[1,1,0],[1,1,0]]`\n\n**Output:** `-1`\n\n**Explanation:** The start cell is blocked.\n\n## Constraints\n\n- `n == grid.length`\n- `n == grid[i].length`\n- `1 <= n <= 100`\n- `grid[i][j]` is `0` or `1`.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int shortestPathBinaryMatrix(int[][] grid) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Breadth-First Search", "Matrix"],
+  "tags": [
+    "Array",
+    "Breadth-First Search",
+    "Graph",
+    "Shortest Path",
+    "Heap (Priority Queue)",
+    "Matrix"
+  ],
   "examples": [
     {
       "input": "grid = [[0,1],[1,0]]",
@@ -21,42 +28,90 @@
   ],
   "solutions": [
     {
-      "name": "BFS (8-directional)",
+      "name": "Layered BFS with Eight Directions",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n^2)",
-      "description": "Standard BFS from (0,0) to (n-1,n-1) moving in 8 directions. Each cell is visited once. The level count gives the shortest path length.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int shortestPathBinaryMatrix(int[][] grid) {\n        int n = grid.length;\n        if (grid[0][0] == 1 || grid[n - 1][n - 1] == 1) return -1;\n        Queue<int[]> queue = new LinkedList<>();\n        queue.offer(new int[]{0, 0});\n        grid[0][0] = 1;\n        int length = 1;\n        int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0},{1,1},{1,-1},{-1,1},{-1,-1}};\n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            for (int i = 0; i < size; i++) {\n                int[] cell = queue.poll();\n                if (cell[0] == n - 1 && cell[1] == n - 1) return length;\n                for (int[] d : dirs) {\n                    int ni = cell[0] + d[0], nj = cell[1] + d[1];\n                    if (ni >= 0 && ni < n && nj >= 0 && nj < n && grid[ni][nj] == 0) {\n                        grid[ni][nj] = 1;\n                        queue.offer(new int[]{ni, nj});\n                    }\n                }\n            }\n            length++;\n        }\n        return -1;\n    }\n}",
+      "description": "## Approach\n\nRun ordinary BFS from `(0,0)`. Because every move has cost `1`, each BFS layer represents all cells reachable with the same path length. Enqueue each open neighbor once and mark it seen when it enters the queue.\n\n## Key Insight\n\nThe first time BFS removes the target from the queue, it has used the fewest possible number of moves. Since the problem asks for visited cells rather than edges, the initial cell starts at distance `1`.\n\n## Complexity Analysis\n\nThere are `n^2` cells and each cell checks eight neighbors at most once. The time complexity is `O(n^2)`, and the queue plus visited grid use `O(n^2)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRECTIONS = {\n        {-1, -1}, {-1, 0}, {-1, 1},\n        {0, -1},           {0, 1},\n        {1, -1},  {1, 0},  {1, 1}\n    };\n\n    public int shortestPathBinaryMatrix(int[][] grid) {\n        int n = grid.length;\n        if (grid[0][0] != 0 || grid[n - 1][n - 1] != 0) {\n            return -1;\n        }\n\n        Queue<int[]> queue = new ArrayDeque<>();\n        boolean[][] seen = new boolean[n][n];\n        queue.offer(new int[] {0, 0});\n        seen[0][0] = true;\n        int distance = 1;\n\n        while (!queue.isEmpty()) {\n            int layerSize = queue.size();\n            for (int i = 0; i < layerSize; i++) {\n                int[] cell = queue.poll();\n                int r = cell[0];\n                int c = cell[1];\n                if (r == n - 1 && c == n - 1) {\n                    return distance;\n                }\n\n                for (int[] dir : DIRECTIONS) {\n                    int nr = r + dir[0];\n                    int nc = c + dir[1];\n                    if (nr < 0 || nr >= n || nc < 0 || nc >= n) {\n                        continue;\n                    }\n                    if (seen[nr][nc] || grid[nr][nc] != 0) {\n                        continue;\n                    }\n                    seen[nr][nc] = true;\n                    queue.offer(new int[] {nr, nc});\n                }\n            }\n            distance++;\n        }\n        return -1;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "A* Search",
+      "name": "A* Search with Chebyshev Heuristic",
       "timeComplexity": "O(n^2 log n)",
       "spaceComplexity": "O(n^2)",
-      "description": "Use A* with Chebyshev distance heuristic (max of dx, dy to target). Priority queue ordered by f = g + h where g is current path length and h is estimated remaining distance. Guarantees shortest path.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int shortestPathBinaryMatrix(int[][] grid) {\n        int n = grid.length;\n        if (grid[0][0] == 1 || grid[n - 1][n - 1] == 1) return -1;\n        if (n == 1) return 1;\n        int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0},{1,1},{1,-1},{-1,1},{-1,-1}};\n        boolean[][] visited = new boolean[n][n];\n        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[2] - b[2]);\n        int h = Math.max(n - 1, n - 1);\n        pq.offer(new int[]{0, 0, 1 + h, 1});\n        visited[0][0] = true;\n        while (!pq.isEmpty()) {\n            int[] cur = pq.poll();\n            int r = cur[0], c = cur[1], g = cur[3];\n            for (int[] d : dirs) {\n                int nr = r + d[0], nc = c + d[1];\n                if (nr < 0 || nr >= n || nc < 0 || nc >= n) continue;\n                if (visited[nr][nc] || grid[nr][nc] == 1) continue;\n                if (nr == n - 1 && nc == n - 1) return g + 1;\n                visited[nr][nc] = true;\n                int newH = Math.max(n - 1 - nr, n - 1 - nc);\n                pq.offer(new int[]{nr, nc, g + 1 + newH, g + 1});\n            }\n        }\n        return -1;\n    }\n}",
+      "description": "## Approach\n\nUse a priority queue ordered by `g + h`, where `g` is the path length used so far and `h` is the Chebyshev distance to the target. Store the best known `g` value for every cell and ignore stale heap entries.\n\n## Key Insight\n\nWith 8-directional moves, the minimum number of remaining moves in an empty grid is `max(rowDistance, colDistance)`. This heuristic never overestimates, so A* remains correct. Unlike a simple visited-on-enqueue version, keeping best distances allows a later shorter route to improve a cell.\n\n## Complexity Analysis\n\nIn the worst case the search can still relax every cell and push heap entries for them, so the time complexity is `O(n^2 log n)`. The best-distance matrix and heap use `O(n^2)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRECTIONS = {\n        {-1, -1}, {-1, 0}, {-1, 1},\n        {0, -1},           {0, 1},\n        {1, -1},  {1, 0},  {1, 1}\n    };\n\n    public int shortestPathBinaryMatrix(int[][] grid) {\n        int n = grid.length;\n        if (grid[0][0] != 0 || grid[n - 1][n - 1] != 0) {\n            return -1;\n        }\n\n        int[][] best = new int[n][n];\n        for (int[] row : best) {\n            Arrays.fill(row, Integer.MAX_VALUE);\n        }\n        PriorityQueue<int[]> open = new PriorityQueue<>(Comparator.comparingInt(node -> node[0]));\n        best[0][0] = 1;\n        open.offer(new int[] {1 + heuristic(0, 0, n), 1, 0, 0});\n\n        while (!open.isEmpty()) {\n            int[] node = open.poll();\n            int distance = node[1];\n            int r = node[2];\n            int c = node[3];\n            if (distance != best[r][c]) {\n                continue;\n            }\n            if (r == n - 1 && c == n - 1) {\n                return distance;\n            }\n\n            for (int[] dir : DIRECTIONS) {\n                int nr = r + dir[0];\n                int nc = c + dir[1];\n                if (nr < 0 || nr >= n || nc < 0 || nc >= n || grid[nr][nc] != 0) {\n                    continue;\n                }\n                int nextDistance = distance + 1;\n                if (nextDistance < best[nr][nc]) {\n                    best[nr][nc] = nextDistance;\n                    int priority = nextDistance + heuristic(nr, nc, n);\n                    open.offer(new int[] {priority, nextDistance, nr, nc});\n                }\n            }\n        }\n        return -1;\n    }\n\n    private int heuristic(int row, int col, int n) {\n        return Math.max(n - 1 - row, n - 1 - col);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bidirectional BFS",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nStart one BFS frontier from `(0,0)` and another from `(n-1,n-1)`. Expand the smaller frontier each round. If the current side reaches a cell already seen by the other side, the two shortest partial paths have met.\n\n## Key Insight\n\nBoth sides still expand in path-length layers, so the first meeting gives the shortest path length. Expanding the smaller side can reduce the number of cells inspected on open boards.\n\n## Complexity Analysis\n\nEach side can mark each cell at most once. The time complexity is `O(n^2)`, and the two seen matrices plus frontier sets use `O(n^2)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRECTIONS = {\n        {-1, -1}, {-1, 0}, {-1, 1},\n        {0, -1},           {0, 1},\n        {1, -1},  {1, 0},  {1, 1}\n    };\n\n    public int shortestPathBinaryMatrix(int[][] grid) {\n        int n = grid.length;\n        if (grid[0][0] != 0 || grid[n - 1][n - 1] != 0) {\n            return -1;\n        }\n        if (n == 1) {\n            return 1;\n        }\n\n        Set<Integer> front = new HashSet<>();\n        Set<Integer> back = new HashSet<>();\n        boolean[][] seenFront = new boolean[n][n];\n        boolean[][] seenBack = new boolean[n][n];\n        front.add(0);\n        back.add(n * n - 1);\n        seenFront[0][0] = true;\n        seenBack[n - 1][n - 1] = true;\n        int steps = 1;\n\n        while (!front.isEmpty() && !back.isEmpty()) {\n            if (front.size() > back.size()) {\n                Set<Integer> tempFront = front;\n                front = back;\n                back = tempFront;\n                boolean[][] tempSeen = seenFront;\n                seenFront = seenBack;\n                seenBack = tempSeen;\n            }\n\n            Set<Integer> nextFront = new HashSet<>();\n            for (int id : front) {\n                int r = id / n;\n                int c = id % n;\n                for (int[] dir : DIRECTIONS) {\n                    int nr = r + dir[0];\n                    int nc = c + dir[1];\n                    if (nr < 0 || nr >= n || nc < 0 || nc >= n || grid[nr][nc] != 0) {\n                        continue;\n                    }\n                    if (seenBack[nr][nc]) {\n                        return steps + 1;\n                    }\n                    if (!seenFront[nr][nc]) {\n                        seenFront[nr][nc] = true;\n                        nextFront.add(nr * n + nc);\n                    }\n                }\n            }\n            front = nextFront;\n            steps++;\n        }\n        return -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Uniform-Cost Dijkstra with Distance Matrix",
+      "timeComplexity": "O(n^2 log n)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nModel open cells as graph nodes and every allowed 8-directional move as an edge of weight `1`. Run Dijkstra with a distance matrix and a min-heap ordered by current path length.\n\n## Key Insight\n\nThis is the weighted-graph generalization of BFS. Because all edge weights are `1`, layered BFS is simpler and asymptotically faster, but Dijkstra is useful for understanding how this problem would change if moves had different costs.\n\n## Complexity Analysis\n\nEach cell can be relaxed through up to eight edges. Heap operations give `O(n^2 log n)` time, and the distance matrix plus heap use `O(n^2)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRECTIONS = {\n        {-1, -1}, {-1, 0}, {-1, 1},\n        {0, -1},           {0, 1},\n        {1, -1},  {1, 0},  {1, 1}\n    };\n\n    public int shortestPathBinaryMatrix(int[][] grid) {\n        int n = grid.length;\n        if (grid[0][0] != 0 || grid[n - 1][n - 1] != 0) {\n            return -1;\n        }\n\n        int[][] dist = new int[n][n];\n        for (int[] row : dist) {\n            Arrays.fill(row, Integer.MAX_VALUE);\n        }\n        PriorityQueue<int[]> heap = new PriorityQueue<>(Comparator.comparingInt(cell -> cell[0]));\n        dist[0][0] = 1;\n        heap.offer(new int[] {1, 0, 0});\n\n        while (!heap.isEmpty()) {\n            int[] cell = heap.poll();\n            int distance = cell[0];\n            int r = cell[1];\n            int c = cell[2];\n            if (distance != dist[r][c]) {\n                continue;\n            }\n            if (r == n - 1 && c == n - 1) {\n                return distance;\n            }\n\n            for (int[] dir : DIRECTIONS) {\n                int nr = r + dir[0];\n                int nc = c + dir[1];\n                if (nr < 0 || nr >= n || nc < 0 || nc >= n || grid[nr][nc] != 0) {\n                    continue;\n                }\n                int nextDistance = distance + 1;\n                if (nextDistance < dist[nr][nc]) {\n                    dist[nr][nc] = nextDistance;\n                    heap.offer(new int[] {nextDistance, nr, nc});\n                }\n            }\n        }\n        return -1;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "grid = [[0,1],[1,0]]",
-      "output": "2"
+      "output": "2",
+      "description": "Diagonal movement through corner contact is allowed."
     },
     {
       "input": "grid = [[0,0,0],[1,1,0],[1,1,0]]",
-      "output": "4"
+      "output": "4",
+      "description": "Canonical corridor where one diagonal move shortens the path."
     },
     {
       "input": "grid = [[1,0,0],[1,1,0],[1,1,0]]",
-      "output": "-1"
+      "output": "-1",
+      "description": "Blocked starting cell is an immediate failure."
     },
-    { "input": "grid = [[0]]", "output": "1" }
+    {
+      "input": "grid = [[0]]",
+      "output": "1",
+      "description": "Single open cell counts as one visited cell."
+    },
+    {
+      "input": "grid = [[1]]",
+      "output": "-1",
+      "description": "Single blocked cell cannot be used as either start or target."
+    },
+    {
+      "input": "grid = [[0,0],[0,1]]",
+      "output": "-1",
+      "description": "Blocked target cell is an immediate failure."
+    },
+    {
+      "input": "grid = [[0,0,0],[0,0,0],[0,0,0]]",
+      "output": "3",
+      "description": "Fully open 3x3 grid takes the main diagonal with three visited cells."
+    },
+    {
+      "input": "grid = [[0,1,0],[1,1,0],[1,0,0]]",
+      "output": "-1",
+      "description": "Open start is completely surrounded by blocked cells."
+    },
+    {
+      "input": "grid = [[0,0,0,0],[1,1,1,0],[1,0,0,0],[1,0,1,0]]",
+      "output": "6",
+      "description": "Larger board requires following an open detour to the target."
+    }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p148_example1.png",
-      "caption": "Example 1"
+      "caption": "Binary matrix prompt with open cells, blocked cells, and 8-direction movement"
     }
   ]
 }

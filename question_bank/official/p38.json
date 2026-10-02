@@ -1,45 +1,113 @@
 {
   "id": "38",
   "title": "Minimum Size Subarray Sum",
-  "description": "# Minimum Size Subarray Sum\n\nGiven an array of positive integers `nums` and a positive integer `target`, return *the **minimal length** of a **subarray** whose sum is greater than or equal to* `target`. If there is no such subarray, return `0` instead.\n\n## Example 1:\n\n**Input:** target = 7, nums = [2,3,1,2,4,3]\n**Output:** 2\n**Explanation:** The subarray [4,3] has the minimal length under the problem constraint.\n\n## Example 2:\n\n**Input:** target = 4, nums = [1,4,4]\n**Output:** 1\n\n## Example 3:\n\n**Input:** target = 11, nums = [1,1,1,1,1,1,1,1]\n**Output:** 0\n\n## Constraints:\n\n*   `1 <= target <= 10^9`\n*   `1 <= nums.length <= 10^5`\n*   `1 <= nums[i] <= 10^4`\n\n## Follow up:\n\nIf you have figured out the `O(n)` solution, try coding another solution of which the time complexity is `O(n log(n))`.",
+  "description": "# Minimum Size Subarray Sum\n\nGiven an array of positive integers `nums` and a positive integer `target`, return the minimum length of a non-empty contiguous subarray whose sum is greater than or equal to `target`.\n\nIf no such subarray exists, return `0`.\n\nOnly the length is required. The actual subarray does not need to be returned.\n\n## Example 1:\n\n**Input:** target = 7, nums = [2,3,1,2,4,3]\n**Output:** 2\n**Explanation:** The shortest qualifying subarray is [4,3].\n\n## Example 2:\n\n**Input:** target = 4, nums = [1,4,4]\n**Output:** 1\n**Explanation:** A single element can already reach the target.\n\n## Example 3:\n\n**Input:** target = 11, nums = [1,1,1,1,1,1,1,1]\n**Output:** 0\n**Explanation:** Even the whole array is too small.\n\n## Constraints:\n\n* `1 <= target <= 10^9`\n* `1 <= nums.length <= 10^5`\n* `1 <= nums[i] <= 10^4`\n\n## Follow up:\n\nAfter coding the `O(n)` sliding-window solution, compare it with an `O(n log n)` binary-search solution and the quadratic baseline. The positive-number constraint is what makes the faster monotonic methods valid.",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public int minSubArrayLen(int target, int[] nums) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Binary Search", "Sliding Window", "Prefix Sum"],
+  "initialCode": "class Solution {\n    public int minSubArrayLen(int target, int[] nums) {\n        // TODO: implement\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Binary Search",
+    "Sliding Window",
+    "Prefix Sum"
+  ],
   "examples": [
-    { "input": "target = 7, nums = [2,3,1,2,4,3]", "output": "2" },
-    { "input": "target = 4, nums = [1,4,4]", "output": "1" },
-    { "input": "target = 11, nums = [1,1,1,1,1,1,1,1]", "output": "0" }
+    {
+      "input": "target = 7, nums = [2,3,1,2,4,3]",
+      "output": "2",
+      "explanation": "The shortest qualifying subarray is [4,3]."
+    },
+    {
+      "input": "target = 4, nums = [1,4,4]",
+      "output": "1",
+      "explanation": "The single element 4 reaches the target."
+    }
   ],
   "tests": [
-    { "input": "target = 7, nums = [2,3,1,2,4,3]", "output": "2" },
-    { "input": "target = 4, nums = [1,4,4]", "output": "1" },
-    { "input": "target = 11, nums = [1,1,1,1,1,1,1,1]", "output": "0" },
-    { "input": "target = 15, nums = [1,2,3,4,5]", "output": "5" },
+    {
+      "input": "target = 7, nums = [2,3,1,2,4,3]",
+      "output": "2"
+    },
+    {
+      "input": "target = 4, nums = [1,4,4]",
+      "output": "1"
+    },
+    {
+      "input": "target = 11, nums = [1,1,1,1,1,1,1,1]",
+      "output": "0"
+    },
+    {
+      "input": "target = 15, nums = [1,2,3,4,5]",
+      "output": "5"
+    },
     {
       "input": "target = 5, nums = [5]",
-      "output": "1",
-      "description": "Single element satisfies target"
+      "output": "1"
     },
     {
       "input": "target = 3, nums = [1,1,1]",
-      "output": "3",
-      "description": "Entire array needed"
+      "output": "3"
+    },
+    {
+      "input": "target = 8, nums = [1,1,1,1,8]",
+      "output": "1"
+    },
+    {
+      "input": "target = 9, nums = [9,1,1,1,1]",
+      "output": "1"
+    },
+    {
+      "input": "target = 11, nums = [1,2,3,4,5]",
+      "output": "3"
+    },
+    {
+      "input": "target = 6, nums = [1,2,3]",
+      "output": "3"
+    },
+    {
+      "input": "target = 100, nums = [1,2,3,4,5]",
+      "output": "0"
+    },
+    {
+      "input": "target = 10, nums = [2,2,2,2,2]",
+      "output": "5"
+    },
+    {
+      "input": "target = 12, nums = [5,1,3,5,10,7,4,9,2,8]",
+      "output": "2"
     }
   ],
   "solutions": [
     {
       "name": "Sliding Window - Two Pointers",
+      "description": "## Approach\n\nKeep a window `[left, right]` and its running sum. Move `right` one step at a time to make the sum larger. Whenever the sum is at least `target`, record the current length, then move `left` forward while the window remains valid.\n\n## Key Insight\n\nEvery number is positive. Adding a new right endpoint can only increase the sum, and removing the left endpoint can only decrease it. That one-way behavior is the reason the window never needs to move backward.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int minSubArrayLen(int target, int[] nums) {\n        int best = Integer.MAX_VALUE;\n        long sum = 0;\n        int left = 0;\n\n        for (int right = 0; right < nums.length; right++) {\n            sum += nums[right];\n            while (sum >= target) {\n                best = Math.min(best, right - left + 1);\n                sum -= nums[left];\n                left++;\n            }\n        }\n\n        return best == Integer.MAX_VALUE ? 0 : best;\n    }\n}",
+      "language": "java",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(1)",
-      "description": "Expand window until sum >= target, then shrink to minimize length while maintaining valid sum.",
-      "code": "class Solution {\n    public int minSubArrayLen(int target, int[] nums) {\n        int minLen = Integer.MAX_VALUE;\n        int sum = 0;\n        int left = 0;\n        \n        for (int right = 0; right < nums.length; right++) {\n            sum += nums[right];\n            \n            // Shrink window while sum is valid\n            while (sum >= target) {\n                minLen = Math.min(minLen, right - left + 1);\n                sum -= nums[left];\n                left++;\n            }\n        }\n        \n        return minLen == Integer.MAX_VALUE ? 0 : minLen;\n    }\n}"
+      "spaceComplexity": "O(1)"
     },
     {
-      "name": "Binary Search with Prefix Sum",
+      "name": "Prefix Sum + Lower Bound Binary Search",
+      "description": "## Approach\n\nBuild a prefix-sum array where `prefix[i]` is the sum of the first `i` numbers. For each start index, compute the first prefix value that would make the subarray reach `target`, then use binary search to find that endpoint.\n\n## Key Insight\n\nBecause all inputs are positive, the prefix sums are strictly increasing. That monotonic order turns each possible start index into a lower-bound search problem.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int minSubArrayLen(int target, int[] nums) {\n        int n = nums.length;\n        long[] prefix = new long[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n\n        int best = Integer.MAX_VALUE;\n        for (int start = 0; start < n; start++) {\n            long needed = prefix[start] + target;\n            int end = lowerBound(prefix, needed);\n            if (end <= n) {\n                best = Math.min(best, end - start);\n            }\n        }\n\n        return best == Integer.MAX_VALUE ? 0 : best;\n    }\n\n    private int lowerBound(long[] prefix, long target) {\n        int left = 0;\n        int right = prefix.length;\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (prefix[mid] >= target) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        return left;\n    }\n}",
+      "language": "java",
       "timeComplexity": "O(n log n)",
-      "spaceComplexity": "O(n)",
-      "description": "Build prefix sum array. For each index, binary search for smallest j where prefix[j] - prefix[i] >= target.",
-      "code": "class Solution {\n    public int minSubArrayLen(int target, int[] nums) {\n        int n = nums.length;\n        long[] prefix = new long[n + 1];\n        \n        // Build prefix sum\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + nums[i];\n        }\n        \n        int minLen = Integer.MAX_VALUE;\n        \n        for (int i = 0; i < n; i++) {\n            // Find smallest j where prefix[j] - prefix[i] >= target\n            // => prefix[j] >= prefix[i] + target\n            long toFind = prefix[i] + target;\n            int j = lowerBound(prefix, i + 1, n + 1, toFind);\n            \n            if (j <= n) {\n                minLen = Math.min(minLen, j - i);\n            }\n        }\n        \n        return minLen == Integer.MAX_VALUE ? 0 : minLen;\n    }\n    \n    private int lowerBound(long[] arr, int start, int end, long target) {\n        while (start < end) {\n            int mid = start + (end - start) / 2;\n            if (arr[mid] >= target) {\n                end = mid;\n            } else {\n                start = mid + 1;\n            }\n        }\n        return start;\n    }\n}"
+      "spaceComplexity": "O(n)"
+    },
+    {
+      "name": "Binary Search on Answer Length",
+      "description": "## Approach\n\nBinary search the possible answer length. For a fixed length `L`, scan all length-`L` windows and ask whether any of them has sum at least `target`.\n\n## Key Insight\n\nWith positive numbers, if a length `L` can reach the target, then any larger length can also reach it by extending that qualifying window when space permits. The yes/no predicate is monotonic, so the answer length is searchable.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int minSubArrayLen(int target, int[] nums) {\n        int left = 1;\n        int right = nums.length;\n        int answer = 0;\n\n        while (left <= right) {\n            int length = left + (right - left) / 2;\n            if (hasWindowAtLeast(target, nums, length)) {\n                answer = length;\n                right = length - 1;\n            } else {\n                left = length + 1;\n            }\n        }\n\n        return answer;\n    }\n\n    private boolean hasWindowAtLeast(int target, int[] nums, int length) {\n        long sum = 0;\n        for (int right = 0; right < nums.length; right++) {\n            sum += nums[right];\n            if (right >= length) {\n                sum -= nums[right - length];\n            }\n            if (right >= length - 1 && sum >= target) {\n                return true;\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(1)"
+    },
+    {
+      "name": "Quadratic Running Sum Baseline",
+      "description": "## Approach\n\nTry every start index and extend the end index while maintaining a running sum. As soon as that start reaches the target, update the best length and stop extending that start because longer windows cannot improve it.\n\n## Key Insight\n\nThis route is intentionally slower, but it is the clearest correctness baseline: enumerate all possible contiguous subarrays in start-order and keep the shortest one that satisfies the condition.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int minSubArrayLen(int target, int[] nums) {\n        int best = Integer.MAX_VALUE;\n\n        for (int start = 0; start < nums.length; start++) {\n            long sum = 0;\n            for (int end = start; end < nums.length; end++) {\n                sum += nums[end];\n                if (sum >= target) {\n                    best = Math.min(best, end - start + 1);\n                    break;\n                }\n            }\n        }\n\n        return best == Integer.MAX_VALUE ? 0 : best;\n    }\n}",
+      "language": "java",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)"
     }
   ]
 }

@@ -1,26 +1,57 @@
 {
   "id": "47",
   "title": "Largest Rectangle in Histogram",
-  "description": "# Largest Rectangle in Histogram\n\nGiven an array of integers `heights` representing the histogram's bar height where the width of each bar is `1`, return *the area of the largest rectangle in the histogram*.\n\n## Example 1:\n\n**Input:** heights = [2,1,5,6,2,3]\n**Output:** 10\n**Explanation:** The above is a histogram where width of each bar is 1.\nThe largest rectangle is shown in the red area, which has an area = 10 units.\n\n## Example 2:\n\n**Input:** heights = [2,4]\n**Output:** 4\n\n## Constraints:\n\n*   `1 <= heights.length <= 10^5`\n*   `0 <= heights[i] <= 10^4`",
+  "description": "# Largest Rectangle in Histogram\n\nYou are given an integer array `heights`, where `heights[i]` is the height of the `i`th bar in a histogram. Every bar has width `1`.\n\nA rectangle in the histogram must be formed by one or more consecutive bars. Its height is limited by the shortest bar it spans, and its width is the number of bars it spans.\n\nReturn the area of the largest rectangle that can be formed in the histogram.\n\n## Example 1:\n\n**Input:** heights = [2,1,5,6,2,3]\n**Output:** 10\n**Explanation:** The best rectangle spans the bars with heights 5 and 6. Its height is 5 and its width is 2, so its area is 10.\n\n## Example 2:\n\n**Input:** heights = [2,4]\n**Output:** 4\n**Explanation:** The best area is either the bar of height 4 alone, or both bars with limiting height 2.\n\n## Constraints:\n\n*   `1 <= heights.length <= 10^5`\n*   `0 <= heights[i] <= 10^4`",
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public int largestRectangleArea(int[] heights) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Stack", "Monotonic Stack"],
-  "images": [
+  "tags": [
+    "Array",
+    "Stack",
+    "Monotonic Stack"
+  ],
+  "diagrams": [
     {
-      "filename": "p47_example1.png",
-      "description": "Histogram visualization with largest rectangle highlighted"
+      "id": "example1",
+      "file": "p47_example1.png",
+      "caption": "Example 1 input histogram heights only"
     }
   ],
   "examples": [
-    { "input": "heights = [2,1,5,6,2,3]", "output": "10" },
-    { "input": "heights = [2,4]", "output": "4" }
+    {
+      "input": "heights = [2,1,5,6,2,3]",
+      "output": "10"
+    },
+    {
+      "input": "heights = [2,4]",
+      "output": "4"
+    }
   ],
   "tests": [
-    { "input": "heights = [2,1,5,6,2,3]", "output": "10" },
-    { "input": "heights = [2,4]", "output": "4" },
-    { "input": "heights = [2,1,2]", "output": "3" },
-    { "input": "heights = [1,1]", "output": "2" },
-    { "input": "heights = [4,2,0,3,2,5]", "output": "6" },
+    {
+      "input": "heights = [2,1,5,6,2,3]",
+      "output": "10",
+      "description": "Canonical histogram with interior maximum rectangle"
+    },
+    {
+      "input": "heights = [2,4]",
+      "output": "4",
+      "description": "Two bars where either one tall bar or both bars can be optimal"
+    },
+    {
+      "input": "heights = [2,1,2]",
+      "output": "3",
+      "description": "Middle valley limits a rectangle spanning all bars"
+    },
+    {
+      "input": "heights = [1,1]",
+      "output": "2",
+      "description": "Equal-height pair spans both bars"
+    },
+    {
+      "input": "heights = [4,2,0,3,2,5]",
+      "output": "6",
+      "description": "Zero-height bar splits the histogram into independent regions"
+    },
     {
       "input": "heights = [5]",
       "output": "5",
@@ -29,23 +60,67 @@
     {
       "input": "heights = [3,3,3,3]",
       "output": "12",
-      "description": "All same height"
+      "description": "All bars have the same height"
+    },
+    {
+      "input": "heights = [1,2,3,4,5]",
+      "output": "9",
+      "description": "Strictly increasing heights need a final stack flush"
+    },
+    {
+      "input": "heights = [5,4,3,2,1]",
+      "output": "9",
+      "description": "Strictly decreasing heights pop on every step"
+    },
+    {
+      "input": "heights = [0,2,0,2]",
+      "output": "2",
+      "description": "Zeros isolate nonzero bars"
+    },
+    {
+      "input": "heights = [0,0,0]",
+      "output": "0",
+      "description": "All zero heights"
+    },
+    {
+      "input": "heights = [2,2,5,2,2]",
+      "output": "10",
+      "description": "Wide plateau beats the taller middle bar"
+    },
+    {
+      "input": "heights = [10000,10000]",
+      "output": "20000",
+      "description": "Upper height boundary with area larger than a single bar"
     }
   ],
   "solutions": [
     {
-      "name": "单调栈",
+      "name": "Monotonic Increasing Stack",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "维护一个单调递增栈存储柱子索引。当遇到更矮的柱子时，弹出栈顶计算以该柱子高度为高的最大矩形面积。关键在于确定矩形的宽度：左边界是新栈顶右边一位，右边界是当前索引左边一位。",
-      "code": "class Solution {\n    public int largestRectangleArea(int[] heights) {\n        int n = heights.length;\n        Deque<Integer> stack = new ArrayDeque<>();\n        int maxArea = 0;\n        \n        for (int i = 0; i <= n; i++) {\n            // i == n 时使用高度0来清空栈\n            int currHeight = (i == n) ? 0 : heights[i];\n            \n            while (!stack.isEmpty() && currHeight < heights[stack.peek()]) {\n                int height = heights[stack.pop()];\n                // 宽度：如果栈空，左边界为0；否则为栈顶+1\n                int width = stack.isEmpty() ? i : i - stack.peek() - 1;\n                maxArea = Math.max(maxArea, height * width);\n            }\n            \n            stack.push(i);\n        }\n        \n        return maxArea;\n    }\n}"
+      "description": "## Approach\n\nMaintain a stack of bar indices whose heights are in increasing order. When the current bar is shorter than the bar at the stack top, pop the taller bar and compute the largest rectangle where that popped bar is the limiting height. Use a virtual height `0` after the last bar to flush the stack.\n\n## Key Insight\n\nA bar's maximum rectangle is known exactly when we find the first shorter bar to its right. After popping it, the new stack top is the first shorter bar to its left, so the width is determined immediately.\n\n## Complexity Analysis\n\nEach index is pushed and popped at most once.\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int largestRectangleArea(int[] heights) {\n        int n = heights.length;\n        Deque<Integer> stack = new ArrayDeque<>();\n        int maxArea = 0;\n\n        for (int i = 0; i <= n; i++) {\n            int currentHeight = (i == n) ? 0 : heights[i];\n            while (!stack.isEmpty() && currentHeight < heights[stack.peek()]) {\n                int height = heights[stack.pop()];\n                int width = stack.isEmpty() ? i : i - stack.peek() - 1;\n                maxArea = Math.max(maxArea, height * width);\n            }\n            stack.push(i);\n        }\n\n        return maxArea;\n    }\n}"
     },
     {
-      "name": "左右边界数组",
+      "name": "Precomputed Smaller Boundaries",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "预计算每个柱子向左和向右能延伸的边界（第一个比它矮的柱子位置）。对于每个柱子，以它为高度的最大矩形面积 = 高度 × (右边界 - 左边界 - 1)。",
-      "code": "class Solution {\n    public int largestRectangleArea(int[] heights) {\n        int n = heights.length;\n        int[] left = new int[n];   // 左边第一个更矮的索引\n        int[] right = new int[n];  // 右边第一个更矮的索引\n        \n        Deque<Integer> stack = new ArrayDeque<>();\n        \n        // 计算左边界\n        for (int i = 0; i < n; i++) {\n            while (!stack.isEmpty() && heights[stack.peek()] >= heights[i]) {\n                stack.pop();\n            }\n            left[i] = stack.isEmpty() ? -1 : stack.peek();\n            stack.push(i);\n        }\n        \n        stack.clear();\n        \n        // 计算右边界\n        for (int i = n - 1; i >= 0; i--) {\n            while (!stack.isEmpty() && heights[stack.peek()] >= heights[i]) {\n                stack.pop();\n            }\n            right[i] = stack.isEmpty() ? n : stack.peek();\n            stack.push(i);\n        }\n        \n        // 计算最大面积\n        int maxArea = 0;\n        for (int i = 0; i < n; i++) {\n            maxArea = Math.max(maxArea, heights[i] * (right[i] - left[i] - 1));\n        }\n        \n        return maxArea;\n    }\n}"
+      "description": "## Approach\n\nFor every bar, precompute the nearest strictly smaller bar on the left and on the right. If bar `i` is the limiting height, it can span from `left[i] + 1` through `right[i] - 1`. Compute that area for every bar and take the maximum.\n\n## Key Insight\n\nThis is the same boundary invariant as the monotonic stack solution, but stored explicitly. It is useful for teaching because each bar's width can be inspected directly.\n\n## Complexity Analysis\n\nTwo monotonic stack passes find all boundaries, followed by one area pass.\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int largestRectangleArea(int[] heights) {\n        int n = heights.length;\n        int[] left = new int[n];\n        int[] right = new int[n];\n        Deque<Integer> stack = new ArrayDeque<>();\n\n        for (int i = 0; i < n; i++) {\n            while (!stack.isEmpty() && heights[stack.peek()] >= heights[i]) {\n                stack.pop();\n            }\n            left[i] = stack.isEmpty() ? -1 : stack.peek();\n            stack.push(i);\n        }\n\n        stack.clear();\n        for (int i = n - 1; i >= 0; i--) {\n            while (!stack.isEmpty() && heights[stack.peek()] >= heights[i]) {\n                stack.pop();\n            }\n            right[i] = stack.isEmpty() ? n : stack.peek();\n            stack.push(i);\n        }\n\n        int maxArea = 0;\n        for (int i = 0; i < n; i++) {\n            int width = right[i] - left[i] - 1;\n            maxArea = Math.max(maxArea, heights[i] * width);\n        }\n\n        return maxArea;\n    }\n}"
+    },
+    {
+      "name": "Divide and Conquer with Segment Tree",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nBuild a segment tree that returns the index of the minimum-height bar in any range. For a range `[left, right]`, the minimum bar gives the best rectangle spanning the whole range. Then split around that minimum bar and process the left and right subranges.\n\n## Key Insight\n\nEvery optimal rectangle either spans the minimum bar of the current range, lies completely to its left, or lies completely to its right. The segment tree keeps the minimum-index query fast, and an explicit range stack avoids recursion depth issues on sorted inputs.\n\n## Complexity Analysis\n\nThe segment tree uses linear space and answers range-minimum queries in logarithmic time.\n\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    private int[] heights;\n    private int[] tree;\n\n    public int largestRectangleArea(int[] heights) {\n        this.heights = heights;\n        int n = heights.length;\n        this.tree = new int[4 * n];\n        build(1, 0, n - 1);\n\n        int best = 0;\n        Deque<int[]> ranges = new ArrayDeque<>();\n        ranges.push(new int[] {0, n - 1});\n\n        while (!ranges.isEmpty()) {\n            int[] range = ranges.pop();\n            int left = range[0];\n            int right = range[1];\n            if (left > right) {\n                continue;\n            }\n\n            int minIndex = query(1, 0, n - 1, left, right);\n            best = Math.max(best, heights[minIndex] * (right - left + 1));\n            ranges.push(new int[] {left, minIndex - 1});\n            ranges.push(new int[] {minIndex + 1, right});\n        }\n\n        return best;\n    }\n\n    private void build(int node, int left, int right) {\n        if (left == right) {\n            tree[node] = left;\n            return;\n        }\n        int mid = left + (right - left) / 2;\n        build(node * 2, left, mid);\n        build(node * 2 + 1, mid + 1, right);\n        tree[node] = better(tree[node * 2], tree[node * 2 + 1]);\n    }\n\n    private int query(int node, int left, int right, int queryLeft, int queryRight) {\n        if (queryRight < left || right < queryLeft) {\n            return -1;\n        }\n        if (queryLeft <= left && right <= queryRight) {\n            return tree[node];\n        }\n        int mid = left + (right - left) / 2;\n        int leftIndex = query(node * 2, left, mid, queryLeft, queryRight);\n        int rightIndex = query(node * 2 + 1, mid + 1, right, queryLeft, queryRight);\n        return better(leftIndex, rightIndex);\n    }\n\n    private int better(int first, int second) {\n        if (first == -1) {\n            return second;\n        }\n        if (second == -1) {\n            return first;\n        }\n        return heights[first] <= heights[second] ? first : second;\n    }\n}"
+    },
+    {
+      "name": "Quadratic Minimum Scan Baseline",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nEnumerate every possible left boundary. As the right boundary expands, keep the minimum height inside the current window. That minimum height times the window width is the best rectangle for this exact span.\n\n## Key Insight\n\nThis baseline mirrors the definition of the problem: each candidate rectangle is a consecutive span limited by its shortest bar. The faster stack solutions are ways to avoid repeating the same minimum-height work for many spans.\n\n## Complexity Analysis\n\nThere are O(n^2) spans, so this is only a teaching baseline, not the intended large-input solution.\n\n- Time Complexity: O(n^2)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int largestRectangleArea(int[] heights) {\n        int n = heights.length;\n        int best = 0;\n\n        for (int left = 0; left < n; left++) {\n            int minHeight = Integer.MAX_VALUE;\n            for (int right = left; right < n; right++) {\n                minHeight = Math.min(minHeight, heights[right]);\n                int width = right - left + 1;\n                best = Math.max(best, minHeight * width);\n            }\n        }\n\n        return best;\n    }\n}"
     }
   ]
 }

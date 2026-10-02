@@ -1,36 +1,110 @@
 {
   "id": "457",
   "title": "Circular Array Loop",
-  "description": "# Circular Array Loop\n\nYou are playing a game involving a **circular** array of non-zero integers `nums`. Each `nums[i]` denotes the number of indices forward/backward you must move if you are located at index `i`:\n\n*   If `nums[i]` is positive, move `nums[i]` steps **forward**.\n*   If `nums[i]` is negative, move `nums[i]` steps **backward**.\n\nSince the array is **circular**, you may assume that moving forward from the last element puts you on the first element, and moving backward from the first element puts you on the last element.\n\nA **cycle** in the array consists of a sequence of indices `seq` of length `k` where:\n\n*   Following the movement rules above results in the repeating index sequence `seq[0] -> seq[1] -> ... -> seq[k - 1] -> seq[0] -> ...`\n*   Every `nums[seq[j]]` is either **all positive** or **all negative**.\n*   `k > 1`\n\nReturn `true` *if there is a cycle in* `nums`*, or* `false` *otherwise*.\n\n## Example 1:\n\n**Input:** nums = [2,-1,1,2,2]\n**Output:** true\n**Explanation:** The graph shows how the indices are connected. White nodes are jumping forward, while red is jumping backward.\nWe can see the cycle 0 -> 2 -> 3 -> 0 --> ..., and all of its nodes are white (jumping in the same direction).\n\n## Example 2:\n\n**Input:** nums = [-1,2]\n**Output:** false\n**Explanation:** The graph shows how the indices are connected. White nodes are jumping forward, while red is jumping backward.\nThe cycle 0 -> 1 -> 0 -> ... has mixed direction. \n\n## Example 3:\n\n**Input:** nums = [-2,1,-1,-2,-2]\n**Output:** false\n**Explanation:** The graph shows how the indices are connected. White nodes are jumping forward, while red is jumping backward.\nThe cycle 1 -> 2 -> 1 -> ... has mixed direction.\n\n## Constraints:\n\n*   `1 <= nums.length <= 5000`\n*   `-1000 <= nums[i] <= 1000`\n*   `nums[i] != 0`\n\n## Follow up:\n\nCould you solve it in `O(n)` time complexity and `O(1)` extra space complexity?",
+  "description": "# Circular Array Loop\n\nYou are given a circular array `nums` of non-zero integers. If you are at index `i`, then `nums[i]` tells you how many steps to move:\n\n* A positive value moves forward.\n* A negative value moves backward.\n\nMoving past either end wraps around to the other side of the array. For example, in an array of length `n`, the next index after moving from `i` is `((i + nums[i]) % n + n) % n`.\n\nReturn `true` if there is a valid cycle; otherwise return `false`. A cycle is valid only if both conditions hold:\n\n* Its length is greater than `1`. A move that returns from an index directly to itself is not a valid cycle.\n* Every number used by the cycle has the same sign, so every move in the cycle goes in the same direction.\n\n## Example 1:\n\n**Input:** nums = [2,-1,1,2,2]\n**Output:** true\n**Explanation:** Indices `0 -> 2 -> 3 -> 0` form a cycle of length `3`, and all moves in that cycle are forward.\n\n## Example 2:\n\n**Input:** nums = [-1,2]\n**Output:** false\n**Explanation:** Index `1` moves back to itself because `2` is a multiple of the array length, but a one-index self loop is not a valid cycle.\n\n## Example 3:\n\n**Input:** nums = [-2,1,-1,-2,-2]\n**Output:** false\n**Explanation:** Any repeating path either changes direction or collapses into an invalid one-index loop.\n\n## Constraints:\n\n* `1 <= nums.length <= 5000`\n* `-1000 <= nums[i] <= 1000`\n* `nums[i] != 0`\n\n## Follow up:\n\nCould you solve it in `O(n)` time complexity and `O(1)` extra space complexity?",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public boolean circularArrayLoop(int[] nums) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Two Pointers"],
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Two Pointers"
+  ],
   "examples": [
-    { "input": "nums = [2,-1,1,2,2]", "output": "true" },
-    { "input": "nums = [-1,2]", "output": "false" },
-    { "input": "nums = [-2,1,-1,-2,-2]", "output": "false" }
+    {
+      "input": "nums = [2,-1,1,2,2]",
+      "output": "true"
+    },
+    {
+      "input": "nums = [-1,2]",
+      "output": "false"
+    },
+    {
+      "input": "nums = [-2,1,-1,-2,-2]",
+      "output": "false"
+    }
   ],
   "solutions": [
     {
-      "name": "Fast and Slow Pointers with Marking",
+      "name": "Fast and Slow Pointers with In-Place Marking",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "For each unvisited index, use fast/slow pointers to detect a cycle. Ensure all elements in the cycle have the same sign and cycle length > 1. Mark visited indices to avoid reprocessing.",
-      "code": "class Solution {\n    public boolean circularArrayLoop(int[] nums) {\n        int n = nums.length;\n        for (int i = 0; i < n; i++) {\n            if (nums[i] == 0) continue;\n            int slow = i, fast = i;\n            while (nums[next(slow, nums)] * nums[i] > 0 &&\n                   nums[next(fast, nums)] * nums[i] > 0 &&\n                   nums[next(next(fast, nums), nums)] * nums[i] > 0) {\n                slow = next(slow, nums);\n                fast = next(next(fast, nums), nums);\n                if (slow == fast) {\n                    if (slow == next(slow, nums)) break;\n                    return true;\n                }\n            }\n            int j = i;\n            while (nums[j] * nums[i] > 0) {\n                int tmp = next(j, nums);\n                nums[j] = 0;\n                j = tmp;\n            }\n        }\n        return false;\n    }\n\n    private int next(int i, int[] nums) {\n        int n = nums.length;\n        return ((i + nums[i]) % n + n) % n;\n    }\n}",
+      "description": "## Approach\n\nFor each index that has not already been cleared, run Floyd's fast and slow pointers while the path keeps the same sign. If the pointers meet, reject the case where the meeting index points to itself; otherwise a valid cycle exists. After a failed start, walk the same-direction path again and set those entries to `0` so they are never processed again.\n\n## Key Insight\n\nA valid cycle is exactly a same-direction cycle of length greater than one. In-place marking is safe because the original constraints exclude zero, so zero can mean \"already proven not useful\".\n\n## Complexity Analysis\n\nEach index is cleared at most once. Time Complexity: O(n). Space Complexity: O(1).",
+      "code": "class Solution {\n    public boolean circularArrayLoop(int[] nums) {\n        int n = nums.length;\n        for (int start = 0; start < n; start++) {\n            if (nums[start] == 0) {\n                continue;\n            }\n\n            int slow = start;\n            int fast = start;\n            while (sameDirection(nums, start, next(nums, slow))\n                    && sameDirection(nums, start, next(nums, fast))\n                    && sameDirection(nums, start, next(nums, next(nums, fast)))) {\n                slow = next(nums, slow);\n                fast = next(nums, next(nums, fast));\n                if (slow == fast) {\n                    if (slow == next(nums, slow)) {\n                        break;\n                    }\n                    return true;\n                }\n            }\n\n            int index = start;\n            while (nums[index] != 0 && sameDirection(nums, start, index)) {\n                int nextIndex = next(nums, index);\n                nums[index] = 0;\n                index = nextIndex;\n            }\n        }\n        return false;\n    }\n\n    private boolean sameDirection(int[] nums, int start, int index) {\n        return nums[index] != 0 && nums[index] * nums[start] > 0;\n    }\n\n    private int next(int[] nums, int index) {\n        int n = nums.length;\n        return ((index + nums[index]) % n + n) % n;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Visited Array with DFS",
+      "name": "Visited Color Array Traversal",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use a visited color array. For each unvisited index, follow the path marking nodes with a unique color. If we revisit a node with the same color and the cycle has consistent direction and length > 1, return true.",
-      "code": "class Solution {\n    public boolean circularArrayLoop(int[] nums) {\n        int n = nums.length;\n        int[] color = new int[n];\n        int colorId = 0;\n        for (int i = 0; i < n; i++) {\n            if (color[i] != 0) continue;\n            colorId++;\n            int j = i;\n            while (color[j] == 0 && nums[j] * nums[i] > 0) {\n                color[j] = colorId;\n                j = ((j + nums[j]) % n + n) % n;\n            }\n            if (color[j] == colorId) {\n                int k = j;\n                int len = 0;\n                do {\n                    len++;\n                    k = ((k + nums[k]) % n + n) % n;\n                } while (k != j);\n                if (len > 1) return true;\n            }\n        }\n        return false;\n    }\n}",
+      "description": "## Approach\n\nUse a color id for each starting traversal. Follow the path while the direction matches the start and the current index has no color. If the path reaches an index colored by the current traversal, measure the cycle length by walking once around it; return true only when the length is greater than one.\n\n## Key Insight\n\nThe color id separates \"visited in this path\" from \"visited by an older path\". That distinction is enough to identify a same-path cycle without a hash map.\n\n## Complexity Analysis\n\nEvery index receives a color at most once. Time Complexity: O(n). Space Complexity: O(n).",
+      "code": "class Solution {\n    public boolean circularArrayLoop(int[] nums) {\n        int n = nums.length;\n        int[] color = new int[n];\n        int colorId = 0;\n\n        for (int start = 0; start < n; start++) {\n            if (color[start] != 0) {\n                continue;\n            }\n            colorId++;\n            int index = start;\n            while (color[index] == 0 && nums[index] * nums[start] > 0) {\n                color[index] = colorId;\n                index = next(nums, index);\n            }\n\n            if (color[index] == colorId) {\n                int length = 1;\n                int cursor = next(nums, index);\n                while (cursor != index) {\n                    length++;\n                    cursor = next(nums, cursor);\n                }\n                if (length > 1) {\n                    return true;\n                }\n            }\n        }\n        return false;\n    }\n\n    private int next(int[] nums, int index) {\n        int n = nums.length;\n        return ((index + nums[index]) % n + n) % n;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Path Index Map Detection",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFor each unprocessed start, follow the path while all numbers keep the same sign. A map records each index's position inside the current path. Revisiting a mapped index proves a same-direction cycle, while checking `next == index` rejects one-index self loops before they can count.\n\n## Key Insight\n\nThe map makes the current path explicit. It is not the lowest-memory route, but it is useful for teaching exactly where the repeated segment begins.\n\n## Complexity Analysis\n\nEach index becomes processed after at most one path exploration. Time Complexity: O(n). Space Complexity: O(n).",
+      "code": "class Solution {\n    public boolean circularArrayLoop(int[] nums) {\n        int n = nums.length;\n        boolean[] processed = new boolean[n];\n\n        for (int start = 0; start < n; start++) {\n            if (processed[start]) {\n                continue;\n            }\n\n            boolean forward = nums[start] > 0;\n            java.util.Map<Integer, Integer> pathIndex = new java.util.HashMap<>();\n            java.util.List<Integer> path = new java.util.ArrayList<>();\n            int index = start;\n\n            while (true) {\n                if (processed[index] || (nums[index] > 0) != forward) {\n                    break;\n                }\n                if (pathIndex.containsKey(index)) {\n                    return true;\n                }\n                pathIndex.put(index, path.size());\n                path.add(index);\n\n                int nextIndex = next(nums, index);\n                if (nextIndex == index) {\n                    break;\n                }\n                index = nextIndex;\n            }\n\n            for (int visited : path) {\n                processed[visited] = true;\n            }\n        }\n        return false;\n    }\n\n    private int next(int[] nums, int index) {\n        int n = nums.length;\n        return ((index + nums[index]) % n + n) % n;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Timestamped Path Arrays",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse two arrays instead of a hash map: `seenAt[index]` stores the traversal stamp that first saw an index, and `depth[index]` stores its order in that traversal. While following one same-direction path, revisiting an index with the current stamp gives the cycle length as `step - depth[index]`.\n\n## Key Insight\n\nThis is the array version of path-index detection. It keeps the \"where did this path repeat\" information while avoiding per-path map allocation.\n\n## Complexity Analysis\n\nEvery finished path marks its indices as done. Time Complexity: O(n). Space Complexity: O(n).",
+      "code": "class Solution {\n    public boolean circularArrayLoop(int[] nums) {\n        int n = nums.length;\n        int[] seenAt = new int[n];\n        int[] depth = new int[n];\n        boolean[] done = new boolean[n];\n        int stamp = 1;\n\n        for (int start = 0; start < n; start++) {\n            if (done[start]) {\n                continue;\n            }\n\n            boolean forward = nums[start] > 0;\n            int index = start;\n            int step = 0;\n            while (!done[index] && (nums[index] > 0) == forward) {\n                int nextIndex = next(nums, index);\n                if (nextIndex == index) {\n                    break;\n                }\n                if (seenAt[index] == stamp) {\n                    return step - depth[index] > 1;\n                }\n                seenAt[index] = stamp;\n                depth[index] = step;\n                step++;\n                index = nextIndex;\n            }\n\n            index = start;\n            while (!done[index] && seenAt[index] == stamp) {\n                done[index] = true;\n                index = next(nums, index);\n            }\n            stamp++;\n        }\n        return false;\n    }\n\n    private int next(int[] nums, int index) {\n        int n = nums.length;\n        return ((index + nums[index]) % n + n) % n;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [2,-1,1,2,2]", "output": "true" },
-    { "input": "nums = [-1,2]", "output": "false" },
-    { "input": "nums = [-2,1,-1,-2,-2]", "output": "false" }
+    {
+      "input": "nums = [2,-1,1,2,2]",
+      "output": "true"
+    },
+    {
+      "input": "nums = [-1,2]",
+      "output": "false"
+    },
+    {
+      "input": "nums = [-2,1,-1,-2,-2]",
+      "output": "false"
+    },
+    {
+      "input": "nums = [1,1,1]",
+      "output": "true"
+    },
+    {
+      "input": "nums = [-1,-1,-1]",
+      "output": "true"
+    },
+    {
+      "input": "nums = [1]",
+      "output": "false"
+    },
+    {
+      "input": "nums = [3,1,2]",
+      "output": "true"
+    },
+    {
+      "input": "nums = [-2,-3,-1,-2]",
+      "output": "true"
+    },
+    {
+      "input": "nums = [2,-1,1,-2]",
+      "output": "false"
+    },
+    {
+      "input": "nums = [-1,-2,-3,-4,-5]",
+      "output": "false"
+    },
+    {
+      "input": "nums = [2,3,1,2]",
+      "output": "true"
+    },
+    {
+      "input": "nums = [5,1,1,1,1]",
+      "output": "false"
+    }
   ]
 }

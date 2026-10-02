@@ -1,40 +1,119 @@
 {
   "id": "309",
-  "title": "Trapping Rain Water",
-  "description": "# Trapping Rain Water\n\nGiven `n` non-negative integers representing an elevation map where the width of each bar is `1`, compute how much water it can trap after raining.\n\n## Example 1:\n\n**Input:** height = [0,1,0,2,1,0,1,3,2,1,2,1]\n**Output:** 6\n**Explanation:** The above elevation map (black section) is represented by array [0,1,0,2,1,0,1,3,2,1,2,1]. In this case, 6 units of rain water (blue section) are being trapped.\n\n## Example 2:\n\n**Input:** height = [4,2,0,3,2,5]\n**Output:** 9\n\n## Constraints:\n\n*   `n == height.length`\n*   `1 <= n <= 2 * 10^4`\n*   `0 <= height[i] <= 10^5`",
+  "title": "Maximum Submatrix Sum No More Than K",
+  "description": "# Maximum Submatrix Sum No More Than K\n\nGiven an integer matrix and an integer `k`, find the maximum sum of any non-empty rectangular submatrix whose sum is no more than `k`.\n\nA rectangular submatrix is formed by choosing a contiguous range of rows and a contiguous range of columns. The matrix can contain negative numbers, so the best rectangle is not necessarily the largest or the one with all positive entries.\n\n## Example 1:\n\n**Input:** matrix = [[1,0,1],[0,-2,3]], k = 2\n**Output:** 2\n\n## Example 2:\n\n**Input:** matrix = [[2,2,-1]], k = 3\n**Output:** 3\n\n## Constraints:\n\n*   `1 <= matrix.length, matrix[i].length <= 100`\n*   `-10^5 <= matrix[i][j] <= 10^5`\n*   `-10^9 <= k <= 10^9`\n*   At least one submatrix sum is no more than `k` in the official tests.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int trap(int[] height) {\n        \n    }\n}",
+  "initialCode": "class Solution {\n    public int maxSumSubmatrix(int[][] matrix, int k) {\n        return 0;\n    }\n}",
   "tags": [
     "Array",
-    "Two Pointers",
-    "Dynamic Programming",
-    "Stack",
-    "Monotonic Stack"
+    "Matrix",
+    "Prefix Sum",
+    "Binary Search"
   ],
   "examples": [
-    { "input": "height = [0,1,0,2,1,0,1,3,2,1,2,1]", "output": "6" },
-    { "input": "height = [4,2,0,3,2,5]", "output": "9" }
-  ],
-  "solutions": [
     {
-      "name": "Two Pointers",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(1)",
-      "description": "Use left and right pointers with leftMax and rightMax. Move the pointer with the smaller max inward. Water at each position is determined by the smaller of the two max heights minus the current height.",
-      "code": "class Solution {\n    public int trap(int[] height) {\n        int left = 0, right = height.length - 1;\n        int leftMax = 0, rightMax = 0, water = 0;\n        while (left < right) {\n            if (height[left] < height[right]) {\n                leftMax = Math.max(leftMax, height[left]);\n                water += leftMax - height[left];\n                left++;\n            } else {\n                rightMax = Math.max(rightMax, height[right]);\n                water += rightMax - height[right];\n                right--;\n            }\n        }\n        return water;\n    }\n}",
-      "language": "java"
+      "input": "matrix = [[1,0,1],[0,-2,3]], k = 2",
+      "output": "2"
     },
     {
-      "name": "Monotonic Stack",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Use a decreasing stack of indices. When a taller bar is found, pop and calculate trapped water using the bounded width between current bar and new stack top, with height being the minimum of boundary bars minus the popped bar height.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int trap(int[] height) {\n        Deque<Integer> stack = new ArrayDeque<>();\n        int water = 0;\n        for (int i = 0; i < height.length; i++) {\n            while (!stack.isEmpty() && height[i] > height[stack.peek()]) {\n                int bottom = stack.pop();\n                if (stack.isEmpty()) break;\n                int width = i - stack.peek() - 1;\n                int h = Math.min(height[i], height[stack.peek()]) - height[bottom];\n                water += width * h;\n            }\n            stack.push(i);\n        }\n        return water;\n    }\n}",
-      "language": "java"
+      "input": "matrix = [[2,2,-1]], k = 3",
+      "output": "3"
     }
   ],
   "tests": [
-    { "input": "height = [0,1,0,2,1,0,1,3,2,1,2,1]", "output": "6" },
-    { "input": "height = [4,2,0,3,2,5]", "output": "9" }
+    {
+      "input": "matrix = [[1,0,1],[0,-2,3]], k = 2",
+      "output": "2",
+      "description": "sample where exact k is available"
+    },
+    {
+      "input": "matrix = [[2,2,-1]], k = 3",
+      "output": "3",
+      "description": "single-row case reduces to subarray no larger than k"
+    },
+    {
+      "input": "matrix = [[5]], k = 5",
+      "output": "5",
+      "description": "single cell exactly equals the bound"
+    },
+    {
+      "input": "matrix = [[2,2,-1]], k = 0",
+      "output": "-1",
+      "description": "best valid sum can be negative"
+    },
+    {
+      "input": "matrix = [[1,2],[3,4]], k = 8",
+      "output": "7",
+      "description": "the total matrix is too large, so a subrectangle is needed"
+    },
+    {
+      "input": "matrix = [[-1,-2],[-3,-4]], k = -2",
+      "output": "-2",
+      "description": "all-negative matrix with a negative cap"
+    },
+    {
+      "input": "matrix = [[5,-4,-3,4],[-3,-4,4,5],[5,1,5,-4]], k = 8",
+      "output": "8",
+      "description": "larger mixed-sign case with exact bound"
+    },
+    {
+      "input": "matrix = [[3,-1,4],[-2,5,-3]], k = 4",
+      "output": "4",
+      "description": "best rectangle can combine mixed signs to hit a tight cap"
+    },
+    {
+      "input": "matrix = [[2],[-1],[2],[3]], k = 4",
+      "output": "4",
+      "description": "single-column case should work after dimension-aware compression"
+    },
+    {
+      "input": "matrix = [[100000,-100000],[100000,-100000]], k = 0",
+      "output": "0",
+      "description": "large values need safe prefix arithmetic and cancellation"
+    },
+    {
+      "input": "matrix = [[2,2,2],[2,2,2]], k = 7",
+      "output": "6",
+      "description": "best value can be below k when the exact cap is impossible"
+    },
+    {
+      "input": "matrix = [[-5]], k = -2",
+      "output": "-5",
+      "description": "single negative cell can be the only valid rectangle"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Adaptive Dimension Compression and TreeSet",
+      "timeComplexity": "O(min(r,c)^2 * max(r,c) log max(r,c))",
+      "spaceComplexity": "O(max(r,c))",
+      "description": "## Approach\n\nCompress along the smaller dimension. If there are fewer columns, fix left and right columns and compress rows; otherwise fix top and bottom rows and compress columns. Each compressed one-dimensional array is solved with prefix sums and a `TreeSet` ceiling query.\n\n## Key Insight\n\nThe expensive part is choosing the pair of fixed boundaries. Choosing pairs from the smaller dimension gives the same set of rectangles while reducing the number of one-dimensional subarray problems.\n\n## Complexity Analysis\n- Time Complexity: O(min(r,c)^2 * max(r,c) log max(r,c))\n- Space Complexity: O(max(r,c))",
+      "code": "import java.util.TreeSet;\n\nclass Solution {\n    public int maxSumSubmatrix(int[][] matrix, int k) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        return cols <= rows ? compressColumns(matrix, k) : compressRows(matrix, k);\n    }\n\n    private int compressColumns(int[][] matrix, int k) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        int best = Integer.MIN_VALUE;\n        for (int left = 0; left < cols; left++) {\n            int[] rowSums = new int[rows];\n            for (int right = left; right < cols; right++) {\n                for (int row = 0; row < rows; row++) {\n                    rowSums[row] += matrix[row][right];\n                }\n                best = Math.max(best, bestSubarrayNoMoreThanK(rowSums, k));\n                if (best == k) {\n                    return k;\n                }\n            }\n        }\n        return best;\n    }\n\n    private int compressRows(int[][] matrix, int k) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        int best = Integer.MIN_VALUE;\n        for (int top = 0; top < rows; top++) {\n            int[] columnSums = new int[cols];\n            for (int bottom = top; bottom < rows; bottom++) {\n                for (int col = 0; col < cols; col++) {\n                    columnSums[col] += matrix[bottom][col];\n                }\n                best = Math.max(best, bestSubarrayNoMoreThanK(columnSums, k));\n                if (best == k) {\n                    return k;\n                }\n            }\n        }\n        return best;\n    }\n\n    private int bestSubarrayNoMoreThanK(int[] nums, int k) {\n        TreeSet<Integer> prefixes = new TreeSet<>();\n        prefixes.add(0);\n        int prefix = 0;\n        int best = Integer.MIN_VALUE;\n        for (int value : nums) {\n            prefix += value;\n            Integer ceiling = prefixes.ceiling(prefix - k);\n            if (ceiling != null) {\n                best = Math.max(best, prefix - ceiling);\n            }\n            prefixes.add(prefix);\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Column Compression and TreeSet",
+      "timeComplexity": "O(c^2 * r log r)",
+      "spaceComplexity": "O(r)",
+      "description": "## Approach\n\nFix a pair of columns, compress the rows between them into a one-dimensional `rowSums` array, then find the maximum subarray sum no larger than `k` in that array using prefix sums and a `TreeSet`.\n\n## Key Insight\n\nOnce the left and right columns are fixed, every rectangle between those columns corresponds to a contiguous row interval in `rowSums`. The two-dimensional problem becomes the one-dimensional maximum subarray no more than `k` problem.\n\n## Complexity Analysis\n- Time Complexity: O(c^2 * r log r)\n- Space Complexity: O(r)",
+      "code": "import java.util.TreeSet;\n\nclass Solution {\n    public int maxSumSubmatrix(int[][] matrix, int k) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        int best = Integer.MIN_VALUE;\n        for (int left = 0; left < cols; left++) {\n            int[] rowSums = new int[rows];\n            for (int right = left; right < cols; right++) {\n                for (int row = 0; row < rows; row++) {\n                    rowSums[row] += matrix[row][right];\n                }\n                best = Math.max(best, bestSubarrayNoMoreThanK(rowSums, k));\n                if (best == k) {\n                    return k;\n                }\n            }\n        }\n        return best;\n    }\n\n    private int bestSubarrayNoMoreThanK(int[] nums, int k) {\n        TreeSet<Integer> prefixes = new TreeSet<>();\n        prefixes.add(0);\n        int prefix = 0;\n        int best = Integer.MIN_VALUE;\n        for (int value : nums) {\n            prefix += value;\n            Integer ceiling = prefixes.ceiling(prefix - k);\n            if (ceiling != null) {\n                best = Math.max(best, prefix - ceiling);\n            }\n            prefixes.add(prefix);\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Row Compression with Sorted Prefix List",
+      "timeComplexity": "O(r^2 * c^2)",
+      "spaceComplexity": "O(c)",
+      "description": "## Approach\n\nFix a pair of rows and compress the columns between them into `columnSums`. For each compressed array, keep previous prefix sums in a sorted list, use binary search to find the smallest prefix at least `prefix - k`, and insert the current prefix back into sorted order.\n\n## Key Insight\n\nThis teaches the same ordered-prefix condition without relying on `TreeSet.ceiling` as a black box. The tradeoff is slower insertion into an array-backed list, but the lower-bound operation is explicit and easy to trace for small teaching inputs.\n\n## Complexity Analysis\n- Time Complexity: O(r^2 * c^2)\n- Space Complexity: O(c)",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public int maxSumSubmatrix(int[][] matrix, int k) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        int best = Integer.MIN_VALUE;\n        for (int top = 0; top < rows; top++) {\n            int[] columnSums = new int[cols];\n            for (int bottom = top; bottom < rows; bottom++) {\n                for (int col = 0; col < cols; col++) {\n                    columnSums[col] += matrix[bottom][col];\n                }\n                best = Math.max(best, bestSubarrayNoMoreThanK(columnSums, k));\n                if (best == k) {\n                    return k;\n                }\n            }\n        }\n        return best;\n    }\n\n    private int bestSubarrayNoMoreThanK(int[] nums, int k) {\n        List<Integer> prefixes = new ArrayList<>();\n        prefixes.add(0);\n        int prefix = 0;\n        int best = Integer.MIN_VALUE;\n        for (int value : nums) {\n            prefix += value;\n            int targetIndex = lowerBound(prefixes, prefix - k);\n            if (targetIndex < prefixes.size()) {\n                best = Math.max(best, prefix - prefixes.get(targetIndex));\n            }\n            prefixes.add(lowerBound(prefixes, prefix), prefix);\n        }\n        return best;\n    }\n\n    private int lowerBound(List<Integer> values, int target) {\n        int lo = 0;\n        int hi = values.size();\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (values.get(mid) < target) {\n                lo = mid + 1;\n            } else {\n                hi = mid;\n            }\n        }\n        return lo;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "2D Prefix Sum Rectangle Enumeration",
+      "timeComplexity": "O(r^2 * c^2)",
+      "spaceComplexity": "O(r * c)",
+      "description": "## Approach\n\nBuild a two-dimensional prefix sum table, then enumerate every possible top-left and bottom-right corner. Each rectangle sum can be queried in O(1), and the best sum no larger than `k` is tracked.\n\n## Key Insight\n\nThis baseline follows the definition directly and is still bounded for a 100 by 100 matrix. It is slower than compression with ordered prefix sums, but it is useful as a correctness reference for the rectangle-sum formula.\n\n## Complexity Analysis\n- Time Complexity: O(r^2 * c^2)\n- Space Complexity: O(r * c)",
+      "code": "class Solution {\n    public int maxSumSubmatrix(int[][] matrix, int k) {\n        int rows = matrix.length;\n        int cols = matrix[0].length;\n        int[][] prefix = new int[rows + 1][cols + 1];\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                prefix[row + 1][col + 1] = matrix[row][col]\n                        + prefix[row][col + 1]\n                        + prefix[row + 1][col]\n                        - prefix[row][col];\n            }\n        }\n\n        int best = Integer.MIN_VALUE;\n        for (int top = 0; top < rows; top++) {\n            for (int left = 0; left < cols; left++) {\n                for (int bottom = top; bottom < rows; bottom++) {\n                    for (int right = left; right < cols; right++) {\n                        int sum = prefix[bottom + 1][right + 1]\n                                - prefix[top][right + 1]\n                                - prefix[bottom + 1][left]\n                                + prefix[top][left];\n                        if (sum <= k) {\n                            best = Math.max(best, sum);\n                        }\n                    }\n                }\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

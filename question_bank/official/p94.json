@@ -1,10 +1,15 @@
 {
   "id": "94",
   "title": "Binary Tree Maximum Path Sum",
-  "description": "# Binary Tree Maximum Path Sum\n\nA **path** in a binary tree is a sequence of nodes where each pair of adjacent nodes in the sequence has an edge connecting them. A node can only appear in the sequence **at most once**. Note that the path does not need to pass through the root.\n\nThe **path sum** of a path is the sum of the node's values in the path.\n\nGiven the `root` of a binary tree, return *the maximum **path sum** of any **non-empty** path*.\n\n## Example 1:\n\n**Input:** root = [1,2,3]\n**Output:** 6\n**Explanation:** The optimal path is 2 -> 1 -> 3 with a path sum of 2 + 1 + 3 = 6.\n\n## Example 2:\n\n**Input:** root = [-10,9,20,null,null,15,7]\n**Output:** 42\n**Explanation:** The optimal path is 15 -> 20 -> 7 with a path sum of 15 + 20 + 7 = 42.\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[1, 3 * 10^4]`.\n*   `-1000 <= Node.val <= 1000`",
+  "description": "# Binary Tree Maximum Path Sum\n\nA **path** in a binary tree is a sequence of connected parent-child edges. Each node may appear in the path **at most once**, and the path may start and end at any nodes. It does not have to include the root.\n\nThe **path sum** is the sum of all node values on that path.\n\nGiven the `root` of a non-empty binary tree, return the maximum path sum of any non-empty path.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [1,2,3]\n**Output:** 6\n**Explanation:** The best path is 2 -> 1 -> 3, with sum 2 + 1 + 3 = 6.\n\n## Example 2:\n\n**Input:** root = [-10,9,20,null,null,15,7]\n**Output:** 42\n**Explanation:** The best path is 15 -> 20 -> 7, with sum 15 + 20 + 7 = 42. The path stays inside the right subtree and does not use the root.\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[1, 3 * 10^4]`.\n*   `-1000 <= Node.val <= 1000`.",
   "difficulty": "HARD",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public int maxPathSum(TreeNode root) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Dynamic Programming", "Tree", "Depth-First Search", "Binary Tree"],
+  "tags": [
+    "Dynamic Programming",
+    "Tree",
+    "Depth-First Search",
+    "Binary Tree"
+  ],
   "examples": [
     {
       "input": "root = [1,2,3]",
@@ -18,56 +23,103 @@
   "tests": [
     {
       "input": "root = [1,2,3]",
-      "output": "6"
+      "output": "6",
+      "description": "Positive tree where the best path passes through the root and uses both children."
     },
     {
       "input": "root = [-10,9,20,null,null,15,7]",
-      "output": "42"
+      "output": "42",
+      "description": "Canonical tree where the best path is entirely inside a subtree."
     },
     {
       "input": "root = [-3]",
-      "output": "-3"
+      "output": "-3",
+      "description": "Single negative node must be returned instead of zero."
     },
     {
       "input": "root = [-1,-2,-3]",
-      "output": "-1"
+      "output": "-1",
+      "description": "All-negative tree chooses the least negative node."
     },
     {
       "input": "root = [2,-1]",
-      "output": "2"
+      "output": "2",
+      "description": "A negative child should be dropped from the best path."
     },
     {
       "input": "root = [1,-2,3]",
-      "output": "4"
+      "output": "4",
+      "description": "Mixed tree where only the positive branch should extend upward."
+    },
+    {
+      "input": "root = [5,4,8,11,null,13,4,7,2,null,null,null,1]",
+      "output": "48",
+      "description": "Deeper tree where the best path connects a left grandchild chain to the best right branch through the root."
+    },
+    {
+      "input": "root = [0,-3,9,-10,null,5,12]",
+      "output": "26",
+      "description": "A zero root and negative left side should not pull the best right-subtree path downward."
+    },
+    {
+      "input": "root = [1,2,null,3,null,4,null,5]",
+      "output": "15",
+      "description": "Left-skewed positive chain where the only path is the whole chain."
+    },
+    {
+      "input": "root = [-2,null,-3]",
+      "output": "-2",
+      "description": "Right-skewed all-negative tree still chooses a non-empty one-node path."
+    },
+    {
+      "input": "root = [10,2,10,20,1,null,-25,null,null,null,null,3,4]",
+      "output": "42",
+      "description": "Classic case where a large negative descendant prevents taking both sides of the right subtree."
+    },
+    {
+      "input": "root = [1000,-1000,1000,null,null,1000,1000]",
+      "output": "3000",
+      "description": "Allowed value boundaries where the best path is built from three positive nodes."
     }
   ],
   "diagrams": [
     {
-      "id": "example1",
-      "file": "p94_example1.png",
-      "caption": "Example 1"
-    },
-    {
       "id": "example2",
-      "file": "p94_example2.png",
-      "caption": "Example 2"
+      "file": "p94_example_prompt.png",
+      "caption": "Example 2 input tree and the rule that a path may start and end at any nodes"
     }
   ],
   "solutions": [
     {
-      "name": "DFS with Global Max",
+      "name": "DFS with Global Maximum",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "For each node, compute the max 'one-sided' path sum (node + best child). Update a global max with the 'through-node' path sum (left + node + right). Return the one-sided max to the parent.",
-      "code": "class Solution {\n    private int maxSum;\n\n    public int maxPathSum(TreeNode root) {\n        maxSum = Integer.MIN_VALUE;\n        dfs(root);\n        return maxSum;\n    }\n\n    private int dfs(TreeNode node) {\n        if (node == null) return 0;\n        int left = Math.max(0, dfs(node.left));\n        int right = Math.max(0, dfs(node.right));\n        maxSum = Math.max(maxSum, left + node.val + right);\n        return node.val + Math.max(left, right);\n    }\n}",
+      "description": "## Approach\n\nRun postorder DFS. For each node, compute the best one-sided gain that can be extended to the parent. Negative child gains are replaced by zero because adding them would only make a path worse. Separately update a field with the best complete path that turns through the current node.\n\n## Key Insight\n\nThere are two different quantities. The value returned to the parent may choose only one side, while the candidate answer at the current node may use both left and right gains.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h)",
+      "code": "class Solution {\n    private int maxSum;\n\n    public int maxPathSum(TreeNode root) {\n        maxSum = Integer.MIN_VALUE;\n        dfs(root);\n        return maxSum;\n    }\n\n    private int dfs(TreeNode node) {\n        if (node == null) {\n            return 0;\n        }\n\n        int leftGain = Math.max(0, dfs(node.left));\n        int rightGain = Math.max(0, dfs(node.right));\n        maxSum = Math.max(maxSum, node.val + leftGain + rightGain);\n        return node.val + Math.max(leftGain, rightGain);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "DFS Returning Pair (No Global State)",
+      "name": "DFS Returning Pair without Global State",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "Avoid instance fields by returning both the max path sum and max one-sided gain from each subtree as an int array.",
-      "code": "class Solution {\n    public int maxPathSum(TreeNode root) {\n        return dfs(root)[0];\n    }\n\n    private int[] dfs(TreeNode node) {\n        if (node == null) return new int[]{Integer.MIN_VALUE, 0};\n        int[] left = dfs(node.left);\n        int[] right = dfs(node.right);\n        int leftGain = Math.max(0, left[1]);\n        int rightGain = Math.max(0, right[1]);\n        int pathThrough = node.val + leftGain + rightGain;\n        int maxPath = Math.max(pathThrough, Math.max(left[0], right[0]));\n        int maxGain = node.val + Math.max(leftGain, rightGain);\n        return new int[]{maxPath, maxGain};\n    }\n}",
+      "description": "## Approach\n\nLet every recursive call return two values: `bestPath`, the best complete path anywhere in the subtree, and `extendableGain`, the best one-sided path that starts at this subtree root and can continue to its parent. The parent combines the two child states after both children are solved.\n\n## Key Insight\n\nThis formulation makes the DP state explicit. A subtree answer can be a complete path that no parent may extend, while the gain is the only part that remains valid for extension upward.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h)",
+      "code": "class Solution {\n    public int maxPathSum(TreeNode root) {\n        return dfs(root).bestPath;\n    }\n\n    private Result dfs(TreeNode node) {\n        if (node == null) {\n            return new Result(Integer.MIN_VALUE, 0);\n        }\n\n        Result left = dfs(node.left);\n        Result right = dfs(node.right);\n        int leftGain = Math.max(0, left.extendableGain);\n        int rightGain = Math.max(0, right.extendableGain);\n        int pathThroughNode = node.val + leftGain + rightGain;\n        int bestPath = Math.max(pathThroughNode, Math.max(left.bestPath, right.bestPath));\n        int extendableGain = node.val + Math.max(leftGain, rightGain);\n        return new Result(bestPath, extendableGain);\n    }\n\n    private static class Result {\n        int bestPath;\n        int extendableGain;\n\n        Result(int bestPath, int extendableGain) {\n            this.bestPath = bestPath;\n            this.extendableGain = extendableGain;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative Postorder Gain Map",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSimulate postorder traversal with an explicit stack and a `lastVisited` pointer. When both children of a node have already been processed, read their stored one-sided gains from a map, update the best complete path through the node, and store this node's extendable gain.\n\n## Key Insight\n\nThe recursive solution only depends on child gains after child subtrees finish. An iterative postorder traversal preserves exactly that dependency order without relying on the call stack.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxPathSum(TreeNode root) {\n        int best = Integer.MIN_VALUE;\n        Map<TreeNode, Integer> gain = new HashMap<>();\n        Deque<TreeNode> stack = new ArrayDeque<>();\n        TreeNode current = root;\n        TreeNode lastVisited = null;\n\n        while (current != null || !stack.isEmpty()) {\n            while (current != null) {\n                stack.push(current);\n                current = current.left;\n            }\n\n            TreeNode node = stack.peek();\n            if (node.right != null && lastVisited != node.right) {\n                current = node.right;\n            } else {\n                int leftGain = Math.max(0, gain.getOrDefault(node.left, 0));\n                int rightGain = Math.max(0, gain.getOrDefault(node.right, 0));\n                best = Math.max(best, node.val + leftGain + rightGain);\n                gain.put(node, node.val + Math.max(leftGain, rightGain));\n                lastVisited = stack.pop();\n            }\n        }\n\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Reverse Preorder Destructive Gain",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nBuild a preorder list with a stack, then scan that list in reverse so every child is handled before its parent. Store each node's one-sided gain back into `node.val` and update the best complete path using the original node value plus the child gains. This is useful for understanding the dependency graph, but it should only be used when mutating the input tree is acceptable.\n\n## Key Insight\n\nReverse preorder gives a postorder-compatible processing order. Once child values have been replaced by gains, a parent can combine those gains without a recursion frame or a separate map.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxPathSum(TreeNode root) {\n        List<TreeNode> order = new ArrayList<>();\n        Deque<TreeNode> stack = new ArrayDeque<>();\n        stack.push(root);\n\n        while (!stack.isEmpty()) {\n            TreeNode node = stack.pop();\n            order.add(node);\n            if (node.left != null) {\n                stack.push(node.left);\n            }\n            if (node.right != null) {\n                stack.push(node.right);\n            }\n        }\n\n        int best = Integer.MIN_VALUE;\n        for (int i = order.size() - 1; i >= 0; i--) {\n            TreeNode node = order.get(i);\n            int original = node.val;\n            int leftGain = node.left == null ? 0 : Math.max(0, node.left.val);\n            int rightGain = node.right == null ? 0 : Math.max(0, node.right.val);\n            best = Math.max(best, original + leftGain + rightGain);\n            node.val = original + Math.max(leftGain, rightGain);\n        }\n\n        return best;\n    }\n}",
       "language": "java"
     }
   ]

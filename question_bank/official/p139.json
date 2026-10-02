@@ -1,7 +1,7 @@
 {
   "id": "139",
   "title": "Redundant Connection",
-  "description": "# Redundant Connection\n\nIn this problem, a tree is an **undirected graph** that is connected and has no cycles.\n\nYou are given a graph that started as a tree with `n` nodes labeled from `1` to `n`, with one additional edge added. The added edge has two **different** vertices chosen from `1` to `n`, and was not an edge that already existed. The graph is represented as an array `edges` of length `n` where `edges[i] = [ai, bi]` indicates that there is an edge between nodes `ai` and `bi` in the graph.\n\nReturn *an edge that can be removed so that the resulting graph is a tree of* `n` *nodes*. If there are multiple answers, return the answer that occurs last in the input.\n\n## Example 1:\n\n**Input:** edges = [[1,2],[1,3],[2,3]]\n**Output:** [2,3]\n\n## Example 2:\n\n**Input:** edges = [[1,2],[2,3],[3,4],[1,4],[1,5]]\n**Output:** [1,4]\n\n## Constraints:\n\n*   `n == edges.length`\n*   `3 <= n <= 1000`\n*   `edges[i].length == 2`\n*   `1 <= ai < bi <= edges.length`\n*   `ai != bi`\n*   There are no repeated edges.\n*   The given graph is connected.",
+  "description": "# Redundant Connection\n\nIn this problem, a tree is an **undirected graph** that is connected and has no cycles.\n\nYou are given an undirected graph that started as a tree with `n` nodes labeled from `1` to `n`, then had exactly one additional edge added. The added edge connects two different nodes, and it was not already present in the original tree.\n\nThe graph is represented by an array `edges` of length `n`, where `edges[i] = [ai, bi]` means there is an undirected edge between nodes `ai` and `bi`. Official inputs list each undirected edge with the smaller endpoint first, but connectivity does not depend on endpoint order.\n\nReturn an edge that can be removed so that the remaining graph is a tree with `n` nodes. If more than one edge could be removed, return the one that appears last in the input array.\n\n## Example 1:\n\n**Input:** edges = [[1,2],[1,3],[2,3]]\n**Output:** [2,3]\n**Explanation:** Removing [2,3] breaks the triangle and leaves a connected acyclic graph.\n\n## Example 2:\n\n**Input:** edges = [[1,2],[2,3],[3,4],[1,4],[1,5]]\n**Output:** [1,4]\n**Explanation:** The edge [1,4] closes the only cycle 1-2-3-4-1.\n\n## Constraints:\n\n*   `n == edges.length`\n*   `3 <= n <= 1000`\n*   `edges[i].length == 2`\n*   `1 <= ai < bi <= n`\n*   `ai != bi`\n*   There are no repeated undirected edges.\n*   The given graph is connected.\n*   The given graph was formed by adding one edge to a tree.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int[] findRedundantConnection(int[][] edges) {\n        // Write your code here\n        return new int[]{};\n    }\n}",
   "tags": [
@@ -22,45 +22,95 @@
   ],
   "solutions": [
     {
-      "name": "Union Find",
-      "timeComplexity": "O(n * α(n))",
-      "spaceComplexity": "O(n)",
-      "description": "Process edges in order. For each edge, if both nodes share the same root, this edge is redundant. Otherwise, union them.",
-      "code": "class Solution {\n    private int[] parent, rank;\n\n    public int[] findRedundantConnection(int[][] edges) {\n        int n = edges.length;\n        parent = new int[n + 1];\n        rank = new int[n + 1];\n        for (int i = 1; i <= n; i++) parent[i] = i;\n        for (int[] e : edges) {\n            int ra = find(e[0]), rb = find(e[1]);\n            if (ra == rb) return e;\n            if (rank[ra] < rank[rb]) { int t = ra; ra = rb; rb = t; }\n            parent[rb] = ra;\n            if (rank[ra] == rank[rb]) rank[ra]++;\n        }\n        return new int[]{};\n    }\n\n    private int find(int x) {\n        if (parent[x] != x) parent[x] = find(parent[x]);\n        return parent[x];\n    }\n}",
+      "name": "Union Find Cycle Edge",
+      "timeComplexity": "O(E alpha(V))",
+      "spaceComplexity": "O(V)",
+      "description": "## Approach\n\nProcess edges from left to right. Union the endpoints of every edge. If an edge connects two nodes that already have the same root, adding it would close a cycle, so return that edge immediately.\n\n## Key Insight\n\nBefore the extra edge appears, the processed edges are still a forest. In a tree plus one extra edge, the first failed union is exactly the input edge that creates the unique cycle. Since only one added edge creates the cycle when scanning forward, returning that failed union also satisfies the \"last removable edge\" rule.\n\n## Complexity Analysis\n- Time Complexity: O(E alpha(V))\n- Space Complexity: O(V)",
+      "code": "class Solution {\n    private int[] parent;\n    private int[] rank;\n\n    public int[] findRedundantConnection(int[][] edges) {\n        int n = edges.length;\n        parent = new int[n + 1];\n        rank = new int[n + 1];\n        for (int node = 1; node <= n; node++) {\n            parent[node] = node;\n        }\n\n        for (int[] edge : edges) {\n            if (!union(edge[0], edge[1])) {\n                return edge;\n            }\n        }\n        return new int[]{};\n    }\n\n    private int find(int node) {\n        if (parent[node] != node) {\n            parent[node] = find(parent[node]);\n        }\n        return parent[node];\n    }\n\n    private boolean union(int a, int b) {\n        int rootA = find(a);\n        int rootB = find(b);\n        if (rootA == rootB) {\n            return false;\n        }\n        if (rank[rootA] < rank[rootB]) {\n            int temp = rootA;\n            rootA = rootB;\n            rootB = temp;\n        }\n        parent[rootB] = rootA;\n        if (rank[rootA] == rank[rootB]) {\n            rank[rootA]++;\n        }\n        return true;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "DFS Cycle Detection",
-      "timeComplexity": "O(n^2)",
-      "spaceComplexity": "O(n)",
-      "description": "Process edges one by one. For each edge, build adjacency list so far, then DFS to check if the two nodes are already connected. If they are, this edge creates a cycle and is redundant.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int[] findRedundantConnection(int[][] edges) {\n        int n = edges.length;\n        List<List<Integer>> adj = new ArrayList<>();\n        for (int i = 0; i <= n; i++) adj.add(new ArrayList<>());\n        for (int[] e : edges) {\n            boolean[] visited = new boolean[n + 1];\n            if (hasPath(adj, visited, e[0], e[1])) return e;\n            adj.get(e[0]).add(e[1]);\n            adj.get(e[1]).add(e[0]);\n        }\n        return new int[]{};\n    }\n\n    private boolean hasPath(List<List<Integer>> adj, boolean[] visited, int src, int dst) {\n        if (src == dst) return true;\n        visited[src] = true;\n        for (int neighbor : adj.get(src)) {\n            if (!visited[neighbor] && hasPath(adj, visited, neighbor, dst)) return true;\n        }\n        return false;\n    }\n}",
+      "name": "Incremental DFS Path Check",
+      "timeComplexity": "O(E * (V + E))",
+      "spaceComplexity": "O(V + E)",
+      "description": "## Approach\n\nBuild the graph incrementally. Before inserting a new edge, run DFS in the graph built from earlier edges to ask whether the two endpoints are already connected. If a path already exists, this new edge creates a cycle and should be returned. Otherwise, add the edge and continue.\n\n## Key Insight\n\nAn undirected edge is redundant exactly when its endpoints are connected without using that edge. This route is slower than Union-Find, but it directly teaches the path-based definition of a cycle and makes the reason for returning the current edge visible.\n\n## Complexity Analysis\n- Time Complexity: O(E * (V + E))\n- Space Complexity: O(V + E)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] findRedundantConnection(int[][] edges) {\n        int n = edges.length;\n        List<List<Integer>> graph = new ArrayList<>();\n        for (int node = 0; node <= n; node++) {\n            graph.add(new ArrayList<>());\n        }\n\n        for (int[] edge : edges) {\n            boolean[] seen = new boolean[n + 1];\n            if (hasPath(edge[0], edge[1], graph, seen)) {\n                return edge;\n            }\n            graph.get(edge[0]).add(edge[1]);\n            graph.get(edge[1]).add(edge[0]);\n        }\n        return new int[]{};\n    }\n\n    private boolean hasPath(int source, int target, List<List<Integer>> graph, boolean[] seen) {\n        if (source == target) {\n            return true;\n        }\n        seen[source] = true;\n        for (int next : graph.get(source)) {\n            if (!seen[next] && hasPath(next, target, graph, seen)) {\n                return true;\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Leaf Peeling Cycle Core",
+      "timeComplexity": "O(V + E)",
+      "spaceComplexity": "O(V + E)",
+      "description": "## Approach\n\nBuild the full undirected graph and compute every node degree. Repeatedly remove leaves, because leaves cannot belong to a cycle. After no leaves remain, the nodes still marked are exactly the unique cycle core. Scan the input edges from right to left and return the first edge whose two endpoints are both in that core.\n\n## Key Insight\n\nEvery removable edge must lie on the cycle. Leaf peeling separates cycle structure from tree branches, and the final reverse scan implements the problem's tie-break rule: among all cycle edges, choose the latest one in the input.\n\n## Complexity Analysis\n- Time Complexity: O(V + E)\n- Space Complexity: O(V + E)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] findRedundantConnection(int[][] edges) {\n        int n = edges.length;\n        List<List<Integer>> graph = new ArrayList<>();\n        int[] degree = new int[n + 1];\n        for (int node = 0; node <= n; node++) {\n            graph.add(new ArrayList<>());\n        }\n        for (int[] edge : edges) {\n            graph.get(edge[0]).add(edge[1]);\n            graph.get(edge[1]).add(edge[0]);\n            degree[edge[0]]++;\n            degree[edge[1]]++;\n        }\n\n        boolean[] inCycleCore = new boolean[n + 1];\n        Arrays.fill(inCycleCore, true);\n        Queue<Integer> leaves = new ArrayDeque<>();\n        for (int node = 1; node <= n; node++) {\n            if (degree[node] == 1) {\n                leaves.offer(node);\n            }\n        }\n\n        while (!leaves.isEmpty()) {\n            int node = leaves.poll();\n            inCycleCore[node] = false;\n            for (int next : graph.get(node)) {\n                degree[next]--;\n                if (degree[next] == 1) {\n                    leaves.offer(next);\n                }\n            }\n        }\n\n        for (int i = edges.length - 1; i >= 0; i--) {\n            int[] edge = edges[i];\n            if (inCycleCore[edge[0]] && inCycleCore[edge[1]]) {\n                return edge;\n            }\n        }\n        return new int[]{};\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Reverse Removal Connectivity Check",
+      "timeComplexity": "O(E * (V + E))",
+      "spaceComplexity": "O(V + E)",
+      "description": "## Approach\n\nTry candidate answers from the end of the input. For each candidate edge, rebuild the graph without that edge and check whether all `n` nodes are still connected. The first candidate from the right whose removal leaves a connected graph is returned.\n\n## Key Insight\n\nAfter removing any one edge from a graph with `n` nodes and `n` edges, the remaining graph has `n - 1` edges. If those remaining edges are connected, they must form a tree. Scanning candidates in reverse order directly enforces the required tie-break without needing to name the cycle first.\n\n## Complexity Analysis\n- Time Complexity: O(E * (V + E))\n- Space Complexity: O(V + E)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] findRedundantConnection(int[][] edges) {\n        int n = edges.length;\n        for (int remove = edges.length - 1; remove >= 0; remove--) {\n            if (staysConnected(n, edges, remove)) {\n                return edges[remove];\n            }\n        }\n        return new int[]{};\n    }\n\n    private boolean staysConnected(int n, int[][] edges, int skip) {\n        List<List<Integer>> graph = new ArrayList<>();\n        for (int node = 0; node <= n; node++) {\n            graph.add(new ArrayList<>());\n        }\n        for (int i = 0; i < edges.length; i++) {\n            if (i == skip) {\n                continue;\n            }\n            int a = edges[i][0];\n            int b = edges[i][1];\n            graph.get(a).add(b);\n            graph.get(b).add(a);\n        }\n\n        boolean[] visited = new boolean[n + 1];\n        Queue<Integer> queue = new ArrayDeque<>();\n        queue.offer(1);\n        visited[1] = true;\n        int seen = 0;\n        while (!queue.isEmpty()) {\n            int node = queue.poll();\n            seen++;\n            for (int next : graph.get(node)) {\n                if (!visited[next]) {\n                    visited[next] = true;\n                    queue.offer(next);\n                }\n            }\n        }\n        return seen == n;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "edges = [[1,2],[1,3],[2,3]]",
-      "output": "[2,3]"
+      "output": "[2,3]",
+      "description": "Canonical triangle where the third edge is redundant."
     },
     {
       "input": "edges = [[1,2],[2,3],[3,4],[1,4],[1,5]]",
-      "output": "[1,4]"
+      "output": "[1,4]",
+      "description": "The edge that closes the cycle is followed by a tree branch."
     },
     {
       "input": "edges = [[1,2],[2,3],[1,3]]",
-      "output": "[1,3]"
+      "output": "[1,3]",
+      "description": "Triangle with endpoints listed in sorted order."
     },
     {
       "input": "edges = [[1,2],[1,3],[1,4],[3,4]]",
-      "output": "[3,4]"
+      "output": "[3,4]",
+      "description": "A star-shaped tree gains an edge between two leaves."
+    },
+    {
+      "input": "edges = [[1,2],[2,3],[1,3],[3,4],[4,5]]",
+      "output": "[1,3]",
+      "description": "The redundant edge is not the final input edge."
+    },
+    {
+      "input": "edges = [[1,2],[2,3],[3,4],[4,5],[2,5],[5,6]]",
+      "output": "[2,5]",
+      "description": "A longer cycle is closed before a tail node is attached."
+    },
+    {
+      "input": "edges = [[1,2],[2,3],[3,4],[4,5],[1,5]]",
+      "output": "[1,5]",
+      "description": "All nodes lie on one five-node cycle."
+    },
+    {
+      "input": "edges = [[1,5],[3,4],[1,3],[2,3],[1,2]]",
+      "output": "[1,2]",
+      "description": "The cycle edge that appears latest must be returned."
+    },
+    {
+      "input": "edges = [[1,2],[1,3],[3,4],[2,4],[4,5]]",
+      "output": "[2,4]",
+      "description": "The removable cycle edge is followed by a non-cycle edge."
+    },
+    {
+      "input": "edges = [[1,4],[1,2],[2,3],[3,4]]",
+      "output": "[3,4]",
+      "description": "The latest cycle edge can differ from the edge that visually completes a drawn square."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p139_example1.png",
-      "caption": "Graph: edges [[1,2],[1,3],[2,3]] (red=redundant)"
+      "caption": "The three undirected edges [[1,2],[1,3],[2,3]] of Example 1, without selecting an edge to remove"
     }
   ]
 }

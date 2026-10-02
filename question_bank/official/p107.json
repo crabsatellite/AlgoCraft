@@ -1,36 +1,100 @@
 {
   "id": "107",
   "title": "Last Stone Weight",
-  "description": "# Last Stone Weight\n\nYou are given an array of integers `stones` where `stones[i]` is the weight of the `ith` stone.\n\nWe are playing a game with the stones. On each turn, we choose the **heaviest two stones** and smash them together. Suppose the heaviest two stones have weights `x` and `y` with `x <= y`. The result of this smash is:\n\n*   If `x == y`, both stones are destroyed, and\n*   If `x != y`, the stone of weight `x` is destroyed, and the stone of weight `y` has new weight `y - x`.\n\nAt the end of the game, there is **at most one** stone left.\n\nReturn *the weight of the last remaining stone*. If there are no stones left, return `0`.\n\n## Example 1:\n\n**Input:** stones = [2,7,4,1,8,1]\n**Output:** 1\n**Explanation:**\nWe combine 7 and 8 to get 1 so the array converts to [2,4,1,1,1] then,\nwe combine 2 and 4 to get 2 so the array converts to [2,1,1,1] then,\nwe combine 2 and 1 to get 1 so the array converts to [1,1,1] then,\nwe combine 1 and 1 to get 0 so the array converts to [1] then that's the value of the last stone.\n\n## Example 2:\n\n**Input:** stones = [1]\n**Output:** 1\n\n## Constraints:\n\n*   `1 <= stones.length <= 30`\n*   `1 <= stones[i] <= 1000`",
+  "description": "# Last Stone Weight\n\nYou are given an array `stones`, where `stones[i]` is the weight of the ith stone.\n\nEach turn, choose the two heaviest stones `x` and `y`, with `x <= y`:\n\n- If `x == y`, both stones are destroyed.\n- If `x != y`, the stone with weight `x` is destroyed and the stone with weight `y` becomes `y - x`.\n\nReturn the weight of the last remaining stone. If no stone remains, return `0`.\n\n## Example\n\nInput: `stones = [2,7,4,1,8,1]`\n\nOutput: `1`\n\n## Constraints\n\nThere is at least one stone. Weights are positive integers and may repeat.\n\n",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public int lastStoneWeight(int[] stones) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Heap (Priority Queue)"],
+  "initialCode": "class Solution { public int lastStoneWeight(int[] stones) { return 0; } }",
+  "tags": [
+    "Array",
+    "Heap (Priority Queue)"
+  ],
   "examples": [
-    { "input": "stones = [2,7,4,1,8,1]", "output": "1" },
-    { "input": "stones = [1]", "output": "1" }
+    {
+      "input": "stones = [2,7,4,1,8,1]",
+      "output": "1"
+    }
   ],
   "tests": [
-    { "input": "stones = [2,7,4,1,8,1]", "output": "1" },
-    { "input": "stones = [1]", "output": "1" },
-    { "input": "stones = [2,2]", "output": "0" },
-    { "input": "stones = [5,5,5,5]", "output": "0" },
-    { "input": "stones = [10,4,2,10]", "output": "2" }
+    {
+      "input": "stones = [2,7,4,1,8,1]",
+      "output": "1"
+    },
+    {
+      "input": "stones = [1]",
+      "output": "1"
+    },
+    {
+      "input": "stones = [2,2]",
+      "output": "0"
+    },
+    {
+      "input": "stones = [5,5,5,5]",
+      "output": "0"
+    },
+    {
+      "input": "stones = [10,4,2,10]",
+      "output": "2"
+    },
+    {
+      "input": "stones = [9,3]",
+      "output": "6"
+    },
+    {
+      "input": "stones = [5,5,5]",
+      "output": "5"
+    },
+    {
+      "input": "stones = [8,7,6,5]",
+      "output": "0"
+    },
+    {
+      "input": "stones = [31,26,33,21,40]",
+      "output": "9"
+    },
+    {
+      "input": "stones = [1,1,1,1,1]",
+      "output": "1"
+    },
+    {
+      "input": "stones = [1000,1,999,500]",
+      "output": "498"
+    },
+    {
+      "input": "stones = [6,6,4,4,2,2]",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
       "name": "Max Heap",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Use a max-heap. Repeatedly extract the two heaviest stones, smash them, and if there's a remainder, put it back.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int lastStoneWeight(int[] stones) {\n        PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());\n        for (int s : stones) maxHeap.offer(s);\n        \n        while (maxHeap.size() > 1) {\n            int y = maxHeap.poll();\n            int x = maxHeap.poll();\n            if (y != x) {\n                maxHeap.offer(y - x);\n            }\n        }\n        \n        return maxHeap.isEmpty() ? 0 : maxHeap.peek();\n    }\n}",
+      "description": "## Approach\n\nPut all stones into a max heap. Repeatedly remove the two largest weights. If they are different, push the difference back into the heap. When fewer than two stones remain, the heap either contains the answer or is empty.\n\n## Key Insight\n\nThe rule always asks for the two current heaviest stones. A max heap is the direct data structure for that repeated choice, and it avoids re-sorting the whole collection after every smash.\n\n## Complexity Analysis\n\nBuilding and processing the heap costs `O(n log n)`. The heap stores at most `n` weights, so the space complexity is `O(n)`.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int lastStoneWeight(int[] stones) {\n        PriorityQueue<Integer> heap = new PriorityQueue<>(Collections.reverseOrder());\n        for (int stone : stones) {\n            heap.offer(stone);\n        }\n\n        while (heap.size() > 1) {\n            int y = heap.poll();\n            int x = heap.poll();\n            if (y != x) {\n                heap.offer(y - x);\n            }\n        }\n\n        return heap.isEmpty() ? 0 : heap.peek();\n    }\n}",
       "language": "java"
     },
     {
       "name": "Sort-Based Simulation",
       "timeComplexity": "O(n^2 log n)",
-      "spaceComplexity": "O(1)",
-      "description": "Repeatedly sort the array in descending order, smash the two heaviest stones, and replace them. Use an ArrayList to easily remove and add elements. Continue until one or zero stones remain.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int lastStoneWeight(int[] stones) {\n        List<Integer> list = new ArrayList<>();\n        for (int s : stones) list.add(s);\n        \n        while (list.size() > 1) {\n            Collections.sort(list, Collections.reverseOrder());\n            int y = list.remove(0);\n            int x = list.remove(0);\n            if (y != x) {\n                list.add(y - x);\n            }\n        }\n        \n        return list.isEmpty() ? 0 : list.get(0);\n    }\n}",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore the stones in a list. On each turn, sort the list, remove the two largest values, and append the difference when the weights are not equal.\n\n## Key Insight\n\nThis baseline mirrors the problem statement exactly. It is slower than a heap, but it is useful for checking the smash rule, especially the equal-stone case where both stones disappear.\n\n## Complexity Analysis\n\nThere can be `O(n)` turns, and each turn may sort `O(n)` values, giving `O(n^2 log n)` time. The list stores `O(n)` weights.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int lastStoneWeight(int[] stones) {\n        List<Integer> remaining = new ArrayList<>();\n        for (int stone : stones) {\n            remaining.add(stone);\n        }\n\n        while (remaining.size() > 1) {\n            Collections.sort(remaining);\n            int y = remaining.remove(remaining.size() - 1);\n            int x = remaining.remove(remaining.size() - 1);\n            if (y != x) {\n                remaining.add(y - x);\n            }\n        }\n\n        return remaining.isEmpty() ? 0 : remaining.get(0);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Counting Buckets",
+      "timeComplexity": "O(nW)",
+      "spaceComplexity": "O(W)",
+      "description": "## Approach\n\nFind the maximum stone weight and keep a bucket count for each possible weight. Each turn, scan down from the current maximum to take the two heaviest available stones, then place the difference back into its bucket if it is nonzero.\n\n## Key Insight\n\nWhen weights are bounded, counts can replace a heap. Equal weights cancel by removing two counts from the same bucket; unequal weights create a new smaller bucket entry.\n\n## Complexity Analysis\n\nLet `W` be the maximum stone weight. Each extraction may scan through weights, so the straightforward version costs `O(nW)` time and `O(W)` space.",
+      "code": "class Solution {\n    public int lastStoneWeight(int[] stones) {\n        int max = 0;\n        for (int stone : stones) {\n            max = Math.max(max, stone);\n        }\n        int[] buckets = new int[max + 1];\n        for (int stone : stones) {\n            buckets[stone]++;\n        }\n\n        int current = max;\n        while (true) {\n            int y = takeLargest(buckets, current);\n            if (y == 0) {\n                return 0;\n            }\n            current = Math.min(current, y);\n            int x = takeLargest(buckets, current);\n            if (x == 0) {\n                return y;\n            }\n            if (x != y) {\n                buckets[y - x]++;\n                current = Math.max(current, y - x);\n            }\n        }\n    }\n\n    private int takeLargest(int[] buckets, int start) {\n        for (int weight = start; weight > 0; weight--) {\n            if (buckets[weight] > 0) {\n                buckets[weight]--;\n                return weight;\n            }\n        }\n        return 0;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "TreeMap Multiset",
+      "timeComplexity": "O(n log u)",
+      "spaceComplexity": "O(u)",
+      "description": "## Approach\n\nUse a `TreeMap` from weight to count. Repeatedly remove one copy of the largest key twice. If the weights differ, add one copy of their difference back to the map.\n\n## Key Insight\n\nA `TreeMap` behaves like a sorted multiset. It keeps duplicate weights compact and can retrieve the current largest weight with `lastKey()` without allocating a heap node for every duplicate.\n\n## Complexity Analysis\n\nEach removal or insertion costs `O(log u)`, where `u` is the number of distinct weights. There are `O(n)` smash steps, so the total time is `O(n log u)`, and the space complexity is `O(u)`.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int lastStoneWeight(int[] stones) {\n        TreeMap<Integer, Integer> counts = new TreeMap<>();\n        int total = 0;\n        for (int stone : stones) {\n            counts.put(stone, counts.getOrDefault(stone, 0) + 1);\n            total++;\n        }\n\n        while (total > 1) {\n            int y = removeLargest(counts);\n            int x = removeLargest(counts);\n            total -= 2;\n            if (y != x) {\n                counts.put(y - x, counts.getOrDefault(y - x, 0) + 1);\n                total++;\n            }\n        }\n\n        return total == 0 ? 0 : counts.lastKey();\n    }\n\n    private int removeLargest(TreeMap<Integer, Integer> counts) {\n        int weight = counts.lastKey();\n        int count = counts.get(weight);\n        if (count == 1) {\n            counts.remove(weight);\n        } else {\n            counts.put(weight, count - 1);\n        }\n        return weight;\n    }\n}",
       "language": "java"
     }
   ]

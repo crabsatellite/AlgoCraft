@@ -1,0 +1,26 @@
+{
+  "title": "快照数组",
+  "description": "# 快照数组\n\n实现一个带持久快照能力的整数数组。所有元素初始值都是 `0`。\n\n实现 `SnapshotArray` 类：\n\n*   `SnapshotArray(int length)` 创建长度为 `length` 的数组结构。\n*   `void set(int index, int val)` 将当前工作版本中下标 `index` 的值设为 `val`。\n*   `int snap()` 保存当前工作版本，并返回本次快照的 `snap_id`。第一次调用返回 `0`，第二次返回 `1`，依此类推。\n*   `int get(int index, int snap_id)` 返回编号为 `snap_id` 的快照中，下标 `index` 的值。\n\n快照之后发生的写入不能改变旧快照。同一个 `snap()` 之前，对同一下标多次 `set` 时，该快照只需要保留最后一次写入的值。\n\n操作示例中，第一组数组是操作名，第二组是对应参数，按同一下标配对并从左到右执行。第一项创建对象，之后都操作同一个对象。输出数组也逐项对应：构造和没有返回值的方法写作 `null`；`[]` 作为参数表示无参数调用。\n\n## 示例 1：\n\n**输入**\n[\"SnapshotArray\", \"set\", \"snap\", \"set\", \"get\"]\n[[3], [0,5], [], [0,6], [0,0]]\n**输出**\n[null, null, 0, null, 5]\n\n**解释**\n`SnapshotArray snapshotArr = new SnapshotArray(3);` 创建长度为 `3` 的数组。\n`snapshotArr.set(0,5);` 将当前工作版本中的 `array[0]` 设为 `5`。\n`snapshotArr.snap();` 保存快照 `0`。\n`snapshotArr.set(0,6);` 只修改当前工作版本。\n`snapshotArr.get(0,0);` 从快照 `0` 读取，返回 `5`。\n\n## 约束条件：\n\n*   `1 <= length <= 5 * 10^4`\n*   `0 <= index < length`\n*   `0 <= val <= 10^9`\n*   `0 <= snap_id < snap()` 的调用次数\n*   `set`、`snap` 和 `get` 的总调用次数不超过 `5 * 10^4`。",
+  "solutions": [
+    {
+      "name": "每个下标一个 TreeMap",
+      "description": "## 思路\n\n每个数组下标维护一个 `TreeMap<Integer, Integer>`，记录某个 `snap_id` 下写入的值。每个 TreeMap 初始放入 `(0, 0)` 表示默认值。`set` 写入当前 `snapId`，`snap` 返回并递增编号，`get` 用 `floorEntry` 找到不大于目标 `snap_id` 的最后一次写入。\n\n## 关键点\n\n某个快照里的值，就是该快照编号之前或等于该编号的最后一次赋值。`floorEntry` 正好表示这个前驱查询，因此后续写入不会污染旧快照。\n\n## 复杂度分析\n\n`set` 和 `get` 的时间复杂度为 `O(log S)`，`snap` 为 `O(1)`。空间复杂度为 `O(n + S)`，其中 `S` 是保存的写入记录数。"
+    },
+    {
+      "name": "变更列表加二分查找",
+      "description": "## 思路\n\n每个下标保存一个按 `snap_id` 递增的 `(snap_id, value)` 列表，初始记录为 `(0, 0)`。如果 `set` 时最后一条记录已经属于当前 `snapId`，就覆盖最后一条；否则追加新记录。`get` 二分查找最后一个 `snap_id <= 目标编号` 的记录。\n\n## 关键点\n\n同一个快照内的重复写入只需要保留最终值，同时列表仍然按快照编号有序，因此可以用二分查询历史值。\n\n## 复杂度分析\n\n`set` 均摊 `O(1)`，`snap` 为 `O(1)`，`get` 为 `O(log S)`。空间复杂度为 `O(n + S)`。"
+    },
+    {
+      "name": "稀疏 HashMap 历史表",
+      "description": "## 思路\n\n只为被写入过的下标创建历史列表。哈希表从下标映射到该下标的 `(snap_id, value)` 有序列表。没有出现过的下标直接返回 `0`。被写入过的下标仍然使用同快照覆盖和二分查找。\n\n## 关键点\n\n数组长度可能很大，但写入次数有限。懒创建历史列表可以避免为从未修改的下标预先分配大量对象。\n\n## 复杂度分析\n\n`set` 均摊 `O(1)`，`snap` 为 `O(1)`，对已写入下标的 `get` 为 `O(log S)`。空间复杂度为 `O(S)`。"
+    },
+    {
+      "name": "snap 时提交 pending 写入",
+      "description": "## 思路\n\n把上一次快照之后发生的写入先放入 `pending` 哈希表。`set` 只更新 pending，因此同一下标在同一工作版本里重复写入会自然合并。调用 `snap` 时，再把每个 pending 下标的最终值提交到该下标的历史列表中。\n\n## 关键点\n\n已提交历史表示已经形成的快照，pending 表示当前工作版本。这样可以明确地区分已经可以被 `get` 读取的旧快照和还没有保存的新修改。\n\n## 复杂度分析\n\n`set` 为 `O(1)`，`snap` 与本次修改过的下标数成正比，`get` 为 `O(log S)`。空间复杂度为 `O(n + S)`。"
+    },
+    {
+      "name": "每个下标的原生动态数组",
+      "description": "## 思路\n\n不用对象列表，而是为每个下标维护两条动态 `int` 数组：一条保存快照编号，一条保存对应值。`set` 如果属于当前快照就覆盖最后一格，否则追加并在必要时扩容。`get` 在快照编号数组上二分查找。\n\n## 关键点\n\n逻辑仍然是有序变更日志，但用原生数组降低对象开销，也让二分查找所依赖的状态更清楚。\n\n## 复杂度分析\n\n`set` 均摊 `O(1)`，`snap` 为 `O(1)`，`get` 为 `O(log S)`。空间复杂度为 `O(n + S)`。"
+    }
+  ]
+}

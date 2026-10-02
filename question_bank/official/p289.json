@@ -1,34 +1,113 @@
 {
   "id": "289",
   "title": "Most Frequent Number Following Key In an Array",
-  "description": "# Most Frequent Number Following Key In an Array\n\nYou are given a **0-indexed** integer array `nums`. You are also given an integer `key`, which is present in `nums`.\n\nFor every unique integer `target` in `nums`, count the number of times `target` immediately follows an occurrence of `key` in `nums`. In other words, count the number of indices `i` such that:\n\n*   `0 <= i <= nums.length - 2`,\n*   `nums[i] == key` and\n*   `nums[i + 1] == target`.\n\nReturn *the* `target` *with the **maximum** count*. The test cases will be generated such that the `target` with maximum count is unique.\n\n## Example 1:\n\n**Input:** nums = [1,100,200,1,100], key = 1\n**Output:** 100\n**Explanation:** \nFor target = 100, there are 2 occurrences at indices 1 and 4 which follow an occurrence of key.\nNo other integers follow an occurrence of key, so we return 100.\n\n## Example 2:\n\n**Input:** nums = [2,2,2,2,3], key = 2\n**Output:** 2\n**Explanation:** \nFor target = 2, there are 3 occurrences at indices 1, 2, and 3 which follow an occurrence of key.\nFor target = 3, there is only 1 occurrence at index 4 which follows an occurrence of key.\ntarget = 2 has the maximum number of occurrences following an occurrence of key, so we return 2.\n\n## Constraints:\n\n*   `2 <= nums.length <= 1000`\n*   `1 <= nums[i] <= 1000`\n*   The test cases will be generated such that the answer is unique.",
+  "description": "# Most Frequent Number Following Key In an Array\n\nYou are given a 0-indexed integer array `nums` and an integer `key`.\n\nFor every index `i` where `0 <= i < nums.length - 1`, if `nums[i] == key`, then `nums[i + 1]` is called a follower of `key`.\n\nFor each possible target value, count how many times that value appears as a follower of `key`. Return the target value with the largest follower count.\n\nThe test cases guarantee that exactly one target has the largest count. An occurrence of `key` at the last index does not add any follower because there is no next element.\n\n## Example 1\n\n**Input**\nnums = [1,100,200,1,100], key = 1\n\n**Output**\n100\n\n**Explanation**\nThe value after the first `1` is `100`, and the value after the second `1` is also `100`. Therefore `100` follows `key` twice and is the most frequent follower.\n\n## Example 2\n\n**Input**\nnums = [2,2,2,2,3], key = 2\n\n**Output**\n2\n\n**Explanation**\nThe followers of `2` are `2, 2, 2, 3`. The target `2` appears three times as a follower, which is more than target `3`.\n\n## Constraints\n\n* `2 <= nums.length <= 1000`\n* `1 <= nums[i] <= 1000`\n* The answer is unique.",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public int mostFrequent(int[] nums, int key) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Counting"],
+  "initialCode": "class Solution {\n    public int mostFrequent(int[] nums, int key) {\n        // Write your code here\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Counting"
+  ],
   "examples": [
-    { "input": "nums = [1,100,200,1,100], key = 1", "output": "100" },
-    { "input": "nums = [2,2,2,2,3], key = 2", "output": "2" }
+    {
+      "input": "nums = [1,100,200,1,100], key = 1",
+      "output": "100"
+    },
+    {
+      "input": "nums = [2,2,2,2,3], key = 2",
+      "output": "2"
+    }
   ],
   "solutions": [
     {
       "name": "Counting Array",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use a counting array of size 1001. Iterate through nums; whenever nums[i] == key, increment count[nums[i+1]]. Return the value with the highest count.",
-      "code": "class Solution {\n    public int mostFrequent(int[] nums, int key) {\n        int[] count = new int[1001];\n        int maxCount = 0, result = 0;\n        for (int i = 0; i < nums.length - 1; i++) {\n            if (nums[i] == key) {\n                count[nums[i + 1]]++;\n                if (count[nums[i + 1]] > maxCount) {\n                    maxCount = count[nums[i + 1]];\n                    result = nums[i + 1];\n                }\n            }\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\nUse the value bound `nums[i] <= 1000` to create a frequency array. Scan adjacent pairs; when `nums[i] == key`, increment the count for `nums[i + 1]` and update the best target seen so far.\n\n## Key Insight\nOnly the element immediately after `key` matters. The direct count array turns every follower update into constant time, and the unique-answer guarantee means a strict `>` comparison is enough when updating the best value.\n\n## Complexity Analysis\nThe scan checks each adjacent pair once, so the time complexity is O(n). The frequency array has fixed length `1001`, so the extra space complexity is O(1).",
+      "code": "class Solution {\n    public int mostFrequent(int[] nums, int key) {\n        int[] count = new int[1001];\n        int bestValue = 0;\n        int bestCount = 0;\n        for (int i = 0; i + 1 < nums.length; i++) {\n            if (nums[i] == key) {\n                int follower = nums[i + 1];\n                count[follower]++;\n                if (count[follower] > bestCount) {\n                    bestCount = count[follower];\n                    bestValue = follower;\n                }\n            }\n        }\n        return bestValue;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "HashMap Approach",
+      "name": "HashMap Counts",
       "timeComplexity": "O(n)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\nStore counts in a `HashMap` from follower value to occurrence count. Each time `key` appears before another element, update the count for the following value and maintain the current best target.\n\n## Key Insight\nThe map version expresses the same counting idea without depending on a small numeric bound. It is also useful for recognizing this pattern in problems where values are not limited to `1..1000`.\n\n## Complexity Analysis\nEach adjacent pair is inspected once, so the expected time complexity is O(n). The map stores `m` distinct follower values, where `m <= n - 1`, so the space complexity is O(m).",
+      "code": "import java.util.HashMap;\nimport java.util.Map;\n\nclass Solution {\n    public int mostFrequent(int[] nums, int key) {\n        Map<Integer, Integer> counts = new HashMap<>();\n        int bestValue = 0;\n        int bestCount = 0;\n        for (int i = 0; i + 1 < nums.length; i++) {\n            if (nums[i] == key) {\n                int follower = nums[i + 1];\n                int newCount = counts.getOrDefault(follower, 0) + 1;\n                counts.put(follower, newCount);\n                if (newCount > bestCount) {\n                    bestCount = newCount;\n                    bestValue = follower;\n                }\n            }\n        }\n        return bestValue;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sort Followers And Scan Runs",
+      "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Use a HashMap to count occurrences of each target that follows key. Then find the entry with the maximum count.",
-      "code": "import java.util.HashMap;\nimport java.util.Map;\n\nclass Solution {\n    public int mostFrequent(int[] nums, int key) {\n        Map<Integer, Integer> map = new HashMap<>();\n        for (int i = 0; i < nums.length - 1; i++) {\n            if (nums[i] == key) {\n                map.put(nums[i + 1], map.getOrDefault(nums[i + 1], 0) + 1);\n            }\n        }\n        int result = 0, maxCount = 0;\n        for (Map.Entry<Integer, Integer> entry : map.entrySet()) {\n            if (entry.getValue() > maxCount) {\n                maxCount = entry.getValue();\n                result = entry.getKey();\n            }\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\nCollect every value that immediately follows `key` into a list. Sort that follower list, then scan equal-value runs; the longest run gives the most frequent follower.\n\n## Key Insight\nSorting groups equal followers next to each other. After that, frequency counting becomes the simpler task of measuring contiguous runs instead of updating a table while scanning the original array.\n\n## Complexity Analysis\nCollecting followers takes O(n). Sorting at most `n - 1` followers costs O(n log n), and the final run scan is O(n). The follower list uses O(n) space.",
+      "code": "import java.util.ArrayList;\nimport java.util.Collections;\nimport java.util.List;\n\nclass Solution {\n    public int mostFrequent(int[] nums, int key) {\n        List<Integer> followers = new ArrayList<>();\n        for (int i = 0; i + 1 < nums.length; i++) {\n            if (nums[i] == key) {\n                followers.add(nums[i + 1]);\n            }\n        }\n\n        Collections.sort(followers);\n        int bestValue = followers.get(0);\n        int bestCount = 0;\n        int index = 0;\n        while (index < followers.size()) {\n            int value = followers.get(index);\n            int start = index;\n            while (index < followers.size() && followers.get(index) == value) {\n                index++;\n            }\n            int runLength = index - start;\n            if (runLength > bestCount) {\n                bestCount = runLength;\n                bestValue = value;\n            }\n        }\n        return bestValue;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Candidate Enumeration Baseline",
+      "timeComplexity": "O(n * m)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\nFirst collect the distinct values that ever follow `key`. Then, for each candidate follower, scan the array again and count how often that exact candidate follows `key`.\n\n## Key Insight\nThis baseline follows the mathematical definition directly: choose a possible target, then count indices where it follows `key`. It is slower than one-pass counting, but it is valuable for validating the meaning of the condition before optimizing.\n\n## Complexity Analysis\nLet `m` be the number of distinct follower candidates. Building the candidate set takes O(n), and counting every candidate costs O(n * m). The set stores O(m) values.",
+      "code": "import java.util.HashSet;\nimport java.util.Set;\n\nclass Solution {\n    public int mostFrequent(int[] nums, int key) {\n        Set<Integer> candidates = new HashSet<>();\n        for (int i = 0; i + 1 < nums.length; i++) {\n            if (nums[i] == key) {\n                candidates.add(nums[i + 1]);\n            }\n        }\n\n        int bestValue = 0;\n        int bestCount = 0;\n        for (int candidate : candidates) {\n            int currentCount = 0;\n            for (int i = 0; i + 1 < nums.length; i++) {\n                if (nums[i] == key && nums[i + 1] == candidate) {\n                    currentCount++;\n                }\n            }\n            if (currentCount > bestCount) {\n                bestCount = currentCount;\n                bestValue = candidate;\n            }\n        }\n        return bestValue;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [1,100,200,1,100], key = 1", "output": "100" },
-    { "input": "nums = [2,2,2,2,3], key = 2", "output": "2" }
+    {
+      "input": "nums = [1,100,200,1,100], key = 1",
+      "output": "100",
+      "description": "sample target 100 follows key twice"
+    },
+    {
+      "input": "nums = [2,2,2,2,3], key = 2",
+      "output": "2",
+      "description": "sample target can be the key itself"
+    },
+    {
+      "input": "nums = [1,2,1,2,1,3], key = 1",
+      "output": "2",
+      "description": "different following values are counted by frequency"
+    },
+    {
+      "input": "nums = [5,5,5], key = 5",
+      "output": "5",
+      "description": "overlapping key positions are valid except the last index"
+    },
+    {
+      "input": "nums = [9,1,9,2,9,1,9], key = 9",
+      "output": "1",
+      "description": "a key at the last index does not add a follower"
+    },
+    {
+      "input": "nums = [1,2,3,1,2,3,1,2], key = 1",
+      "output": "2",
+      "description": "consistent repeated target after each key"
+    },
+    {
+      "input": "nums = [4,7,4], key = 4",
+      "output": "7",
+      "description": "the final key occurrence is ignored because it has no next value"
+    },
+    {
+      "input": "nums = [1,1000,1,1000,1,999], key = 1",
+      "output": "1000",
+      "description": "target values may be at the upper value bound"
+    },
+    {
+      "input": "nums = [3,4,3,5,3,4,2,4], key = 3",
+      "output": "4",
+      "description": "only values immediately after key count, not every occurrence of the target"
+    },
+    {
+      "input": "nums = [8,6,8,7,8,7,8,6,8,7], key = 8",
+      "output": "7",
+      "description": "unique winner can be separated by several other key occurrences"
+    },
+    {
+      "input": "nums = [10,20,10,30,40,10,30,10,20,10,30], key = 10",
+      "output": "30",
+      "description": "distractor followers can be close but still lose by frequency"
+    }
   ]
 }

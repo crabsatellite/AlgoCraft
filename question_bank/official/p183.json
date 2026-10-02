@@ -1,7 +1,7 @@
 {
   "id": "183",
   "title": "Merge Intervals",
-  "description": "# Merge Intervals\n\nGiven an array of `intervals` where `intervals[i] = [starti, endi]`, merge all overlapping intervals, and return *an array of the non-overlapping intervals that cover all the intervals in the input*.\n\n## Example 1:\n\n**Input:** intervals = [[1,3],[2,6],[8,10],[15,18]]\n**Output:** [[1,6],[8,10],[15,18]]\n**Explanation:** Since intervals [1,3] and [2,6] overlap, merge them into [1,6].\n\n## Example 2:\n\n**Input:** intervals = [[1,4],[4,5]]\n**Output:** [[1,5]]\n**Explanation:** Intervals [1,4] and [4,5] are considered overlapping.\n\n## Constraints:\n\n*   `1 <= intervals.length <= 10^4`\n*   `intervals[i].length == 2`\n*   `0 <= starti <= endi <= 10^4`",
+  "description": "# Merge Intervals\n\nYou are given an array of closed intervals `intervals`, where `intervals[i] = [starti, endi]` represents every point from `starti` through `endi`.\n\nMerge every pair of intervals that overlaps and return a sorted array of non-overlapping intervals that covers exactly the same points as the input.\n\nTwo intervals overlap when they share at least one point. For example, `[1,4]` and `[4,5]` overlap because they both contain `4`, so they merge into `[1,5]`. The input intervals are not guaranteed to be sorted.\n\n## Example 1:\n\n**Input:** intervals = [[1,3],[2,6],[8,10],[15,18]]\n**Output:** [[1,6],[8,10],[15,18]]\n**Explanation:** `[1,3]` and `[2,6]` overlap and merge into `[1,6]`. The other intervals stay separate.\n\n## Example 2:\n\n**Input:** intervals = [[1,4],[4,5]]\n**Output:** [[1,5]]\n**Explanation:** Closed intervals sharing endpoint `4` are considered overlapping.\n\n## Constraints:\n\n*   `1 <= intervals.length <= 10^4`\n*   `intervals[i].length == 2`\n*   `0 <= starti <= endi <= 10^4`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int[][] merge(int[][] intervals) {\n        // Write your code here\n        return new int[0][0];\n    }\n}",
   "tags": [
@@ -20,62 +20,133 @@
   ],
   "solutions": [
     {
-      "name": "Sort and Merge",
+      "name": "Sort By Start And Merge",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Sort intervals by start time. Iterate and merge overlapping intervals by extending the end of the current interval.",
-      "code": "class Solution {\n    public int[][] merge(int[][] intervals) {\n        java.util.Arrays.sort(intervals, (a, b) -> a[0] - b[0]);\n        java.util.List<int[]> merged = new java.util.ArrayList<>();\n        for (int[] interval : intervals) {\n            if (merged.isEmpty() || merged.get(merged.size() - 1)[1] < interval[0]) {\n                merged.add(interval);\n            } else {\n                merged.get(merged.size() - 1)[1] = Math.max(merged.get(merged.size() - 1)[1], interval[1]);\n            }\n        }\n        return merged.toArray(new int[0][]);\n    }\n}",
+      "description": "## Approach\n\nSort intervals by start coordinate. Keep the last merged interval as the only interval that can still overlap the next sorted interval. If the next start is greater than the last merged end, append a new interval; otherwise extend the last end.\n\n## Key Insight\n\nAfter sorting by start, all intervals that belong to one merged component appear consecutively. Once a later interval starts after the current end, no earlier interval can connect it back.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), dominated by sorting.\n- Space Complexity: O(n), because the returned list stores the merged intervals.",
+      "code": "class Solution {\n    public int[][] merge(int[][] intervals) {\n        java.util.Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));\n        java.util.List<int[]> result = new java.util.ArrayList<>();\n        for (int[] interval : intervals) {\n            if (result.isEmpty() || result.get(result.size() - 1)[1] < interval[0]) {\n                result.add(new int[] {interval[0], interval[1]});\n            } else {\n                int[] last = result.get(result.size() - 1);\n                last[1] = Math.max(last[1], interval[1]);\n            }\n        }\n        return result.toArray(new int[result.size()][]);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Connected Components (Graph-Based)",
+      "name": "Priority Queue Ordered Merge",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nInsert every interval into a priority queue ordered by start coordinate. Poll intervals in order and merge each one into the current output tail, exactly as if the intervals had been sorted first.\n\n## Key Insight\n\nThe core requirement is processing intervals by nondecreasing start. A heap gives the same order without mutating the original array, which is useful when intervals arrive from a stream or another producer.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), because each interval is pushed and popped from the heap.\n- Space Complexity: O(n), because the heap and output list store intervals.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[][] merge(int[][] intervals) {\n        PriorityQueue<int[]> minHeap = new PriorityQueue<>((a, b) -> Integer.compare(a[0], b[0]));\n        for (int[] interval : intervals) {\n            minHeap.offer(new int[] {interval[0], interval[1]});\n        }\n\n        List<int[]> result = new ArrayList<>();\n        while (!minHeap.isEmpty()) {\n            int[] interval = minHeap.poll();\n            if (result.isEmpty() || result.get(result.size() - 1)[1] < interval[0]) {\n                result.add(interval);\n            } else {\n                int[] last = result.get(result.size() - 1);\n                last[1] = Math.max(last[1], interval[1]);\n            }\n        }\n        return result.toArray(new int[result.size()][]);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Separate Starts And Ends Sweep",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCopy all starts into one array and all ends into another, then sort both arrays. A merged interval closes at `ends[i]` exactly when the next start is greater than that end. The next component starts at the next unused start.\n\n## Key Insight\n\nThis separates interval merging into boundary events. For closed intervals, `starts[i + 1] == ends[i]` still means overlap, so the closing condition must be strictly `starts[i + 1] > ends[i]`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), because the two boundary arrays are sorted.\n- Space Complexity: O(n), because start and end arrays are stored.",
+      "code": "class Solution {\n    public int[][] merge(int[][] intervals) {\n        int n = intervals.length;\n        int[] starts = new int[n];\n        int[] ends = new int[n];\n        for (int i = 0; i < n; i++) {\n            starts[i] = intervals[i][0];\n            ends[i] = intervals[i][1];\n        }\n        java.util.Arrays.sort(starts);\n        java.util.Arrays.sort(ends);\n\n        java.util.List<int[]> result = new java.util.ArrayList<>();\n        int startIndex = 0;\n        for (int i = 0; i < n; i++) {\n            if (i == n - 1 || starts[i + 1] > ends[i]) {\n                result.add(new int[] {starts[startIndex], ends[i]});\n                startIndex = i + 1;\n            }\n        }\n        return result.toArray(new int[result.size()][]);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Endpoint Event Sweep",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nConvert every interval into a start event and an end event stored by coordinate. Sweep coordinates in sorted order, processing starts before ends at the same coordinate. Open a merged interval when active coverage rises from zero and close it when coverage returns to zero.\n\n## Key Insight\n\nStart-before-end ordering is what makes closed endpoints merge correctly: `[1,4]` and `[4,5]` have active coverage through coordinate `4`, so they become one interval.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), because endpoint events are stored in a sorted map.\n- Space Complexity: O(n), because each interval contributes boundary events.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[][] merge(int[][] intervals) {\n        TreeMap<Integer, int[]> events = new TreeMap<>();\n        for (int[] interval : intervals) {\n            addEvent(events, interval[0], 1, 0);\n            addEvent(events, interval[1], 0, 1);\n        }\n\n        List<int[]> result = new ArrayList<>();\n        int active = 0;\n        int currentStart = -1;\n        for (Map.Entry<Integer, int[]> entry : events.entrySet()) {\n            int coordinate = entry.getKey();\n            int starts = entry.getValue()[0];\n            int ends = entry.getValue()[1];\n            if (active == 0 && starts > 0) {\n                currentStart = coordinate;\n            }\n            active += starts;\n            active -= ends;\n            if (active == 0) {\n                result.add(new int[] {currentStart, coordinate});\n            }\n        }\n        return result.toArray(new int[result.size()][]);\n    }\n\n    private void addEvent(TreeMap<Integer, int[]> events, int coordinate, int starts, int ends) {\n        int[] counts = events.computeIfAbsent(coordinate, key -> new int[2]);\n        counts[0] += starts;\n        counts[1] += ends;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Overlap Graph Components",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n)",
-      "description": "Model intervals as a graph where overlapping intervals are connected. Find connected components; each component merges into one interval covering the min start to max end.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int[][] merge(int[][] intervals) {\n        int n = intervals.length;\n        if (n <= 1) return intervals;\n        Arrays.sort(intervals, new Comparator<int[]>() {\n            public int compare(int[] a, int[] b) {\n                return a[0] - b[0];\n            }\n        });\n        LinkedList<int[]> merged = new LinkedList<>();\n        merged.add(new int[]{intervals[0][0], intervals[0][1]});\n        for (int i = 1; i < n; i++) {\n            int[] last = merged.getLast();\n            if (intervals[i][0] <= last[1]) {\n                last[1] = Math.max(last[1], intervals[i][1]);\n            } else {\n                merged.add(new int[]{intervals[i][0], intervals[i][1]});\n            }\n        }\n        return merged.toArray(new int[0][]);\n    }\n}",
+      "description": "## Approach\n\nTreat each interval as a graph node. Two nodes are connected when their intervals overlap. Run DFS over this implicit graph; each connected component merges into one interval spanning the minimum start and maximum end among its nodes.\n\n## Key Insight\n\nMerging is transitive. If `A` overlaps `B` and `B` overlaps `C`, all three must share one output interval even when `A` and `C` do not directly overlap. The graph model makes that transitive closure explicit.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), because each visited interval may compare against every other interval.\n- Space Complexity: O(n), because visited flags, the DFS stack, and the output are linear.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[][] merge(int[][] intervals) {\n        int n = intervals.length;\n        boolean[] visited = new boolean[n];\n        List<int[]> result = new ArrayList<>();\n\n        for (int i = 0; i < n; i++) {\n            if (visited[i]) {\n                continue;\n            }\n            int start = intervals[i][0];\n            int end = intervals[i][1];\n            Deque<Integer> stack = new ArrayDeque<>();\n            visited[i] = true;\n            stack.push(i);\n\n            while (!stack.isEmpty()) {\n                int current = stack.pop();\n                start = Math.min(start, intervals[current][0]);\n                end = Math.max(end, intervals[current][1]);\n                for (int next = 0; next < n; next++) {\n                    if (!visited[next] && overlaps(intervals[current], intervals[next])) {\n                        visited[next] = true;\n                        stack.push(next);\n                    }\n                }\n            }\n            result.add(new int[] {start, end});\n        }\n\n        result.sort((a, b) -> Integer.compare(a[0], b[0]));\n        return result.toArray(new int[result.size()][]);\n    }\n\n    private boolean overlaps(int[] a, int[] b) {\n        return a[0] <= b[1] && b[0] <= a[1];\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "intervals = [[1,3],[2,6],[8,10],[15,18]]",
-      "output": "[[1,6],[8,10],[15,18]]"
+      "output": "[[1,6],[8,10],[15,18]]",
+      "description": "Canonical mixed overlap case leaves three merged ranges."
     },
     {
       "input": "intervals = [[1,4],[4,5]]",
-      "output": "[[1,5]]"
+      "output": "[[1,5]]",
+      "description": "Closed intervals that touch at an endpoint must merge into one range."
     },
     {
       "input": "intervals = [[1,4]]",
-      "output": "[[1,4]]"
+      "output": "[[1,4]]",
+      "description": "A single interval is already a valid merged result."
     },
     {
       "input": "intervals = [[1,4],[0,4]]",
-      "output": "[[0,4]]"
+      "output": "[[0,4]]",
+      "description": "An interval with an earlier start fully absorbs the later interval."
     },
     {
       "input": "intervals = [[1,4],[2,3]]",
-      "output": "[[1,4]]"
+      "output": "[[1,4]]",
+      "description": "Nested interval should disappear inside its containing interval."
     },
     {
       "input": "intervals = [[1,4],[0,0]]",
-      "output": "[[0,0],[1,4]]"
+      "output": "[[0,0],[1,4]]",
+      "description": "Disjoint point interval remains separate from a later interval."
     },
     {
       "input": "intervals = [[1,4],[0,2],[3,5]]",
-      "output": "[[0,5]]"
+      "output": "[[0,5]]",
+      "description": "Chain of overlaps must merge transitively through the middle interval."
     },
     {
       "input": "intervals = [[2,3],[4,5],[6,7],[8,9],[1,10]]",
-      "output": "[[1,10]]"
+      "output": "[[1,10]]",
+      "description": "One wide interval absorbs many smaller disjoint-looking ranges."
+    },
+    {
+      "input": "intervals = [[5,6],[1,2],[3,4]]",
+      "output": "[[1,2],[3,4],[5,6]]",
+      "description": "Unsorted disjoint input must be returned in sorted order."
+    },
+    {
+      "input": "intervals = [[1,3],[1,3],[1,3]]",
+      "output": "[[1,3]]",
+      "description": "Duplicate intervals collapse to one range."
+    },
+    {
+      "input": "intervals = [[1,4],[1,5],[1,2]]",
+      "output": "[[1,5]]",
+      "description": "Intervals with the same start merge to the maximum end."
+    },
+    {
+      "input": "intervals = [[1,1],[1,2],[2,2]]",
+      "output": "[[1,2]]",
+      "description": "Point intervals touching a larger interval merge through shared endpoints."
+    },
+    {
+      "input": "intervals = [[0,0],[2,2],[1,1]]",
+      "output": "[[0,0],[1,1],[2,2]]",
+      "description": "Separate point intervals do not merge unless they share the same coordinate."
+    },
+    {
+      "input": "intervals = [[1,2],[2,3],[3,4]]",
+      "output": "[[1,4]]",
+      "description": "Endpoint-touching chain should merge all the way through."
+    },
+    {
+      "input": "intervals = [[0,10000],[10000,10000]]",
+      "output": "[[0,10000]]",
+      "description": "Constraint-limit endpoint touch still counts as overlap."
+    },
+    {
+      "input": "intervals = [[1,2],[3,4],[2,3]]",
+      "output": "[[1,4]]",
+      "description": "A middle bridge interval connects two ranges that otherwise look separate."
     }
   ],
-  "diagram": "images/p183_merge_intervals.png",
   "diagrams": [
     {
       "id": "example1",
       "file": "p183_example1.png",
-      "caption": "Merge Intervals: [1,3] and [2,6] overlap"
+      "caption": "Input intervals laid on a number line with possible overlaps"
     }
   ]
 }

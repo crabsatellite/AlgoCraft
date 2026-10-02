@@ -1,34 +1,119 @@
 {
   "id": "332",
   "title": "Max Points on a Line",
-  "description": "# Max Points on a Line\n\nGiven an array of `points` where `points[i] = [xi, yi]` represents a point on the **X-Y** plane, return *the maximum number of points that lie on the same straight line*.\n\n## Example 1:\n\n**Input:** points = [[1,1],[2,2],[3,3]]\n**Output:** 3\n\n## Example 2:\n\n**Input:** points = [[1,1],[3,2],[5,3],[4,1],[2,3],[1,4]]\n**Output:** 4\n\n## Constraints:\n\n*   `1 <= points.length <= 300`\n*   `points[i].length == 2`\n*   `-10^4 <= xi, yi <= 10^4`\n*   All the `points` are **unique**.",
+  "description": "# Max Points on a Line\n\nGiven an array `points`, where `points[i] = [xi, yi]` represents a unique point on the X-Y plane, return the maximum number of points that lie on the same straight line.\n\nThe line may be horizontal, vertical, or slanted. Return the number of points, not the line equation or the point indices.\n\n## Example 1:\n\n**Input:** points = [[1,1],[2,2],[3,3]]\n**Output:** 3\n**Explanation:** All three points lie on the line `y = x`.\n\n## Example 2:\n\n**Input:** points = [[1,1],[3,2],[5,3],[4,1],[2,3],[1,4]]\n**Output:** 4\n**Explanation:** Four points lie on the same diagonal line.\n\n## Constraints:\n\n*   `1 <= points.length <= 300`\n*   `points[i].length == 2`\n*   `-10^4 <= xi, yi <= 10^4`\n*   All points are unique.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int maxPoints(int[][] points) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Math", "Geometry"],
+  "initialCode": "class Solution {\n    public int maxPoints(int[][] points) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Math",
+    "Geometry"
+  ],
   "examples": [
-    { "input": "points = [[1,1],[2,2],[3,3]]", "output": "3" },
-    { "input": "points = [[1,1],[3,2],[5,3],[4,1],[2,3],[1,4]]", "output": "4" }
+    {
+      "input": "points = [[1,1],[2,2],[3,3]]",
+      "output": "3"
+    },
+    {
+      "input": "points = [[1,1],[3,2],[5,3],[4,1],[2,3],[1,4]]",
+      "output": "4"
+    }
   ],
   "solutions": [
     {
-      "name": "Slope HashMap",
+      "name": "Anchor Reduced Slope HashMap",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n)",
-      "description": "For each point, compute the slope to every other point using reduced fraction (dx/gcd, dy/gcd) as the key. Track the max count of collinear points for each anchor.",
-      "code": "class Solution {\n    public int maxPoints(int[][] points) {\n        int n = points.length, max = 1;\n        for (int i = 0; i < n; i++) {\n            java.util.Map<String, Integer> map = new java.util.HashMap<>();\n            for (int j = i + 1; j < n; j++) {\n                int dx = points[j][0] - points[i][0];\n                int dy = points[j][1] - points[i][1];\n                int g = gcd(Math.abs(dx), Math.abs(dy));\n                if (g != 0) { dx /= g; dy /= g; }\n                if (dx < 0) { dx = -dx; dy = -dy; }\n                if (dx == 0) dy = Math.abs(dy);\n                String key = dx + \",\" + dy;\n                int count = map.merge(key, 2, (a, b) -> a + 1);\n                max = Math.max(max, count);\n            }\n        }\n        return max;\n    }\n    private int gcd(int a, int b) { return b == 0 ? a : gcd(b, a % b); }\n}",
+      "description": "## Approach\n\nUse each point as an anchor and count how many later points share the same normalized direction from that anchor. Store each direction as a reduced integer pair `(dx, dy)` in a hash map.\n\n## Key Insight\n\nAll points on the same line through one anchor have the same reduced direction. The direction must be canonical: divide by `gcd(abs(dx), abs(dy))`, keep one sign convention, and give horizontal and vertical lines fixed keys.\n\n## Complexity Analysis\n- Time Complexity: O(n^2), because every pair of points is considered once.\n- Space Complexity: O(n), for the slope counts of one anchor.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxPoints(int[][] points) {\n        int n = points.length;\n        if (n <= 2) return n;\n        int best = 1;\n        for (int i = 0; i < n; i++) {\n            Map<String, Integer> slopes = new HashMap<>();\n            for (int j = i + 1; j < n; j++) {\n                String key = direction(points[i], points[j]);\n                int count = slopes.merge(key, 1, Integer::sum);\n                best = Math.max(best, count + 1);\n            }\n        }\n        return best;\n    }\n\n    private String direction(int[] a, int[] b) {\n        int dx = b[0] - a[0];\n        int dy = b[1] - a[1];\n        if (dx == 0) return \"0/1\";\n        if (dy == 0) return \"1/0\";\n        int g = gcd(Math.abs(dx), Math.abs(dy));\n        dx /= g;\n        dy /= g;\n        if (dx < 0) {\n            dx = -dx;\n            dy = -dy;\n        }\n        return dx + \"/\" + dy;\n    }\n\n    private int gcd(int a, int b) {\n        while (b != 0) {\n            int t = a % b;\n            a = b;\n            b = t;\n        }\n        return a;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Brute Force with Cross Product",
+      "name": "Anchor Direction Sorting",
+      "timeComplexity": "O(n^2 log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFor each anchor, compute the same canonical direction key to every later point, sort those keys, and scan the sorted list for the longest equal run.\n\n## Key Insight\n\nSorting is a useful alternative to hash counting. It teaches the same geometric invariant while making grouping explicit: equal adjacent direction keys after sorting represent points on the same line through the anchor.\n\n## Complexity Analysis\n- Time Complexity: O(n^2 log n), because each anchor sorts up to `n` direction keys.\n- Space Complexity: O(n), for the list of directions from one anchor.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxPoints(int[][] points) {\n        int n = points.length;\n        if (n <= 2) return n;\n        int best = 2;\n        for (int i = 0; i < n; i++) {\n            List<String> directions = new ArrayList<>();\n            for (int j = i + 1; j < n; j++) {\n                directions.add(direction(points[i], points[j]));\n            }\n            Collections.sort(directions);\n            int run = 0;\n            String previous = null;\n            for (String key : directions) {\n                if (key.equals(previous)) {\n                    run++;\n                } else {\n                    previous = key;\n                    run = 1;\n                }\n                best = Math.max(best, run + 1);\n            }\n        }\n        return best;\n    }\n\n    private String direction(int[] a, int[] b) {\n        int dx = b[0] - a[0];\n        int dy = b[1] - a[1];\n        if (dx == 0) return \"0/1\";\n        if (dy == 0) return \"1/0\";\n        int g = gcd(Math.abs(dx), Math.abs(dy));\n        dx /= g;\n        dy /= g;\n        if (dx < 0) {\n            dx = -dx;\n            dy = -dy;\n        }\n        return dx + \"/\" + dy;\n    }\n\n    private int gcd(int a, int b) {\n        return b == 0 ? a : gcd(b, a % b);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Pair Cross Product Baseline",
       "timeComplexity": "O(n^3)",
       "spaceComplexity": "O(1)",
-      "description": "For each pair of points defining a line, count how many other points are collinear using cross product (avoiding floating-point slope). Track the maximum count.",
-      "code": "class Solution {\n    public int maxPoints(int[][] points) {\n        int n = points.length;\n        if (n <= 2) return n;\n        int max = 2;\n        for (int i = 0; i < n; i++) {\n            for (int j = i + 1; j < n; j++) {\n                int count = 2;\n                for (int k = j + 1; k < n; k++) {\n                    int dx1 = points[j][0] - points[i][0];\n                    int dy1 = points[j][1] - points[i][1];\n                    int dx2 = points[k][0] - points[i][0];\n                    int dy2 = points[k][1] - points[i][1];\n                    if ((long) dx1 * dy2 == (long) dy1 * dx2) {\n                        count++;\n                    }\n                }\n                max = Math.max(max, count);\n            }\n        }\n        return max;\n    }\n}",
+      "description": "## Approach\n\nChoose every pair of points as a candidate line. For every other point, use the cross product to test whether the third point is collinear with that pair.\n\n## Key Insight\n\nThis baseline avoids division and floating-point precision entirely. Three points `a`, `b`, and `c` are collinear exactly when `(b - a) x (c - a) = 0`.\n\n## Complexity Analysis\n- Time Complexity: O(n^3), from pair enumeration plus a full scan for each pair.\n- Space Complexity: O(1), excluding input storage.",
+      "code": "class Solution {\n    public int maxPoints(int[][] points) {\n        int n = points.length;\n        if (n <= 2) return n;\n        int best = 2;\n        for (int i = 0; i < n; i++) {\n            for (int j = i + 1; j < n; j++) {\n                int count = 0;\n                for (int k = 0; k < n; k++) {\n                    long dx1 = points[j][0] - points[i][0];\n                    long dy1 = points[j][1] - points[i][1];\n                    long dx2 = points[k][0] - points[i][0];\n                    long dy2 = points[k][1] - points[i][1];\n                    if (dx1 * dy2 == dy1 * dx2) {\n                        count++;\n                    }\n                }\n                best = Math.max(best, count);\n            }\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Normalized Line Equation Map",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nRepresent the line through each pair as a normalized integer equation `A*x + B*y + C = 0`. Map each normalized equation to the set of point indices known to lie on that line.\n\n## Key Insight\n\nA line equation is global, unlike an anchor slope. The same line discovered from different pairs must produce the same `(A, B, C)` after dividing by the common gcd and applying a consistent sign rule.\n\n## Complexity Analysis\n- Time Complexity: O(n^2), for all pairs and set updates.\n- Space Complexity: O(n^2), because many different pair-defined lines may be stored.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxPoints(int[][] points) {\n        int n = points.length;\n        if (n <= 2) return n;\n        Map<String, Set<Integer>> lines = new HashMap<>();\n        int best = 2;\n        for (int i = 0; i < n; i++) {\n            long x1 = points[i][0];\n            long y1 = points[i][1];\n            for (int j = i + 1; j < n; j++) {\n                long x2 = points[j][0];\n                long y2 = points[j][1];\n                long a = y2 - y1;\n                long b = x1 - x2;\n                long c = -(a * x1 + b * y1);\n                long g = gcd(Math.abs(a), gcd(Math.abs(b), Math.abs(c)));\n                if (g != 0) {\n                    a /= g;\n                    b /= g;\n                    c /= g;\n                }\n                if (a < 0 || (a == 0 && b < 0)) {\n                    a = -a;\n                    b = -b;\n                    c = -c;\n                }\n                String key = a + \"/\" + b + \"/\" + c;\n                Set<Integer> set = lines.computeIfAbsent(key, ignored -> new HashSet<>());\n                set.add(i);\n                set.add(j);\n                best = Math.max(best, set.size());\n            }\n        }\n        return best;\n    }\n\n    private long gcd(long a, long b) {\n        while (b != 0) {\n            long t = a % b;\n            a = b;\n            b = t;\n        }\n        return a;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "points = [[1,1],[2,2],[3,3]]", "output": "3" },
-    { "input": "points = [[1,1],[3,2],[5,3],[4,1],[2,3],[1,4]]", "output": "4" }
+    {
+      "input": "points = [[1,1],[2,2],[3,3]]",
+      "output": "3",
+      "description": "canonical diagonal sample"
+    },
+    {
+      "input": "points = [[1,1],[3,2],[5,3],[4,1],[2,3],[1,4]]",
+      "output": "4",
+      "description": "canonical mixed sample with four collinear points"
+    },
+    {
+      "input": "points = [[0,0]]",
+      "output": "1",
+      "description": "single point boundary"
+    },
+    {
+      "input": "points = [[2,3],[4,5]]",
+      "output": "2",
+      "description": "two points always define a line"
+    },
+    {
+      "input": "points = [[0,0],[1,0],[2,0],[3,1]]",
+      "output": "3",
+      "description": "horizontal line normalization"
+    },
+    {
+      "input": "points = [[0,0],[0,1],[0,-1],[1,1],[2,2]]",
+      "output": "3",
+      "description": "vertical and diagonal lines tie"
+    },
+    {
+      "input": "points = [[0,0],[1,-1],[2,-2],[3,1]]",
+      "output": "3",
+      "description": "negative slope sign normalization"
+    },
+    {
+      "input": "points = [[0,0],[2,1],[4,2],[6,3],[1,1]]",
+      "output": "4",
+      "description": "equivalent reduced slopes like 2/1 and 4/2"
+    },
+    {
+      "input": "points = [[-3,-3],[-2,-2],[-1,-1],[0,0],[1,2]]",
+      "output": "4",
+      "description": "negative coordinates on a diagonal"
+    },
+    {
+      "input": "points = [[10000,10000],[0,0],[-10000,-10000],[9999,9998],[2,3]]",
+      "output": "3",
+      "description": "coordinate boundary with a large diagonal"
+    },
+    {
+      "input": "points = [[3,1],[3,2],[3,3],[3,4],[4,4]]",
+      "output": "4",
+      "description": "long vertical line with a distractor"
+    },
+    {
+      "input": "points = [[1,1],[2,3],[3,5],[4,7],[5,9],[2,2],[3,3]]",
+      "output": "5",
+      "description": "non-axis line beats a shorter diagonal"
+    }
   ]
 }

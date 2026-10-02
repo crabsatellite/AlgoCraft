@@ -1,10 +1,12 @@
 {
   "id": "250",
   "title": "Kids With the Greatest Number of Candies",
-  "description": "# Kids With the Greatest Number of Candies\n\nThere are `n` kids with candies. You are given an integer array `candies`, where each `candies[i]` represents the number of candies the `i-th` kid has, and an integer `extraCandies`, denoting the number of extra candies that you have.\n\nReturn *a boolean array* `result` *of length* `n`*, where* `result[i]` *is* `true` *if, after giving the* `i-th` *kid all the* `extraCandies`*, they will have the **greatest** number of candies among all the kids, or* `false` *otherwise*.\n\nNote that **multiple** kids can have the **greatest** number of candies.\n\n## Example 1:\n\n**Input:** candies = [2,3,5,1,3], extraCandies = 3\n**Output:** [true,true,true,false,true] \n**Explanation:** \nKid 1 has 2 candies and if he or she receives all extra candies (3) will have 5 candies --- the greatest number of candies among the kids. \nKid 2 has 3 candies and if he or she receives at least 2 extra candies will have the greatest number of candies among the kids. \nKid 3 has 5 candies and this is already the greatest number of candies among the kids. \nKid 4 has 1 candy and even if he or she receives all extra candies will only have 4 candies. \nKid 5 has 3 candies and if he or she receives at least 2 extra candies will have the greatest number of candies among the kids. \n\n## Example 2:\n\n**Input:** candies = [4,2,1,1,2], extraCandies = 1\n**Output:** [true,false,false,false,false] \n**Explanation:** There is only 1 extra candy.\nKid 1 will always have the greatest number of candies, even if a different kid is given the extra candy.\n\n## Example 3:\n\n**Input:** candies = [12,1,12], extraCandies = 10\n**Output:** [true,false,true]\n\n## Constraints:\n\n*   `n == candies.length`\n*   `2 <= n <= 100`\n*   `1 <= candies[i] <= 100`\n*   `1 <= extraCandies <= 50`",
+  "description": "# Kids With the Greatest Number of Candies\n\nThere are `n` kids, and `candies[i]` is the number of candies the `i-th` kid currently has. You also have `extraCandies` candies.\n\nFor each kid, imagine giving **all** `extraCandies` to that one kid only. Return a boolean array where the `i-th` value is `true` if that kid could then have the greatest number of candies among all kids, and `false` otherwise.\n\nA kid only needs to tie for the greatest number. Multiple kids may be marked `true`.\n\n## Example 1:\n\n**Input:** candies = [2,3,5,1,3], extraCandies = 3\n**Output:** [true,true,true,false,true]\n**Explanation:** The current maximum is 5. Kids with 2, 3, 5, and 3 candies can reach at least 5 after receiving 3 extra candies; the kid with 1 candy reaches only 4.\n\n## Example 2:\n\n**Input:** candies = [4,2,1,1,2], extraCandies = 1\n**Output:** [true,false,false,false,false]\n\n## Example 3:\n\n**Input:** candies = [12,1,12], extraCandies = 10\n**Output:** [true,false,true]\n\n## Constraints:\n\n* `n == candies.length`\n* `2 <= n <= 100`\n* `1 <= candies[i] <= 100`\n* `0 <= extraCandies <= 50`",
   "difficulty": "EASY",
   "initialCode": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Boolean> kidsWithCandies(int[] candies, int extraCandies) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["Array"],
+  "tags": [
+    "Array"
+  ],
   "examples": [
     {
       "input": "candies = [2,3,5,1,3], extraCandies = 3",
@@ -24,31 +26,95 @@
       "name": "Find Max Then Compare",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Find the current maximum. For each kid, check if their candies plus extraCandies >= max.",
-      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Boolean> kidsWithCandies(int[] candies, int extraCandies) {\n        int max = 0;\n        for (int c : candies) max = Math.max(max, c);\n        List<Boolean> res = new ArrayList<>();\n        for (int c : candies) {\n            res.add(c + extraCandies >= max);\n        }\n        return res;\n    }\n}",
+      "description": "## Approach\n\nFirst scan the array to find the current maximum candy count. Then scan again and append whether `candy + extraCandies >= max` for each kid.\n\n## Key Insight\n\nThe only benchmark that matters is the current maximum. Ties are valid, so the comparison must be greater-than-or-equal, not strictly greater.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because the array is scanned twice.\n- Space Complexity: O(1) auxiliary space, ignoring the required output list.",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public List<Boolean> kidsWithCandies(int[] candies, int extraCandies) {\n        int max = 0;\n        for (int candy : candies) {\n            max = Math.max(max, candy);\n        }\n\n        List<Boolean> answer = new ArrayList<>();\n        for (int candy : candies) {\n            answer.add(candy + extraCandies >= max);\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Two-Pass with Array",
+      "name": "Required Candy Threshold",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "First pass finds the maximum. Second pass builds the boolean list by checking if each candy count plus extraCandies meets or exceeds the threshold.",
-      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<Boolean> kidsWithCandies(int[] candies, int extraCandies) {\n        int max = Integer.MIN_VALUE;\n        for (int i = 0; i < candies.length; i++) {\n            if (candies[i] > max) max = candies[i];\n        }\n        int threshold = max - extraCandies;\n        List<Boolean> result = new ArrayList<>();\n        for (int i = 0; i < candies.length; i++) {\n            result.add(candies[i] >= threshold);\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nFind the current maximum, then compute the minimum starting candy count that can still tie it: `threshold = max - extraCandies`. A kid is successful exactly when `candies[i] >= threshold`.\n\n## Key Insight\n\nThis rewrites the same condition without adding `extraCandies` for every kid. The threshold form makes it clear that all children at or above one cutoff become `true`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because one scan finds the maximum and one scan writes the answers.\n- Space Complexity: O(1) auxiliary space, excluding the output list.",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public List<Boolean> kidsWithCandies(int[] candies, int extraCandies) {\n        int max = 0;\n        for (int candy : candies) {\n            if (candy > max) {\n                max = candy;\n            }\n        }\n\n        int threshold = max - extraCandies;\n        List<Boolean> answer = new ArrayList<>();\n        for (int candy : candies) {\n            answer.add(candy >= threshold);\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sort Copy to Find Maximum",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort a copy of the candy counts and read the maximum from the last position. Then compare every original child against that maximum after adding the extra candies.\n\n## Key Insight\n\nSorting is not necessary for this problem, but it is a useful baseline that separates finding the maximum from preserving the original answer order.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), because sorting dominates.\n- Space Complexity: O(n), because a sorted copy is allocated.",
+      "code": "import java.util.ArrayList;\nimport java.util.Arrays;\nimport java.util.List;\n\nclass Solution {\n    public List<Boolean> kidsWithCandies(int[] candies, int extraCandies) {\n        int[] sorted = candies.clone();\n        Arrays.sort(sorted);\n        int max = sorted[sorted.length - 1];\n\n        List<Boolean> answer = new ArrayList<>();\n        for (int candy : candies) {\n            answer.add(candy + extraCandies >= max);\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Counting Bucket Maximum",
+      "timeComplexity": "O(n + U)",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\n\nUse the bound `candies[i] <= 100` to mark which candy counts appear. Scan the bucket array from high to low to find the maximum, then compare every child against that maximum.\n\n## Key Insight\n\nWhen the value range is small, a bucket structure can replace sorting. This is overkill for this easy task, but it teaches how constraints can change the way a maximum is recovered.\n\n## Complexity Analysis\n\n- Time Complexity: O(n + U), where `U = 100` is the candy value range.\n- Space Complexity: O(U), for the presence bucket.",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public List<Boolean> kidsWithCandies(int[] candies, int extraCandies) {\n        boolean[] present = new boolean[101];\n        for (int candy : candies) {\n            present[candy] = true;\n        }\n\n        int max = 100;\n        while (!present[max]) {\n            max--;\n        }\n\n        List<Boolean> answer = new ArrayList<>();\n        for (int candy : candies) {\n            answer.add(candy + extraCandies >= max);\n        }\n        return answer;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "candies = [2,3,5,1,3], extraCandies = 3",
-      "output": "[true,true,true,false,true]"
+      "output": "[true,true,true,false,true]",
+      "description": "canonical example where several children can tie for greatest"
     },
     {
       "input": "candies = [4,2,1,1,2], extraCandies = 1",
-      "output": "[true,false,false,false,false]"
+      "output": "[true,false,false,false,false]",
+      "description": "only the current maximum can remain greatest"
     },
     {
       "input": "candies = [12,1,12], extraCandies = 10",
-      "output": "[true,false,true]"
+      "output": "[true,false,true]",
+      "description": "multiple children already share the maximum"
+    },
+    {
+      "input": "candies = [1,1,1], extraCandies = 1",
+      "output": "[true,true,true]",
+      "description": "all children can reach the maximum"
+    },
+    {
+      "input": "candies = [5,1,4], extraCandies = 0",
+      "output": "[true,false,false]",
+      "description": "zero extra candies leaves only current maxima true"
+    },
+    {
+      "input": "candies = [1,10,1,10], extraCandies = 9",
+      "output": "[true,true,true,true]",
+      "description": "lower children can exactly tie the maximum"
+    },
+    {
+      "input": "candies = [3,3,2], extraCandies = 0",
+      "output": "[true,true,false]",
+      "description": "zero extras with multiple current maxima"
+    },
+    {
+      "input": "candies = [1,100], extraCandies = 50",
+      "output": "[false,true]",
+      "description": "minimum length with upper candy bound"
+    },
+    {
+      "input": "candies = [1,1], extraCandies = 0",
+      "output": "[true,true]",
+      "description": "minimum length with all values tied"
+    },
+    {
+      "input": "candies = [8,3,5], extraCandies = 3",
+      "output": "[true,false,true]",
+      "description": "one child exactly reaches the maximum and one stays below"
+    },
+    {
+      "input": "candies = [100,50,51], extraCandies = 49",
+      "output": "[true,false,true]",
+      "description": "upper maximum with exact threshold boundary"
+    },
+    {
+      "input": "candies = [50,50,100], extraCandies = 50",
+      "output": "[true,true,true]",
+      "description": "large extra candies let lower children tie the maximum"
     }
   ]
 }

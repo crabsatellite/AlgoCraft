@@ -1,36 +1,131 @@
 {
   "id": "222",
   "title": "First Unique Character in a String",
-  "description": "# First Unique Character in a String\n\nGiven a string `s`, *find the first non-repeating character in it and return its index*. If it does not exist, return `-1`.\n\n## Example 1:\n\n**Input:** s = \"leetcode\"\n**Output:** 0\n\n## Example 2:\n\n**Input:** s = \"loveleetcode\"\n**Output:** 2\n\n## Example 3:\n\n**Input:** s = \"aabb\"\n**Output:** -1\n\n## Constraints:\n\n*   `1 <= s.length <= 10^5`\n*   `s` consists of only lowercase English letters.",
+  "description": "# First Unique Character in a String\n\nGiven a string `s`, return the index of the first character that appears exactly once in the whole string.\n\nIf no such character exists, return `-1`.\n\nTwo details matter:\n\n* \"first\" means the smallest index in the original string, not the smallest letter alphabetically;\n* a character is unique only if its total frequency in the whole string is exactly one.\n\n## Example 1:\n\n**Input:** s = \"leetcode\"\n**Output:** 0\n**Explanation:** `l` appears once and is already at the first index.\n\n## Example 2:\n\n**Input:** s = \"loveleetcode\"\n**Output:** 2\n**Explanation:** `l` and `o` repeat, while `v` is the first character that appears once.\n\n## Example 3:\n\n**Input:** s = \"aabb\"\n**Output:** -1\n**Explanation:** Every character repeats.\n\n## Constraints:\n\n* `1 <= s.length <= 10^5`\n* `s` consists of only lowercase English letters.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int firstUniqChar(String s) {\n        // Write your code here\n        return -1;\n    }\n}",
-  "tags": ["HashTable", "String", "Queue", "Counting"],
+  "tags": [
+    "Hash Table",
+    "String",
+    "Queue",
+    "Counting"
+  ],
   "examples": [
-    { "input": "s = \"leetcode\"", "output": "0" },
-    { "input": "s = \"loveleetcode\"", "output": "2" },
-    { "input": "s = \"aabb\"", "output": "-1" }
+    {
+      "input": "s = \"leetcode\"",
+      "output": "0"
+    },
+    {
+      "input": "s = \"loveleetcode\"",
+      "output": "2"
+    },
+    {
+      "input": "s = \"aabb\"",
+      "output": "-1"
+    }
   ],
   "solutions": [
     {
-      "name": "Frequency Array",
+      "name": "Frequency Array Two-Pass Scan",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Count character frequencies in a 26-element array, then find the first character with count 1.",
-      "code": "class Solution {\n    public int firstUniqChar(String s) {\n        int[] freq = new int[26];\n        for (int i = 0; i < s.length(); i++) {\n            freq[s.charAt(i) - 'a']++;\n        }\n        for (int i = 0; i < s.length(); i++) {\n            if (freq[s.charAt(i) - 'a'] == 1) return i;\n        }\n        return -1;\n    }\n}",
+      "description": "## Approach\n\nCount every lowercase letter in a fixed 26-element array. Then scan the original string from left to right and return the first index whose character has frequency one.\n\n## Key Insight\n\nThe count pass decides which characters are unique, while the second pass preserves the original index order. This separation prevents confusing the first unique character with the smallest unique letter.\n\n## Complexity Analysis\n- Time Complexity: O(n), because the string is scanned twice.\n- Space Complexity: O(1), because the alphabet has exactly 26 lowercase letters.",
+      "code": "class Solution {\n    public int firstUniqChar(String s) {\n        int[] freq = new int[26];\n        for (int i = 0; i < s.length(); i++) {\n            freq[s.charAt(i) - 'a']++;\n        }\n\n        for (int i = 0; i < s.length(); i++) {\n            if (freq[s.charAt(i) - 'a'] == 1) {\n                return i;\n            }\n        }\n        return -1;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "HashMap with Index",
+      "name": "Alphabet First-Last Occurrence Sweep",
+      "timeComplexity": "O(26n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nLoop over the 26 possible lowercase letters. For each letter, compare its first occurrence index with its last occurrence index; if they are equal, the letter appears exactly once. Keep the minimum such index.\n\n## Key Insight\n\nA unique character has the same first and last occurrence. Because the loop is over letters rather than string positions, the answer must be the minimum index among all unique letters.\n\n## Complexity Analysis\n- Time Complexity: O(26n), which is O(n) for a fixed lowercase alphabet.\n- Space Complexity: O(1), because no data structure grows with the input length.",
+      "code": "class Solution {\n    public int firstUniqChar(String s) {\n        int answer = s.length();\n        for (char c = 'a'; c <= 'z'; c++) {\n            int first = s.indexOf(c);\n            if (first != -1 && first == s.lastIndexOf(c)) {\n                answer = Math.min(answer, first);\n            }\n        }\n        return answer == s.length() ? -1 : answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "LinkedHashMap Insertion Order Counts",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nStore one small record per character in a `LinkedHashMap`. The record keeps the first index and a count. Because `LinkedHashMap` preserves insertion order, the first record with count one is the first unique character.\n\n## Key Insight\n\nThe insertion order of distinct characters is the order of their first appearances. After counts are known, iterating that order avoids a separate minimum-index reduction.\n\n## Complexity Analysis\n- Time Complexity: O(n), assuming average constant-time map operations.\n- Space Complexity: O(k), where `k` is the number of distinct characters.",
+      "code": "import java.util.LinkedHashMap;\nimport java.util.Map;\n\nclass Solution {\n    public int firstUniqChar(String s) {\n        Map<Character, Stat> stats = new LinkedHashMap<>();\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            Stat stat = stats.get(c);\n            if (stat == null) {\n                stats.put(c, new Stat(i));\n            } else {\n                stat.count++;\n            }\n        }\n\n        for (Stat stat : stats.values()) {\n            if (stat.count == 1) {\n                return stat.firstIndex;\n            }\n        }\n        return -1;\n    }\n\n    private static class Stat {\n        final int firstIndex;\n        int count = 1;\n\n        Stat(int firstIndex) {\n            this.firstIndex = firstIndex;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Queue of Candidate Indexes",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use a HashMap to store the first occurrence index of each character. On second occurrence mark it as repeated (-1). Then find the minimum valid index.",
-      "code": "import java.util.HashMap;\nimport java.util.Map;\n\nclass Solution {\n    public int firstUniqChar(String s) {\n        Map<Character, Integer> map = new HashMap<>();\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (map.containsKey(c)) {\n                map.put(c, -1);\n            } else {\n                map.put(c, i);\n            }\n        }\n        int minIdx = s.length();\n        for (Map.Entry<Character, Integer> entry : map.entrySet()) {\n            if (entry.getValue() != -1 && entry.getValue() < minIdx) {\n                minIdx = entry.getValue();\n            }\n        }\n        return minIdx == s.length() ? -1 : minIdx;\n    }\n}",
+      "description": "## Approach\n\nScan the string once while updating a frequency array and pushing every index into a queue. Whenever the queue front refers to a character whose frequency is now greater than one, remove it.\n\n## Key Insight\n\nThe queue front is always the earliest index that is still a possible unique character after the prefix scanned so far. At the end, that same invariant gives the final answer.\n\n## Complexity Analysis\n- Time Complexity: O(n), because each index enters and leaves the queue at most once.\n- Space Complexity: O(n), because the queue may hold many candidate indexes.",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Queue;\n\nclass Solution {\n    public int firstUniqChar(String s) {\n        int[] freq = new int[26];\n        Queue<Integer> candidates = new ArrayDeque<>();\n        for (int i = 0; i < s.length(); i++) {\n            int letter = s.charAt(i) - 'a';\n            freq[letter]++;\n            candidates.offer(i);\n            while (!candidates.isEmpty() && freq[s.charAt(candidates.peek()) - 'a'] > 1) {\n                candidates.poll();\n            }\n        }\n        return candidates.isEmpty() ? -1 : candidates.peek();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Active Unique Linked List",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nMaintain a doubly linked list containing the characters that have appeared exactly once, ordered by their first occurrence. On a first occurrence, append a node. On the second occurrence, remove that node. Later repeats do nothing.\n\n## Key Insight\n\nThe head of the active list is always the first currently unique character. This models an online data structure where updates remove characters from the candidate set as soon as they stop being unique.\n\n## Complexity Analysis\n- Time Complexity: O(n), because each character update performs O(1) linked-list work.\n- Space Complexity: O(1), because the list and lookup arrays have at most 26 lowercase letters.",
+      "code": "class Solution {\n    public int firstUniqChar(String s) {\n        Node head = new Node(-1, -1);\n        Node tail = new Node(-1, -1);\n        head.next = tail;\n        tail.prev = head;\n\n        Node[] active = new Node[26];\n        boolean[] repeated = new boolean[26];\n        for (int i = 0; i < s.length(); i++) {\n            int letter = s.charAt(i) - 'a';\n            if (!repeated[letter] && active[letter] == null) {\n                Node node = new Node(letter, i);\n                active[letter] = node;\n                appendBeforeTail(tail, node);\n            } else if (!repeated[letter]) {\n                repeated[letter] = true;\n                remove(active[letter]);\n                active[letter] = null;\n            }\n        }\n\n        return head.next == tail ? -1 : head.next.index;\n    }\n\n    private void appendBeforeTail(Node tail, Node node) {\n        Node previous = tail.prev;\n        previous.next = node;\n        node.prev = previous;\n        node.next = tail;\n        tail.prev = node;\n    }\n\n    private void remove(Node node) {\n        node.prev.next = node.next;\n        node.next.prev = node.prev;\n    }\n\n    private static class Node {\n        final int letter;\n        final int index;\n        Node prev;\n        Node next;\n\n        Node(int letter, int index) {\n            this.letter = letter;\n            this.index = index;\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"leetcode\"", "output": "0" },
-    { "input": "s = \"loveleetcode\"", "output": "2" },
-    { "input": "s = \"aabb\"", "output": "-1" }
+    {
+      "input": "s = \"leetcode\"",
+      "output": "0",
+      "description": "The first character appears once."
+    },
+    {
+      "input": "s = \"loveleetcode\"",
+      "output": "2",
+      "description": "The first two distinct characters repeat, so the answer moves to index 2."
+    },
+    {
+      "input": "s = \"aabb\"",
+      "output": "-1",
+      "description": "Every character repeats, so no unique character exists."
+    },
+    {
+      "input": "s = \"z\"",
+      "output": "0",
+      "description": "A one-character string is unique at index 0."
+    },
+    {
+      "input": "s = \"abaccdeff\"",
+      "output": "1",
+      "description": "The earliest unique character can appear before later unique characters."
+    },
+    {
+      "input": "s = \"dddccdbba\"",
+      "output": "8",
+      "description": "The only unique character can be at the final index."
+    },
+    {
+      "input": "s = \"aadadaad\"",
+      "output": "-1",
+      "description": "Interleaved repeats still count as repeated characters."
+    },
+    {
+      "input": "s = \"abcdefghijklmnopqrstuvwxyz\"",
+      "output": "0",
+      "description": "When every character is unique, the first index is returned."
+    },
+    {
+      "input": "s = \"aabbc\"",
+      "output": "4",
+      "description": "All earlier characters may repeat while the final character is unique."
+    },
+    {
+      "input": "s = \"abcabcx\"",
+      "output": "6",
+      "description": "A final unique character can remain after repeated blocks."
+    },
+    {
+      "input": "s = \"swiss\"",
+      "output": "1",
+      "description": "The first unique character is not necessarily the first alphabetically unique letter."
+    },
+    {
+      "input": "s = \"zzzyxxy\"",
+      "output": "-1",
+      "description": "A mix of grouped and mirrored repeats can still have no unique character."
+    }
   ]
 }

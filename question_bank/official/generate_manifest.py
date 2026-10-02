@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Generate manifest.json for the AlgoCraft official question bank.
-This script scans all problem JSON files and creates a manifest with:
+This script scans all problem JSON files and prompt image files and creates a manifest with:
 - Version information
 - File hashes for incremental updates
 - Total problem count
@@ -105,6 +105,33 @@ def validate_problem(problem: dict, filename: str) -> list[str]:
             errors.append("'tags' must be an array")
         elif not all(isinstance(t, str) for t in problem["tags"]):
             errors.append("All tags must be strings")
+
+    if "images" in problem:
+        errors.append("Legacy 'images' field is no longer supported; use 'diagrams' only")
+
+    if "diagram" in problem:
+        errors.append("Legacy 'diagram' field is no longer supported; use 'diagrams' only")
+
+    if "diagrams" in problem:
+        if not isinstance(problem["diagrams"], list):
+            errors.append("'diagrams' must be an array")
+        elif len(problem["diagrams"]) == 0:
+            errors.append("'diagrams' should be omitted instead of empty")
+        else:
+            for i, diagram in enumerate(problem["diagrams"]):
+                if not isinstance(diagram, dict):
+                    errors.append(f"diagrams[{i}] must be an object")
+                    continue
+                for field in ("id", "file", "caption"):
+                    if not isinstance(diagram.get(field), str) or not diagram[field].strip():
+                        errors.append(f"diagrams[{i}] missing non-empty '{field}'")
+                file = diagram.get("file")
+                if isinstance(file, str) and file.strip():
+                    image_path = QUESTION_BANK_DIR / "images" / file
+                    if "/" in file or "\\" in file or not file.endswith(".png"):
+                        errors.append(f"diagrams[{i}] file should be a PNG filename, not a path: {file}")
+                    elif not image_path.exists():
+                        errors.append(f"diagrams[{i}] image file is missing: images/{file}")
     
     # Validate initialCode contains a valid class definition
     if "initialCode" in problem and "description" in problem:
@@ -160,13 +187,22 @@ def validate_problem(problem: dict, filename: str) -> list[str]:
     return errors
 
 
+def normalized_file_bytes(filepath: Path) -> bytes:
+    """Read a UTF-8 text file with stable LF line endings."""
+    content = filepath.read_text(encoding='utf-8')
+    return content.replace('\r\n', '\n').replace('\r', '\n').encode('utf-8')
+
+
+def manifest_file_bytes(filepath: Path) -> bytes:
+    """Read a file exactly as the manifest downloader will verify it."""
+    if filepath.suffix.lower() == ".json":
+        return normalized_file_bytes(filepath)
+    return filepath.read_bytes()
+
+
 def sha256_file(filepath: Path) -> str:
-    """Calculate SHA-256 hash of a file."""
-    sha256 = hashlib.sha256()
-    with open(filepath, 'rb') as f:
-        for chunk in iter(lambda: f.read(8192), b''):
-            sha256.update(chunk)
-    return sha256.hexdigest()
+    """Calculate SHA-256 hash of a manifest file."""
+    return hashlib.sha256(manifest_file_bytes(filepath)).hexdigest()
 
 
 def sha256_string(s: str) -> str:
@@ -187,16 +223,54 @@ def load_and_validate_problem(filepath: Path) -> tuple[dict | None, list[str]]:
         return None, [f"Failed to read file: {e}"]
 
 
+def referenced_image_files(problem_files: list[Path]) -> list[Path]:
+    """Return PNG files referenced by structured diagrams."""
+    referenced = set()
+    for filepath in problem_files:
+        problem = json.loads(filepath.read_text(encoding='utf-8'))
+        for diagram in problem.get("diagrams", []):
+            if not isinstance(diagram, dict):
+                continue
+            file = diagram.get("file")
+            if isinstance(file, str) and file.strip():
+                referenced.add(QUESTION_BANK_DIR / "images" / file)
+    return sorted(referenced, key=lambda path: path.relative_to(QUESTION_BANK_DIR).as_posix())
+
+
+def translation_files() -> list[Path]:
+    """Return translation files that should be synced with the official bank."""
+    lang_dir = QUESTION_BANK_DIR / "lang"
+    if not lang_dir.exists():
+        return []
+    return sorted(
+        [
+            path
+            for path in lang_dir.glob("*/*.json")
+            if path.parent.name and path.stem.startswith("p") and path.stem[1:].isdigit()
+        ],
+        key=lambda path: path.relative_to(QUESTION_BANK_DIR).as_posix()
+    )
+
+
 def generate_manifest(validate_only: bool = False):
     """Generate the manifest.json file."""
     
-    # Find all problem JSON files
+    # Find all problem JSON files and repository metadata files.
     problem_files = sorted([
         f for f in QUESTION_BANK_DIR.glob("p*.json")
         if f.name != "manifest.json"
     ], key=lambda x: int(x.stem[1:]) if x.stem[1:].isdigit() else 0)
+    metadata_files = []
+    catalog_path = QUESTION_BANK_DIR / "catalog.json"
+    if catalog_path.exists():
+        metadata_files.append(catalog_path)
+    image_files = referenced_image_files(problem_files)
+    localized_files = translation_files()
+    sync_files = metadata_files + problem_files + image_files + localized_files
     
     print(f"Found {len(problem_files)} problem files")
+    print(f"Found {len(image_files)} prompt image files")
+    print(f"Found {len(localized_files)} translation files")
     
     # Validate all problems first
     total_errors = 0
@@ -205,7 +279,7 @@ def generate_manifest(validate_only: bool = False):
     for filepath in problem_files:
         problem, errors = load_and_validate_problem(filepath)
         if errors:
-            print(f"\n❌ {filepath.name} has {len(errors)} error(s):")
+            print(f"\n[ERROR] {filepath.name} has {len(errors)} error(s):")
             for error in errors:
                 print(f"   - {error}")
             total_errors += len(errors)
@@ -213,12 +287,12 @@ def generate_manifest(validate_only: bool = False):
             validated_count += 1
     
     if total_errors > 0:
-        print(f"\n⚠️  Validation completed with {total_errors} error(s) in {len(problem_files) - validated_count} file(s)")
+        print(f"\n[WARN] Validation completed with {total_errors} error(s) in {len(problem_files) - validated_count} file(s)")
         if validate_only:
             sys.exit(1)
         print("   Continuing with manifest generation anyway...")
     else:
-        print(f"\n✅ All {validated_count} problems validated successfully")
+        print(f"\n[OK] All {validated_count} problems validated successfully")
     
     if validate_only:
         return None
@@ -227,18 +301,20 @@ def generate_manifest(validate_only: bool = False):
     files = []
     all_hashes = []
     
-    for filepath in problem_files:
-        file_hash = sha256_file(filepath)
-        file_size = filepath.stat().st_size
+    for filepath in sync_files:
+        file_bytes = manifest_file_bytes(filepath)
+        file_hash = hashlib.sha256(file_bytes).hexdigest()
+        file_size = len(file_bytes)
+        file_name = filepath.relative_to(QUESTION_BANK_DIR).as_posix()
         
         files.append({
-            "name": filepath.name,
+            "name": file_name,
             "hash": file_hash,
             "size": file_size
         })
         all_hashes.append(file_hash)
         
-        print(f"  {filepath.name}: {file_hash[:16]}... ({file_size} bytes)")
+        print(f"  {file_name}: {file_hash[:16]}... ({file_size} bytes)")
     
     # Calculate combined signature
     combined = "".join(all_hashes)
@@ -249,7 +325,7 @@ def generate_manifest(validate_only: bool = False):
         "version": VERSION,
         "lastUpdated": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "signature": signature,
-        "totalProblems": len(files),
+        "totalProblems": len(problem_files),
         "files": files
     }
     
@@ -261,7 +337,7 @@ def generate_manifest(validate_only: bool = False):
     print(f"\nGenerated manifest.json:")
     print(f"  Version: {VERSION}")
     print(f"  Signature: {signature[:32]}...")
-    print(f"  Total problems: {len(files)}")
+    print(f"  Total problems: {len(problem_files)}")
     print(f"  Output: {manifest_path}")
     
     return manifest

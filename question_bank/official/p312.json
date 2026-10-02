@@ -1,34 +1,102 @@
 {
   "id": "312",
   "title": "N-Queens II",
-  "description": "# N-Queens II\n\nThe **n-queens** puzzle is the problem of placing `n` queens on an `n x n` chessboard such that no two queens attack each other.\n\nGiven an integer `n`, return *the number of distinct solutions to the **n-queens puzzle***.\n\n## Example 1:\n\n**Input:** n = 4\n**Output:** 2\n**Explanation:** There are two distinct solutions to the 4-queens puzzle as shown.\n\n## Example 2:\n\n**Input:** n = 1\n**Output:** 1\n\n## Constraints:\n\n*   `1 <= n <= 9`",
+  "description": "# N-Queens II\n\nThe **n-queens** puzzle asks you to place `n` queens on an `n x n` chessboard so that no two queens attack each other. Queens attack along rows, columns, and both diagonal directions.\n\nReturn the number of valid placements rather than the boards. One set of occupied cells is one placement; queens have no separate identities.\n\nFor `n = 4`, the two valid placements have row patterns `.Q.. / ...Q / Q... / ..Q.` and `..Q. / Q... / ...Q / .Q..`.\n\n## Example 1:\n\n**Input:** n = 4\n**Output:** 2\n**Explanation:** There are two distinct ways to place four queens without attacks.\n\n## Example 2:\n\n**Input:** n = 1\n**Output:** 1\n**Explanation:** A single queen on a one-cell board is valid.\n\n## Constraints:\n\n*   `1 <= n <= 9`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int totalNQueens(int n) {\n        \n    }\n}",
-  "tags": ["Backtracking"],
-  "examples": [
-    { "input": "n = 4", "output": "2" },
-    { "input": "n = 1", "output": "1" }
+  "initialCode": "class Solution {\n    public int totalNQueens(int n) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Backtracking",
+    "Bit Manipulation"
   ],
-  "solutions": [
+  "examples": [
     {
-      "name": "Backtracking with Count",
-      "timeComplexity": "O(n!)",
-      "spaceComplexity": "O(n)",
-      "description": "Same as N-Queens but only count solutions instead of building boards. Use boolean arrays for columns and both diagonal directions.",
-      "code": "class Solution {\n    private int count = 0;\n    public int totalNQueens(int n) {\n        solve(0, n, new boolean[n], new boolean[2 * n], new boolean[2 * n]);\n        return count;\n    }\n    private void solve(int row, int n, boolean[] cols, boolean[] d1, boolean[] d2) {\n        if (row == n) { count++; return; }\n        for (int col = 0; col < n; col++) {\n            if (!cols[col] && !d1[row - col + n] && !d2[row + col]) {\n                cols[col] = d1[row - col + n] = d2[row + col] = true;\n                solve(row + 1, n, cols, d1, d2);\n                cols[col] = d1[row - col + n] = d2[row + col] = false;\n            }\n        }\n    }\n}",
-      "language": "java"
+      "input": "n = 4",
+      "output": "2"
     },
     {
-      "name": "Bitmask Backtracking",
-      "timeComplexity": "O(n!)",
-      "spaceComplexity": "O(n)",
-      "description": "Use bitmasks for columns, diagonals, and anti-diagonals. Extract available positions using bit manipulation. Count valid placements without building boards.",
-      "code": "class Solution {\n    private int count;\n    public int totalNQueens(int n) {\n        count = 0;\n        solve(0, n, 0, 0, 0);\n        return count;\n    }\n    private void solve(int row, int n, int colMask, int d1Mask, int d2Mask) {\n        if (row == n) {\n            count++;\n            return;\n        }\n        int available = ((1 << n) - 1) & ~(colMask | d1Mask | d2Mask);\n        while (available != 0) {\n            int bit = available & (-available);\n            available &= available - 1;\n            solve(row + 1, n, colMask | bit, (d1Mask | bit) << 1, (d2Mask | bit) >>> 1);\n        }\n    }\n}",
-      "language": "java"
+      "input": "n = 1",
+      "output": "1"
     }
   ],
   "tests": [
-    { "input": "n = 4", "output": "2" },
-    { "input": "n = 1", "output": "1" }
+    {
+      "input": "n = 1",
+      "output": "1",
+      "description": "minimum board has one valid placement"
+    },
+    {
+      "input": "n = 2",
+      "output": "0",
+      "description": "two queens cannot be placed safely"
+    },
+    {
+      "input": "n = 3",
+      "output": "0",
+      "description": "three queens also has no solution"
+    },
+    {
+      "input": "n = 4",
+      "output": "2",
+      "description": "canonical four-queen sample"
+    },
+    {
+      "input": "n = 5",
+      "output": "10",
+      "description": "odd board with more than one symmetry class"
+    },
+    {
+      "input": "n = 6",
+      "output": "4",
+      "description": "larger even board catches diagonal-index mistakes"
+    },
+    {
+      "input": "n = 7",
+      "output": "40",
+      "description": "mid-sized odd board checks full counting"
+    },
+    {
+      "input": "n = 8",
+      "output": "92",
+      "description": "classic eight-queen count"
+    },
+    {
+      "input": "n = 9",
+      "output": "352",
+      "description": "upper bound for the official constraint"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Boolean Arrays Backtracking",
+      "timeComplexity": "O(n!)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nPlace one queen per row. Three boolean arrays record occupied columns, main diagonals, and anti-diagonals. When a candidate square is free in all three arrays, mark it, recurse to the next row, and unmark it while backtracking.\n\n## Key Insight\n\nA board position is unsafe exactly when its column, `row - col`, or `row + col` has already been used. Counting complete row placements avoids building any board strings.\n\n## Complexity Analysis\n- Time Complexity: O(n!)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private int answer;\n\n    public int totalNQueens(int n) {\n        answer = 0;\n        boolean[] columns = new boolean[n];\n        boolean[] mainDiag = new boolean[2 * n - 1];\n        boolean[] antiDiag = new boolean[2 * n - 1];\n        place(0, n, columns, mainDiag, antiDiag);\n        return answer;\n    }\n\n    private void place(int row, int n, boolean[] columns, boolean[] mainDiag, boolean[] antiDiag) {\n        if (row == n) {\n            answer++;\n            return;\n        }\n\n        for (int col = 0; col < n; col++) {\n            int main = row - col + n - 1;\n            int anti = row + col;\n            if (columns[col] || mainDiag[main] || antiDiag[anti]) {\n                continue;\n            }\n            columns[col] = true;\n            mainDiag[main] = true;\n            antiDiag[anti] = true;\n            place(row + 1, n, columns, mainDiag, antiDiag);\n            columns[col] = false;\n            mainDiag[main] = false;\n            antiDiag[anti] = false;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bitmask Available-Position DFS",
+      "timeComplexity": "O(n!)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nRepresent occupied columns and the two diagonal families as bitmasks. At each row, combine those masks to get every safe column bit, repeatedly take the lowest available bit, and shift diagonal masks for the next row.\n\n## Key Insight\n\nThe set of safe columns for a row is `fullMask & ~(columns | diagonals | antiDiagonals)`. Bit extraction removes one legal choice in constant time and keeps the search state compact.\n\n## Complexity Analysis\n- Time Complexity: O(n!)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private int fullMask;\n\n    public int totalNQueens(int n) {\n        fullMask = (1 << n) - 1;\n        return count(0, 0, 0);\n    }\n\n    private int count(int columns, int diagonals, int antiDiagonals) {\n        if (columns == fullMask) {\n            return 1;\n        }\n\n        int available = fullMask & ~(columns | diagonals | antiDiagonals);\n        int total = 0;\n        while (available != 0) {\n            int bit = available & -available;\n            available -= bit;\n            total += count(columns | bit, (diagonals | bit) << 1, (antiDiagonals | bit) >>> 1);\n        }\n        return total;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "First-Row Symmetry Pruning",
+      "timeComplexity": "O(n!)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nThe chessboard is symmetric across the vertical center line. Put the first queen only in the left half of row zero and double those counts. For odd `n`, search the middle column once because it mirrors to itself.\n\n## Key Insight\n\nSymmetry only changes the first decision. After that decision, the same bitmask DFS counts the remaining rows without accidentally double-counting mirrored boards.\n\n## Complexity Analysis\n- Time Complexity: O(n!)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private int n;\n    private int fullMask;\n\n    public int totalNQueens(int n) {\n        this.n = n;\n        this.fullMask = (1 << n) - 1;\n        int total = 0;\n\n        for (int col = 0; col < n / 2; col++) {\n            int bit = 1 << col;\n            total += 2 * countFromRow(1, bit, bit << 1, bit >>> 1);\n        }\n        if ((n & 1) == 1) {\n            int bit = 1 << (n / 2);\n            total += countFromRow(1, bit, bit << 1, bit >>> 1);\n        }\n        return total;\n    }\n\n    private int countFromRow(int row, int columns, int diagonals, int antiDiagonals) {\n        if (row == n) {\n            return 1;\n        }\n        int available = fullMask & ~(columns | diagonals | antiDiagonals);\n        int total = 0;\n        while (available != 0) {\n            int bit = available & -available;\n            available -= bit;\n            total += countFromRow(row + 1, columns | bit, (diagonals | bit) << 1, (antiDiagonals | bit) >>> 1);\n        }\n        return total;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Permutation Diagonal Scanner",
+      "timeComplexity": "O(n! * n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nTreat a partial board as a permutation: `queenColumn[row]` stores which column was chosen for that row, and `usedColumns` prevents duplicate columns. Before accepting a new column, scan earlier rows to reject diagonal conflicts.\n\n## Key Insight\n\nChoosing one column per row automatically satisfies row and column constraints. This route keeps the diagonal rule visible and is useful before introducing diagonal arrays or bitmasks.\n\n## Complexity Analysis\n- Time Complexity: O(n! * n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private int answer;\n\n    public int totalNQueens(int n) {\n        answer = 0;\n        int[] queenColumn = new int[n];\n        boolean[] usedColumns = new boolean[n];\n        search(0, n, queenColumn, usedColumns);\n        return answer;\n    }\n\n    private void search(int row, int n, int[] queenColumn, boolean[] usedColumns) {\n        if (row == n) {\n            answer++;\n            return;\n        }\n\n        for (int col = 0; col < n; col++) {\n            if (usedColumns[col] || hasDiagonalConflict(row, col, queenColumn)) {\n                continue;\n            }\n            queenColumn[row] = col;\n            usedColumns[col] = true;\n            search(row + 1, n, queenColumn, usedColumns);\n            usedColumns[col] = false;\n        }\n    }\n\n    private boolean hasDiagonalConflict(int row, int col, int[] queenColumn) {\n        for (int prev = 0; prev < row; prev++) {\n            if (Math.abs(row - prev) == Math.abs(col - queenColumn[prev])) {\n                return true;\n            }\n        }\n        return false;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

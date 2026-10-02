@@ -1,12 +1,19 @@
 {
   "id": "299",
   "title": "Odd String Difference",
-  "description": "# Odd String Difference\n\nYou are given an array of equal-length strings `words`. Assume that the length of each string is `n`.\n\nEach string `words[i]` can be converted into a **difference integer array** `difference[i]` of length `n - 1` where `difference[i][j] = words[i][j+1] - words[i][j]` where `0 <= j <= n - 2`. Note that the difference between two letters is the difference between their **positions** in the alphabet i.e. the position of `'a'` is `0`, `'b'` is `1`, and `'z'` is `25`.\n\n*   For example, for the string `\"acb\"`, the difference integer array is `[2 - 0, 1 - 2] = [2, -1]`.\n\nAll the strings in `words` have the same difference integer array, **except one**. You should find that string.\n\nReturn *the string in* `words` *that has different **difference integer array**.*\n\n## Example 1:\n\n**Input:** words = [\"adc\",\"wzy\",\"abc\"]\n**Output:** \"abc\"\n**Explanation:** \n- The difference integer array of \"adc\" is [3 - 0, 2 - 3] = [3, -1].\n- The difference integer array of \"wzy\" is [25 - 22, 24 - 25] = [3, -1].\n- The difference integer array of \"abc\" is [1 - 0, 2 - 1] = [1, 1].\nThe odd array is [1, 1], so we return the corresponding string, \"abc\".\n\n## Example 2:\n\n**Input:** words = [\"aaa\",\"bob\",\"ccc\",\"ddd\"]\n**Output:** \"bob\"\n**Explanation:** All the integer arrays are [0, 0] except for \"bob\", which corresponds to [13, -13].\n\n## Constraints:\n\n*   `3 <= words.length <= 100`\n*   `n == words[i].length`\n*   `2 <= n <= 20`\n*   `words[i]` consists of lowercase English letters.",
+  "description": "# Odd String Difference\n\nYou are given an array `words` of lowercase English strings. Every string has the same length.\n\nFor a word of length `m`, define its **difference array** as an integer array of length `m - 1`:\n\n* `difference[j] = word[j + 1] - word[j]`\n\nHere letters are compared by alphabet position: `'a' = 0`, `'b' = 1`, ..., `'z' = 25`.\n\nExactly one word has a difference array that is different from all the others. Return that word.\n\n## Example 1\n\n**Input:** words = [\"adc\",\"wzy\",\"abc\"]\n**Output:** \"abc\"\n**Explanation:** `adc` and `wzy` both have difference array `[3, -1]`, while `abc` has `[1, 1]`.\n\n## Example 2\n\n**Input:** words = [\"aaa\",\"bob\",\"ccc\",\"ddd\"]\n**Output:** \"bob\"\n**Explanation:** `aaa`, `ccc`, and `ddd` all have `[0, 0]`, while `bob` has `[13, -13]`.\n\n## Constraints\n\n* `3 <= words.length <= 100`\n* `2 <= words[i].length <= 20`\n* All strings in `words` have the same length.\n* `words[i]` contains only lowercase English letters.\n* Exactly one word has a different difference array.",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public String oddString(String[] words) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "String"],
+  "initialCode": "class Solution {\n    public String oddString(String[] words) {\n        // Write your code here\n        return \"\";\n    }\n}",
+  "tags": [
+    "Array",
+    "Hash Table",
+    "String"
+  ],
   "examples": [
-    { "input": "words = [\"adc\",\"wzy\",\"abc\"]", "output": "\"abc\"" },
+    {
+      "input": "words = [\"adc\",\"wzy\",\"abc\"]",
+      "output": "\"abc\""
+    },
     {
       "input": "words = [\"aaa\",\"bob\",\"ccc\",\"ddd\"]",
       "output": "\"bob\""
@@ -15,26 +22,72 @@
   "solutions": [
     {
       "name": "Compare Difference Arrays",
-      "timeComplexity": "O(n * m)",
+      "timeComplexity": "O(n*m)",
       "spaceComplexity": "O(m)",
-      "description": "Compute the difference array for the first two words. If they match, that's the common pattern. Otherwise compare with the third word to determine which of the first two is odd. Then scan remaining words.",
-      "code": "class Solution {\n    public String oddString(String[] words) {\n        int n = words[0].length();\n        int[] diff0 = getDiff(words[0]);\n        int[] diff1 = getDiff(words[1]);\n        if (!java.util.Arrays.equals(diff0, diff1)) {\n            int[] diff2 = getDiff(words[2]);\n            return java.util.Arrays.equals(diff0, diff2) ? words[1] : words[0];\n        }\n        for (int i = 2; i < words.length; i++) {\n            if (!java.util.Arrays.equals(diff0, getDiff(words[i]))) return words[i];\n        }\n        return \"\";\n    }\n    private int[] getDiff(String w) {\n        int[] d = new int[w.length() - 1];\n        for (int i = 0; i < d.length; i++) d[i] = w.charAt(i + 1) - w.charAt(i);\n        return d;\n    }\n}",
+      "description": "## Approach\n\nBuild the adjacent-difference array for words. Use the first three words to identify the common difference pattern, then return the first word whose difference array differs from that common pattern.\n\n## Key Insight\n\nBecause exactly one word is odd, among the first three words at least two must share the common pattern unless the first word is the answer. That is enough to determine the common array safely.\n\n## Complexity Analysis\n- Time Complexity: O(n*m)\n- Space Complexity: O(m)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String oddString(String[] words) {\n        int[] first = diff(words[0]);\n        int[] second = diff(words[1]);\n        int[] common = Arrays.equals(first, second) ? first : diff(words[2]);\n\n        for (String word : words) {\n            if (!Arrays.equals(diff(word), common)) {\n                return word;\n            }\n        }\n        return \"\";\n    }\n\n    private int[] diff(String word) {\n        int[] answer = new int[word.length() - 1];\n        for (int i = 1; i < word.length(); i++) {\n            answer[i - 1] = word.charAt(i) - word.charAt(i - 1);\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "String Key HashMap",
-      "timeComplexity": "O(n * m)",
-      "spaceComplexity": "O(n * m)",
-      "description": "Convert each word's difference array to a string key. Use a HashMap to group words by their key. The group with only one word contains the odd string.",
-      "code": "import java.util.HashMap;\nimport java.util.Map;\nimport java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public String oddString(String[] words) {\n        Map<String, List<String>> map = new HashMap<>();\n        for (String w : words) {\n            StringBuilder sb = new StringBuilder();\n            for (int i = 0; i < w.length() - 1; i++) {\n                if (i > 0) sb.append(',');\n                sb.append(w.charAt(i + 1) - w.charAt(i));\n            }\n            String key = sb.toString();\n            if (!map.containsKey(key)) map.put(key, new ArrayList<>());\n            map.get(key).add(w);\n        }\n        for (List<String> group : map.values()) {\n            if (group.size() == 1) return group.get(0);\n        }\n        return \"\";\n    }\n}",
+      "name": "String Key Counts",
+      "timeComplexity": "O(n*m)",
+      "spaceComplexity": "O(n*m)",
+      "description": "## Approach\n\nEncode each difference array as a string key. Count how often each key appears, and remember one representative word for each key. The key with count `1` belongs to the answer.\n\n## Key Insight\n\nTurning arrays into comparable keys lets us use a standard frequency map. This route is verbose but easy to debug because every pattern has an explicit count.\n\n## Complexity Analysis\n- Time Complexity: O(n*m)\n- Space Complexity: O(n*m)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String oddString(String[] words) {\n        Map<String, Integer> count = new HashMap<>();\n        Map<String, String> representative = new HashMap<>();\n\n        for (String word : words) {\n            String key = key(word);\n            count.put(key, count.getOrDefault(key, 0) + 1);\n            representative.put(key, word);\n        }\n\n        for (Map.Entry<String, Integer> entry : count.entrySet()) {\n            if (entry.getValue() == 1) {\n                return representative.get(entry.getKey());\n            }\n        }\n        return \"\";\n    }\n\n    private String key(String word) {\n        StringBuilder builder = new StringBuilder();\n        for (int i = 1; i < word.length(); i++) {\n            builder.append(word.charAt(i) - word.charAt(i - 1)).append('#');\n        }\n        return builder.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Direct Pattern Equality",
+      "timeComplexity": "O(n*m)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCompare two words' difference patterns directly without materializing arrays or keys. First decide whether `words[0]` is the odd word by comparing it with `words[1]` and `words[2]`; otherwise use `words[0]` as the common pattern and scan.\n\n## Key Insight\n\nThe prompt guarantees a single odd word. If `words[0]` differs from both of the next two, it must be the answer; otherwise `words[0]` represents the common pattern.\n\n## Complexity Analysis\n- Time Complexity: O(n*m)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public String oddString(String[] words) {\n        boolean firstMatchesSecond = samePattern(words[0], words[1]);\n        boolean firstMatchesThird = samePattern(words[0], words[2]);\n        if (!firstMatchesSecond && !firstMatchesThird) {\n            return words[0];\n        }\n\n        String common = words[0];\n        for (String word : words) {\n            if (!samePattern(word, common)) {\n                return word;\n            }\n        }\n        return \"\";\n    }\n\n    private boolean samePattern(String a, String b) {\n        for (int i = 1; i < a.length(); i++) {\n            if (a.charAt(i) - a.charAt(i - 1) != b.charAt(i) - b.charAt(i - 1)) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sort By Difference Key",
+      "timeComplexity": "O(n log n * m)",
+      "spaceComplexity": "O(n*m)",
+      "description": "## Approach\n\nSort the words by their encoded difference key. After sorting, all common-pattern words form one large group and the odd word must be at one end. Compare the first two keys to decide whether the odd word is first or last.\n\n## Key Insight\n\nSorting by pattern groups equal difference arrays together. Since only one word is odd, the singleton group cannot be in the middle after sorting.\n\n## Complexity Analysis\n- Time Complexity: O(n log n * m)\n- Space Complexity: O(n*m)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String oddString(String[] words) {\n        String[] ordered = words.clone();\n        Arrays.sort(ordered, Comparator.comparing(this::key));\n\n        if (key(ordered[0]).equals(key(ordered[1]))) {\n            return ordered[ordered.length - 1];\n        }\n        return ordered[0];\n    }\n\n    private String key(String word) {\n        StringBuilder builder = new StringBuilder();\n        for (int i = 1; i < word.length(); i++) {\n            builder.append(word.charAt(i) - word.charAt(i - 1)).append('#');\n        }\n        return builder.toString();\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "words = [\"adc\",\"wzy\",\"abc\"]", "output": "\"abc\"" },
+    {
+      "input": "words = [\"adc\",\"wzy\",\"abc\"]",
+      "output": "\"abc\"",
+      "description": "sample odd word has a different adjacent-difference array"
+    },
     {
       "input": "words = [\"aaa\",\"bob\",\"ccc\",\"ddd\"]",
-      "output": "\"bob\""
+      "output": "\"bob\"",
+      "description": "sample odd word is in the middle"
+    },
+    {
+      "input": "words = [\"abc\",\"aaa\",\"bbb\",\"ccc\"]",
+      "output": "\"abc\"",
+      "description": "odd word can be first"
+    },
+    {
+      "input": "words = [\"aaa\",\"bbb\",\"abc\",\"ccc\"]",
+      "output": "\"abc\"",
+      "description": "odd word can be in the middle with many identical patterns"
+    },
+    {
+      "input": "words = [\"aaa\",\"bbb\",\"ccc\",\"abc\"]",
+      "output": "\"abc\"",
+      "description": "odd word can be last"
+    },
+    {
+      "input": "words = [\"abm\",\"bcn\",\"alm\"]",
+      "output": "\"alm\"",
+      "description": "different signs and magnitudes in the difference array distinguish the odd word"
+    },
+    {
+      "input": "words = [\"ab\",\"cd\",\"az\"]",
+      "output": "\"az\"",
+      "description": "minimum word length still compares one adjacent difference"
     }
   ]
 }

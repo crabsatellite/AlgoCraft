@@ -1,16 +1,23 @@
 {
   "id": "126",
   "title": "Restore IP Addresses",
-  "description": "# Restore IP Addresses\n\nA **valid IP address** consists of exactly four integers separated by single dots. Each integer is between `0` and `255` (**inclusive**) and cannot have leading zeros.\n\n*   For example, `\"0.1.2.201\"` and `\"192.168.1.1\"` are **valid** IP addresses, but `\"0.011.255.245\"`, `\"192.168.1.312\"` and `\"192.168@1.1\"` are **invalid** IP addresses.\n\nGiven a string `s` containing only digits, return *all possible valid IP addresses that can be formed by inserting dots into* `s`. You are **not** allowed to reorder or remove any digits in `s`. You may return the valid IP addresses in **any order**.\n\n## Example 1:\n\n**Input:** s = \"25525511135\"\n**Output:** [\"255.255.11.135\",\"255.255.111.35\"]\n\n## Example 2:\n\n**Input:** s = \"0000\"\n**Output:** [\"0.0.0.0\"]\n\n## Example 3:\n\n**Input:** s = \"101023\"\n**Output:** [\"1.0.10.23\",\"1.0.102.3\",\"10.1.0.23\",\"10.10.2.3\",\"101.0.2.3\"]\n\n## Constraints:\n\n*   `1 <= s.length <= 20`\n*   `s` consists of digits only.",
+  "description": "# Restore IP Addresses\n\nA valid IP address consists of exactly four decimal integers separated by single dots. Each integer must be between `0` and `255` inclusive, and a segment cannot have leading zeroes unless the whole segment is exactly `0`.\n\nGiven a string `s` containing only digits, return all valid IP addresses that can be formed by inserting exactly three dots into `s`. You may not reorder, remove, or add any digits other than the dots. The addresses may be returned in any order.\n\n## Example 1:\n\n**Input:** s = \"25525511135\"\n**Output:** [\"255.255.11.135\",\"255.255.111.35\"]\n\n## Example 2:\n\n**Input:** s = \"0000\"\n**Output:** [\"0.0.0.0\"]\n\n## Example 3:\n\n**Input:** s = \"101023\"\n**Output:** [\"1.0.10.23\",\"1.0.102.3\",\"10.1.0.23\",\"10.10.2.3\",\"101.0.2.3\"]\n\n## Constraints:\n\n* `1 <= s.length <= 20`\n* `s` consists of digits only.",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public List<String> restoreIpAddresses(String s) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["String", "Backtracking"],
+  "initialCode": "import java.util.*;\n\nclass Solution {\n    public List<String> restoreIpAddresses(String s) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
+  "tags": [
+    "String",
+    "Backtracking",
+    "Dynamic Programming"
+  ],
   "examples": [
     {
       "input": "s = \"25525511135\"",
       "output": "[\"255.255.11.135\",\"255.255.111.35\"]"
     },
-    { "input": "s = \"0000\"", "output": "[\"0.0.0.0\"]" },
+    {
+      "input": "s = \"0000\"",
+      "output": "[\"0.0.0.0\"]"
+    },
     {
       "input": "s = \"101023\"",
       "output": "[\"1.0.10.23\",\"1.0.102.3\",\"10.1.0.23\",\"10.10.2.3\",\"101.0.2.3\"]"
@@ -18,33 +25,73 @@
   ],
   "solutions": [
     {
-      "name": "Backtracking",
-      "timeComplexity": "O(3^4) = O(1)",
+      "name": "Backtracking with Remaining-Length Pruning",
+      "timeComplexity": "O(1)",
       "spaceComplexity": "O(1)",
-      "description": "Backtrack with 4 parts. For each part, try 1-3 digit segments. Validate: no leading zeros (unless single 0), value <= 255, and enough remaining digits for remaining parts.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> restoreIpAddresses(String s) {\n        List<String> result = new ArrayList<>();\n        backtrack(s, 0, new ArrayList<>(), result);\n        return result;\n    }\n\n    private void backtrack(String s, int start, List<String> parts, List<String> result) {\n        if (parts.size() == 4) {\n            if (start == s.length()) result.add(String.join(\".\", parts));\n            return;\n        }\n        int remain = 4 - parts.size();\n        for (int len = 1; len <= 3 && start + len <= s.length(); len++) {\n            int left = s.length() - start - len;\n            if (left < remain - 1 || left > (remain - 1) * 3) continue;\n            String seg = s.substring(start, start + len);\n            if (len > 1 && seg.charAt(0) == '0') continue;\n            if (Integer.parseInt(seg) > 255) continue;\n            parts.add(seg);\n            backtrack(s, start + len, parts, result);\n            parts.remove(parts.size() - 1);\n        }\n    }\n}",
+      "description": "## Approach\n\nBuild the address from left to right and choose one valid segment at each depth. A segment may have length 1 to 3, must be at most 255, and may not start with 0 unless it is exactly the single character `0`. Before branching, compare the remaining character count with the remaining segment count so impossible branches stop immediately.\n\n## Key Insight\n\nThe search has a fixed depth of four, but correctness depends on consuming the whole string exactly. The remaining-length check prevents accepting prefixes that leave too few or too many digits for the remaining IP segments.\n\n## Complexity Analysis\n- Time Complexity: O(1), because there are at most 3 choices for each of 4 segments\n- Space Complexity: O(1), because the recursion depth and segment list size are fixed by the IP format",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> restoreIpAddresses(String s) {\n        List<String> result = new ArrayList<>();\n        if (s.length() < 4 || s.length() > 12) {\n            return result;\n        }\n        backtrack(s, 0, new ArrayList<>(), result);\n        return result;\n    }\n\n    private void backtrack(String s, int index, List<String> parts, List<String> result) {\n        if (parts.size() == 4) {\n            if (index == s.length()) {\n                result.add(String.join(\".\", parts));\n            }\n            return;\n        }\n\n        int remainingParts = 4 - parts.size();\n        int remainingChars = s.length() - index;\n        if (remainingChars < remainingParts || remainingChars > remainingParts * 3) {\n            return;\n        }\n\n        for (int length = 1; length <= 3 && index + length <= s.length(); length++) {\n            String segment = s.substring(index, index + length);\n            if (!isValidSegment(segment)) {\n                continue;\n            }\n            parts.add(segment);\n            backtrack(s, index + length, parts, result);\n            parts.remove(parts.size() - 1);\n        }\n    }\n\n    private boolean isValidSegment(String segment) {\n        if (segment.length() > 1 && segment.charAt(0) == '0') {\n            return false;\n        }\n        return Integer.parseInt(segment) <= 255;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Iterative Three-Loop",
-      "timeComplexity": "O(1) - constant bounded",
+      "name": "Fixed-Length Three-Cut Enumeration",
+      "timeComplexity": "O(1)",
       "spaceComplexity": "O(1)",
-      "description": "Use three nested loops for the three dot positions. Each loop determines the length of one segment. Validate each of the four resulting segments (no leading zeros, value <= 255).",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> restoreIpAddresses(String s) {\n        List<String> result = new ArrayList<>();\n        int len = s.length();\n        for (int i = 1; i <= 3 && i < len; i++) {\n            for (int j = i + 1; j <= i + 3 && j < len; j++) {\n                for (int k = j + 1; k <= j + 3 && k < len; k++) {\n                    String s1 = s.substring(0, i);\n                    String s2 = s.substring(i, j);\n                    String s3 = s.substring(j, k);\n                    String s4 = s.substring(k);\n                    if (s4.length() > 3) continue;\n                    if (isValid(s1) && isValid(s2) && isValid(s3) && isValid(s4)) {\n                        result.add(s1 + \".\" + s2 + \".\" + s3 + \".\" + s4);\n                    }\n                }\n            }\n        }\n        return result;\n    }\n\n    private boolean isValid(String seg) {\n        if (seg.length() == 0 || seg.length() > 3) return false;\n        if (seg.length() > 1 && seg.charAt(0) == '0') return false;\n        int val = Integer.parseInt(seg);\n        return val >= 0 && val <= 255;\n    }\n}",
+      "description": "## Approach\n\nEnumerate the lengths of the first three segments with three loops. The fourth segment length is then forced by the remaining suffix. For each split, validate all four segments against the leading-zero rule and the 255 upper bound before joining them with dots.\n\n## Key Insight\n\nBecause an IP address always has exactly four segments, dot placement can be treated as a tiny finite enumeration instead of a general search. This route is useful for showing that the recursive tree is only one way to express the same bounded split space.\n\n## Complexity Analysis\n- Time Complexity: O(1), with at most 27 first-three-segment length combinations\n- Space Complexity: O(1), excluding the output list",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> restoreIpAddresses(String s) {\n        List<String> result = new ArrayList<>();\n        int n = s.length();\n        if (n < 4 || n > 12) {\n            return result;\n        }\n\n        for (int firstLength = 1; firstLength <= 3; firstLength++) {\n            for (int secondLength = 1; secondLength <= 3; secondLength++) {\n                for (int thirdLength = 1; thirdLength <= 3; thirdLength++) {\n                    int fourthLength = n - firstLength - secondLength - thirdLength;\n                    if (fourthLength < 1 || fourthLength > 3) {\n                        continue;\n                    }\n\n                    int firstEnd = firstLength;\n                    int secondEnd = firstEnd + secondLength;\n                    int thirdEnd = secondEnd + thirdLength;\n                    String first = s.substring(0, firstEnd);\n                    String second = s.substring(firstEnd, secondEnd);\n                    String third = s.substring(secondEnd, thirdEnd);\n                    String fourth = s.substring(thirdEnd);\n                    if (isValidSegment(first) && isValidSegment(second)\n                            && isValidSegment(third) && isValidSegment(fourth)) {\n                        result.add(first + \".\" + second + \".\" + third + \".\" + fourth);\n                    }\n                }\n            }\n        }\n        return result;\n    }\n\n    private boolean isValidSegment(String segment) {\n        if (segment.length() > 1 && segment.charAt(0) == '0') {\n            return false;\n        }\n        int value = Integer.parseInt(segment);\n        return value <= 255;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "BFS over Partial IP Addresses",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse a queue of states. Each state stores the next string index, how many segments have already been chosen, and the partial address string. Expanding a state appends one valid next segment, while the remaining-length check prunes states that cannot still finish exactly four segments.\n\n## Key Insight\n\nBFS makes the state graph explicit: every edge adds one IP segment. It teaches the same constraints as backtracking, but in an iterative form that is easier to connect to broader search problems.\n\n## Complexity Analysis\n- Time Complexity: O(1), because the state graph is bounded by 3^4 segment choices\n- Space Complexity: O(1), because the queue can only hold a bounded number of partial four-segment states",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static class State {\n        int index;\n        int parts;\n        String address;\n\n        State(int index, int parts, String address) {\n            this.index = index;\n            this.parts = parts;\n            this.address = address;\n        }\n    }\n\n    public List<String> restoreIpAddresses(String s) {\n        List<String> result = new ArrayList<>();\n        if (s.length() < 4 || s.length() > 12) {\n            return result;\n        }\n\n        Queue<State> queue = new ArrayDeque<>();\n        queue.offer(new State(0, 0, \"\"));\n\n        while (!queue.isEmpty()) {\n            State state = queue.poll();\n            if (state.parts == 4) {\n                if (state.index == s.length()) {\n                    result.add(state.address);\n                }\n                continue;\n            }\n\n            int remainingParts = 4 - state.parts;\n            int remainingChars = s.length() - state.index;\n            for (int length = 1; length <= 3 && state.index + length <= s.length(); length++) {\n                int after = remainingChars - length;\n                if (after < remainingParts - 1 || after > (remainingParts - 1) * 3) {\n                    continue;\n                }\n                String segment = s.substring(state.index, state.index + length);\n                if (!isValidSegment(segment)) {\n                    continue;\n                }\n                String nextAddress = state.address.isEmpty() ? segment : state.address + \".\" + segment;\n                queue.offer(new State(state.index + length, state.parts + 1, nextAddress));\n            }\n        }\n        return result;\n    }\n\n    private boolean isValidSegment(String segment) {\n        if (segment.length() > 1 && segment.charAt(0) == '0') {\n            return false;\n        }\n        return Integer.parseInt(segment) <= 255;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Dynamic Programming by Segment Count",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nLet `dp[index][parts]` store every partial address that consumes the first `index` digits using exactly `parts` valid segments. Start with an empty prefix at `dp[0][0]`, append every valid segment of length 1 to 3, and finally return `dp[n][4]`.\n\n## Key Insight\n\nThe DP table records the same invariant as the recursive search: how many digits have been consumed and how many segments have been formed. It is a good bridge from brute split enumeration to path reconstruction in dynamic programming.\n\n## Complexity Analysis\n- Time Complexity: O(1), because `index` is effectively bounded by 12 for any solvable input and `parts` is bounded by 4\n- Space Complexity: O(1), because the DP table and number of partial addresses are bounded by the IP format",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> restoreIpAddresses(String s) {\n        int n = s.length();\n        if (n < 4 || n > 12) {\n            return new ArrayList<>();\n        }\n\n        List<String>[][] dp = new ArrayList[n + 1][5];\n        for (int i = 0; i <= n; i++) {\n            for (int parts = 0; parts <= 4; parts++) {\n                dp[i][parts] = new ArrayList<>();\n            }\n        }\n        dp[0][0].add(\"\");\n\n        for (int parts = 0; parts < 4; parts++) {\n            for (int index = 0; index <= n; index++) {\n                if (dp[index][parts].isEmpty()) {\n                    continue;\n                }\n                for (int length = 1; length <= 3 && index + length <= n; length++) {\n                    String segment = s.substring(index, index + length);\n                    if (!isValidSegment(segment)) {\n                        continue;\n                    }\n                    for (String prefix : dp[index][parts]) {\n                        String address = prefix.isEmpty() ? segment : prefix + \".\" + segment;\n                        dp[index + length][parts + 1].add(address);\n                    }\n                }\n            }\n        }\n\n        return dp[n][4];\n    }\n\n    private boolean isValidSegment(String segment) {\n        if (segment.length() > 1 && segment.charAt(0) == '0') {\n            return false;\n        }\n        return Integer.parseInt(segment) <= 255;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "s = \"25525511135\"",
-      "output": "[\"255.255.11.135\",\"255.255.111.35\"]"
+      "output": "[\"255.255.11.135\",\"255.255.111.35\"]",
+      "description": "Canonical string with two valid IP segmentations."
     },
-    { "input": "s = \"0000\"", "output": "[\"0.0.0.0\"]" },
+    {
+      "input": "s = \"0000\"",
+      "output": "[\"0.0.0.0\"]",
+      "description": "All zeroes require each segment to be exactly 0, not a multi-digit segment with a leading zero."
+    },
     {
       "input": "s = \"101023\"",
-      "output": "[\"1.0.10.23\",\"1.0.102.3\",\"10.1.0.23\",\"10.10.2.3\",\"101.0.2.3\"]"
+      "output": "[\"1.0.10.23\",\"1.0.102.3\",\"10.1.0.23\",\"10.10.2.3\",\"101.0.2.3\"]",
+      "description": "Mixed digits produce several valid segment lengths and include zero as a standalone segment."
     },
-    { "input": "s = \"1111\"", "output": "[\"1.1.1.1\"]" },
-    { "input": "s = \"010010\"", "output": "[\"0.10.0.10\",\"0.100.1.0\"]" }
+    {
+      "input": "s = \"1111\"",
+      "output": "[\"1.1.1.1\"]",
+      "description": "Shortest four-character input creates one one-digit-per-segment address."
+    },
+    {
+      "input": "s = \"010010\"",
+      "output": "[\"0.10.0.10\",\"0.100.1.0\"]",
+      "description": "Leading-zero cases allow segment 0 but reject multi-digit segments that start with 0."
+    },
+    {
+      "input": "s = \"256256256256\"",
+      "output": "[]",
+      "description": "Every natural three-digit segment exceeds 255, so no address is valid."
+    },
+    {
+      "input": "s = \"1111111111111\"",
+      "output": "[]",
+      "description": "Thirteen digits cannot fit into four segments of at most three digits each."
+    }
   ]
 }

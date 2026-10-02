@@ -1,10 +1,15 @@
 {
   "id": "91",
   "title": "Validate Binary Search Tree",
-  "description": "# Validate Binary Search Tree\n\nGiven the `root` of a binary tree, determine if it is a valid binary search tree (BST).\n\nA **valid BST** is defined as follows:\n\n*   The left subtree of a node contains only nodes with keys **less than** the node's key.\n*   The right subtree of a node contains only nodes with keys **greater than** the node's key.\n*   Both the left and right subtrees must also be binary search trees.\n\n## Example 1:\n\n**Input:** root = [2,1,3]\n**Output:** true\n\n## Example 2:\n\n**Input:** root = [5,1,4,null,null,3,6]\n**Output:** false\n**Explanation:** The root node's value is 5 but its right child's value is 4.\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[1, 10^4]`.\n*   `-2^31 <= Node.val <= 2^31 - 1`",
+  "description": "# Validate Binary Search Tree\n\nGiven the `root` of a binary tree, determine if it is a valid binary search tree (BST).\n\nA **valid BST** is defined as follows:\n\n* The left subtree of a node contains only nodes with keys **less than** the node's key.\n* The right subtree of a node contains only nodes with keys **greater than** the node's key.\n* Both the left and right subtrees must also be valid binary search trees.\n\nThe ordering rule is strict: duplicate values are not allowed, and every node must respect all ancestor bounds, not only its direct parent.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [2,1,3]\n**Output:** true\n\n## Example 2:\n\n**Input:** root = [5,1,4,null,null,3,6]\n**Output:** false\n**Explanation:** The node `4` is in the right subtree of `5`, but `4` is not greater than `5`.\n\n## Constraints:\n\n* The number of nodes in the tree is in the range `[1, 10^4]`.\n* `-2^31 <= Node.val <= 2^31 - 1`",
   "difficulty": "MEDIUM",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public boolean isValidBST(TreeNode root) {\n        // Write your code here\n        return false;\n    }\n}",
-  "tags": ["Tree", "Depth-First Search", "Binary Search Tree", "Binary Tree"],
+  "tags": [
+    "Tree",
+    "Depth-First Search",
+    "Binary Search Tree",
+    "Binary Tree"
+  ],
   "examples": [
     {
       "input": "root = [2,1,3]",
@@ -18,56 +23,108 @@
   "tests": [
     {
       "input": "root = [2,1,3]",
-      "output": "true"
+      "output": "true",
+      "description": "Canonical valid BST with one left child and one right child."
     },
     {
       "input": "root = [5,1,4,null,null,3,6]",
-      "output": "false"
+      "output": "false",
+      "description": "The right subtree contains a value that is not greater than the root."
     },
     {
       "input": "root = [2,2,2]",
-      "output": "false"
+      "output": "false",
+      "description": "Duplicate values violate the strict BST ordering rule."
     },
     {
       "input": "root = [1]",
-      "output": "true"
+      "output": "true",
+      "description": "A single node has no child or ancestor conflict."
     },
     {
       "input": "root = [5,4,6,null,null,3,7]",
-      "output": "false"
+      "output": "false",
+      "description": "The value 3 is in the right subtree of 5 and violates an ancestor bound."
     },
     {
       "input": "root = [2147483647]",
-      "output": "true"
+      "output": "true",
+      "description": "The maximum int value is valid when no child violates the strict bounds."
+    },
+    {
+      "input": "root = [-2147483648]",
+      "output": "true",
+      "description": "The minimum int value is valid when checked with wider sentinel bounds."
+    },
+    {
+      "input": "root = [0,-2147483648,2147483647]",
+      "output": "true",
+      "description": "Both int boundaries can appear as valid children of zero."
+    },
+    {
+      "input": "root = [10,5,15,null,null,6,20]",
+      "output": "false",
+      "description": "The value 6 is inside the right subtree of 10 but is less than 10."
+    },
+    {
+      "input": "root = [10,5,15,3,12]",
+      "output": "false",
+      "description": "The value 12 is inside the left subtree of 10 but is greater than 10."
+    },
+    {
+      "input": "root = [8,3,10,1,6,null,14,null,null,4,7,13]",
+      "output": "true",
+      "description": "A deeper valid BST with missing children still respects all ancestor ranges."
+    },
+    {
+      "input": "root = [1,null,1]",
+      "output": "false",
+      "description": "A duplicate value on the right is still invalid because equality is not allowed."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p91_example1.png",
-      "caption": "Example 1"
+      "caption": "Input tree for Example 1"
     },
     {
       "id": "example2",
       "file": "p91_example2.png",
-      "caption": "Example 2"
+      "caption": "Input tree for Example 2"
     }
   ],
   "solutions": [
     {
-      "name": "DFS with Range Bounds",
+      "name": "DFS with Long Range Bounds",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "Pass valid value range (min, max) down the tree. Each node must be within its allowed range. Use long to handle integer boundary values.",
-      "code": "class Solution {\n    public boolean isValidBST(TreeNode root) {\n        return validate(root, Long.MIN_VALUE, Long.MAX_VALUE);\n    }\n    \n    private boolean validate(TreeNode node, long min, long max) {\n        if (node == null) return true;\n        \n        if (node.val <= min || node.val >= max) return false;\n        \n        return validate(node.left, min, node.val)\n            && validate(node.right, node.val, max);\n    }\n}",
+      "description": "## Approach\n\nPass an exclusive valid range down the tree. A node must be greater than the lower bound inherited from its right-side ancestors and less than the upper bound inherited from its left-side ancestors.\n\n## Key Insight\n\nChecking only parent-child order is not enough. The valid range is the compressed form of every ancestor constraint, and `long` sentinels prevent `Integer.MIN_VALUE` and `Integer.MAX_VALUE` from being rejected accidentally.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h)",
+      "code": "class Solution {\n    public boolean isValidBST(TreeNode root) {\n        return validate(root, Long.MIN_VALUE, Long.MAX_VALUE);\n    }\n\n    private boolean validate(TreeNode node, long min, long max) {\n        if (node == null) return true;\n        if (node.val <= min || node.val >= max) return false;\n        return validate(node.left, min, node.val)\n            && validate(node.right, node.val, max);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Inorder Traversal",
+      "name": "Recursive Inorder with Previous Value",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "Inorder traversal of a valid BST produces a strictly increasing sequence. Track the previous value and verify the current node is greater.",
-      "code": "class Solution {\n    private long prev = Long.MIN_VALUE;\n    \n    public boolean isValidBST(TreeNode root) {\n        if (root == null) return true;\n        \n        if (!isValidBST(root.left)) return false;\n        \n        if (root.val <= prev) return false;\n        prev = root.val;\n        \n        return isValidBST(root.right);\n    }\n}",
+      "description": "## Approach\n\nTraverse the tree in inorder order and remember the previously visited value. In a valid BST, inorder traversal must produce a strictly increasing sequence.\n\n## Key Insight\n\nThe strict increase catches duplicate values and any descendant that crosses an ancestor boundary, because such a violation breaks sorted inorder order somewhere in the traversal.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h)",
+      "code": "class Solution {\n    private Long previous = null;\n\n    public boolean isValidBST(TreeNode root) {\n        return inorder(root);\n    }\n\n    private boolean inorder(TreeNode node) {\n        if (node == null) return true;\n        if (!inorder(node.left)) return false;\n        if (previous != null && node.val <= previous) return false;\n        previous = (long) node.val;\n        return inorder(node.right);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative Inorder Stack",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nUse an explicit stack to simulate inorder traversal. Push left ancestors, visit the next node, compare it with the previous value, then continue into the right subtree.\n\n## Key Insight\n\nThis teaches the same sorted-sequence invariant as recursive inorder while avoiding recursion depth as an implementation dependency. The stack contains only the current left spine.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isValidBST(TreeNode root) {\n        Deque<TreeNode> stack = new ArrayDeque<>();\n        TreeNode current = root;\n        Long previous = null;\n\n        while (current != null || !stack.isEmpty()) {\n            while (current != null) {\n                stack.push(current);\n                current = current.left;\n            }\n\n            current = stack.pop();\n            if (previous != null && current.val <= previous) {\n                return false;\n            }\n            previous = (long) current.val;\n            current = current.right;\n        }\n\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Morris Inorder Traversal",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse Morris traversal to perform inorder traversal without recursion or an explicit stack. Temporary predecessor links let the traversal return to a node after finishing its left subtree.\n\n## Key Insight\n\nMorris traversal still relies on the strictly increasing inorder invariant, but it restores every temporary link before moving on so the tree is not left mutated.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean isValidBST(TreeNode root) {\n        TreeNode current = root;\n        Long previous = null;\n\n        while (current != null) {\n            if (current.left == null) {\n                if (previous != null && current.val <= previous) {\n                    return false;\n                }\n                previous = (long) current.val;\n                current = current.right;\n            } else {\n                TreeNode predecessor = current.left;\n                while (predecessor.right != null && predecessor.right != current) {\n                    predecessor = predecessor.right;\n                }\n\n                if (predecessor.right == null) {\n                    predecessor.right = current;\n                    current = current.left;\n                } else {\n                    predecessor.right = null;\n                    if (previous != null && current.val <= previous) {\n                        return false;\n                    }\n                    previous = (long) current.val;\n                    current = current.right;\n                }\n            }\n        }\n\n        return true;\n    }\n}",
       "language": "java"
     }
   ]

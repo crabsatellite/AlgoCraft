@@ -1,7 +1,7 @@
 {
   "id": "130",
   "title": "Clone Graph",
-  "description": "# Clone Graph\n\nGiven a reference of a node in a **[connected](https://en.wikipedia.org/wiki/Connectivity_(graph_theory)#Connected_graph)** undirected graph.\n\nReturn a [deep copy](https://en.wikipedia.org/wiki/Object_copying#Deep_copy) (clone) of the graph.\n\nEach node in the graph contains a value (`int`) and a list (`List[Node]`) of its neighbors.\n\n```java\nclass Node {\n    public int val;\n    public List<Node> neighbors;\n}\n```\n\n**Test case format:**\n\nFor simplicity, each node's value is the same as the node's index (1-indexed). For example, the first node with `val == 1`, the second node with `val == 2`, and so on. The graph is represented in the test case using an adjacency list.\n\n**An adjacency list** is a collection of unordered lists used to represent a finite graph. Each list describes the set of neighbors of a node in the graph.\n\nThe given node will always be the first node with `val = 1`. You must return the **copy of the given node** as a reference to the cloned graph.\n\n## Example 1:\n\n**Input:** adjList = [[2,4],[1,3],[2,4],[1,3]]\n**Output:** [[2,4],[1,3],[2,4],[1,3]]\n**Explanation:** There are 4 nodes in the graph.\n1st node (val = 1)'s neighbors are 2nd node (val = 2) and 4th node (val = 4).\n2nd node (val = 2)'s neighbors are 1st node (val = 1) and 3rd node (val = 3).\n3rd node (val = 3)'s neighbors are 2nd node (val = 2) and 4th node (val = 4).\n4th node (val = 4)'s neighbors are 1st node (val = 1) and 3rd node (val = 3).\n\n## Example 2:\n\n**Input:** adjList = [[]]\n**Output:** [[]]\n**Explanation:** Note that the input contains one empty list. The graph consists of only one node with val = 1 and it does not have any neighbors.\n\n## Example 3:\n\n**Input:** adjList = []\n**Output:** []\n**Explanation:** This an empty graph, it does not have any nodes.\n\n## Constraints:\n\n*   The number of nodes in the graph is in the range `[0, 100]`.\n*   `1 <= Node.val <= 100`\n*   `Node.val` is unique for each node.\n*   There are no repeated edges and no self-loops in the graph.\n*   The Graph is connected and all nodes can be visited starting from the given node.",
+  "description": "# Clone Graph\n\nGiven a reference to a node in a connected undirected graph, return a deep copy of the graph.\n\nEach node stores an integer value and a list of neighboring nodes:\n\n```java\nclass Node {\n    public int val;\n    public List<Node> neighbors;\n}\n```\n\nA deep copy means every original node must have a newly allocated node with the same value, and every original edge must be recreated between the corresponding cloned nodes. The returned node must be the clone of the input node, not the input node itself.\n\n## Test Case Format\n\nThe judge serializes a graph as an adjacency list. Node values are 1-indexed: the first list describes node `1`, the second list describes node `2`, and so on. For example, `[[2,4],[1,3],[2,4],[1,3]]` represents four nodes with edges `1-2`, `2-3`, `3-4`, and `4-1`.\n\nThe output is shown as the cloned graph's adjacency list only because references cannot be printed directly. A correct answer must still build new `Node` objects and preserve shared neighbors and cycles.\n\n## Example 1\n\n**Input:** `adjList = [[2,4],[1,3],[2,4],[1,3]]`\n\n**Output:** `[[2,4],[1,3],[2,4],[1,3]]`\n\n**Explanation:** The input is a four-node cycle. The clone must contain four new nodes and the same four undirected edges.\n\n## Example 2\n\n**Input:** `adjList = [[]]`\n\n**Output:** `[[]]`\n\n**Explanation:** The graph has one node with value `1` and no neighbors. The answer is a new isolated node.\n\n## Example 3\n\n**Input:** `adjList = []`\n\n**Output:** `[]`\n\n**Explanation:** The graph is empty, so return `null`.\n\n## Constraints\n\n* The number of nodes is in the range `[0, 100]`.\n* `1 <= Node.val <= 100`.\n* Each `Node.val` is unique.\n* There are no repeated edges and no self-loops.\n* The graph is connected when it is non-empty.",
   "difficulty": "MEDIUM",
   "initialCode": "/*\n// Definition for a Node.\nclass Node {\n    public int val;\n    public List<Node> neighbors;\n    public Node() {\n        val = 0;\n        neighbors = new ArrayList<Node>();\n    }\n    public Node(int _val) {\n        val = _val;\n        neighbors = new ArrayList<Node>();\n    }\n    public Node(int _val, ArrayList<Node> _neighbors) {\n        val = _val;\n        neighbors = _neighbors;\n    }\n}\n*/\n\nclass Solution {\n    public Node cloneGraph(Node node) {\n        // Write your code here\n        return null;\n    }\n}",
   "tags": [
@@ -26,41 +26,85 @@
   ],
   "solutions": [
     {
-      "name": "DFS with HashMap",
+      "name": "Recursive DFS with Identity Map",
       "timeComplexity": "O(V + E)",
       "spaceComplexity": "O(V)",
-      "description": "Use a HashMap mapping original node to cloned node. DFS from the given node: clone it, store in map, then recursively clone all neighbors.",
-      "code": "import java.util.*;\n\nclass Solution {\n    private Map<Node, Node> visited = new HashMap<>();\n\n    public Node cloneGraph(Node node) {\n        if (node == null) return null;\n        if (visited.containsKey(node)) return visited.get(node);\n        Node clone = new Node(node.val);\n        visited.put(node, clone);\n        for (Node neighbor : node.neighbors) {\n            clone.neighbors.add(cloneGraph(neighbor));\n        }\n        return clone;\n    }\n}",
+      "description": "## Approach\nUse a map from each original node object to its clone. The recursive function returns the clone for the node it receives. If the node was already cloned, the function returns the stored clone immediately; otherwise it creates the clone, records it, and recursively appends cloned neighbors.\n\n## Key Insight\nThe map must be written before recursing into neighbors. Cycles such as `1-2-3-1` would otherwise recurse forever, and shared neighbors would be cloned more than once. Object identity, not just node value, is the safest general key for graph cloning.\n\n## Complexity Analysis\nEach node is cloned once and each adjacency-list entry is scanned once, so the time complexity is `O(V + E)`. The clone map and recursion stack use `O(V)` extra space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private Map<Node, Node> clones = new HashMap<>();\n\n    public Node cloneGraph(Node node) {\n        if (node == null) return null;\n        if (clones.containsKey(node)) return clones.get(node);\n\n        Node copy = new Node(node.val);\n        clones.put(node, copy);\n        for (Node neighbor : node.neighbors) {\n            copy.neighbors.add(cloneGraph(neighbor));\n        }\n        return copy;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "BFS with HashMap",
+      "name": "Iterative BFS with HashMap",
       "timeComplexity": "O(V + E)",
       "spaceComplexity": "O(V)",
-      "description": "BFS from the given node. Clone each node when first encountered and store in a map. For each neighbor, clone if not yet cloned and add to the clone's neighbor list.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public Node cloneGraph(Node node) {\n        if (node == null) return null;\n        Map<Node, Node> map = new HashMap<>();\n        Queue<Node> queue = new LinkedList<>();\n        map.put(node, new Node(node.val));\n        queue.offer(node);\n        while (!queue.isEmpty()) {\n            Node cur = queue.poll();\n            for (Node neighbor : cur.neighbors) {\n                if (!map.containsKey(neighbor)) {\n                    map.put(neighbor, new Node(neighbor.val));\n                    queue.offer(neighbor);\n                }\n                map.get(cur).neighbors.add(map.get(neighbor));\n            }\n        }\n        return map.get(node);\n    }\n}",
+      "description": "## Approach\nCreate the clone for the entry node, then traverse original nodes with a queue. For each original node, inspect every neighbor. If a neighbor has not been cloned yet, create its clone and enqueue the original neighbor. Then add the neighbor clone to the current clone's neighbor list.\n\n## Key Insight\nThe queue controls traversal order, while the map controls clone identity. A neighbor can be discovered many times through different edges, but it must still map to exactly one cloned node.\n\n## Complexity Analysis\nEvery node enters the queue once, and every undirected edge is seen from both endpoints in the adjacency lists. The running time is `O(V + E)` and the map plus queue use `O(V)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public Node cloneGraph(Node node) {\n        if (node == null) return null;\n\n        Map<Node, Node> map = new HashMap<>();\n        Queue<Node> queue = new ArrayDeque<>();\n        map.put(node, new Node(node.val));\n        queue.offer(node);\n\n        while (!queue.isEmpty()) {\n            Node current = queue.poll();\n            for (Node neighbor : current.neighbors) {\n                if (!map.containsKey(neighbor)) {\n                    map.put(neighbor, new Node(neighbor.val));\n                    queue.offer(neighbor);\n                }\n                map.get(current).neighbors.add(map.get(neighbor));\n            }\n        }\n\n        return map.get(node);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two-Pass Iterative Clone",
+      "timeComplexity": "O(V + E)",
+      "spaceComplexity": "O(V)",
+      "description": "## Approach\nFirst traverse the graph and allocate one clone for every original node, keeping the original nodes in a list. In the second pass, iterate over that list and fill each clone's neighbor list by looking up already-created neighbor clones.\n\n## Key Insight\nSeparating node allocation from edge wiring makes deep-copy correctness easier to inspect. During the second pass every clone already exists, so cycles and shared neighbors become ordinary map lookups instead of interleaved traversal cases.\n\n## Complexity Analysis\nThe traversal and wiring passes together scan each node and adjacency-list entry a constant number of times. Time complexity is `O(V + E)`, and the map, stack, and original-node list use `O(V)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public Node cloneGraph(Node node) {\n        if (node == null) return null;\n\n        Map<Node, Node> clones = new HashMap<>();\n        List<Node> originals = new ArrayList<>();\n        Deque<Node> stack = new ArrayDeque<>();\n        clones.put(node, new Node(node.val));\n        stack.push(node);\n\n        while (!stack.isEmpty()) {\n            Node current = stack.pop();\n            originals.add(current);\n            for (Node neighbor : current.neighbors) {\n                if (!clones.containsKey(neighbor)) {\n                    clones.put(neighbor, new Node(neighbor.val));\n                    stack.push(neighbor);\n                }\n            }\n        }\n\n        for (Node original : originals) {\n            Node copy = clones.get(original);\n            for (Node neighbor : original.neighbors) {\n                copy.neighbors.add(clones.get(neighbor));\n            }\n        }\n\n        return clones.get(node);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Value-Indexed Array Map",
+      "timeComplexity": "O(V + E)",
+      "spaceComplexity": "O(101)",
+      "description": "## Approach\nUse the constraint `1 <= Node.val <= 100` and unique node values to store clones in a fixed array indexed by value. A separate `seen` array records which original values have already been enqueued for traversal. As BFS scans edges, it creates missing clone nodes and wires cloned neighbors by array lookup.\n\n## Key Insight\nThis is only valid because the prompt guarantees unique values in a small bounded range. The clone identity still comes from a table, but the table is an array instead of a hash map. The `seen` array is separate from `clones` so an already-created neighbor clone can be wired many times while the original neighbor is traversed only once.\n\n## Complexity Analysis\nThe traversal still touches each node and adjacency entry once, so time is `O(V + E)`. The arrays are fixed size under the prompt constraints, and the queue holds at most `V` nodes.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public Node cloneGraph(Node node) {\n        if (node == null) return null;\n\n        Node[] clones = new Node[101];\n        boolean[] seen = new boolean[101];\n        Deque<Node> queue = new ArrayDeque<>();\n\n        clones[node.val] = new Node(node.val);\n        seen[node.val] = true;\n        queue.offer(node);\n\n        while (!queue.isEmpty()) {\n            Node current = queue.poll();\n            Node copy = clones[current.val];\n            for (Node neighbor : current.neighbors) {\n                if (clones[neighbor.val] == null) {\n                    clones[neighbor.val] = new Node(neighbor.val);\n                }\n                copy.neighbors.add(clones[neighbor.val]);\n                if (!seen[neighbor.val]) {\n                    seen[neighbor.val] = true;\n                    queue.offer(neighbor);\n                }\n            }\n        }\n\n        return clones[node.val];\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "adjList = [[2,4],[1,3],[2,4],[1,3]]",
-      "output": "[[2,4],[1,3],[2,4],[1,3]]"
+      "output": "[[2,4],[1,3],[2,4],[1,3]]",
+      "description": "Four-node cycle checks that cycles do not cause infinite recursion or duplicate clones."
     },
     {
       "input": "adjList = [[]]",
-      "output": "[[]]"
+      "output": "[[]]",
+      "description": "A single isolated node must still be newly allocated."
     },
     {
       "input": "adjList = []",
-      "output": "[]"
+      "output": "[]",
+      "description": "Empty graph input must return null."
+    },
+    {
+      "input": "adjList = [[2],[1]]",
+      "output": "[[2],[1]]",
+      "description": "Smallest non-trivial undirected graph."
+    },
+    {
+      "input": "adjList = [[2,3],[1,3],[1,2]]",
+      "output": "[[2,3],[1,3],[1,2]]",
+      "description": "Triangle graph checks dense cycles and shared neighbors."
+    },
+    {
+      "input": "adjList = [[2,3,4,5],[1],[1],[1],[1]]",
+      "output": "[[2,3,4,5],[1],[1],[1],[1]]",
+      "description": "Star graph checks one high-degree hub with many leaf nodes."
+    },
+    {
+      "input": "adjList = [[2],[1,3],[2,4],[3,5],[4]]",
+      "output": "[[2],[1,3],[2,4],[3,5],[4]]",
+      "description": "Long path graph checks traversal across multiple levels."
+    },
+    {
+      "input": "adjList = [[2,3],[1,4],[1,4],[2,3,5],[4]]",
+      "output": "[[2,3],[1,4],[1,4],[2,3,5],[4]]",
+      "description": "Uneven graph with shared neighbor 4 checks alias preservation in the clone."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p130_example1.png",
-      "caption": "Example 1"
+      "caption": "Four-node cycle prompt for clone graph"
     }
   ]
 }

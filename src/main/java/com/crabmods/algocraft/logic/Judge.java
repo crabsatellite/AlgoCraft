@@ -1,8 +1,5 @@
 package com.crabmods.algocraft.logic;
 
-import com.mojang.logging.LogUtils;
-import org.slf4j.Logger;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,8 +11,13 @@ import java.util.List;
  * significantly improving performance over per-test compilation.
  */
 public class Judge {
-    
-    private static final Logger LOGGER = LogUtils.getLogger();
+
+    private static final System.Logger LOGGER = System.getLogger(Judge.class.getName());
+
+    @FunctionalInterface
+    interface BatchExecutor {
+        List<CodeExecutor.TestResult> execute(String code, List<CodeExecutor.TestCase> testCases);
+    }
     
     /**
      * Grade a code submission against a problem's test cases.
@@ -26,6 +28,14 @@ public class Judge {
      * @return SubmissionResult containing pass/fail status and details
      */
     public static SubmissionResult grade(Problem problem, String userCode) {
+        return grade(problem, userCode, CodeExecutor::executeBatch);
+    }
+
+    static SubmissionResult gradeForTest(Problem problem, String userCode, BatchExecutor batchExecutor) {
+        return grade(problem, userCode, batchExecutor);
+    }
+
+    private static SubmissionResult grade(Problem problem, String userCode, BatchExecutor batchExecutor) {
         SubmissionResult result = new SubmissionResult();
         
         // Validate inputs
@@ -51,15 +61,21 @@ public class Judge {
         List<CodeExecutor.TestCase> allTests = new ArrayList<>();
         List<Boolean> isHiddenFlags = new ArrayList<>();
         List<Problem.TestCase> validTests = new ArrayList<>();
+        String preferredMethodName = CodeExecutor.preferredMethodNameFromInitialCode(problem.getInitialCode());
         
         // Add examples (visible)
         for (int i = 0; i < examples.size(); i++) {
             Problem.TestCase test = examples.get(i);
             if (test == null || !test.isValid()) {
-                LOGGER.warn("Skipping invalid example test case {} for problem {}", i, problem.getId());
-                continue;
+                return invalidProblemTestCase(result, problem, "example", i,
+                        examples.size() + hiddenTests.size());
             }
-            allTests.add(new CodeExecutor.TestCase(test.getInput(), test.getOutput()));
+            allTests.add(new CodeExecutor.TestCase(
+                    test.getInput(),
+                    test.getOutput(),
+                    problem.getId(),
+                    preferredMethodName
+            ));
             isHiddenFlags.add(false);
             validTests.add(test);
         }
@@ -68,10 +84,15 @@ public class Judge {
         for (int i = 0; i < hiddenTests.size(); i++) {
             Problem.TestCase test = hiddenTests.get(i);
             if (test == null || !test.isValid()) {
-                LOGGER.warn("Skipping invalid hidden test case {} for problem {}", i, problem.getId());
-                continue;
+                return invalidProblemTestCase(result, problem, "hidden", i,
+                        examples.size() + hiddenTests.size());
             }
-            allTests.add(new CodeExecutor.TestCase(test.getInput(), test.getOutput()));
+            allTests.add(new CodeExecutor.TestCase(
+                    test.getInput(),
+                    test.getOutput(),
+                    problem.getId(),
+                    preferredMethodName
+            ));
             isHiddenFlags.add(true);
             validTests.add(test);
         }
@@ -92,8 +113,28 @@ public class Judge {
         boolean hasTimeLimit = false;
         
         // Execute all tests in batch (compiles once!)
-        List<CodeExecutor.TestResult> testResults = CodeExecutor.executeBatch(userCode, allTests);
-        
+        List<CodeExecutor.TestResult> testResults = batchExecutor.execute(userCode, allTests);
+        if (testResults == null || testResults.size() != allTests.size()) {
+            result.setSuccess(false);
+            result.setMessage("Internal Judge Error");
+            result.setExecutionTimeMs(System.currentTimeMillis() - startTime);
+            LOGGER.log(System.Logger.Level.ERROR,
+                    "Judge batch result count mismatch for problem " + problem.getId()
+                            + ": expected " + allTests.size()
+                            + ", got " + (testResults == null ? "null" : testResults.size()));
+            return result;
+        }
+        for (int i = 0; i < testResults.size(); i++) {
+            if (testResults.get(i) == null) {
+                result.setSuccess(false);
+                result.setMessage("Internal Judge Error");
+                result.setExecutionTimeMs(System.currentTimeMillis() - startTime);
+                LOGGER.log(System.Logger.Level.ERROR,
+                        "Judge batch result was null for problem " + problem.getId() + " at index " + i);
+                return result;
+            }
+        }
+
         // Process results
         for (int i = 0; i < testResults.size(); i++) {
             CodeExecutor.TestResult execResult = testResults.get(i);
@@ -151,9 +192,20 @@ public class Judge {
             result.setMessage("Wrong Answer");
         }
 
-        LOGGER.debug("Judged problem {}: {} ({}/{})", 
-            problem.getId(), result.getMessage(), result.getPassedCount(), result.getTotalCount());
+        LOGGER.log(System.Logger.Level.DEBUG,
+                "Judged problem " + problem.getId() + ": " + result.getMessage()
+                        + " (" + result.getPassedCount() + "/" + result.getTotalCount() + ")");
 
+        return result;
+    }
+
+    private static SubmissionResult invalidProblemTestCase(SubmissionResult result, Problem problem, String kind,
+                                                           int index, int totalCount) {
+        result.setSuccess(false);
+        result.setMessage("Invalid problem test case");
+        result.setTotalCount(totalCount);
+        LOGGER.log(System.Logger.Level.ERROR,
+                "Invalid " + kind + " test case " + index + " for problem " + problem.getId());
         return result;
     }
 }

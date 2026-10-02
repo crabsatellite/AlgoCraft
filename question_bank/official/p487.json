@@ -1,13 +1,12 @@
 {
   "id": "487",
   "title": "Find Duplicate Subtrees",
-  "description": "# Find Duplicate Subtrees\n\nGiven the `root` of a binary tree, return all **duplicate subtrees**.\n\nFor each kind of duplicate subtrees, you only need to return the root node of any **one** of them.\n\nTwo trees are **duplicate** if they have the **same structure** with the **same node values**.\n\n## Example 1:\n\n**Input:** root = [1,2,3,4,null,2,4,null,null,4]\n**Output:** [[2,4],[4]]\n\n## Example 2:\n\n**Input:** root = [2,1,1]\n**Output:** [[1]]\n\n## Example 3:\n\n**Input:** root = [2,2,2,3,null,3,null]\n**Output:** [[2,3],[3]]\n\n## Constraints:\n\n*   The number of the nodes in the tree will be in the range `[1, 5000]`\n*   `-200 <= Node.val <= 200`",
+  "description": "# Find Duplicate Subtrees\n\nGiven the `root` of a binary tree, return the roots of all **duplicate subtree kinds**.\n\nTwo subtrees are duplicates when they have exactly the same structure and the same node values at every corresponding position. Missing children are part of the structure, so `[2,3]` and `[2,null,3]` are different subtrees.\n\nFor each duplicate kind, return the root of any one occurrence. The answer may be returned in any order.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [1,2,3,4,null,2,4,null,null,4]\n**Output:** [[2,4],[4]]\n**Explanation:** The subtree rooted at value `2` with left child `4` appears twice, and the leaf subtree `4` appears three times.\n\n## Example 2:\n\n**Input:** root = [2,1,1]\n**Output:** [[1]]\n\n## Example 3:\n\n**Input:** root = [2,2,2,3,null,3,null]\n**Output:** [[2,3],[3]]\n\n## Constraints:\n\n* The number of nodes in the tree is in the range `[1, 5000]`.\n* `-200 <= Node.val <= 200`.",
   "difficulty": "MEDIUM",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public List<TreeNode> findDuplicateSubtrees(TreeNode root) {\n        \n    }\n}",
   "tags": [
     "Tree",
     "Depth-First Search",
-    "Breadth-First Search",
     "Binary Tree",
     "Hash Table"
   ],
@@ -27,19 +26,27 @@
   ],
   "solutions": [
     {
-      "name": "Serialization with HashMap",
+      "name": "Postorder String Serialization",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n^2)",
-      "description": "Serialize each subtree via post-order DFS into a string representation. Use a HashMap to count how many times each serialization appears. When the count reaches 2, add the root to the result.",
-      "code": "class Solution {\n    Map<String, Integer> count = new HashMap<>();\n    List<TreeNode> result = new ArrayList<>();\n    \n    public List<TreeNode> findDuplicateSubtrees(TreeNode root) {\n        serialize(root);\n        return result;\n    }\n    \n    private String serialize(TreeNode node) {\n        if (node == null) return \"#\";\n        String s = node.val + \",\" + serialize(node.left) + \",\" + serialize(node.right);\n        count.put(s, count.getOrDefault(s, 0) + 1);\n        if (count.get(s) == 2) result.add(node);\n        return s;\n    }\n}",
+      "description": "## Approach\n\nSerialize every subtree with postorder DFS. A signature includes the node value, the left subtree signature, and the right subtree signature. Count each signature in a hash map and add a root to the answer exactly when its signature is seen for the second time.\n\n## Key Insight\n\nNull markers are mandatory. Without them, different shapes can collapse to the same string. Postorder works well because a node can form its own complete signature only after both child signatures are known.\n\n## Complexity Analysis\n\nThere are `n` signatures, and each signature can be proportional to the size of its subtree in the worst case.\n\n- Time Complexity: O(n^2)\n- Space Complexity: O(n^2)",
+      "code": "class Solution {\n    private final java.util.Map<String, Integer> counts = new java.util.HashMap<>();\n    private final java.util.List<TreeNode> duplicates = new java.util.ArrayList<>();\n\n    public java.util.List<TreeNode> findDuplicateSubtrees(TreeNode root) {\n        serialize(root);\n        return duplicates;\n    }\n\n    private String serialize(TreeNode node) {\n        if (node == null) {\n            return \"#\";\n        }\n        String signature = node.val + \",\" + serialize(node.left) + \",\" + serialize(node.right);\n        int seen = counts.getOrDefault(signature, 0);\n        if (seen == 1) {\n            duplicates.add(node);\n        }\n        counts.put(signature, seen + 1);\n        return signature;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Integer ID Serialization",
+      "name": "Canonical Integer IDs",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Assign each unique subtree structure an integer ID instead of a full string serialization. Use a HashMap from (val, leftID, rightID) triple to a unique ID. This avoids O(n) string hashing at each node, making it O(n) total.",
-      "code": "class Solution {\n    private int nextId = 1;\n    private java.util.Map<String, Integer> tripleToId = new java.util.HashMap<>();\n    private java.util.Map<Integer, Integer> idCount = new java.util.HashMap<>();\n    private java.util.List<TreeNode> result = new java.util.ArrayList<>();\n    \n    public java.util.List<TreeNode> findDuplicateSubtrees(TreeNode root) {\n        tripleToId.clear();\n        idCount.clear();\n        result.clear();\n        nextId = 1;\n        getId(root);\n        return result;\n    }\n    \n    private int getId(TreeNode node) {\n        if (node == null) return 0;\n        int leftId = getId(node.left);\n        int rightId = getId(node.right);\n        String triple = node.val + \",\" + leftId + \",\" + rightId;\n        if (!tripleToId.containsKey(triple)) {\n            tripleToId.put(triple, nextId++);\n        }\n        int id = tripleToId.get(triple);\n        idCount.put(id, idCount.getOrDefault(id, 0) + 1);\n        if (idCount.get(id) == 2) result.add(node);\n        return id;\n    }\n}",
+      "description": "## Approach\n\nAssign an integer ID to every unique `(node value, left ID, right ID)` triple. Count IDs instead of long subtree strings, and add a root when its ID appears for the second time.\n\n## Key Insight\n\nThe triple ID is a canonical name for the whole subtree. Once equal child subtrees already have equal IDs, equal triples are exactly equal subtrees. This removes repeated long-string construction and hashing.\n\n## Complexity Analysis\n\nEach node creates and looks up one constant-size key.\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private int nextId = 1;\n    private final java.util.Map<Key, Integer> ids = new java.util.HashMap<>();\n    private final java.util.Map<Integer, Integer> counts = new java.util.HashMap<>();\n    private final java.util.List<TreeNode> duplicates = new java.util.ArrayList<>();\n\n    public java.util.List<TreeNode> findDuplicateSubtrees(TreeNode root) {\n        getId(root);\n        return duplicates;\n    }\n\n    private int getId(TreeNode node) {\n        if (node == null) {\n            return 0;\n        }\n        int leftId = getId(node.left);\n        int rightId = getId(node.right);\n        Key key = new Key(node.val, leftId, rightId);\n        int id = ids.computeIfAbsent(key, ignored -> nextId++);\n        int seen = counts.getOrDefault(id, 0);\n        if (seen == 1) {\n            duplicates.add(node);\n        }\n        counts.put(id, seen + 1);\n        return id;\n    }\n\n    private static final class Key {\n        private final int value;\n        private final int leftId;\n        private final int rightId;\n\n        private Key(int value, int leftId, int rightId) {\n            this.value = value;\n            this.leftId = leftId;\n            this.rightId = rightId;\n        }\n\n        @Override\n        public boolean equals(Object other) {\n            if (!(other instanceof Key key)) {\n                return false;\n            }\n            return value == key.value && leftId == key.leftId && rightId == key.rightId;\n        }\n\n        @Override\n        public int hashCode() {\n            return java.util.Objects.hash(value, leftId, rightId);\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Structural Equality Buckets",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse direct tree comparison as a baseline. Group previously seen subtree roots by their root value. For a new root, compare it only with candidates from the same value bucket, and report the duplicate kind only the first time a second occurrence is found.\n\n## Key Insight\n\nThis is slower, but it is useful pedagogically because it checks the definition without serialization. The root-value buckets avoid many impossible comparisons while still preserving correctness.\n\n## Complexity Analysis\n\nMany equal-valued roots can force repeated structural comparisons in the worst case.\n\n- Time Complexity: O(n^2)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private final java.util.List<TreeNode> duplicates = new java.util.ArrayList<>();\n    private final java.util.Map<Integer, java.util.List<TreeNode>> seenByValue = new java.util.HashMap<>();\n    private final java.util.Set<TreeNode> reported = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());\n\n    public java.util.List<TreeNode> findDuplicateSubtrees(TreeNode root) {\n        scan(root);\n        return duplicates;\n    }\n\n    private void scan(TreeNode node) {\n        if (node == null) {\n            return;\n        }\n\n        java.util.List<TreeNode> bucket = seenByValue.computeIfAbsent(node.val, key -> new java.util.ArrayList<>());\n        for (TreeNode previous : bucket) {\n            if (sameTree(node, previous)) {\n                if (!reported.contains(previous)) {\n                    duplicates.add(node);\n                    reported.add(previous);\n                }\n                bucket.add(node);\n                scan(node.left);\n                scan(node.right);\n                return;\n            }\n        }\n\n        bucket.add(node);\n        scan(node.left);\n        scan(node.right);\n    }\n\n    private boolean sameTree(TreeNode a, TreeNode b) {\n        if (a == null || b == null) {\n            return a == b;\n        }\n        return a.val == b.val && sameTree(a.left, b.left) && sameTree(a.right, b.right);\n    }\n}",
       "language": "java"
     }
   ],
@@ -55,13 +62,49 @@
     {
       "input": "root = [2,2,2,3,null,3,null]",
       "output": "[[2,3],[3]]"
+    },
+    {
+      "input": "root = [1]",
+      "output": "[]"
+    },
+    {
+      "input": "root = [1,2,3]",
+      "output": "[]"
+    },
+    {
+      "input": "root = [1,1,1]",
+      "output": "[[1]]"
+    },
+    {
+      "input": "root = [0,0,0,0,null,0,null]",
+      "output": "[[0],[0,0]]"
+    },
+    {
+      "input": "root = [1,2,2,3,4,3,4]",
+      "output": "[[3],[4],[2,3,4]]"
+    },
+    {
+      "input": "root = [1,2,3,4,5,4,5]",
+      "output": "[[4],[5]]"
+    },
+    {
+      "input": "root = [1,2,2,null,3,null,3]",
+      "output": "[[3],[2,null,3]]"
+    },
+    {
+      "input": "root = [1,2,2,2,null,2,null,3,null,3,null]",
+      "output": "[[3],[2,3],[2,2,null,3]]"
+    },
+    {
+      "input": "root = [-1,-2,-2,-3,null,-3,null]",
+      "output": "[[-3],[-2,-3]]"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p487_example1.png",
-      "caption": "Example 1: Tree with duplicate subtrees"
+      "caption": "Example input tree showing node values and child links"
     }
   ]
 }

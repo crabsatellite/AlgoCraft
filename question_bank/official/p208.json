@@ -1,7 +1,7 @@
 {
   "id": "208",
   "title": "Remove Duplicates from Sorted List II",
-  "description": "# Remove Duplicates from Sorted List II\n\nGiven the `head` of a sorted linked list, *delete all nodes that have duplicate numbers, leaving only distinct numbers from the original list*. Return *the linked list sorted as well*.\n\n## Example 1:\n\n**Input:** head = [1,2,3,3,4,4,5]\n**Output:** [1,2,5]\n\n## Example 2:\n\n**Input:** head = [1,1,1,2,3]\n**Output:** [2,3]\n\n## Constraints:\n\n*   The number of nodes in the list is in the range `[0, 300]`.\n*   `-100 <= Node.val <= 100`\n*   The list is guaranteed to be sorted in ascending order.",
+  "description": "# Remove Duplicates from Sorted List II\n\nGiven a singly linked list sorted in nondecreasing order, remove every node whose value occurs more than once in the original list. Retain only values that originally occurred exactly once, preserving order, and return the head.\n\nFor example, `1 -> 2 -> 2 -> 3` becomes `1 -> 3`: both nodes with value `2` are removed. Return `null` if no value remains.\n\nExample arrays display values in `next` order; `[]` denotes an empty list (`null`). A node stores its value in `val` and its next node in `next`. Use node objects for list parameters and results as shown in the initial code.\n\n## Example 1:\n\n**Input:** head = [1,2,3,3,4,4,5]\n**Output:** [1,2,5]\n**Explanation:** Values `3` and `4` each appear more than once, so all `3` and `4` nodes are removed.\n\n## Example 2:\n\n**Input:** head = [1,1,1,2,3]\n**Output:** [2,3]\n**Explanation:** Every `1` node belongs to a duplicate group, so the returned list starts at `2`.\n\n## Constraints:\n\n* The number of nodes in the list is in the range `[0, 300]`.\n* `-100 <= Node.val <= 100`\n* The list is sorted in ascending order.\n* Values that appear more than once must be removed completely, not compressed to one copy.",
   "difficulty": "MEDIUM",
   "initialCode": "/**\n * Definition for singly-linked list.\n * public class ListNode {\n *     int val;\n *     ListNode next;\n *     ListNode() {}\n *     ListNode(int val) { this.val = val; }\n *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n * }\n */\nclass Solution {\n    public ListNode deleteDuplicates(ListNode head) {\n        // Write your code here\n        return null;\n    }\n}",
   "tags": [
@@ -20,61 +20,113 @@
   ],
   "solutions": [
     {
-      "name": "Dummy Head with Skip",
+      "name": "Sentinel Predecessor Group Skip",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use a dummy head node. For each group of duplicates, skip all nodes in the group. Only advance prev when no duplicate is found.",
-      "code": "class Solution {\n    public ListNode deleteDuplicates(ListNode head) {\n        ListNode dummy = new ListNode(0, head);\n        ListNode prev = dummy;\n        while (head != null) {\n            if (head.next != null && head.val == head.next.val) {\n                while (head.next != null && head.val == head.next.val)\n                    head = head.next;\n                prev.next = head.next;\n            } else {\n                prev = prev.next;\n            }\n            head = head.next;\n        }\n        return dummy.next;\n    }\n}",
+      "description": "## Approach\n\nPlace a sentinel before the original head and keep `prev` at the tail of the confirmed distinct prefix. For each value group, scan `curr` to the last node in that group. If the group had duplicates, connect `prev.next` to the first node after the group; otherwise advance `prev` to keep the singleton.\n\n## Key Insight\n\nThe predecessor of a duplicate group must stay outside the group, because the entire group is removed. The sentinel makes this uniform when the group to delete starts at the original head.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode deleteDuplicates(ListNode head) {\n        ListNode dummy = new ListNode(0, head);\n        ListNode prev = dummy;\n        ListNode curr = head;\n\n        while (curr != null) {\n            boolean duplicate = false;\n            while (curr.next != null && curr.val == curr.next.val) {\n                duplicate = true;\n                curr = curr.next;\n            }\n            if (duplicate) {\n                prev.next = curr.next;\n            } else {\n                prev = prev.next;\n            }\n            curr = curr.next;\n        }\n\n        return dummy.next;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Recursive",
+      "name": "Run-Length Tail Relink",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nRead the list one value run at a time. Store the first node of the run, count how many nodes have that value, and advance the read pointer past the run. If the count is one, attach that first node to the answer tail; otherwise discard the whole run. Finally truncate the tail.\n\n## Key Insight\n\nThe sorted input turns the problem into run classification. A run of length one is kept, while a run of length greater than one contributes no node at all.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode deleteDuplicates(ListNode head) {\n        ListNode sentinel = new ListNode(0);\n        ListNode tail = sentinel;\n        ListNode read = head;\n\n        while (read != null) {\n            ListNode first = read;\n            int value = read.val;\n            int count = 0;\n            while (read != null && read.val == value) {\n                count++;\n                read = read.next;\n            }\n            if (count == 1) {\n                tail.next = first;\n                tail = first;\n            }\n        }\n\n        tail.next = null;\n        return sentinel.next;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Duplicate Group Removal",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Recursively process the list. If the head has duplicates, skip all nodes with the same value and recurse on the remainder. Otherwise, keep head and recurse on the rest.",
-      "code": "class Solution {\n    public ListNode deleteDuplicates(ListNode head) {\n        if (head == null || head.next == null) return head;\n        if (head.val == head.next.val) {\n            while (head.next != null && head.val == head.next.val) {\n                head = head.next;\n            }\n            return deleteDuplicates(head.next);\n        } else {\n            head.next = deleteDuplicates(head.next);\n            return head;\n        }\n    }\n}",
+      "description": "## Approach\n\nIf the current head starts a duplicate group, remember its value, skip every node with that value, and recursively solve the suffix. If the head is a singleton, keep it and recursively clean `head.next`.\n\n## Key Insight\n\nThe recursive branch must skip all nodes of a repeated value before recursing. Keeping one representative would solve the previous problem, not this one.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n) recursion stack",
+      "code": "class Solution {\n    public ListNode deleteDuplicates(ListNode head) {\n        if (head == null || head.next == null) {\n            return head;\n        }\n\n        if (head.val == head.next.val) {\n            int value = head.val;\n            while (head != null && head.val == value) {\n                head = head.next;\n            }\n            return deleteDuplicates(head);\n        }\n\n        head.next = deleteDuplicates(head.next);\n        return head;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Frequency Map Rebuild",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFirst count how many times each value appears. Then traverse the original list again and append a newly allocated node only for values whose count is exactly one.\n\n## Key Insight\n\nThis route deliberately avoids pointer edge cases. It is less space-efficient, but it directly encodes the rule that only globally unique values survive.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public ListNode deleteDuplicates(ListNode head) {\n        Map<Integer, Integer> counts = new HashMap<>();\n        for (ListNode node = head; node != null; node = node.next) {\n            counts.merge(node.val, 1, Integer::sum);\n        }\n\n        ListNode dummy = new ListNode(0);\n        ListNode tail = dummy;\n        for (ListNode node = head; node != null; node = node.next) {\n            if (counts.get(node.val) == 1) {\n                tail.next = new ListNode(node.val);\n                tail = tail.next;\n            }\n        }\n        return dummy.next;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two-Pointer Singleton Value Compaction",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan runs with `read`, and reuse the first nodes of the original list as write slots for singleton values only. When a run has length one, write that value into the next output slot. If no singleton exists, return `null`; otherwise truncate after the last written node.\n\n## Key Insight\n\nThis is an array-style compaction variant for linked lists. It is useful as a contrast because it removes duplicate groups by copying surviving values rather than by preserving original node identity.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode deleteDuplicates(ListNode head) {\n        if (head == null) {\n            return null;\n        }\n\n        ListNode write = head;\n        boolean wrote = false;\n        ListNode read = head;\n\n        while (read != null) {\n            int value = read.val;\n            int count = 0;\n            while (read != null && read.val == value) {\n                count++;\n                read = read.next;\n            }\n            if (count == 1) {\n                if (!wrote) {\n                    write = head;\n                    wrote = true;\n                } else {\n                    write = write.next;\n                }\n                write.val = value;\n            }\n        }\n\n        if (!wrote) {\n            return null;\n        }\n        write.next = null;\n        return head;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "head = [1,2,3,3,4,4,5]",
-      "output": "[1,2,5]"
+      "output": "[1,2,5]",
+      "description": "Canonical case removes entire duplicate groups from the middle."
     },
     {
       "input": "head = [1,1,1,2,3]",
-      "output": "[2,3]"
+      "output": "[2,3]",
+      "description": "Duplicate run at the head is deleted completely."
     },
     {
       "input": "head = []",
-      "output": "[]"
+      "output": "[]",
+      "description": "Empty list remains empty."
     },
     {
       "input": "head = [1]",
-      "output": "[1]"
+      "output": "[1]",
+      "description": "Single distinct node is preserved."
     },
     {
       "input": "head = [1,1]",
-      "output": "[]"
+      "output": "[]",
+      "description": "A list made only of one duplicate group becomes empty."
     },
     {
       "input": "head = [1,2,3,4,5]",
-      "output": "[1,2,3,4,5]"
+      "output": "[1,2,3,4,5]",
+      "description": "No duplicate groups means every node remains."
     },
     {
       "input": "head = [1,1,2,2,3,3]",
-      "output": "[]"
+      "output": "[]",
+      "description": "Every value belongs to a duplicate group and is deleted."
     },
     {
       "input": "head = [1,1,1,2,2,3]",
-      "output": "[3]"
+      "output": "[3]",
+      "description": "Only the final singleton survives after earlier duplicate groups."
+    },
+    {
+      "input": "head = [1,1,2,3,3]",
+      "output": "[2]",
+      "description": "Head and tail duplicate groups are removed, leaving only a middle singleton."
+    },
+    {
+      "input": "head = [1,2,2]",
+      "output": "[1]",
+      "description": "A duplicate group at the tail is removed without losing the head singleton."
+    },
+    {
+      "input": "head = [-100,-100,-99,0,0,1]",
+      "output": "[-99,1]",
+      "description": "Boundary negative values and zero duplicate groups are removed."
+    },
+    {
+      "input": "head = [1,1,2,3,3,4,5,5,6]",
+      "output": "[2,4,6]",
+      "description": "Alternating duplicate groups and singleton runs keep only the singleton values."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p208_example1.png",
-      "caption": "Example 1: List [1,2,3,3,4,4,5] (red = duplicate groups)"
+      "caption": "Sorted input list with repeated groups"
     }
   ]
 }

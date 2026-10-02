@@ -1,9 +1,9 @@
 {
   "id": "106",
   "title": "Kth Largest Element in a Stream",
-  "description": "# Kth Largest Element in a Stream\n\nDesign a class to find the `kth` largest element in a stream. Note that it is the `kth` largest element in the sorted order, not the `kth` distinct element.\n\nImplement `KthLargest` class:\n\n*   `KthLargest(int k, int[] nums)` Initializes the object with the integer `k` and the stream of integers `nums`.\n*   `int add(int val)` Appends the integer `val` to the stream and returns the element representing the `kth` largest element in the stream.\n\n## Example 1:\n\n**Input**\n[\"KthLargest\", \"add\", \"add\", \"add\", \"add\", \"add\"]\n[[3, [4, 5, 8, 2]], [3], [5], [10], [9], [4]]\n\n**Output**\n[null, 4, 5, 5, 8, 8]\n\n**Explanation**\nKthLargest kthLargest = new KthLargest(3, [4, 5, 8, 2]);\nkthLargest.add(3);   // return 4\nkthLargest.add(5);   // return 5\nkthLargest.add(10);  // return 5\nkthLargest.add(9);   // return 8\nkthLargest.add(4);   // return 8\n\n## Constraints:\n\n*   `1 <= k <= 10^4`\n*   `0 <= nums.length <= 10^4`\n*   `-10^4 <= nums[i] <= 10^4`\n*   `-10^4 <= val <= 10^4`\n*   At most `10^4` calls will be made to `add`.\n*   It is guaranteed that there will be at least `k` elements in the array when you search for the `kth` element.",
+  "description": "# Kth Largest Element in a Stream\n\nImplement `KthLargest` to retain the initial array values and all later insertions, including duplicates:\n\n* `KthLargest(int k, int[] nums)` initializes a fixed positive rank `k` and the initial values `nums`.\n* `int add(int val)` inserts `val` and returns the kth largest value after insertion.\n\nRank values from largest to smallest, counting duplicate occurrences separately. In `[10,9,9,8]`, the third largest is `9`. Every `add` call guarantees at least `k` values after insertion.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example\n\nInput: `[\"KthLargest\",\"add\",\"add\",\"add\",\"add\",\"add\"]` with `[[3,[4,5,8,2]],[3],[5],[10],[9],[4]]`\n\nOutput: `[null,4,5,5,8,8]`\n\n## Constraints\n\n* `k >= 1` and remains fixed after initialization.\n* Input values are integers and may be negative, zero, or repeated.\n* At least `k` values are available after every `add` call.\n\n",
   "difficulty": "EASY",
-  "initialCode": "class KthLargest {\n\n    public KthLargest(int k, int[] nums) {\n        \n    }\n    \n    public int add(int val) {\n        return 0;\n    }\n}\n\n/**\n * Your KthLargest object will be instantiated and called as such:\n * KthLargest obj = new KthLargest(k, nums);\n * int param_1 = obj.add(val);\n */",
+  "initialCode": "class KthLargest { public KthLargest(int k, int[] nums) {} public int add(int val) { return 0; } }",
   "tags": [
     "Tree",
     "Design",
@@ -11,9 +11,6 @@
     "Heap (Priority Queue)",
     "Binary Tree",
     "Data Stream"
-  ],
-  "images": [
-    "images/p106_kth_stream.png"
   ],
   "examples": [
     {
@@ -23,16 +20,52 @@
   ],
   "tests": [
     {
-      "input": "[\"KthLargest\", \"add\", \"add\", \"add\", \"add\", \"add\"]\n[[3, [4, 5, 8, 2]], [3], [5], [10], [9], [4]]",
-      "output": "[null, 4, 5, 5, 8, 8]"
+      "input": "[\"KthLargest\",\"add\",\"add\",\"add\",\"add\",\"add\"]\n[[3,[4,5,8,2]],[3],[5],[10],[9],[4]]",
+      "output": "[null,4,5,5,8,8]"
     },
     {
-      "input": "[\"KthLargest\", \"add\", \"add\"]\n[[1, []], [-3], [5]]",
-      "output": "[null, -3, 5]"
+      "input": "[\"KthLargest\",\"add\",\"add\"]\n[[1,[]],[-3],[5]]",
+      "output": "[null,-3,5]"
     },
     {
-      "input": "[\"KthLargest\", \"add\", \"add\", \"add\"]\n[[2, [1]], [2], [3], [4]]",
-      "output": "[null, 1, 2, 3]"
+      "input": "[\"KthLargest\",\"add\",\"add\",\"add\"]\n[[2,[1]],[2],[3],[4]]",
+      "output": "[null,1,2,3]"
+    },
+    {
+      "input": "[\"KthLargest\",\"add\",\"add\",\"add\"]\n[[3,[5,5,5]],[5],[6],[4]]",
+      "output": "[null,5,5,5]"
+    },
+    {
+      "input": "[\"KthLargest\",\"add\",\"add\",\"add\"]\n[[2,[-10,-7,-11]],[-9],[-6],[-12]]",
+      "output": "[null,-9,-7,-7]"
+    },
+    {
+      "input": "[\"KthLargest\",\"add\",\"add\",\"add\"]\n[[4,[1,2,3,4]],[0],[5],[6]]",
+      "output": "[null,1,2,3]"
+    },
+    {
+      "input": "[\"KthLargest\",\"add\",\"add\",\"add\"]\n[[2,[9,8,7,6]],[5],[10],[7]]",
+      "output": "[null,8,9,9]"
+    },
+    {
+      "input": "[\"KthLargest\",\"add\",\"add\",\"add\"]\n[[3,[0,0,0]],[-1],[1],[2]]",
+      "output": "[null,0,0,0]"
+    },
+    {
+      "input": "[\"KthLargest\",\"add\",\"add\",\"add\"]\n[[4,[10,9,8,7]],[8],[11],[6]]",
+      "output": "[null,8,8,8]"
+    },
+    {
+      "input": "[\"KthLargest\",\"add\",\"add\",\"add\"]\n[[2,[100000,-100000]],[0],[100000],[99999]]",
+      "output": "[null,0,100000,100000]"
+    },
+    {
+      "input": "[\"KthLargest\",\"add\",\"add\",\"add\"]\n[[5,[2,3,4,5]],[1],[6],[7]]",
+      "output": "[null,1,2,3]"
+    },
+    {
+      "input": "[\"KthLargest\",\"add\",\"add\",\"add\"]\n[[2,[2,2]],[2],[3],[3]]",
+      "output": "[null,2,2,3]"
     }
   ],
   "solutions": [
@@ -40,16 +73,32 @@
       "name": "Min Heap of Size k",
       "timeComplexity": "O(n log k) init, O(log k) add",
       "spaceComplexity": "O(k)",
-      "description": "Maintain a min-heap of size k. The root of the heap is always the kth largest element. On add, if the new value is larger than the root, remove root and insert the new value.",
-      "code": "import java.util.*;\n\nclass KthLargest {\n    private PriorityQueue<Integer> minHeap;\n    private int k;\n    \n    public KthLargest(int k, int[] nums) {\n        this.k = k;\n        this.minHeap = new PriorityQueue<>();\n        for (int num : nums) {\n            add(num);\n        }\n    }\n    \n    public int add(int val) {\n        minHeap.offer(val);\n        if (minHeap.size() > k) {\n            minHeap.poll();\n        }\n        return minHeap.peek();\n    }\n}",
+      "description": "## Approach\n\nMaintain a min heap containing only the k largest values seen so far. The constructor feeds every initial value through the same insertion logic. Each `add` pushes the new value, then removes the heap minimum when the heap grows past k.\n\n## Key Insight\n\nIf the heap stores exactly the k largest candidates, the smallest item in that heap is the kth largest item in the full stream. Values smaller than the heap root cannot affect future kth-largest answers unless k changes, and k is fixed.\n\n## Complexity Analysis\n\nInitialization costs `O(n log k)`. Each `add` costs `O(log k)`, and the heap stores `O(k)` values.",
+      "code": "import java.util.*;\n\nclass KthLargest {\n    private final int k;\n    private final PriorityQueue<Integer> heap = new PriorityQueue<>();\n\n    public KthLargest(int k, int[] nums) {\n        this.k = k;\n        for (int num : nums) {\n            add(num);\n        }\n    }\n\n    public int add(int val) {\n        heap.offer(val);\n        if (heap.size() > k) {\n            heap.poll();\n        }\n        return heap.peek();\n    }\n}",
       "language": "java"
     },
     {
       "name": "Sorted ArrayList with Binary Search Insert",
-      "timeComplexity": "O(n log n) init, O(n) add (due to shift)",
+      "timeComplexity": "O(n log n) init, O(n) add",
       "spaceComplexity": "O(n)",
-      "description": "Maintain a sorted ArrayList. Use binary search (Collections.binarySearch) to find the insertion point for each new value. The kth largest is always at index size-k.",
-      "code": "import java.util.*;\n\nclass KthLargest {\n    private List<Integer> sorted;\n    private int k;\n    \n    public KthLargest(int k, int[] nums) {\n        this.k = k;\n        sorted = new ArrayList<>();\n        for (int num : nums) {\n            sorted.add(num);\n        }\n        Collections.sort(sorted);\n    }\n    \n    public int add(int val) {\n        int pos = Collections.binarySearch(sorted, val);\n        if (pos < 0) pos = -(pos + 1);\n        sorted.add(pos, val);\n        return sorted.get(sorted.size() - k);\n    }\n}",
+      "description": "## Approach\n\nKeep all stream values in ascending order inside an `ArrayList`. Use binary search to find the insertion index for each new value, insert it, and read the kth largest value at index `size - k`.\n\n## Key Insight\n\nThe binary search finds the position quickly, but inserting into the middle of an array-backed list shifts later elements. This route is simple and exact, and it makes duplicate handling visible.\n\n## Complexity Analysis\n\nInitialization costs `O(n^2)` in the worst case with repeated inserts, or `O(n log n)` if built by sorting. Each `add` costs `O(n)` because of shifting. Space is `O(n)`.",
+      "code": "import java.util.*;\n\nclass KthLargest {\n    private final int k;\n    private final List<Integer> values = new ArrayList<>();\n\n    public KthLargest(int k, int[] nums) {\n        this.k = k;\n        for (int num : nums) {\n            insertSorted(num);\n        }\n    }\n\n    public int add(int val) {\n        insertSorted(val);\n        return values.get(values.size() - k);\n    }\n\n    private void insertSorted(int val) {\n        int index = Collections.binarySearch(values, val);\n        if (index < 0) {\n            index = -index - 1;\n        }\n        values.add(index, val);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "TreeMap Multiset",
+      "timeComplexity": "O(log u + u) add",
+      "spaceComplexity": "O(u)",
+      "description": "## Approach\n\nStore value frequencies in a `TreeMap`. After adding the new value, scan keys from largest to smallest and subtract counts until the kth element position is reached.\n\n## Key Insight\n\nA `TreeMap` represents a sorted multiset without storing every duplicate separately. It is useful when many stream values repeat, and it shows why duplicates must count toward the kth position.\n\n## Complexity Analysis\n\nInsertion costs `O(log u)`, where `u` is the number of distinct values. The descending scan costs `O(u)` per `add` in the worst case. Space is `O(u)`.",
+      "code": "import java.util.*;\n\nclass KthLargest {\n    private final int k;\n    private final TreeMap<Integer, Integer> counts = new TreeMap<>();\n\n    public KthLargest(int k, int[] nums) {\n        this.k = k;\n        for (int num : nums) {\n            insert(num);\n        }\n    }\n\n    public int add(int val) {\n        insert(val);\n        int remaining = k;\n        for (Map.Entry<Integer, Integer> entry : counts.descendingMap().entrySet()) {\n            remaining -= entry.getValue();\n            if (remaining <= 0) {\n                return entry.getKey();\n            }\n        }\n        throw new IllegalStateException(\"not enough values\");\n    }\n\n    private void insert(int val) {\n        counts.put(val, counts.getOrDefault(val, 0) + 1);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Quickselect on Demand Baseline",
+      "timeComplexity": "O(n) average add, O(n^2) worst-case add",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nAppend every stream value to a list. For each `add`, copy the list into an array and run quickselect for index `size - k` in ascending order. That selected value is the kth largest value.\n\n## Key Insight\n\nKth largest is the same as the `(n - k)`th item in sorted ascending order. Quickselect teaches the selection view of the problem without maintaining a heap across calls.\n\n## Complexity Analysis\n\nEach `add` uses `O(n)` average time for quickselect and `O(n^2)` worst-case time with unlucky pivots. The stored stream and working copy use `O(n)` space.",
+      "code": "import java.util.*;\n\nclass KthLargest {\n    private final int k;\n    private final List<Integer> values = new ArrayList<>();\n\n    public KthLargest(int k, int[] nums) {\n        this.k = k;\n        for (int num : nums) {\n            values.add(num);\n        }\n    }\n\n    public int add(int val) {\n        values.add(val);\n        int[] copy = new int[values.size()];\n        for (int i = 0; i < values.size(); i++) {\n            copy[i] = values.get(i);\n        }\n        int target = values.size() - k;\n        return quickselect(copy, target);\n    }\n\n    private int quickselect(int[] nums, int target) {\n        int left = 0;\n        int right = nums.length - 1;\n        while (left <= right) {\n            int pivotIndex = partition(nums, left, right);\n            if (pivotIndex == target) {\n                return nums[pivotIndex];\n            }\n            if (pivotIndex < target) {\n                left = pivotIndex + 1;\n            } else {\n                right = pivotIndex - 1;\n            }\n        }\n        return nums[target];\n    }\n\n    private int partition(int[] nums, int left, int right) {\n        int pivot = nums[right];\n        int store = left;\n        for (int i = left; i < right; i++) {\n            if (nums[i] <= pivot) {\n                swap(nums, store, i);\n                store++;\n            }\n        }\n        swap(nums, store, right);\n        return store;\n    }\n\n    private void swap(int[] nums, int i, int j) {\n        int temp = nums[i];\n        nums[i] = nums[j];\n        nums[j] = temp;\n    }\n}",
       "language": "java"
     }
   ],
@@ -57,7 +106,7 @@
     {
       "id": "kth_stream",
       "file": "p106_kth_stream.png",
-      "caption": "Min-Heap for Kth Largest Element Stream"
+      "caption": "Stream state before kth-largest queries"
     }
   ]
 }

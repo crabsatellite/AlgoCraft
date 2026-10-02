@@ -1,17 +1,19 @@
 package com.crabmods.algocraft;
 
+import com.crabmods.algocraft.client.ClientHooks;
 import com.crabmods.algocraft.logic.CodeExecutor;
 import com.crabmods.algocraft.logic.ModItems;
+import com.crabmods.algocraft.logic.ModTrophyBlocks;
 import com.crabmods.algocraft.logic.ProgressManager;
-import com.crabmods.algocraft.logic.repo.OfficialRepositorySync;
 import com.crabmods.algocraft.network.NetworkHandler;
+import com.crabmods.algocraft.network.PacketSubmitSolution;
+import com.crabmods.algocraft.client.test.IdeClientSmokeTest;
 import com.crabmods.algocraft.server.SolvingPlayerManager;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
@@ -26,7 +28,6 @@ import com.crabmods.algocraft.web.AlgoCraftWebServer;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
@@ -50,7 +51,6 @@ public class AlgoCraft
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ALGOCRAFT_TAB = CREATIVE_MODE_TABS.register("algocraft_tab", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.algocraft"))
-            .withTabsBefore(CreativeModeTabs.COMBAT)
             .icon(() -> ALGORITHM_COMPUTER_BLOCK_ITEM.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
                 output.accept(ALGORITHM_COMPUTER_BLOCK_ITEM.get());
@@ -71,12 +71,12 @@ public class AlgoCraft
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         CREATIVE_MODE_TABS.register(modEventBus);
+        ModTrophyBlocks.register(modEventBus);
         ModItems.register(modEventBus);
 
         NeoForge.EVENT_BUS.register(this);
         NeoForge.EVENT_BUS.register(SolvingPlayerManager.class);
 
-        modEventBus.addListener(this::addCreative);
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 
@@ -85,30 +85,25 @@ public class AlgoCraft
         LOGGER.info("AlgoCraft setup complete");
     }
 
-    private void addCreative(BuildCreativeModeTabContentsEvent event)
-    {
-        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS)
-            event.accept(ALGORITHM_COMPUTER_BLOCK_ITEM);
-    }
-
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event)
     {
         LOGGER.info("AlgoCraft server starting");
-        AlgoCraftWebServer.start();
+        com.crabmods.algocraft.server.ServerBankService.start(event.getServer());
     }
     
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) {
         LOGGER.info("AlgoCraft server stopping - cleaning up resources...");
         
-        // Stop web server
-        AlgoCraftWebServer.stop();
+        com.crabmods.algocraft.server.ServerBankService.stop();
+
+        // Stop server-side judge submissions before shutting down the execution engine.
+        PacketSubmitSolution.shutdownJudgeExecutor();
         
         // Shutdown executor services
         CodeExecutor.shutdown();
-        OfficialRepositorySync.shutdown();
-        
+
         // Force save any pending progress
         ProgressManager.saveProgressImmediate();
         
@@ -122,6 +117,9 @@ public class AlgoCraft
         public static void onClientSetup(FMLClientSetupEvent event)
         {
             LOGGER.info("AlgoCraft client setup");
+            ClientHooks.registerWebServerClientBridge();
+            IdeClientSmokeTest.maybeRegister();
+            com.crabmods.algocraft.client.test.BankMultiplayerClientTest.maybeRegister();
         }
     }
 }

@@ -1,36 +1,122 @@
 {
   "id": "270",
   "title": "Split a String in Balanced Strings",
-  "description": "# Split a String in Balanced Strings\n\n**Balanced** strings are those that have an equal quantity of `'L'` and `'R'` characters.\n\nGiven a **balanced** string `s`, split it into some number of substrings such that:\n\n*   Each substring is balanced.\n\nReturn *the **maximum** number of balanced strings you can obtain*.\n\n## Example 1:\n\n**Input:** s = \"RLRRLLRLRL\"\n**Output:** 4\n**Explanation:** s can be split into \"RL\", \"RRLL\", \"RL\", \"RL\", each substring contains same number of 'L' and 'R'.\n\n## Example 2:\n\n**Input:** s = \"RLRRRLLRLL\"\n**Output:** 2\n**Explanation:** s can be split into \"RL\", \"RRRLLRLL\", since each substring contains an equal number of 'L' and 'R'.\nNote that s cannot be split into \"RL\", \"RR\", \"RL\", \"LR\", \"LL\", because the 2nd and 5th substrings are not balanced.\n\n## Example 3:\n\n**Input:** s = \"LLLLRRRR\"\n**Output:** 1\n**Explanation:** s can be split into \"LLLLRRRR\".\n\n## Constraints:\n\n*   `2 <= s.length <= 1000`\n*   `s[i]` is either `'L'` or `'R'`.\n*   `s` is a **balanced** string.",
+  "description": "# Split a String in Balanced Strings\n\nA string is **balanced** when it contains the same number of `'L'` and `'R'` characters.\n\nYou are given a balanced string `s`. Split it into nonempty substrings so that every substring is balanced.\n\nReturn the **maximum** number of balanced substrings you can obtain.\n\n## Example 1:\n\n**Input:** s = \"RLRRLLRLRL\"\n**Output:** 4\n**Explanation:** One optimal split is \"RL\", \"RRLL\", \"RL\", \"RL\". Each part has the same number of `L` and `R` characters.\n\n## Example 2:\n\n**Input:** s = \"RLRRRLLRLL\"\n**Output:** 2\n**Explanation:** One optimal split is \"RL\", \"RRRLLRLL\". You cannot split it into \"RL\", \"RR\", \"RL\", \"LR\", \"LL\" because \"RR\" and \"LL\" are not balanced.\n\n## Example 3:\n\n**Input:** s = \"LLLLRRRR\"\n**Output:** 1\n**Explanation:** The whole string is balanced, but no earlier prefix is balanced, so only one balanced substring can be produced.\n\n## Constraints:\n\n*   `2 <= s.length <= 1000`\n*   `s[i]` is either `'L'` or `'R'`.\n*   `s` is a balanced string.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int balancedStringSplit(String s) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["String", "Greedy", "Counting"],
+  "tags": [
+    "String",
+    "Greedy",
+    "Counting"
+  ],
   "examples": [
-    { "input": "s = \"RLRRLLRLRL\"", "output": "4" },
-    { "input": "s = \"RLRRRLLRLL\"", "output": "2" },
-    { "input": "s = \"LLLLRRRR\"", "output": "1" }
+    {
+      "input": "s = \"RLRRLLRLRL\"",
+      "output": "4"
+    },
+    {
+      "input": "s = \"RLRRRLLRLL\"",
+      "output": "2"
+    },
+    {
+      "input": "s = \"LLLLRRRR\"",
+      "output": "1"
+    }
   ],
   "solutions": [
     {
-      "name": "Greedy Counter",
+      "name": "Balance Counter Greedy",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Track balance: +1 for R, -1 for L. Every time balance hits 0, we found a balanced substring.",
-      "code": "class Solution {\n    public int balancedStringSplit(String s) {\n        int balance = 0, count = 0;\n        for (char c : s.toCharArray()) {\n            balance += c == 'R' ? 1 : -1;\n            if (balance == 0) count++;\n        }\n        return count;\n    }\n}",
+      "description": "## Approach\n\nScan from left to right and treat `R` as +1 and `L` as -1. Whenever the running balance returns to zero, the current substring is balanced, so close it immediately and count one piece.\n\n## Key Insight\n\nThe earliest balanced prefix should always be cut: it is already a valid piece, and because the whole remaining suffix is also balanced, delaying the cut cannot create more pieces.\n\n## Complexity Analysis\n- Time Complexity: O(n), because each character is read once.\n- Space Complexity: O(1), because only the running balance and answer are stored.",
+      "code": "class Solution {\n    public int balancedStringSplit(String s) {\n        int balance = 0;\n        int count = 0;\n        for (int i = 0; i < s.length(); i++) {\n            balance += s.charAt(i) == 'R' ? 1 : -1;\n            if (balance == 0) {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Stack-Based Counter",
+      "name": "Separate R And L Counts",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use a depth counter that tracks nesting. Increment depth for the first character type, decrement for the other. When depth returns to 0, a balanced string is found.",
-      "code": "class Solution {\n    public int balancedStringSplit(String s) {\n        int depth = 0, count = 0;\n        for (int i = 0; i < s.length(); i++) {\n            if (s.charAt(i) == 'L') {\n                depth++;\n            } else {\n                depth--;\n            }\n            if (depth == 0) count++;\n        }\n        return count;\n    }\n}",
+      "description": "## Approach\n\nTrack how many `R` and `L` characters appear inside the current open substring. When the two counts become equal, close that substring, reset both counters, and continue scanning.\n\n## Key Insight\n\nThis is the same greedy boundary rule written directly from the definition of balance. It is useful for learners who prefer explicit counts over signed balance values.\n\n## Complexity Analysis\n- Time Complexity: O(n), because the scan is linear.\n- Space Complexity: O(1), because the current substring only needs two counters.",
+      "code": "class Solution {\n    public int balancedStringSplit(String s) {\n        int r = 0;\n        int l = 0;\n        int pieces = 0;\n        for (int i = 0; i < s.length(); i++) {\n            if (s.charAt(i) == 'R') {\n                r++;\n            } else {\n                l++;\n            }\n            if (r == l) {\n                pieces++;\n                r = 0;\n                l = 0;\n            }\n        }\n        return pieces;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Boundary List Reconstruction",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nUse the same signed balance scan, but store the ending index of every balanced substring in a list. The answer is the number of stored cut boundaries.\n\n## Key Insight\n\nRecording boundaries makes the greedy proof visible: every time balance is zero, the prefix since the previous cut is a complete balanced substring. The count is just the size of that cut list.\n\n## Complexity Analysis\n- Time Complexity: O(n), because the string is scanned once.\n- Space Complexity: O(k), where `k` is the number of balanced substrings recorded.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int balancedStringSplit(String s) {\n        List<Integer> cuts = new ArrayList<>();\n        int balance = 0;\n        for (int i = 0; i < s.length(); i++) {\n            balance += s.charAt(i) == 'R' ? 1 : -1;\n            if (balance == 0) {\n                cuts.add(i);\n            }\n        }\n        return cuts.size();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Cancellation Stack",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse a stack-like cancellation model. Equal letters stack together, and an opposite letter cancels one pending letter. Whenever the stack becomes empty, the current substring contains equal numbers of `L` and `R`.\n\n## Key Insight\n\nAlthough this uses more space than necessary, it gives a concrete model for why the signed balance returning to zero means all unmatched letters in the current substring have canceled out.\n\n## Complexity Analysis\n- Time Complexity: O(n), because every character is pushed or popped once.\n- Space Complexity: O(n) in the worst case for the stack.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int balancedStringSplit(String s) {\n        Deque<Character> stack = new ArrayDeque<>();\n        int pieces = 0;\n        for (int i = 0; i < s.length(); i++) {\n            char c = s.charAt(i);\n            if (stack.isEmpty() || stack.peek() == c) {\n                stack.push(c);\n            } else {\n                stack.pop();\n            }\n            if (stack.isEmpty()) {\n                pieces++;\n            }\n        }\n        return pieces;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"RLRRLLRLRL\"", "output": "4" },
-    { "input": "s = \"RLRRRLLRLL\"", "output": "2" },
-    { "input": "s = \"LLLLRRRR\"", "output": "1" }
+    {
+      "input": "s = \"RLRRLLRLRL\"",
+      "output": "4",
+      "description": "sample with several balanced chunks"
+    },
+    {
+      "input": "s = \"RLRRRLLRLL\"",
+      "output": "2",
+      "description": "sample where a long middle chunk is needed"
+    },
+    {
+      "input": "s = \"LLLLRRRR\"",
+      "output": "1",
+      "description": "all L values can be balanced only at the end"
+    },
+    {
+      "input": "s = \"RL\"",
+      "output": "1",
+      "description": "minimum balanced string starting with R"
+    },
+    {
+      "input": "s = \"LR\"",
+      "output": "1",
+      "description": "minimum balanced string starting with L"
+    },
+    {
+      "input": "s = \"RRLL\"",
+      "output": "1",
+      "description": "nested balance closes once"
+    },
+    {
+      "input": "s = \"RLRLRL\"",
+      "output": "3",
+      "description": "alternating characters split into maximum small chunks"
+    },
+    {
+      "input": "s = \"LLRRLRLR\"",
+      "output": "3",
+      "description": "starts with L and then alternates after a larger first chunk"
+    },
+    {
+      "input": "s = \"RRLRLLLR\"",
+      "output": "2",
+      "description": "two nontrivial chunks with different internal shapes"
+    },
+    {
+      "input": "s = \"RLLR\"",
+      "output": "2",
+      "description": "the greedy first cut enables another balanced suffix"
+    },
+    {
+      "input": "s = \"RRRLLLRL\"",
+      "output": "2",
+      "description": "a long nested prefix followed by a small balanced pair"
+    },
+    {
+      "input": "s = \"LRLRRLLR\"",
+      "output": "4",
+      "description": "mixes L-first and R-first balanced pairs"
+    }
   ]
 }

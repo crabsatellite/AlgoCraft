@@ -1,10 +1,16 @@
 {
   "id": "451",
   "title": "My Calendar III",
-  "description": "# My Calendar III\n\nA `k`-booking happens when `k` events have some non-empty intersection (i.e., there is some time that is common to all `k` events.)\n\nYou are to find the maximum `k`-booking between all the previous events.\n\nImplement the `MyCalendarThree` class:\n\n*   `MyCalendarThree()` Initializes the object.\n*   `int book(int start, int end)` Returns an integer `k` representing the largest integer such that there exists a `k`-booking in the calendar.\n\n## Example 1:\n\n**Input**\n[\"MyCalendarThree\", \"book\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [10, 20], [50, 60], [10, 40], [5, 15], [5, 10], [25, 55]]\n**Output**\n[null, 1, 1, 2, 3, 3, 3]\n**Explanation**\nMyCalendarThree myCalendarThree = new MyCalendarThree();\nmyCalendarThree.book(10, 20); // return 1, The first event can be booked and is disjoint, so the maximum k-booking is a 1-booking.\nmyCalendarThree.book(50, 60); // return 1, The second event can be booked and is disjoint, so the maximum k-booking is a 1-booking.\nmyCalendarThree.book(10, 40); // return 2, The third event [10, 40) intersects the first event, and the maximum k-booking is a 2-booking.\nmyCalendarThree.book(5, 15);  // return 3, The remaining events cause the maximum k-booking to be only a 3-booking.\nmyCalendarThree.book(5, 10); // return 3\nmyCalendarThree.book(25, 55); // return 3\n\n## Constraints:\n\n*   `0 <= start < end <= 10^9`\n*   At most `400` calls will be made to `book`.",
+  "description": "# My Calendar III\n\nA `k`-booking happens when `k` events share at least one common time point. The calendar stores half-open intervals `[start, end)`, so an event ending at time `t` does not overlap another event starting at time `t`.\n\nImplement the `MyCalendarThree` class:\n\n*   `MyCalendarThree()` Initializes an empty calendar.\n*   `int book(int start, int end)` Adds the event `[start, end)` and returns the largest `k` such that some time point is covered by `k` booked events.\n\nStore every booking, including overlaps and identical intervals. Return the greatest number of stored events covering a time point simultaneously.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1:\n\n**Input**\n[\"MyCalendarThree\", \"book\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [10, 20], [50, 60], [10, 40], [5, 15], [5, 10], [25, 55]]\n**Output**\n[null, 1, 1, 2, 3, 3, 3]\n**Explanation**\nMyCalendarThree myCalendarThree = new MyCalendarThree();\nmyCalendarThree.book(10, 20); // return 1\nmyCalendarThree.book(50, 60); // return 1\nmyCalendarThree.book(10, 40); // return 2, because [10,20) is covered by two events.\nmyCalendarThree.book(5, 15);  // return 3, because [10,15) is covered by three events.\nmyCalendarThree.book(5, 10);  // return 3, because this event touches the peak but does not increase it.\nmyCalendarThree.book(25, 55); // return 3\n\n## Constraints:\n\n*   `0 <= start < end <= 10^9`\n*   At most `400` calls will be made to `book`.",
   "difficulty": "HARD",
   "initialCode": "class MyCalendarThree {\n\n    public MyCalendarThree() {\n        \n    }\n    \n    public int book(int start, int end) {\n        \n    }\n}",
-  "tags": ["Array", "Binary Search", "Design", "Segment Tree", "Ordered Set"],
+  "tags": [
+    "Array",
+    "Binary Search",
+    "Design",
+    "Segment Tree",
+    "Ordered Set"
+  ],
   "examples": [
     {
       "input": "[\"MyCalendarThree\", \"book\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [10, 20], [50, 60], [10, 40], [5, 15], [5, 10], [25, 55]]",
@@ -13,19 +19,43 @@
   ],
   "solutions": [
     {
-      "name": "TreeMap Line Sweep",
-      "timeComplexity": "O(n^2) total",
+      "name": "TreeMap Sweep-Line Delta",
+      "timeComplexity": "O(n^2) total for n bookings",
       "spaceComplexity": "O(n)",
-      "description": "Use a TreeMap as a difference array of events. For each booking, increment at start and decrement at end. To find max k, sweep through the TreeMap computing prefix sums and track the maximum.",
-      "code": "class MyCalendarThree {\n    private java.util.TreeMap<Integer, Integer> map;\n\n    public MyCalendarThree() {\n        map = new java.util.TreeMap<>();\n    }\n\n    public int book(int start, int end) {\n        map.merge(start, 1, Integer::sum);\n        map.merge(end, -1, Integer::sum);\n        int maxK = 0, active = 0;\n        for (int val : map.values()) {\n            active += val;\n            maxK = Math.max(maxK, active);\n        }\n        return maxK;\n    }\n}",
+      "description": "## Approach\nTreat every booking as two sweep-line events: `+1` at `start` and `-1` at `end`. A `TreeMap` keeps all event points sorted. After inserting the new interval, scan the values in order, maintain the number of active intervals, and return the largest active count ever seen.\n\n## Key Insight\nThe intervals are half-open. Placing `-1` at `end` means an interval ending at time `t` is removed before another interval starting at `t` contributes to the next open span, so adjacent events do not overlap. This is the direct generalization of counting overlaps with a difference array.\n\n## Complexity Analysis\nThere can be at most `2n` distinct endpoints after `n` bookings. Each call scans them all, so the total time is `O(n^2)` over all calls and the space is `O(n)`.",
+      "code": "class MyCalendarThree {\n    private final java.util.TreeMap<Integer, Integer> delta = new java.util.TreeMap<>();\n\n    public MyCalendarThree() {}\n\n    public int book(int start, int end) {\n        delta.merge(start, 1, Integer::sum);\n        delta.merge(end, -1, Integer::sum);\n\n        int active = 0;\n        int best = 0;\n        for (int change : delta.values()) {\n            active += change;\n            best = Math.max(best, active);\n        }\n        return best;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Segment Tree (Lazy Propagation)",
-      "timeComplexity": "O(n log C)",
+      "name": "Dynamic Segment Tree Range Add",
+      "timeComplexity": "O(n log C) total, where C = 10^9",
       "spaceComplexity": "O(n log C)",
-      "description": "Use a dynamic segment tree with lazy propagation over the coordinate space. Each book operation adds 1 to the interval [start, end). Query the global max after each update.",
-      "code": "class MyCalendarThree {\n    private java.util.Map<Integer, Integer> tree;\n    private java.util.Map<Integer, Integer> lazy;\n\n    public MyCalendarThree() {\n        tree = new java.util.HashMap<>();\n        lazy = new java.util.HashMap<>();\n    }\n\n    public int book(int start, int end) {\n        update(start, end - 1, 0, 1000000000, 1);\n        return tree.getOrDefault(1, 0);\n    }\n\n    private void update(int s, int e, int lo, int hi, int node) {\n        if (s > hi || e < lo) return;\n        if (s <= lo && hi <= e) {\n            tree.put(node, tree.getOrDefault(node, 0) + 1);\n            lazy.put(node, lazy.getOrDefault(node, 0) + 1);\n            return;\n        }\n        int mid = lo + (hi - lo) / 2;\n        update(s, e, lo, mid, 2 * node);\n        update(s, e, mid + 1, hi, 2 * node + 1);\n        tree.put(node, lazy.getOrDefault(node, 0) + Math.max(tree.getOrDefault(2 * node, 0), tree.getOrDefault(2 * node + 1, 0)));\n    }\n}",
+      "description": "## Approach\nBuild a segment tree lazily over the whole coordinate range `[0, 10^9]`. Each node stores `add`, the value added to the entire node interval, and `max`, the maximum overlap inside that interval after all updates. Booking `[start, end)` becomes a range add on `[start, end - 1]`, and the root maximum is the answer.\n\n## Key Insight\nThe coordinate range is huge, but only paths touched by bookings need nodes. A node's best value is its own lazy add plus the better child maximum. That invariant lets the root answer the global maximum immediately after every update.\n\n## Complexity Analysis\nEach update visits `O(log C)` levels, so `n` bookings cost `O(n log C)` time. The tree allocates only visited nodes, giving `O(n log C)` worst-case space.",
+      "code": "class MyCalendarThree {\n    private static class Node {\n        Node left;\n        Node right;\n        int add;\n        int max;\n    }\n\n    private final Node root = new Node();\n\n    public MyCalendarThree() {}\n\n    public int book(int start, int end) {\n        update(root, 0, 1_000_000_000, start, end - 1, 1);\n        return root.max;\n    }\n\n    private void update(Node node, int left, int right, int ql, int qr, int delta) {\n        if (qr < left || right < ql) return;\n        if (ql <= left && right <= qr) {\n            node.add += delta;\n            node.max += delta;\n            return;\n        }\n\n        int mid = left + (right - left) / 2;\n        if (ql <= mid) {\n            if (node.left == null) node.left = new Node();\n            update(node.left, left, mid, ql, qr, delta);\n        }\n        if (qr > mid) {\n            if (node.right == null) node.right = new Node();\n            update(node.right, mid + 1, right, ql, qr, delta);\n        }\n\n        int leftMax = node.left == null ? 0 : node.left.max;\n        int rightMax = node.right == null ? 0 : node.right.max;\n        node.max = node.add + Math.max(leftMax, rightMax);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Coordinate Compression Difference Rebuild",
+      "timeComplexity": "O(n^2 log n) total for n bookings",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nKeep all accepted intervals. After each new booking, collect every endpoint seen so far, sort them with a `TreeSet`, assign each endpoint a compressed index, and run a difference-array sweep on those compressed positions.\n\n## Key Insight\nThe answer only changes at interval endpoints. The call limit is only 400, so rebuilding the compressed coordinate system on every call is simple, deterministic, and still comfortably fast for teaching the sweep-line idea without implementing a tree.\n\n## Complexity Analysis\nFor the `i`-th booking, rebuilding and sweeping costs `O(i log i)`. Across all calls the total time is `O(n^2 log n)`, and the extra space is `O(n)`.",
+      "code": "class MyCalendarThree {\n    private final java.util.List<int[]> bookings = new java.util.ArrayList<>();\n\n    public MyCalendarThree() {}\n\n    public int book(int start, int end) {\n        bookings.add(new int[] {start, end});\n\n        java.util.TreeSet<Integer> points = new java.util.TreeSet<>();\n        for (int[] booking : bookings) {\n            points.add(booking[0]);\n            points.add(booking[1]);\n        }\n\n        java.util.Map<Integer, Integer> index = new java.util.HashMap<>();\n        int next = 0;\n        for (int point : points) {\n            index.put(point, next++);\n        }\n\n        int[] diff = new int[points.size() + 1];\n        for (int[] booking : bookings) {\n            diff[index.get(booking[0])]++;\n            diff[index.get(booking[1])]--;\n        }\n\n        int active = 0;\n        int best = 0;\n        for (int change : diff) {\n            active += change;\n            best = Math.max(best, active);\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Ordered Disjoint Segment Counts",
+      "timeComplexity": "O(n^2 log n) total for n bookings",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nMaintain a `TreeMap` whose keys split the timeline into disjoint segments. The value at a key is the booking count on the segment that starts there. Before adding a new interval, split at `start` and `end`, then increment every segment start in `[start, end)` and update the global best count.\n\n## Key Insight\nOnce the map has boundaries at every relevant endpoint, each segment has a constant overlap count. This route exposes a different mental model from sweep-line deltas: instead of recomputing prefix sums, it mutates the actual covered spans.\n\n## Complexity Analysis\nEach booking may touch `O(n)` segments, and map navigation costs `O(log n)`, so the total worst-case time is `O(n^2 log n)`. The map stores at most two new boundaries per booking, so the space is `O(n)`.",
+      "code": "class MyCalendarThree {\n    private final java.util.TreeMap<Integer, Integer> counts = new java.util.TreeMap<>();\n    private int best = 0;\n\n    public MyCalendarThree() {\n        counts.put(0, 0);\n        counts.put(1_000_000_000, 0);\n    }\n\n    public int book(int start, int end) {\n        split(start);\n        split(end);\n        for (java.util.Map.Entry<Integer, Integer> entry = counts.ceilingEntry(start);\n             entry != null && entry.getKey() < end;\n             entry = counts.higherEntry(entry.getKey())) {\n            int next = entry.getValue() + 1;\n            counts.put(entry.getKey(), next);\n            best = Math.max(best, next);\n        }\n        return best;\n    }\n\n    private void split(int time) {\n        java.util.Map.Entry<Integer, Integer> floor = counts.floorEntry(time);\n        if (floor != null && floor.getKey() != time) {\n            counts.put(time, floor.getValue());\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Start-Endpoint Scan Baseline",
+      "timeComplexity": "O(n^2) total for n bookings",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nStore every booking. After adding a new interval, examine each booked start time as a candidate point and count how many intervals cover it. The maximum count over those candidates is the answer.\n\n## Key Insight\nFor half-open intervals, the maximum overlap is always achieved immediately after some start endpoint. Endpoints that only close intervals cannot create a new larger maximum. This makes the baseline much simpler than checking every integer time, while still being a useful correctness oracle for the optimized methods.\n\n## Complexity Analysis\nThe `i`-th booking checks `i` candidate start times against `i` intervals, so the total time is `O(n^2)`. The stored intervals use `O(n)` space.",
+      "code": "class MyCalendarThree {\n    private final java.util.List<int[]> bookings = new java.util.ArrayList<>();\n    private int best = 0;\n\n    public MyCalendarThree() {}\n\n    public int book(int start, int end) {\n        bookings.add(new int[] {start, end});\n\n        for (int[] candidate : bookings) {\n            int time = candidate[0];\n            int active = 0;\n            for (int[] booking : bookings) {\n                if (booking[0] <= time && time < booking[1]) {\n                    active++;\n                }\n            }\n            best = Math.max(best, active);\n        }\n        return best;\n    }\n}",
       "language": "java"
     }
   ],
@@ -33,6 +63,42 @@
     {
       "input": "[\"MyCalendarThree\", \"book\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [10, 20], [50, 60], [10, 40], [5, 15], [5, 10], [25, 55]]",
       "output": "[null, 1, 1, 2, 3, 3, 3]"
+    },
+    {
+      "input": "[\"MyCalendarThree\", \"book\", \"book\", \"book\", \"book\"]\n[[], [1, 5], [2, 6], [4, 7], [6, 8]]",
+      "output": "[null, 1, 2, 3, 3]"
+    },
+    {
+      "input": "[\"MyCalendarThree\", \"book\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [10, 20], [20, 30], [5, 10], [10, 30], [15, 25], [0, 5]]",
+      "output": "[null, 1, 1, 1, 2, 3, 3]"
+    },
+    {
+      "input": "[\"MyCalendarThree\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [10, 50], [20, 40], [30, 35], [0, 100], [35, 45]]",
+      "output": "[null, 1, 2, 3, 4, 4]"
+    },
+    {
+      "input": "[\"MyCalendarThree\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [0, 1], [999999999, 1000000000], [1, 999999999], [0, 1000000000], [500000000, 500000001]]",
+      "output": "[null, 1, 1, 1, 2, 3]"
+    },
+    {
+      "input": "[\"MyCalendarThree\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [10, 20], [10, 30], [10, 15], [20, 30], [15, 20]]",
+      "output": "[null, 1, 2, 3, 3, 3]"
+    },
+    {
+      "input": "[\"MyCalendarThree\", \"book\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [0, 10], [10, 20], [20, 30], [5, 25], [25, 30], [8, 12]]",
+      "output": "[null, 1, 1, 1, 2, 2, 3]"
+    },
+    {
+      "input": "[\"MyCalendarThree\", \"book\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [10, 20], [30, 40], [15, 35], [20, 30], [18, 32], [40, 50]]",
+      "output": "[null, 1, 1, 2, 2, 3, 3]"
+    },
+    {
+      "input": "[\"MyCalendarThree\", \"book\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [100, 200], [150, 250], [180, 220], [220, 260], [190, 210], [250, 300]]",
+      "output": "[null, 1, 2, 3, 3, 4, 4]"
+    },
+    {
+      "input": "[\"MyCalendarThree\", \"book\", \"book\", \"book\", \"book\", \"book\", \"book\"]\n[[], [5, 10], [5, 10], [5, 10], [5, 10], [10, 15], [0, 5]]",
+      "output": "[null, 1, 2, 3, 4, 4, 4]"
     }
   ]
 }

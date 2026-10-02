@@ -1,10 +1,15 @@
 {
   "id": "4",
   "title": "Group Anagrams",
-  "description": "# Group Anagrams\n\nGiven an array of strings `strs`, group **the anagrams** together. You can return the answer in **any order**.\n\nAn **Anagram** is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.\n\n## Example 1:\n\n**Input:** strs = [\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"]\n**Output:** [[\"bat\"],[\"nat\",\"tan\"],[\"ate\",\"eat\",\"tea\"]]\n\n## Example 2:\n\n**Input:** strs = [\"\"]\n**Output:** [[\"\"]]\n\n## Example 3:\n\n**Input:** strs = [\"a\"]\n**Output:** [[\"a\"]]\n\n## Constraints:\n\n*   `1 <= strs.length <= 10^4`\n*   `0 <= strs[i].length <= 100`\n*   `strs[i]` consists of lowercase English letters.",
+  "description": "# Group Anagrams\n\nGiven the string array `strs`, group strings that are anagrams and return all groups.\n\nAnagrams contain the same letters with the same counts, in any order. For example, `\"eat\"`, `\"tea\"`, and `\"ate\"` belong together; `\"tan\"` does not belong to that group.\n\nInclude every input occurrence exactly once, including duplicate strings. Both the groups and the strings within each group may be returned in any order.\n\n## Example 1:\n\n**Input:** strs = [\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"]\n**Output:** [[\"bat\"],[\"nat\",\"tan\"],[\"ate\",\"eat\",\"tea\"]]\n\n## Example 2:\n\n**Input:** strs = [\"\"]\n**Output:** [[\"\"]]\n\n## Example 3:\n\n**Input:** strs = [\"a\"]\n**Output:** [[\"a\"]]\n\n## Constraints:\n\n*   `1 <= strs.length <= 10^4`\n*   `0 <= strs[i].length <= 100`\n*   `strs[i]` consists of lowercase English letters.",
   "difficulty": "MEDIUM",
   "initialCode": "import java.util.*;\n\nclass Solution {\n    public List<List<String>> groupAnagrams(String[] strs) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["Array", "Hash Table", "String", "Sorting"],
+  "tags": [
+    "Array",
+    "Hash Table",
+    "String",
+    "Sorting"
+  ],
   "examples": [
     {
       "input": "strs = [\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"]",
@@ -16,8 +21,14 @@
       "input": "strs = [\"eat\",\"tea\",\"tan\",\"ate\",\"nat\",\"bat\"]",
       "output": "[[\"bat\"],[\"nat\",\"tan\"],[\"ate\",\"eat\",\"tea\"]]"
     },
-    { "input": "strs = [\"\"]", "output": "[[\"\"]]" },
-    { "input": "strs = [\"a\"]", "output": "[[\"a\"]]" },
+    {
+      "input": "strs = [\"\"]",
+      "output": "[[\"\"]]"
+    },
+    {
+      "input": "strs = [\"a\"]",
+      "output": "[[\"a\"]]"
+    },
     {
       "input": "strs = [\"abc\", \"bca\", \"cba\", \"xyz\", \"zyx\", \"aaa\"]",
       "output": "[[\"aaa\"],[\"abc\",\"bca\",\"cba\"],[\"xyz\",\"zyx\"]]"
@@ -34,14 +45,20 @@
   "solutions": [
     {
       "name": "Sorted String as Key",
-      "description": "## Approach\n\nGroup strings by their sorted version. Anagrams will have the same sorted string.\n\n## Complexity Analysis\n- Time Complexity: O(n * k log k) where n is number of strings, k is max string length\n- Space Complexity: O(n * k) - Storing all strings in groups",
+      "description": "## Approach\n\nFor each word, copy its characters into an array, sort that array, and use the sorted string as the hash-map key. Store the original word in the list for that key, then return all grouped lists.\n\n## Key Insight\n\nAnagrams are exactly strings with the same multiset of characters. Sorting converts that multiset into one canonical order, so every word in the same anagram group receives the same key. This baseline is easy to verify and naturally handles duplicates and the empty string, but it pays a sorting cost for every word.\n\n## Complexity Analysis\n- Time Complexity: O(n * k log k), where n is the number of strings and k is the maximum string length\n- Space Complexity: O(n * k) for the grouped output and sorted keys",
       "code": "class Solution {\n    public List<List<String>> groupAnagrams(String[] strs) {\n        Map<String, List<String>> groups = new HashMap<>();\n        \n        for (String s : strs) {\n            char[] chars = s.toCharArray();\n            Arrays.sort(chars);\n            String key = new String(chars);\n            \n            groups.computeIfAbsent(key, k -> new ArrayList<>()).add(s);\n        }\n        \n        return new ArrayList<>(groups.values());\n    }\n}",
       "language": "java"
     },
     {
       "name": "Character Count as Key",
-      "description": "## Approach\n\nUse character frequency count as the key instead of sorting. Create a unique key from character counts.\n\n## Complexity Analysis\n- Time Complexity: O(n * k) where n is number of strings, k is max string length\n- Space Complexity: O(n * k)",
+      "description": "## Approach\n\nFor each word, count the 26 lowercase letters and serialize the count vector into a string key with separators. Words with the same frequency vector are placed in the same hash-map bucket.\n\n## Key Insight\n\nThe constraints limit every string to lowercase English letters, so a 26-entry frequency vector is a complete signature for an anagram group. The separator in the serialized key is important: it prevents ambiguous encodings such as counts `[1, 11]` and `[11, 1]` from colliding.\n\n## Complexity Analysis\n- Time Complexity: O(n * (k + alphabet)), which is O(n * k) because alphabet = 26\n- Space Complexity: O(n * alphabet + n * k) for keys and grouped output",
       "code": "class Solution {\n    public List<List<String>> groupAnagrams(String[] strs) {\n        Map<String, List<String>> groups = new HashMap<>();\n        \n        for (String s : strs) {\n            int[] count = new int[26];\n            for (char c : s.toCharArray()) {\n                count[c - 'a']++;\n            }\n            \n            StringBuilder sb = new StringBuilder();\n            for (int i = 0; i < 26; i++) {\n                sb.append('#').append(count[i]);\n            }\n            String key = sb.toString();\n            \n            groups.computeIfAbsent(key, k -> new ArrayList<>()).add(s);\n        }\n        \n        return new ArrayList<>(groups.values());\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Custom Frequency Key Object",
+      "description": "## Approach\n\nBuild a small immutable key object that owns the 26-letter frequency vector. The object computes and stores its array hash once, then implements `equals` with `Arrays.equals` so the hash map can group strings by structural frequency data instead of by a serialized string key.\n\n## Key Insight\n\nThis is still the frequency-signature idea, but it teaches an important Java data-modeling lesson: arrays do not compare by contents unless we wrap them or explicitly compare them. Caching the hash is valid because the key is immutable after construction.\n\n## Complexity Analysis\n- Time Complexity: O(n * (k + alphabet)), where n is the number of strings and k is the maximum string length\n- Space Complexity: O(n * alphabet + n * k) for stored signatures and grouped output",
+      "code": "class Solution {\n    private static final class Signature {\n        private final int[] counts;\n        private final int hash;\n\n        Signature(String word) {\n            this.counts = new int[26];\n            for (int i = 0; i < word.length(); i++) {\n                counts[word.charAt(i) - 'a']++;\n            }\n            this.hash = Arrays.hashCode(counts);\n        }\n\n        @Override\n        public boolean equals(Object other) {\n            if (this == other) {\n                return true;\n            }\n            if (!(other instanceof Signature signature)) {\n                return false;\n            }\n            return Arrays.equals(this.counts, signature.counts);\n        }\n\n        @Override\n        public int hashCode() {\n            return hash;\n        }\n    }\n\n    public List<List<String>> groupAnagrams(String[] strs) {\n        Map<Signature, List<String>> groups = new HashMap<>();\n        for (String word : strs) {\n            Signature key = new Signature(word);\n            groups.computeIfAbsent(key, ignored -> new ArrayList<>()).add(word);\n        }\n        return new ArrayList<>(groups.values());\n    }\n}",
       "language": "java"
     }
   ]

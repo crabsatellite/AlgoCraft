@@ -1,10 +1,14 @@
 {
   "id": "188",
   "title": "Rotate Image",
-  "description": "# Rotate Image\n\nYou are given an `n x n` 2D `matrix` representing an image, rotate the image by **90** degrees (clockwise).\n\nYou have to rotate the image **in-place**, which means you have to modify the input 2D matrix directly. **DO NOT** allocate another 2D matrix and do the rotation.\n\n## Example 1:\n\n**Input:** matrix = [[1,2,3],[4,5,6],[7,8,9]]\n**Output:** [[7,4,1],[8,5,2],[9,6,3]]\n\n## Example 2:\n\n**Input:** matrix = [[5,1,9,11],[2,4,8,10],[13,3,6,7],[15,14,12,16]]\n**Output:** [[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]]\n\n## Constraints:\n\n*   `n == matrix.length == matrix[i].length`\n*   `1 <= n <= 20`\n*   `-1000 <= matrix[i][j] <= 1000`",
+  "description": "# Rotate Image\n\nYou are given an `n x n` integer matrix representing a square image. Rotate the image by 90 degrees clockwise.\n\nYou must rotate the matrix in-place. That means the same `matrix` object must be modified directly; do not allocate another `n x n` matrix and copy the answer into it.\n\nAfter the rotation, the value originally at row `r` and column `c` should move to row `c` and column `n - 1 - r`.\n\n## Example 1:\n\n**Input:** matrix = [[1,2,3],[4,5,6],[7,8,9]]\n**Output:** [[7,4,1],[8,5,2],[9,6,3]]\n**Explanation:** The first column becomes the first row in reverse order.\n\n## Example 2:\n\n**Input:** matrix = [[5,1,9,11],[2,4,8,10],[13,3,6,7],[15,14,12,16]]\n**Output:** [[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]]\n**Explanation:** Both the outer ring and the inner 2 x 2 block rotate clockwise.\n\n## Constraints:\n\n*   `n == matrix.length == matrix[i].length`\n*   `1 <= n <= 20`\n*   `-1000 <= matrix[i][j] <= 1000`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public void rotate(int[][] matrix) {\n        // Write your code here\n    }\n}",
-  "tags": ["Array", "Math", "Matrix"],
+  "tags": [
+    "Array",
+    "Math",
+    "Matrix"
+  ],
   "examples": [
     {
       "input": "matrix = [[1,2,3],[4,5,6],[7,8,9]]",
@@ -17,62 +21,108 @@
   ],
   "solutions": [
     {
-      "name": "Transpose + Reverse",
-      "timeComplexity": "O(n²)",
+      "name": "Transpose Then Reverse Each Row",
+      "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(1)",
-      "description": "First transpose the matrix (swap rows and columns), then reverse each row. This achieves a 90-degree clockwise rotation in-place.",
-      "code": "class Solution {\n    public void rotate(int[][] matrix) {\n        int n = matrix.length;\n        for (int i = 0; i < n; i++)\n            for (int j = i + 1; j < n; j++) {\n                int temp = matrix[i][j];\n                matrix[i][j] = matrix[j][i];\n                matrix[j][i] = temp;\n            }\n        for (int i = 0; i < n; i++)\n            for (int j = 0; j < n / 2; j++) {\n                int temp = matrix[i][j];\n                matrix[i][j] = matrix[i][n - 1 - j];\n                matrix[i][n - 1 - j] = temp;\n            }\n    }\n}",
+      "description": "## Approach\n\nFirst transpose the matrix across the main diagonal, swapping `matrix[i][j]` with `matrix[j][i]` for the upper triangle. Then reverse every row in-place.\n\n## Key Insight\n\nA clockwise rotation can be decomposed into two reflections: main-diagonal transposition changes rows into columns, and row reversal puts every column into the required right-to-left order.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), because each cell is touched a constant number of times.\n- Space Complexity: O(1), because only a few temporary variables are used.",
+      "code": "class Solution {\n    public void rotate(int[][] matrix) {\n        int n = matrix.length;\n        for (int i = 0; i < n; i++) {\n            for (int j = i + 1; j < n; j++) {\n                int temp = matrix[i][j];\n                matrix[i][j] = matrix[j][i];\n                matrix[j][i] = temp;\n            }\n        }\n        for (int i = 0; i < n; i++) {\n            for (int j = 0; j < n / 2; j++) {\n                int temp = matrix[i][j];\n                matrix[i][j] = matrix[i][n - 1 - j];\n                matrix[i][n - 1 - j] = temp;\n            }\n        }\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Four-Way Swap (Rotate in Place)",
+      "name": "Layer By Layer Four-Way Swap",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(1)",
-      "description": "Rotate four cells at a time in a cyclic manner. Process layer by layer from outside in, rotating each group of four corresponding elements.",
+      "description": "## Approach\n\nProcess one square ring at a time. For each offset in the ring, save the top cell, move left to top, bottom to left, right to bottom, and the saved top value to right.\n\n## Key Insight\n\nEvery cell in a clockwise rotation belongs to a four-cell cycle. Rotating a ring is just applying those four-way cycles along the ring boundary.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), because every matrix cell moves once.\n- Space Complexity: O(1), because each cycle only needs one saved value.",
       "code": "class Solution {\n    public void rotate(int[][] matrix) {\n        int n = matrix.length;\n        for (int layer = 0; layer < n / 2; layer++) {\n            int first = layer;\n            int last = n - 1 - layer;\n            for (int i = first; i < last; i++) {\n                int offset = i - first;\n                int top = matrix[first][i];\n                matrix[first][i] = matrix[last - offset][first];\n                matrix[last - offset][first] = matrix[last][last - offset];\n                matrix[last][last - offset] = matrix[i][last];\n                matrix[i][last] = top;\n            }\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Reverse Rows Then Transpose",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nReverse the order of the rows, which mirrors the image vertically. Then transpose across the main diagonal.\n\n## Key Insight\n\nA vertical reflection followed by a main-diagonal reflection is also a 90-degree clockwise rotation. This gives a second reflection-based decomposition that is still fully in-place.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), because row reversal is O(n) and transposition is O(n^2).\n- Space Complexity: O(1), because row references and cell swaps use only temporary variables.",
+      "code": "class Solution {\n    public void rotate(int[][] matrix) {\n        int n = matrix.length;\n        for (int top = 0, bottom = n - 1; top < bottom; top++, bottom--) {\n            int[] temp = matrix[top];\n            matrix[top] = matrix[bottom];\n            matrix[bottom] = temp;\n        }\n        for (int i = 0; i < n; i++) {\n            for (int j = i + 1; j < n; j++) {\n                int temp = matrix[i][j];\n                matrix[i][j] = matrix[j][i];\n                matrix[j][i] = temp;\n            }\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Anti-Diagonal Transpose Then Reverse Columns",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nTranspose the matrix across the anti-diagonal by swapping `matrix[i][j]` with `matrix[n - 1 - j][n - 1 - i]` for cells above that diagonal. Then reverse each column vertically.\n\n## Key Insight\n\nThe anti-diagonal reflection sends each cell to the opposite diagonal position. Reversing columns after that reflection converts the mapping into the clockwise rotation target `matrix[c][n - 1 - r]`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), because both passes are bounded by the number of cells.\n- Space Complexity: O(1), because the algorithm uses only scalar temporaries.",
+      "code": "class Solution {\n    public void rotate(int[][] matrix) {\n        int n = matrix.length;\n        for (int i = 0; i < n; i++) {\n            for (int j = 0; j < n - i - 1; j++) {\n                int temp = matrix[i][j];\n                matrix[i][j] = matrix[n - 1 - j][n - 1 - i];\n                matrix[n - 1 - j][n - 1 - i] = temp;\n            }\n        }\n        for (int col = 0; col < n; col++) {\n            for (int top = 0, bottom = n - 1; top < bottom; top++, bottom--) {\n                int temp = matrix[top][col];\n                matrix[top][col] = matrix[bottom][col];\n                matrix[bottom][col] = temp;\n            }\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Quadrant Coordinate Cycles",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nIterate only over the cells in the top-left half of the rotation cycles. For each selected coordinate, directly rotate its four mapped positions using the coordinate rule `(r, c) -> (c, n - 1 - r)`.\n\n## Key Insight\n\nThe matrix can be partitioned into disjoint four-position cycles, with the center cell of odd-sized matrices left untouched. Visiting one representative from each cycle rotates the whole matrix without a layer abstraction.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), because the selected representatives cover all cells through four-way cycles.\n- Space Complexity: O(1), because each cycle uses one temporary value.",
+      "code": "class Solution {\n    public void rotate(int[][] matrix) {\n        int n = matrix.length;\n        for (int row = 0; row < (n + 1) / 2; row++) {\n            for (int col = 0; col < n / 2; col++) {\n                int temp = matrix[row][col];\n                matrix[row][col] = matrix[n - 1 - col][row];\n                matrix[n - 1 - col][row] = matrix[n - 1 - row][n - 1 - col];\n                matrix[n - 1 - row][n - 1 - col] = matrix[col][n - 1 - row];\n                matrix[col][n - 1 - row] = temp;\n            }\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "matrix = [[1,2,3],[4,5,6],[7,8,9]]",
-      "output": "[[7,4,1],[8,5,2],[9,6,3]]"
+      "output": "[[7,4,1],[8,5,2],[9,6,3]]",
+      "description": "Canonical 3 by 3 matrix rotates clockwise in place."
     },
     {
       "input": "matrix = [[5,1,9,11],[2,4,8,10],[13,3,6,7],[15,14,12,16]]",
-      "output": "[[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]]"
+      "output": "[[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]]",
+      "description": "Four by four matrix checks all layers and inner cells."
     },
     {
       "input": "matrix = [[1]]",
-      "output": "[[1]]"
+      "output": "[[1]]",
+      "description": "Single-cell matrix is unchanged by rotation."
     },
     {
       "input": "matrix = [[1,2],[3,4]]",
-      "output": "[[3,1],[4,2]]"
+      "output": "[[3,1],[4,2]]",
+      "description": "Two by two matrix exercises the smallest real swap."
     },
     {
       "input": "matrix = [[-1,-2],[-3,-4]]",
-      "output": "[[-3,-1],[-4,-2]]"
+      "output": "[[-3,-1],[-4,-2]]",
+      "description": "Negative values rotate by position exactly like positive values."
     },
     {
       "input": "matrix = [[0,0,0],[0,0,0],[0,0,0]]",
-      "output": "[[0,0,0],[0,0,0],[0,0,0]]"
+      "output": "[[0,0,0],[0,0,0],[0,0,0]]",
+      "description": "All equal values make sure the method does not depend on value uniqueness."
     },
     {
       "input": "matrix = [[1,2,3,4,5],[6,7,8,9,10],[11,12,13,14,15],[16,17,18,19,20],[21,22,23,24,25]]",
-      "output": "[[21,16,11,6,1],[22,17,12,7,2],[23,18,13,8,3],[24,19,14,9,4],[25,20,15,10,5]]"
+      "output": "[[21,16,11,6,1],[22,17,12,7,2],[23,18,13,8,3],[24,19,14,9,4],[25,20,15,10,5]]",
+      "description": "Five by five matrix checks multiple rings and the center cell."
+    },
+    {
+      "input": "matrix = [[-1000,1000],[0,999]]",
+      "output": "[[0,-1000],[999,1000]]",
+      "description": "Boundary values rotate by position without arithmetic assumptions."
+    },
+    {
+      "input": "matrix = [[0,-1,2],[3,-4,5],[-6,7,-8]]",
+      "output": "[[-6,3,0],[7,-4,-1],[-8,5,2]]",
+      "description": "Mixed signs and zero check that every coordinate mapping is exact."
+    },
+    {
+      "input": "matrix = [[-16,-15,-14,-13],[-12,-11,-10,-9],[-8,-7,-6,-5],[-4,-3,-2,-1]]",
+      "output": "[[-4,-8,-12,-16],[-3,-7,-11,-15],[-2,-6,-10,-14],[-1,-5,-9,-13]]",
+      "description": "Even-sized matrix with all negative values checks inner-ring handling."
+    },
+    {
+      "input": "matrix = [[1,2,3,4,5,6],[7,8,9,10,11,12],[13,14,15,16,17,18],[19,20,21,22,23,24],[25,26,27,28,29,30],[31,32,33,34,35,36]]",
+      "output": "[[31,25,19,13,7,1],[32,26,20,14,8,2],[33,27,21,15,9,3],[34,28,22,16,10,4],[35,29,23,17,11,5],[36,30,24,18,12,6]]",
+      "description": "Six by six matrix checks several even rings."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p188_example1.png",
-      "caption": "Example 1"
-    },
-    {
-      "id": "example1_rotated",
-      "file": "p188_example1_rotated.png",
-      "caption": "Example 1 - After Rotation"
+      "caption": "Input square matrix before in-place clockwise rotation"
     }
   ]
 }

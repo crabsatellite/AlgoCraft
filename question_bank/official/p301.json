@@ -1,34 +1,109 @@
 {
   "id": "301",
-  "title": "Median of Two Sorted Arrays",
-  "description": "# Median of Two Sorted Arrays\n\nGiven two sorted arrays `nums1` and `nums2` of size `m` and `n` respectively, return **the median** of the two sorted arrays.\n\nThe overall run time complexity should be `O(log (m+n))`.\n\n## Example 1:\n\n**Input:** nums1 = [1,3], nums2 = [2]\n**Output:** 2.00000\n**Explanation:** merged array = [1,2,3] and median is 2.\n\n## Example 2:\n\n**Input:** nums1 = [1,2], nums2 = [3,4]\n**Output:** 2.50000\n**Explanation:** merged array = [1,2,3,4] and median is (2 + 3) / 2 = 2.5.\n\n## Constraints:\n\n*   `nums1.length == m`\n*   `nums2.length == n`\n*   `0 <= m <= 1000`\n*   `0 <= n <= 1000`\n*   `1 <= m + n <= 2000`\n*   `-10^6 <= nums1[i], nums2[i] <= 10^6`",
+  "title": "Minimum Bouquet Days",
+  "description": "# Minimum Bouquet Days\n\nYou are given an integer array `bloomDay`. The value `bloomDay[i]` is the day when the `i`-th flower blooms.\n\nYou must make exactly `m` bouquets. Each bouquet must use `k` **adjacent** flowers, and every flower in that bouquet must have bloomed on or before the chosen day. A flower can be used in at most one bouquet.\n\nReturn the earliest day when it is possible to make `m` bouquets. If there are not enough flowers to ever make the bouquets, return `-1`.\n\n## Example 1:\n\n**Input:** bloomDay = [1,10,3,10,2], m = 3, k = 1\n**Output:** 3\n**Explanation:** Each bouquet needs one flower. By day 3, three flowers have bloomed.\n\n## Example 2:\n\n**Input:** bloomDay = [1,10,3,10,2], m = 3, k = 2\n**Output:** -1\n**Explanation:** Making three bouquets of size two would require six flowers, but there are only five flowers.\n\n## Constraints:\n\n* `1 <= bloomDay.length <= 100000`\n* `1 <= bloomDay[i] <= 1000000000`\n* `1 <= m, k <= 1000000`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public double findMedianSortedArrays(int[] nums1, int[] nums2) {\n        \n    }\n}",
-  "tags": ["Array", "Binary Search", "Divide and Conquer"],
-  "examples": [
-    { "input": "nums1 = [1,3], nums2 = [2]", "output": "2.00000" },
-    { "input": "nums1 = [1,2], nums2 = [3,4]", "output": "2.50000" }
+  "initialCode": "class Solution {\n    public int minDays(int[] bloomDay, int m, int k) {\n        return -1;\n    }\n}",
+  "tags": [
+    "Array",
+    "Binary Search",
+    "Greedy",
+    "Union Find"
   ],
-  "solutions": [
+  "examples": [
     {
-      "name": "Binary Search on Shorter Array",
-      "timeComplexity": "O(log(min(m, n)))",
-      "spaceComplexity": "O(1)",
-      "description": "Binary search on the shorter array to find a partition where all left elements are <= all right elements. The median is derived from the max of left and min of right.",
-      "code": "class Solution {\n    public double findMedianSortedArrays(int[] nums1, int[] nums2) {\n        if (nums1.length > nums2.length) return findMedianSortedArrays(nums2, nums1);\n        int m = nums1.length, n = nums2.length;\n        int lo = 0, hi = m;\n        while (lo <= hi) {\n            int i = (lo + hi) / 2;\n            int j = (m + n + 1) / 2 - i;\n            int left1 = (i == 0) ? Integer.MIN_VALUE : nums1[i - 1];\n            int right1 = (i == m) ? Integer.MAX_VALUE : nums1[i];\n            int left2 = (j == 0) ? Integer.MIN_VALUE : nums2[j - 1];\n            int right2 = (j == n) ? Integer.MAX_VALUE : nums2[j];\n            if (left1 <= right2 && left2 <= right1) {\n                if ((m + n) % 2 == 0) return (Math.max(left1, left2) + Math.min(right1, right2)) / 2.0;\n                else return Math.max(left1, left2);\n            } else if (left1 > right2) hi = i - 1;\n            else lo = i + 1;\n        }\n        return 0.0;\n    }\n}",
-      "language": "java"
+      "input": "bloomDay = [1,10,3,10,2], m = 3, k = 1",
+      "output": "3"
     },
     {
-      "name": "Merge and Find Median",
-      "timeComplexity": "O(m + n)",
-      "spaceComplexity": "O(m + n)",
-      "description": "Merge both sorted arrays into one sorted array, then return the median element (or average of two middle elements if total length is even).",
-      "code": "class Solution {\n    public double findMedianSortedArrays(int[] nums1, int[] nums2) {\n        int m = nums1.length, n = nums2.length;\n        int[] merged = new int[m + n];\n        int i = 0, j = 0, k = 0;\n        while (i < m && j < n) {\n            if (nums1[i] <= nums2[j]) {\n                merged[k++] = nums1[i++];\n            } else {\n                merged[k++] = nums2[j++];\n            }\n        }\n        while (i < m) merged[k++] = nums1[i++];\n        while (j < n) merged[k++] = nums2[j++];\n        int total = m + n;\n        if (total % 2 == 1) {\n            return merged[total / 2];\n        } else {\n            return (merged[total / 2 - 1] + merged[total / 2]) / 2.0;\n        }\n    }\n}",
-      "language": "java"
+      "input": "bloomDay = [1,10,3,10,2], m = 3, k = 2",
+      "output": "-1"
     }
   ],
   "tests": [
-    { "input": "nums1 = [1,3], nums2 = [2]", "output": "2.00000" },
-    { "input": "nums1 = [1,2], nums2 = [3,4]", "output": "2.50000" }
+    {
+      "input": "bloomDay = [1,10,3,10,2], m = 3, k = 1",
+      "output": "3",
+      "description": "single-flower bouquets make the answer the third earliest bloom day"
+    },
+    {
+      "input": "bloomDay = [1,10,3,10,2], m = 3, k = 2",
+      "output": "-1",
+      "description": "total flower count is insufficient for three adjacent pairs"
+    },
+    {
+      "input": "bloomDay = [7,7,7,7,12,7,7], m = 2, k = 3",
+      "output": "12",
+      "description": "a late middle flower is needed to connect one adjacent run"
+    },
+    {
+      "input": "bloomDay = [1000000000,1000000000], m = 1, k = 1",
+      "output": "1000000000",
+      "description": "upper bloom-day value should not overflow the search range"
+    },
+    {
+      "input": "bloomDay = [1,2,4,9,3,4,1], m = 2, k = 2",
+      "output": "4",
+      "description": "two separate adjacent runs become available on day four"
+    },
+    {
+      "input": "bloomDay = [1,2,3,4], m = 2, k = 2",
+      "output": "4",
+      "description": "non-overlapping bouquets cannot reuse the middle flowers"
+    },
+    {
+      "input": "bloomDay = [5,5,5,5,5], m = 1, k = 5",
+      "output": "5",
+      "description": "one bouquet may consume the entire garden"
+    },
+    {
+      "input": "bloomDay = [1,10,1,10,1,10], m = 2, k = 2",
+      "output": "10",
+      "description": "early flowers are not adjacent enough until day ten"
+    },
+    {
+      "input": "bloomDay = [1], m = 1000000, k = 1000000",
+      "output": "-1",
+      "description": "large m*k must be checked using long arithmetic"
+    },
+    {
+      "input": "bloomDay = [6], m = 1, k = 1",
+      "output": "6",
+      "description": "single flower boundary returns its bloom day"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Binary Search Day",
+      "timeComplexity": "O(n log M)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse binary search over the answer day. For a fixed day, scan the garden left to right, count consecutive bloomed flowers, and greedily cut a bouquet whenever the run reaches `k`.\n\n## Key Insight\n\nFeasibility is monotonic: if day `d` can make enough bouquets, every later day can also make them. That turns the minimum-day question into a binary search on a yes/no predicate.\n\n## Complexity Analysis\n- Time Complexity: O(n log M), where M is the maximum bloom day\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int minDays(int[] bloomDay, int m, int k) {\n        if ((long) m * k > bloomDay.length) {\n            return -1;\n        }\n\n        int lo = 1;\n        int hi = 0;\n        for (int day : bloomDay) {\n            hi = Math.max(hi, day);\n        }\n\n        while (lo < hi) {\n            int mid = lo + (hi - lo) / 2;\n            if (can(bloomDay, m, k, mid)) {\n                hi = mid;\n            } else {\n                lo = mid + 1;\n            }\n        }\n        return lo;\n    }\n\n    private boolean can(int[] bloomDay, int m, int k, int day) {\n        int bouquets = 0;\n        int run = 0;\n        for (int bloom : bloomDay) {\n            if (bloom <= day) {\n                run++;\n                if (run == k) {\n                    bouquets++;\n                    run = 0;\n                }\n            } else {\n                run = 0;\n            }\n        }\n        return bouquets >= m;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Binary Search Unique Bloom Days",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort a copy of the bloom days and binary search over those candidate values instead of every integer day. Each candidate is checked with the same greedy consecutive-run predicate.\n\n## Key Insight\n\nThe answer must be one of the actual bloom days. Searching sorted candidates keeps the monotonic structure while avoiding the full numeric range up to 1000000000.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int minDays(int[] bloomDay, int m, int k) {\n        if ((long) m * k > bloomDay.length) {\n            return -1;\n        }\n\n        int[] days = bloomDay.clone();\n        Arrays.sort(days);\n        int left = 0;\n        int right = days.length - 1;\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (can(bloomDay, m, k, days[mid])) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        return days[left];\n    }\n\n    private boolean can(int[] bloomDay, int m, int k, int day) {\n        int bouquets = 0;\n        int run = 0;\n        for (int bloom : bloomDay) {\n            if (bloom <= day) {\n                run++;\n                if (run == k) {\n                    bouquets++;\n                    run = 0;\n                }\n            } else {\n                run = 0;\n            }\n        }\n        return bouquets >= m;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Union Find Bloom Segments",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nActivate flowers in increasing bloom-day order. Union an activated position with active neighbors, track each connected segment size, and maintain how many bouquets all active segments can produce.\n\n## Key Insight\n\nFor any fixed day, only contiguous active segments matter, and a segment of length `len` contributes `len / k` bouquets. Updating that contribution when segments merge avoids rescanning the whole garden for each day.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    private int[] parent;\n    private int[] size;\n\n    public int minDays(int[] bloomDay, int m, int k) {\n        int n = bloomDay.length;\n        if ((long) m * k > n) {\n            return -1;\n        }\n\n        Integer[] order = new Integer[n];\n        for (int i = 0; i < n; i++) {\n            order[i] = i;\n        }\n        Arrays.sort(order, (a, b) -> Integer.compare(bloomDay[a], bloomDay[b]));\n\n        parent = new int[n];\n        size = new int[n];\n        boolean[] active = new boolean[n];\n        Arrays.fill(parent, -1);\n\n        long bouquets = 0;\n        for (int position : order) {\n            active[position] = true;\n            parent[position] = position;\n            size[position] = 1;\n\n            if (position > 0 && active[position - 1]) {\n                bouquets -= size[find(position - 1)] / k;\n                union(position, position - 1);\n            }\n            if (position + 1 < n && active[position + 1]) {\n                bouquets -= size[find(position + 1)] / k;\n                union(position, position + 1);\n            }\n\n            bouquets += size[find(position)] / k;\n            if (bouquets >= m) {\n                return bloomDay[position];\n            }\n        }\n        return -1;\n    }\n\n    private int find(int x) {\n        if (parent[x] != x) {\n            parent[x] = find(parent[x]);\n        }\n        return parent[x];\n    }\n\n    private void union(int a, int b) {\n        int rootA = find(a);\n        int rootB = find(b);\n        if (rootA == rootB) {\n            return;\n        }\n        parent[rootB] = rootA;\n        size[rootA] += size[rootB];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "TreeMap Active Intervals",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nActivate flowers by increasing bloom day and store active contiguous intervals in a `TreeMap` from start to end. When a new flower opens, merge with the left and right neighboring intervals if they touch, updating the total bouquet contribution.\n\n## Key Insight\n\nThis is the same segment-contribution idea as union find, but keeping explicit interval boundaries makes it clear why adjacent bloomed flowers form non-overlapping bouquet capacity.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.Arrays;\nimport java.util.Map;\nimport java.util.TreeMap;\n\nclass Solution {\n    public int minDays(int[] bloomDay, int m, int k) {\n        int n = bloomDay.length;\n        if ((long) m * k > n) {\n            return -1;\n        }\n\n        Integer[] order = new Integer[n];\n        for (int i = 0; i < n; i++) {\n            order[i] = i;\n        }\n        Arrays.sort(order, (a, b) -> Integer.compare(bloomDay[a], bloomDay[b]));\n\n        TreeMap<Integer, Integer> intervals = new TreeMap<>();\n        long bouquets = 0;\n        for (int position : order) {\n            int start = position;\n            int end = position;\n\n            Map.Entry<Integer, Integer> left = intervals.floorEntry(position);\n            if (left != null && left.getValue() == position - 1) {\n                start = left.getKey();\n                bouquets -= (left.getValue() - left.getKey() + 1) / k;\n                intervals.remove(left.getKey());\n            }\n\n            Map.Entry<Integer, Integer> right = intervals.ceilingEntry(position);\n            if (right != null && right.getKey() == position + 1) {\n                end = right.getValue();\n                bouquets -= (right.getValue() - right.getKey() + 1) / k;\n                intervals.remove(right.getKey());\n            }\n\n            intervals.put(start, end);\n            bouquets += (end - start + 1) / k;\n            if (bouquets >= m) {\n                return bloomDay[position];\n            }\n        }\n        return -1;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

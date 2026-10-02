@@ -5,6 +5,7 @@ import com.crabmods.algocraft.item.TrophyItem;
 import com.crabmods.algocraft.logic.AchievementRegistry.Achievement;
 import com.crabmods.algocraft.logic.AchievementRegistry.AchievementType;
 import com.crabmods.algocraft.logic.AchievementRegistry.Rarity;
+import com.crabmods.algocraft.world.AlgoCraftSavedData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -12,6 +13,7 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.Item;
@@ -27,16 +29,17 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class AchievementManager {
     
-    // Singleton instance
-    private static final AchievementManager INSTANCE = new AchievementManager();
-    
     // In-memory cache of earned achievements per player UUID (thread-safe)
     private final Map<UUID, Set<String>> playerAchievements = new ConcurrentHashMap<>();
     
     private AchievementManager() {}
     
-    public static AchievementManager getInstance() {
-        return INSTANCE;
+    public static AchievementManager createForWorld() {
+        return new AchievementManager();
+    }
+
+    public static AchievementManager forPlayer(ServerPlayer player) {
+        return AlgoCraftSavedData.get(player.serverLevel()).getAchievementManager();
     }
     
     /**
@@ -265,9 +268,10 @@ public class AchievementManager {
      * Award the trophy item to the player.
      */
     private void awardTrophy(ServerPlayer player, Achievement achievement) {
-        Item trophyItem = getTrophyItemForRarity(achievement.getRarity());
+        Item trophyItem = getTrophyItemForAchievement(achievement);
         if (trophyItem == null) {
-            AlgoCraft.LOGGER.warn("No trophy item registered for rarity: {}", achievement.getRarity());
+            AlgoCraft.LOGGER.warn("No trophy item registered for achievement {} trophy id {}",
+                achievement.getId(), achievement.getTrophyItemId());
             return;
         }
         
@@ -286,10 +290,10 @@ public class AchievementManager {
     }
     
     /**
-     * Get the appropriate trophy item based on achievement rarity.
+     * Get the exact trophy item declared by the achievement.
      */
-    private Item getTrophyItemForRarity(Rarity rarity) {
-        return ModItems.getTrophyForRarity(rarity);
+    private Item getTrophyItemForAchievement(Achievement achievement) {
+        return ModItems.getTrophyForItemId(achievement.getTrophyItemId());
     }
     
     /**
@@ -316,7 +320,7 @@ public class AchievementManager {
         // Also send detailed chat message
         player.sendSystemMessage(Component.empty());
         player.sendSystemMessage(
-            Component.literal("★ ")
+            Component.translatable("algocraft.achievement.trophy_prefix")
                 .withStyle(ChatFormatting.GOLD)
                 .append(achievement.getName().copy().withStyle(achievement.getRarity().getColor()))
         );
@@ -337,19 +341,26 @@ public class AchievementManager {
      * Play sound effect based on achievement rarity.
      */
     private void playAchievementSound(ServerPlayer player, Rarity rarity) {
-        var sound = switch (rarity) {
+        player.level().playSound(null, player.blockPosition(), soundForRarity(rarity),
+            SoundSource.PLAYERS, volumeForRarity(rarity), pitchForRarity(rarity));
+    }
+
+    static SoundEvent soundForRarity(Rarity rarity) {
+        return switch (rarity) {
             case COMMON, UNCOMMON -> SoundEvents.PLAYER_LEVELUP;
             case RARE -> SoundEvents.UI_TOAST_CHALLENGE_COMPLETE;
             case EPIC -> SoundEvents.ENDER_DRAGON_GROWL;
             case LEGENDARY -> SoundEvents.END_PORTAL_SPAWN;
             case MYTHIC -> SoundEvents.TOTEM_USE;
         };
-        
-        float volume = rarity.ordinal() >= Rarity.EPIC.ordinal() ? 1.0f : 0.7f;
-        float pitch = 1.0f + (rarity.ordinal() * 0.1f);
-        
-        player.level().playSound(null, player.blockPosition(), sound,
-            SoundSource.PLAYERS, volume, pitch);
+    }
+
+    static float volumeForRarity(Rarity rarity) {
+        return rarity.ordinal() >= Rarity.EPIC.ordinal() ? 1.0f : 0.7f;
+    }
+
+    static float pitchForRarity(Rarity rarity) {
+        return 1.0f + (rarity.ordinal() * 0.1f);
     }
     
     /**

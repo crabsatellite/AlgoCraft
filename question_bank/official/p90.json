@@ -1,68 +1,132 @@
 {
   "id": "90",
   "title": "Count Good Nodes in Binary Tree",
-  "description": "# Count Good Nodes in Binary Tree\n\nGiven a binary tree `root`, a node `X` in the tree is named **good** if in the path from root to `X` there are no nodes with a value *greater than* `X`.\n\nReturn the number of **good** nodes in the binary tree.\n\n## Example 1:\n\n**Input:** root = [3,1,4,3,null,1,5]\n**Output:** 4\n**Explanation:** Nodes in blue are good.\nRoot Node (3) is always a good node.\nNode 4 -> (3,4) is the maximum value in the path starting from the root.\nNode 5 -> (3,4,5) is the maximum value in the path\nNode 3 -> (3,1,3) is the maximum value in the path.\n\n## Example 2:\n\n**Input:** root = [3,3,null,4,2]\n**Output:** 3\n**Explanation:** Node 2 -> (3, 3, 2) is not good, because \"3\" is higher than it.\n\n## Example 3:\n\n**Input:** root = [1]\n**Output:** 1\n**Explanation:** Root is considered as good.\n\n## Constraints:\n\n*   The number of nodes in the binary tree is in the range `[1, 10^5]`.\n*   Each node's value is between `[-10^4, 10^4]`.",
+  "description": "# Count Good Nodes in Binary Tree\n\nGiven the `root` of a binary tree, a node is **good** if no node on the path from the root to that node has a value greater than the node's value.\n\nReturn the number of good nodes in the binary tree.\n\nA node with the same value as the maximum value already seen on its root-to-node path is still good, because the rule only excludes ancestors with a **greater** value.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [3,1,4,3,null,1,5]\n**Output:** 4\n**Explanation:** The good nodes are 3 at the root, 4, 5, and the left subtree node 3 on path 3 -> 1 -> 3.\n\n## Example 2:\n\n**Input:** root = [3,3,null,4,2]\n**Output:** 3\n**Explanation:** The root 3, the left child 3, and 4 are good. Node 2 is not good because an ancestor value 3 is greater than 2.\n\n## Example 3:\n\n**Input:** root = [1]\n**Output:** 1\n**Explanation:** The root is always good.\n\n## Constraints:\n\n* The number of nodes in the binary tree is in the range `[1, 10^5]`.\n* `-10^4 <= Node.val <= 10^4`",
   "difficulty": "MEDIUM",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public int goodNodes(TreeNode root) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Tree", "Depth-First Search", "Breadth-First Search", "Binary Tree"],
+  "tags": [
+    "Tree",
+    "Depth-First Search",
+    "Breadth-First Search",
+    "Binary Tree"
+  ],
   "examples": [
     {
       "input": "root = [3,1,4,3,null,1,5]",
-      "output": "4"
+      "output": "4",
+      "explanation": "The good nodes are 3 at the root, 4, 5, and the left subtree node 3 on path 3 -> 1 -> 3."
     },
     {
       "input": "root = [3,3,null,4,2]",
-      "output": "3"
+      "output": "3",
+      "explanation": "Equal ancestor values are allowed, but node 2 is blocked by an ancestor value 3."
     },
     {
       "input": "root = [1]",
-      "output": "1"
+      "output": "1",
+      "explanation": "The root is always good."
     }
   ],
   "tests": [
     {
       "input": "root = [3,1,4,3,null,1,5]",
-      "output": "4"
+      "output": "4",
+      "description": "Canonical tree with good nodes on both left and right subtrees."
     },
     {
       "input": "root = [3,3,null,4,2]",
-      "output": "3"
+      "output": "3",
+      "description": "Equal ancestor values count as good nodes."
     },
     {
       "input": "root = [1]",
-      "output": "1"
+      "output": "1",
+      "description": "Single-node tree always has one good node."
     },
     {
       "input": "root = [1,2,3,4,5,6,7]",
-      "output": "7"
+      "output": "7",
+      "description": "Strictly increasing complete tree makes every node good."
     },
     {
       "input": "root = [-1,-2,-3]",
-      "output": "1"
+      "output": "1",
+      "description": "Negative decreasing values verify max tracking does not assume non-negative input."
+    },
+    {
+      "input": "root = [-1,-1,-1]",
+      "output": "3",
+      "description": "Equal negative values remain good because no ancestor is greater."
+    },
+    {
+      "input": "root = [5,4,6,3,null,null,7]",
+      "output": "3",
+      "description": "A mostly decreasing left branch should not be counted after a larger root."
+    },
+    {
+      "input": "root = [2,2,2,1,3,2,4]",
+      "output": "6",
+      "description": "Duplicates, one blocked low value, and later larger values in the same tree."
+    },
+    {
+      "input": "root = [0,-1,1,-2,null,0,2]",
+      "output": "3",
+      "description": "A node can be blocked by a non-root ancestor even when it is greater than the root."
+    },
+    {
+      "input": "root = [10,5,15,10,null,6,20]",
+      "output": "4",
+      "description": "A value equal to the root can become good again after a lower intermediate node."
+    },
+    {
+      "input": "root = [-10000,null,-9999,null,-9998]",
+      "output": "3",
+      "description": "Lower value boundary with an increasing right-skewed path."
+    },
+    {
+      "input": "root = [10000,9999,null,10000]",
+      "output": "2",
+      "description": "Upper value boundary and equality with an earlier path maximum."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p90_example1.png",
-      "caption": "Example 1"
+      "caption": "Input tree for Example 1 with all real nodes shown"
     }
   ],
   "solutions": [
     {
-      "name": "DFS with Max Tracking",
+      "name": "Recursive DFS Returning Counts",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "DFS passing the maximum value seen along the path from root. A node is 'good' if its value >= the max so far.",
-      "code": "class Solution {\n    public int goodNodes(TreeNode root) {\n        return dfs(root, Integer.MIN_VALUE);\n    }\n\n    private int dfs(TreeNode node, int maxSoFar) {\n        if (node == null) return 0;\n        int count = (node.val >= maxSoFar) ? 1 : 0;\n        maxSoFar = Math.max(maxSoFar, node.val);\n        count += dfs(node.left, maxSoFar);\n        count += dfs(node.right, maxSoFar);\n        return count;\n    }\n}",
+      "description": "## Approach\n\nPass the maximum value seen on the path from the root to the current node into a recursive helper. The helper returns the number of good nodes in the current subtree, counting the current node when its value is at least that path maximum.\n\n## Key Insight\n\nGood-node status depends only on the root-to-current path maximum, not on siblings or descendants. Once a child is reached, it only needs the updated maximum `max(maxSoFar, node.val)`.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h), where h is the height of the recursion stack.",
+      "code": "class Solution {\n    public int goodNodes(TreeNode root) {\n        return dfs(root, Integer.MIN_VALUE);\n    }\n\n    private int dfs(TreeNode node, int maxSoFar) {\n        if (node == null) return 0;\n\n        int count = node.val >= maxSoFar ? 1 : 0;\n        int nextMax = Math.max(maxSoFar, node.val);\n        count += dfs(node.left, nextMax);\n        count += dfs(node.right, nextMax);\n        return count;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "BFS with Max Tracking",
+      "name": "Recursive DFS with Mutable Counter",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Use BFS with a queue storing (node, maxSoFar) pairs. Count nodes where val >= maxSoFar.",
-      "code": "class Solution {\n    public int goodNodes(TreeNode root) {\n        if (root == null) return 0;\n        int count = 0;\n        Queue<Object[]> queue = new LinkedList<>();\n        queue.offer(new Object[]{root, root.val});\n        while (!queue.isEmpty()) {\n            Object[] curr = queue.poll();\n            TreeNode node = (TreeNode) curr[0];\n            int maxSoFar = (int) curr[1];\n            if (node.val >= maxSoFar) count++;\n            int newMax = Math.max(maxSoFar, node.val);\n            if (node.left != null) queue.offer(new Object[]{node.left, newMax});\n            if (node.right != null) queue.offer(new Object[]{node.right, newMax});\n        }\n        return count;\n    }\n}",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nKeep a field for the answer and run a preorder DFS carrying the path maximum. When the current node is good, increment the field, update the path maximum, and continue into both children.\n\n## Key Insight\n\nThis is the same invariant as the returning-count DFS, but the count is accumulated as a side effect. It separates traversal state from the final aggregation, which can be clearer for preorder counting problems.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h), where h is the height of the recursion stack.",
+      "code": "class Solution {\n    private int count;\n\n    public int goodNodes(TreeNode root) {\n        count = 0;\n        visit(root, Integer.MIN_VALUE);\n        return count;\n    }\n\n    private void visit(TreeNode node, int maxSoFar) {\n        if (node == null) return;\n\n        if (node.val >= maxSoFar) {\n            count++;\n        }\n        int nextMax = Math.max(maxSoFar, node.val);\n        visit(node.left, nextMax);\n        visit(node.right, nextMax);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "BFS with Path Maximum Frames",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(w)",
+      "description": "## Approach\n\nUse a queue of frames, where each frame stores a node and the maximum value seen before visiting that node. Pop a frame, test the node, then enqueue each child with the updated path maximum.\n\n## Key Insight\n\nThe recursive parameter can be made explicit in the queue. Every queued child must carry the maximum from its own root-to-child path, so different branches never share stale state.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(w), where w is the maximum queue width.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int goodNodes(TreeNode root) {\n        if (root == null) return 0;\n\n        int count = 0;\n        Queue<Frame> queue = new ArrayDeque<>();\n        queue.offer(new Frame(root, Integer.MIN_VALUE));\n\n        while (!queue.isEmpty()) {\n            Frame current = queue.poll();\n            TreeNode node = current.node;\n            if (node.val >= current.pathMax) {\n                count++;\n            }\n            int nextMax = Math.max(current.pathMax, node.val);\n            if (node.left != null) queue.offer(new Frame(node.left, nextMax));\n            if (node.right != null) queue.offer(new Frame(node.right, nextMax));\n        }\n\n        return count;\n    }\n\n    private static class Frame {\n        TreeNode node;\n        int pathMax;\n\n        Frame(TreeNode node, int pathMax) {\n            this.node = node;\n            this.pathMax = pathMax;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative DFS with Parallel Stacks",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nUse two parallel stacks instead of a frame object: one stack stores nodes, and the other stores the maximum value on the path before the matching node. Pop both stacks together, count the node if it is good, and push each child with the updated maximum.\n\n## Key Insight\n\nThe node and its path maximum are a pair of state values. Parallel stacks make that pairing explicit without introducing another class, and they preserve the branch-local maximum exactly like recursive DFS.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h), where h is the maximum number of pending DFS states along the traversal.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int goodNodes(TreeNode root) {\n        if (root == null) return 0;\n\n        int count = 0;\n        Deque<TreeNode> nodeStack = new ArrayDeque<>();\n        Deque<Integer> maxStack = new ArrayDeque<>();\n        nodeStack.push(root);\n        maxStack.push(Integer.MIN_VALUE);\n\n        while (!nodeStack.isEmpty()) {\n            TreeNode node = nodeStack.pop();\n            int pathMax = maxStack.pop();\n            if (node.val >= pathMax) {\n                count++;\n            }\n            int nextMax = Math.max(pathMax, node.val);\n            if (node.left != null) {\n                nodeStack.push(node.left);\n                maxStack.push(nextMax);\n            }\n            if (node.right != null) {\n                nodeStack.push(node.right);\n                maxStack.push(nextMax);\n            }\n        }\n\n        return count;\n    }\n}",
       "language": "java"
     }
   ]

@@ -1,38 +1,123 @@
 {
   "id": "151",
   "title": "Climbing Stairs",
-  "description": "# Climbing Stairs\n\nYou are climbing a staircase. It takes `n` steps to reach the top.\n\nEach time you can either climb `1` or `2` steps. In how many distinct ways can you climb to the top?\n\n## Example 1:\n\n**Input:** n = 2\n**Output:** 2\n**Explanation:** There are two ways to climb to the top.\n1. 1 step + 1 step\n2. 2 steps\n\n## Example 2:\n\n**Input:** n = 3\n**Output:** 3\n**Explanation:** There are three ways to climb to the top.\n1. 1 step + 1 step + 1 step\n2. 1 step + 2 steps\n3. 2 steps + 1 step\n\n## Constraints:\n\n*   `1 <= n <= 45`",
+  "description": "# Climbing Stairs\n\nThe top of the staircase is level `n`, and you start at ground level `0`. Each move climbs `1` or `2` levels. Reach level `n` exactly, without overshooting.\n\nReturn the number of distinct move sequences. For example, `[1,2]` and `[2,1]` both reach level `3`, but are two different ways.\n\n## Example 1\n\n**Input:** `n = 2`\n\n**Output:** `2`\n\n**Explanation:** The two move sequences are `[1, 1]` and `[2]`.\n\n## Example 2\n\n**Input:** `n = 3`\n\n**Output:** `3`\n\n**Explanation:** The three move sequences are `[1, 1, 1]`, `[1, 2]`, and `[2, 1]`.\n\n## Example 3\n\n**Input:** `n = 5`\n\n**Output:** `8`\n\n**Explanation:** The answer follows the recurrence `ways(5) = ways(4) + ways(3)`, because the last move is either one step from step `4` or two steps from step `3`.\n\n## Constraints\n\n- `1 <= n <= 45`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int climbStairs(int n) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Math", "Dynamic Programming", "Memoization"],
+  "tags": [
+    "Math",
+    "Dynamic Programming",
+    "Memoization",
+    "Combinatorics"
+  ],
   "examples": [
-    { "input": "n = 2", "output": "2" },
-    { "input": "n = 3", "output": "3" }
+    {
+      "input": "n = 2",
+      "output": "2"
+    },
+    {
+      "input": "n = 3",
+      "output": "3"
+    },
+    {
+      "input": "n = 5",
+      "output": "8"
+    }
   ],
   "solutions": [
     {
-      "name": "DP (Space Optimized)",
+      "name": "Bottom-Up DP Table",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(1)",
-      "description": "dp[i] = dp[i-1] + dp[i-2] (Fibonacci). Use two variables instead of an array since we only need the last two values.",
-      "code": "class Solution {\n    public int climbStairs(int n) {\n        if (n <= 2) return n;\n        int prev2 = 1, prev1 = 2;\n        for (int i = 3; i <= n; i++) {\n            int cur = prev1 + prev2;\n            prev2 = prev1;\n            prev1 = cur;\n        }\n        return prev1;\n    }\n}",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nLet `dp[i]` be the number of distinct ways to reach step `i`. The last move into step `i` is either a one-step move from `i - 1` or a two-step move from `i - 2`, so `dp[i] = dp[i - 1] + dp[i - 2]`. Fill the table from small steps to large steps.\n\n## Key Insight\n\nThe recurrence is only valid after the base cases are clear. There is one way to stand at step `0` before climbing, and one way to reach step `1`, so `dp[0] = 1` and `dp[1] = 1`.\n\n## Complexity Analysis\n\nThe loop computes one value for each step from `2` through `n`, so the time complexity is `O(n)`. The DP table stores `n + 1` values, so the space complexity is `O(n)`.",
+      "code": "class Solution {\n    public int climbStairs(int n) {\n        int[] dp = new int[n + 1];\n        dp[0] = 1;\n        dp[1] = 1;\n        for (int i = 2; i <= n; i++) {\n            dp[i] = dp[i - 1] + dp[i - 2];\n        }\n        return dp[n];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Bottom-Up DP with O(1) Space",
+      "name": "Space-Optimized Dynamic Programming",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use two variables instead of an array to track the last two Fibonacci-like values.",
-      "code": "class Solution {\n    public int climbStairs(int n) {\n        if (n <= 2) return n;\n        int a = 1, b = 2;\n        for (int i = 3; i <= n; i++) {\n            int c = a + b;\n            a = b;\n            b = c;\n        }\n        return b;\n    }\n}",
+      "description": "## Approach\n\nUse the same recurrence as the table solution, but keep only the two previous answers. At each step, `current = oneStepBefore + twoStepsBefore`, then slide the two variables forward.\n\n## Key Insight\n\nThe DP table is useful for learning, but this recurrence never looks farther back than two positions. Once `dp[i]` is computed, all values before `dp[i - 2]` are no longer needed.\n\n## Complexity Analysis\n\nThe loop runs once per step, giving `O(n)` time. Only three integer variables are needed, so the space complexity is `O(1)`.",
+      "code": "class Solution {\n    public int climbStairs(int n) {\n        int twoStepsBefore = 1;\n        int oneStepBefore = 1;\n        for (int step = 2; step <= n; step++) {\n            int current = oneStepBefore + twoStepsBefore;\n            twoStepsBefore = oneStepBefore;\n            oneStepBefore = current;\n        }\n        return oneStepBefore;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Memoized Recursion",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nDefine `ways(stepsLeft)` as the number of valid move sequences that cover exactly `stepsLeft` remaining steps. The next move can consume one or two steps, so recurse to `stepsLeft - 1` and `stepsLeft - 2`. Cache every `stepsLeft` value in `memo`.\n\n## Key Insight\n\nPlain recursion repeats the same subproblems many times. Memoization keeps the decision-tree explanation while ensuring that each remaining-step count is solved once.\n\n## Complexity Analysis\n\nThere are only `n + 1` possible remaining-step counts, and each does constant work after its recursive calls. The time complexity is `O(n)`, and the memo array plus recursion stack use `O(n)` space.",
+      "code": "class Solution {\n    public int climbStairs(int n) {\n        int[] memo = new int[n + 1];\n        return ways(n, memo);\n    }\n\n    private int ways(int stepsLeft, int[] memo) {\n        if (stepsLeft == 0) {\n            return 1;\n        }\n        if (stepsLeft < 0) {\n            return 0;\n        }\n        if (memo[stepsLeft] != 0) {\n            return memo[stepsLeft];\n        }\n        memo[stepsLeft] = ways(stepsLeft - 1, memo) + ways(stepsLeft - 2, memo);\n        return memo[stepsLeft];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Combinatorial Count by Two-Step Moves",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nChoose how many two-step moves are used. If there are `twos` two-step moves, then `ones = n - 2 * twos` one-step moves remain, and the total number of moves is `ones + twos`. The number of sequences for this choice is `C(ones + twos, twos)`.\n\n## Key Insight\n\nThis counts the same objects from a different angle: not by the final move, but by arranging a fixed multiset of one-step and two-step moves. Summing over every possible number of two-step moves gives the full answer.\n\n## Complexity Analysis\n\nThere are `O(n)` choices of `twos`, and each binomial coefficient is computed in `O(n)` time with constant extra storage. The total time complexity is `O(n^2)`, and the space complexity is `O(1)`.",
+      "code": "class Solution {\n    public int climbStairs(int n) {\n        long total = 0;\n        for (int twos = 0; twos <= n / 2; twos++) {\n            int ones = n - 2 * twos;\n            int moves = ones + twos;\n            total += choose(moves, twos);\n        }\n        return (int) total;\n    }\n\n    private long choose(int n, int k) {\n        k = Math.min(k, n - k);\n        long result = 1;\n        for (int i = 1; i <= k; i++) {\n            result = result * (n - k + i) / i;\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Fast Doubling Fibonacci",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(log n)",
+      "description": "## Approach\n\nThe staircase answer equals Fibonacci number `F(n + 1)` when `F(0) = 0` and `F(1) = 1`. Fast doubling computes the pair `(F(k), F(k + 1))` from the pair at `k / 2`, then chooses the even or odd formula.\n\n## Key Insight\n\nDynamic programming reveals the Fibonacci recurrence; fast doubling shows that a recurrence can sometimes be accelerated with algebraic identities. It is more advanced than the usual interview solution, but it connects this small problem to a broader technique.\n\n## Complexity Analysis\n\nEach recursive call halves the index, so the time complexity is `O(log n)`. The recursion stack also has depth `O(log n)`, while each frame stores only a constant-size pair.",
+      "code": "class Solution {\n    public int climbStairs(int n) {\n        return (int) fibonacci(n + 1)[0];\n    }\n\n    private long[] fibonacci(int index) {\n        if (index == 0) {\n            return new long[] {0, 1};\n        }\n        long[] half = fibonacci(index / 2);\n        long a = half[0];\n        long b = half[1];\n        long c = a * (2 * b - a);\n        long d = a * a + b * b;\n        if (index % 2 == 0) {\n            return new long[] {c, d};\n        }\n        return new long[] {d, c + d};\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "n = 2", "output": "2" },
-    { "input": "n = 3", "output": "3" },
-    { "input": "n = 4", "output": "5" },
-    { "input": "n = 5", "output": "8" },
-    { "input": "n = 1", "output": "1" }
+    {
+      "input": "n = 1",
+      "output": "1",
+      "description": "Minimum input: one single-step move."
+    },
+    {
+      "input": "n = 2",
+      "output": "2",
+      "description": "Two stairs can be reached as one plus one or one direct two-step move."
+    },
+    {
+      "input": "n = 3",
+      "output": "3",
+      "description": "The first value where order matters: [1,2] and [2,1] are different."
+    },
+    {
+      "input": "n = 4",
+      "output": "5",
+      "description": "Checks the recurrence beyond the examples."
+    },
+    {
+      "input": "n = 5",
+      "output": "8",
+      "description": "Canonical small value used to explain the last-move recurrence."
+    },
+    {
+      "input": "n = 6",
+      "output": "13",
+      "description": "Catches off-by-one base cases around the transition from examples to general DP."
+    },
+    {
+      "input": "n = 10",
+      "output": "89",
+      "description": "Medium value catches implementations that accidentally count combinations without order."
+    },
+    {
+      "input": "n = 20",
+      "output": "10946",
+      "description": "Larger value catches exponential recursion and recurrence mistakes."
+    },
+    {
+      "input": "n = 45",
+      "output": "1836311903",
+      "description": "Upper constraint value remains within signed 32-bit int but exposes overflow-prone variants."
+    }
   ],
-  "diagram": "images/p151_climbing_stairs.png"
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p151_climbing_stairs.png",
+      "caption": "Rule illustration for n = 3: start at level 0 and finish at level 3, moving one or two levels at a time"
+    }
+  ]
 }

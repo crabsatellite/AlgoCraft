@@ -1,10 +1,16 @@
 {
   "id": "133",
   "title": "Pacific Atlantic Water Flow",
-  "description": "# Pacific Atlantic Water Flow\n\nThere is an `m x n` rectangular island that borders both the **Pacific Ocean** and **Atlantic Ocean**. The **Pacific Ocean** touches the island's left and top edges, and the **Atlantic Ocean** touches the island's right and bottom edges.\n\nThe island is partitioned into a grid of square cells. You are given an `m x n` integer matrix `heights` where `heights[r][c]` represents the **height above sea level** of the cell at coordinate `(r, c)`.\n\nThe island receives a lot of rain, and the rain water can flow to neighboring cells directly north, south, east, and west if the neighboring cell's height is **less than or equal to** the current cell's height. Water can flow from any cell adjacent to an ocean into the ocean.\n\nReturn *a 2D list of grid coordinates* `result` *where* `result[i] = [ri, ci]` *denotes that rain water can flow from cell* `(ri, ci)` *to **both** the Pacific and Atlantic oceans*.\n\n## Example 1:\n\n**Input:** heights = [[1,2,2,3,5],[3,2,3,4,4],[2,4,5,3,1],[6,7,1,4,5],[5,1,1,2,4]]\n**Output:** [[0,4],[1,3],[1,4],[2,2],[3,0],[3,1],[4,0]]\n**Explanation:** The following cells can flow to the Pacific Ocean, the Atlantic Ocean, or both:\n  Pacific = [[0,0], [0,1], [0,2], [0,3], [0,4], [1,0], [1,1], [1,2], [1,3], [1,4], [2,0], [2,1], [2,2], [3,0], [3,1], [4,0]]\n  Atlantic = [[0,4], [1,3], [1,4], [2,2], [2,3], [2,4], [3,0], [3,1], [3,2], [3,3], [3,4], [4,0], [4,1], [4,2], [4,3], [4,4]]\n  Both = [[0,4], [1,3], [1,4], [2,2], [3,0], [3,1], [4,0]]\n\n## Example 2:\n\n**Input:** heights = [[1]]\n**Output:** [[0,0]]\n\n## Constraints:\n\n*   `m == heights.length`\n*   `n == heights[r].length`\n*   `1 <= m, n <= 200`\n*   `0 <= heights[r][c] <= 10^5`",
+  "description": "# Pacific Atlantic Water Flow\n\nYou are given an `m x n` matrix `heights` representing a rectangular island. The Pacific Ocean touches the island's top and left edges, and the Atlantic Ocean touches the island's bottom and right edges.\n\nWater can flow from a cell to a 4-directionally adjacent cell if the neighboring cell's height is less than or equal to the current cell's height. A cell on an ocean border can flow directly into that ocean.\n\nReturn all coordinates `[r, c]` where water can flow from that cell to both the Pacific and Atlantic oceans. The returned coordinates may be in any order.\n\nWater may reach the two oceans along different paths from the same cell. A single path need not visit both oceans.\n\n## Example 1\n\n**Input:** `heights = [[1,2,2,3,5],[3,2,3,4,4],[2,4,5,3,1],[6,7,1,4,5],[5,1,1,2,4]]`\n\n**Output:** `[[0,4],[1,3],[1,4],[2,2],[3,0],[3,1],[4,0]]`\n\n**Explanation:** These cells can reach both oceans by following non-increasing height paths. For example, `(2, 2)` has height `5`, so it can flow toward the Pacific through the upper-left side and toward the Atlantic through the lower-right side.\n\n## Example 2\n\n**Input:** `heights = [[1]]`\n\n**Output:** `[[0,0]]`\n\n**Explanation:** The only cell touches all four borders, so it reaches both oceans.\n\n## Constraints\n\n* `m == heights.length`.\n* `n == heights[r].length`.\n* `1 <= m, n <= 200`.\n* `0 <= heights[r][c] <= 100000`.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public List<List<Integer>> pacificAtlantic(int[][] heights) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["Array", "Depth-First Search", "Breadth-First Search", "Matrix"],
+  "tags": [
+    "Array",
+    "Depth-First Search",
+    "Breadth-First Search",
+    "Graph",
+    "Matrix"
+  ],
   "examples": [
     {
       "input": "heights = [[1,2,2,3,5],[3,2,3,4,4],[2,4,5,3,1],[6,7,1,4,5],[5,1,1,2,4]]",
@@ -17,41 +23,85 @@
   ],
   "solutions": [
     {
-      "name": "DFS from Ocean Borders",
+      "name": "Reverse DFS from Ocean Borders",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "DFS from Pacific border (top+left) marking reachable cells. DFS from Atlantic border (bottom+right) marking reachable cells. Return cells reachable from both.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> pacificAtlantic(int[][] heights) {\n        int m = heights.length, n = heights[0].length;\n        boolean[][] pacific = new boolean[m][n], atlantic = new boolean[m][n];\n        for (int i = 0; i < m; i++) {\n            dfs(heights, pacific, i, 0);\n            dfs(heights, atlantic, i, n - 1);\n        }\n        for (int j = 0; j < n; j++) {\n            dfs(heights, pacific, 0, j);\n            dfs(heights, atlantic, m - 1, j);\n        }\n        List<List<Integer>> result = new ArrayList<>();\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++)\n                if (pacific[i][j] && atlantic[i][j])\n                    result.add(Arrays.asList(i, j));\n        return result;\n    }\n\n    private void dfs(int[][] heights, boolean[][] visited, int i, int j) {\n        if (visited[i][j]) return;\n        visited[i][j] = true;\n        int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};\n        for (int[] d : dirs) {\n            int ni = i + d[0], nj = j + d[1];\n            if (ni >= 0 && ni < heights.length && nj >= 0 && nj < heights[0].length && heights[ni][nj] >= heights[i][j])\n                dfs(heights, visited, ni, nj);\n        }\n    }\n}",
+      "description": "## Approach\nRun one DFS from all Pacific border cells and one DFS from all Atlantic border cells. In the reversed search, move only to neighbors whose height is greater than or equal to the current cell. A cell included in both visited sets is part of the answer.\n\n## Key Insight\nForward water flow moves downhill or level. Reversing that direction turns each ocean's reachable region into an uphill-or-level flood fill from its border. This avoids starting a separate search from every cell.\n\n## Complexity Analysis\nEach ocean search visits each cell at most once. The time complexity is `O(m * n)`, and the visited arrays plus recursion stack use `O(m * n)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public List<List<Integer>> pacificAtlantic(int[][] heights) {\n        int rows = heights.length;\n        int cols = heights[0].length;\n        boolean[][] pacific = new boolean[rows][cols];\n        boolean[][] atlantic = new boolean[rows][cols];\n\n        for (int row = 0; row < rows; row++) {\n            dfs(heights, pacific, row, 0);\n            dfs(heights, atlantic, row, cols - 1);\n        }\n        for (int col = 0; col < cols; col++) {\n            dfs(heights, pacific, 0, col);\n            dfs(heights, atlantic, rows - 1, col);\n        }\n\n        return collectBoth(pacific, atlantic);\n    }\n\n    private void dfs(int[][] heights, boolean[][] visited, int row, int col) {\n        if (visited[row][col]) {\n            return;\n        }\n        visited[row][col] = true;\n        for (int[] direction : DIRECTIONS) {\n            int nextRow = row + direction[0];\n            int nextCol = col + direction[1];\n            if (nextRow < 0 || nextRow >= heights.length || nextCol < 0 || nextCol >= heights[0].length) {\n                continue;\n            }\n            if (heights[nextRow][nextCol] < heights[row][col]) {\n                continue;\n            }\n            dfs(heights, visited, nextRow, nextCol);\n        }\n    }\n\n    private List<List<Integer>> collectBoth(boolean[][] pacific, boolean[][] atlantic) {\n        List<List<Integer>> result = new ArrayList<>();\n        for (int row = 0; row < pacific.length; row++) {\n            for (int col = 0; col < pacific[0].length; col++) {\n                if (pacific[row][col] && atlantic[row][col]) {\n                    result.add(Arrays.asList(row, col));\n                }\n            }\n        }\n        return result;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "BFS from Ocean Borders",
+      "name": "Reverse BFS from Ocean Borders",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(m * n)",
-      "description": "Use BFS instead of DFS. Start BFS from all Pacific border cells simultaneously, then from all Atlantic border cells. Find intersection of reachable sets.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> pacificAtlantic(int[][] heights) {\n        int m = heights.length, n = heights[0].length;\n        boolean[][] pacific = new boolean[m][n];\n        boolean[][] atlantic = new boolean[m][n];\n        Queue<int[]> pacQueue = new LinkedList<>();\n        Queue<int[]> atlQueue = new LinkedList<>();\n        for (int i = 0; i < m; i++) {\n            pacQueue.offer(new int[]{i, 0});\n            pacific[i][0] = true;\n            atlQueue.offer(new int[]{i, n - 1});\n            atlantic[i][n - 1] = true;\n        }\n        for (int j = 0; j < n; j++) {\n            pacQueue.offer(new int[]{0, j});\n            pacific[0][j] = true;\n            atlQueue.offer(new int[]{m - 1, j});\n            atlantic[m - 1][j] = true;\n        }\n        bfs(heights, pacQueue, pacific);\n        bfs(heights, atlQueue, atlantic);\n        List<List<Integer>> result = new ArrayList<>();\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++)\n                if (pacific[i][j] && atlantic[i][j])\n                    result.add(Arrays.asList(i, j));\n        return result;\n    }\n\n    private void bfs(int[][] heights, Queue<int[]> queue, boolean[][] visited) {\n        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n        while (!queue.isEmpty()) {\n            int[] cell = queue.poll();\n            for (int[] d : dirs) {\n                int ni = cell[0] + d[0], nj = cell[1] + d[1];\n                if (ni >= 0 && ni < heights.length && nj >= 0 && nj < heights[0].length\n                        && !visited[ni][nj] && heights[ni][nj] >= heights[cell[0]][cell[1]]) {\n                    visited[ni][nj] = true;\n                    queue.offer(new int[]{ni, nj});\n                }\n            }\n        }\n    }\n}",
+      "description": "## Approach\nBuild two queues: one seeded with every Pacific border cell and one seeded with every Atlantic border cell. Each queue performs the same reverse-flow traversal, marking neighbors that are at least as high as the current cell.\n\n## Key Insight\nBFS and DFS mark the same reverse-reachable sets. The queue version makes the multi-source nature more explicit: all cells on an ocean border are starting points for that ocean at the same time.\n\n## Complexity Analysis\nEach cell can be enqueued once per ocean. The time complexity is `O(m * n)`, and the queues and visited arrays use `O(m * n)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public List<List<Integer>> pacificAtlantic(int[][] heights) {\n        int rows = heights.length;\n        int cols = heights[0].length;\n        boolean[][] pacific = new boolean[rows][cols];\n        boolean[][] atlantic = new boolean[rows][cols];\n        Queue<int[]> pacificQueue = new ArrayDeque<>();\n        Queue<int[]> atlanticQueue = new ArrayDeque<>();\n\n        for (int row = 0; row < rows; row++) {\n            addBorderCell(pacificQueue, pacific, row, 0);\n            addBorderCell(atlanticQueue, atlantic, row, cols - 1);\n        }\n        for (int col = 0; col < cols; col++) {\n            addBorderCell(pacificQueue, pacific, 0, col);\n            addBorderCell(atlanticQueue, atlantic, rows - 1, col);\n        }\n\n        bfs(heights, pacificQueue, pacific);\n        bfs(heights, atlanticQueue, atlantic);\n        return collectBoth(pacific, atlantic);\n    }\n\n    private void addBorderCell(Queue<int[]> queue, boolean[][] visited, int row, int col) {\n        if (!visited[row][col]) {\n            visited[row][col] = true;\n            queue.offer(new int[]{row, col});\n        }\n    }\n\n    private void bfs(int[][] heights, Queue<int[]> queue, boolean[][] visited) {\n        while (!queue.isEmpty()) {\n            int[] cell = queue.poll();\n            int row = cell[0];\n            int col = cell[1];\n            for (int[] direction : DIRECTIONS) {\n                int nextRow = row + direction[0];\n                int nextCol = col + direction[1];\n                if (nextRow < 0 || nextRow >= heights.length || nextCol < 0 || nextCol >= heights[0].length) {\n                    continue;\n                }\n                if (visited[nextRow][nextCol] || heights[nextRow][nextCol] < heights[row][col]) {\n                    continue;\n                }\n                visited[nextRow][nextCol] = true;\n                queue.offer(new int[]{nextRow, nextCol});\n            }\n        }\n    }\n\n    private List<List<Integer>> collectBoth(boolean[][] pacific, boolean[][] atlantic) {\n        List<List<Integer>> result = new ArrayList<>();\n        for (int row = 0; row < pacific.length; row++) {\n            for (int col = 0; col < pacific[0].length; col++) {\n                if (pacific[row][col] && atlantic[row][col]) {\n                    result.add(Arrays.asList(row, col));\n                }\n            }\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Combined Bitmask Queue Propagation",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\nUse one integer mask per cell: bit `1` means Pacific-reachable, and bit `2` means Atlantic-reachable. Seed border cells with their ocean bits and enqueue a cell whenever it gains a new bit. Propagate that bit uphill or level to neighbors.\n\n## Key Insight\nThe two ocean searches are the same data-flow problem. A single queue can propagate ocean reachability bits until no cell gains new information; cells with mask `3` can reach both oceans.\n\n## Complexity Analysis\nEach cell can gain each ocean bit once, so there are at most `2 * m * n` meaningful enqueues. Time and space are both `O(m * n)`.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int PACIFIC = 1;\n    private static final int ATLANTIC = 2;\n    private static final int BOTH = PACIFIC | ATLANTIC;\n    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public List<List<Integer>> pacificAtlantic(int[][] heights) {\n        int rows = heights.length;\n        int cols = heights[0].length;\n        int[][] reach = new int[rows][cols];\n        Queue<int[]> queue = new ArrayDeque<>();\n\n        for (int row = 0; row < rows; row++) {\n            seed(reach, queue, row, 0, PACIFIC);\n            seed(reach, queue, row, cols - 1, ATLANTIC);\n        }\n        for (int col = 0; col < cols; col++) {\n            seed(reach, queue, 0, col, PACIFIC);\n            seed(reach, queue, rows - 1, col, ATLANTIC);\n        }\n\n        while (!queue.isEmpty()) {\n            int[] state = queue.poll();\n            int row = state[0];\n            int col = state[1];\n            int ocean = state[2];\n            for (int[] direction : DIRECTIONS) {\n                int nextRow = row + direction[0];\n                int nextCol = col + direction[1];\n                if (nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols) {\n                    continue;\n                }\n                if (heights[nextRow][nextCol] < heights[row][col]) {\n                    continue;\n                }\n                if ((reach[nextRow][nextCol] & ocean) != 0) {\n                    continue;\n                }\n                reach[nextRow][nextCol] |= ocean;\n                queue.offer(new int[]{nextRow, nextCol, ocean});\n            }\n        }\n\n        List<List<Integer>> result = new ArrayList<>();\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (reach[row][col] == BOTH) {\n                    result.add(Arrays.asList(row, col));\n                }\n            }\n        }\n        return result;\n    }\n\n    private void seed(int[][] reach, Queue<int[]> queue, int row, int col, int ocean) {\n        if ((reach[row][col] & ocean) == 0) {\n            reach[row][col] |= ocean;\n            queue.offer(new int[]{row, col, ocean});\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Fixed-Point Reachability Propagation",
+      "timeComplexity": "O((m * n)^2) in the worst case",
+      "spaceComplexity": "O(m * n)",
+      "description": "## Approach\nGive each cell an ocean reachability mask based on whether it touches the Pacific or Atlantic border. Repeatedly scan the whole grid; a cell can inherit an ocean bit from any lower-or-equal neighbor because water can flow from the cell to that neighbor. Stop when a full pass makes no changes.\n\n## Key Insight\nThis is a Bellman-Ford style fixed-point formulation. It is slower than border DFS or BFS, but it states the reachability rule directly: ocean bits move opposite the water-flow direction until no cell can improve.\n\n## Complexity Analysis\nEach scan costs `O(m * n)`, and the number of passes can be proportional to the number of cells in the worst case. The reachability table uses `O(m * n)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static final int PACIFIC = 1;\n    private static final int ATLANTIC = 2;\n    private static final int BOTH = PACIFIC | ATLANTIC;\n    private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};\n\n    public List<List<Integer>> pacificAtlantic(int[][] heights) {\n        int rows = heights.length;\n        int cols = heights[0].length;\n        int[][] reach = new int[rows][cols];\n\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (row == 0 || col == 0) {\n                    reach[row][col] |= PACIFIC;\n                }\n                if (row == rows - 1 || col == cols - 1) {\n                    reach[row][col] |= ATLANTIC;\n                }\n            }\n        }\n\n        boolean changed = true;\n        while (changed) {\n            changed = false;\n            for (int row = 0; row < rows; row++) {\n                for (int col = 0; col < cols; col++) {\n                    int mask = reach[row][col];\n                    for (int[] direction : DIRECTIONS) {\n                        int nextRow = row + direction[0];\n                        int nextCol = col + direction[1];\n                        if (nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols) {\n                            continue;\n                        }\n                        if (heights[nextRow][nextCol] <= heights[row][col]) {\n                            mask |= reach[nextRow][nextCol];\n                        }\n                    }\n                    if (mask != reach[row][col]) {\n                        reach[row][col] = mask;\n                        changed = true;\n                    }\n                }\n            }\n        }\n\n        List<List<Integer>> result = new ArrayList<>();\n        for (int row = 0; row < rows; row++) {\n            for (int col = 0; col < cols; col++) {\n                if (reach[row][col] == BOTH) {\n                    result.add(Arrays.asList(row, col));\n                }\n            }\n        }\n        return result;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "heights = [[1,2,2,3,5],[3,2,3,4,4],[2,4,5,3,1],[6,7,1,4,5],[5,1,1,2,4]]",
-      "output": "[[0,4],[1,3],[1,4],[2,2],[3,0],[3,1],[4,0]]"
+      "output": "[[0,4],[1,3],[1,4],[2,2],[3,0],[3,1],[4,0]]",
+      "description": "Canonical height map with seven cells that can reach both oceans."
     },
     {
       "input": "heights = [[1]]",
-      "output": "[[0,0]]"
+      "output": "[[0,0]]",
+      "description": "Single cell touches both oceans."
     },
     {
       "input": "heights = [[1,1],[1,1]]",
-      "output": "[[0,0],[0,1],[1,0],[1,1]]"
+      "output": "[[0,0],[0,1],[1,0],[1,1]]",
+      "description": "Flat grid lets every cell flow to every border."
+    },
+    {
+      "input": "heights = [[1,2,3,4]]",
+      "output": "[[0,0],[0,1],[0,2],[0,3]]",
+      "description": "A single row touches both the top Pacific edge and bottom Atlantic edge."
+    },
+    {
+      "input": "heights = [[1],[2],[3]]",
+      "output": "[[0,0],[1,0],[2,0]]",
+      "description": "A single column touches both the left Pacific edge and right Atlantic edge."
+    },
+    {
+      "input": "heights = [[1,2,1],[2,3,2],[1,2,1]]",
+      "output": "[[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1]]",
+      "description": "A central peak and ridge cells can drain to both oceans, while opposite low corners cannot."
+    },
+    {
+      "input": "heights = [[10,10,10],[10,1,10],[10,10,10]]",
+      "output": "[[0,0],[0,1],[0,2],[1,0],[1,2],[2,0],[2,1],[2,2]]",
+      "description": "A low center basin cannot climb to the ocean ring."
+    },
+    {
+      "input": "heights = [[5,4,3],[4,3,2],[3,2,1]]",
+      "output": "[[0,0],[0,1],[0,2],[1,0],[2,0]]",
+      "description": "A descending southeast slope leaves only the Pacific border paths able to reach both oceans."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p133_example1.png",
-      "caption": "Example 1"
+      "caption": "Height map with Pacific and Atlantic borders"
     }
   ]
 }

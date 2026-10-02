@@ -1,38 +1,130 @@
 {
   "id": "436",
-  "title": "Design Add and Search Words Data Structure",
-  "description": "# Design Add and Search Words Data Structure\n\nDesign a data structure that supports adding new words and finding if a string matches any previously added string.\n\nImplement the `WordDictionary` class:\n\n*   `WordDictionary()` Initializes the object.\n*   `void addWord(word)` Adds `word` to the data structure, it can be matched later.\n*   `bool search(word)` Returns `true` if there is any string in the data structure that matches `word` or `false` otherwise. `word` may contain dots `'.'` where dots can be matched with any letter.\n\n## Example 1:\n\n**Input**\n[\"WordDictionary\",\"addWord\",\"addWord\",\"addWord\",\"search\",\"search\",\"search\",\"search\"]\n[[],[\"bad\"],[\"dad\"],[\"mad\"],[\"pad\"],[\"bad\"],[\".ad\"],[\"b..\"]]\n**Output**\n[null,null,null,null,false,true,true,true]\n**Explanation**\nWordDictionary wordDictionary = new WordDictionary();\nwordDictionary.addWord(\"bad\");\nwordDictionary.addWord(\"dad\");\nwordDictionary.addWord(\"mad\");\nwordDictionary.search(\"pad\"); // return False\nwordDictionary.search(\"bad\"); // return True\nwordDictionary.search(\".ad\"); // return True\nwordDictionary.search(\"b..\"); // return True\n\n## Constraints:\n\n*   `1 <= word.length <= 25`\n*   `word` in `addWord` consists of lowercase English letters.\n*   `word` in `search` consist of '.' or lowercase English letters.\n*   There will be at most `2` dots in `word` for `search` queries.\n*   At most `10^4` calls will be made to `addWord` and `search`.",
-  "difficulty": "MEDIUM",
-  "initialCode": "class WordDictionary {\n\n    public WordDictionary() {\n        \n    }\n    \n    public void addWord(String word) {\n        \n    }\n    \n    public boolean search(String word) {\n        \n    }\n}",
-  "tags": ["String", "Depth-First Search", "Design", "Trie"],
+  "title": "Count Words With Prefix",
+  "description": "# Count Words With Prefix\n\nGiven an array of lowercase words `words` and a lowercase string `pref`, return the number of words that start with `pref`.\n\nA word starts with `pref` only if its first `pref.length()` characters are exactly equal to `pref`. The whole word may be exactly equal to `pref`, and duplicate words are counted separately.\n\n## Example 1:\n\n**Input:** words = [\"pay\",\"attention\",\"practice\",\"attend\"], pref = \"at\"\n**Output:** 2\n**Explanation:** `attention` and `attend` start with `at`.\n\n## Example 2:\n\n**Input:** words = [\"leetcode\",\"win\",\"loops\",\"success\"], pref = \"code\"\n**Output:** 0\n**Explanation:** No word starts with `code`.\n\n## Constraints:\n\n*   `0 <= words.length <= 100`\n*   `1 <= words[i].length, pref.length <= 100`\n*   `words[i]` and `pref` contain lowercase English letters.",
+  "difficulty": "EASY",
+  "initialCode": "class Solution {\n    public int prefixCount(String[] words, String pref) {\n        // Write your code here\n    }\n}",
+  "tags": [
+    "Array",
+    "String"
+  ],
   "examples": [
     {
-      "input": "[\"WordDictionary\",\"addWord\",\"addWord\",\"addWord\",\"search\",\"search\",\"search\",\"search\"]\n[[],[\"bad\"],[\"dad\"],[\"mad\"],[\"pad\"],[\"bad\"],[\".ad\"],[\"b..\"]]",
-      "output": "[null,null,null,null,false,true,true,true]"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "Trie with DFS for Wildcard",
-      "timeComplexity": "O(L) for add, O(26^dots * L) for search",
-      "spaceComplexity": "O(N * L)",
-      "description": "Use a trie for storage. AddWord inserts normally. Search uses DFS: for regular characters follow the child, for '.' try all 26 children recursively.",
-      "code": "class WordDictionary {\n    private WordDictionary[] children;\n    private boolean isEnd;\n\n    public WordDictionary() {\n        children = new WordDictionary[26];\n        isEnd = false;\n    }\n\n    public void addWord(String word) {\n        WordDictionary node = this;\n        for (char c : word.toCharArray()) {\n            int idx = c - 'a';\n            if (node.children[idx] == null) {\n                node.children[idx] = new WordDictionary();\n            }\n            node = node.children[idx];\n        }\n        node.isEnd = true;\n    }\n\n    public boolean search(String word) {\n        return dfs(word, 0, this);\n    }\n\n    private boolean dfs(String word, int pos, WordDictionary node) {\n        if (pos == word.length()) return node.isEnd;\n        char c = word.charAt(pos);\n        if (c == '.') {\n            for (int i = 0; i < 26; i++) {\n                if (node.children[i] != null && dfs(word, pos + 1, node.children[i])) {\n                    return true;\n                }\n            }\n            return false;\n        } else {\n            int idx = c - 'a';\n            if (node.children[idx] == null) return false;\n            return dfs(word, pos + 1, node.children[idx]);\n        }\n    }\n}",
-      "language": "java"
+      "input": "words = [\"pay\",\"attention\",\"practice\",\"attend\"], pref = \"at\"",
+      "output": "2"
     },
     {
-      "name": "HashMap by Length + Brute Force Matching",
-      "timeComplexity": "O(n * L) for search, O(1) for add",
-      "spaceComplexity": "O(N * L)",
-      "description": "Group words by length in a HashMap. On search, only check words of the same length. For each candidate word, check character-by-character allowing '.' to match any character.",
-      "code": "import java.util.*;\n\nclass WordDictionary {\n    private Map<Integer, List<String>> wordsByLength;\n\n    public WordDictionary() {\n        wordsByLength = new HashMap();\n    }\n\n    public void addWord(String word) {\n        int len = word.length();\n        if (!wordsByLength.containsKey(len)) {\n            wordsByLength.put(len, new ArrayList());\n        }\n        wordsByLength.get(len).add(word);\n    }\n\n    public boolean search(String word) {\n        int len = word.length();\n        if (!wordsByLength.containsKey(len)) return false;\n        List<String> candidates = wordsByLength.get(len);\n        for (int i = 0; i < candidates.size(); i++) {\n            if (matches(word, candidates.get(i))) return true;\n        }\n        return false;\n    }\n\n    private boolean matches(String pattern, String word) {\n        for (int i = 0; i < pattern.length(); i++) {\n            char p = pattern.charAt(i);\n            if (p != '.' && p != word.charAt(i)) return false;\n        }\n        return true;\n    }\n}",
-      "language": "java"
+      "input": "words = [\"leetcode\",\"win\",\"loops\",\"success\"], pref = \"code\"",
+      "output": "0"
     }
   ],
   "tests": [
     {
-      "input": "[\"WordDictionary\",\"addWord\",\"addWord\",\"addWord\",\"search\",\"search\",\"search\",\"search\"]\n[[],[\"bad\"],[\"dad\"],[\"mad\"],[\"pad\"],[\"bad\"],[\".ad\"],[\"b..\"]]",
-      "output": "[null,null,null,null,false,true,true,true]"
+      "input": "words = [\"pay\",\"attention\",\"practice\",\"attend\"], pref = \"at\"",
+      "output": "2"
+    },
+    {
+      "input": "words = [\"leetcode\",\"win\",\"loops\",\"success\"], pref = \"code\"",
+      "output": "0"
+    },
+    {
+      "input": "words = [\"a\",\"ab\",\"abc\"], pref = \"a\"",
+      "output": "3"
+    },
+    {
+      "input": "words = [\"dog\",\"cat\"], pref = \"z\"",
+      "output": "0"
+    },
+    {
+      "input": "words = [], pref = \"a\"",
+      "output": "0"
+    },
+    {
+      "description": "A prefix longer than every word matches nothing.",
+      "input": "words = [\"a\",\"aa\",\"aaa\"], pref = \"aaaa\"",
+      "output": "0"
+    },
+    {
+      "description": "Duplicate words are counted separately.",
+      "input": "words = [\"app\",\"apple\",\"application\",\"banana\",\"app\"], pref = \"app\"",
+      "output": "4"
+    },
+    {
+      "description": "A word equal to the prefix is a valid match.",
+      "input": "words = [\"prefix\",\"pre\",\"prevent\",\"present\",\"press\"], pref = \"pre\"",
+      "output": "5"
+    },
+    {
+      "description": "A shared substring is not enough; the match must start at index zero.",
+      "input": "words = [\"abc\",\"ab\",\"abcd\",\"xabc\"], pref = \"abc\"",
+      "output": "2"
+    },
+    {
+      "description": "The z boundary matters for sorted range solutions.",
+      "input": "words = [\"zz\",\"zzz\",\"za\",\"zebra\"], pref = \"zz\"",
+      "output": "2"
+    },
+    {
+      "description": "Repeated exact words count once per occurrence.",
+      "input": "words = [\"same\",\"same\",\"sample\",\"sam\"], pref = \"same\"",
+      "output": "2"
+    },
+    {
+      "description": "A long prefix can match a long word and an exact word but not shorter prefixes.",
+      "input": "words = [\"longprefixword\",\"long\",\"longer\",\"longprefix\"], pref = \"longprefix\"",
+      "output": "2"
+    },
+    {
+      "description": "Several words may share the first three characters without sharing the next one.",
+      "input": "words = [\"mission\",\"missing\",\"mist\",\"mix\"], pref = \"mis\"",
+      "output": "3"
+    },
+    {
+      "description": "Single-letter prefix with only one match among unrelated words.",
+      "input": "words = [\"alpha\",\"beta\",\"gamma\"], pref = \"a\"",
+      "output": "1"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "StartsWith Library Scan",
+      "timeComplexity": "O(total word length checked)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan every word and use the standard `startsWith` predicate. Each word contributes one to the answer only when the prefix appears at the beginning of the word.\n\n## Key Insight\n\nThis is the direct specification of the problem. It is the best baseline because the input contains only one prefix query, so building an index is unnecessary for performance.\n\n## Complexity Analysis\n\nEach word may compare up to `pref.length()` characters. Time Complexity: O(n * p), where `p = pref.length()`. Space Complexity: O(1).",
+      "code": "class Solution { public int prefixCount(String[] words, String pref) { int count = 0; for (String word : words) { if (word.startsWith(pref)) { count++; } } return count; } }",
+      "language": "java"
+    },
+    {
+      "name": "Manual Character Check",
+      "timeComplexity": "O(n * p)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFor each word, first reject it if it is shorter than `pref`. Otherwise compare characters one by one from index `0` to `pref.length() - 1`. Count the word only if every compared character matches.\n\n## Key Insight\n\nWriting out the predicate makes the boundary cases explicit: shorter words cannot match, exact-length words can match, and matches inside the middle of a word do not count.\n\n## Complexity Analysis\n\nAt most `pref.length()` characters are compared per word. Time Complexity: O(n * p). Space Complexity: O(1).",
+      "code": "class Solution { public int prefixCount(String[] words, String pref) { int answer = 0; for (String word : words) { if (matchesPrefix(word, pref)) { answer++; } } return answer; } private boolean matchesPrefix(String word, String pref) { if (word.length() < pref.length()) { return false; } for (int i = 0; i < pref.length(); i++) { if (word.charAt(i) != pref.charAt(i)) { return false; } } return true; } }",
+      "language": "java"
+    },
+    {
+      "name": "Trie Pass Counter",
+      "timeComplexity": "O(total word length + pref length)",
+      "spaceComplexity": "O(total word length)",
+      "description": "## Approach\n\nInsert every word into a trie. Every time a word passes through a trie node, increment that node's `pass` counter. After inserting all words, walk the characters of `pref`; if the path exists, the final node's counter is exactly the number of words with that prefix.\n\n## Key Insight\n\nA trie is useful when many prefix queries will be asked over the same word list. The node reached by a prefix represents all words that share exactly that prefix.\n\n## Complexity Analysis\n\nBuilding the trie reads every word character once, then the query reads the prefix once. Time Complexity: O(total word length + pref length). Space Complexity: O(total word length).",
+      "code": "class Solution { private static class Node { Node[] child = new Node[26]; int pass; } public int prefixCount(String[] words, String pref) { Node root = new Node(); for (String word : words) { Node current = root; for (int i = 0; i < word.length(); i++) { int index = word.charAt(i) - 'a'; if (current.child[index] == null) { current.child[index] = new Node(); } current = current.child[index]; current.pass++; } } Node current = root; for (int i = 0; i < pref.length(); i++) { int index = pref.charAt(i) - 'a'; if (current.child[index] == null) { return 0; } current = current.child[index]; } return current.pass; } }",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Range Binary Search",
+      "timeComplexity": "O(n log n + p log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nSort the words lexicographically. All words that start with `pref` form one contiguous range. The lower bound for the range is `pref`; the exclusive upper bound is `pref + '{'`, because `'{'` is the character immediately after `'z'` in ASCII and all words contain only lowercase letters.\n\n## Key Insight\n\nPrefix matching can be converted into a lexicographic interval query. This route is useful when the word list is sorted once and then queried repeatedly.\n\n## Complexity Analysis\n\nSorting dominates for one query. Time Complexity: O(n log n + p log n) for sorting plus two binary searches. Space Complexity: O(1) extra space if sorting the input array in place.",
+      "code": "import java.util.*; class Solution { public int prefixCount(String[] words, String pref) { Arrays.sort(words); int left = lowerBound(words, pref); int right = lowerBound(words, pref + \"{\"); return right - left; } private int lowerBound(String[] words, String target) { int left = 0; int right = words.length; while (left < right) { int mid = left + (right - left) / 2; if (words[mid].compareTo(target) < 0) { left = mid + 1; } else { right = mid; } } return left; } }",
+      "language": "java"
+    },
+    {
+      "name": "Prefix Frequency Hash Map",
+      "timeComplexity": "O(total word length squared in Java)",
+      "spaceComplexity": "O(number of distinct prefixes)",
+      "description": "## Approach\n\nPrecompute a frequency table for every nonempty prefix of every word. For each word, generate prefixes `word.substring(0, end)` and increment their counts. The answer is then the stored frequency for `pref`.\n\n## Key Insight\n\nThis is another many-query design. It trades memory and preprocessing time for O(1) lookup after the prefix table is built, and it naturally counts duplicate words separately because each occurrence contributes to the table.\n\n## Complexity Analysis\n\nWith Java substring copies, generating all prefixes costs the sum of squared word lengths. Time Complexity: O(total word length squared) preprocessing and O(1) query. Space Complexity: O(number of distinct prefixes).",
+      "code": "import java.util.*; class Solution { public int prefixCount(String[] words, String pref) { Map<String, Integer> prefixCounts = new HashMap<>(); for (String word : words) { for (int end = 1; end <= word.length(); end++) { String prefix = word.substring(0, end); prefixCounts.put(prefix, prefixCounts.getOrDefault(prefix, 0) + 1); } } return prefixCounts.getOrDefault(pref, 0); } }",
+      "language": "java"
     }
   ]
 }

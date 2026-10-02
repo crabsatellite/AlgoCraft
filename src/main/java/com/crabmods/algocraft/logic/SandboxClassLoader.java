@@ -1,8 +1,5 @@
 package com.crabmods.algocraft.logic;
 
-import com.mojang.logging.LogUtils;
-import org.slf4j.Logger;
-
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Set;
@@ -22,7 +19,7 @@ import java.util.Set;
  */
 public class SandboxClassLoader extends URLClassLoader {
     
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final System.Logger LOGGER = System.getLogger(SandboxClassLoader.class.getName());
     
     /**
      * Packages that are allowed to be loaded.
@@ -58,6 +55,15 @@ public class SandboxClassLoader extends URLClassLoader {
         // Classloading and reflection attacks
         "java.lang.ClassLoader",
         "java.lang.Class",  // Block direct Class usage (we provide it)
+        "java.lang.StackTraceElement",
+        "java.lang.reflect.Method",
+        "java.lang.reflect.Field",
+        "java.lang.reflect.Constructor",
+        "java.lang.reflect.AccessibleObject",
+        "java.lang.reflect.Executable",
+        "java.lang.reflect.Array",
+        "java.lang.reflect.Member",
+        "java.lang.reflect.Modifier",
         "java.lang.reflect.Proxy",
         "java.lang.invoke.MethodHandles",
         "java.lang.invoke.MethodHandle",
@@ -68,11 +74,24 @@ public class SandboxClassLoader extends URLClassLoader {
         "java.lang.ThreadGroup",
         "java.lang.ThreadLocal",
         "java.lang.InheritableThreadLocal",
+        "java.util.Formatter",
+        "java.util.Timer",
+        "java.util.TimerTask",
+
+        // Cleaner/reference APIs can retain host objects or schedule cleanup work.
+        "java.lang.ref.Cleaner",
+        "java.lang.ref.Cleaner$Cleanable",
+        "java.lang.ref.WeakReference",
+        "java.lang.ref.SoftReference",
+        "java.lang.ref.PhantomReference",
+        "java.lang.ref.Reference",
+        "java.lang.ref.ReferenceQueue",
         
         // System access
-        "java.lang.System",  // We don't need System in solutions
         "java.lang.SecurityManager",
         "java.lang.Compiler",
+        "java.lang.System$Logger",
+        "java.lang.System$Logger$Level",
         
         // Unsafe operations
         "sun.misc.Unsafe",
@@ -81,7 +100,13 @@ public class SandboxClassLoader extends URLClassLoader {
         // Additional reflection bypass classes
         "java.lang.invoke.MethodHandles$Lookup",
         "java.lang.invoke.CallSite",
-        "java.lang.ProcessBuilder$Redirect"
+        "java.lang.ProcessBuilder$Redirect",
+
+        // Classpath/resource discovery
+        "java.util.ServiceLoader",
+        "java.util.ResourceBundle",
+        "java.util.ListResourceBundle",
+        "java.util.PropertyResourceBundle"
     );
     
     /**
@@ -109,6 +134,7 @@ public class SandboxClassLoader extends URLClassLoader {
         "java.lang.StringBuilder",
         "java.lang.StringBuffer",
         "java.lang.CharSequence",
+        "java.lang.System",
         
         // Basic types
         "java.lang.Object",
@@ -135,6 +161,8 @@ public class SandboxClassLoader extends URLClassLoader {
         // Functional interfaces
         "java.lang.Runnable",
         "java.lang.FunctionalInterface",
+        "java.lang.invoke.LambdaMetafactory",
+        "java.lang.invoke.StringConcatFactory",
         
         // Enum support
         "java.lang.Enum",
@@ -181,7 +209,7 @@ public class SandboxClassLoader extends URLClassLoader {
         
         // Check if the class is allowed
         if (!isClassAllowed(name)) {
-            LOGGER.warn("Blocked attempt to load restricted class: {}", name);
+            LOGGER.log(System.Logger.Level.WARNING, "Blocked attempt to load restricted class: " + name);
             throw new SecurityException("Access to class '" + name + "' is not allowed in sandbox");
         }
         
@@ -209,9 +237,8 @@ public class SandboxClassLoader extends URLClassLoader {
         // Check if in allowed package
         String packageName = getPackageName(className);
         
-        // java.util.* is fully allowed (except specific blocked classes)
+        // Only the algorithm-safe java.util packages are allowed.
         if (packageName.equals("java.util") || 
-            packageName.startsWith("java.util.") ||
             packageName.equals("java.util.function") ||
             packageName.equals("java.util.stream") ||
             packageName.equals("java.util.regex") ||
@@ -268,6 +295,8 @@ public class SandboxClassLoader extends URLClassLoader {
             packageName.startsWith("java.net") ||
             packageName.startsWith("java.nio") ||
             packageName.startsWith("java.security") ||
+            packageName.startsWith("java.lang.ref") ||
+            packageName.startsWith("java.util.concurrent") ||
             packageName.startsWith("java.lang.invoke") ||
             packageName.startsWith("java.lang.reflect") ||
             packageName.startsWith("javax.") ||

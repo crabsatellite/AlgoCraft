@@ -1,34 +1,125 @@
 {
   "id": "245",
   "title": "Jewels and Stones",
-  "description": "# Jewels and Stones\n\nYou're given strings `jewels` representing the types of stones that are jewels, and `stones` representing the stones you have. Each character in `stones` is a type of stone you have. You want to know how many of the stones you have are also jewels.\n\nLetters are case sensitive, so `\"a\"` is considered a different type of stone from `\"A\"`.\n\n## Example 1:\n\n**Input:** jewels = \"aA\", stones = \"aAAbbbb\"\n**Output:** 3\n\n## Example 2:\n\n**Input:** jewels = \"z\", stones = \"ZZ\"\n**Output:** 0\n\n## Constraints:\n\n*   `1 <= jewels.length, stones.length <= 50`\n*   `jewels` and `stones` consist of only English letters.\n*   All the characters of `jewels` are **unique**.",
+  "description": "# Jewels and Stones\n\nYou are given two strings:\n\n* `jewels` lists the stone types that are jewels.\n* `stones` lists the stones you own.\n\nEach character represents one stone type. Return how many characters in `stones` are also present in `jewels`.\n\nLetter case matters. For example, `\"a\"` and `\"A\"` are different stone types.\n\nThe characters in `jewels` are unique, so you never need to handle duplicate jewel definitions.\n\n## Example 1:\n\n**Input:** jewels = \"aA\", stones = \"aAAbbbb\"\n**Output:** 3\n**Explanation:** The stones `a`, `A`, and the second `A` are jewels.\n\n## Example 2:\n\n**Input:** jewels = \"z\", stones = \"ZZ\"\n**Output:** 0\n**Explanation:** Uppercase `Z` is not the same stone type as lowercase `z`.\n\n## Constraints:\n\n* `1 <= jewels.length, stones.length <= 50`\n* `jewels` and `stones` contain only English letters.\n* All characters in `jewels` are unique.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int numJewelsInStones(String jewels, String stones) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["HashTable", "String"],
+  "tags": [
+    "HashTable",
+    "String"
+  ],
   "examples": [
-    { "input": "jewels = \"aA\", stones = \"aAAbbbb\"", "output": "3" },
-    { "input": "jewels = \"z\", stones = \"ZZ\"", "output": "0" }
+    {
+      "input": "jewels = \"aA\", stones = \"aAAbbbb\"",
+      "output": "3"
+    },
+    {
+      "input": "jewels = \"z\", stones = \"ZZ\"",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
-      "name": "HashSet Lookup",
-      "timeComplexity": "O(n + m)",
-      "spaceComplexity": "O(n)",
-      "description": "Put all jewel characters in a HashSet, then count how many stone characters are in the set.",
-      "code": "import java.util.Set;\nimport java.util.HashSet;\n\nclass Solution {\n    public int numJewelsInStones(String jewels, String stones) {\n        Set<Character> set = new HashSet<>();\n        for (char c : jewels.toCharArray()) set.add(c);\n        int count = 0;\n        for (char c : stones.toCharArray()) {\n            if (set.contains(c)) count++;\n        }\n        return count;\n    }\n}",
+      "name": "HashSet Membership",
+      "timeComplexity": "O(j + s)",
+      "spaceComplexity": "O(j)",
+      "description": "## Approach\n\nInsert every jewel character into a `HashSet`, then scan `stones` and count every character that appears in the set.\n\n## Key Insight\n\nThe problem is a membership query: for each stone type, ask whether it belongs to the jewel set. A hash set models that question directly and keeps the code independent of the exact character range.\n\n## Complexity Analysis\n\n- Time Complexity: O(j + s), where `j` is `jewels.length()` and `s` is `stones.length()`.\n- Space Complexity: O(j), for the jewel set.",
+      "code": "import java.util.HashSet;\nimport java.util.Set;\n\nclass Solution {\n    public int numJewelsInStones(String jewels, String stones) {\n        Set<Character> jewelTypes = new HashSet<>();\n        for (char c : jewels.toCharArray()) {\n            jewelTypes.add(c);\n        }\n\n        int count = 0;\n        for (char c : stones.toCharArray()) {\n            if (jewelTypes.contains(c)) {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Boolean Array Lookup",
-      "timeComplexity": "O(n + m)",
+      "name": "ASCII Boolean Lookup Table",
+      "timeComplexity": "O(j + s)",
       "spaceComplexity": "O(1)",
-      "description": "Use a boolean array of size 128 (ASCII) to mark jewel characters. Then count matching stones with O(1) lookups.",
-      "code": "class Solution {\n    public int numJewelsInStones(String jewels, String stones) {\n        boolean[] isJewel = new boolean[128];\n        for (int i = 0; i < jewels.length(); i++) {\n            isJewel[jewels.charAt(i)] = true;\n        }\n        int count = 0;\n        for (int i = 0; i < stones.length(); i++) {\n            if (isJewel[stones.charAt(i)]) count++;\n        }\n        return count;\n    }\n}",
+      "description": "## Approach\n\nUse a boolean array indexed by character code. Mark every jewel character as `true`, then count stones whose character code is marked.\n\n## Key Insight\n\nThe input contains only English letters, which fit safely in a small ASCII table. Direct addressing is simpler and lighter than hashing when the possible key range is tiny.\n\n## Complexity Analysis\n\n- Time Complexity: O(j + s), for marking jewels and scanning stones.\n- Space Complexity: O(1), because the table size is fixed at 128.",
+      "code": "class Solution {\n    public int numJewelsInStones(String jewels, String stones) {\n        boolean[] isJewel = new boolean[128];\n        for (int i = 0; i < jewels.length(); i++) {\n            isJewel[jewels.charAt(i)] = true;\n        }\n\n        int count = 0;\n        for (int i = 0; i < stones.length(); i++) {\n            if (isJewel[stones.charAt(i)]) {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Alphabet Bitmask",
+      "timeComplexity": "O(j + s)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nMap lowercase letters to bits `0..25` and uppercase letters to bits `26..51`. Build a 52-bit mask for jewel types, then test each stone by checking its bit.\n\n## Key Insight\n\nThere are only 52 possible English letter stone types when case is significant. A single `long` can store the entire jewel set, making this a compact fixed-domain set representation.\n\n## Complexity Analysis\n\n- Time Complexity: O(j + s), for one pass over both strings.\n- Space Complexity: O(1), because the set is one integer mask.",
+      "code": "class Solution {\n    public int numJewelsInStones(String jewels, String stones) {\n        long mask = 0L;\n        for (int i = 0; i < jewels.length(); i++) {\n            int bit = index(jewels.charAt(i));\n            mask |= 1L << bit;\n        }\n\n        int count = 0;\n        for (int i = 0; i < stones.length(); i++) {\n            int bit = index(stones.charAt(i));\n            if ((mask & (1L << bit)) != 0) {\n                count++;\n            }\n        }\n        return count;\n    }\n\n    private int index(char c) {\n        if (c >= 'a' && c <= 'z') {\n            return c - 'a';\n        }\n        return 26 + c - 'A';\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Jewels Binary Search",
+      "timeComplexity": "O(j log j + s log j)",
+      "spaceComplexity": "O(j)",
+      "description": "## Approach\n\nConvert `jewels` to a character array, sort it, and binary-search the sorted jewel array for each stone.\n\n## Key Insight\n\nSorting turns membership testing into binary search. This route is not fastest for such small strings, but it teaches the common pattern of sorting a reference set before repeated lookup.\n\n## Complexity Analysis\n\n- Time Complexity: O(j log j + s log j), for sorting jewels and searching once per stone.\n- Space Complexity: O(j), for the sorted jewel array.",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int numJewelsInStones(String jewels, String stones) {\n        char[] jewelChars = jewels.toCharArray();\n        Arrays.sort(jewelChars);\n\n        int count = 0;\n        for (int i = 0; i < stones.length(); i++) {\n            if (Arrays.binarySearch(jewelChars, stones.charAt(i)) >= 0) {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Nested Scan Baseline",
+      "timeComplexity": "O(j * s)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFor each stone, scan the entire `jewels` string until the same character is found. Count the stone once, then stop scanning jewels for that stone.\n\n## Key Insight\n\nThis is the direct definition of the task with no extra data structure. It is slower, but the constraints are tiny, and it is useful as a correctness baseline before introducing lookup tables.\n\n## Complexity Analysis\n\n- Time Complexity: O(j * s), in the worst case every stone scans every jewel type.\n- Space Complexity: O(1), because only counters and loop variables are used.",
+      "code": "class Solution {\n    public int numJewelsInStones(String jewels, String stones) {\n        int count = 0;\n        for (int i = 0; i < stones.length(); i++) {\n            char stone = stones.charAt(i);\n            for (int j = 0; j < jewels.length(); j++) {\n                if (stone == jewels.charAt(j)) {\n                    count++;\n                    break;\n                }\n            }\n        }\n        return count;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "jewels = \"aA\", stones = \"aAAbbbb\"", "output": "3" },
-    { "input": "jewels = \"z\", stones = \"ZZ\"", "output": "0" }
+    {
+      "input": "jewels = \"aA\", stones = \"aAAbbbb\"",
+      "output": "3",
+      "description": "Canonical case-sensitive example with lowercase and uppercase jewels."
+    },
+    {
+      "input": "jewels = \"z\", stones = \"ZZ\"",
+      "output": "0",
+      "description": "Uppercase stones do not match a lowercase jewel."
+    },
+    {
+      "input": "jewels = \"abc\", stones = \"abcabc\"",
+      "output": "6",
+      "description": "Every stone is a jewel."
+    },
+    {
+      "input": "jewels = \"a\", stones = \"bbbb\"",
+      "output": "0",
+      "description": "No stones match the only jewel type."
+    },
+    {
+      "input": "jewels = \"Aa\", stones = \"aA\"",
+      "output": "2",
+      "description": "Two distinct case-sensitive jewel types both match."
+    },
+    {
+      "input": "jewels = \"b\", stones = \"BBBBb\"",
+      "output": "1",
+      "description": "Only the exact lowercase match is counted."
+    },
+    {
+      "input": "jewels = \"abcdefghijklmnopqrstuvwxyz\", stones = \"leetcode\"",
+      "output": "8",
+      "description": "All lowercase letters are jewels, so every lowercase stone matches."
+    },
+    {
+      "input": "jewels = \"ABCDEFGHIJKLMNOPQRSTUVWXYZ\", stones = \"abcXYZ\"",
+      "output": "3",
+      "description": "Only uppercase X, Y, and Z match."
+    },
+    {
+      "input": "jewels = \"AbCdEf\", stones = \"fedCBA\"",
+      "output": "4",
+      "description": "Mixed case proves lowercase and uppercase letters are separate types."
+    },
+    {
+      "input": "jewels = \"mN\", stones = \"mmmmNNNn\"",
+      "output": "7",
+      "description": "Repeated matching stones are all counted, while lowercase n does not match uppercase N."
+    },
+    {
+      "input": "jewels = \"Q\", stones = \"QqQQ\"",
+      "output": "3",
+      "description": "Single uppercase jewel with one nonmatching lowercase stone."
+    },
+    {
+      "input": "jewels = \"abcXYZ\", stones = \"AaBbCcXxYyZz\"",
+      "output": "6",
+      "description": "A combined lower/upper jewel set counts only exact-case matches."
+    }
   ]
 }

@@ -1,42 +1,121 @@
 {
   "id": "59",
   "title": "Search Insert Position",
-  "description": "# Search Insert Position\n\nGiven a sorted array of distinct integers and a target value, return the index if the target is found. If not, return the index where it would be if it were inserted in order.\n\nYou must write an algorithm with `O(log n)` runtime complexity.\n\n## Example 1:\n\n**Input:** nums = [1,3,5,6], target = 5\n**Output:** 2\n\n## Example 2:\n\n**Input:** nums = [1,3,5,6], target = 2\n**Output:** 1\n\n## Example 3:\n\n**Input:** nums = [1,3,5,6], target = 7\n**Output:** 4\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^4`\n*   `-10^4 <= nums[i] <= 10^4`\n*   `nums` contains **distinct** values sorted in **ascending** order.\n*   `-10^4 <= target <= 10^4`",
+  "description": "# Search Insert Position\n\nGiven a sorted array of distinct integers `nums` and an integer `target`, return the index of `target` if it is already present.\n\nIf `target` is not present, return the index where it should be inserted so that `nums` remains sorted in ascending order. The returned index can be `0` when the target belongs before every value, or `nums.length` when it belongs after every value.\n\nYou must write an algorithm with `O(log n)` runtime complexity.\n\n## Example 1\n\n**Input:** nums = [1,3,5,6], target = 5\n\n**Output:** 2\n\n## Example 2\n\n**Input:** nums = [1,3,5,6], target = 2\n\n**Output:** 1\n\n## Example 3\n\n**Input:** nums = [1,3,5,6], target = 7\n\n**Output:** 4\n\n## Constraints\n\n* `1 <= nums.length <= 10000`\n* `-10000 <= nums[i] <= 10000`\n* `nums` is sorted in strictly increasing order.\n* `-10000 <= target <= 10000`",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public int searchInsert(int[] nums, int target) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Binary Search"],
+  "initialCode": "class Solution {\n    public int searchInsert(int[] nums, int target) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Binary Search"
+  ],
   "examples": [
-    { "input": "nums = [1,3,5,6], target = 5", "output": "2" },
-    { "input": "nums = [1,3,5,6], target = 2", "output": "1" },
-    { "input": "nums = [1,3,5,6], target = 7", "output": "4" }
+    {
+      "input": "nums = [1,3,5,6], target = 5",
+      "output": "2"
+    },
+    {
+      "input": "nums = [1,3,5,6], target = 2",
+      "output": "1"
+    },
+    {
+      "input": "nums = [1,3,5,6], target = 7",
+      "output": "4"
+    }
   ],
   "tests": [
-    { "input": "nums = [1,3,5,6], target = 5", "output": "2" },
-    { "input": "nums = [1,3,5,6], target = 2", "output": "1" },
-    { "input": "nums = [1,3,5,6], target = 7", "output": "4" },
-    { "input": "nums = [1,3,5,6], target = 0", "output": "0" },
-    { "input": "nums = [1], target = 0", "output": "0" },
-    { "input": "nums = [1], target = 1", "output": "0", "note": "单元素找到" },
+    {
+      "input": "nums = [1,3,5,6], target = 5",
+      "output": "2",
+      "description": "Target found in the middle"
+    },
+    {
+      "input": "nums = [1,3,5,6], target = 2",
+      "output": "1",
+      "description": "Insert between two existing values"
+    },
+    {
+      "input": "nums = [1,3,5,6], target = 7",
+      "output": "4",
+      "description": "Insert after every value"
+    },
+    {
+      "input": "nums = [1,3,5,6], target = 0",
+      "output": "0",
+      "description": "Insert before every value"
+    },
+    {
+      "input": "nums = [1], target = 0",
+      "output": "0",
+      "description": "Single element insert before"
+    },
+    {
+      "input": "nums = [1], target = 1",
+      "output": "0",
+      "description": "Single element found"
+    },
+    {
+      "input": "nums = [1], target = 2",
+      "output": "1",
+      "description": "Single element insert after"
+    },
     {
       "input": "nums = [1,3,5,6], target = 4",
       "output": "2",
-      "note": "插入中间位置"
+      "description": "Insert in the middle gap"
+    },
+    {
+      "input": "nums = [1,3,5,6], target = 6",
+      "output": "3",
+      "description": "Target found at the last index"
+    },
+    {
+      "input": "nums = [-10,-3,0,5], target = -4",
+      "output": "1",
+      "description": "Negative target inserted inside a negative range"
+    },
+    {
+      "input": "nums = [-10,-3,0,5], target = -11",
+      "output": "0",
+      "description": "Negative target before the first value"
+    },
+    {
+      "input": "nums = [-10,-3,0,5], target = 6",
+      "output": "4",
+      "description": "Target after a mixed negative-positive range"
     }
   ],
   "solutions": [
     {
-      "name": "二分查找 - 找左边界",
+      "name": "Half-Open Lower Bound",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(1)",
-      "description": "本质上是找第一个 >= target 的位置（左边界）。使用左闭右开区间，最终 left 就是插入位置。",
-      "code": "class Solution {\n    public int searchInsert(int[] nums, int target) {\n        int left = 0, right = nums.length;\n        \n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            \n            if (nums[mid] >= target) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        \n        return left;\n    }\n}"
+      "description": "## Approach\n\nSearch the half-open interval `[left, right)` for the first index whose value is greater than or equal to `target`. If `nums[mid] >= target`, the insertion point is at `mid` or to its left, so move `right = mid`. Otherwise move `left = mid + 1`.\n\n## Key Insight\n\nThe desired answer is exactly Java/C++ style `lower_bound`: the first position where `target` can appear without breaking sorted order. Half-open intervals make `nums.length` a natural possible answer.\n\n## Complexity Analysis\n- Time Complexity: O(log n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int searchInsert(int[] nums, int target) {\n        int left = 0;\n        int right = nums.length;\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (nums[mid] >= target) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        return left;\n    }\n}",
+      "language": "java"
     },
     {
-      "name": "二分查找 - 闭区间",
+      "name": "Closed Interval with Answer Variable",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(1)",
-      "description": "使用闭区间 [left, right] 写法。如果找到目标返回索引，否则最终 left 就是插入位置。",
-      "code": "class Solution {\n    public int searchInsert(int[] nums, int target) {\n        int left = 0, right = nums.length - 1;\n        \n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            \n            if (nums[mid] == target) {\n                return mid;\n            } else if (nums[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        \n        return left;\n    }\n}"
+      "description": "## Approach\n\nUse a closed interval and keep `answer` as the best insertion position seen so far. When `nums[mid] >= target`, update `answer = mid` and continue left. When `nums[mid] < target`, search to the right.\n\n## Key Insight\n\n`answer` starts at `nums.length`, which covers the case where every value is smaller than `target`. Every time a valid greater-or-equal index appears, it becomes a candidate and the search tries to find an earlier one.\n\n## Complexity Analysis\n- Time Complexity: O(log n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int searchInsert(int[] nums, int target) {\n        int left = 0;\n        int right = nums.length - 1;\n        int answer = nums.length;\n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            if (nums[mid] >= target) {\n                answer = mid;\n                right = mid - 1;\n            } else {\n                left = mid + 1;\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Exact Search Returning Insertion Point",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nRun a standard closed-interval binary search. If `nums[mid] == target`, return `mid` immediately. If the loop ends without finding the target, `left` has advanced to the first index whose value is greater than `target`, which is the insertion position.\n\n## Key Insight\n\nEven a failed binary search leaves useful pointer state. At termination, all indices before `left` are smaller than `target`, while all remaining indices are greater.\n\n## Complexity Analysis\n- Time Complexity: O(log n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int searchInsert(int[] nums, int target) {\n        int left = 0;\n        int right = nums.length - 1;\n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            if (nums[mid] == target) {\n                return mid;\n            }\n            if (nums[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        return left;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Lower Bound",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(log n)",
+      "description": "## Approach\n\nRecursively search the half-open interval `[left, right)` for the first value greater than or equal to `target`. The base case returns `left` when the interval is empty.\n\n## Key Insight\n\nThis is the same lower-bound invariant as the iterative version, but written as divide-and-conquer. The recursion is useful for teaching why one half can be discarded without losing the insertion position.\n\n## Complexity Analysis\n- Time Complexity: O(log n)\n- Space Complexity: O(log n)",
+      "code": "class Solution {\n    public int searchInsert(int[] nums, int target) {\n        return lowerBound(nums, target, 0, nums.length);\n    }\n\n    private int lowerBound(int[] nums, int target, int left, int right) {\n        if (left >= right) {\n            return left;\n        }\n        int mid = left + (right - left) / 2;\n        if (nums[mid] >= target) {\n            return lowerBound(nums, target, left, mid);\n        }\n        return lowerBound(nums, target, mid + 1, right);\n    }\n}",
+      "language": "java"
     }
   ]
 }

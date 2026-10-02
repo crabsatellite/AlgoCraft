@@ -1,43 +1,128 @@
 {
   "id": "197",
   "title": "Number of 1 Bits",
-  "description": "# Number of 1 Bits\n\nWrite a function that takes an unsigned integer and returns the number of '1' bits it has (also known as the [Hamming weight](http://en.wikipedia.org/wiki/Hamming_weight)).\n\n**Note:**\n\n*   Note that in some languages, such as Java, there is no unsigned integer type. In this case, the input will be given as a signed integer type. It should not affect your implementation, as the integer's internal binary representation is the same, whether it is signed or unsigned.\n*   In Java, the compiler represents the signed integers using [2's complement notation](https://en.wikipedia.org/wiki/Two%27s_complement). Therefore, in **Example 3**, the input represents the signed integer. `-3`.\n\n## Example 1:\n\n**Input:** n = 00000000000000000000000000001011\n**Output:** 3\n**Explanation:** The input binary string 00000000000000000000000000001011 has a total of three '1' bits.\n\n## Example 2:\n\n**Input:** n = 00000000000000000000000010000000\n**Output:** 1\n**Explanation:** The input binary string 00000000000000000000000010000000 has a total of one '1' bit.\n\n## Example 3:\n\n**Input:** n = 11111111111111111111111111111101\n**Output:** 31\n**Explanation:** The input binary string 11111111111111111111111111111101 has a total of thirty one '1' bits.\n\n## Constraints:\n\n*   The input must be a binary string of length 32.",
+  "description": "# Number of 1 Bits\n\nWrite a function that takes a 32-bit integer `n` and returns the number of `1` bits in its binary representation. This count is also called the Hamming weight.\n\nIn Java the parameter type is signed `int`, but this problem is about the underlying 32-bit pattern. Negative values must therefore be counted by their two's-complement representation.\n\nNegative values also have exactly 32 bits. For example, `-1` has 32 one bits; `-3` has pattern `11111111111111111111111111111101`.\n\n## Example 1:\n\n**Input:** n = 11\n**Output:** 3\n**Explanation:** The 32-bit pattern for 11 ends with `1011`, which has three set bits.\n\n## Example 2:\n\n**Input:** n = 128\n**Output:** 1\n**Explanation:** 128 is a power of two, so exactly one bit is set.\n\n## Example 3:\n\n**Input:** n = -3\n**Output:** 31\n**Explanation:** Java represents -3 as `11111111111111111111111111111101`, which has thirty-one set bits.\n\n## Constraints:\n\n* `n` is treated as one 32-bit integer value.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    // you need to treat n as an unsigned value\n    public int hammingWeight(int n) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Bit Manipulation"],
+  "tags": [
+    "Bit Manipulation"
+  ],
   "examples": [
-    { "input": "n = 11", "output": "3" },
-    { "input": "n = 128", "output": "1" },
-    { "input": "n = -3", "output": "31" }
+    {
+      "input": "n = 11",
+      "output": "3"
+    },
+    {
+      "input": "n = 128",
+      "output": "1"
+    },
+    {
+      "input": "n = -3",
+      "output": "31"
+    }
   ],
   "solutions": [
     {
-      "name": "Brian Kernighan's Algorithm",
-      "timeComplexity": "O(k) where k = number of 1 bits",
+      "name": "Brian Kernighan Lowest-Bit Clearing",
+      "timeComplexity": "O(k)",
       "spaceComplexity": "O(1)",
-      "description": "Each n & (n-1) clears the lowest set bit. Count how many times until n becomes 0.",
+      "description": "## Approach\nRepeatedly replace `n` with `n & (n - 1)`. This operation clears the lowest set bit of the current 32-bit pattern. Count how many times this can be done before the pattern becomes zero.\n\n## Key Insight\nThe expression `n & (n - 1)` removes exactly one `1` bit and leaves all higher bits unchanged. The loop runs once per set bit, so sparse values finish faster than a fixed 32-step scan.\n\n## Complexity Analysis\nTime Complexity: O(k), where k is the number of set bits. Space Complexity: O(1).",
       "code": "class Solution {\n    public int hammingWeight(int n) {\n        int count = 0;\n        while (n != 0) {\n            n &= (n - 1);\n            count++;\n        }\n        return count;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Bit Shift and Check",
-      "timeComplexity": "O(32) = O(1)",
+      "name": "Unsigned Right-Shift Scan",
+      "timeComplexity": "O(32)",
       "spaceComplexity": "O(1)",
-      "description": "Check each of the 32 bits using a mask. Shift 1 left from position 0 to 31 and AND with n to test each bit.",
-      "code": "class Solution {\n    public int hammingWeight(int n) {\n        int count = 0;\n        for (int i = 0; i < 32; i++) {\n            if ((n & (1 << i)) != 0) {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
+      "description": "## Approach\nRepeat exactly 32 times. At each step, add the current lowest bit with `n & 1`, then shift the value right with the unsigned shift operator `>>>`.\n\n## Key Insight\nUsing `>>>` is essential in Java because it fills high bits with zero. A signed right shift would keep reintroducing `1` bits for negative values and can make the loop incorrect.\n\n## Complexity Analysis\nTime Complexity: O(32), which is O(1) for fixed-width integers. Space Complexity: O(1).",
+      "code": "class Solution {\n    public int hammingWeight(int n) {\n        int count = 0;\n        for (int i = 0; i < 32; i++) {\n            count += n & 1;\n            n >>>= 1;\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Moving Mask Check",
+      "timeComplexity": "O(32)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nKeep the input unchanged and move a single-bit mask from the least significant bit to the most significant bit. If `(n & mask) != 0`, the current position contains a `1`.\n\n## Key Insight\nA moving mask avoids shifting the signed input at all. This makes the two's-complement interpretation explicit: every one of the 32 bit positions is inspected exactly once, including the sign bit.\n\n## Complexity Analysis\nTime Complexity: O(32), which is O(1). Space Complexity: O(1).",
+      "code": "class Solution {\n    public int hammingWeight(int n) {\n        int count = 0;\n        int mask = 1;\n        for (int i = 0; i < 32; i++) {\n            if ((n & mask) != 0) {\n                count++;\n            }\n            mask <<= 1;\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Byte Lookup Table",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nPrecompute the number of set bits for every byte value from 0 to 255. Split the 32-bit integer into four bytes with unsigned shifts and masks, then add the four table results.\n\n## Key Insight\nMany bit-counting tasks repeat the same small subproblem. A 256-entry table turns each byte into a direct lookup while still preserving fixed, constant memory for this problem.\n\n## Complexity Analysis\nTime Complexity: O(1). Space Complexity: O(1) because the lookup table has fixed size.",
+      "code": "class Solution {\n    private static final int[] BYTE_COUNTS = buildTable();\n\n    public int hammingWeight(int n) {\n        return BYTE_COUNTS[n & 0xff]\n             + BYTE_COUNTS[(n >>> 8) & 0xff]\n             + BYTE_COUNTS[(n >>> 16) & 0xff]\n             + BYTE_COUNTS[(n >>> 24) & 0xff];\n    }\n\n    private static int[] buildTable() {\n        int[] counts = new int[256];\n        for (int i = 1; i < counts.length; i++) {\n            counts[i] = counts[i >> 1] + (i & 1);\n        }\n        return counts;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "SWAR Parallel Bit Count",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nUse a sequence of masks and shifts to add bit counts in parallel: first within 2-bit groups, then 4-bit groups, then bytes, and finally across the whole 32-bit word.\n\n## Key Insight\nSWAR stands for SIMD Within A Register. Instead of looping over positions, it treats the integer as many small counters packed into one register and combines those counters with carefully chosen masks.\n\n## Complexity Analysis\nTime Complexity: O(1). Space Complexity: O(1).",
+      "code": "class Solution {\n    public int hammingWeight(int n) {\n        n = n - ((n >>> 1) & 0x55555555);\n        n = (n & 0x33333333) + ((n >>> 2) & 0x33333333);\n        n = (n + (n >>> 4)) & 0x0f0f0f0f;\n        n = n + (n >>> 8);\n        n = n + (n >>> 16);\n        return n & 0x3f;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "n = 11", "output": "3" },
-    { "input": "n = 128", "output": "1" },
-    { "input": "n = -3", "output": "31" },
-    { "input": "n = 0", "output": "0" },
-    { "input": "n = 1", "output": "1" },
-    { "input": "n = -1", "output": "32" },
-    { "input": "n = 255", "output": "8" },
-    { "input": "n = 1024", "output": "1" },
-    { "input": "n = 2147483647", "output": "31" }
-  ],
-  "diagrams": ["p197_example1"]
+    {
+      "input": "n = 11",
+      "output": "3",
+      "description": "Decimal eleven has three set bits in its 32-bit representation."
+    },
+    {
+      "input": "n = 128",
+      "output": "1",
+      "description": "Power of two has exactly one set bit."
+    },
+    {
+      "input": "n = -3",
+      "output": "31",
+      "description": "Signed negative input is counted by its two-complement bit pattern."
+    },
+    {
+      "input": "n = 0",
+      "output": "0",
+      "description": "Zero has no set bits."
+    },
+    {
+      "input": "n = 1",
+      "output": "1",
+      "description": "One has exactly one set bit."
+    },
+    {
+      "input": "n = -1",
+      "output": "32",
+      "description": "All bits set in negative one produce a count of thirty-two."
+    },
+    {
+      "input": "n = 255",
+      "output": "8",
+      "description": "Low byte filled with ones has eight set bits."
+    },
+    {
+      "input": "n = 1024",
+      "output": "1",
+      "description": "Another power of two checks higher-bit positions."
+    },
+    {
+      "input": "n = 2147483647",
+      "output": "31",
+      "description": "Largest positive int has every bit set except the sign bit."
+    },
+    {
+      "input": "n = -2147483648",
+      "output": "1",
+      "description": "The minimum int has only the sign bit set."
+    },
+    {
+      "input": "n = 1431655765",
+      "output": "16",
+      "description": "Alternating 0101 bits contain sixteen set positions."
+    },
+    {
+      "input": "n = -1431655766",
+      "output": "16",
+      "description": "Alternating 1010 bits are negative as a signed int but still have sixteen set bits."
+    }
+  ]
 }

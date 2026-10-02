@@ -1,45 +1,123 @@
 {
   "id": "35",
   "title": "Minimum Window Substring",
-  "description": "# Minimum Window Substring\n\nGiven two strings `s` and `t` of lengths `m` and `n` respectively, return *the **minimum window substring** of* `s` *such that every character in* `t` *(including duplicates) is included in the window. If there is no such substring, return the empty string* `\"\"`.\n\nThe testcases will be generated such that the answer is **unique**.\n\n## Example 1:\n\n**Input:** s = \"ADOBECODEBANC\", t = \"ABC\"\n**Output:** \"BANC\"\n**Explanation:** The minimum window substring \"BANC\" includes 'A', 'B', and 'C' from string t.\n\n## Example 2:\n\n**Input:** s = \"a\", t = \"a\"\n**Output:** \"a\"\n**Explanation:** The entire string s is the minimum window.\n\n## Example 3:\n\n**Input:** s = \"a\", t = \"aa\"\n**Output:** \"\"\n**Explanation:** Both 'a's from t must be included in the window.\nSince the largest window of s only has one 'a', return empty string.\n\n## Constraints:\n\n*   `m == s.length`\n*   `n == t.length`\n*   `1 <= m, n <= 10^5`\n*   `s` and `t` consist of uppercase and lowercase English letters.",
+  "description": "# Minimum Window Substring\n\nGiven two strings `s` and `t`, return the shortest contiguous substring of `s` that contains every character required by `t`, including duplicate characters.\n\nCharacters are case-sensitive. For example, `\"A\"` and `\"a\"` are different requirements. If no substring of `s` satisfies all counts from `t`, return the empty string `\"\"`.\n\nThe test cases are generated so that the minimum valid window is unique.\n\n## Example 1:\n\n**Input:** s = \"ADOBECODEBANC\", t = \"ABC\"\n**Output:** \"BANC\"\n**Explanation:** \"BANC\" is the shortest substring that contains one 'A', one 'B', and one 'C'.\n\n## Example 2:\n\n**Input:** s = \"a\", t = \"a\"\n**Output:** \"a\"\n**Explanation:** The whole string is the only valid window.\n\n## Example 3:\n\n**Input:** s = \"a\", t = \"aa\"\n**Output:** \"\"\n**Explanation:** The target requires two 'a' characters, but `s` contains only one.\n\n## Constraints:\n\n*   `m == s.length`\n*   `n == t.length`\n*   `1 <= m, n <= 10^5`\n*   `s` and `t` consist of uppercase and lowercase English letters.",
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public String minWindow(String s, String t) {\n        // Write your code here\n        return \"\";\n    }\n}",
-  "tags": ["Hash Table", "String", "Sliding Window"],
+  "tags": [
+    "Hash Table",
+    "String",
+    "Sliding Window"
+  ],
   "examples": [
-    { "input": "s = \"ADOBECODEBANC\", t = \"ABC\"", "output": "\"BANC\"" },
-    { "input": "s = \"a\", t = \"a\"", "output": "\"a\"" },
-    { "input": "s = \"a\", t = \"aa\"", "output": "\"\"" }
+    {
+      "input": "s = \"ADOBECODEBANC\", t = \"ABC\"",
+      "output": "\"BANC\""
+    },
+    {
+      "input": "s = \"a\", t = \"a\"",
+      "output": "\"a\""
+    },
+    {
+      "input": "s = \"a\", t = \"aa\"",
+      "output": "\"\""
+    }
   ],
   "tests": [
-    { "input": "s = \"ADOBECODEBANC\", t = \"ABC\"", "output": "\"BANC\"" },
-    { "input": "s = \"a\", t = \"a\"", "output": "\"a\"" },
-    { "input": "s = \"a\", t = \"aa\"", "output": "\"\"" },
-    { "input": "s = \"ab\", t = \"b\"", "output": "\"b\"" },
+    {
+      "input": "s = \"ADOBECODEBANC\", t = \"ABC\"",
+      "output": "\"BANC\"",
+      "description": "Canonical shrinking example"
+    },
+    {
+      "input": "s = \"a\", t = \"a\"",
+      "output": "\"a\"",
+      "description": "Single-character exact match"
+    },
+    {
+      "input": "s = \"a\", t = \"aa\"",
+      "output": "\"\"",
+      "description": "Impossible duplicate requirement"
+    },
+    {
+      "input": "s = \"ab\", t = \"b\"",
+      "output": "\"b\"",
+      "description": "Best window at the right edge"
+    },
     {
       "input": "s = \"AABBCC\", t = \"ABC\"",
       "output": "\"ABBC\"",
-      "description": "Multiple same characters in s"
+      "description": "Extra duplicate characters in the source"
     },
     {
       "input": "s = \"cabwefgewcwaefgcf\", t = \"cae\"",
       "output": "\"cwae\"",
       "description": "Complex case with multiple valid windows"
+    },
+    {
+      "input": "s = \"AAABBC\", t = \"AABC\"",
+      "output": "\"AABBC\"",
+      "description": "Target contains a duplicate required character"
+    },
+    {
+      "input": "s = \"aAaAaB\", t = \"AaB\"",
+      "output": "\"AaB\"",
+      "description": "Uppercase and lowercase characters are distinct"
+    },
+    {
+      "input": "s = \"bba\", t = \"ab\"",
+      "output": "\"ba\"",
+      "description": "Left boundary must shrink past an irrelevant duplicate"
+    },
+    {
+      "input": "s = \"abdecfab\", t = \"abc\"",
+      "output": "\"cfab\"",
+      "description": "Later window beats an early valid window"
+    },
+    {
+      "input": "s = \"aa\", t = \"aa\"",
+      "output": "\"aa\"",
+      "description": "Exact full-string duplicate match"
+    },
+    {
+      "input": "s = \"cabefgecdaecf\", t = \"cae\"",
+      "output": "\"aec\"",
+      "description": "Shortest valid window appears near the end"
+    },
+    {
+      "input": "s = \"abc\", t = \"d\"",
+      "output": "\"\"",
+      "description": "Missing required character"
     }
   ],
   "solutions": [
     {
       "name": "Sliding Window with HashMap",
       "timeComplexity": "O(m + n)",
-      "spaceComplexity": "O(m + n)",
-      "description": "Use two hashmaps: one for t's character count, one for current window. Expand right to find valid window, then shrink left to minimize.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public String minWindow(String s, String t) {\n        if (s.length() < t.length()) return \"\";\n        \n        Map<Character, Integer> tCount = new HashMap<>();\n        Map<Character, Integer> windowCount = new HashMap<>();\n        \n        for (char c : t.toCharArray()) {\n            tCount.put(c, tCount.getOrDefault(c, 0) + 1);\n        }\n        \n        int required = tCount.size(); // Unique chars in t\n        int formed = 0; // Chars in window with required count\n        int[] result = {-1, 0, 0}; // {length, left, right}\n        \n        int left = 0;\n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            windowCount.put(c, windowCount.getOrDefault(c, 0) + 1);\n            \n            if (tCount.containsKey(c) && \n                windowCount.get(c).intValue() == tCount.get(c).intValue()) {\n                formed++;\n            }\n            \n            // Try to shrink window\n            while (formed == required && left <= right) {\n                if (result[0] == -1 || right - left + 1 < result[0]) {\n                    result[0] = right - left + 1;\n                    result[1] = left;\n                    result[2] = right;\n                }\n                \n                char leftChar = s.charAt(left);\n                windowCount.put(leftChar, windowCount.get(leftChar) - 1);\n                if (tCount.containsKey(leftChar) && \n                    windowCount.get(leftChar) < tCount.get(leftChar)) {\n                    formed--;\n                }\n                left++;\n            }\n        }\n        \n        return result[0] == -1 ? \"\" : s.substring(result[1], result[2] + 1);\n    }\n}"
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nBuild a frequency map for `t`. Move the right edge of a window across `s`, count characters inside the window, and track how many distinct required characters have reached their required counts. Whenever all requirements are satisfied, move the left edge forward while the window remains valid.\n\n## Key Insight\n\nValidity is about character counts, not just character presence. A window containing one `A` is not valid for a target that requires two `A` characters. The `formed == required` invariant lets the code shrink only after every distinct requirement is fully satisfied.\n\n## Complexity Analysis\n- Time Complexity: O(m + n)\n- Space Complexity: O(k), where k is the number of distinct required characters",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String minWindow(String s, String t) {\n        if (s.length() < t.length()) {\n            return \"\";\n        }\n\n        Map<Character, Integer> need = new HashMap<>();\n        for (char ch : t.toCharArray()) {\n            need.put(ch, need.getOrDefault(ch, 0) + 1);\n        }\n\n        Map<Character, Integer> window = new HashMap<>();\n        int required = need.size();\n        int formed = 0;\n        int bestLength = Integer.MAX_VALUE;\n        int bestStart = 0;\n        int left = 0;\n\n        for (int right = 0; right < s.length(); right++) {\n            char ch = s.charAt(right);\n            window.put(ch, window.getOrDefault(ch, 0) + 1);\n\n            if (need.containsKey(ch) && window.get(ch).intValue() == need.get(ch).intValue()) {\n                formed++;\n            }\n\n            while (formed == required) {\n                if (right - left + 1 < bestLength) {\n                    bestLength = right - left + 1;\n                    bestStart = left;\n                }\n\n                char out = s.charAt(left);\n                window.put(out, window.get(out) - 1);\n                if (need.containsKey(out) && window.get(out) < need.get(out)) {\n                    formed--;\n                }\n                left++;\n            }\n        }\n\n        return bestLength == Integer.MAX_VALUE ? \"\" : s.substring(bestStart, bestStart + bestLength);\n    }\n}"
     },
     {
-      "name": "Sliding Window with Array (Optimized)",
+      "name": "Sliding Window with Deficit Array",
       "timeComplexity": "O(m + n)",
       "spaceComplexity": "O(1)",
-      "description": "Use array instead of HashMap for faster lookups. Track count of characters still needed.",
-      "code": "class Solution {\n    public String minWindow(String s, String t) {\n        if (s.length() < t.length()) return \"\";\n        \n        int[] need = new int[128];\n        for (char c : t.toCharArray()) {\n            need[c]++;\n        }\n        \n        int required = t.length();\n        int left = 0, minLen = Integer.MAX_VALUE, minStart = 0;\n        \n        for (int right = 0; right < s.length(); right++) {\n            char c = s.charAt(right);\n            \n            // If this char is needed, decrement required\n            if (need[c] > 0) {\n                required--;\n            }\n            need[c]--;\n            \n            // Found valid window, try to shrink\n            while (required == 0) {\n                if (right - left + 1 < minLen) {\n                    minLen = right - left + 1;\n                    minStart = left;\n                }\n                \n                char leftChar = s.charAt(left);\n                need[leftChar]++;\n                if (need[leftChar] > 0) {\n                    required++;\n                }\n                left++;\n            }\n        }\n        \n        return minLen == Integer.MAX_VALUE ? \"\" : s.substring(minStart, minStart + minLen);\n    }\n}"
+      "description": "## Approach\n\nUse a fixed array of character deficits. A positive value means the current window still needs that many copies of the character; zero or negative means the window has enough or extra copies. Expand right, reduce the deficit, and shrink left whenever the total missing count reaches zero.\n\n## Key Insight\n\nInstead of counting how many distinct characters are satisfied, this version counts how many total required character copies are still missing. That directly handles duplicates in `t` and keeps the inner loop simple.\n\n## Complexity Analysis\n- Time Complexity: O(m + n)\n- Space Complexity: O(1) for the fixed ASCII count array",
+      "code": "class Solution {\n    public String minWindow(String s, String t) {\n        if (s.length() < t.length()) {\n            return \"\";\n        }\n\n        int[] need = new int[128];\n        for (char ch : t.toCharArray()) {\n            need[ch]++;\n        }\n\n        int missing = t.length();\n        int bestLength = Integer.MAX_VALUE;\n        int bestStart = 0;\n        int left = 0;\n\n        for (int right = 0; right < s.length(); right++) {\n            char in = s.charAt(right);\n            if (need[in] > 0) {\n                missing--;\n            }\n            need[in]--;\n\n            while (missing == 0) {\n                if (right - left + 1 < bestLength) {\n                    bestLength = right - left + 1;\n                    bestStart = left;\n                }\n\n                char out = s.charAt(left);\n                need[out]++;\n                if (need[out] > 0) {\n                    missing++;\n                }\n                left++;\n            }\n        }\n\n        return bestLength == Integer.MAX_VALUE ? \"\" : s.substring(bestStart, bestStart + bestLength);\n    }\n}"
+    },
+    {
+      "name": "Filtered Sliding Window",
+      "timeComplexity": "O(m + n)",
+      "spaceComplexity": "O(m + k)",
+      "description": "## Approach\n\nFirst filter `s` down to characters that appear in `t`, preserving each original index. Then run the same count-based sliding window on that filtered list and map the chosen boundaries back to the original string.\n\n## Key Insight\n\nCharacters that are not in `t` can never help satisfy a requirement. They still affect the final substring length, so the filtered list must keep original indices, but the window logic can skip updating counts for irrelevant characters.\n\n## Complexity Analysis\n- Time Complexity: O(m + n)\n- Space Complexity: O(m + k) for the filtered index list and required counts",
+      "code": "import java.util.*;\n\nclass Solution {\n    public String minWindow(String s, String t) {\n        if (s.length() < t.length()) {\n            return \"\";\n        }\n\n        Map<Character, Integer> need = new HashMap<>();\n        for (char ch : t.toCharArray()) {\n            need.put(ch, need.getOrDefault(ch, 0) + 1);\n        }\n\n        List<int[]> filtered = new ArrayList<>();\n        for (int i = 0; i < s.length(); i++) {\n            char ch = s.charAt(i);\n            if (need.containsKey(ch)) {\n                filtered.add(new int[] {i, ch});\n            }\n        }\n\n        Map<Character, Integer> window = new HashMap<>();\n        int required = need.size();\n        int formed = 0;\n        int bestLength = Integer.MAX_VALUE;\n        int bestStart = 0;\n        int left = 0;\n\n        for (int right = 0; right < filtered.size(); right++) {\n            char ch = (char) filtered.get(right)[1];\n            window.put(ch, window.getOrDefault(ch, 0) + 1);\n            if (window.get(ch).intValue() == need.get(ch).intValue()) {\n                formed++;\n            }\n\n            while (formed == required) {\n                int start = filtered.get(left)[0];\n                int end = filtered.get(right)[0];\n                if (end - start + 1 < bestLength) {\n                    bestLength = end - start + 1;\n                    bestStart = start;\n                }\n\n                char out = (char) filtered.get(left)[1];\n                window.put(out, window.get(out) - 1);\n                if (window.get(out) < need.get(out)) {\n                    formed--;\n                }\n                left++;\n            }\n        }\n\n        return bestLength == Integer.MAX_VALUE ? \"\" : s.substring(bestStart, bestStart + bestLength);\n    }\n}"
+    },
+    {
+      "name": "Binary Search on Window Length",
+      "timeComplexity": "O((m + n) log m)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nBinary-search the answer length. For a candidate length, slide a fixed-size window over `s` and test whether any window of that exact length covers all counts in `t`. After the shortest feasible length is found, run the feasibility scan one more time to return the corresponding substring.\n\n## Key Insight\n\nFeasibility is monotonic by length: if a window of length L contains all required characters, then some larger window can also contain them by expanding inside the same string. That makes answer length searchable even though the normal sliding-window solution is faster.\n\n## Complexity Analysis\n- Time Complexity: O((m + n) log m)\n- Space Complexity: O(1) for the fixed ASCII count array",
+      "code": "class Solution {\n    public String minWindow(String s, String t) {\n        if (s.length() < t.length()) {\n            return \"\";\n        }\n\n        int low = t.length();\n        int high = s.length();\n        int bestLength = -1;\n\n        while (low <= high) {\n            int mid = low + (high - low) / 2;\n            if (findWindowOfLength(s, t, mid) != -1) {\n                bestLength = mid;\n                high = mid - 1;\n            } else {\n                low = mid + 1;\n            }\n        }\n\n        if (bestLength == -1) {\n            return \"\";\n        }\n        int start = findWindowOfLength(s, t, bestLength);\n        return s.substring(start, start + bestLength);\n    }\n\n    private int findWindowOfLength(String s, String t, int length) {\n        int[] need = new int[128];\n        for (char ch : t.toCharArray()) {\n            need[ch]++;\n        }\n\n        int missing = t.length();\n        for (int right = 0; right < s.length(); right++) {\n            char in = s.charAt(right);\n            if (need[in] > 0) {\n                missing--;\n            }\n            need[in]--;\n\n            if (right >= length) {\n                char out = s.charAt(right - length);\n                need[out]++;\n                if (need[out] > 0) {\n                    missing++;\n                }\n            }\n\n            if (right >= length - 1 && missing == 0) {\n                return right - length + 1;\n            }\n        }\n        return -1;\n    }\n}"
     }
   ]
 }

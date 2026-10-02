@@ -1,34 +1,108 @@
 {
   "id": "298",
   "title": "Remove Letter To Equalize Frequency",
-  "description": "# Remove Letter To Equalize Frequency\n\nYou are given a **0-indexed** string `word`, consisting of lowercase English letters. You need to select **one** index and **remove** the letter at that index from `word` so that the **frequency** of every letter present in the remaining string is equal.\n\nReturn `true` *if it is possible to remove one letter so that the frequency of all letters in* `word` *are equal, and* `false` *otherwise*.\n\nNote:\n\n*   The **frequency** of a letter `x` is the number of times it occurs in the string.\n*   You **must** remove exactly one letter and cannot choose to do nothing.\n\n## Example 1:\n\n**Input:** word = \"abcc\"\n**Output:** true\n**Explanation:** Select index 3 and remove the character 'c'. The remaining string is \"abc\" and all characters have a frequency of 1.\n\n## Example 2:\n\n**Input:** word = \"aazz\"\n**Output:** false\n**Explanation:** We must remove a character, so either the frequency of 'a' is 1 and the frequency of 'z' is 2, or vice versa. It is impossible to make all present letters have equal frequency.\n\n## Constraints:\n\n*   `2 <= word.length <= 100`\n*   `word` consists of lowercase English letters.",
+  "description": "# Remove Letter To Equalize Frequency\n\nYou are given a lowercase English string `word`.\n\nYou must remove **exactly one** character from `word`. After the removal, look only at letters that still appear in the remaining string. Return `true` if all of those remaining letters have the same frequency; otherwise return `false`.\n\nNotes:\n\n* Removing nothing is not allowed.\n* Removing one occurrence of a letter is different from deleting every occurrence of that letter.\n* A remaining string with only one distinct letter is valid because all present letters have the same frequency.\n\n## Example 1\n\n**Input:** word = \"abcc\"\n**Output:** true\n**Explanation:** Remove one `c`; the remaining string is `abc`, and every present letter appears once.\n\n## Example 2\n\n**Input:** word = \"aazz\"\n**Output:** false\n**Explanation:** Removing one `a` gives counts `a:1, z:2`; removing one `z` gives counts `a:2, z:1`. Neither result has equal positive frequencies.\n\n## Constraints\n\n* `2 <= word.length <= 100`\n* `word` contains only lowercase English letters.",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public boolean equalFrequency(String word) {\n        \n    }\n}",
-  "tags": ["Hash Table", "String", "Counting"],
+  "initialCode": "class Solution {\n    public boolean equalFrequency(String word) {\n        // Write your code here\n        return false;\n    }\n}",
+  "tags": [
+    "Hash Table",
+    "String",
+    "Counting"
+  ],
   "examples": [
-    { "input": "word = \"abcc\"", "output": "true" },
-    { "input": "word = \"aazz\"", "output": "false" }
+    {
+      "input": "word = \"abcc\"",
+      "output": "true"
+    },
+    {
+      "input": "word = \"aazz\"",
+      "output": "false"
+    }
   ],
   "solutions": [
     {
-      "name": "Try Each Removal",
-      "timeComplexity": "O(26 * n)",
+      "name": "Try Each Letter Type Removal",
+      "timeComplexity": "O(n + 26*26)",
       "spaceComplexity": "O(1)",
-      "description": "Count frequency of each character. Try removing one occurrence of each character that exists. After removal, check if all remaining non-zero frequencies are equal.",
-      "code": "class Solution {\n    public boolean equalFrequency(String word) {\n        int[] freq = new int[26];\n        for (char c : word.toCharArray()) freq[c - 'a']++;\n        for (int i = 0; i < 26; i++) {\n            if (freq[i] == 0) continue;\n            freq[i]--;\n            int target = -1;\n            boolean valid = true;\n            for (int j = 0; j < 26; j++) {\n                if (freq[j] == 0) continue;\n                if (target == -1) target = freq[j];\n                else if (freq[j] != target) { valid = false; break; }\n            }\n            if (valid) return true;\n            freq[i]++;\n        }\n        return false;\n    }\n}",
+      "description": "## Approach\n\nCount the 26 letter frequencies. For each letter type that appears, temporarily remove one occurrence, then check whether all remaining positive frequencies are equal.\n\n## Key Insight\n\nOnly the frequency table matters, not the positions. Trying each letter type is enough because removing any occurrence of the same letter produces the same remaining frequency table.\n\n## Complexity Analysis\n- Time Complexity: O(n + 26*26)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean equalFrequency(String word) {\n        int[] freq = new int[26];\n        for (char c : word.toCharArray()) {\n            freq[c - 'a']++;\n        }\n\n        for (int i = 0; i < 26; i++) {\n            if (freq[i] == 0) {\n                continue;\n            }\n            freq[i]--;\n            if (allPositiveFrequenciesEqual(freq)) {\n                return true;\n            }\n            freq[i]++;\n        }\n        return false;\n    }\n\n    private boolean allPositiveFrequenciesEqual(int[] freq) {\n        int target = 0;\n        for (int count : freq) {\n            if (count == 0) {\n                continue;\n            }\n            if (target == 0) {\n                target = count;\n            } else if (count != target) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Brute Force Remove Each Index",
-      "timeComplexity": "O(26 * n)",
+      "name": "Frequency Distribution Cases",
+      "timeComplexity": "O(n + 26)",
       "spaceComplexity": "O(1)",
-      "description": "Try removing each character position. After removal, count frequencies and check if all non-zero frequencies are equal.",
-      "code": "class Solution {\n    public boolean equalFrequency(String word) {\n        for (int skip = 0; skip < word.length(); skip++) {\n            int[] freq = new int[26];\n            for (int i = 0; i < word.length(); i++) {\n                if (i != skip) freq[word.charAt(i) - 'a']++;\n            }\n            int target = -1;\n            boolean valid = true;\n            for (int f : freq) {\n                if (f == 0) continue;\n                if (target == -1) target = f;\n                else if (f != target) { valid = false; break; }\n            }\n            if (valid) return true;\n        }\n        return false;\n    }\n}",
+      "description": "## Approach\n\nBuild the frequency table, then summarize how many letters have each positive frequency. A valid removal has only a few possible shapes: one low-frequency letter disappears, one high-frequency letter drops by one, or there is only one distinct letter.\n\n## Key Insight\n\nAfter exactly one removal, all positive frequencies must be equal. Therefore the original positive frequencies can contain at most two different values, and one of those values must be repairable by a single decrement.\n\n## Complexity Analysis\n- Time Complexity: O(n + 26)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean equalFrequency(String word) {\n        int[] freq = new int[26];\n        for (char ch : word.toCharArray()) {\n            freq[ch - 'a']++;\n        }\n\n        int f1 = 0, c1 = 0, f2 = 0, c2 = 0;\n        for (int f : freq) {\n            if (f == 0) {\n                continue;\n            }\n            if (f1 == 0 || f == f1) {\n                if (f1 == 0) {\n                    f1 = f;\n                }\n                c1++;\n            } else if (f2 == 0 || f == f2) {\n                if (f2 == 0) {\n                    f2 = f;\n                }\n                c2++;\n            } else {\n                return false;\n            }\n        }\n\n        if (f2 == 0) {\n            return f1 == 1 || c1 == 1;\n        }\n        if (f1 > f2) {\n            int tmpFrequency = f1;\n            f1 = f2;\n            f2 = tmpFrequency;\n            int tmpCount = c1;\n            c1 = c2;\n            c2 = tmpCount;\n        }\n        return (f1 == 1 && c1 == 1) || (f2 == f1 + 1 && c2 == 1);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Positive Frequencies",
+      "timeComplexity": "O(n + 26 log 26)",
+      "spaceComplexity": "O(26)",
+      "description": "## Approach\n\nCollect only the positive letter frequencies into a list and sort it. Then check the two sorted patterns that one removal can fix: the smallest frequency is a single `1`, or the largest frequency is exactly one above all the others.\n\n## Key Insight\n\nSorting turns the case analysis into comparisons against the first, second, second-last, and last counts. This is often easier to reason about than maintaining named frequency buckets.\n\n## Complexity Analysis\n- Time Complexity: O(n + 26 log 26)\n- Space Complexity: O(26)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean equalFrequency(String word) {\n        int[] freq = new int[26];\n        for (char c : word.toCharArray()) {\n            freq[c - 'a']++;\n        }\n\n        List<Integer> counts = new ArrayList<>();\n        for (int count : freq) {\n            if (count > 0) {\n                counts.add(count);\n            }\n        }\n        Collections.sort(counts);\n\n        int size = counts.size();\n        if (size == 1) {\n            return true;\n        }\n        boolean removeSingleLow = counts.get(0) == 1\n                && counts.get(1).equals(counts.get(size - 1));\n        boolean reduceSingleHigh = counts.get(size - 1) == counts.get(size - 2) + 1\n                && counts.get(0).equals(counts.get(size - 2));\n        return removeSingleLow || reduceSingleHigh;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Remove Each Index Brute Force",
+      "timeComplexity": "O(n * (n + 26))",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nTry deleting every concrete index. For each deletion, rebuild the frequency table of the remaining string and check whether all positive frequencies are equal.\n\n## Key Insight\n\nThis route mirrors the prompt most literally and is useful as a correctness baseline. It also prevents confusing \"remove one occurrence\" with \"remove all copies of a letter.\"\n\n## Complexity Analysis\n- Time Complexity: O(n * (n + 26))\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean equalFrequency(String word) {\n        for (int removed = 0; removed < word.length(); removed++) {\n            int[] freq = new int[26];\n            for (int i = 0; i < word.length(); i++) {\n                if (i != removed) {\n                    freq[word.charAt(i) - 'a']++;\n                }\n            }\n            if (equalPositiveFrequencies(freq)) {\n                return true;\n            }\n        }\n        return false;\n    }\n\n    private boolean equalPositiveFrequencies(int[] freq) {\n        int target = 0;\n        for (int count : freq) {\n            if (count == 0) {\n                continue;\n            }\n            if (target == 0) {\n                target = count;\n            } else if (count != target) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "word = \"abcc\"", "output": "true" },
-    { "input": "word = \"aazz\"", "output": "false" }
+    {
+      "input": "word = \"abcc\"",
+      "output": "true",
+      "description": "sample removes one c so all remaining counts are one"
+    },
+    {
+      "input": "word = \"aazz\"",
+      "output": "false",
+      "description": "sample cannot equalize by removing exactly one letter"
+    },
+    {
+      "input": "word = \"abc\"",
+      "output": "true",
+      "description": "all counts are one, so removing any one letter leaves equal counts"
+    },
+    {
+      "input": "word = \"zz\"",
+      "output": "true",
+      "description": "one character kind remains valid after removing one occurrence"
+    },
+    {
+      "input": "word = \"abbcc\"",
+      "output": "true",
+      "description": "removing the single a leaves b and c with count two"
+    },
+    {
+      "input": "word = \"aabbccc\"",
+      "output": "true",
+      "description": "removing one c reduces the unique high frequency from three to two"
+    },
+    {
+      "input": "word = \"ddaccb\"",
+      "output": "false",
+      "description": "three different frequencies cannot be fixed by one removal"
+    },
+    {
+      "input": "word = \"aabbcc\"",
+      "output": "false",
+      "description": "already equal counts are not enough because one letter must be removed"
+    },
+    {
+      "input": "word = \"aaaa\"",
+      "output": "true",
+      "description": "single character kind can always remove one occurrence"
+    },
+    {
+      "input": "word = \"aaabbbcc\"",
+      "output": "false",
+      "description": "two high counts and one lower count cannot be equalized by one removal"
+    }
   ]
 }

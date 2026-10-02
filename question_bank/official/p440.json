@@ -1,38 +1,104 @@
 {
   "id": "440",
   "title": "Insert Delete GetRandom O(1) - Duplicates allowed",
-  "description": "# Insert Delete GetRandom O(1) - Duplicates allowed\n\nImplement the `RandomizedCollection` class:\n\n*   `RandomizedCollection()` Initializes the `RandomizedCollection` object.\n*   `bool insert(int val)` Inserts an item `val` into the multiset if not present. Returns `true` if the item was not present, `false` otherwise.\n*   `bool remove(int val)` Removes an item `val` from the multiset if present. Returns `true` if the item was present, `false` otherwise. Note that if `val` has multiple occurrences in the multiset, we only remove one of them.\n*   `int getRandom()` Returns a random element from the current multiset of elements (it's guaranteed that at least one element exists when this method is called). The probability of each element being returned is **linearly related** to the number of same values the multiset contains.\n\nYou must implement the functions of the class such that each function works in **average** `O(1)` time complexity.\n\n## Example 1:\n\n**Input**\n[\"RandomizedCollection\", \"insert\", \"insert\", \"insert\", \"getRandom\", \"remove\", \"getRandom\"]\n[[], [1], [1], [2], [], [1], []]\n**Output**\n[null, true, false, true, 2, true, 1]\n**Explanation**\nRandomizedCollection randomizedCollection = new RandomizedCollection();\nrandomizedCollection.insert(1);   // return True. Inserts 1 to the collection. Collection now contains [1].\nrandomizedCollection.insert(1);   // return False. Inserts another 1 to the collection. Collection now contains [1, 1].\nrandomizedCollection.insert(2);   // return True. Inserts 2 to the collection. Collection now contains [1, 1, 2].\nrandomizedCollection.getRandom(); // getRandom should return 1 with the probability 2/3, and returns 2 with the probability 1/3.\nrandomizedCollection.remove(1);   // return True. Removes 1 from the collection. Collection now contains [1, 2].\nrandomizedCollection.getRandom(); // getRandom should return 1 and 2 both equally likely.\n\n## Constraints:\n\n*   `-2^31 <= val <= 2^31 - 1`\n*   At most `2 * 10^5` calls will be made to `insert`, `remove`, and `getRandom`.\n*   There will be at least one element in the data structure when `getRandom` is called.",
+  "description": "# Insert Delete GetRandom O(1) - Duplicates allowed\n\nImplement the `RandomizedCollection` class. It behaves like a multiset, so the same value may be stored more than once.\n\n*   `RandomizedCollection()` initializes an empty collection.\n*   `boolean insert(int val)` inserts one occurrence of `val`. Return `true` if the collection did not contain `val` before this insertion, otherwise return `false`.\n*   `boolean remove(int val)` removes exactly one occurrence of `val` if any occurrence exists. Return `true` if an occurrence was removed, otherwise return `false`.\n*   `int getRandom()` returns a uniformly random occurrence from the current collection. Therefore a value with `k` occurrences is `k` times as likely to be returned as a value with one occurrence. The collection is guaranteed to be nonempty when this method is called.\n\nEvery operation must run in average `O(1)` time.\n\nExample random returns show one possible outcome. In `[1,1,2]`, return `1` with probability `2/3` and `2` with probability `1/3`.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1:\n\n**Input**\n[\"RandomizedCollection\", \"insert\", \"insert\", \"insert\", \"getRandom\", \"remove\", \"getRandom\"]\n[[], [1], [1], [2], [], [1], []]\n**Output**\n[null, true, false, true, 2, true, 1]\n\n**Explanation:** After inserting `1`, `1`, and `2`, the first `getRandom` returns `1` with probability `2/3` and `2` with probability `1/3`. Removing `1` deletes only one occurrence, so the remaining collection contains one `1` and one `2`.\n\n## Constraints:\n\n*   `-2^31 <= val <= 2^31 - 1`\n*   At most `2 * 10^5` calls will be made to `insert`, `remove`, and `getRandom`.\n*   There will be at least one element in the data structure when `getRandom` is called.",
   "difficulty": "HARD",
   "initialCode": "class RandomizedCollection {\n\n    public RandomizedCollection() {\n        \n    }\n    \n    public boolean insert(int val) {\n        \n    }\n    \n    public boolean remove(int val) {\n        \n    }\n    \n    public int getRandom() {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Math", "Design", "Randomized"],
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Math",
+    "Design",
+    "Randomized"
+  ],
   "examples": [
     {
       "input": "[\"RandomizedCollection\", \"insert\", \"insert\", \"insert\", \"getRandom\", \"remove\", \"getRandom\"]\n[[], [1], [1], [2], [], [1], []]",
       "output": "[null, true, false, true, 2, true, 1]"
     }
   ],
-  "solutions": [
-    {
-      "name": "ArrayList + HashMap of Index Sets",
-      "timeComplexity": "O(1) average per operation",
-      "spaceComplexity": "O(n)",
-      "description": "Use an ArrayList to store elements and a HashMap mapping each value to a HashSet of its indices. Insert appends and records the index. Remove swaps target index with last element, updates both sets, and removes the last. GetRandom picks random index.",
-      "code": "class RandomizedCollection {\n    private java.util.ArrayList<Integer> list;\n    private java.util.HashMap<Integer, java.util.LinkedHashSet<Integer>> map;\n    private java.util.Random rand;\n\n    public RandomizedCollection() {\n        list = new java.util.ArrayList<>();\n        map = new java.util.HashMap<>();\n        rand = new java.util.Random();\n    }\n\n    public boolean insert(int val) {\n        boolean notPresent = !map.containsKey(val) || map.get(val).isEmpty();\n        map.computeIfAbsent(val, k -> new java.util.LinkedHashSet<>()).add(list.size());\n        list.add(val);\n        return notPresent;\n    }\n\n    public boolean remove(int val) {\n        if (!map.containsKey(val) || map.get(val).isEmpty()) return false;\n        int removeIdx = map.get(val).iterator().next();\n        map.get(val).remove(removeIdx);\n        int lastIdx = list.size() - 1;\n        int lastVal = list.get(lastIdx);\n        if (removeIdx != lastIdx) {\n            list.set(removeIdx, lastVal);\n            map.get(lastVal).remove(lastIdx);\n            map.get(lastVal).add(removeIdx);\n        }\n        list.remove(lastIdx);\n        return true;\n    }\n\n    public int getRandom() {\n        return list.get(rand.nextInt(list.size()));\n    }\n}",
-      "language": "java"
-    },
-    {
-      "name": "ArrayList + HashMap of HashSets",
-      "timeComplexity": "O(1) average per operation",
-      "spaceComplexity": "O(n)",
-      "description": "Same approach but use HashSet instead of LinkedHashSet for index tracking. ArrayList stores elements. On remove, swap with last element and update index sets accordingly.",
-      "code": "import java.util.*;\n\nclass RandomizedCollection {\n    private List<Integer> list;\n    private Map<Integer, Set<Integer>> idxMap;\n    private Random rand;\n\n    public RandomizedCollection() {\n        list = new ArrayList();\n        idxMap = new HashMap();\n        rand = new Random();\n    }\n\n    public boolean insert(int val) {\n        boolean isNew = !idxMap.containsKey(val) || idxMap.get(val).isEmpty();\n        if (!idxMap.containsKey(val)) {\n            idxMap.put(val, new HashSet());\n        }\n        idxMap.get(val).add(list.size());\n        list.add(val);\n        return isNew;\n    }\n\n    public boolean remove(int val) {\n        if (!idxMap.containsKey(val) || idxMap.get(val).isEmpty()) return false;\n        Set<Integer> indices = idxMap.get(val);\n        int removeIdx = indices.iterator().next();\n        indices.remove(removeIdx);\n        int lastIdx = list.size() - 1;\n        int lastVal = list.get(lastIdx).intValue();\n        if (removeIdx != lastIdx) {\n            list.set(removeIdx, lastVal);\n            Set<Integer> lastIndices = idxMap.get(lastVal);\n            lastIndices.remove(lastIdx);\n            lastIndices.add(removeIdx);\n        }\n        list.remove(lastIdx);\n        return true;\n    }\n\n    public int getRandom() {\n        return list.get(rand.nextInt(list.size())).intValue();\n    }\n}",
-      "language": "java"
-    }
-  ],
   "tests": [
     {
       "input": "[\"RandomizedCollection\", \"insert\", \"insert\", \"insert\", \"getRandom\", \"remove\", \"getRandom\"]\n[[], [1], [1], [2], [], [1], []]",
       "output": "[null, true, false, true, 2, true, 1]"
+    },
+    {
+      "input": "[\"RandomizedCollection\",\"insert\",\"insert\",\"insert\",\"remove\",\"remove\",\"remove\",\"remove\",\"insert\"]\n[[],[5],[5],[5],[5],[5],[5],[5],[5]]",
+      "output": "[null,true,false,false,true,true,true,false,true]"
+    },
+    {
+      "input": "[\"RandomizedCollection\",\"insert\",\"insert\",\"insert\",\"remove\",\"insert\",\"remove\",\"remove\"]\n[[],[1],[1],[2],[1],[2],[1],[1]]",
+      "output": "[null,true,false,true,true,false,true,false]"
+    },
+    {
+      "input": "[\"RandomizedCollection\",\"insert\",\"insert\",\"insert\",\"remove\",\"remove\",\"getRandom\"]\n[[],[10],[20],[20],[10],[20],[]]",
+      "output": "[null,true,true,false,true,true,20]"
+    },
+    {
+      "input": "[\"RandomizedCollection\",\"insert\",\"remove\",\"remove\",\"insert\",\"getRandom\"]\n[[],[7],[7],[7],[7],[]]",
+      "output": "[null,true,true,false,true,7]"
+    },
+    {
+      "input": "[\"RandomizedCollection\",\"insert\",\"insert\",\"insert\",\"remove\",\"remove\",\"getRandom\"]\n[[],[-2147483648],[2147483647],[-2147483648],[-2147483648],[-2147483648],[]]",
+      "output": "[null,true,true,false,true,true,2147483647]"
+    },
+    {
+      "input": "[\"RandomizedCollection\",\"insert\",\"insert\",\"remove\",\"getRandom\",\"remove\",\"remove\"]\n[[],[1],[1],[1],[],[1],[1]]",
+      "output": "[null,true,false,true,1,true,false]"
+    },
+    {
+      "input": "[\"RandomizedCollection\",\"insert\",\"insert\",\"insert\",\"remove\",\"remove\",\"getRandom\"]\n[[],[1],[2],[1],[2],[1],[]]",
+      "output": "[null,true,true,false,true,true,1]"
+    },
+    {
+      "input": "[\"RandomizedCollection\",\"insert\",\"insert\",\"remove\",\"remove\",\"insert\",\"remove\",\"getRandom\"]\n[[],[-3],[-3],[-4],[-3],[-4],[-3],[]]",
+      "output": "[null,true,false,false,true,true,true,-4]"
+    },
+    {
+      "input": "[\"RandomizedCollection\",\"insert\",\"insert\",\"insert\",\"remove\",\"getRandom\",\"remove\",\"getRandom\"]\n[[],[4],[4],[5],[4],[],[5],[]]",
+      "output": "[null,true,false,true,true,4,true,4]"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "ArrayList With LinkedHashSet Index Buckets",
+      "timeComplexity": "O(1) average per operation",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore every occurrence in an `ArrayList<Integer>`. For each value, keep a `LinkedHashSet<Integer>` of dense indexes that currently contain that value. Removing one occurrence picks an index from that set, moves the final occurrence into that index, updates the moved value's index set, and removes the list tail.\n\n## Key Insight\n\nDuplicates mean the map cannot store one index per value. It must store all occurrence indexes, while the dense list makes `getRandom` proportional to occurrence count because each occurrence owns one random slot.\n\n## Complexity Analysis\n- Time Complexity: O(1) average per operation.\n- Space Complexity: O(n).",
+      "code": "class RandomizedCollection {\n    private final java.util.ArrayList<Integer> values = new java.util.ArrayList<>();\n    private final java.util.Map<Integer, java.util.LinkedHashSet<Integer>> indexes = new java.util.HashMap<>();\n    private final java.util.Random random = new java.util.Random();\n\n    public RandomizedCollection() {\n    }\n\n    public boolean insert(int val) {\n        java.util.LinkedHashSet<Integer> set = indexes.computeIfAbsent(val, key -> new java.util.LinkedHashSet<>());\n        boolean isNew = set.isEmpty();\n        set.add(values.size());\n        values.add(val);\n        return isNew;\n    }\n\n    public boolean remove(int val) {\n        java.util.LinkedHashSet<Integer> set = indexes.get(val);\n        if (set == null || set.isEmpty()) {\n            return false;\n        }\n        int removeIndex = set.iterator().next();\n        set.remove(removeIndex);\n        int lastIndex = values.size() - 1;\n        int lastValue = values.get(lastIndex);\n        if (removeIndex != lastIndex) {\n            values.set(removeIndex, lastValue);\n            java.util.LinkedHashSet<Integer> lastSet = indexes.get(lastValue);\n            lastSet.remove(lastIndex);\n            lastSet.add(removeIndex);\n        }\n        values.remove(lastIndex);\n        if (set.isEmpty()) {\n            indexes.remove(val);\n        }\n        return true;\n    }\n\n    public int getRandom() {\n        return values.get(random.nextInt(values.size()));\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Dynamic Int Array With Index Sets",
+      "timeComplexity": "O(1) average per operation",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse a manually growing `int[]` for dense occurrence storage and a hash map from value to a set of indexes. Insert writes the next dense slot. Remove updates the value's index set, swaps the final dense value into the removed slot when needed, and updates the moved value's set.\n\n## Key Insight\n\nThe multiset version uses the same dense-index invariant as RandomizedSet, but each value maps to many indexes. The array implementation makes the occurrence slots explicit.\n\n## Complexity Analysis\n- Time Complexity: O(1) average per operation; array growth is amortized.\n- Space Complexity: O(n).",
+      "code": "class RandomizedCollection {\n    private int[] values = new int[4];\n    private int size;\n    private final java.util.Map<Integer, java.util.HashSet<Integer>> indexes = new java.util.HashMap<>();\n    private final java.util.Random random = new java.util.Random();\n\n    public RandomizedCollection() {\n    }\n\n    public boolean insert(int val) {\n        java.util.HashSet<Integer> set = indexes.computeIfAbsent(val, key -> new java.util.HashSet<>());\n        boolean isNew = set.isEmpty();\n        ensureCapacity();\n        values[size] = val;\n        set.add(size);\n        size++;\n        return isNew;\n    }\n\n    public boolean remove(int val) {\n        java.util.HashSet<Integer> set = indexes.get(val);\n        if (set == null || set.isEmpty()) {\n            return false;\n        }\n        int removeIndex = set.iterator().next();\n        set.remove(removeIndex);\n        int lastIndex = size - 1;\n        int lastValue = values[lastIndex];\n        if (removeIndex != lastIndex) {\n            values[removeIndex] = lastValue;\n            java.util.HashSet<Integer> lastSet = indexes.get(lastValue);\n            lastSet.remove(lastIndex);\n            lastSet.add(removeIndex);\n        }\n        size--;\n        if (set.isEmpty()) {\n            indexes.remove(val);\n        }\n        return true;\n    }\n\n    public int getRandom() {\n        return values[random.nextInt(size)];\n    }\n\n    private void ensureCapacity() {\n        if (size == values.length) {\n            values = java.util.Arrays.copyOf(values, values.length * 2);\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Dense Slot HashMaps With Index Sets",
+      "timeComplexity": "O(1) average per operation",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nEmulate the dense array with `indexToValue`, and store every value's dense indexes in `valueToIndices`. Removal chooses one stored index, moves the last dense slot into that index, fixes the moved value's index set, deletes the old tail slot, and removes empty value buckets.\n\n## Key Insight\n\nA physical array is not required; what matters is the logical dense slot range. Two hash-map layers make the dense slots and per-value occurrence index sets visible as separate concepts.\n\n## Complexity Analysis\n- Time Complexity: O(1) average per operation.\n- Space Complexity: O(n).",
+      "code": "class RandomizedCollection {\n    private final java.util.Map<Integer, Integer> indexToValue = new java.util.HashMap<>();\n    private final java.util.Map<Integer, java.util.HashSet<Integer>> valueToIndices = new java.util.HashMap<>();\n    private final java.util.Random random = new java.util.Random();\n    private int size;\n\n    public RandomizedCollection() {\n    }\n\n    public boolean insert(int val) {\n        java.util.HashSet<Integer> set = valueToIndices.computeIfAbsent(val, key -> new java.util.HashSet<>());\n        boolean isNew = set.isEmpty();\n        indexToValue.put(size, val);\n        set.add(size);\n        size++;\n        return isNew;\n    }\n\n    public boolean remove(int val) {\n        java.util.HashSet<Integer> set = valueToIndices.get(val);\n        if (set == null || set.isEmpty()) {\n            return false;\n        }\n        int removeIndex = set.iterator().next();\n        set.remove(removeIndex);\n        int lastIndex = size - 1;\n        int lastValue = indexToValue.get(lastIndex);\n        if (removeIndex != lastIndex) {\n            indexToValue.put(removeIndex, lastValue);\n            java.util.HashSet<Integer> lastSet = valueToIndices.get(lastValue);\n            lastSet.remove(lastIndex);\n            lastSet.add(removeIndex);\n        }\n        indexToValue.remove(lastIndex);\n        size--;\n        if (set.isEmpty()) {\n            valueToIndices.remove(val);\n        }\n        return true;\n    }\n\n    public int getRandom() {\n        return indexToValue.get(random.nextInt(size));\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Occurrence Entry Dense Array",
+      "timeComplexity": "O(1) average per operation",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nRepresent each occurrence as an `Entry` object containing its value and current dense index. A map from value to a set of entries lets `remove` choose one occurrence. Removing swaps the last entry into the removed entry's index and updates the moved entry's stored index.\n\n## Key Insight\n\nFor duplicates, each occurrence can be treated as its own record. That keeps duplicate values separate without needing to store raw integer indexes in the value bucket.\n\n## Complexity Analysis\n- Time Complexity: O(1) average per operation.\n- Space Complexity: O(n).",
+      "code": "class RandomizedCollection {\n    private static class Entry {\n        int value;\n        int index;\n\n        Entry(int value, int index) {\n            this.value = value;\n            this.index = index;\n        }\n    }\n\n    private final java.util.ArrayList<Entry> dense = new java.util.ArrayList<>();\n    private final java.util.Map<Integer, java.util.HashSet<Entry>> buckets = new java.util.HashMap<>();\n    private final java.util.Random random = new java.util.Random();\n\n    public RandomizedCollection() {\n    }\n\n    public boolean insert(int val) {\n        java.util.HashSet<Entry> bucket = buckets.computeIfAbsent(val, key -> new java.util.HashSet<>());\n        boolean isNew = bucket.isEmpty();\n        Entry entry = new Entry(val, dense.size());\n        dense.add(entry);\n        bucket.add(entry);\n        return isNew;\n    }\n\n    public boolean remove(int val) {\n        java.util.HashSet<Entry> bucket = buckets.get(val);\n        if (bucket == null || bucket.isEmpty()) {\n            return false;\n        }\n        Entry target = bucket.iterator().next();\n        bucket.remove(target);\n        if (bucket.isEmpty()) {\n            buckets.remove(val);\n        }\n        Entry last = dense.remove(dense.size() - 1);\n        if (target != last) {\n            dense.set(target.index, last);\n            last.index = target.index;\n        }\n        return true;\n    }\n\n    public int getRandom() {\n        return dense.get(random.nextInt(dense.size())).value;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Index Bag With Back Pointers",
+      "timeComplexity": "O(1) average per operation",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore dense values in an `ArrayList`, but replace each value's `HashSet<Integer>` with a custom `IndexBag`. The bag stores its indexes in a dense list and a map from index to position inside that list, so adding, removing any known index, and picking an arbitrary index are all O(1) average.\n\n## Key Insight\n\nThe per-value index set is itself a small design problem. A back-pointer bag makes the set operations explicit and avoids relying on `HashSet` iteration details for the teaching route.\n\n## Complexity Analysis\n- Time Complexity: O(1) average per operation.\n- Space Complexity: O(n).",
+      "code": "class RandomizedCollection {\n    private static class IndexBag {\n        private final java.util.ArrayList<Integer> indexes = new java.util.ArrayList<>();\n        private final java.util.Map<Integer, Integer> positions = new java.util.HashMap<>();\n\n        boolean isEmpty() {\n            return indexes.isEmpty();\n        }\n\n        int any() {\n            return indexes.get(indexes.size() - 1);\n        }\n\n        void add(int index) {\n            positions.put(index, indexes.size());\n            indexes.add(index);\n        }\n\n        void remove(int index) {\n            int position = positions.remove(index);\n            int lastIndex = indexes.remove(indexes.size() - 1);\n            if (position < indexes.size()) {\n                indexes.set(position, lastIndex);\n                positions.put(lastIndex, position);\n            }\n        }\n    }\n\n    private final java.util.ArrayList<Integer> values = new java.util.ArrayList<>();\n    private final java.util.Map<Integer, IndexBag> bags = new java.util.HashMap<>();\n    private final java.util.Random random = new java.util.Random();\n\n    public RandomizedCollection() {\n    }\n\n    public boolean insert(int val) {\n        IndexBag bag = bags.computeIfAbsent(val, key -> new IndexBag());\n        boolean isNew = bag.isEmpty();\n        bag.add(values.size());\n        values.add(val);\n        return isNew;\n    }\n\n    public boolean remove(int val) {\n        IndexBag bag = bags.get(val);\n        if (bag == null || bag.isEmpty()) {\n            return false;\n        }\n        int removeIndex = bag.any();\n        bag.remove(removeIndex);\n        int lastIndex = values.size() - 1;\n        int lastValue = values.get(lastIndex);\n        if (removeIndex != lastIndex) {\n            values.set(removeIndex, lastValue);\n            IndexBag lastBag = bags.get(lastValue);\n            lastBag.remove(lastIndex);\n            lastBag.add(removeIndex);\n        }\n        values.remove(lastIndex);\n        if (bag.isEmpty()) {\n            bags.remove(val);\n        }\n        return true;\n    }\n\n    public int getRandom() {\n        return values.get(random.nextInt(values.size()));\n    }\n}",
+      "language": "java"
     }
   ]
 }

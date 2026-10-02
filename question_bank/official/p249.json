@@ -1,36 +1,121 @@
 {
   "id": "249",
   "title": "Running Sum of 1d Array",
-  "description": "# Running Sum of 1d Array\n\nGiven an array `nums`. We define a running sum of an array as `runningSum[i] = sum(nums[0]…nums[i])`.\n\nReturn the running sum of `nums`.\n\n## Example 1:\n\n**Input:** nums = [1,2,3,4]\n**Output:** [1,3,6,10]\n**Explanation:** Running sum is obtained as follows: [1, 1+2, 1+2+3, 1+2+3+4].\n\n## Example 2:\n\n**Input:** nums = [1,1,1,1,1]\n**Output:** [1,2,3,4,5]\n**Explanation:** Running sum is obtained as follows: [1, 1+1, 1+1+1, 1+1+1+1, 1+1+1+1+1].\n\n## Example 3:\n\n**Input:** nums = [3,1,2,10,1]\n**Output:** [3,4,6,16,17]\n\n## Constraints:\n\n*   `1 <= nums.length <= 1000`\n*   `-10^6 <= nums[i] <= 10^6`",
+  "description": "# Running Sum of 1d Array\n\nGiven an integer array `nums`, return its running sum.\n\nThe running sum at index `i` is the sum of every value from index `0` through index `i`:\n\n`runningSum[i] = nums[0] + nums[1] + ... + nums[i]`\n\nThe output array must have the same length as `nums`.\n\n## Example 1:\n\n**Input:** nums = [1,2,3,4]\n**Output:** [1,3,6,10]\n**Explanation:** The values are [1, 1+2, 1+2+3, 1+2+3+4].\n\n## Example 2:\n\n**Input:** nums = [1,1,1,1,1]\n**Output:** [1,2,3,4,5]\n\n## Example 3:\n\n**Input:** nums = [3,1,2,10,1]\n**Output:** [3,4,6,16,17]\n\n## Constraints:\n\n* `1 <= nums.length <= 1000`\n* `-10^6 <= nums[i] <= 10^6`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int[] runningSum(int[] nums) {\n        // Write your code here\n        return new int[]{};\n    }\n}",
-  "tags": ["Array", "Prefix Sum"],
+  "tags": [
+    "Array",
+    "Prefix Sum"
+  ],
   "examples": [
-    { "input": "nums = [1,2,3,4]", "output": "[1,3,6,10]" },
-    { "input": "nums = [1,1,1,1,1]", "output": "[1,2,3,4,5]" },
-    { "input": "nums = [3,1,2,10,1]", "output": "[3,4,6,16,17]" }
+    {
+      "input": "nums = [1,2,3,4]",
+      "output": "[1,3,6,10]"
+    },
+    {
+      "input": "nums = [1,1,1,1,1]",
+      "output": "[1,2,3,4,5]"
+    },
+    {
+      "input": "nums = [3,1,2,10,1]",
+      "output": "[3,4,6,16,17]"
+    }
   ],
   "solutions": [
     {
-      "name": "In-Place Prefix Sum",
+      "name": "In-Place Prefix Accumulation",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Accumulate the running sum in-place by adding each element to the previous one.",
+      "description": "## Approach\n\nScan from left to right starting at index `1`. Add the previous position's already-computed running sum into the current value. After the scan, the input array itself contains the answer.\n\n## Key Insight\n\nOnce `nums[i - 1]` has been converted into the sum through index `i - 1`, adding it to the original `nums[i]` produces the sum through index `i`. This saves space but mutates the input.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because every index is processed once.\n- Space Complexity: O(1), because the prefix sums are stored directly in `nums`.",
       "code": "class Solution {\n    public int[] runningSum(int[] nums) {\n        for (int i = 1; i < nums.length; i++) {\n            nums[i] += nums[i - 1];\n        }\n        return nums;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "New Array Prefix Sum",
+      "name": "New Array Running Total",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Create a new result array and compute the running sum without modifying the original array.",
-      "code": "class Solution {\n    public int[] runningSum(int[] nums) {\n        int[] result = new int[nums.length];\n        result[0] = nums[0];\n        for (int i = 1; i < nums.length; i++) {\n            result[i] = result[i - 1] + nums[i];\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nKeep a separate `running` total while scanning the input. After adding `nums[i]` to that total, write the current total into a new answer array at index `i`.\n\n## Key Insight\n\nA prefix sum is a cumulative state. Keeping the state in a separate variable preserves the original input and makes the data dependency explicit.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each value contributes once to the running total.\n- Space Complexity: O(n), because a new answer array is allocated.",
+      "code": "class Solution {\n    public int[] runningSum(int[] nums) {\n        int[] answer = new int[nums.length];\n        int running = 0;\n        for (int i = 0; i < nums.length; i++) {\n            running += nums[i];\n            answer[i] = running;\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Prefix Propagation",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nClone the input, then recursively fix one index at a time. When the recursive helper reaches index `i`, index `i - 1` already stores the correct running sum, so index `i` can add it.\n\n## Key Insight\n\nThis is the recurrence form of prefix sums: the current prefix equals the previous prefix plus the current value. It is useful for teaching the dependency even though iteration is usually preferred in production.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each index is updated once.\n- Space Complexity: O(n), from the cloned array and the recursion call stack.",
+      "code": "class Solution {\n    public int[] runningSum(int[] nums) {\n        int[] answer = nums.clone();\n        fill(answer, 1);\n        return answer;\n    }\n\n    private void fill(int[] answer, int index) {\n        if (index == answer.length) {\n            return;\n        }\n        answer[index] += answer[index - 1];\n        fill(answer, index + 1);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Hillis Steele Prefix Scan",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStart with a copy of the input. For step sizes `1, 2, 4, ...`, add the value from `step` positions earlier using a snapshot from before that round. After all step sizes, every position has accumulated all earlier values.\n\n## Key Insight\n\nThis is the classic parallel prefix-scan idea. It is slower than the simple left-to-right scan on one thread, but it shows how prefix sums can be built by repeatedly doubling the distance of known accumulated ranges.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), because each doubling round scans the array.\n- Space Complexity: O(n), because each round uses a snapshot to avoid reading values updated earlier in the same round.",
+      "code": "class Solution {\n    public int[] runningSum(int[] nums) {\n        int[] answer = nums.clone();\n        for (int step = 1; step < answer.length; step <<= 1) {\n            int[] previous = answer.clone();\n            for (int i = step; i < answer.length; i++) {\n                answer[i] = previous[i] + previous[i - step];\n            }\n        }\n        return answer;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [1,2,3,4]", "output": "[1,3,6,10]" },
-    { "input": "nums = [1,1,1,1,1]", "output": "[1,2,3,4,5]" },
-    { "input": "nums = [3,1,2,10,1]", "output": "[3,4,6,16,17]" }
+    {
+      "input": "nums = [1,2,3,4]",
+      "output": "[1,3,6,10]",
+      "description": "canonical increasing positives"
+    },
+    {
+      "input": "nums = [1,1,1,1,1]",
+      "output": "[1,2,3,4,5]",
+      "description": "repeated ones"
+    },
+    {
+      "input": "nums = [3,1,2,10,1]",
+      "output": "[3,4,6,16,17]",
+      "description": "mixed positive values"
+    },
+    {
+      "input": "nums = [-1,1,-1,1]",
+      "output": "[-1,0,-1,0]",
+      "description": "negative and positive values cancel"
+    },
+    {
+      "input": "nums = [0,0,0]",
+      "output": "[0,0,0]",
+      "description": "all zero values"
+    },
+    {
+      "input": "nums = [1000000,-1000000,5]",
+      "output": "[1000000,0,5]",
+      "description": "constraint-sized values remain within int result"
+    },
+    {
+      "input": "nums = [5]",
+      "output": "[5]",
+      "description": "single positive element"
+    },
+    {
+      "input": "nums = [-5]",
+      "output": "[-5]",
+      "description": "single negative element"
+    },
+    {
+      "input": "nums = [2,-3,4,-5,6]",
+      "output": "[2,-1,3,-2,4]",
+      "description": "alternating signs with changing prefix direction"
+    },
+    {
+      "input": "nums = [-1000000,1000000,-1000000,1000000]",
+      "output": "[-1000000,0,-1000000,0]",
+      "description": "negative boundary values cancel with positive boundary values"
+    },
+    {
+      "input": "nums = [10,-10,10,-10,10,-10]",
+      "output": "[10,0,10,0,10,0]",
+      "description": "repeated prefix sums caused by cancellation"
+    },
+    {
+      "input": "nums = [100,200,-50,-250,500]",
+      "output": "[100,300,250,0,500]",
+      "description": "prefix sum returns to zero before increasing again"
+    }
   ]
 }

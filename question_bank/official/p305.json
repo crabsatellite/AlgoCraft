@@ -1,10 +1,14 @@
 {
   "id": "305",
   "title": "Substring with Concatenation of All Words",
-  "description": "# Substring with Concatenation of All Words\n\nYou are given a string `s` and an array of strings `words`. All the strings of `words` are of **the same length**.\n\nA **concatenated substring** in `s` is a substring that contains all the strings of any permutation of `words` concatenated.\n\n*   For example, if `words = [\"ab\",\"cd\",\"ef\"]`, then `\"abcdef\"`, `\"abefcd\"`, `\"cdabef\"`, `\"cdefab\"`, `\"efabcd\"`, and `\"efcdab\"` are all concatenated strings. `\"acdbef\"` is not a concatenated substring because it is not the concatenation of any permutation of `words`.\n\nReturn *the starting indices of all the concatenated substrings in* `s`. You can return the answer in **any order**.\n\n## Example 1:\n\n**Input:** s = \"barfoothefoobarman\", words = [\"foo\",\"bar\"]\n**Output:** [0,9]\n**Explanation:** Since words.length == 2 and words[i].length == 3, the concatenated substring has to be of length 6.\nThe substring starting at 0 is \"barfoo\". It is the concatenation of [\"bar\",\"foo\"] which is a permutation of words.\nThe substring starting at 9 is \"foobar\". It is the concatenation of [\"foo\",\"bar\"] which is a permutation of words.\nThe output order does not matter. Returning [9,0] is fine too.\n\n## Example 2:\n\n**Input:** s = \"wordgoodgoodgoodbestword\", words = [\"word\",\"good\",\"best\",\"word\"]\n**Output:** []\n**Explanation:** Since words.length == 4 and words[i].length == 4, the concatenated substring has to be of length 16.\nThere is no substring of length 16 is s that is equal to the concatenation of any permutation of words.\nWe return an empty array.\n\n## Example 3:\n\n**Input:** s = \"barfoofoobarthefoobarman\", words = [\"bar\",\"foo\",\"the\"]\n**Output:** [6,9,12]\n**Explanation:** Since words.length == 3 and words[i].length == 3, the concatenated substring has to be of length 9.\nThe substring starting at 6 is \"foobarthe\". It is the concatenation of [\"foo\",\"bar\",\"the\"] which is a permutation of words.\nThe substring starting at 9 is \"barthefoo\". It is the concatenation of [\"bar\",\"the\",\"foo\"] which is a permutation of words.\nThe substring starting at 12 is \"thefoobar\". It is the concatenation of [\"the\",\"foo\",\"bar\"] which is a permutation of words.\n\n## Constraints:\n\n*   `1 <= s.length <= 10^4`\n*   `1 <= words.length <= 5000`\n*   `1 <= words[i].length <= 30`\n*   `s` and `words[i]` consist of lowercase English letters.",
+  "description": "# Substring with Concatenation of All Words\n\nYou are given a string `s` and an array of strings `words`. Every string in `words` has the same length.\n\nA valid substring starts at some index in `s`, has total length `words.length * words[0].length()`, and can be split into word-sized pieces that use every word in `words` exactly once. If a word appears multiple times in `words`, it must appear that many times in the substring.\n\nReturn the starting indices of all valid substrings. The answer may be returned in any order.\n\n## Example 1:\n\n**Input:** s = \"barfoothefoobarman\", words = [\"foo\",\"bar\"]\n**Output:** [0,9]\n**Explanation:** \"barfoo\" starts at 0 and \"foobar\" starts at 9.\n\n## Example 2:\n\n**Input:** s = \"wordgoodgoodgoodbestword\", words = [\"word\",\"good\",\"best\",\"word\"]\n**Output:** []\n**Explanation:** The word \"word\" is required twice, but no length-16 substring has the exact multiset of words.\n\n## Example 3:\n\n**Input:** s = \"barfoofoobarthefoobarman\", words = [\"bar\",\"foo\",\"the\"]\n**Output:** [6,9,12]\n\n## Constraints:\n\n*   `1 <= s.length <= 10^4`\n*   `1 <= words.length <= 5000`\n*   `1 <= words[i].length <= 30`\n*   `s` and `words[i]` consist of lowercase English letters.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public List<Integer> findSubstring(String s, String[] words) {\n        \n    }\n}",
-  "tags": ["Hash Table", "String", "Sliding Window"],
+  "initialCode": "class Solution {\n    public java.util.List<Integer> findSubstring(String s, String[] words) {\n        return new java.util.ArrayList<>();\n    }\n}",
+  "tags": [
+    "Hash Table",
+    "String",
+    "Sliding Window"
+  ],
   "examples": [
     {
       "input": "s = \"barfoothefoobarman\", words = [\"foo\",\"bar\"]",
@@ -19,36 +23,90 @@
       "output": "[6,9,12]"
     }
   ],
-  "solutions": [
-    {
-      "name": "Sliding Window with HashMap",
-      "timeComplexity": "O(n * w)",
-      "spaceComplexity": "O(k * w)",
-      "description": "For each of the wordLen starting offsets, use a sliding window of size totalLen. Maintain a word frequency map and slide one word at a time, adding/removing words from the window.",
-      "code": "class Solution {\n    public List<Integer> findSubstring(String s, String[] words) {\n        List<Integer> result = new java.util.ArrayList<>();\n        if (s.length() == 0 || words.length == 0) return result;\n        int wordLen = words[0].length(), wordCount = words.length;\n        int totalLen = wordLen * wordCount;\n        java.util.Map<String, Integer> target = new java.util.HashMap<>();\n        for (String w : words) target.merge(w, 1, Integer::sum);\n        for (int i = 0; i < wordLen; i++) {\n            java.util.Map<String, Integer> window = new java.util.HashMap<>();\n            int count = 0;\n            for (int j = i; j + wordLen <= s.length(); j += wordLen) {\n                String word = s.substring(j, j + wordLen);\n                window.merge(word, 1, Integer::sum);\n                count++;\n                if (count > wordCount) {\n                    String remove = s.substring(j - totalLen, j - totalLen + wordLen);\n                    if (window.merge(remove, -1, Integer::sum) == 0) window.remove(remove);\n                    count--;\n                }\n                if (count == wordCount && window.equals(target)) {\n                    result.add(j - totalLen + wordLen);\n                }\n            }\n        }\n        return result;\n    }\n}",
-      "language": "java"
-    },
-    {
-      "name": "Brute Force with Frequency Map",
-      "timeComplexity": "O(n * k * w)",
-      "spaceComplexity": "O(k * w)",
-      "description": "For each possible starting index, extract consecutive words and check if the frequency map matches the target word frequency map. Simple but less optimized approach.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<Integer> findSubstring(String s, String[] words) {\n        List<Integer> result = new ArrayList<>();\n        if (s.length() == 0 || words.length == 0) return result;\n        int wordLen = words[0].length();\n        int wordCount = words.length;\n        int totalLen = wordLen * wordCount;\n        Map<String, Integer> target = new HashMap<>();\n        for (String w : words) {\n            target.put(w, target.getOrDefault(w, 0) + 1);\n        }\n        for (int i = 0; i <= s.length() - totalLen; i++) {\n            Map<String, Integer> seen = new HashMap<>();\n            int j = 0;\n            while (j < wordCount) {\n                String word = s.substring(i + j * wordLen, i + (j + 1) * wordLen);\n                seen.put(word, seen.getOrDefault(word, 0) + 1);\n                if (seen.get(word) > target.getOrDefault(word, 0)) break;\n                j++;\n            }\n            if (j == wordCount) result.add(i);\n        }\n        return result;\n    }\n}",
-      "language": "java"
-    }
-  ],
   "tests": [
     {
       "input": "s = \"barfoothefoobarman\", words = [\"foo\",\"bar\"]",
-      "output": "[0,9]"
+      "output": "[0,9]",
+      "description": "two words can appear in either order"
     },
     {
       "input": "s = \"wordgoodgoodgoodbestword\", words = [\"word\",\"good\",\"best\",\"word\"]",
-      "output": "[]"
+      "output": "[]",
+      "description": "word multiplicity matters; one required copy is missing"
     },
     {
       "input": "s = \"barfoofoobarthefoobarman\", words = [\"bar\",\"foo\",\"the\"]",
-      "output": "[6,9,12]"
+      "output": "[6,9,12]",
+      "description": "overlapping aligned windows can all be valid"
+    },
+    {
+      "input": "s = \"wordgoodgoodgoodbestword\", words = [\"word\",\"good\",\"best\",\"good\"]",
+      "output": "[8]",
+      "description": "duplicate words require exact frequencies"
+    },
+    {
+      "input": "s = \"lingmindraboofooowingdingbarrwingmonkeypoundcake\", words = [\"fooo\",\"barr\",\"wing\",\"ding\",\"wing\"]",
+      "output": "[13]",
+      "description": "classic duplicate-word case with four-letter tokens"
+    },
+    {
+      "input": "s = \"aaaaaaaaaaaa\", words = [\"aa\",\"aa\",\"aa\"]",
+      "output": "[0,1,2,3,4,5,6]",
+      "description": "repeated identical words create many overlapping starts"
+    },
+    {
+      "input": "s = \"abc\", words = [\"a\",\"b\",\"c\",\"d\"]",
+      "output": "[]",
+      "description": "total word length can exceed the source string"
+    },
+    {
+      "input": "s = \"abab\", words = [\"a\",\"b\"]",
+      "output": "[0,1,2]",
+      "description": "single-character words create valid starts at adjacent offsets"
+    },
+    {
+      "input": "s = \"fooquxbarfoo\", words = [\"foo\",\"bar\"]",
+      "output": "[6]",
+      "description": "an invalid token resets the aligned window before a later valid substring"
+    },
+    {
+      "input": "s = \"foobarfoo\", words = [\"foo\",\"bar\",\"foo\"]",
+      "output": "[0]",
+      "description": "a valid substring may require the same word more than once"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Offset Sliding Window with HashMap Counts",
+      "timeComplexity": "O(n * w)",
+      "spaceComplexity": "O(k * w)",
+      "description": "## Approach\n\nBuild the target frequency map of `words`. For each offset modulo the word length, walk through `s` in word-sized steps, maintain a window frequency map, shrink from the left when a word is overused, and record the left boundary when the window contains exactly `words.length` tokens.\n\n## Key Insight\n\nA valid substring can only start at one of the `wordLength` alignment classes. Within one alignment, the problem becomes a normal sliding window over tokens instead of characters.\n\n## Complexity Analysis\n- Time Complexity: O(n * w), where `w` is the word length because each token extraction costs O(w)\n- Space Complexity: O(k * w), where `k` is the number of distinct words",
+      "code": "import java.util.ArrayList;\nimport java.util.HashMap;\nimport java.util.List;\nimport java.util.Map;\n\nclass Solution {\n    public List<Integer> findSubstring(String s, String[] words) {\n        List<Integer> answer = new ArrayList<>();\n        int wordLength = words[0].length();\n        int wordCount = words.length;\n        int totalLength = wordLength * wordCount;\n        if (s.length() < totalLength) {\n            return answer;\n        }\n\n        Map<String, Integer> target = new HashMap<>();\n        for (String word : words) {\n            target.put(word, target.getOrDefault(word, 0) + 1);\n        }\n\n        for (int offset = 0; offset < wordLength; offset++) {\n            Map<String, Integer> window = new HashMap<>();\n            int left = offset;\n            int matched = 0;\n            for (int right = offset; right + wordLength <= s.length(); right += wordLength) {\n                String token = s.substring(right, right + wordLength);\n                if (!target.containsKey(token)) {\n                    window.clear();\n                    matched = 0;\n                    left = right + wordLength;\n                    continue;\n                }\n\n                window.put(token, window.getOrDefault(token, 0) + 1);\n                matched++;\n                while (window.get(token) > target.get(token)) {\n                    String remove = s.substring(left, left + wordLength);\n                    window.put(remove, window.get(remove) - 1);\n                    matched--;\n                    left += wordLength;\n                }\n\n                if (matched == wordCount) {\n                    answer.add(left);\n                    String remove = s.substring(left, left + wordLength);\n                    window.put(remove, window.get(remove) - 1);\n                    matched--;\n                    left += wordLength;\n                }\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Remaining Counts Window",
+      "timeComplexity": "O(n * w)",
+      "spaceComplexity": "O(k * w)",
+      "description": "## Approach\n\nFor each alignment, keep a mutable `remaining` map initialized from the target counts. Consuming a token decreases its remaining count. If that count becomes negative, move the left boundary forward and restore counts until the window is valid again.\n\n## Key Insight\n\nInstead of storing how many copies the window currently has, store how many copies are still allowed. A negative count pinpoints exactly which token forced the window to shrink.\n\n## Complexity Analysis\n- Time Complexity: O(n * w)\n- Space Complexity: O(k * w)",
+      "code": "import java.util.ArrayList;\nimport java.util.HashMap;\nimport java.util.List;\nimport java.util.Map;\n\nclass Solution {\n    public List<Integer> findSubstring(String s, String[] words) {\n        List<Integer> answer = new ArrayList<>();\n        int wordLength = words[0].length();\n        int wordCount = words.length;\n        int totalLength = wordLength * wordCount;\n        if (s.length() < totalLength) {\n            return answer;\n        }\n\n        Map<String, Integer> target = new HashMap<>();\n        for (String word : words) {\n            target.put(word, target.getOrDefault(word, 0) + 1);\n        }\n\n        for (int offset = 0; offset < wordLength; offset++) {\n            Map<String, Integer> remaining = new HashMap<>(target);\n            int left = offset;\n            int used = 0;\n            for (int right = offset; right + wordLength <= s.length(); right += wordLength) {\n                String token = s.substring(right, right + wordLength);\n                if (!target.containsKey(token)) {\n                    remaining = new HashMap<>(target);\n                    used = 0;\n                    left = right + wordLength;\n                    continue;\n                }\n\n                remaining.put(token, remaining.get(token) - 1);\n                used++;\n                while (remaining.get(token) < 0) {\n                    String remove = s.substring(left, left + wordLength);\n                    remaining.put(remove, remaining.get(remove) + 1);\n                    used--;\n                    left += wordLength;\n                }\n\n                if (used == wordCount) {\n                    answer.add(left);\n                    String remove = s.substring(left, left + wordLength);\n                    remaining.put(remove, remaining.get(remove) + 1);\n                    used--;\n                    left += wordLength;\n                }\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Compressed Word Id Window",
+      "timeComplexity": "O(n * w)",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nMap each distinct required word to an integer id. Replace hash-map window counts with integer arrays, then run the same aligned sliding-window logic over word-sized tokens.\n\n## Key Insight\n\nThe set of legal words is fixed before scanning. Compressing words to ids keeps exact duplicate counts while avoiding repeated map bookkeeping for the moving window.\n\n## Complexity Analysis\n- Time Complexity: O(n * w)\n- Space Complexity: O(k), plus the storage for the word-id map",
+      "code": "import java.util.ArrayList;\nimport java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.List;\nimport java.util.Map;\n\nclass Solution {\n    public List<Integer> findSubstring(String s, String[] words) {\n        List<Integer> answer = new ArrayList<>();\n        int wordLength = words[0].length();\n        int wordCount = words.length;\n        int totalLength = wordLength * wordCount;\n        if (s.length() < totalLength) {\n            return answer;\n        }\n\n        Map<String, Integer> ids = new HashMap<>();\n        int[] required = new int[wordCount];\n        int unique = 0;\n        for (String word : words) {\n            Integer id = ids.get(word);\n            if (id == null) {\n                id = unique++;\n                ids.put(word, id);\n            }\n            required[id]++;\n        }\n\n        for (int offset = 0; offset < wordLength; offset++) {\n            int[] window = new int[unique];\n            int matched = 0;\n            int left = offset;\n            for (int right = offset; right + wordLength <= s.length(); right += wordLength) {\n                String token = s.substring(right, right + wordLength);\n                Integer id = ids.get(token);\n                if (id == null) {\n                    Arrays.fill(window, 0);\n                    matched = 0;\n                    left = right + wordLength;\n                    continue;\n                }\n\n                window[id]++;\n                matched++;\n                while (window[id] > required[id]) {\n                    int removeId = ids.get(s.substring(left, left + wordLength));\n                    window[removeId]--;\n                    matched--;\n                    left += wordLength;\n                }\n\n                if (matched == wordCount) {\n                    answer.add(left);\n                    int removeId = ids.get(s.substring(left, left + wordLength));\n                    window[removeId]--;\n                    matched--;\n                    left += wordLength;\n                }\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Precomputed Token Id Windows",
+      "timeComplexity": "O(n * w)",
+      "spaceComplexity": "O(n + k)",
+      "description": "## Approach\n\nCompress required words to ids, then for each alignment precompute an array of token ids for the word-sized chunks in that alignment. A token not in `words` is stored as `-1`. Run the sliding window over these integer arrays.\n\n## Key Insight\n\nSeparating tokenization from window movement makes resets and overuse handling explicit. The window never needs to slice the same aligned token twice.\n\n## Complexity Analysis\n- Time Complexity: O(n * w)\n- Space Complexity: O(n + k)",
+      "code": "import java.util.ArrayList;\nimport java.util.Arrays;\nimport java.util.HashMap;\nimport java.util.List;\nimport java.util.Map;\n\nclass Solution {\n    public List<Integer> findSubstring(String s, String[] words) {\n        List<Integer> answer = new ArrayList<>();\n        int wordLength = words[0].length();\n        int wordCount = words.length;\n        int totalLength = wordLength * wordCount;\n        if (s.length() < totalLength) {\n            return answer;\n        }\n\n        Map<String, Integer> ids = new HashMap<>();\n        int[] required = new int[wordCount];\n        int unique = 0;\n        for (String word : words) {\n            Integer id = ids.get(word);\n            if (id == null) {\n                id = unique++;\n                ids.put(word, id);\n            }\n            required[id]++;\n        }\n\n        for (int offset = 0; offset < wordLength; offset++) {\n            int tokenCount = (s.length() - offset) / wordLength;\n            int[] tokenIds = new int[tokenCount];\n            for (int i = 0; i < tokenCount; i++) {\n                int start = offset + i * wordLength;\n                Integer id = ids.get(s.substring(start, start + wordLength));\n                tokenIds[i] = id == null ? -1 : id;\n            }\n\n            int[] window = new int[unique];\n            int left = 0;\n            int matched = 0;\n            for (int right = 0; right < tokenIds.length; right++) {\n                int id = tokenIds[right];\n                if (id == -1) {\n                    Arrays.fill(window, 0);\n                    left = right + 1;\n                    matched = 0;\n                    continue;\n                }\n\n                window[id]++;\n                matched++;\n                while (window[id] > required[id]) {\n                    window[tokenIds[left]]--;\n                    left++;\n                    matched--;\n                }\n\n                if (matched == wordCount) {\n                    answer.add(offset + left * wordLength);\n                    window[tokenIds[left]]--;\n                    left++;\n                    matched--;\n                }\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
     }
   ]
 }

@@ -1,10 +1,15 @@
 {
   "id": "179",
   "title": "Merge Triplets to Form Target Triplet",
-  "description": "# Merge Triplets to Form Target Triplet\n\nA **triplet** is an array of three integers. You are given a 2D integer array `triplets`, where `triplets[i] = [ai, bi, ci]` describes the `i`-th **triplet**. You are also given an integer array `target = [x, y, z]` that describes the **target triplet**.\n\nTo obtain the `target` triplet, you may apply the following operation on `triplets` any number of times (possibly **zero**):\n\n*   Choose two indices (0-indexed) `i` and `j` (`i != j`) and update `triplets[j]` to become `[max(ai, aj), max(bi, bj), max(ci, cj)]`.\n    *   For example, if `triplets[i] = [2, 5, 3]` and `triplets[j] = [1, 7, 5]`, `triplets[j]` will be updated to `[max(2, 1), max(5, 7), max(3, 5)] = [2, 7, 5]`.\n\nReturn `true` *if it is possible to obtain the `target` triplet* `[x, y, z]` *as an element of* `triplets`, *or* `false` *otherwise*.\n\n## Example 1:\n\n**Input:** triplets = [[2,5,3],[1,8,4],[1,7,5]], target = [2,7,5]\n**Output:** true\n**Explanation:** Perform the following operations:\n- Choose the first and last triplets [[2,5,3],[1,8,4],[1,7,5]]. Update the last triplet to be [max(2,1), max(5,7), max(3,5)] = [2,7,5]. triplets = [[2,5,3],[1,8,4],[2,7,5]]\nThe target triplet [2,7,5] is now an element of triplets.\n\n## Example 2:\n\n**Input:** triplets = [[3,4,5],[4,5,6]], target = [3,2,5]\n**Output:** false\n**Explanation:** It is impossible to have [3,2,5] as an element because there is no 2 in any of the triplets.\n\n## Example 3:\n\n**Input:** triplets = [[2,5,3],[2,3,4],[1,2,5],[5,2,3]], target = [5,5,5]\n**Output:** true\n**Explanation:** Perform the following operations:\n- Choose the first and third triplets [[2,5,3],[2,3,4],[1,2,5],[5,2,3]]. Update the third triplet to be [max(2,1), max(5,2), max(3,5)] = [2,5,5]. triplets = [[2,5,3],[2,3,4],[2,5,5],[5,2,3]].\n- Choose the third and fourth triplets [[2,5,3],[2,3,4],[2,5,5],[5,2,3]]. Update the fourth triplet to be [max(2,5), max(5,2), max(5,3)] = [5,5,5]. triplets = [[2,5,3],[2,3,4],[2,5,5],[5,5,5]].\nThe target triplet [5,5,5] is now an element of triplets.\n\n## Constraints:\n\n*   `1 <= triplets.length <= 10^5`\n*   `triplets[i].length == target.length == 3`\n*   `1 <= ai, bi, ci, x, y, z <= 1000`",
+  "description": "# Merge Triplets to Form Target Triplet\n\nA **triplet** is an array of exactly three integers. You are given a list `triplets`, where `triplets[i] = [ai, bi, ci]`, and a target triplet `target = [x, y, z]`.\n\nYou may merge one triplet into another any number of times. Merging `[a, b, c]` with `[d, e, f]` produces `[max(a, d), max(b, e), max(c, f)]`.\n\nReturn `true` if it is possible to make `target` appear as one of the triplets after zero or more merges. Return `false` otherwise.\n\n## Example 1:\n\n**Input:** triplets = [[2,5,3],[1,8,4],[1,7,5]], target = [2,7,5]\n**Output:** true\n**Explanation:** Ignore [1,8,4] because its second coordinate exceeds the target. The remaining safe triplets can provide target coordinates 2, 7, and 5.\n\n## Example 2:\n\n**Input:** triplets = [[3,4,5],[4,5,6]], target = [3,2,5]\n**Output:** false\n**Explanation:** No safe triplet can provide the second target coordinate 2.\n\n## Example 3:\n\n**Input:** triplets = [[2,5,3],[2,3,4],[1,2,5],[5,2,3]], target = [5,5,5]\n**Output:** true\n**Explanation:** Safe triplets can provide target coordinates 5 in the first, second, and third positions, so repeated coordinate-wise maximum merges can form [5,5,5].\n\n## Constraints:\n\n*   `1 <= triplets.length <= 10^5`\n*   `triplets[i].length == target.length == 3`\n*   `1 <= ai, bi, ci, x, y, z <= 1000`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public boolean mergeTriplets(int[][] triplets, int[] target) {\n        // Write your code here\n        return false;\n    }\n}",
-  "tags": ["Array", "Greedy"],
+  "tags": [
+    "Array",
+    "Greedy",
+    "Simulation",
+    "Bit Manipulation"
+  ],
   "examples": [
     {
       "input": "triplets = [[2,5,3],[1,8,4],[1,7,5]], target = [2,7,5]",
@@ -21,31 +26,133 @@
   ],
   "solutions": [
     {
-      "name": "Greedy Coverage Check",
+      "name": "Greedy Coordinate Coverage",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Check each triplet is usable (no component exceeds target), then check if all 3 target values are covered.",
-      "code": "class Solution {\n    public boolean mergeTriplets(int[][] triplets, int[] target) {\n        boolean[] found = new boolean[3];\n        for (int[] t : triplets) {\n            if (t[0] <= target[0] && t[1] <= target[1] && t[2] <= target[2]) {\n                if (t[0] == target[0]) found[0] = true;\n                if (t[1] == target[1]) found[1] = true;\n                if (t[2] == target[2]) found[2] = true;\n            }\n        }\n        return found[0] && found[1] && found[2];\n    }\n}",
+      "description": "## Approach\nScan all triplets. Skip any triplet that exceeds the target in at least one coordinate. For every safe triplet, mark which target coordinates it matches exactly. Return true once all three coordinates have been covered.\n\n## Key Insight\nA merge is coordinate-wise maximum, so a coordinate that goes above the target can never be lowered later. Among only safe triplets, every covered target coordinate can be supplied independently and then merged together.\n\n## Complexity Analysis\nThe algorithm scans the list once and checks three coordinates per triplet, so the time complexity is O(n). It stores only three booleans, so the space complexity is O(1).",
+      "code": "class Solution {\n    public boolean mergeTriplets(int[][] triplets, int[] target) {\n        boolean[] covered = new boolean[3];\n\n        for (int[] triplet : triplets) {\n            if (triplet[0] > target[0] || triplet[1] > target[1] || triplet[2] > target[2]) {\n                continue;\n            }\n            if (triplet[0] == target[0]) {\n                covered[0] = true;\n            }\n            if (triplet[1] == target[1]) {\n                covered[1] = true;\n            }\n            if (triplet[2] == target[2]) {\n                covered[2] = true;\n            }\n        }\n\n        return covered[0] && covered[1] && covered[2];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Set-Based Filtering",
+      "name": "Bitmask Filtering",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use a set to track which target indices have been matched. Filter out triplets where any component exceeds the target, then for valid triplets, add matching indices to the set. Return true if all 3 indices are covered.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean mergeTriplets(int[][] triplets, int[] target) {\n        HashSet<Integer> matched = new HashSet<>();\n        for (int[] t : triplets) {\n            if (t[0] > target[0] || t[1] > target[1] || t[2] > target[2]) continue;\n            for (int i = 0; i < 3; i++) {\n                if (t[i] == target[i]) matched.add(i);\n            }\n        }\n        return matched.size() == 3;\n    }\n}",
+      "description": "## Approach\nRepresent the three target coordinates with bits 0, 1, and 2. For each safe triplet, OR in the bits for coordinates that match the target. If the mask becomes `111b`, the target can be formed.\n\n## Key Insight\nThis is the same coverage proof compressed into a small integer. The unsafe-triplet filter is still the essential step: a bit should count only if that triplet can safely participate in the final merge.\n\n## Complexity Analysis\nEach triplet is visited once, so the time complexity is O(n). The mask is a single integer, so the space complexity is O(1).",
+      "code": "class Solution {\n    public boolean mergeTriplets(int[][] triplets, int[] target) {\n        int matchedMask = 0;\n\n        for (int[] triplet : triplets) {\n            if (triplet[0] > target[0] || triplet[1] > target[1] || triplet[2] > target[2]) {\n                continue;\n            }\n            if (triplet[0] == target[0]) {\n                matchedMask |= 1;\n            }\n            if (triplet[1] == target[1]) {\n                matchedMask |= 2;\n            }\n            if (triplet[2] == target[2]) {\n                matchedMask |= 4;\n            }\n            if (matchedMask == 7) {\n                return true;\n            }\n        }\n\n        return false;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Explicit Safe Triplet Merge",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nFilter out unsafe triplets, then explicitly merge every remaining triplet into a running coordinate-wise maximum. At the end, compare the merged triplet with the target.\n\n## Key Insight\nAfter removing unsafe triplets, taking the maximum of all safe triplets is the strongest triplet that can be formed without overshooting. If even that maximum is not the target, no subset of safe triplets can do better.\n\n## Complexity Analysis\nThe scan performs constant work per triplet, so the time complexity is O(n). The running merged triplet has length three, so the space complexity is O(1).",
+      "code": "class Solution {\n    public boolean mergeTriplets(int[][] triplets, int[] target) {\n        int[] merged = new int[3];\n\n        for (int[] triplet : triplets) {\n            if (triplet[0] > target[0] || triplet[1] > target[1] || triplet[2] > target[2]) {\n                continue;\n            }\n            for (int i = 0; i < 3; i++) {\n                merged[i] = Math.max(merged[i], triplet[i]);\n            }\n        }\n\n        return merged[0] == target[0]\n                && merged[1] == target[1]\n                && merged[2] == target[2];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Independent Coordinate Witness Scan",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nCheck the three target coordinates one at a time. For each coordinate, scan for at least one safe triplet whose value equals the target in that coordinate. If any coordinate has no safe witness, return false.\n\n## Key Insight\nThe final triplet needs one safe witness for each coordinate, not necessarily the same witness. Because the triplet length is fixed at three, three independent scans are still linear and make the proof condition explicit.\n\n## Complexity Analysis\nThere are exactly three scans over the list, so the time complexity is O(3n), which simplifies to O(n). The algorithm uses only loop variables, so the space complexity is O(1).",
+      "code": "class Solution {\n    public boolean mergeTriplets(int[][] triplets, int[] target) {\n        for (int coordinate = 0; coordinate < 3; coordinate++) {\n            boolean hasWitness = false;\n            for (int[] triplet : triplets) {\n                if (isSafe(triplet, target) && triplet[coordinate] == target[coordinate]) {\n                    hasWitness = true;\n                    break;\n                }\n            }\n            if (!hasWitness) {\n                return false;\n            }\n        }\n        return true;\n    }\n\n    private boolean isSafe(int[] triplet, int[] target) {\n        return triplet[0] <= target[0]\n                && triplet[1] <= target[1]\n                && triplet[2] <= target[2];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Constructive Witness Merge",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nStore one safe witness triplet for each target coordinate. After the scan, explicitly merge the saved witnesses and compare the constructed result with the target.\n\n## Key Insight\nThis version turns the existence proof into a construction. If every coordinate has a safe witness, merging just those at most three witnesses is enough; if a coordinate has no safe witness, no sequence of maximum merges can create it.\n\n## Complexity Analysis\nThe list is scanned once and at most three witness references are stored, so the time complexity is O(n) and the space complexity is O(1).",
+      "code": "class Solution {\n    public boolean mergeTriplets(int[][] triplets, int[] target) {\n        int[][] witnesses = new int[3][];\n\n        for (int[] triplet : triplets) {\n            if (triplet[0] > target[0] || triplet[1] > target[1] || triplet[2] > target[2]) {\n                continue;\n            }\n            for (int coordinate = 0; coordinate < 3; coordinate++) {\n                if (triplet[coordinate] == target[coordinate] && witnesses[coordinate] == null) {\n                    witnesses[coordinate] = triplet;\n                }\n            }\n        }\n\n        int[] merged = new int[3];\n        for (int coordinate = 0; coordinate < 3; coordinate++) {\n            if (witnesses[coordinate] == null) {\n                return false;\n            }\n            for (int i = 0; i < 3; i++) {\n                merged[i] = Math.max(merged[i], witnesses[coordinate][i]);\n            }\n        }\n\n        return merged[0] == target[0]\n                && merged[1] == target[1]\n                && merged[2] == target[2];\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "triplets = [[2,5,3],[1,8,4],[1,7,5]], target = [2,7,5]", "output": "true" },
-    { "input": "triplets = [[3,4,5],[4,5,6]], target = [3,2,5]", "output": "false" },
-    { "input": "triplets = [[2,5,3],[2,3,4],[1,2,5],[5,2,3]], target = [5,5,5]", "output": "true" },
-    { "input": "triplets = [[1,1,1]], target = [1,1,1]", "output": "true" },
-    { "input": "triplets = [[1,2,3]], target = [1,2,3]", "output": "true" },
-    { "input": "triplets = [[1,1,1],[2,2,2],[3,3,3]], target = [3,3,3]", "output": "true" },
-    { "input": "triplets = [[1,3,1],[2,1,2],[3,2,3]], target = [3,3,3]", "output": "true" },
-    { "input": "triplets = [[1,2,3],[4,5,6]], target = [4,2,6]", "output": "false" }
+    {
+      "input": "triplets = [[2,5,3],[1,8,4],[1,7,5]], target = [2,7,5]",
+      "output": "true",
+      "description": "Canonical valid case where one unsafe triplet is ignored and safe triplets cover all coordinates."
+    },
+    {
+      "input": "triplets = [[3,4,5],[4,5,6]], target = [3,2,5]",
+      "output": "false",
+      "description": "No safe triplet can provide the second target coordinate."
+    },
+    {
+      "input": "triplets = [[2,5,3],[2,3,4],[1,2,5],[5,2,3]], target = [5,5,5]",
+      "output": "true",
+      "description": "Different safe triplets provide the three target coordinates."
+    },
+    {
+      "input": "triplets = [[1,1,1]], target = [1,1,1]",
+      "output": "true",
+      "description": "The target can already appear with zero merge operations."
+    },
+    {
+      "input": "triplets = [[1,1,1]], target = [1,1,2]",
+      "output": "false",
+      "description": "A single lower triplet cannot increase the missing third coordinate without another witness."
+    },
+    {
+      "input": "triplets = [[1,1,1],[2,2,2],[3,3,3]], target = [3,3,3]",
+      "output": "true",
+      "description": "A dominating safe triplet equal to the target succeeds."
+    },
+    {
+      "input": "triplets = [[1,3,1],[2,1,2],[3,2,3]], target = [3,3,3]",
+      "output": "true",
+      "description": "Three different safe triplets separately witness the target coordinates."
+    },
+    {
+      "input": "triplets = [[1,2,3],[4,5,6]], target = [4,2,6]",
+      "output": "false",
+      "description": "The triplet containing the first and third target coordinates overshoots the second coordinate."
+    },
+    {
+      "input": "triplets = [[2,8,5],[1,7,5]], target = [2,7,5]",
+      "output": "false",
+      "description": "The only triplet with first coordinate 2 is unsafe because it overshoots the second coordinate."
+    },
+    {
+      "input": "triplets = [[3,4,1],[1,3,4],[4,1,3]], target = [3,3,3]",
+      "output": "false",
+      "description": "Each target coordinate appears, but every apparent witness overshoots another coordinate."
+    },
+    {
+      "input": "triplets = [[2,1,1],[1,2,1]], target = [2,2,2]",
+      "output": "false",
+      "description": "The third coordinate has no safe witness equal to the target."
+    },
+    {
+      "input": "triplets = [[2,2,1],[2,1,2],[1,2,2]], target = [2,2,2]",
+      "output": "true",
+      "description": "Duplicate-style partial witnesses merge to the target without overshooting."
+    },
+    {
+      "input": "triplets = [[1000,1,1],[1,1000,1],[1,1,1000]], target = [1000,1000,1000]",
+      "output": "true",
+      "description": "Constraint-limit values can be merged coordinate by coordinate."
+    },
+    {
+      "input": "triplets = [[1000,1000,999],[1000,999,1000],[999,1000,1000]], target = [999,999,999]",
+      "output": "false",
+      "description": "Every triplet overshoots the target even though each is close in two coordinates."
+    },
+    {
+      "input": "triplets = [[2,2,2],[2,3,2],[2,2,3]], target = [3,3,3]",
+      "output": "false",
+      "description": "The list is safe in some coordinates but never reaches the first target coordinate."
+    },
+    {
+      "input": "triplets = [[4,1,4],[1,4,4],[4,4,1],[3,3,3]], target = [4,4,4]",
+      "output": "true",
+      "description": "Three partial safe witnesses can construct the all-fours target."
+    }
   ],
-  "diagram": "images/p179_triplets.png"
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p179_triplets.png",
+      "caption": "Input triplets and the target triplet."
+    }
+  ]
 }

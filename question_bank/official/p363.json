@@ -1,42 +1,151 @@
 {
   "id": "363",
   "title": "Palindrome Pairs",
-  "description": "# Palindrome Pairs\n\nYou are given a **0-indexed** array of **unique** strings `words`.\n\nA **palindrome pair** is a pair of integers `(i, j)` such that:\n\n*   `0 <= i, j < words.length`,\n*   `i != j`, and\n*   `words[i] + words[j]` (the concatenation of the two strings) is a palindrome.\n\nReturn *an array of all the **palindrome pairs** of* `words`.\n\nYou must write an algorithm with `O(sum of words[i].length)` runtime complexity.\n\n## Example 1:\n\n**Input:** words = [\"abcd\",\"dcba\",\"lls\",\"s\",\"sssll\"]\n**Output:** [[0,1],[1,0],[3,2],[2,4]]\n**Explanation:** The palindromes are [\"dcbaabcd\",\"abcddcba\",\"slls\",\"llssssll\"]\n\n## Example 2:\n\n**Input:** words = [\"bat\",\"tab\",\"cat\"]\n**Output:** [[0,1],[1,0]]\n**Explanation:** The palindromes are [\"battab\",\"tabbat\"]\n\n## Example 3:\n\n**Input:** words = [\"a\",\"\"]\n**Output:** [[0,1],[1,0]]\n**Explanation:** The palindromes are [\"a\",\"a\"]\n\n## Constraints:\n\n*   `1 <= words.length <= 5000`\n*   `0 <= words[i].length <= 300`\n*   `words[i]` consists of lowercase English letters.",
+  "description": "# Palindrome Pairs\n\nYou are given a **0-indexed** array of **unique** strings `words`.\n\nA **palindrome pair** is a pair of indices `(i, j)` such that:\n\n*   `0 <= i, j < words.length`,\n*   `i != j`, and\n*   `words[i] + words[j]` is a palindrome.\n\nReturn all palindrome pairs. The returned pairs may be in any order, but each pair must appear at most once. The pair `[i, j]` is different from `[j, i]` because the concatenation order changes.\n\nA palindrome reads the same forward and backward, such as `\"aba\"` or `\"aa\"`. A single character is also a palindrome.\n\n## Example 1:\n\n**Input:** words = [\"abcd\",\"dcba\",\"lls\",\"s\",\"sssll\"]\n**Output:** [[0,1],[1,0],[3,2],[2,4]]\n**Explanation:** The palindromes are `\"abcddcba\"`, `\"dcbaabcd\"`, `\"slls\"`, and `\"llssssll\"`.\n\n## Example 2:\n\n**Input:** words = [\"bat\",\"tab\",\"cat\"]\n**Output:** [[0,1],[1,0]]\n**Explanation:** `\"battab\"` and `\"tabbat\"` are palindromes.\n\n## Example 3:\n\n**Input:** words = [\"a\",\"\"]\n**Output:** [[0,1],[1,0]]\n**Explanation:** The empty string pairs with every non-empty palindrome in both directions.\n\n## Constraints:\n\n*   `1 <= words.length <= 5000`\n*   `0 <= words[i].length <= 300`\n*   `words[i]` consists of lowercase English letters.\n*   All strings in `words` are unique.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public List<List<Integer>> palindromePairs(String[] words) {\n        \n    }\n}",
-  "tags": ["Array", "String", "Trie", "Hash Table"],
+  "initialCode": "class Solution {\n    public List<List<Integer>> palindromePairs(String[] words) {\n        return new ArrayList<>();\n    }\n}",
+  "tags": [
+    "Array",
+    "String",
+    "Trie",
+    "Hash Table"
+  ],
   "examples": [
     {
       "input": "words = [\"abcd\",\"dcba\",\"lls\",\"s\",\"sssll\"]",
       "output": "[[0,1],[1,0],[3,2],[2,4]]"
     },
-    { "input": "words = [\"bat\",\"tab\",\"cat\"]", "output": "[[0,1],[1,0]]" },
-    { "input": "words = [\"a\",\"\"]", "output": "[[0,1],[1,0]]" }
+    {
+      "input": "words = [\"bat\",\"tab\",\"cat\"]",
+      "output": "[[0,1],[1,0]]"
+    },
+    {
+      "input": "words = [\"a\",\"\"]",
+      "output": "[[0,1],[1,0]]"
+    }
   ],
   "solutions": [
     {
-      "name": "HashMap with Reverse Lookup",
+      "name": "Split and Reverse Lookup",
       "timeComplexity": "O(n * L^2)",
       "spaceComplexity": "O(n * L)",
-      "description": "Store each word's reverse in a map. For each word, split at every position. If left half is a palindrome and map contains reverse of right half, pair found (prepend). If right half is palindrome and map has reverse of left half, pair found (append).",
-      "code": "class Solution {\n    public List<List<Integer>> palindromePairs(String[] words) {\n        java.util.Map<String, Integer> map = new java.util.HashMap<>();\n        for (int i = 0; i < words.length; i++) map.put(words[i], i);\n        List<List<Integer>> result = new java.util.ArrayList<>();\n        for (int i = 0; i < words.length; i++) {\n            String w = words[i];\n            for (int j = 0; j <= w.length(); j++) {\n                String left = w.substring(0, j), right = w.substring(j);\n                if (isPalindrome(left)) {\n                    String revRight = new StringBuilder(right).reverse().toString();\n                    if (map.containsKey(revRight) && map.get(revRight) != i) {\n                        result.add(java.util.Arrays.asList(map.get(revRight), i));\n                    }\n                }\n                if (right.length() > 0 && isPalindrome(right)) {\n                    String revLeft = new StringBuilder(left).reverse().toString();\n                    if (map.containsKey(revLeft) && map.get(revLeft) != i) {\n                        result.add(java.util.Arrays.asList(i, map.get(revLeft)));\n                    }\n                }\n            }\n        }\n        return result;\n    }\n    private boolean isPalindrome(String s) {\n        int l = 0, r = s.length() - 1;\n        while (l < r) { if (s.charAt(l++) != s.charAt(r--)) return false; }\n        return true;\n    }\n}",
+      "description": "## Approach\n\nStore every word in a hash map from word to index. For each word, try every split `left | right`. If `left` is a palindrome, a word equal to `reverse(right)` can be placed before it. If `right` is a palindrome, a word equal to `reverse(left)` can be placed after it.\n\n## Key Insight\n\nFor `a + word` to be a palindrome, the unmatched part of `word` must already be a palindrome and `a` must mirror the remaining part. Splitting turns the problem from checking all word pairs into checking only reverse strings that can actually work.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * L^2), where `L` is the maximum word length. There are O(L) splits per word and each palindrome or reverse operation may scan O(L) characters.\n- Space Complexity: O(n * L), for the index map, output, and temporary strings.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> palindromePairs(String[] words) {\n        Map<String, Integer> index = new HashMap<>();\n        for (int i = 0; i < words.length; i++) {\n            index.put(words[i], i);\n        }\n        List<List<Integer>> answer = new ArrayList<>();\n        Set<Long> seen = new HashSet<>();\n        for (int i = 0; i < words.length; i++) {\n            String word = words[i];\n            for (int split = 0; split <= word.length(); split++) {\n                String left = word.substring(0, split);\n                String right = word.substring(split);\n                if (isPalindrome(left)) {\n                    Integer other = index.get(reverse(right));\n                    if (other != null && other != i) add(answer, seen, other, i);\n                }\n                if (split < word.length() && isPalindrome(right)) {\n                    Integer other = index.get(reverse(left));\n                    if (other != null && other != i) add(answer, seen, i, other);\n                }\n            }\n        }\n        return answer;\n    }\n\n    private void add(List<List<Integer>> answer, Set<Long> seen, int first, int second) {\n        long key = (((long) first) << 32) ^ second;\n        if (seen.add(key)) answer.add(Arrays.asList(first, second));\n    }\n\n    private String reverse(String value) {\n        return new StringBuilder(value).reverse().toString();\n    }\n\n    private boolean isPalindrome(String value) {\n        int left = 0, right = value.length() - 1;\n        while (left < right) {\n            if (value.charAt(left++) != value.charAt(right--)) return false;\n        }\n        return true;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Trie-Based Search",
+      "name": "Reversed Trie with Palindrome Remainders",
+      "timeComplexity": "O(n * L^2 + output)",
+      "spaceComplexity": "O(n * L)",
+      "description": "## Approach\n\nInsert every word into a trie in reversed character order. At each trie node, keep the indices of words whose not-yet-inserted prefix is already a palindrome. Querying a word walks the trie forward and emits pairs when either a complete reversed word is reached or a deeper word has a palindromic remainder.\n\n## Key Insight\n\nThe trie shares the reverse lookups across all splits. The stored palindrome-remainder lists capture exactly the cases where the candidate word is longer than the current suffix and the leftover characters do not break the palindrome.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * L^2 + output) with direct palindrome checks while building and querying.\n- Space Complexity: O(n * L), because the trie stores every character once plus remainder index lists.",
+      "code": "import java.util.*;\n\nclass Solution {\n    static class Node {\n        Node[] next = new Node[26];\n        int wordIndex = -1;\n        List<Integer> palindromeSuffixWordIds = new ArrayList<>();\n    }\n\n    public List<List<Integer>> palindromePairs(String[] words) {\n        Node root = new Node();\n        for (int i = 0; i < words.length; i++) {\n            addWord(root, words[i], i);\n        }\n        List<List<Integer>> answer = new ArrayList<>();\n        Set<Long> seen = new HashSet<>();\n        for (int i = 0; i < words.length; i++) {\n            search(root, words[i], i, answer, seen);\n        }\n        return answer;\n    }\n\n    private void addWord(Node root, String word, int index) {\n        Node node = root;\n        for (int pos = word.length() - 1; pos >= 0; pos--) {\n            if (isPalindrome(word, 0, pos)) node.palindromeSuffixWordIds.add(index);\n            int c = word.charAt(pos) - 'a';\n            if (node.next[c] == null) node.next[c] = new Node();\n            node = node.next[c];\n        }\n        node.wordIndex = index;\n        node.palindromeSuffixWordIds.add(index);\n    }\n\n    private void search(Node root, String word, int index, List<List<Integer>> answer, Set<Long> seen) {\n        Node node = root;\n        for (int pos = 0; pos < word.length(); pos++) {\n            if (node.wordIndex >= 0 && node.wordIndex != index && isPalindrome(word, pos, word.length() - 1)) {\n                add(answer, seen, index, node.wordIndex);\n            }\n            int c = word.charAt(pos) - 'a';\n            node = node.next[c];\n            if (node == null) return;\n        }\n        if (node.wordIndex >= 0 && node.wordIndex != index) add(answer, seen, index, node.wordIndex);\n        for (int other : node.palindromeSuffixWordIds) {\n            if (other != index) add(answer, seen, index, other);\n        }\n    }\n\n    private void add(List<List<Integer>> answer, Set<Long> seen, int first, int second) {\n        long key = (((long) first) << 32) ^ second;\n        if (seen.add(key)) answer.add(Arrays.asList(first, second));\n    }\n\n    private boolean isPalindrome(String s, int left, int right) {\n        while (left < right) {\n            if (s.charAt(left++) != s.charAt(right--)) return false;\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Precomputed Palindrome Split Table",
       "timeComplexity": "O(n * L^2)",
       "spaceComplexity": "O(n * L)",
-      "description": "Build a Trie from reversed words. For each word, traverse the Trie character by character. At each node, check if remaining suffix of the word is a palindrome and there's a complete reversed word at this node. Also check at the end of the word if any deeper Trie paths have palindrome remainders.",
-      "code": "import java.util.*;\n\nclass Solution {\n    private int[][] children;\n    private int[] wordIdx;\n    private List<List<Integer>> belowPalin;\n    private int trieSize;\n\n    public List<List<Integer>> palindromePairs(String[] words) {\n        int maxNodes = 1;\n        for (String w : words) maxNodes += w.length();\n        children = new int[maxNodes][26];\n        wordIdx = new int[maxNodes];\n        belowPalin = new ArrayList<>();\n        for (int i = 0; i < maxNodes; i++) {\n            Arrays.fill(children[i], -1);\n            wordIdx[i] = -1;\n            belowPalin.add(new ArrayList<>());\n        }\n        trieSize = 1;\n        for (int i = 0; i < words.length; i++) addWord(words[i], i);\n        List<List<Integer>> result = new ArrayList<>();\n        for (int i = 0; i < words.length; i++) {\n            String w = words[i];\n            int node = 0;\n            for (int j = 0; j < w.length(); j++) {\n                if (wordIdx[node] >= 0 && wordIdx[node] != i && isPalin(w, j, w.length() - 1)) {\n                    result.add(Arrays.asList(i, wordIdx[node]));\n                }\n                int c = w.charAt(j) - 'a';\n                if (children[node][c] == -1) { node = -1; break; }\n                node = children[node][c];\n            }\n            if (node == -1) continue;\n            if (wordIdx[node] >= 0 && wordIdx[node] != i) {\n                result.add(Arrays.asList(i, wordIdx[node]));\n            }\n            for (int idx : belowPalin.get(node)) {\n                if (idx != i) result.add(Arrays.asList(i, idx));\n            }\n        }\n        return result;\n    }\n    private void addWord(String w, int idx) {\n        int node = 0;\n        for (int i = w.length() - 1; i >= 0; i--) {\n            if (isPalin(w, 0, i)) belowPalin.get(node).add(idx);\n            int c = w.charAt(i) - 'a';\n            if (children[node][c] == -1) children[node][c] = trieSize++;\n            node = children[node][c];\n        }\n        wordIdx[node] = idx;\n        belowPalin.get(node).add(idx);\n    }\n    private boolean isPalin(String s, int l, int r) {\n        while (l < r) { if (s.charAt(l++) != s.charAt(r--)) return false; }\n        return true;\n    }\n}",
+      "description": "## Approach\n\nKeep the reverse-lookup hash map, but for each word precompute a small palindrome table. From that table derive whether every prefix and every suffix is a palindrome, then reuse those booleans while scanning split points.\n\n## Key Insight\n\nMany split-based solutions repeatedly ask whether the same prefix or suffix is a palindrome. A per-word table makes the proof explicit: a split is valid exactly when one side is palindromic and the other side has a reversed word in the map.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * L^2), because each word builds an O(L^2) palindrome table and scans O(L) splits.\n- Space Complexity: O(n * L) for the word map and output, plus O(L^2) temporary table space for one word at a time.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> palindromePairs(String[] words) {\n        Map<String, Integer> index = new HashMap<>();\n        for (int i = 0; i < words.length; i++) index.put(words[i], i);\n        List<List<Integer>> answer = new ArrayList<>();\n        Set<Long> seen = new HashSet<>();\n        for (int i = 0; i < words.length; i++) {\n            String word = words[i];\n            SplitPalindromes pal = buildPalindromeTable(word);\n            for (int split = 0; split <= word.length(); split++) {\n                if (pal.prefixPal[split]) {\n                    Integer other = index.get(reverse(word.substring(split)));\n                    if (other != null && other != i) add(answer, seen, other, i);\n                }\n                if (split < word.length() && pal.suffixPal[split]) {\n                    Integer other = index.get(reverse(word.substring(0, split)));\n                    if (other != null && other != i) add(answer, seen, i, other);\n                }\n            }\n        }\n        return answer;\n    }\n\n    static class SplitPalindromes {\n        boolean[] prefixPal;\n        boolean[] suffixPal;\n    }\n\n    private SplitPalindromes buildPalindromeTable(String word) {\n        int m = word.length();\n        boolean[][] pal = new boolean[m][m];\n        for (int len = 1; len <= m; len++) {\n            for (int left = 0; left + len <= m; left++) {\n                int right = left + len - 1;\n                pal[left][right] = word.charAt(left) == word.charAt(right) && (len <= 2 || pal[left + 1][right - 1]);\n            }\n        }\n        SplitPalindromes split = new SplitPalindromes();\n        split.prefixPal = new boolean[m + 1];\n        split.suffixPal = new boolean[m + 1];\n        split.prefixPal[0] = true;\n        split.suffixPal[m] = true;\n        for (int end = 1; end <= m; end++) split.prefixPal[end] = pal[0][end - 1];\n        for (int start = 0; start < m; start++) split.suffixPal[start] = pal[start][m - 1];\n        return split;\n    }\n\n    private void add(List<List<Integer>> answer, Set<Long> seen, int first, int second) {\n        long key = (((long) first) << 32) ^ second;\n        if (seen.add(key)) answer.add(Arrays.asList(first, second));\n    }\n\n    private String reverse(String value) {\n        return new StringBuilder(value).reverse().toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Manacher-Marked Split Scan",
+      "timeComplexity": "O(n * L^2)",
+      "spaceComplexity": "O(n * L)",
+      "description": "## Approach\n\nUse Manacher's algorithm to mark all palindromic prefixes and suffixes of each word in linear time. Then scan the same split cases as the hash-map solution, but read palindrome facts from those marker arrays instead of rescanning characters.\n\n## Key Insight\n\nThe expensive part of the split method is repeated palindrome testing. Manacher separates palindrome discovery from reverse lookup, which is a useful bridge toward near-linear trie implementations.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * L^2) in this Java implementation because it still materializes reversed split strings; palindrome marking itself is O(n * L).\n- Space Complexity: O(n * L), for the map and output, plus O(L) marker arrays per word.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> palindromePairs(String[] words) {\n        Map<String, Integer> index = new HashMap<>();\n        for (int i = 0; i < words.length; i++) index.put(words[i], i);\n        List<List<Integer>> answer = new ArrayList<>();\n        Set<Long> seen = new HashSet<>();\n        for (int i = 0; i < words.length; i++) {\n            String word = words[i];\n            boolean[] prefixPal = prefixPalindrome(word);\n            boolean[] suffixPal = suffixPalindrome(word);\n            for (int split = 0; split <= word.length(); split++) {\n                if (prefixPal[split]) {\n                    Integer other = index.get(reverse(word.substring(split)));\n                    if (other != null && other != i) add(answer, seen, other, i);\n                }\n                if (split < word.length() && suffixPal[split]) {\n                    Integer other = index.get(reverse(word.substring(0, split)));\n                    if (other != null && other != i) add(answer, seen, i, other);\n                }\n            }\n        }\n        return answer;\n    }\n\n    private boolean[] suffixPalindrome(String s) {\n        String reversed = reverse(s);\n        boolean[] prefixOfReverse = prefixPalindrome(reversed);\n        boolean[] suffix = new boolean[s.length() + 1];\n        for (int start = 0; start <= s.length(); start++) {\n            suffix[start] = prefixOfReverse[s.length() - start];\n        }\n        return suffix;\n    }\n\n    private boolean[] prefixPalindrome(String s) {\n        int n = s.length();\n        boolean[] prefix = new boolean[n + 1];\n        prefix[0] = true;\n        int[] odd = manacherOdd(s);\n        int[] even = manacherEven(s);\n        for (int center = 0; center < n; center++) {\n            if (center - odd[center] + 1 == 0) prefix[center + odd[center]] = true;\n            if (center - even[center] == 0) prefix[center + even[center]] = true;\n        }\n        return prefix;\n    }\n\n    private int[] manacherOdd(String s) {\n        int n = s.length();\n        int[] radius = new int[n];\n        int left = 0, right = -1;\n        for (int i = 0; i < n; i++) {\n            int k = i > right ? 1 : Math.min(radius[left + right - i], right - i + 1);\n            while (i - k >= 0 && i + k < n && s.charAt(i - k) == s.charAt(i + k)) k++;\n            radius[i] = k;\n            if (i + k - 1 > right) {\n                left = i - k + 1;\n                right = i + k - 1;\n            }\n        }\n        return radius;\n    }\n\n    private int[] manacherEven(String s) {\n        int n = s.length();\n        int[] radius = new int[n];\n        int left = 0, right = -1;\n        for (int i = 0; i < n; i++) {\n            int k = i > right ? 0 : Math.min(radius[left + right - i + 1], right - i + 1);\n            while (i - k - 1 >= 0 && i + k < n && s.charAt(i - k - 1) == s.charAt(i + k)) k++;\n            radius[i] = k;\n            if (i + k - 1 > right) {\n                left = i - k;\n                right = i + k - 1;\n            }\n        }\n        return radius;\n    }\n\n    private void add(List<List<Integer>> answer, Set<Long> seen, int first, int second) {\n        long key = (((long) first) << 32) ^ second;\n        if (seen.add(key)) answer.add(Arrays.asList(first, second));\n    }\n\n    private String reverse(String value) {\n        return new StringBuilder(value).reverse().toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Length-Bucket Split Scan",
+      "timeComplexity": "O(n * D * L)",
+      "spaceComplexity": "O(n * L)",
+      "description": "## Approach\n\nRecord which word lengths actually exist. For each word, only test split sizes that could match a real partner length. A shorter partner can be placed before the word if the remaining prefix is palindromic, or after the word if the remaining suffix is palindromic.\n\n## Key Insight\n\nThe split method does not need to try lengths that no word has. Length buckets make the candidate space explicit and also explain why pairs with a longer partner are still found when that longer word is processed later.\n\n## Complexity Analysis\n\n- Time Complexity: O(n * D * L), where `D` is the number of distinct word lengths. In the worst case `D <= L + 1`.\n- Space Complexity: O(n * L), for the index map and output.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> palindromePairs(String[] words) {\n        Map<String, Integer> index = new HashMap<>();\n        Set<Integer> lengths = new HashSet<>();\n        for (int i = 0; i < words.length; i++) {\n            index.put(words[i], i);\n            lengths.add(words[i].length());\n        }\n        List<List<Integer>> answer = new ArrayList<>();\n        Set<Long> seen = new HashSet<>();\n        for (int i = 0; i < words.length; i++) {\n            String word = words[i];\n            for (int len : lengths) {\n                if (len > word.length()) continue;\n                String beforeNeed = reverseSlice(word, word.length() - len, word.length());\n                Integer before = index.get(beforeNeed);\n                if (before != null && before != i && isPalindrome(word, 0, word.length() - len - 1)) {\n                    add(answer, seen, before, i);\n                }\n                if (len < word.length()) {\n                    String afterNeed = reverseSlice(word, 0, len);\n                    Integer after = index.get(afterNeed);\n                    if (after != null && after != i && isPalindrome(word, len, word.length() - 1)) {\n                        add(answer, seen, i, after);\n                    }\n                }\n            }\n        }\n        return answer;\n    }\n\n    private String reverseSlice(String word, int start, int end) {\n        StringBuilder builder = new StringBuilder(end - start);\n        for (int i = end - 1; i >= start; i--) builder.append(word.charAt(i));\n        return builder.toString();\n    }\n\n    private boolean isPalindrome(String word, int left, int right) {\n        while (left < right) {\n            if (word.charAt(left++) != word.charAt(right--)) return false;\n        }\n        return true;\n    }\n\n    private void add(List<List<Integer>> answer, Set<Long> seen, int first, int second) {\n        long key = (((long) first) << 32) ^ second;\n        if (seen.add(key)) answer.add(Arrays.asList(first, second));\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "words = [\"abcd\",\"dcba\",\"lls\",\"s\",\"sssll\"]",
-      "output": "[[0,1],[1,0],[3,2],[2,4]]"
+      "output": "[[0,1],[1,0],[2,4],[3,2]]",
+      "description": "canonical reverse and split-palindrome pairs"
     },
-    { "input": "words = [\"bat\",\"tab\",\"cat\"]", "output": "[[0,1],[1,0]]" },
-    { "input": "words = [\"a\",\"\"]", "output": "[[0,1],[1,0]]" }
+    {
+      "input": "words = [\"bat\",\"tab\",\"cat\"]",
+      "output": "[[0,1],[1,0]]",
+      "description": "two direct reverse pairs"
+    },
+    {
+      "input": "words = [\"a\",\"\"]",
+      "output": "[[0,1],[1,0]]",
+      "description": "empty string pairs with a single-letter palindrome"
+    },
+    {
+      "input": "words = [\"abc\",\"def\",\"ghi\"]",
+      "output": "[]",
+      "description": "no pair forms a palindrome"
+    },
+    {
+      "input": "words = [\"ab\",\"ba\",\"abc\",\"cba\"]",
+      "output": "[[0,1],[0,3],[1,0],[2,1],[2,3],[3,2]]",
+      "description": "reverse pairs plus asymmetric prefix and suffix split pairs"
+    },
+    {
+      "input": "words = [\"a\",\"b\",\"c\",\"aa\"]",
+      "output": "[[0,3],[3,0]]",
+      "description": "short palindrome can pair with a longer palindrome"
+    },
+    {
+      "input": "words = [\"\",\"aba\",\"xyz\",\"aa\",\"b\"]",
+      "output": "[[0,1],[0,3],[0,4],[1,0],[3,0],[4,0]]",
+      "description": "empty string pairs with every non-empty palindrome but not with non-palindromes"
+    },
+    {
+      "input": "words = [\"a\",\"abc\",\"aba\",\"\"]",
+      "output": "[[0,3],[2,3],[3,0],[3,2]]",
+      "description": "empty string with several palindrome lengths"
+    },
+    {
+      "input": "words = [\"abc\",\"cba\",\"bc\",\"cb\",\"a\"]",
+      "output": "[[0,1],[1,0],[1,2],[2,3],[3,0],[3,2]]",
+      "description": "prefix and suffix cuts produce pairs beyond direct reverses"
+    },
+    {
+      "input": "words = [\"abcd\",\"dcba\",\"abc\",\"cba\",\"d\"]",
+      "output": "[[0,1],[0,3],[1,0],[2,1],[2,3],[3,2]]",
+      "description": "longer words create different valid orders from the same reverse fragments"
+    },
+    {
+      "input": "words = [\"race\",\"car\",\"ecar\",\"\",\"rr\"]",
+      "output": "[[0,1],[0,2],[2,0],[3,4],[4,3]]",
+      "description": "word fragments and empty-string palindrome pairs appear together"
+    },
+    {
+      "input": "words = [\"lls\",\"s\",\"sssll\",\"ll\",\"\"]",
+      "output": "[[0,2],[0,3],[1,0],[1,4],[3,2],[3,4],[4,1],[4,3]]",
+      "description": "classic lls case with extra palindrome and empty string"
+    },
+    {
+      "input": "words = [\"a\",\"aa\",\"aaa\",\"aaaa\"]",
+      "output": "[[0,1],[0,2],[0,3],[1,0],[1,2],[1,3],[2,0],[2,1],[2,3],[3,0],[3,1],[3,2]]",
+      "description": "many palindromic words generate many ordered pairs"
+    },
+    {
+      "input": "words = [\"abc\",\"cba\",\"xy\",\"yx\",\"aba\",\"\"]",
+      "output": "[[0,1],[1,0],[2,3],[3,2],[4,5],[5,4]]",
+      "description": "independent reverse pairs plus one empty-string palindrome pair"
+    },
+    {
+      "input": "words = [\"long\",\"gnol\",\"ong\",\"gno\",\"lo\"]",
+      "output": "[[0,1],[1,0],[1,2],[2,3],[3,0],[3,2]]",
+      "description": "nontrivial middle fragments must be discovered through split matching"
+    },
+    {
+      "input": "words = [\"abcd\",\"efgh\",\"ijkl\",\"mnop\"]",
+      "output": "[]",
+      "description": "longer all-negative case should not invent near matches"
+    }
   ]
 }

@@ -1,36 +1,121 @@
 {
   "id": "324",
   "title": "Best Time to Buy and Sell Stock III",
-  "description": "# Best Time to Buy and Sell Stock III\n\nYou are given an array `prices` where `prices[i]` is the price of a given stock on the `i`th day.\n\nFind the maximum profit you can achieve. You may complete **at most two** transactions.\n\nNote: You may not engage in multiple transactions simultaneously (i.e., you must sell the stock before you buy again).\n\n## Example 1:\n\n**Input:** prices = [3,3,5,0,0,3,1,4]\n**Output:** 6\n**Explanation:** Buy on day 4 (price = 0) and sell on day 6 (price = 3), profit = 3-0 = 3.\nThen buy on day 7 (price = 1) and sell on day 8 (price = 4), profit = 4-1 = 3.\n\n## Example 2:\n\n**Input:** prices = [1,2,3,4,5]\n**Output:** 4\n**Explanation:** Buy on day 1 (price = 1) and sell on day 5 (price = 5), profit = 5-1 = 4.\nNote that you cannot buy on day 1, buy on day 2 and sell them later, as you are engaging multiple transactions at the same time. You must sell before buying again.\n\n## Example 3:\n\n**Input:** prices = [7,6,4,3,1]\n**Output:** 0\n**Explanation:** In this case, no transaction is done, i.e. max profit = 0.\n\n## Constraints:\n\n*   `1 <= prices.length <= 10^5`\n*   `0 <= prices[i] <= 10^5`",
+  "description": "# Best Time to Buy and Sell Stock III\n\nYou are given an array `prices` where `prices[i]` is the price of a stock on the `i`th day.\n\nReturn the maximum profit you can achieve with **at most two** transactions.\n\nA transaction is one buy followed by one sell. You may not hold more than one share at a time, so you must sell the stock before buying again. You may also choose to make fewer than two transactions when that is better.\n\n## Example 1:\n\n**Input:** prices = [3,3,5,0,0,3,1,4]\n**Output:** 6\n**Explanation:** Buy at price 0 and sell at price 3, then buy at price 1 and sell at price 4. The total profit is 3 + 3 = 6.\n\n## Example 2:\n\n**Input:** prices = [1,2,3,4,5]\n**Output:** 4\n**Explanation:** One transaction from price 1 to price 5 gives profit 4. Splitting the same rising segment into two transactions does not increase the profit.\n\n## Example 3:\n\n**Input:** prices = [7,6,4,3,1]\n**Output:** 0\n**Explanation:** Prices only decrease, so the best choice is to make no transaction.\n\n## Constraints:\n\n*   `1 <= prices.length <= 10^5`\n*   `0 <= prices[i] <= 10^5`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int maxProfit(int[] prices) {\n        \n    }\n}",
-  "tags": ["Array", "Dynamic Programming"],
+  "initialCode": "class Solution {\n    public int maxProfit(int[] prices) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "prices = [3,3,5,0,0,3,1,4]", "output": "6" },
-    { "input": "prices = [1,2,3,4,5]", "output": "4" },
-    { "input": "prices = [7,6,4,3,1]", "output": "0" }
+    {
+      "input": "prices = [3,3,5,0,0,3,1,4]",
+      "output": "6"
+    },
+    {
+      "input": "prices = [1,2,3,4,5]",
+      "output": "4"
+    },
+    {
+      "input": "prices = [7,6,4,3,1]",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
       "name": "Four Variables State Machine",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Track four states: buy1 (max profit after 1st buy), sell1 (after 1st sell), buy2 (after 2nd buy), sell2 (after 2nd sell). Update greedily in one pass.",
-      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int buy1 = Integer.MIN_VALUE, sell1 = 0;\n        int buy2 = Integer.MIN_VALUE, sell2 = 0;\n        for (int p : prices) {\n            buy1 = Math.max(buy1, -p);\n            sell1 = Math.max(sell1, buy1 + p);\n            buy2 = Math.max(buy2, sell1 - p);\n            sell2 = Math.max(sell2, buy2 + p);\n        }\n        return sell2;\n    }\n}",
+      "description": "## Approach\n\nMaintain four rolling states: best balance after the first buy, best profit after the first sell, best balance after the second buy, and best profit after the second sell. Update those states for every price.\n\n## Key Insight\n\nA buy state can be negative because it represents profit after spending money to hold a share. The second buy uses the first sell's profit as its starting cash, which enforces the order buy-sell-buy-sell.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int buy1 = Integer.MIN_VALUE, sell1 = 0;\n        int buy2 = Integer.MIN_VALUE, sell2 = 0;\n        for (int price : prices) {\n            buy1 = Math.max(buy1, -price);\n            sell1 = Math.max(sell1, buy1 + price);\n            buy2 = Math.max(buy2, sell1 - price);\n            sell2 = Math.max(sell2, buy2 + price);\n        }\n        return sell2;\n    }\n}",
       "language": "java"
     },
     {
       "name": "Left-Right Scan DP",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Compute left[i] = max profit from one transaction in prices[0..i] (scan left to right tracking min price). Compute right[i] = max profit from one transaction in prices[i..n-1] (scan right to left tracking max price). Answer is max of left[i] + right[i].",
-      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int n = prices.length;\n        int[] left = new int[n];\n        int[] right = new int[n];\n        int minPrice = prices[0];\n        for (int i = 1; i < n; i++) {\n            minPrice = Math.min(minPrice, prices[i]);\n            left[i] = Math.max(left[i - 1], prices[i] - minPrice);\n        }\n        int maxPrice = prices[n - 1];\n        for (int i = n - 2; i >= 0; i--) {\n            maxPrice = Math.max(maxPrice, prices[i]);\n            right[i] = Math.max(right[i + 1], maxPrice - prices[i]);\n        }\n        int maxProfit = 0;\n        for (int i = 0; i < n; i++) {\n            maxProfit = Math.max(maxProfit, left[i] + right[i]);\n        }\n        return maxProfit;\n    }\n}",
+      "description": "## Approach\n\nCompute `left[i]`, the best one-transaction profit ending on or before day `i`, and `right[i]`, the best one-transaction profit starting on or after day `i`. Try every split day and add the best left and right profits.\n\n## Key Insight\n\nTwo transactions can be viewed as one transaction in a prefix plus one transaction in a suffix. The split prevents overlap, so it naturally respects the rule that the first stock must be sold before buying the second.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int n = prices.length;\n        int[] left = new int[n];\n        int[] right = new int[n];\n        int minPrice = prices[0];\n        for (int i = 1; i < n; i++) {\n            minPrice = Math.min(minPrice, prices[i]);\n            left[i] = Math.max(left[i - 1], prices[i] - minPrice);\n        }\n        int maxPrice = prices[n - 1];\n        for (int i = n - 2; i >= 0; i--) {\n            maxPrice = Math.max(maxPrice, prices[i]);\n            right[i] = Math.max(right[i + 1], maxPrice - prices[i]);\n        }\n        int best = 0;\n        for (int i = 0; i < n; i++) {\n            best = Math.max(best, left[i] + right[i]);\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "General Two-Transaction DP",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse the standard stock DP for up to `k` transactions with `k = 2`. `hold[t]` is the best balance while holding a stock during transaction `t`, and `cash[t]` is the best profit after selling transaction `t`.\n\n## Key Insight\n\nThis is the space-compressed version of the general multi-transaction model. It is useful because the same transition scales to Stock IV when `k` is not fixed at 2.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int[] hold = new int[3];\n        int[] cash = new int[3];\n        java.util.Arrays.fill(hold, Integer.MIN_VALUE / 4);\n        for (int price : prices) {\n            for (int t = 1; t <= 2; t++) {\n                hold[t] = Math.max(hold[t], cash[t - 1] - price);\n                cash[t] = Math.max(cash[t], hold[t] + price);\n            }\n        }\n        return cash[2];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Transaction DP with Best Difference",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nLet `dp[t][day]` be the best profit through `day` using at most `t` transactions. For each transaction count, scan days while maintaining the best value of previous profit minus today's buy price.\n\n## Key Insight\n\nThe transition `dp[t][day] = max(dp[t][day - 1], prices[day] + bestPrevious)` separates the sell day from the best earlier buy opportunity. Updating `bestPrevious` with `dp[t - 1][day - 1] - prices[day]` ensures the previous transaction is already finished before the new buy.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int maxProfit(int[] prices) {\n        int n = prices.length;\n        int[][] dp = new int[3][n];\n        for (int t = 1; t <= 2; t++) {\n            int bestPrevious = -prices[0];\n            for (int day = 1; day < n; day++) {\n                dp[t][day] = Math.max(dp[t][day - 1], prices[day] + bestPrevious);\n                bestPrevious = Math.max(bestPrevious, dp[t - 1][day - 1] - prices[day]);\n            }\n        }\n        return dp[2][n - 1];\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "prices = [3,3,5,0,0,3,1,4]", "output": "6" },
-    { "input": "prices = [1,2,3,4,5]", "output": "4" },
-    { "input": "prices = [7,6,4,3,1]", "output": "0" }
+    {
+      "input": "prices = [3,3,5,0,0,3,1,4]",
+      "output": "6",
+      "description": "sample uses two separate profitable transactions"
+    },
+    {
+      "input": "prices = [1,2,3,4,5]",
+      "output": "4",
+      "description": "rising prices are best treated as one transaction"
+    },
+    {
+      "input": "prices = [7,6,4,3,1]",
+      "output": "0",
+      "description": "never buy when prices only decrease"
+    },
+    {
+      "input": "prices = [1]",
+      "output": "0",
+      "description": "one day cannot complete a transaction"
+    },
+    {
+      "input": "prices = [1,2]",
+      "output": "1",
+      "description": "minimum profitable two-day case"
+    },
+    {
+      "input": "prices = [2,1,4,5,2,9,7]",
+      "output": "11",
+      "description": "two separated climbs beat one long transaction"
+    },
+    {
+      "input": "prices = [6,1,3,2,4,7]",
+      "output": "7",
+      "description": "second transaction starts after the first sale"
+    },
+    {
+      "input": "prices = [1,2,4,2,5,7,2,4,9,0]",
+      "output": "13",
+      "description": "classic case where two large windows must be selected"
+    },
+    {
+      "input": "prices = [2,4,1]",
+      "output": "2",
+      "description": "single profitable transaction before a later drop"
+    },
+    {
+      "input": "prices = [3,2,6,5,0,3]",
+      "output": "7",
+      "description": "two transactions with a valley between them"
+    },
+    {
+      "input": "prices = [1,4,2,7]",
+      "output": "8",
+      "description": "two short transactions beat one long transaction"
+    },
+    {
+      "input": "prices = [0,0,0]",
+      "output": "0",
+      "description": "flat zero prices produce no profit"
+    }
   ]
 }

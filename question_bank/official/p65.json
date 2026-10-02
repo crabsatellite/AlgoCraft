@@ -1,10 +1,14 @@
 {
   "id": "65",
   "title": "Reverse Linked List",
-  "description": "# Reverse Linked List\n\nGiven the `head` of a singly linked list, reverse the list, and return *the reversed list*.\n\n## Example 1:\n\n**Input:** head = [1,2,3,4,5]\n**Output:** [5,4,3,2,1]\n\n## Example 2:\n\n**Input:** head = [1,2]\n**Output:** [2,1]\n\n## Example 3:\n\n**Input:** head = []\n**Output:** []\n\n## Constraints:\n\n*   The number of nodes in the list is the range `[0, 5000]`.\n*   `-5000 <= Node.val <= 5000`",
+  "description": "# Reverse Linked List\n\nReverse the node order of the singly linked list starting at `head` and return its new head.\n\nEach node stores a value in `val` and points to the next node through `next`. The last node points to `null`. For example, change `1 -> 2 -> 3` into `3 -> 2 -> 1`.\n\nReuse the existing nodes and change only their links. Example arrays display the node order; the method receives and returns `ListNode` objects.\n\n## Example 1:\n\n**Input:** head = [1,2,3,4,5]\n**Output:** [5,4,3,2,1]\n**Explanation:** The original head `1` becomes the tail, and `5` becomes the new head.\n\n## Example 2:\n\n**Input:** head = [1,2]\n**Output:** [2,1]\n\n## Example 3:\n\n**Input:** head = []\n**Output:** []\n**Explanation:** An empty list has no pointers to reverse.\n\n## Constraints:\n\n* The number of nodes in the list is in the range `[0, 5000]`.\n* `-5000 <= Node.val <= 5000`",
   "difficulty": "EASY",
   "initialCode": "/**\n * Definition for singly-linked list.\n * public class ListNode {\n *     int val;\n *     ListNode next;\n *     ListNode() {}\n *     ListNode(int val) { this.val = val; }\n *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n * }\n */\nclass Solution {\n    public ListNode reverseList(ListNode head) {\n        // Write your code here\n        return null;\n    }\n}",
-  "tags": ["Linked List", "Recursion"],
+  "tags": [
+    "Linked List",
+    "Recursion",
+    "Stack"
+  ],
   "examples": [
     {
       "input": "head = [1,2,3,4,5]",
@@ -22,54 +26,103 @@
   "tests": [
     {
       "input": "head = [1,2,3,4,5]",
-      "output": "[5,4,3,2,1]"
+      "output": "[5,4,3,2,1]",
+      "description": "Reverse the canonical five-node list"
     },
     {
       "input": "head = [1,2]",
-      "output": "[2,1]"
+      "output": "[2,1]",
+      "description": "Reverse a two-node list"
     },
     {
       "input": "head = []",
-      "output": "[]"
+      "output": "[]",
+      "description": "Empty list remains empty"
     },
     {
       "input": "head = [1]",
       "output": "[1]",
-      "note": "单节点"
+      "description": "Single node remains unchanged"
     },
     {
       "input": "head = [1,2,3]",
       "output": "[3,2,1]",
-      "note": "奇数节点"
+      "description": "Reverse an odd-length list"
+    },
+    {
+      "input": "head = [1,2,3,4,5,6]",
+      "output": "[6,5,4,3,2,1]",
+      "description": "Reverse an even-length list longer than two"
+    },
+    {
+      "input": "head = [-1,0,1]",
+      "output": "[1,0,-1]",
+      "description": "Negative and zero values should not affect pointer order"
+    },
+    {
+      "input": "head = [5,5,5]",
+      "output": "[5,5,5]",
+      "description": "Duplicate values still require reversing nodes"
+    },
+    {
+      "input": "head = [0,-5000,5000]",
+      "output": "[5000,-5000,0]",
+      "description": "Node values at constraint extremes"
+    },
+    {
+      "input": "head = [2,1,2,1]",
+      "output": "[1,2,1,2]",
+      "description": "Repeated alternating values"
+    },
+    {
+      "input": "head = [100,-100,50,-50]",
+      "output": "[-50,50,-100,100]",
+      "description": "Mixed signs in an even-length list"
+    },
+    {
+      "input": "head = [9,8,7,6,5,4,3,2,1,0]",
+      "output": "[0,1,2,3,4,5,6,7,8,9]",
+      "description": "Longer list checks full pointer traversal"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p65_example1.png",
-      "caption": "Example 1"
-    },
-    {
-      "id": "example1_reversed",
-      "file": "p65_example1_reversed.png",
-      "caption": "Example 1 - After Reversal"
+      "caption": "Input list before any pointer changes"
     }
   ],
   "solutions": [
     {
-      "name": "Iterative - Three Pointers",
+      "name": "Iterative Three-Pointer Reversal",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use prev, curr, next pointers. In each step, save next, point curr.next to prev, then advance prev and curr.",
-      "code": "class Solution {\n    public ListNode reverseList(ListNode head) {\n        ListNode prev = null;\n        ListNode curr = head;\n        \n        while (curr != null) {\n            ListNode next = curr.next;\n            curr.next = prev;\n            prev = curr;\n            curr = next;\n        }\n        \n        return prev;\n    }\n}",
+      "description": "## Approach\n\nWalk through the list with `curr`. Before changing `curr.next`, save the original next node. Then point `curr.next` to `prev`, advance `prev` to `curr`, and continue from the saved next node.\n\n## Key Insight\n\nAt every step, `prev` is the head of the already reversed prefix, while `curr` is the first node of the unreversed suffix. Saving `next` before rewiring prevents losing access to the rest of the list.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode reverseList(ListNode head) {\n        ListNode prev = null;\n        ListNode curr = head;\n\n        while (curr != null) {\n            ListNode next = curr.next;\n            curr.next = prev;\n            prev = curr;\n            curr = next;\n        }\n\n        return prev;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Recursive",
+      "name": "Recursive Backtracking Reversal",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Recursively reverse the rest of the list. The key insight: after recursion, head.next.next = head reverses the link, then set head.next = null.",
-      "code": "class Solution {\n    public ListNode reverseList(ListNode head) {\n        if (head == null || head.next == null) {\n            return head;\n        }\n        \n        ListNode newHead = reverseList(head.next);\n        head.next.next = head;\n        head.next = null;\n        \n        return newHead;\n    }\n}",
+      "description": "## Approach\n\nRecursively reverse the suffix starting at `head.next`. When recursion returns the new head of that suffix, flip the local edge with `head.next.next = head`, then cut `head.next` to make the old head the new tail.\n\n## Key Insight\n\nThe recursive call solves the smaller list first. On the way back up the call stack, each frame reverses exactly one edge and preserves the new head returned by the deepest call.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n) for the recursion stack",
+      "code": "class Solution {\n    public ListNode reverseList(ListNode head) {\n        if (head == null || head.next == null) {\n            return head;\n        }\n\n        ListNode newHead = reverseList(head.next);\n        head.next.next = head;\n        head.next = null;\n        return newHead;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Dummy-Head Front Insertion",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse a dummy node whose `next` always points to the head of the reversed list being built. Remove each node from the original front and insert it immediately after the dummy node.\n\n## Key Insight\n\nFront insertion is another way to express reversal: each visited node becomes the new first node of the reversed prefix. The dummy node makes the insertion code uniform, including the first insertion.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public ListNode reverseList(ListNode head) {\n        ListNode dummy = new ListNode(0);\n        ListNode curr = head;\n\n        while (curr != null) {\n            ListNode next = curr.next;\n            curr.next = dummy.next;\n            dummy.next = curr;\n            curr = next;\n        }\n\n        return dummy.next;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Stack of Existing Nodes",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nPush each existing node onto a stack, then pop nodes to reconnect them in reverse order. After the last pop, set the new tail's `next` pointer to null.\n\n## Key Insight\n\nA stack makes last-in-first-out order explicit. This is not the most memory-efficient solution, but it is useful for teaching why reversal means visiting the original tail first in the rebuilt order.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public ListNode reverseList(ListNode head) {\n        if (head == null) {\n            return null;\n        }\n\n        Deque<ListNode> stack = new ArrayDeque<>();\n        ListNode curr = head;\n        while (curr != null) {\n            stack.push(curr);\n            curr = curr.next;\n        }\n\n        ListNode newHead = stack.pop();\n        curr = newHead;\n        while (!stack.isEmpty()) {\n            curr.next = stack.pop();\n            curr = curr.next;\n        }\n        curr.next = null;\n        return newHead;\n    }\n}",
       "language": "java"
     }
   ]

@@ -1,57 +1,127 @@
 {
   "id": "24",
   "title": "Container With Most Water",
-  "description": "# Container With Most Water\n\nYou are given an integer array `height` of length `n`. There are `n` vertical lines drawn such that the two endpoints of the `i`th line are `(i, 0)` and `(i, height[i])`.\n\nFind two lines that together with the x-axis form a container, such that the container contains the most water.\n\nReturn *the maximum amount of water a container can store*.\n\n**Notice** that you may not slant the container.\n\n## Example 1:\n\n**Input:** height = [1,8,6,2,5,4,8,3,7]\n**Output:** 49\n**Explanation:** The above vertical lines are represented by array [1,8,6,2,5,4,8,3,7]. In this case, the max area of water (blue section) the container can contain is 49.\n\n## Example 2:\n\n**Input:** height = [1,1]\n**Output:** 1\n\n## Constraints:\n\n*   `n == height.length`\n*   `2 <= n <= 10^5`\n*   `0 <= height[i] <= 10^4`",
+  "description": "# Container With Most Water\n\nYou are given an integer array `height` of length `n`. The value `height[i]` is the height of a vertical line whose x-coordinate is `i`.\n\nChoose two different indices `i` and `j` with `i < j`. Together with the x-axis, those two vertical lines form a container. The amount of water held by that container is `(j - i) * min(height[i], height[j])`.\n\nReturn the maximum amount of water any such container can hold.\n\n**Notice** that you may not slant the container. Only the shorter of the two chosen lines limits the water height.\n\n## Example 1:\n\n**Input:** height = [1,8,6,2,5,4,8,3,7]\n**Output:** 49\n**Explanation:** Choosing indices 1 and 8 gives width 7 and limiting height 7, so the area is 49.\n\n## Example 2:\n\n**Input:** height = [1,1]\n**Output:** 1\n**Explanation:** The only possible pair has width 1 and limiting height 1.\n\n## Constraints:\n\n*   `n == height.length`\n*   `2 <= n <= 10^5`\n*   `0 <= height[i] <= 10^4`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int maxArea(int[] height) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Two Pointers", "Greedy"],
-  "images": [
+  "tags": [
+    "Array",
+    "Two Pointers",
+    "Greedy",
+    "Sorting"
+  ],
+  "diagrams": [
     {
-      "filename": "p24_example1.png",
-      "description": "Container With Most Water visualization showing bar chart of heights"
+      "id": "example1",
+      "file": "p24_example1.png",
+      "caption": "Example 1 height array as vertical lines"
     }
   ],
   "examples": [
-    { "input": "height = [1,8,6,2,5,4,8,3,7]", "output": "49" },
-    { "input": "height = [1,1]", "output": "1" }
+    {
+      "input": "height = [1,8,6,2,5,4,8,3,7]",
+      "output": "49"
+    },
+    {
+      "input": "height = [1,1]",
+      "output": "1"
+    }
   ],
   "tests": [
-    { "input": "height = [1,8,6,2,5,4,8,3,7]", "output": "49" },
-    { "input": "height = [1,1]", "output": "1" },
-    { "input": "height = [4,3,2,1,4]", "output": "16" },
-    { "input": "height = [1,2,1]", "output": "2" },
+    {
+      "input": "height = [1,8,6,2,5,4,8,3,7]",
+      "output": "49",
+      "description": "Canonical mixed-height example"
+    },
+    {
+      "input": "height = [1,1]",
+      "output": "1",
+      "description": "Minimum valid length"
+    },
+    {
+      "input": "height = [4,3,2,1,4]",
+      "output": "16",
+      "description": "Best pair uses both endpoints"
+    },
+    {
+      "input": "height = [1,2,1]",
+      "output": "2",
+      "description": "Best width beats the taller adjacent pair"
+    },
     {
       "input": "height = [1,2,3,4,5]",
       "output": "6",
-      "description": "Increasing heights"
+      "description": "Strictly increasing heights"
     },
     {
       "input": "height = [5,4,3,2,1]",
       "output": "6",
-      "description": "Decreasing heights"
+      "description": "Strictly decreasing heights"
+    },
+    {
+      "input": "height = [0,0]",
+      "output": "0",
+      "description": "Zero-height minimum pair"
+    },
+    {
+      "input": "height = [0,2,0,4,0]",
+      "output": "4",
+      "description": "Zeros can appear between useful walls"
+    },
+    {
+      "input": "height = [6,6,6,6]",
+      "output": "18",
+      "description": "Flat plateau"
+    },
+    {
+      "input": "height = [10000,1,10000]",
+      "output": "20000",
+      "description": "Maximum height boundary"
+    },
+    {
+      "input": "height = [2,100,1,100,2]",
+      "output": "200",
+      "description": "Interior tall walls beat far lower endpoints"
+    },
+    {
+      "input": "height = [1,3,2,5,25,24,5]",
+      "output": "24",
+      "description": "A very tall wall still needs enough width"
+    },
+    {
+      "input": "height = [10,0,0,0,10]",
+      "output": "40",
+      "description": "Endpoint pair across zero heights"
     }
   ],
   "solutions": [
     {
-      "name": "Two Pointers - Optimal",
+      "name": "Two Pointers - Elimination Proof",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use two pointers from both ends. Move the pointer with smaller height inward since moving the larger one can only decrease area.",
-      "code": "class Solution {\n    public int maxArea(int[] height) {\n        int left = 0, right = height.length - 1;\n        int maxArea = 0;\n        \n        while (left < right) {\n            // Calculate area with current pointers\n            int width = right - left;\n            int h = Math.min(height[left], height[right]);\n            int area = width * h;\n            maxArea = Math.max(maxArea, area);\n            \n            // Move the pointer with smaller height\n            if (height[left] < height[right]) {\n                left++;\n            } else {\n                right--;\n            }\n        }\n        \n        return maxArea;\n    }\n}"
+      "description": "## Approach\n\nPlace one pointer at each end of the array. Each step computes the area of the current pair, then moves the pointer at the shorter wall inward.\n\n## Key Insight\n\nIf the left wall is no taller than the right wall, keeping the left wall while moving the right wall inward only reduces width and cannot increase the limiting height above `height[left]`. Every container using that left wall with a smaller width is therefore dominated, so the left wall can be discarded. The symmetric argument applies when the right wall is shorter.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int maxArea(int[] height) {\n        int left = 0;\n        int right = height.length - 1;\n        int maxArea = 0;\n\n        while (left < right) {\n            int width = right - left;\n            int limitingHeight = Math.min(height[left], height[right]);\n            int area = width * limitingHeight;\n            maxArea = Math.max(maxArea, area);\n\n            if (height[left] <= height[right]) {\n                left++;\n            } else {\n                right--;\n            }\n        }\n\n        return maxArea;\n    }\n}"
     },
     {
-      "name": "Two Pointers with Skip Optimization",
+      "name": "Two Pointers with Dominated-Height Skips",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Skip elements that are shorter than or equal to current while moving pointers.",
-      "code": "class Solution {\n    public int maxArea(int[] height) {\n        int left = 0, right = height.length - 1;\n        int maxArea = 0;\n        \n        while (left < right) {\n            int h = Math.min(height[left], height[right]);\n            maxArea = Math.max(maxArea, h * (right - left));\n            \n            // Skip all heights <= current minimum on left side\n            if (height[left] < height[right]) {\n                int currentLeft = height[left];\n                while (left < right && height[left] <= currentLeft) {\n                    left++;\n                }\n            } else {\n                // Skip all heights <= current minimum on right side\n                int currentRight = height[right];\n                while (left < right && height[right] <= currentRight) {\n                    right--;\n                }\n            }\n        }\n        \n        return maxArea;\n    }\n}"
+      "description": "## Approach\n\nUse the same two-pointer invariant, but after evaluating a pair, skip over consecutive walls that are no taller than the wall just discarded.\n\n## Key Insight\n\nOnce the width has become smaller, a wall with height less than or equal to the discarded limiting wall cannot produce a larger area. Skipping those dominated walls is not a different proof; it is the same elimination argument made more aggressive in the implementation.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int maxArea(int[] height) {\n        int left = 0;\n        int right = height.length - 1;\n        int maxArea = 0;\n\n        while (left < right) {\n            int limitingHeight = Math.min(height[left], height[right]);\n            maxArea = Math.max(maxArea, limitingHeight * (right - left));\n\n            if (height[left] <= height[right]) {\n                int currentLeft = height[left];\n                while (left < right && height[left] <= currentLeft) {\n                    left++;\n                }\n            } else {\n                int currentRight = height[right];\n                while (left < right && height[right] <= currentRight) {\n                    right--;\n                }\n            }\n        }\n\n        return maxArea;\n    }\n}"
     },
     {
-      "name": "Brute Force (For Reference)",
-      "timeComplexity": "O(n²)",
+      "name": "Descending Height Threshold Sweep",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort indices by height from tallest to shortest. Sweep height thresholds downward. After all indices at the current height have been activated, the best container whose limiting height is at least that threshold uses the leftmost and rightmost active indices.\n\n## Key Insight\n\nFor any optimal pair, when the shorter endpoint's height is processed, both endpoints are active. The farthest active span is at least as wide as that pair, so `currentHeight * (maxIndex - minIndex)` will consider an area at least as large as the optimal pair's area at that height threshold. This gives an offline sorting view of the same max-area problem.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int maxArea(int[] height) {\n        Integer[] order = new Integer[height.length];\n        for (int i = 0; i < height.length; i++) {\n            order[i] = i;\n        }\n        java.util.Arrays.sort(order, (a, b) -> Integer.compare(height[b], height[a]));\n\n        int minIndex = height.length;\n        int maxIndex = -1;\n        int maxArea = 0;\n        int cursor = 0;\n\n        while (cursor < order.length) {\n            int currentHeight = height[order[cursor]];\n            while (cursor < order.length && height[order[cursor]] == currentHeight) {\n                int index = order[cursor];\n                minIndex = Math.min(minIndex, index);\n                maxIndex = Math.max(maxIndex, index);\n                cursor++;\n            }\n            if (maxIndex > minIndex) {\n                maxArea = Math.max(maxArea, currentHeight * (maxIndex - minIndex));\n            }\n        }\n\n        return maxArea;\n    }\n}"
+    },
+    {
+      "name": "Brute Force Pair Enumeration",
+      "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(1)",
-      "description": "Check all pairs of lines. Not optimal but helps understand the problem.",
-      "code": "class Solution {\n    public int maxArea(int[] height) {\n        int maxArea = 0;\n        int n = height.length;\n        \n        for (int i = 0; i < n; i++) {\n            for (int j = i + 1; j < n; j++) {\n                int h = Math.min(height[i], height[j]);\n                int width = j - i;\n                maxArea = Math.max(maxArea, h * width);\n            }\n        }\n        \n        return maxArea;\n    }\n}"
+      "description": "## Approach\n\nEnumerate every pair of indices `i < j`, compute `(j - i) * min(height[i], height[j])`, and keep the largest value.\n\n## Key Insight\n\nThis is the problem definition written directly as code. It is too slow for the full constraints, but it is the simplest correctness baseline and makes it clear what the optimized approaches are allowed to discard.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int maxArea(int[] height) {\n        int maxArea = 0;\n\n        for (int i = 0; i < height.length; i++) {\n            for (int j = i + 1; j < height.length; j++) {\n                int width = j - i;\n                int limitingHeight = Math.min(height[i], height[j]);\n                maxArea = Math.max(maxArea, width * limitingHeight);\n            }\n        }\n\n        return maxArea;\n    }\n}"
     }
   ]
 }

@@ -1,36 +1,145 @@
 {
   "id": "355",
   "title": "Super Washing Machines",
-  "description": "# Super Washing Machines\n\nYou have `n` super washing machines on a line. Initially, each washing machine has some dresses or is empty.\n\nFor each move, you could choose **any m** (`1 <= m <= n`) washing machines, and pass **one dress** of each washing machine to one of its adjacent washing machines at the same time.\n\nGiven an integer array `machines` representing the number of dresses in each washing machine from left to right on the line, return *the minimum number of moves to make all the washing machines have the same number of dresses*. If it is not possible to do it, return `-1`.\n\n## Example 1:\n\n**Input:** machines = [1,0,5]\n**Output:** 3\n**Explanation:**\n1st move:    1     0 <-- 5    =>    1     1     4\n2nd move:    1 <-- 1 <-- 4    =>    2     1     3\n3rd move:    2     1 <-- 3    =>    2     2     2\n\n## Example 2:\n\n**Input:** machines = [0,3,0]\n**Output:** 2\n**Explanation:**\n1st move:    0 <-- 3     0    =>    1     2     0\n2nd move:    1     2 --> 0    =>    1     1     1\n\n## Example 3:\n\n**Input:** machines = [0,2,0]\n**Output:** -1\n**Explanation:**\nIt's impossible to make all three washing machines have the same number of dresses.\n\n## Constraints:\n\n*   `n == machines.length`\n*   `1 <= n <= 10^4`\n*   `0 <= machines[i] <= 10^5`",
+  "description": "# Super Washing Machines\n\nYou have `n` super washing machines in one line. `machines[i]` is the number of dresses currently in the `i`th machine.\n\nIn one move, you may choose any number of machines. Each chosen machine sends exactly one dress to one adjacent machine at the same time. A machine may receive dresses from its neighbors during the same move.\n\nReturn the minimum number of moves needed to make every machine contain the same number of dresses. If the total number of dresses cannot be split evenly across all machines, return `-1`.\n\n## Example 1:\n\n**Input:** machines = [1,0,5]\n**Output:** 3\n**Explanation:** One optimal schedule moves dresses left from the last machine over three rounds until every machine has two dresses.\n\n## Example 2:\n\n**Input:** machines = [0,3,0]\n**Output:** 2\n\n## Example 3:\n\n**Input:** machines = [0,2,0]\n**Output:** -1\n**Explanation:** Two dresses cannot be divided evenly across three machines.\n\n## Constraints:\n\n* `n == machines.length`\n* `1 <= n <= 10000`\n* `0 <= machines[i] <= 100000`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int findMinMoves(int[] machines) {\n        \n    }\n}",
-  "tags": ["Array", "Greedy"],
+  "initialCode": "class Solution {\n    public int findMinMoves(int[] machines) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Greedy",
+    "Prefix Sum"
+  ],
   "examples": [
-    { "input": "machines = [1,0,5]", "output": "3" },
-    { "input": "machines = [0,3,0]", "output": "2" },
-    { "input": "machines = [0,2,0]", "output": "-1" }
+    {
+      "input": "machines = [1,0,5]",
+      "output": "3"
+    },
+    {
+      "input": "machines = [0,3,0]",
+      "output": "2"
+    },
+    {
+      "input": "machines = [0,2,0]",
+      "output": "-1"
+    }
   ],
   "solutions": [
     {
-      "name": "Greedy with Running Sum",
+      "name": "Running Balance Greedy",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "If total dresses not divisible by n, return -1. For each machine, track the running sum of excess dresses (machines[i] - avg). The answer is max of |running_sum| and (machines[i] - avg) for positive excess, since a machine giving away dresses is a bottleneck.",
-      "code": "class Solution {\n    public int findMinMoves(int[] machines) {\n        int total = 0;\n        for (int m : machines) total += m;\n        int n = machines.length;\n        if (total % n != 0) return -1;\n        int avg = total / n;\n        int result = 0, runningSum = 0;\n        for (int m : machines) {\n            runningSum += m - avg;\n            result = Math.max(result, Math.max(Math.abs(runningSum), m - avg));\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nFirst check whether the total number of dresses is divisible by the number of machines. Then scan from left to right. For each machine, add `machines[i] - target` to a running balance that represents the net number of dresses that must cross the boundary after this machine.\n\n## Key Insight\n\nThe answer must be at least the largest absolute boundary flow, because only one dress can cross a fixed boundary per move. It must also be at least the largest positive local surplus, because one machine can send out only one dress per move. The maximum of these two lower bounds is also achievable.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int findMinMoves(int[] machines) {\n        long total = 0;\n        for (int dresses : machines) total += dresses;\n        int n = machines.length;\n        if (total % n != 0) return -1;\n        int target = (int) (total / n);\n\n        int answer = 0;\n        int balance = 0;\n        for (int dresses : machines) {\n            int delta = dresses - target;\n            balance += delta;\n            answer = Math.max(answer, Math.max(Math.abs(balance), delta));\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Prefix Sum Approach",
+      "name": "Prefix Boundary Flow",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCompare the actual prefix dress count with the prefix count that would exist if every machine already had `target` dresses. Their difference is the signed number of dresses that must cross the boundary after the current machine.\n\n## Key Insight\n\nEvery boundary is an independent bottleneck: if a prefix is short by `k`, then `k` dresses must enter from the right across that boundary; if it has `k` extra, then `k` dresses must leave to the right. The answer is the maximum boundary bottleneck and machine surplus bottleneck.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int findMinMoves(int[] machines) {\n        int n = machines.length;\n        long total = 0;\n        for (int dresses : machines) total += dresses;\n        if (total % n != 0) return -1;\n        int target = (int) (total / n);\n\n        long prefix = 0;\n        long expected = 0;\n        int answer = 0;\n        for (int i = 0; i < n; i++) {\n            prefix += machines[i];\n            expected += target;\n            int boundaryFlow = (int) Math.abs(prefix - expected);\n            int localExcess = machines[i] - target;\n            answer = Math.max(answer, Math.max(boundaryFlow, localExcess));\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Left and Right Demand Split",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFor each machine, compute how many dresses the left side still needs and how many the right side still needs. If both sides need dresses, the current machine must send to both sides over different moves; otherwise the larger absolute cross-side flow dominates.\n\n## Key Insight\n\nThis view explains the case where one overfull machine must serve both directions. A receiver can accept dresses from both neighbors in one move, but a sender still emits at most one dress per move, so two-sided outgoing demand adds at that machine.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int findMinMoves(int[] machines) {\n        int n = machines.length;\n        long total = 0;\n        for (int dresses : machines) total += dresses;\n        if (total % n != 0) return -1;\n        long target = total / n;\n\n        long leftSum = 0;\n        long answer = 0;\n        for (int i = 0; i < n; i++) {\n            long rightSum = total - leftSum - machines[i];\n            long leftNeed = (long) i * target - leftSum;\n            long rightNeed = (long) (n - i - 1) * target - rightSum;\n            if (leftNeed > 0 && rightNeed > 0) {\n                answer = Math.max(answer, leftNeed + rightNeed);\n            } else {\n                answer = Math.max(answer, Math.max(Math.abs(leftNeed), Math.abs(rightNeed)));\n            }\n            leftSum += machines[i];\n        }\n        return (int) answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Explicit Boundary Transfer Array",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Compute prefix sums and expected prefix sums (if each machine had avg dresses). The max flow across any boundary is the max absolute difference of actual vs expected prefix sums. Also consider individual machine excess. Answer is the max of these.",
-      "code": "class Solution {\n    public int findMinMoves(int[] machines) {\n        int n = machines.length;\n        int total = 0;\n        for (int m : machines) total += m;\n        if (total % n != 0) return -1;\n        int avg = total / n;\n        int[] prefix = new int[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + machines[i];\n        }\n        int result = 0;\n        for (int i = 0; i < n; i++) {\n            int expected = (int)((long) avg * (i + 1));\n            int balance = prefix[i + 1] - expected;\n            result = Math.max(result, Math.abs(balance));\n            result = Math.max(result, machines[i] - avg);\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\n\nBuild an array where `transfer[i]` is the signed number of dresses that must cross from the left side of boundary `i` to the right side. After computing all boundary transfers, combine their maximum absolute value with the largest local surplus.\n\n## Key Insight\n\nThe transfer array turns the greedy invariant into a concrete flow model. Large values in `transfer` are bottlenecks across edges, while large positive `machines[i] - target` values are bottlenecks at senders.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int findMinMoves(int[] machines) {\n        int n = machines.length;\n        long total = 0;\n        for (int dresses : machines) total += dresses;\n        if (total % n != 0) return -1;\n        int target = (int) (total / n);\n\n        int[] transfer = new int[Math.max(0, n - 1)];\n        int prefixBalance = 0;\n        for (int i = 0; i < n - 1; i++) {\n            prefixBalance += machines[i] - target;\n            transfer[i] = prefixBalance;\n        }\n\n        int answer = 0;\n        for (int flow : transfer) answer = Math.max(answer, Math.abs(flow));\n        for (int dresses : machines) answer = Math.max(answer, dresses - target);\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Binary Search on Feasible Move Count",
+      "timeComplexity": "O(n log S)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse the same bottlenecks as a monotonic feasibility test. A candidate move count `moves` is feasible only if no sender has surplus greater than `moves` and no boundary needs more than `moves` dresses to cross it. Binary search the smallest feasible value.\n\n## Key Insight\n\nAlthough the optimal answer can be read directly, the feasibility formulation is useful for teaching why the two lower bounds are sufficient. Once a move count covers every sender and every boundary, the schedule can be arranged without a stronger bottleneck.\n\n## Complexity Analysis\n- Time Complexity: O(n log S), where `S` is the total number of dresses\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int findMinMoves(int[] machines) {\n        long total = 0;\n        for (int dresses : machines) total += dresses;\n        int n = machines.length;\n        if (total % n != 0) return -1;\n        int target = (int) (total / n);\n\n        int low = 0;\n        int high = (int) total;\n        while (low < high) {\n            int mid = low + (high - low) / 2;\n            if (canFinish(machines, target, mid)) {\n                high = mid;\n            } else {\n                low = mid + 1;\n            }\n        }\n        return low;\n    }\n\n    private boolean canFinish(int[] machines, int target, int moves) {\n        int balance = 0;\n        for (int dresses : machines) {\n            int delta = dresses - target;\n            balance += delta;\n            if (delta > moves) return false;\n            if (Math.abs(balance) > moves) return false;\n        }\n        return true;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "machines = [1,0,5]", "output": "3" },
-    { "input": "machines = [0,3,0]", "output": "2" },
-    { "input": "machines = [0,2,0]", "output": "-1" }
+    {
+      "input": "machines = [1,0,5]",
+      "output": "3",
+      "description": "canonical sample with one overfull right machine"
+    },
+    {
+      "input": "machines = [0,3,0]",
+      "output": "2",
+      "description": "single middle sender must serve both sides"
+    },
+    {
+      "input": "machines = [0,2,0]",
+      "output": "-1",
+      "description": "total cannot be divided evenly"
+    },
+    {
+      "input": "machines = [4,0,0,4]",
+      "output": "2",
+      "description": "two edge senders fill the center simultaneously"
+    },
+    {
+      "input": "machines = [2,2,2]",
+      "output": "0",
+      "description": "already balanced"
+    },
+    {
+      "input": "machines = [10,0,0,0]",
+      "output": "-1",
+      "description": "large total but impossible divisibility"
+    },
+    {
+      "input": "machines = [0]",
+      "output": "0",
+      "description": "single empty machine is balanced"
+    },
+    {
+      "input": "machines = [100000]",
+      "output": "0",
+      "description": "single maximum-value machine is balanced"
+    },
+    {
+      "input": "machines = [0,0,11,5]",
+      "output": "8",
+      "description": "large boundary deficit dominates local surplus"
+    },
+    {
+      "input": "machines = [9,1,8,8,9]",
+      "output": "4",
+      "description": "deep middle deficit can receive from both sides"
+    },
+    {
+      "input": "machines = [0,0,0,12]",
+      "output": "9",
+      "description": "all excess starts at the far right"
+    },
+    {
+      "input": "machines = [12,0,0,0]",
+      "output": "9",
+      "description": "all excess starts at the far left"
+    },
+    {
+      "input": "machines = [0,4,0,4]",
+      "output": "2",
+      "description": "alternating receivers and senders"
+    },
+    {
+      "input": "machines = [2,0,2,0,2,0]",
+      "output": "1",
+      "description": "many independent one-step transfers happen in parallel"
+    },
+    {
+      "input": "machines = [1,0,0,8,1]",
+      "output": "6",
+      "description": "one central sender has to send to both sides"
+    }
   ]
 }

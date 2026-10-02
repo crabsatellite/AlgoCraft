@@ -1,9 +1,9 @@
 {
   "id": "364",
   "title": "Data Stream as Disjoint Intervals",
-  "description": "# Data Stream as Disjoint Intervals\n\nGiven a data stream input of non-negative integers `a1, a2, ..., an`, summarize the numbers seen so far as a list of disjoint intervals.\n\nImplement the `SummaryRanges` class:\n\n*   `SummaryRanges()` Initializes the object with an empty stream.\n*   `void addNum(int value)` Adds the integer `value` to the stream.\n*   `int[][] getIntervals()` Returns a summary of the integers in the stream currently as a list of disjoint intervals `[starti, endi]`. The answer should be sorted by `starti`.\n\n## Example 1:\n\n**Input**\n[\"SummaryRanges\", \"addNum\", \"getIntervals\", \"addNum\", \"getIntervals\", \"addNum\", \"getIntervals\", \"addNum\", \"getIntervals\", \"addNum\", \"getIntervals\"]\n[[], [1], [], [3], [], [7], [], [2], [], [6], []]\n**Output**\n[null, null, [[1, 1]], null, [[1, 1], [3, 3]], null, [[1, 1], [3, 3], [7, 7]], null, [[1, 3], [7, 7]], null, [[1, 3], [6, 7]]]\n\n**Explanation**\nSummaryRanges summaryRanges = new SummaryRanges();\nsummaryRanges.addNum(1);      // arr = [1]\nsummaryRanges.getIntervals(); // return [[1, 1]]\nsummaryRanges.addNum(3);      // arr = [1, 3]\nsummaryRanges.getIntervals(); // return [[1, 1], [3, 3]]\nsummaryRanges.addNum(7);      // arr = [1, 3, 7]\nsummaryRanges.getIntervals(); // return [[1, 1], [3, 3], [7, 7]]\nsummaryRanges.addNum(2);      // arr = [1, 2, 3, 7]\nsummaryRanges.getIntervals(); // return [[1, 3], [7, 7]]\nsummaryRanges.addNum(6);      // arr = [1, 2, 3, 6, 7]\nsummaryRanges.getIntervals(); // return [[1, 3], [6, 7]]\n\n## Constraints:\n\n*   `0 <= value <= 10^4`\n*   At most `3 * 10^4` calls will be made to `addNum` and `getIntervals`.",
+  "description": "# Data Stream as Disjoint Intervals\n\nGiven a data stream of non-negative integers, summarize the values seen so far as a sorted list of disjoint closed intervals.\n\nImplement the `SummaryRanges` class:\n\n*   `SummaryRanges()` initializes an empty stream.\n*   `void addNum(int value)` adds `value` to the stream. Adding the same value more than once must not change the summary.\n*   `int[][] getIntervals()` returns the current summary as disjoint intervals `[starti, endi]`, sorted by `starti`.\n\nThe stream contains individual values, not counts. If values `1`, `2`, and `3` have appeared, they must be returned as one interval `[1, 3]`. If a newly inserted value connects two existing intervals, the two intervals and the new value must merge into one interval.\n\nIn operation examples, the first array lists operations and the second lists their argument lists, paired by index and executed left to right. The first operation constructs the object; later operations use that same object. Outputs align by index too: constructors and void methods produce `null`; an empty argument list `[]` means no arguments.\n\n## Example 1:\n\n**Input**\n[\"SummaryRanges\", \"addNum\", \"getIntervals\", \"addNum\", \"getIntervals\", \"addNum\", \"getIntervals\", \"addNum\", \"getIntervals\", \"addNum\", \"getIntervals\"]\n[[], [1], [], [3], [], [7], [], [2], [], [6], []]\n**Output**\n[null, null, [[1, 1]], null, [[1, 1], [3, 3]], null, [[1, 1], [3, 3], [7, 7]], null, [[1, 3], [7, 7]], null, [[1, 3], [6, 7]]]\n\n**Explanation**\nAfter adding `1`, `3`, and `7`, the stream has three separate intervals. Adding `2` bridges `[1, 1]` and `[3, 3]` into `[1, 3]`. Adding `6` extends the interval `[7, 7]` to `[6, 7]`.\n\n## Constraints:\n\n*   `0 <= value <= 10^4`\n*   At most `3 * 10^4` calls will be made to `addNum` and `getIntervals`.",
   "difficulty": "HARD",
-  "initialCode": "class SummaryRanges {\n\n    public SummaryRanges() {\n        \n    }\n    \n    public void addNum(int value) {\n        \n    }\n    \n    public int[][] getIntervals() {\n        \n    }\n}\n\n/**\n * Your SummaryRanges object will be instantiated and called as such:\n * SummaryRanges obj = new SummaryRanges();\n * obj.addNum(value);\n * int[][] param_2 = obj.getIntervals();\n */",
+  "initialCode": "class SummaryRanges {\n    public SummaryRanges() {\n    }\n\n    public void addNum(int value) {\n    }\n\n    public int[][] getIntervals() {\n        return new int[0][0];\n    }\n}",
   "tags": [
     "Binary Search",
     "Design",
@@ -17,33 +17,106 @@
   ],
   "solutions": [
     {
-      "name": "TreeMap of Intervals",
-      "timeComplexity": "O(log n) per addNum, O(n) per getIntervals",
-      "spaceComplexity": "O(n)",
-      "description": "Use a TreeMap keyed by interval start. On addNum, find the floor and ceiling entries. Merge with adjacent intervals if they touch or overlap. getIntervals returns all values.",
-      "code": "class SummaryRanges {\n    private java.util.TreeMap<Integer, int[]> tree;\n    public SummaryRanges() { tree = new java.util.TreeMap<>(); }\n    public void addNum(int value) {\n        if (tree.containsKey(value)) return;\n        Integer lo = tree.lowerKey(value), hi = tree.higherKey(value);\n        if (lo != null && tree.get(lo)[1] >= value - 1 && hi != null && hi == value + 1) {\n            tree.get(lo)[1] = tree.get(hi)[1];\n            tree.remove(hi);\n        } else if (lo != null && tree.get(lo)[1] >= value - 1) {\n            tree.get(lo)[1] = Math.max(tree.get(lo)[1], value);\n        } else if (hi != null && hi == value + 1) {\n            tree.put(value, new int[]{value, tree.get(hi)[1]});\n            tree.remove(hi);\n        } else {\n            tree.put(value, new int[]{value, value});\n        }\n    }\n    public int[][] getIntervals() {\n        return tree.values().toArray(new int[0][]);\n    }\n}",
+      "name": "TreeMap Interval Merge",
+      "timeComplexity": "O(log k) per addNum, O(k) per getIntervals",
+      "spaceComplexity": "O(k)",
+      "description": "## Approach\n\nStore each current interval in a `TreeMap` keyed by its start. To add a value, find the interval with the greatest start not larger than the value and the first interval starting after the value. The value is either already covered, extends the left interval, extends the right interval, bridges both, or creates a new interval.\n\n## Key Insight\n\nOnly the immediate left and right intervals can be affected by a single inserted value. All other intervals are separated by at least one missing value and remain unchanged.\n\n## Complexity Analysis\n\n- Time Complexity: O(log k) for `addNum`, where `k` is the number of current intervals. `getIntervals` is O(k).\n- Space Complexity: O(k), because only interval endpoints are stored.",
+      "code": "import java.util.*;\n\nclass SummaryRanges {\n    private final TreeMap<Integer, int[]> intervals = new TreeMap<>();\n\n    public SummaryRanges() {\n    }\n\n    public void addNum(int value) {\n        Map.Entry<Integer, int[]> left = intervals.floorEntry(value);\n        if (left != null && left.getValue()[1] >= value) return;\n        Map.Entry<Integer, int[]> right = intervals.ceilingEntry(value);\n        boolean touchesLeft = left != null && left.getValue()[1] + 1 == value;\n        boolean touchesRight = right != null && right.getKey() == value + 1;\n        if (touchesLeft && touchesRight) {\n            left.getValue()[1] = right.getValue()[1];\n            intervals.remove(right.getKey());\n        } else if (touchesLeft) {\n            left.getValue()[1] = value;\n        } else if (touchesRight) {\n            intervals.put(value, new int[]{value, right.getValue()[1]});\n            intervals.remove(right.getKey());\n        } else {\n            intervals.put(value, new int[]{value, value});\n        }\n    }\n\n    public int[][] getIntervals() {\n        int[][] result = new int[intervals.size()][2];\n        int index = 0;\n        for (int[] interval : intervals.values()) {\n            result[index++] = new int[]{interval[0], interval[1]};\n        }\n        return result;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Boolean Array with Merge",
-      "timeComplexity": "O(n) per addNum amortized, O(n) per getIntervals",
+      "name": "Bounded BitSet Scan",
+      "timeComplexity": "O(1) per addNum, O(U) worst-case per getIntervals",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\n\nUse the bound `0 <= value <= 10^4`. Mark each inserted value in a `BitSet`. `getIntervals` jumps from one set bit to the next and uses the next clear bit to close each run.\n\n## Key Insight\n\nThe value domain is small and fixed, so this solution trades interval-level updates for very simple writes and predictable scans. It is a useful baseline for bounded-domain design questions.\n\n## Complexity Analysis\n\n- Time Complexity: O(1) for `addNum`; `getIntervals` is O(U) in the worst case, where `U = 10001`.\n- Space Complexity: O(U), for the bit set.",
+      "code": "import java.util.*;\n\nclass SummaryRanges {\n    private static final int LIMIT = 10000;\n    private final BitSet seen = new BitSet(LIMIT + 1);\n\n    public SummaryRanges() {\n    }\n\n    public void addNum(int value) {\n        seen.set(value);\n    }\n\n    public int[][] getIntervals() {\n        List<int[]> answer = new ArrayList<>();\n        for (int start = seen.nextSetBit(0); start >= 0; ) {\n            int end = Math.min(seen.nextClearBit(start) - 1, LIMIT);\n            answer.add(new int[]{start, end});\n            if (end == LIMIT) break;\n            start = seen.nextSetBit(end + 1);\n        }\n        return answer.toArray(new int[answer.size()][]);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "TreeSet Value Scan",
+      "timeComplexity": "O(log n) per addNum, O(n) per getIntervals",
       "spaceComplexity": "O(n)",
-      "description": "Use a boolean array to mark which values have been added (since values are bounded 0-10000). For getIntervals, scan the array to find contiguous runs of true values and build interval arrays.",
-      "code": "class SummaryRanges {\n    private boolean[] seen;\n    private int min;\n    private int max;\n    public SummaryRanges() {\n        seen = new boolean[10002];\n        min = Integer.MAX_VALUE;\n        max = Integer.MIN_VALUE;\n    }\n    public void addNum(int value) {\n        seen[value] = true;\n        if (value < min) min = value;\n        if (value > max) max = value;\n    }\n    public int[][] getIntervals() {\n        java.util.List<int[]> intervals = new java.util.ArrayList<>();\n        if (min > max) return new int[0][];\n        int i = min;\n        while (i <= max) {\n            if (seen[i]) {\n                int start = i;\n                while (i <= max && seen[i]) i++;\n                intervals.add(new int[]{start, i - 1});\n            } else {\n                i++;\n            }\n        }\n        return intervals.toArray(new int[0][]);\n    }\n}",
+      "description": "## Approach\n\nStore every distinct inserted value in a `TreeSet`. Duplicates disappear automatically. To answer a query, scan values in sorted order and group consecutive runs into intervals.\n\n## Key Insight\n\nThis route separates update correctness from interval merging. The set maintains sorted unique values, and interval construction becomes a straightforward scan over consecutive integers.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n) for `addNum`, and O(n) for `getIntervals`, where `n` is the number of distinct inserted values.\n- Space Complexity: O(n), because every distinct value is stored.",
+      "code": "import java.util.*;\n\nclass SummaryRanges {\n    private final TreeSet<Integer> values = new TreeSet<>();\n\n    public SummaryRanges() {\n    }\n\n    public void addNum(int value) {\n        values.add(value);\n    }\n\n    public int[][] getIntervals() {\n        List<int[]> intervals = new ArrayList<>();\n        Integer start = null;\n        Integer previous = null;\n        for (int value : values) {\n            if (start == null) {\n                start = value;\n                previous = value;\n            } else if (value == previous + 1) {\n                previous = value;\n            } else {\n                intervals.add(new int[]{start, previous});\n                start = value;\n                previous = value;\n            }\n        }\n        if (start != null) intervals.add(new int[]{start, previous});\n        return intervals.toArray(new int[intervals.size()][]);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Boundary Maps with Ordered Starts",
+      "timeComplexity": "O(log k) per addNum, O(k) per getIntervals",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nMaintain three structures: a set of values already seen, a map from interval start to end, and a map from interval end to start. A sorted set of starts gives ordered output. When adding `value`, check whether an interval ends at `value - 1` and whether another starts at `value + 1`, then merge the matching boundaries.\n\n## Key Insight\n\nThe only information needed for merging is at interval boundaries. This implementation avoids floor and ceiling interval searches by asking direct boundary questions: is there a left neighbor interval, and is there a right neighbor interval?\n\n## Complexity Analysis\n\n- Time Complexity: O(log k) for `addNum` because starts are inserted and removed from a sorted set; `getIntervals` is O(k).\n- Space Complexity: O(n), for seen values and interval boundary maps.",
+      "code": "import java.util.*;\n\nclass SummaryRanges {\n    private final Set<Integer> seen = new HashSet<>();\n    private final Map<Integer, Integer> startToEnd = new HashMap<>();\n    private final Map<Integer, Integer> endToStart = new HashMap<>();\n    private final TreeSet<Integer> starts = new TreeSet<>();\n\n    public SummaryRanges() {\n    }\n\n    public void addNum(int value) {\n        if (!seen.add(value)) return;\n        int start = value;\n        int end = value;\n        Integer leftStart = endToStart.remove(value - 1);\n        if (leftStart != null) {\n            start = leftStart;\n            startToEnd.remove(leftStart);\n            starts.remove(leftStart);\n        }\n        Integer rightEnd = startToEnd.remove(value + 1);\n        if (rightEnd != null) {\n            end = rightEnd;\n            endToStart.remove(rightEnd);\n            starts.remove(value + 1);\n        }\n        startToEnd.put(start, end);\n        endToStart.put(end, start);\n        starts.add(start);\n    }\n\n    public int[][] getIntervals() {\n        int[][] result = new int[starts.size()][2];\n        int index = 0;\n        for (int start : starts) {\n            result[index++] = new int[]{start, startToEnd.get(start)};\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Disjoint Set Components",
+      "timeComplexity": "O(alpha(U) + log k) per addNum, O(k) per getIntervals",
+      "spaceComplexity": "O(U)",
+      "description": "## Approach\n\nTreat every value as a node in a bounded disjoint-set structure. When a new value appears, activate it and union it with active neighbors `value - 1` and `value + 1`. A `TreeMap` from component start to root keeps the intervals sorted.\n\n## Key Insight\n\nIntervals are connected components in the graph where adjacent integers are connected. Union-find makes the merging operation explicit and is a useful way to reason about the same invariant from a graph perspective.\n\n## Complexity Analysis\n\n- Time Complexity: almost O(1) amortized for union-find work plus O(log k) to update the sorted component map. `getIntervals` is O(k).\n- Space Complexity: O(U), where `U = 10001`, for the bounded arrays.",
+      "code": "import java.util.*;\n\nclass SummaryRanges {\n    private static final int LIMIT = 10000;\n    private final boolean[] present = new boolean[LIMIT + 1];\n    private final int[] parent = new int[LIMIT + 1];\n    private final int[] start = new int[LIMIT + 1];\n    private final int[] end = new int[LIMIT + 1];\n    private final TreeMap<Integer, Integer> componentByStart = new TreeMap<>();\n\n    public SummaryRanges() {\n        for (int i = 0; i <= LIMIT; i++) parent[i] = i;\n    }\n\n    public void addNum(int value) {\n        if (present[value]) return;\n        present[value] = true;\n        parent[value] = value;\n        start[value] = value;\n        end[value] = value;\n        componentByStart.put(value, value);\n        if (value > 0 && present[value - 1]) union(value, value - 1);\n        if (value < LIMIT && present[value + 1]) union(value, value + 1);\n    }\n\n    public int[][] getIntervals() {\n        int[][] result = new int[componentByStart.size()][2];\n        int index = 0;\n        for (int root : componentByStart.values()) {\n            root = find(root);\n            result[index++] = new int[]{start[root], end[root]};\n        }\n        return result;\n    }\n\n    private void union(int a, int b) {\n        int rootA = find(a);\n        int rootB = find(b);\n        if (rootA == rootB) return;\n        componentByStart.remove(start[rootA]);\n        componentByStart.remove(start[rootB]);\n        parent[rootB] = rootA;\n        start[rootA] = Math.min(start[rootA], start[rootB]);\n        end[rootA] = Math.max(end[rootA], end[rootB]);\n        componentByStart.put(start[rootA], rootA);\n    }\n\n    private int find(int value) {\n        if (parent[value] != value) parent[value] = find(parent[value]);\n        return parent[value];\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
-      "input": "[\"SummaryRanges\", \"addNum\", \"getIntervals\", \"addNum\", \"getIntervals\", \"addNum\", \"getIntervals\", \"addNum\", \"getIntervals\", \"addNum\", \"getIntervals\"]\n[[], [1], [], [3], [], [7], [], [2], [], [6], []]",
-      "output": "[null, null, [[1, 1]], null, [[1, 1], [3, 3]], null, [[1, 1], [3, 3], [7, 7]], null, [[1, 3], [7, 7]], null, [[1, 3], [6, 7]]]"
-    }
-  ],
-  "diagrams": [
+      "input": "[\"SummaryRanges\",\"addNum\",\"getIntervals\",\"addNum\",\"getIntervals\",\"addNum\",\"getIntervals\",\"addNum\",\"getIntervals\",\"addNum\",\"getIntervals\"]\n[[],[1],[],[3],[],[7],[],[2],[],[6],[]]",
+      "output": "[null,null,[[1,1]],null,[[1,1],[3,3]],null,[[1,1],[3,3],[7,7]],null,[[1,3],[7,7]],null,[[1,3],[6,7]]]",
+      "description": "canonical stream with extension and bridge merges"
+    },
     {
-      "id": "timeline",
-      "file": "p364_timeline.png",
-      "caption": "Data Stream: Intervals evolve as numbers added"
+      "input": "[\"SummaryRanges\",\"getIntervals\",\"addNum\",\"getIntervals\"]\n[[],[],[0],[]]",
+      "output": "[null,[],null,[[0,0]]]",
+      "description": "initial query is empty and value zero is accepted"
+    },
+    {
+      "input": "[\"SummaryRanges\",\"addNum\",\"addNum\",\"getIntervals\"]\n[[],[1],[1],[]]",
+      "output": "[null,null,null,[[1,1]]]",
+      "description": "duplicate values do not create duplicate intervals"
+    },
+    {
+      "input": "[\"SummaryRanges\",\"addNum\",\"addNum\",\"addNum\",\"getIntervals\"]\n[[],[1],[3],[2],[]]",
+      "output": "[null,null,null,null,[[1,3]]]",
+      "description": "new value bridges left and right intervals"
+    },
+    {
+      "input": "[\"SummaryRanges\",\"addNum\",\"addNum\",\"addNum\",\"addNum\",\"addNum\",\"getIntervals\"]\n[[],[10],[1],[2],[4],[3],[]]",
+      "output": "[null,null,null,null,null,null,[[1,4],[10,10]]]",
+      "description": "unordered insertions still return sorted intervals"
+    },
+    {
+      "input": "[\"SummaryRanges\",\"addNum\",\"addNum\",\"getIntervals\",\"addNum\",\"getIntervals\",\"addNum\",\"getIntervals\"]\n[[],[10000],[0],[],[9999],[],[1],[]]",
+      "output": "[null,null,null,[[0,0],[10000,10000]],null,[[0,0],[9999,10000]],null,[[0,1],[9999,10000]]]",
+      "description": "both domain endpoints are handled and can be extended"
+    },
+    {
+      "input": "[\"SummaryRanges\",\"addNum\",\"addNum\",\"addNum\",\"addNum\",\"getIntervals\",\"addNum\",\"getIntervals\"]\n[[],[5],[6],[7],[6],[],[5],[]]",
+      "output": "[null,null,null,null,null,[[5,7]],null,[[5,7]]]",
+      "description": "duplicates inside an existing interval do not mutate state"
+    },
+    {
+      "input": "[\"SummaryRanges\",\"addNum\",\"addNum\",\"addNum\",\"getIntervals\",\"addNum\",\"getIntervals\",\"addNum\",\"getIntervals\"]\n[[],[1],[4],[7],[],[2],[],[3],[]]",
+      "output": "[null,null,null,null,[[1,1],[4,4],[7,7]],null,[[1,2],[4,4],[7,7]],null,[[1,4],[7,7]]]",
+      "description": "left extension followed by bridge merge"
+    },
+    {
+      "input": "[\"SummaryRanges\",\"addNum\",\"addNum\",\"getIntervals\",\"addNum\",\"getIntervals\",\"addNum\",\"getIntervals\"]\n[[],[50],[52],[],[51],[],[49],[]]",
+      "output": "[null,null,null,[[50,50],[52,52]],null,[[50,52]],null,[[49,52]]]",
+      "description": "single inserted value bridges two one-point intervals"
+    },
+    {
+      "input": "[\"SummaryRanges\",\"addNum\",\"addNum\",\"addNum\",\"addNum\",\"getIntervals\",\"addNum\",\"addNum\",\"getIntervals\"]\n[[],[2],[4],[6],[8],[],[5],[7],[]]",
+      "output": "[null,null,null,null,null,[[2,2],[4,4],[6,6],[8,8]],null,null,[[2,2],[4,8]]]",
+      "description": "two additions progressively merge alternating gaps"
+    },
+    {
+      "input": "[\"SummaryRanges\",\"addNum\",\"addNum\",\"getIntervals\",\"getIntervals\",\"addNum\",\"getIntervals\"]\n[[],[3],[1],[],[],[2],[]]",
+      "output": "[null,null,null,[[1,1],[3,3]],[[1,1],[3,3]],null,[[1,3]]]",
+      "description": "repeated queries do not change state"
+    },
+    {
+      "input": "[\"SummaryRanges\",\"addNum\",\"addNum\",\"addNum\",\"addNum\",\"addNum\",\"getIntervals\"]\n[[],[0],[2],[4],[10000],[9999],[]]",
+      "output": "[null,null,null,null,null,null,[[0,0],[2,2],[4,4],[9999,10000]]]",
+      "description": "several disjoint intervals remain sorted after high-boundary merge"
     }
   ]
 }

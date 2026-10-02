@@ -1,0 +1,22 @@
+{
+  "title": "解密消息",
+  "description": "# 解密消息\n\n给定两个字符串 `key` 和 `message`。\n\n`key` 描述了一张替换密码表：\n\n1. 忽略 `key` 中的空格。\n2. 从左到右读取剩余字母。\n3. 第一次出现的不同字母映射到明文字母 `a`，第二个第一次出现的不同字母映射到 `b`，依此类推，直到 26 个小写英文字母都被分配。\n4. `key` 中重复出现的字母不会产生新的映射。\n5. `message` 中的空格保持为空格。\n\n返回 `message` 解密后的结果。\n\n例如，如果 `key` 中前几个第一次出现的不同字母是 `h, a, p, y, b, o`，那么部分映射为 `h -> a`、`a -> b`、`p -> c`、`y -> d`、`b -> e`、`o -> f`。\n\n## 示例 1\n\n**输入：** key = \"the quick brown fox jumps over the lazy dog\", message = \"vkbs bs t suepuv\"\n**输出：** \"this is a secret\"\n**解释：** 按照 key 中各字母第一次出现的顺序建立替换表，再用该表解码 message 中的每个非空格字符。\n\n## 示例 2\n\n**输入：** key = \"eljuxhpwnyrdgtqkviszcfmabo\", message = \"zwx hnfx lqantp mnoeius ycgk vcnjrdb\"\n**输出：** \"the five boxing wizards jump quickly\"\n**解释：** 这个 key 没有空格，但仍然由字母第一次出现的顺序定义替换表。\n\n## 约束\n\n* `26 <= key.length <= 2000`\n* `key` 只包含小写英文字母和空格。\n* `key` 至少包含每个小写英文字母一次。\n* `1 <= message.length <= 2000`\n* `message` 只包含小写英文字母和空格。",
+  "solutions": [
+    {
+      "name": "替换表数组",
+      "description": "## 思路\n\n扫描 `key`，建立长度为 26 的数组，其中 `map[密文字母 - 'a']` 存放对应的明文字母。跳过空格，并且只在某个 key 字母第一次出现时赋值。\n\n## 关键点\n\nkey 的第一次出现顺序就是一套密文字母表。把它转成直接查表后，message 中每个非空格字符都能 O(1) 解码，空格原样复制。\n\n## 复杂度分析\n- 时间复杂度：O(k + m)\n- 空间复杂度：O(1)"
+    },
+    {
+      "name": "HashMap 映射",
+      "description": "## 思路\n\n使用 `HashMap<Character, Character>` 保存密文字母到明文字母的映射。遇到一个尚未出现过的非空格 key 字符，就把它映射到下一个明文字母。\n\n## 关键点\n\n这种写法直接对应替换密码的定义：每个第一次出现的 key 字符只获得一次映射，后续重复字符通过 `containsKey` 被忽略。\n\n## 复杂度分析\n- 时间复杂度：O(k + m)\n- 空间复杂度：O(1)"
+    },
+    {
+      "name": "首次出现字母顺序",
+      "description": "## 思路\n\n把 `key` 中第一次出现的非空格字母收集成一个长度为 26 的字符串。解码 message 中的字母时，查它在该字符串中的位置，这个位置就是明文字母相对 `a` 的偏移。\n\n## 关键点\n\n这个方法保留密文字母表本身，而不是直接建立反向表。由于英文字母只有 26 个，`indexOf` 查找在本题中仍然是常数上界。\n\n## 复杂度分析\n- 时间复杂度：O(k + 26m)\n- 空间复杂度：O(1)"
+    },
+    {
+      "name": "包含空格的 ASCII 查表",
+      "description": "## 思路\n\n建立一个小型 ASCII 查表，并先让空格映射到自身。随后填入 key 中第一次出现字母的映射，解码时所有 message 字符都通过同一张表转换。\n\n## 关键点\n\n把空格也当成普通表项后，第二次扫描 message 时不需要额外分支。这适合用来讲解如何用哨兵值或默认表项简化后续逻辑。\n\n## 复杂度分析\n- 时间复杂度：O(k + m)\n- 空间复杂度：O(1)"
+    }
+  ]
+}

@@ -1,36 +1,130 @@
 {
   "id": "226",
   "title": "Number of Segments in a String",
-  "description": "# Number of Segments in a String\n\nGiven a string `s`, return *the number of segments in the string*.\n\nA **segment** is defined to be a contiguous sequence of non-space characters.\n\n## Example 1:\n\n**Input:** s = \"Hello, my name is John\"\n**Output:** 5\n**Explanation:** The five segments are [\"Hello,\", \"my\", \"name\", \"is\", \"John\"]\n\n## Example 2:\n\n**Input:** s = \"Hello\"\n**Output:** 1\n\n## Constraints:\n\n*   `0 <= s.length <= 300`\n*   `s` consists of lowercase and uppercase English letters, digits, or one of the following characters `!@#$%^&*()_+-=',.:`.\n*   The only space character in `s` is `' '`.",
+  "description": "# Number of Segments in a String\n\nGiven a string `s`, return the number of segments in `s`.\n\nA segment is a group of consecutive non-space characters separated by ordinary spaces `' '` or string boundaries. Letters, digits, and punctuation without intervening spaces belong to the same segment.\n\nDo not count empty runs created by leading spaces, trailing spaces, or multiple consecutive spaces.\n\n## Example 1:\n\n**Input:** s = \"Hello, my name is John\"\n**Output:** 5\n**Explanation:** The five segments are `\"Hello,\"`, `\"my\"`, `\"name\"`, `\"is\"`, and `\"John\"`.\n\n## Example 2:\n\n**Input:** s = \"Hello\"\n**Output:** 1\n**Explanation:** A single non-space run is one segment.\n\n## Example 3:\n\n**Input:** s = \"  leading and trailing  \"\n**Output:** 3\n**Explanation:** Leading and trailing spaces do not create extra segments.\n\n## Constraints:\n\n* `0 <= s.length <= 300`\n* `s` consists of lowercase and uppercase English letters, digits, spaces, or one of the following punctuation characters: `!@#$%^&*()_+-=',.:`.\n* The only whitespace character in `s` is the ordinary space character `' '`.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int countSegments(String s) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["String"],
+  "tags": [
+    "String",
+    "Two Pointers",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "s = \"Hello, my name is John\"", "output": "5" },
-    { "input": "s = \"Hello\"", "output": "1" }
+    {
+      "input": "s = \"Hello, my name is John\"",
+      "output": "5"
+    },
+    {
+      "input": "s = \"Hello\"",
+      "output": "1"
+    },
+    {
+      "input": "s = \"  leading and trailing  \"",
+      "output": "3"
+    }
   ],
   "solutions": [
     {
-      "name": "Count Segment Starts",
+      "name": "Segment-Start Boundary Count",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Count transitions from space (or start of string) to non-space character. Each such transition marks the beginning of a new segment.",
-      "code": "class Solution {\n    public int countSegments(String s) {\n        int count = 0;\n        for (int i = 0; i < s.length(); i++) {\n            if (s.charAt(i) != ' ' && (i == 0 || s.charAt(i - 1) == ' ')) {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
+      "description": "## Approach\n\nScan from left to right and count every character that starts a segment. A character starts a segment when it is not a space and either it is at index `0` or the previous character is a space.\n\n## Key Insight\n\nThe definition of a segment is a maximal non-space run, so every segment has exactly one first character. Counting those first characters avoids building substrings and naturally ignores repeated spaces.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int countSegments(String s) {\n        int count = 0;\n        for (int i = 0; i < s.length(); i++) {\n            boolean currentIsSegmentChar = s.charAt(i) != ' ';\n            boolean previousIsSeparator = i == 0 || s.charAt(i - 1) == ' ';\n            if (currentIsSegmentChar && previousIsSeparator) {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Trim and Split",
+      "name": "Segment-End Boundary Count",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan the string and count the last character of each segment. A non-space character ends a segment when it is at the last index or the next character is a space.\n\n## Key Insight\n\nCounting segment ends is the dual view of counting starts. It is useful for teaching that a maximal run can be recognized from either boundary, as long as consecutive spaces are not counted as runs.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int countSegments(String s) {\n        int count = 0;\n        for (int i = 0; i < s.length(); i++) {\n            boolean currentIsSegmentChar = s.charAt(i) != ' ';\n            boolean nextIsSeparator = i == s.length() - 1 || s.charAt(i + 1) == ' ';\n            if (currentIsSegmentChar && nextIsSeparator) {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "In-Segment State Machine",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nMaintain a boolean `inside` that records whether the scan is currently inside a segment. Spaces move the state outside; a non-space character seen while outside starts a new segment.\n\n## Key Insight\n\nThe input is a stream of separators and segment characters. A new segment is exactly the transition from outside to inside, which makes leading, trailing, and repeated spaces explicit.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int countSegments(String s) {\n        int count = 0;\n        boolean inside = false;\n        for (int i = 0; i < s.length(); i++) {\n            if (s.charAt(i) == ' ') {\n                inside = false;\n            } else if (!inside) {\n                count++;\n                inside = true;\n            }\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two-Phase Skip Runs",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse one index as a manual tokenizer. First skip a run of spaces; if the scan has not reached the end, count one segment and then skip the following run of non-space characters.\n\n## Key Insight\n\nThis route mirrors how a parser consumes tokens: separators are discarded, then one whole token is consumed. Each character is advanced over at most once.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int countSegments(String s) {\n        int count = 0;\n        int i = 0;\n        while (i < s.length()) {\n            while (i < s.length() && s.charAt(i) == ' ') {\n                i++;\n            }\n            if (i == s.length()) {\n                break;\n            }\n            count++;\n            while (i < s.length() && s.charAt(i) != ' ') {\n                i++;\n            }\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Trim and Split Baseline",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Trim the string and split by one or more spaces. Handle the empty string edge case separately.",
-      "code": "class Solution {\n    public int countSegments(String s) {\n        s = s.trim();\n        if (s.length() == 0) return 0;\n        String[] parts = s.split(\"\\\\s+\");\n        return parts.length;\n    }\n}",
+      "description": "## Approach\n\nTrim spaces from both ends. If the remaining string is empty, return `0`; otherwise split on one or more spaces and return the number of produced tokens.\n\n## Key Insight\n\nLibrary splitting is concise and easy to compare against the hand-written scans, but it allocates substrings and an array, so it is a baseline rather than the preferred constant-space solution.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int countSegments(String s) {\n        String trimmed = s.trim();\n        if (trimmed.isEmpty()) {\n            return 0;\n        }\n        String[] parts = trimmed.split(\" +\");\n        return parts.length;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"Hello, my name is John\"", "output": "5" },
-    { "input": "s = \"Hello\"", "output": "1" },
-    { "input": "s = \"\"", "output": "0" },
-    { "input": "s = \"                \"", "output": "0" }
+    {
+      "input": "s = \"Hello, my name is John\"",
+      "output": "5",
+      "description": "The canonical example has five non-space runs."
+    },
+    {
+      "input": "s = \"Hello\"",
+      "output": "1",
+      "description": "A single word is one segment."
+    },
+    {
+      "input": "s = \"\"",
+      "output": "0",
+      "description": "The empty string has no segments."
+    },
+    {
+      "input": "s = \"                \"",
+      "output": "0",
+      "description": "Spaces alone do not create segments."
+    },
+    {
+      "input": "s = \"a  b   c\"",
+      "output": "3",
+      "description": "Multiple spaces between words still separate only three segments."
+    },
+    {
+      "input": "s = \"  leading and trailing  \"",
+      "output": "3",
+      "description": "Leading and trailing spaces are ignored."
+    },
+    {
+      "input": "s = \"Hello,world!\"",
+      "output": "1",
+      "description": "Punctuation is part of a segment when no spaces split it."
+    },
+    {
+      "input": "s = \"  x  \"",
+      "output": "1",
+      "description": "A one-character segment can be surrounded by spaces."
+    },
+    {
+      "input": "s = \"a b c d e\"",
+      "output": "5",
+      "description": "Single spaces between one-letter segments should count each segment."
+    },
+    {
+      "input": "s = \"one,two  three!  123\"",
+      "output": "3",
+      "description": "Punctuation and digits are segment characters; spaces are the only separators."
+    },
+    {
+      "input": "s = \"  multiple   middle    gaps  \"",
+      "output": "3",
+      "description": "Several internal space runs should not create empty segments."
+    },
+    {
+      "input": "s = \"!@# $%^ &*()_+-=',.:\"",
+      "output": "3",
+      "description": "Allowed punctuation characters form ordinary segments."
+    }
   ]
 }

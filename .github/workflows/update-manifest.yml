@@ -1,44 +1,20 @@
-name: Update Question Bank Manifest
-
+name: Validate Question Bank Manifest
 on:
   push:
-    branches: [main]
-    paths:
-      - 'question_bank/official/p*.json'
+    paths: ['question_bank/official/**']
+  pull_request:
+    paths: ['question_bank/official/**']
   workflow_dispatch:
-
+permissions:
+  contents: read
 jobs:
-  update-manifest:
+  validate:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
-      - name: Generate manifest
-        run: |
-          cd question_bank/official
-          python generate_manifest.py
-      
-      - name: Check for changes
-        id: changes
-        run: |
-          git diff --quiet question_bank/official/manifest.json || echo "changed=true" >> $GITHUB_OUTPUT
-      
-      - name: Commit and push manifest
-        if: steps.changes.outputs.changed == 'true'
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add question_bank/official/manifest.json
-          git commit -m "chore: auto-update question bank manifest [skip ci]"
-          git push
+      - name: Validate bank JSON
+        working-directory: question_bank/official
+        run: python generate_manifest.py --validate-only

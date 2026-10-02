@@ -1,21 +1,16 @@
 {
   "id": "82",
   "title": "Maximum Depth of Binary Tree",
-  "description": "# Maximum Depth of Binary Tree\n\nGiven the `root` of a binary tree, return *its maximum depth*.\n\nA binary tree's **maximum depth** is the number of nodes along the longest path from the root node down to the farthest leaf node.\n\n## Example 1:\n\n**Input:** root = [3,9,20,null,null,15,7]\n**Output:** 3\n\n## Example 2:\n\n**Input:** root = [1,null,2]\n**Output:** 2\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[0, 10^4]`.\n*   `-100 <= Node.val <= 100`",
+  "description": "# Maximum Depth of Binary Tree\n\nGiven the `root` of a binary tree, return its maximum depth.\n\nA binary tree's maximum depth is the number of nodes on the longest path from the root node down to any leaf node. An empty tree has depth `0`; a tree with only the root has depth `1`. The input tree is serialized in level order.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [3,9,20,null,null,15,7]\n**Output:** 3\n\n## Example 2:\n\n**Input:** root = [1,null,2]\n**Output:** 2\n\n## Example 3:\n\n**Input:** root = []\n**Output:** 0\n\n## Constraints:\n\n*   The number of nodes in the tree is in the range `[0, 10^4]`.\n*   `-100 <= Node.val <= 100`.",
   "difficulty": "EASY",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public int maxDepth(TreeNode root) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Tree", "Depth-First Search", "Breadth-First Search", "Binary Tree"],
-  "examples": [
-    {
-      "input": "root = [3,9,20,null,null,15,7]",
-      "output": "3"
-    },
-    {
-      "input": "root = [1,null,2]",
-      "output": "2"
-    }
+  "tags": [
+    "Tree",
+    "Depth-First Search",
+    "Breadth-First Search",
+    "Binary Tree"
   ],
-  "tests": [
+  "examples": [
     {
       "input": "root = [3,9,20,null,null,15,7]",
       "output": "3"
@@ -27,42 +22,113 @@
     {
       "input": "root = []",
       "output": "0"
+    }
+  ],
+  "tests": [
+    {
+      "input": "root = [3,9,20,null,null,15,7]",
+      "output": "3",
+      "description": "Canonical tree with maximum depth three"
+    },
+    {
+      "input": "root = [1,null,2]",
+      "output": "2",
+      "description": "Right child creates depth two"
+    },
+    {
+      "input": "root = []",
+      "output": "0",
+      "description": "Empty tree"
     },
     {
       "input": "root = [0]",
-      "output": "1"
+      "output": "1",
+      "description": "Single-node tree"
     },
     {
       "input": "root = [1,2,3,4,5,null,null,6]",
-      "output": "4"
+      "output": "4",
+      "description": "Deepest path is in the left subtree"
     },
     {
       "input": "root = [1,2,null,3,null,4,null]",
-      "output": "4"
+      "output": "4",
+      "description": "Completely left-skewed tree"
+    },
+    {
+      "input": "root = [1,null,2,null,3,null,4]",
+      "output": "4",
+      "description": "Completely right-skewed tree"
+    },
+    {
+      "input": "root = [1,2,3,4,5,6,7]",
+      "output": "3",
+      "description": "Perfect tree has uniform depth"
+    },
+    {
+      "input": "root = [1,2,3,null,null,4,null,5]",
+      "output": "4",
+      "description": "Sparse tree whose deepest path turns through a left child"
+    },
+    {
+      "input": "root = [100,-100,0,-50,null,null,50]",
+      "output": "3",
+      "description": "Boundary values should not affect structural depth"
+    },
+    {
+      "input": "root = [-1,-2,-3,-4,null,null,-5]",
+      "output": "3",
+      "description": "All negative values"
+    },
+    {
+      "input": "root = [5,5,5,5,null,null,5,5]",
+      "output": "4",
+      "description": "Duplicate values should not hide the deeper branch"
+    },
+    {
+      "input": "root = [1,2,3,null,4,null,5,null,null,6]",
+      "output": "4",
+      "description": "Inside grandchildren and a later leaf determine the answer"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p82_example1.png",
-      "caption": "Example 1"
+      "caption": "Input tree for depth calculation"
     }
   ],
   "solutions": [
     {
-      "name": "Recursive DFS",
+      "name": "Bottom-Up Recursive DFS",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(h)",
-      "description": "The depth of a tree is 1 + max(depth of left subtree, depth of right subtree). Base case: null node has depth 0.",
+      "description": "## Approach\n\nTreat an empty subtree as depth `0`. For every non-empty node, recursively compute the depth of the left and right subtrees, take the larger one, and add one for the current node.\n\n## Key Insight\n\nMaximum depth is exactly the tree-height recurrence: `height(node) = 1 + max(height(left), height(right))`. The recursion stack only stores the current root-to-node path.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h), where `h` is the tree height",
       "code": "class Solution {\n    public int maxDepth(TreeNode root) {\n        if (root == null) return 0;\n        return 1 + Math.max(maxDepth(root.left), maxDepth(root.right));\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Iterative BFS",
+      "name": "BFS Level Counting",
       "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Use level-order traversal with a queue. Count the number of levels.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int maxDepth(TreeNode root) {\n        if (root == null) return 0;\n        \n        Queue<TreeNode> queue = new LinkedList<>();\n        queue.offer(root);\n        int depth = 0;\n        \n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            depth++;\n            for (int i = 0; i < size; i++) {\n                TreeNode node = queue.poll();\n                if (node.left != null) queue.offer(node.left);\n                if (node.right != null) queue.offer(node.right);\n            }\n        }\n        \n        return depth;\n    }\n}",
+      "spaceComplexity": "O(w)",
+      "description": "## Approach\n\nUse a queue to traverse the tree level by level. At the start of each level, record the current queue size, process exactly that many nodes, and increase the depth counter once.\n\n## Key Insight\n\nDepth is the number of levels. BFS exposes levels directly, so the final number of completed queue layers is the maximum depth.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(w), where `w` is the maximum width of the tree",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxDepth(TreeNode root) {\n        if (root == null) return 0;\n\n        Queue<TreeNode> queue = new ArrayDeque<>();\n        queue.offer(root);\n        int depth = 0;\n\n        while (!queue.isEmpty()) {\n            int size = queue.size();\n            depth++;\n            for (int i = 0; i < size; i++) {\n                TreeNode node = queue.poll();\n                if (node.left != null) queue.offer(node.left);\n                if (node.right != null) queue.offer(node.right);\n            }\n        }\n        return depth;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative DFS Depth Frames",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nStore `(node, depth)` frames in a stack. Each popped frame represents one root-to-node path length. Update the best depth seen so far, then push each non-null child with `depth + 1`.\n\n## Key Insight\n\nThis makes the recursive depth parameter explicit. DFS order does not matter because the answer is the maximum depth value observed across all visited nodes.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h) on a balanced tree and O(n) in the worst case",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxDepth(TreeNode root) {\n        if (root == null) return 0;\n\n        int maxDepth = 0;\n        Deque<Frame> stack = new ArrayDeque<>();\n        stack.push(new Frame(root, 1));\n\n        while (!stack.isEmpty()) {\n            Frame frame = stack.pop();\n            maxDepth = Math.max(maxDepth, frame.depth);\n\n            if (frame.node.left != null) {\n                stack.push(new Frame(frame.node.left, frame.depth + 1));\n            }\n            if (frame.node.right != null) {\n                stack.push(new Frame(frame.node.right, frame.depth + 1));\n            }\n        }\n        return maxDepth;\n    }\n\n    private static class Frame {\n        TreeNode node;\n        int depth;\n\n        Frame(TreeNode node, int depth) {\n            this.node = node;\n            this.depth = depth;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Recursive DFS",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(h)",
+      "description": "## Approach\n\nCarry the current depth from the root downward. Whenever a non-null node is visited, update a field storing the best depth seen, then visit the left and right children with `depth + 1`.\n\n## Key Insight\n\nThe bottom-up route asks each subtree for its height. This top-down route instead treats depth as path state and records the deepest path reached so far.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(h), where `h` is the tree height",
+      "code": "class Solution {\n    private int answer;\n\n    public int maxDepth(TreeNode root) {\n        answer = 0;\n        dfs(root, 1);\n        return answer;\n    }\n\n    private void dfs(TreeNode node, int depth) {\n        if (node == null) return;\n        answer = Math.max(answer, depth);\n        dfs(node.left, depth + 1);\n        dfs(node.right, depth + 1);\n    }\n}",
       "language": "java"
     }
   ]

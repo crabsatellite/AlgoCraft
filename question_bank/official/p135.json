@@ -1,7 +1,7 @@
 {
   "id": "135",
   "title": "Course Schedule",
-  "description": "# Course Schedule\n\nThere are a total of `numCourses` courses you have to take, labeled from `0` to `numCourses - 1`. You are given an array `prerequisites` where `prerequisites[i] = [ai, bi]` indicates that you **must** take course `bi` first if you want to take course `ai`.\n\n*   For example, the pair `[0, 1]`, indicates that to take course `0` you have to first take course `1`.\n\nReturn `true` if you can finish all courses. Otherwise, return `false`.\n\n## Example 1:\n\n**Input:** numCourses = 2, prerequisites = [[1,0]]\n**Output:** true\n**Explanation:** There are a total of 2 courses to take. \nTo take course 1 you should have finished course 0. So it is possible.\n\n## Example 2:\n\n**Input:** numCourses = 2, prerequisites = [[1,0],[0,1]]\n**Output:** false\n**Explanation:** There are a total of 2 courses to take. \nTo take course 1 you should have finished course 0, and to take course 0 you should also have finished course 1. So it is impossible.\n\n## Constraints:\n\n*   `1 <= numCourses <= 2000`\n*   `0 <= prerequisites.length <= 5000`\n*   `prerequisites[i].length == 2`\n*   `0 <= ai, bi < numCourses`\n*   All the pairs prerequisites[i] are **unique**.",
+  "description": "# Course Schedule\n\nThere are `numCourses` courses labeled from `0` to `numCourses - 1`. You are given an array `prerequisites`, where `prerequisites[i] = [ai, bi]` means you must take course `bi` before course `ai`.\n\nReturn `true` if it is possible to finish every course. Return `false` if the prerequisite graph contains a directed cycle. A self-prerequisite such as `[0,0]` is also a cycle.\n\nFor example, if course `0` requires `1` first and course `1` requires `0` first, neither can be started.\n\n## Example 1:\n\n**Input:** numCourses = 2, prerequisites = [[1,0]]\n**Output:** true\n**Explanation:** Course `0` can be taken first, then course `1`.\n\n## Example 2:\n\n**Input:** numCourses = 2, prerequisites = [[1,0],[0,1]]\n**Output:** false\n**Explanation:** Course `0` and course `1` depend on each other, so neither can be completed first.\n\n## Constraints:\n\n*   `1 <= numCourses <= 2000`\n*   `0 <= prerequisites.length <= 5000`\n*   `prerequisites[i].length == 2`\n*   `0 <= ai, bi < numCourses`\n*   All pairs in `prerequisites` are unique.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public boolean canFinish(int numCourses, int[][] prerequisites) {\n        // Write your code here\n        return false;\n    }\n}",
   "tags": [
@@ -22,42 +22,85 @@
   ],
   "solutions": [
     {
-      "name": "Topological Sort (BFS - Kahn's)",
+      "name": "Kahn Topological Sort",
       "timeComplexity": "O(V + E)",
       "spaceComplexity": "O(V + E)",
-      "description": "Build adjacency list and in-degree array. Enqueue nodes with in-degree 0. Process queue: for each neighbor, decrement in-degree. If all nodes are processed, no cycle exists.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean canFinish(int numCourses, int[][] prerequisites) {\n        List<List<Integer>> adj = new ArrayList<>();\n        int[] indegree = new int[numCourses];\n        for (int i = 0; i < numCourses; i++) adj.add(new ArrayList<>());\n        for (int[] pre : prerequisites) {\n            adj.get(pre[1]).add(pre[0]);\n            indegree[pre[0]]++;\n        }\n        Queue<Integer> queue = new LinkedList<>();\n        for (int i = 0; i < numCourses; i++)\n            if (indegree[i] == 0) queue.offer(i);\n        int count = 0;\n        while (!queue.isEmpty()) {\n            int course = queue.poll();\n            count++;\n            for (int next : adj.get(course))\n                if (--indegree[next] == 0) queue.offer(next);\n        }\n        return count == numCourses;\n    }\n}",
+      "description": "## Approach\n\nBuild a directed graph from each prerequisite course to the course it unlocks, and count every course's indegree. Courses with indegree `0` can be taken immediately. Each time a course is taken, remove its outgoing edges and enqueue newly unlocked courses.\n\n## Key Insight\n\nIn an acyclic prerequisite graph, there is always at least one currently available course. If a cycle exists, the courses inside that cycle never reach indegree `0`, so the processed count stays below `numCourses`.\n\n## Complexity Analysis\n\nLet `V = numCourses` and `E = prerequisites.length`. Building the graph and processing every edge once costs `O(V + E)` time, and the graph, indegree array, and queue use `O(V + E)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean canFinish(int numCourses, int[][] prerequisites) {\n        List<List<Integer>> graph = new ArrayList<>();\n        for (int course = 0; course < numCourses; course++) {\n            graph.add(new ArrayList<>());\n        }\n        int[] indegree = new int[numCourses];\n        for (int[] prerequisite : prerequisites) {\n            int course = prerequisite[0];\n            int before = prerequisite[1];\n            graph.get(before).add(course);\n            indegree[course]++;\n        }\n\n        Queue<Integer> ready = new ArrayDeque<>();\n        for (int course = 0; course < numCourses; course++) {\n            if (indegree[course] == 0) {\n                ready.offer(course);\n            }\n        }\n\n        int processed = 0;\n        while (!ready.isEmpty()) {\n            int course = ready.poll();\n            processed++;\n            for (int next : graph.get(course)) {\n                indegree[next]--;\n                if (indegree[next] == 0) {\n                    ready.offer(next);\n                }\n            }\n        }\n        return processed == numCourses;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "DFS Cycle Detection",
+      "name": "Three-Color DFS Cycle Detection",
       "timeComplexity": "O(V + E)",
       "spaceComplexity": "O(V + E)",
-      "description": "Build adjacency list. Use DFS with 3 states: unvisited (0), visiting (1), visited (2). If we encounter a node in 'visiting' state, there is a cycle. If all nodes can be fully visited, return true.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean canFinish(int numCourses, int[][] prerequisites) {\n        List<List<Integer>> adj = new ArrayList<>();\n        for (int i = 0; i < numCourses; i++) adj.add(new ArrayList<>());\n        for (int[] pre : prerequisites) adj.get(pre[1]).add(pre[0]);\n        int[] state = new int[numCourses];\n        for (int i = 0; i < numCourses; i++)\n            if (hasCycle(adj, state, i)) return false;\n        return true;\n    }\n\n    private boolean hasCycle(List<List<Integer>> adj, int[] state, int node) {\n        if (state[node] == 1) return true;\n        if (state[node] == 2) return false;\n        state[node] = 1;\n        for (int next : adj.get(node))\n            if (hasCycle(adj, state, next)) return true;\n        state[node] = 2;\n        return false;\n    }\n}",
+      "description": "## Approach\n\nBuild the same directed graph and mark each course with one of three states: unvisited, currently visiting, or finished. During depth-first search, reaching a currently visiting course means the current recursion path has returned to itself, so there is a cycle.\n\n## Key Insight\n\nThe visiting state represents the active recursion stack. A finished node has already been proven to lead to no cycle, so later searches can reuse that result without exploring it again.\n\n## Complexity Analysis\n\nEach course changes state at most twice and each edge is inspected once. The time complexity is `O(V + E)`, and the adjacency list plus recursion stack use `O(V + E)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean canFinish(int numCourses, int[][] prerequisites) {\n        List<List<Integer>> graph = new ArrayList<>();\n        for (int course = 0; course < numCourses; course++) {\n            graph.add(new ArrayList<>());\n        }\n        for (int[] prerequisite : prerequisites) {\n            graph.get(prerequisite[1]).add(prerequisite[0]);\n        }\n\n        int[] state = new int[numCourses];\n        for (int course = 0; course < numCourses; course++) {\n            if (!isAcyclic(graph, state, course)) {\n                return false;\n            }\n        }\n        return true;\n    }\n\n    private boolean isAcyclic(List<List<Integer>> graph, int[] state, int course) {\n        if (state[course] == 1) {\n            return false;\n        }\n        if (state[course] == 2) {\n            return true;\n        }\n        state[course] = 1;\n        for (int next : graph.get(course)) {\n            if (!isAcyclic(graph, state, next)) {\n                return false;\n            }\n        }\n        state[course] = 2;\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Tarjan Strong Component Detection",
+      "timeComplexity": "O(V + E)",
+      "spaceComplexity": "O(V + E)",
+      "description": "## Approach\n\nUse Tarjan's algorithm to find strongly connected components in one DFS pass. A component with more than one course is a directed cycle. A self-edge, such as a course requiring itself, is also detected as a cycle even though its component size is one.\n\n## Key Insight\n\nA directed graph is a valid course schedule exactly when every strongly connected component is trivial and has no self-loop. Low-link values tell us when a whole component has been discovered.\n\n## Complexity Analysis\n\nTarjan's algorithm visits each vertex and edge once. The time complexity is `O(V + E)`, and the graph, index arrays, stack, and bookkeeping use `O(V + E)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private List<List<Integer>> graph;\n    private int[] index;\n    private int[] low;\n    private boolean[] onStack;\n    private Deque<Integer> stack;\n    private int time;\n    private boolean hasCycle;\n\n    public boolean canFinish(int numCourses, int[][] prerequisites) {\n        graph = new ArrayList<>();\n        for (int course = 0; course < numCourses; course++) {\n            graph.add(new ArrayList<>());\n        }\n        for (int[] prerequisite : prerequisites) {\n            graph.get(prerequisite[1]).add(prerequisite[0]);\n        }\n\n        index = new int[numCourses];\n        low = new int[numCourses];\n        onStack = new boolean[numCourses];\n        stack = new ArrayDeque<>();\n        Arrays.fill(index, -1);\n\n        for (int course = 0; course < numCourses && !hasCycle; course++) {\n            if (index[course] == -1) {\n                strongConnect(course);\n            }\n        }\n        return !hasCycle;\n    }\n\n    private void strongConnect(int node) {\n        index[node] = time;\n        low[node] = time;\n        time++;\n        stack.push(node);\n        onStack[node] = true;\n\n        for (int next : graph.get(node)) {\n            if (next == node) {\n                hasCycle = true;\n            }\n            if (index[next] == -1) {\n                strongConnect(next);\n                low[node] = Math.min(low[node], low[next]);\n            } else if (onStack[next]) {\n                low[node] = Math.min(low[node], index[next]);\n            }\n        }\n\n        if (low[node] == index[node]) {\n            int componentSize = 0;\n            int current;\n            do {\n                current = stack.pop();\n                onStack[current] = false;\n                componentSize++;\n            } while (current != node);\n            if (componentSize > 1) {\n                hasCycle = true;\n            }\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two-Pass Strong Component Detection",
+      "timeComplexity": "O(V + E)",
+      "spaceComplexity": "O(V + E)",
+      "description": "## Approach\n\nBuild both the original graph and the reversed graph. First run DFS on the original graph to record courses by finish time. Then process courses in reverse finish order on the reversed graph; each traversal finds one strongly connected component. Any component with multiple courses, or any self-edge, makes the schedule impossible.\n\n## Key Insight\n\nThis two-pass component method gives a different proof of the same graph theorem: a course schedule is feasible only when the directed prerequisite graph has no cyclic strongly connected component.\n\n## Complexity Analysis\n\nBoth DFS passes together visit each course and edge a constant number of times. The time complexity is `O(V + E)`, and the two graphs, order list, and visited arrays use `O(V + E)` space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean canFinish(int numCourses, int[][] prerequisites) {\n        List<List<Integer>> graph = new ArrayList<>();\n        List<List<Integer>> reverseGraph = new ArrayList<>();\n        for (int course = 0; course < numCourses; course++) {\n            graph.add(new ArrayList<>());\n            reverseGraph.add(new ArrayList<>());\n        }\n        boolean hasSelfLoop = false;\n        for (int[] prerequisite : prerequisites) {\n            int course = prerequisite[0];\n            int before = prerequisite[1];\n            if (course == before) {\n                hasSelfLoop = true;\n            }\n            graph.get(before).add(course);\n            reverseGraph.get(course).add(before);\n        }\n        if (hasSelfLoop) {\n            return false;\n        }\n\n        boolean[] visited = new boolean[numCourses];\n        List<Integer> order = new ArrayList<>();\n        for (int course = 0; course < numCourses; course++) {\n            if (!visited[course]) {\n                fillOrder(graph, visited, order, course);\n            }\n        }\n\n        Arrays.fill(visited, false);\n        for (int i = order.size() - 1; i >= 0; i--) {\n            int course = order.get(i);\n            if (!visited[course]) {\n                int componentSize = markComponent(reverseGraph, visited, course);\n                if (componentSize > 1) {\n                    return false;\n                }\n            }\n        }\n        return true;\n    }\n\n    private void fillOrder(List<List<Integer>> graph, boolean[] visited, List<Integer> order, int course) {\n        visited[course] = true;\n        for (int next : graph.get(course)) {\n            if (!visited[next]) {\n                fillOrder(graph, visited, order, next);\n            }\n        }\n        order.add(course);\n    }\n\n    private int markComponent(List<List<Integer>> reverseGraph, boolean[] visited, int course) {\n        visited[course] = true;\n        int size = 1;\n        for (int next : reverseGraph.get(course)) {\n            if (!visited[next]) {\n                size += markComponent(reverseGraph, visited, next);\n            }\n        }\n        return size;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "numCourses = 2, prerequisites = [[1,0]]",
-      "output": "true"
+      "output": "true",
+      "description": "Simple prerequisite chain with no cycle."
     },
     {
       "input": "numCourses = 2, prerequisites = [[1,0],[0,1]]",
-      "output": "false"
+      "output": "false",
+      "description": "Two-course cycle makes finishing impossible."
     },
-    { "input": "numCourses = 3, prerequisites = []", "output": "true" },
+    {
+      "input": "numCourses = 3, prerequisites = []",
+      "output": "true",
+      "description": "No prerequisites means all courses can be finished."
+    },
     {
       "input": "numCourses = 4, prerequisites = [[1,0],[2,1],[3,2]]",
-      "output": "true"
+      "output": "true",
+      "description": "Long prerequisite chain remains acyclic."
+    },
+    {
+      "input": "numCourses = 5, prerequisites = [[1,0],[2,0],[3,1],[3,2],[4,3]]",
+      "output": "true",
+      "description": "Diamond-shaped prerequisites still have a valid topological order."
+    },
+    {
+      "input": "numCourses = 5, prerequisites = [[1,0],[2,1],[0,2],[4,3]]",
+      "output": "false",
+      "description": "A cycle in one component blocks the schedule even when another component is acyclic."
+    },
+    {
+      "input": "numCourses = 1, prerequisites = [[0,0]]",
+      "output": "false",
+      "description": "A self-prerequisite is a directed cycle."
+    },
+    {
+      "input": "numCourses = 6, prerequisites = [[1,0],[2,0],[3,1],[3,2],[5,4]]",
+      "output": "true",
+      "description": "Multiple disconnected acyclic components can all be completed."
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p135_example1.png",
-      "caption": "Example 1"
+      "caption": "Course prerequisite graph prompt"
     }
   ]
 }

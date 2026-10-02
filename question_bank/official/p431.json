@@ -1,38 +1,112 @@
 {
   "id": "431",
-  "title": "Design HashSet",
-  "description": "# Design HashSet\n\nDesign a HashSet without using any built-in hash table libraries.\n\nImplement `MyHashSet` class:\n\n*   `void add(key)` Inserts the value `key` into the HashSet.\n*   `bool contains(key)` Returns whether the value `key` exists in the HashSet or not.\n*   `void remove(key)` Removes the value `key` in the HashSet. If `key` does not exist in the HashSet, do nothing.\n\n## Example 1:\n\n**Input**\n[\"MyHashSet\", \"add\", \"add\", \"contains\", \"contains\", \"add\", \"contains\", \"remove\", \"contains\"]\n[[], [1], [2], [1], [3], [2], [2], [2], [2]]\n**Output**\n[null, null, null, true, false, null, true, null, false]\n**Explanation**\nMyHashSet myHashSet = new MyHashSet();\nmyHashSet.add(1);      // set = [1]\nmyHashSet.add(2);      // set = [1, 2]\nmyHashSet.contains(1); // return True\nmyHashSet.contains(3); // return False, (not found)\nmyHashSet.add(2);      // set = [1, 2]\nmyHashSet.contains(2); // return True\nmyHashSet.remove(2);   // set = [1]\nmyHashSet.contains(2); // return False, (already removed)\n\n## Constraints:\n\n*   `0 <= key <= 10^6`\n*   At most `10^4` calls will be made to `add`, `remove`, and `contains`.",
+  "title": "Count Pairs Below Target",
+  "description": "# Count Pairs Below Target\n\nGiven an integer list `nums` and an integer `target`, count the number of index pairs `(i, j)` such that `i < j` and `nums[i] + nums[j] < target`.\n\nPairs are counted by their original indices, not by distinct values. For example, if the same value appears several times, each valid index pair is counted separately. The inequality is strict: pairs whose sum is exactly `target` do not count.\n\nReturn the number of valid pairs.\n\n## Example 1:\n\n**Input:** nums = [-1,1,2,3,1], target = 2\n**Output:** 3\n**Explanation:** The valid pairs are `(0,1)`, `(0,2)`, and `(0,4)`.\n\n## Example 2:\n\n**Input:** nums = [-6,2,5,-2,-7,-1,3], target = -2\n**Output:** 10\n\n## Constraints:\n\n*   `0 <= nums.length <= 10^5`\n*   `-10^9 <= nums[i], target <= 10^9`\n*   The answer fits in a 32-bit signed integer.",
   "difficulty": "EASY",
-  "initialCode": "class MyHashSet {\n\n    public MyHashSet() {\n        \n    }\n    \n    public void add(int key) {\n        \n    }\n    \n    public void remove(int key) {\n        \n    }\n    \n    public boolean contains(int key) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Linked List", "Design", "Hash Function"],
+  "initialCode": "class Solution {\n    public int countPairs(List<Integer> nums, int target) {\n        // Write your code here\n    }\n}",
+  "tags": [
+    "Array",
+    "Two Pointers",
+    "Sorting",
+    "Binary Search",
+    "Binary Indexed Tree",
+    "Merge Sort"
+  ],
   "examples": [
     {
-      "input": "[\"MyHashSet\", \"add\", \"add\", \"contains\", \"contains\", \"add\", \"contains\", \"remove\", \"contains\"]\n[[], [1], [2], [1], [3], [2], [2], [2], [2]]",
-      "output": "[null, null, null, true, false, null, true, null, false]"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "Boolean Array",
-      "timeComplexity": "O(1)",
-      "spaceComplexity": "O(N)",
-      "description": "Since keys are bounded by 10^6, use a boolean array for direct addressing. Each operation is O(1).",
-      "code": "class MyHashSet {\n    private boolean[] set;\n\n    public MyHashSet() {\n        set = new boolean[1000001];\n    }\n\n    public void add(int key) {\n        set[key] = true;\n    }\n\n    public void remove(int key) {\n        set[key] = false;\n    }\n\n    public boolean contains(int key) {\n        return set[key];\n    }\n}",
-      "language": "java"
+      "input": "nums = [-1,1,2,3,1], target = 2",
+      "output": "3"
     },
     {
-      "name": "Hash Table with Chaining",
-      "timeComplexity": "O(n/k) per operation",
-      "spaceComplexity": "O(k + n)",
-      "description": "Use an array of linked list buckets with a prime-sized hash function. Each bucket stores keys in a list. Hash collisions are resolved by chaining.",
-      "code": "import java.util.*;\n\nclass MyHashSet {\n    private static final int SIZE = 769;\n    private List<Integer>[] buckets;\n    public MyHashSet() {\n        buckets = new ArrayList[SIZE];\n        for (int i = 0; i < SIZE; i++) {\n            buckets[i] = new ArrayList();\n        }\n    }\n    private int hash(int key) {\n        return key % SIZE;\n    }\n    public void add(int key) {\n        int h = hash(key);\n        List<Integer> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i).intValue() == key) return;\n        }\n        bucket.add(key);\n    }\n    public void remove(int key) {\n        int h = hash(key);\n        List<Integer> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i).intValue() == key) {\n                bucket.remove(i);\n                return;\n            }\n        }\n    }\n    public boolean contains(int key) {\n        int h = hash(key);\n        List<Integer> bucket = buckets[h];\n        for (int i = 0; i < bucket.size(); i++) {\n            if (bucket.get(i).intValue() == key) return true;\n        }\n        return false;\n    }\n}",
-      "language": "java"
+      "input": "nums = [-6,2,5,-2,-7,-1,3], target = -2",
+      "output": "10"
     }
   ],
   "tests": [
     {
-      "input": "[\"MyHashSet\", \"add\", \"add\", \"contains\", \"contains\", \"add\", \"contains\", \"remove\", \"contains\"]\n[[], [1], [2], [1], [3], [2], [2], [2], [2]]",
-      "output": "[null, null, null, true, false, null, true, null, false]"
+      "input": "nums = [-1,1,2,3,1], target = 2",
+      "output": "3"
+    },
+    {
+      "input": "nums = [-6,2,5,-2,-7,-1,3], target = -2",
+      "output": "10"
+    },
+    {
+      "description": "No pair can be below a target that is smaller than every possible sum.",
+      "input": "nums = [1,2,3], target = 0",
+      "output": "0"
+    },
+    {
+      "description": "Duplicate zero values produce three different index pairs.",
+      "input": "nums = [0,0,0], target = 1",
+      "output": "3"
+    },
+    {
+      "description": "An empty list has no index pairs.",
+      "input": "nums = [], target = 5",
+      "output": "0"
+    },
+    {
+      "description": "Negative values can pair with larger positives below the target.",
+      "input": "nums = [5,-2,-1,0], target = 4",
+      "output": "4"
+    },
+    {
+      "description": "The comparison is strict, so sums equal to target are excluded even with duplicates.",
+      "input": "nums = [1,1,2,2], target = 3",
+      "output": "1"
+    },
+    {
+      "description": "All negative pairs can be valid when the target is non-negative.",
+      "input": "nums = [-5,-4,-3], target = 0",
+      "output": "3"
+    },
+    {
+      "description": "Large-magnitude values should be compared safely and still count by index.",
+      "input": "nums = [-1000000000,0,1000000000], target = 1",
+      "output": "2"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Sorted Two Pointers",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCopy and sort the numbers, then keep one pointer at the smallest remaining value and one at the largest. If `sorted[left] + sorted[right] < target`, then `sorted[left]` also forms a valid pair with every value between `left + 1` and `right`, so add `right - left` at once and move `left` forward. Otherwise the right value is too large and must move left.\n\n## Key Insight\n\nSorting turns many pair checks into one batch count. The strict `< target` condition is handled directly in the pointer comparison, so sums equal to the target are rejected.\n\n## Complexity Analysis\n- Time Complexity: O(n log n) for sorting plus O(n) scanning\n- Space Complexity: O(n) for the sorted copy",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int countPairs(List<Integer> nums, int target) {\n        List<Integer> sorted = new ArrayList<>(nums);\n        Collections.sort(sorted);\n        int left = 0;\n        int right = sorted.size() - 1;\n        int answer = 0;\n        while (left < right) {\n            if ((long) sorted.get(left) + sorted.get(right) < target) {\n                answer += right - left;\n                left++;\n            } else {\n                right--;\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Binary Search Counting",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort a copy of the input. For every left index, the right index must hold a value strictly smaller than `target - sorted[left]`. Use binary search on the suffix to find the first value that is not small enough; every index between `left + 1` and that boundary is valid.\n\n## Key Insight\n\nThis teaches the same sorted-order invariant as two pointers, but isolates one endpoint and finds the other endpoint's feasible boundary with lower bound search.\n\n## Complexity Analysis\n- Time Complexity: O(n log n) for sorting and O(log n) search for each left index\n- Space Complexity: O(n) for the sorted copy",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int countPairs(List<Integer> nums, int target) {\n        List<Integer> sorted = new ArrayList<>(nums);\n        Collections.sort(sorted);\n        int answer = 0;\n        for (int left = 0; left < sorted.size(); left++) {\n            int boundary = lowerBound(sorted, left + 1, sorted.size(), (long) target - sorted.get(left));\n            answer += boundary - left - 1;\n        }\n        return answer;\n    }\n\n    private int lowerBound(List<Integer> nums, int left, int right, long value) {\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (nums.get(mid) < value) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Online Fenwick Compression",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCoordinate-compress all values, then scan the original list from left to right. Before inserting the current number into a Fenwick tree, query how many previous numbers are smaller than `target - current`. Those previous numbers form exactly the valid pairs ending at the current index.\n\n## Key Insight\n\nThe condition can be read as `previous < target - current`. Fenwick prefix sums turn that inequality into a count of already-seen values, which is useful when the original order matters for teaching online counting.\n\n## Complexity Analysis\n- Time Complexity: O(n log n) for compression and Fenwick operations\n- Space Complexity: O(n) for the compressed value list and tree",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int countPairs(List<Integer> nums, int target) {\n        List<Integer> values = new ArrayList<>(nums);\n        Collections.sort(values);\n        List<Integer> unique = new ArrayList<>();\n        for (int value : values) {\n            if (unique.isEmpty() || unique.get(unique.size() - 1) != value) {\n                unique.add(value);\n            }\n        }\n\n        int[] bit = new int[unique.size() + 1];\n        int answer = 0;\n        for (int current : nums) {\n            int countLessThan = lowerBound(unique, (long) target - current);\n            answer += sum(bit, countLessThan);\n            int index = lowerBound(unique, current) + 1;\n            add(bit, index, 1);\n        }\n        return answer;\n    }\n\n    private int lowerBound(List<Integer> values, long target) {\n        int left = 0;\n        int right = values.size();\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (values.get(mid) < target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n\n    private void add(int[] bit, int index, int delta) {\n        while (index < bit.length) {\n            bit[index] += delta;\n            index += index & -index;\n        }\n    }\n\n    private int sum(int[] bit, int index) {\n        int total = 0;\n        while (index > 0) {\n            total += bit[index];\n            index -= index & -index;\n        }\n        return total;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Merge Sort Pair Counting",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse a merge-sort recursion. After the left and right halves are individually sorted, count cross-half pairs by scanning the left half from large to small while a pointer in the right half moves forward through values that keep the sum below the target. Then merge the halves for the parent recursion.\n\n## Key Insight\n\nThis is the classic inversion-counting pattern adapted to a sum inequality. It separates correctness into pairs inside each half and pairs crossing the split, then preserves sorted order for the next level.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n) for merge buffers",
+      "code": "class Solution {\n    public int countPairs(List<Integer> nums, int target) {\n        int[] values = new int[nums.size()];\n        for (int i = 0; i < nums.size(); i++) {\n            values[i] = nums.get(i);\n        }\n        int[] temp = new int[values.length];\n        return (int) sortAndCount(values, temp, 0, values.length, target);\n    }\n\n    private long sortAndCount(int[] values, int[] temp, int left, int right, int target) {\n        if (right - left <= 1) {\n            return 0;\n        }\n        int mid = left + (right - left) / 2;\n        long answer = sortAndCount(values, temp, left, mid, target)\n                + sortAndCount(values, temp, mid, right, target);\n\n        int j = mid;\n        for (int i = mid - 1; i >= left; i--) {\n            while (j < right && (long) values[i] + values[j] < target) {\n                j++;\n            }\n            answer += j - mid;\n        }\n\n        merge(values, temp, left, mid, right);\n        return answer;\n    }\n\n    private void merge(int[] values, int[] temp, int left, int mid, int right) {\n        int i = left;\n        int j = mid;\n        int k = left;\n        while (i < mid && j < right) {\n            if (values[i] <= values[j]) {\n                temp[k++] = values[i++];\n            } else {\n                temp[k++] = values[j++];\n            }\n        }\n        while (i < mid) {\n            temp[k++] = values[i++];\n        }\n        while (j < right) {\n            temp[k++] = values[j++];\n        }\n        System.arraycopy(temp, left, values, left, right - left);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Brute Force Pairs",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nEnumerate every pair of indices `(i, j)` with `i < j`, compute the sum, and increment the answer only when the sum is strictly below `target`.\n\n## Key Insight\n\nThis is the definition translated directly into code. It is too slow for the upper constraint, but it is the clearest correctness baseline for checking optimized solutions on small cases.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int countPairs(List<Integer> nums, int target) {\n        int answer = 0;\n        for (int i = 0; i < nums.size(); i++) {\n            for (int j = i + 1; j < nums.size(); j++) {\n                if ((long) nums.get(i) + nums.get(j) < target) {\n                    answer++;\n                }\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
     }
   ]
 }

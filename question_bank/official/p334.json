@@ -1,34 +1,129 @@
 {
   "id": "334",
   "title": "Maximum Gap",
-  "description": "# Maximum Gap\n\nGiven an integer array `nums`, return *the maximum difference between two successive elements in its sorted form*. If the array contains less than two elements, return `0`.\n\nYou must write an algorithm that runs in linear time and uses linear extra space.\n\n## Example 1:\n\n**Input:** nums = [3,6,9,1]\n**Output:** 3\n**Explanation:** The sorted form of the array is [1,3,6,9], either (3,6) or (6,9) has the maximum difference 3.\n\n## Example 2:\n\n**Input:** nums = [10]\n**Output:** 0\n**Explanation:** The array contains less than 2 elements, therefore return 0.\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^5`\n*   `0 <= nums[i] <= 10^9`",
+  "description": "# Maximum Gap\n\nGiven an integer array `nums`, return the maximum difference between two successive elements in the sorted order of the array. If the array has fewer than two elements, return `0`.\n\nUse `O(n)` time and `O(n)` extra space, where `n` is the array length.\n\n## Example 1:\n\n**Input:** nums = [3,6,9,1]\n**Output:** 3\n**Explanation:** The sorted order is [1,3,6,9]. The adjacent gaps are 2, 3, and 3, so the maximum gap is 3.\n\n## Example 2:\n\n**Input:** nums = [10]\n**Output:** 0\n**Explanation:** There is no pair of successive elements.\n\n## Constraints:\n\n*   `1 <= nums.length <= 10^5`\n*   `0 <= nums[i] <= 10^9`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int maximumGap(int[] nums) {\n        \n    }\n}",
-  "tags": ["Array", "Sorting", "Bucket Sort", "Radix Sort"],
+  "initialCode": "class Solution {\n    public int maximumGap(int[] nums) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Sorting",
+    "Bucket Sort",
+    "Radix Sort"
+  ],
   "examples": [
-    { "input": "nums = [3,6,9,1]", "output": "3" },
-    { "input": "nums = [10]", "output": "0" }
+    {
+      "input": "nums = [3,6,9,1]",
+      "output": "3"
+    },
+    {
+      "input": "nums = [10]",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
-      "name": "Bucket Sort",
+      "name": "Pigeonhole Bucket Sort",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "The max gap must be >= ceil((max-min)/(n-1)). Create buckets of this size. Only track min/max per bucket. The answer is the max gap between consecutive non-empty bucket boundaries.",
-      "code": "class Solution {\n    public int maximumGap(int[] nums) {\n        int n = nums.length;\n        if (n < 2) return 0;\n        int min = nums[0], max = nums[0];\n        for (int num : nums) { min = Math.min(min, num); max = Math.max(max, num); }\n        if (min == max) return 0;\n        int bucketSize = Math.max(1, (max - min) / (n - 1));\n        int bucketCount = (max - min) / bucketSize + 1;\n        int[] bucketMin = new int[bucketCount], bucketMax = new int[bucketCount];\n        java.util.Arrays.fill(bucketMin, Integer.MAX_VALUE);\n        java.util.Arrays.fill(bucketMax, Integer.MIN_VALUE);\n        for (int num : nums) {\n            int idx = (num - min) / bucketSize;\n            bucketMin[idx] = Math.min(bucketMin[idx], num);\n            bucketMax[idx] = Math.max(bucketMax[idx], num);\n        }\n        int maxGap = 0, prevMax = bucketMax[0];\n        for (int i = 1; i < bucketCount; i++) {\n            if (bucketMin[i] == Integer.MAX_VALUE) continue;\n            maxGap = Math.max(maxGap, bucketMin[i] - prevMax);\n            prevMax = bucketMax[i];\n        }\n        return maxGap;\n    }\n}",
+      "description": "## Approach\n\nFind the global minimum and maximum, then divide the value range into buckets whose size is at least the average sorted gap. Each bucket stores only its minimum and maximum value.\n\n## Key Insight\n\nBecause every value inside one bucket is closer than the chosen bucket width, the largest sorted adjacent gap cannot be internal to a bucket. It must be the distance from the maximum of one non-empty bucket to the minimum of the next non-empty bucket.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int maximumGap(int[] nums) {\n        int n = nums.length;\n        if (n < 2) return 0;\n\n        int min = nums[0];\n        int max = nums[0];\n        for (int value : nums) {\n            min = Math.min(min, value);\n            max = Math.max(max, value);\n        }\n        if (min == max) return 0;\n\n        int bucketSize = Math.max(1, (int) Math.ceil((double) (max - min) / (n - 1)));\n        int bucketCount = (max - min) / bucketSize + 1;\n        int[] bucketMin = new int[bucketCount];\n        int[] bucketMax = new int[bucketCount];\n        boolean[] used = new boolean[bucketCount];\n        java.util.Arrays.fill(bucketMin, Integer.MAX_VALUE);\n        java.util.Arrays.fill(bucketMax, Integer.MIN_VALUE);\n\n        for (int value : nums) {\n            int index = (value - min) / bucketSize;\n            bucketMin[index] = Math.min(bucketMin[index], value);\n            bucketMax[index] = Math.max(bucketMax[index], value);\n            used[index] = true;\n        }\n\n        int best = 0;\n        int previousMax = min;\n        for (int i = 0; i < bucketCount; i++) {\n            if (!used[i]) continue;\n            best = Math.max(best, bucketMin[i] - previousMax);\n            previousMax = bucketMax[i];\n        }\n        return best;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Radix Sort",
+      "name": "Decimal LSD Radix Sort",
       "timeComplexity": "O(n * d)",
       "spaceComplexity": "O(n)",
-      "description": "Sort the array using radix sort (base 10) in linear time, then scan for the maximum gap between consecutive elements in the sorted array.",
-      "code": "class Solution {\n    public int maximumGap(int[] nums) {\n        int n = nums.length;\n        if (n < 2) return 0;\n        int max = 0;\n        for (int num : nums) max = Math.max(max, num);\n        int[] buf = new int[n];\n        for (long exp = 1; exp <= max; exp *= 10) {\n            int[] count = new int[10];\n            for (int num : nums) {\n                count[(int)((num / exp) % 10)]++;\n            }\n            for (int i = 1; i < 10; i++) count[i] += count[i - 1];\n            for (int i = n - 1; i >= 0; i--) {\n                int digit = (int)((nums[i] / exp) % 10);\n                buf[--count[digit]] = nums[i];\n            }\n            System.arraycopy(buf, 0, nums, 0, n);\n        }\n        int maxGap = 0;\n        for (int i = 1; i < n; i++) {\n            maxGap = Math.max(maxGap, nums[i] - nums[i - 1]);\n        }\n        return maxGap;\n    }\n}",
+      "description": "## Approach\n\nUse stable least-significant-digit radix sort over decimal digits, then scan adjacent values in the sorted array.\n\n## Key Insight\n\nThe values are non-negative and bounded, so the number of digit passes is fixed by the input range instead of by comparison sorting. After the radix passes produce sorted order, the required answer is just the largest adjacent difference.\n\n## Complexity Analysis\n- Time Complexity: O(n * d), where d is the number of decimal digits in the maximum value\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int maximumGap(int[] nums) {\n        int n = nums.length;\n        if (n < 2) return 0;\n\n        int max = 0;\n        for (int value : nums) {\n            max = Math.max(max, value);\n        }\n\n        int[] buffer = new int[n];\n        for (long exp = 1; exp <= max; exp *= 10) {\n            int[] count = new int[10];\n            for (int value : nums) {\n                count[(int) ((value / exp) % 10)]++;\n            }\n            for (int i = 1; i < 10; i++) {\n                count[i] += count[i - 1];\n            }\n            for (int i = n - 1; i >= 0; i--) {\n                int digit = (int) ((nums[i] / exp) % 10);\n                buffer[--count[digit]] = nums[i];\n            }\n            System.arraycopy(buffer, 0, nums, 0, n);\n        }\n\n        int best = 0;\n        for (int i = 1; i < n; i++) {\n            best = Math.max(best, nums[i] - nums[i - 1]);\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Base-256 Fixed-Pass Radix Sort",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nRun four stable counting-sort passes, one for each byte of a 32-bit non-negative integer. Then scan adjacent sorted values.\n\n## Key Insight\n\nUsing base 256 makes the pass count constant for Java `int` values. This avoids the variable decimal-digit loop while keeping the same radix-sort invariant: every pass preserves the ordering established by lower-order bytes.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int maximumGap(int[] nums) {\n        int n = nums.length;\n        if (n < 2) return 0;\n\n        int[] arr = nums;\n        int[] buffer = new int[n];\n        for (int shift = 0; shift < 32; shift += 8) {\n            int[] count = new int[256];\n            for (int value : arr) {\n                count[(value >>> shift) & 255]++;\n            }\n            for (int i = 1; i < 256; i++) {\n                count[i] += count[i - 1];\n            }\n            for (int i = n - 1; i >= 0; i--) {\n                int value = arr[i];\n                buffer[--count[(value >>> shift) & 255]] = value;\n            }\n            int[] temp = arr;\n            arr = buffer;\n            buffer = temp;\n        }\n\n        int best = 0;\n        for (int i = 1; i < n; i++) {\n            best = Math.max(best, arr[i] - arr[i - 1]);\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "MSD Bit Partition Gap",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nRecursively partition the array by the most significant remaining bit. All values with bit 0 must come before all values with bit 1 in sorted order, so each split creates a left sorted region, a right sorted region, and one possible crossing gap.\n\n## Key Insight\n\nFor any bit split, the maximum adjacent sorted gap is either inside the zero-bit group, inside the one-bit group, or exactly between the maximum zero-bit value and the minimum one-bit value. Recursing over at most 31 useful bits keeps the running time linear for the fixed integer range.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1) auxiliary space, ignoring the constant-depth recursion stack",
+      "code": "class Solution {\n    public int maximumGap(int[] nums) {\n        if (nums.length < 2) return 0;\n        return maxGap(nums, 0, nums.length - 1, 30);\n    }\n\n    private int maxGap(int[] nums, int lo, int hi, int bit) {\n        if (hi <= lo || bit < 0) return 0;\n\n        int left = lo;\n        int right = hi;\n        while (left <= right) {\n            while (left <= right && ((nums[left] >>> bit) & 1) == 0) left++;\n            while (left <= right && ((nums[right] >>> bit) & 1) == 1) right--;\n            if (left < right) {\n                int temp = nums[left];\n                nums[left] = nums[right];\n                nums[right] = temp;\n                left++;\n                right--;\n            }\n        }\n\n        if (right < lo) return maxGap(nums, left, hi, bit - 1);\n        if (left > hi) return maxGap(nums, lo, right, bit - 1);\n\n        int leftMax = nums[lo];\n        for (int i = lo; i <= right; i++) {\n            leftMax = Math.max(leftMax, nums[i]);\n        }\n        int rightMin = nums[left];\n        for (int i = left; i <= hi; i++) {\n            rightMin = Math.min(rightMin, nums[i]);\n        }\n\n        int crossGap = rightMin - leftMax;\n        int leftGap = maxGap(nums, lo, right, bit - 1);\n        int rightGap = maxGap(nums, left, hi, bit - 1);\n        return Math.max(crossGap, Math.max(leftGap, rightGap));\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [3,6,9,1]", "output": "3" },
-    { "input": "nums = [10]", "output": "0" }
+    {
+      "input": "nums = [3,6,9,1]",
+      "output": "3",
+      "description": "canonical sample with two equal best gaps"
+    },
+    {
+      "input": "nums = [10]",
+      "output": "0",
+      "description": "fewer than two values has no adjacent gap"
+    },
+    {
+      "input": "nums = [1,1,1,1]",
+      "output": "0",
+      "description": "all equal values must not create a positive bucket gap"
+    },
+    {
+      "input": "nums = [1,10000000]",
+      "output": "9999999",
+      "description": "two far-apart values check large bucket width"
+    },
+    {
+      "input": "nums = [10,7,1,20]",
+      "output": "10",
+      "description": "the maximum gap is at the upper end after sorting"
+    },
+    {
+      "input": "nums = [15252,16764,27963,7817,26155]",
+      "output": "9391",
+      "description": "irregular values exercise bucket boundary placement"
+    },
+    {
+      "input": "nums = [0,1000000000]",
+      "output": "1000000000",
+      "description": "full value range boundary"
+    },
+    {
+      "input": "nums = [1,1,2,2,100]",
+      "output": "98",
+      "description": "duplicates near the small values must not hide the large final gap"
+    },
+    {
+      "input": "nums = [0,3,6,9,12]",
+      "output": "3",
+      "description": "uniform gaps keep the answer equal to the bucket size"
+    },
+    {
+      "input": "nums = [5,5,5,6]",
+      "output": "1",
+      "description": "mostly equal values with one distinct neighbor"
+    },
+    {
+      "input": "nums = [100,3,2,1]",
+      "output": "97",
+      "description": "largest gap occurs between the top two sorted regions"
+    },
+    {
+      "input": "nums = [0,1,1000000000,999999999]",
+      "output": "999999998",
+      "description": "two tight clusters at opposite extremes"
+    },
+    {
+      "input": "nums = [8,3,15,27,4,5]",
+      "output": "12",
+      "description": "middle cluster plus a far upper value"
+    },
+    {
+      "input": "nums = [1,100,101,102,1000]",
+      "output": "898",
+      "description": "large final jump after a dense middle cluster"
+    }
   ]
 }

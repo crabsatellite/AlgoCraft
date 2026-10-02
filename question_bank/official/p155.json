@@ -1,36 +1,127 @@
 {
   "id": "155",
   "title": "Longest Palindromic Substring",
-  "description": "# Longest Palindromic Substring\n\nGiven a string `s`, return *the longest palindromic substring* in `s`.\n\n## Example 1:\n\n**Input:** s = \"babad\"\n**Output:** \"bab\"\n**Explanation:** \"aba\" is also a valid answer.\n\n## Example 2:\n\n**Input:** s = \"cbbd\"\n**Output:** \"bb\"\n\n## Constraints:\n\n*   `1 <= s.length <= 1000`\n*   `s` consist of only digits and English letters.",
+  "description": "# Longest Palindromic Substring\n\nGiven a string `s`, return the longest contiguous substring of `s` that is a palindrome.\n\nA palindrome reads the same from left to right and from right to left. The answer must be a substring, so the chosen characters must stay adjacent in the original string.\n\nIf more than one longest palindromic substring exists, return the one with the smallest starting index.\n\n## Example 1\n\n**Input:** `s = \"babad\"`\n\n**Output:** `\"bab\"`\n\n**Explanation:** `\"aba\"` is also length `3`, but `\"bab\"` starts earlier.\n\n## Example 2\n\n**Input:** `s = \"cbbd\"`\n\n**Output:** `\"bb\"`\n\n**Explanation:** The longest palindrome has even length and is centered between the two `b` characters.\n\n## Example 3\n\n**Input:** `s = \"bananas\"`\n\n**Output:** `\"anana\"`\n\n**Explanation:** The substring from index `1` to index `5` reads the same in both directions.\n\n## Constraints\n\n- `1 <= s.length <= 1000`\n- `s` consists only of digits and English letters.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public String longestPalindrome(String s) {\n        // Write your code here\n        return \"\";\n    }\n}",
-  "tags": ["String", "Dynamic Programming"],
+  "tags": [
+    "String",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "s = \"babad\"", "output": "\"bab\"" },
-    { "input": "s = \"cbbd\"", "output": "\"bb\"" }
+    {
+      "input": "s = \"babad\"",
+      "output": "\"bab\""
+    },
+    {
+      "input": "s = \"cbbd\"",
+      "output": "\"bb\""
+    },
+    {
+      "input": "s = \"bananas\"",
+      "output": "\"anana\""
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p155_longest_palindromic_substring.png",
+      "alt": "A string split into contiguous character cells with a palindromic substring highlighted",
+      "caption": "A contiguous character block whose two ends mirror toward the middle"
+    }
   ],
   "solutions": [
     {
-      "name": "Expand Around Center",
-      "timeComplexity": "O(n^2)",
+      "name": "Length-Descending Brute Force",
+      "timeComplexity": "O(n^3)",
       "spaceComplexity": "O(1)",
-      "description": "For each index, expand outward checking both odd-length and even-length palindromes. Track the longest found.",
-      "code": "class Solution {\n    public String longestPalindrome(String s) {\n        int start = 0, maxLen = 0;\n        for (int i = 0; i < s.length(); i++) {\n            int len1 = expand(s, i, i);\n            int len2 = expand(s, i, i + 1);\n            int len = Math.max(len1, len2);\n            if (len > maxLen) {\n                maxLen = len;\n                start = i - (len - 1) / 2;\n            }\n        }\n        return s.substring(start, start + maxLen);\n    }\n\n    private int expand(String s, int l, int r) {\n        while (l >= 0 && r < s.length() && s.charAt(l) == s.charAt(r)) {\n            l--; r++;\n        }\n        return r - l - 1;\n    }\n}",
+      "description": "## Approach\n\nTry candidate substring lengths from longest to shortest. For each length, scan starts from left to right and validate the substring with two pointers. The first valid candidate is the required leftmost longest palindrome.\n\n## Key Insight\n\nThis baseline is intentionally simple: it separates the definition of a palindrome from the search order. Searching by descending length makes the first success globally optimal, and scanning starts left to right enforces the tie rule.\n\n## Complexity Analysis\n\nThere are `O(n^2)` candidate substrings, and each validation may scan `O(n)` characters, so the time complexity is `O(n^3)`. The two-pointer check stores only indices, so the space complexity is `O(1)`.",
+      "code": "class Solution {\n    public String longestPalindrome(String s) {\n        int n = s.length();\n        for (int length = n; length >= 1; length--) {\n            for (int start = 0; start + length <= n; start++) {\n                int end = start + length - 1;\n                if (isPalindrome(s, start, end)) {\n                    return s.substring(start, end + 1);\n                }\n            }\n        }\n        return \"\";\n    }\n\n    private boolean isPalindrome(String s, int left, int right) {\n        while (left < right) {\n            if (s.charAt(left) != s.charAt(right)) {\n                return false;\n            }\n            left++;\n            right--;\n        }\n        return true;\n    }\n}",
       "language": "java"
     },
     {
       "name": "Expand Around Center",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(1)",
-      "description": "For each index, expand outward checking both odd-length and even-length palindromes. Track the longest found.",
-      "code": "class Solution {\n    public String longestPalindrome(String s) {\n        int start = 0, maxLen = 0;\n        for (int i = 0; i < s.length(); i++) {\n            int len1 = expand(s, i, i);\n            int len2 = expand(s, i, i + 1);\n            int len = Math.max(len1, len2);\n            if (len > maxLen) {\n                maxLen = len;\n                start = i - (len - 1) / 2;\n            }\n        }\n        return s.substring(start, start + maxLen);\n    }\n    private int expand(String s, int l, int r) {\n        while (l >= 0 && r < s.length() && s.charAt(l) == s.charAt(r)) {\n            l--;\n            r++;\n        }\n        return r - l - 1;\n    }\n}",
+      "description": "## Approach\n\nEvery palindrome has a center. For each index, expand once as an odd-length center and once as an even-length center between two characters. Keep the best range seen so far, updating only when a strictly longer palindrome appears.\n\n## Key Insight\n\nA palindrome is determined by its center and radius. Expanding outward turns the problem into checking matching pairs, and strict updates preserve the earliest answer when two longest palindromes tie.\n\n## Complexity Analysis\n\nThere are `2n - 1` centers, and each expansion may scan across the string, so the time complexity is `O(n^2)`. Only the best start and length are stored, giving `O(1)` space.",
+      "code": "class Solution {\n    public String longestPalindrome(String s) {\n        int n = s.length();\n        int bestStart = 0;\n        int bestLength = 1;\n        for (int center = 0; center < n; center++) {\n            int oddLength = expand(s, center, center);\n            if (oddLength > bestLength) {\n                bestStart = center - oddLength / 2;\n                bestLength = oddLength;\n            }\n\n            int evenLength = expand(s, center, center + 1);\n            if (evenLength > bestLength) {\n                bestStart = center - evenLength / 2 + 1;\n                bestLength = evenLength;\n            }\n        }\n        return s.substring(bestStart, bestStart + bestLength);\n    }\n\n    private int expand(String s, int left, int right) {\n        while (left >= 0 && right < s.length() && s.charAt(left) == s.charAt(right)) {\n            left--;\n            right++;\n        }\n        return right - left - 1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Dynamic Programming Table",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nLet `palindrome[start][end]` mean that `s[start..end]` is a palindrome. Fill ranges from shorter to longer so the inner range `start + 1..end - 1` is known before the outer range is evaluated.\n\n## Key Insight\n\nA substring is a palindrome when its two endpoint characters match and the inside substring is also a palindrome. Length `1` and length `2` ranges are the base cases that make the recurrence start cleanly.\n\n## Complexity Analysis\n\nThe table has `O(n^2)` entries, and each entry is computed in constant time. The time complexity is `O(n^2)`, and the table uses `O(n^2)` space.",
+      "code": "class Solution {\n    public String longestPalindrome(String s) {\n        int n = s.length();\n        boolean[][] palindrome = new boolean[n][n];\n        int bestStart = 0;\n        int bestLength = 1;\n\n        for (int length = 1; length <= n; length++) {\n            for (int start = 0; start + length <= n; start++) {\n                int end = start + length - 1;\n                if (s.charAt(start) == s.charAt(end)\n                        && (length <= 2 || palindrome[start + 1][end - 1])) {\n                    palindrome[start][end] = true;\n                    if (length > bestLength) {\n                        bestStart = start;\n                        bestLength = length;\n                    }\n                }\n            }\n        }\n        return s.substring(bestStart, bestStart + bestLength);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Manacher's Algorithm",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nTransform the string by inserting separators so odd and even palindromes are handled uniformly. Maintain the rightmost palindrome currently known and mirror radius information across its center to avoid rechecking characters.\n\n## Key Insight\n\nWhen a center lies inside the current right boundary, its mirror center already describes part of its radius. Only the unmatched suffix beyond the boundary needs fresh expansion, which makes the total expansion work linear.\n\n## Complexity Analysis\n\nEach transformed character moves the right boundary at most once, so the time complexity is `O(n)`. The transformed array and radius array use `O(n)` space.",
+      "code": "class Solution {\n    public String longestPalindrome(String s) {\n        int n = s.length();\n        char[] transformed = new char[n * 2 + 3];\n        transformed[0] = '^';\n        int index = 1;\n        for (int i = 0; i < n; i++) {\n            transformed[index++] = '#';\n            transformed[index++] = s.charAt(i);\n        }\n        transformed[index++] = '#';\n        transformed[index] = '$';\n\n        int[] radius = new int[transformed.length];\n        int center = 0;\n        int right = 0;\n        int bestCenter = 0;\n        int bestLength = 0;\n\n        for (int i = 1; i < transformed.length - 1; i++) {\n            int mirror = 2 * center - i;\n            if (i < right) {\n                radius[i] = Math.min(right - i, radius[mirror]);\n            }\n            while (transformed[i + 1 + radius[i]] == transformed[i - 1 - radius[i]]) {\n                radius[i]++;\n            }\n            if (i + radius[i] > right) {\n                center = i;\n                right = i + radius[i];\n            }\n            if (radius[i] > bestLength) {\n                bestLength = radius[i];\n                bestCenter = i;\n            }\n        }\n\n        int start = (bestCenter - bestLength) / 2;\n        return s.substring(start, start + bestLength);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Reversed String LCS with Index Guard",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nCompute the longest common substring between `s` and `reverse(s)`, but accept a match only when the reversed match maps back to the same original indices. This index guard removes false positives where a common substring is not actually mirrored in place.\n\n## Key Insight\n\nA palindrome appears unchanged when the whole string is reversed, but ordinary common substrings can also appear in unrelated positions. The original-start check is the difference between a tempting shortcut and a correct algorithm.\n\n## Complexity Analysis\n\nThe dynamic-programming table compares every pair of positions in `s` and `reverse(s)`, so the time complexity is `O(n^2)`. The table stores `O(n^2)` suffix lengths.",
+      "code": "class Solution {\n    public String longestPalindrome(String s) {\n        int n = s.length();\n        String reversed = new StringBuilder(s).reverse().toString();\n        int[][] dp = new int[n + 1][n + 1];\n        int bestStart = 0;\n        int bestLength = 1;\n\n        for (int i = 1; i <= n; i++) {\n            for (int j = 1; j <= n; j++) {\n                if (s.charAt(i - 1) != reversed.charAt(j - 1)) {\n                    continue;\n                }\n                dp[i][j] = dp[i - 1][j - 1] + 1;\n                int originalStart = n - j;\n                int length = i - originalStart;\n                if (originalStart >= 0 && length > bestLength && length <= dp[i][j]) {\n                    bestStart = originalStart;\n                    bestLength = length;\n                }\n            }\n        }\n        return s.substring(bestStart, bestStart + bestLength);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"babad\"", "output": "\"bab\"" },
-    { "input": "s = \"cbbd\"", "output": "\"bb\"" },
-    { "input": "s = \"a\"", "output": "\"a\"" },
-    { "input": "s = \"ac\"", "output": "\"a\"" }
+    {
+      "input": "s = \"babad\"",
+      "output": "\"bab\"",
+      "description": "Odd-length tie case should return the earliest longest palindrome."
+    },
+    {
+      "input": "s = \"cbbd\"",
+      "output": "\"bb\"",
+      "description": "Even-length palindrome centered between equal characters."
+    },
+    {
+      "input": "s = \"a\"",
+      "output": "\"a\"",
+      "description": "Single-character boundary."
+    },
+    {
+      "input": "s = \"ac\"",
+      "output": "\"a\"",
+      "description": "No longer palindrome exists, so the earliest single character wins."
+    },
+    {
+      "input": "s = \"bananas\"",
+      "output": "\"anana\"",
+      "description": "Overlapping odd-length palindromes with the longest in the middle."
+    },
+    {
+      "input": "s = \"forgeeksskeegfor\"",
+      "output": "\"geeksskeeg\"",
+      "description": "Long even-length palindrome embedded inside other characters."
+    },
+    {
+      "input": "s = \"aaaa\"",
+      "output": "\"aaaa\"",
+      "description": "All characters equal, so the whole string is the answer."
+    },
+    {
+      "input": "s = \"abcda\"",
+      "output": "\"a\"",
+      "description": "Repeated endpoint characters do not form a contiguous palindrome."
+    },
+    {
+      "input": "s = \"zzracecarxy\"",
+      "output": "\"racecar\"",
+      "description": "Classic odd-length palindrome with noise on both sides."
+    },
+    {
+      "input": "s = \"abb\"",
+      "output": "\"bb\"",
+      "description": "Even palindrome at the end of the string."
+    }
   ]
 }

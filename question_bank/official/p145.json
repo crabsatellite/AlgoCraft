@@ -1,43 +1,116 @@
 {
   "id": "145",
   "title": "Min Cost to Connect All Points",
-  "description": "# Min Cost to Connect All Points\n\nYou are given an array `points` representing integer coordinates of some points on a 2D-plane, where `points[i] = [xi, yi]`.\n\nThe cost of connecting two points `[xi, yi]` and `[xj, yj]` is the **manhattan distance** between them: `|xi - xj| + |yi - yj|`, where `|val|` denotes the absolute value of `val`.\n\nReturn *the minimum cost to make all points connected*. All points are connected if there is exactly one simple path between any two points.\n\n## Example 1:\n\n**Input:** points = [[0,0],[2,2],[3,10],[5,2],[7,0]]\n**Output:** 20\n**Explanation:** \nWe can connect the points as follows:\n1. Connect (0,0) - (2,2) with cost = 4\n2. Connect (2,2) - (5,2) with cost = 3\n3. Connect (5,2) - (7,0) with cost = 4\n4. Connect (2,2) - (3,10) with cost = 9\nTotal cost = 4 + 3 + 4 + 9 = 20\nNotice that there is a unique path between every pair of points.\n\n## Example 2:\n\n**Input:** points = [[3,12],[-2,5],[-4,1]]\n**Output:** 18\n\n## Constraints:\n\n*   `1 <= points.length <= 1000`\n*   `-10^6 <= xi, yi <= 10^6`\n*   All pairs `(xi, yi)` are distinct.",
+  "description": "# Min Cost to Connect All Points\n\nYou are given `points`, where `points[i] = [xi, yi]` is the coordinate of the `i`th point on a 2D plane.\n\nYou may connect any two distinct points. The cost of connecting `points[i]` and `points[j]` is their Manhattan distance: `|xi - xj| + |yi - yj|`.\n\nThe selected connections must provide exactly one path between any two points. Their total cost is the sum of the selected connection costs. A single point needs no connection and costs `0`.\n\nReturn the lowest total cost satisfying these rules.\n\n## Example 1\n\n**Input:** `points = [[0,0],[2,2],[3,10],[5,2],[7,0]]`\n\n**Output:** `20`\n\n**Explanation:** One optimal tree connects `(0,0)-(2,2)`, `(2,2)-(5,2)`, `(5,2)-(7,0)`, and `(2,2)-(3,10)`, with total cost `4 + 3 + 4 + 9 = 20`.\n\n## Example 2\n\n**Input:** `points = [[3,12],[-2,5],[-4,1]]`\n\n**Output:** `18`\n\n## Constraints\n\n- `1 <= points.length <= 1000`\n- `-10^6 <= xi, yi <= 10^6`\n- All pairs `(xi, yi)` are distinct.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int minCostConnectPoints(int[][] points) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Union Find", "Graph", "Minimum Spanning Tree"],
+  "tags": [
+    "Array",
+    "Union Find",
+    "Graph",
+    "Minimum Spanning Tree"
+  ],
   "examples": [
-    { "input": "points = [[0,0],[2,2],[3,10],[5,2],[7,0]]", "output": "20" },
-    { "input": "points = [[3,12],[-2,5],[-4,1]]", "output": "18" }
+    {
+      "input": "points = [[0,0],[2,2],[3,10],[5,2],[7,0]]",
+      "output": "20"
+    },
+    {
+      "input": "points = [[3,12],[-2,5],[-4,1]]",
+      "output": "18"
+    }
   ],
   "solutions": [
     {
-      "name": "Prim's Algorithm",
-      "timeComplexity": "O(n^2 log n)",
+      "name": "Dense Prim with Distance Array",
+      "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(n)",
-      "description": "Start from any point. Use a min-heap to always pick the nearest unvisited point. Add the edge cost and mark the point as visited. Repeat until all points are connected.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int minCostConnectPoints(int[][] points) {\n        int n = points.length, cost = 0, connected = 0;\n        boolean[] visited = new boolean[n];\n        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] - b[0]);\n        pq.offer(new int[]{0, 0});\n        while (connected < n) {\n            int[] cur = pq.poll();\n            if (visited[cur[1]]) continue;\n            visited[cur[1]] = true;\n            cost += cur[0];\n            connected++;\n            for (int j = 0; j < n; j++) {\n                if (!visited[j]) {\n                    int dist = Math.abs(points[cur[1]][0] - points[j][0]) + Math.abs(points[cur[1]][1] - points[j][1]);\n                    pq.offer(new int[]{dist, j});\n                }\n            }\n        }\n        return cost;\n    }\n}",
+      "description": "## Approach\n\nGrow one connected component. For each point outside the component, store the cheapest edge that can connect it to any point already chosen. Repeatedly add the unchosen point with the smallest stored distance, then update all remaining distances using the newly added point.\n\n## Key Insight\n\nThe graph is complete, so building every edge is expensive and unnecessary. Prim's cut property lets us keep only each outside point's best known crossing edge; scanning all points is fast enough for `n <= 1000` and uses only linear extra space.\n\n## Complexity Analysis\n\nThere are `n` rounds and each round scans all points to choose the next vertex and all points again to update distances, so the time complexity is O(n^2). The `visited` and `minDist` arrays use O(n) space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minCostConnectPoints(int[][] points) {\n        int n = points.length;\n        boolean[] visited = new boolean[n];\n        int[] minDist = new int[n];\n        Arrays.fill(minDist, Integer.MAX_VALUE);\n        minDist[0] = 0;\n\n        int total = 0;\n        for (int added = 0; added < n; added++) {\n            int next = -1;\n            for (int i = 0; i < n; i++) {\n                if (!visited[i] && (next == -1 || minDist[i] < minDist[next])) {\n                    next = i;\n                }\n            }\n\n            visited[next] = true;\n            total += minDist[next];\n            for (int j = 0; j < n; j++) {\n                if (!visited[j]) {\n                    int dist = Math.abs(points[next][0] - points[j][0])\n                            + Math.abs(points[next][1] - points[j][1]);\n                    if (dist < minDist[j]) {\n                        minDist[j] = dist;\n                    }\n                }\n            }\n        }\n        return total;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Kruskal's Algorithm",
+      "name": "Kruskal with Union-Find",
       "timeComplexity": "O(n^2 log n)",
       "spaceComplexity": "O(n^2)",
-      "description": "Generate all possible edges with Manhattan distance weights. Sort by weight. Use Union-Find to greedily add edges that connect different components until all points are connected.",
-      "code": "import java.util.*;\n\nclass Solution {\n    private int[] parent, rank;\n\n    public int minCostConnectPoints(int[][] points) {\n        int n = points.length;\n        List<int[]> edges = new ArrayList<>();\n        for (int i = 0; i < n; i++)\n            for (int j = i + 1; j < n; j++) {\n                int dist = Math.abs(points[i][0] - points[j][0]) + Math.abs(points[i][1] - points[j][1]);\n                edges.add(new int[]{dist, i, j});\n            }\n        Collections.sort(edges, (a, b) -> a[0] - b[0]);\n        parent = new int[n];\n        rank = new int[n];\n        for (int i = 0; i < n; i++) parent[i] = i;\n        int cost = 0, edgesUsed = 0;\n        for (int[] edge : edges) {\n            if (edgesUsed == n - 1) break;\n            int ra = find(edge[1]), rb = find(edge[2]);\n            if (ra != rb) {\n                if (rank[ra] < rank[rb]) { int t = ra; ra = rb; rb = t; }\n                parent[rb] = ra;\n                if (rank[ra] == rank[rb]) rank[ra]++;\n                cost += edge[0];\n                edgesUsed++;\n            }\n        }\n        return cost;\n    }\n\n    private int find(int x) {\n        if (parent[x] != x) parent[x] = find(parent[x]);\n        return parent[x];\n    }\n}",
+      "description": "## Approach\n\nGenerate every pairwise Manhattan edge, sort all edges by weight, and use Union-Find to accept an edge only when it connects two different components. Stop after accepting `n - 1` edges.\n\n## Key Insight\n\nKruskal's algorithm is a direct greedy view of MST construction: take the cheapest edge that does not create a cycle. It is easy to reason about, but the complete graph has O(n^2) edges, so this route spends much more memory than dense Prim.\n\n## Complexity Analysis\n\nThe algorithm creates and sorts O(n^2) edges, so the time complexity is O(n^2 log n). The edge list dominates the space complexity at O(n^2), while Union-Find uses O(n).",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minCostConnectPoints(int[][] points) {\n        int n = points.length;\n        List<int[]> edges = new ArrayList<>(n * (n - 1) / 2);\n        for (int i = 0; i < n; i++) {\n            for (int j = i + 1; j < n; j++) {\n                int weight = Math.abs(points[i][0] - points[j][0])\n                        + Math.abs(points[i][1] - points[j][1]);\n                edges.add(new int[]{weight, i, j});\n            }\n        }\n        edges.sort(Comparator.comparingInt(edge -> edge[0]));\n\n        DSU dsu = new DSU(n);\n        int total = 0;\n        int used = 0;\n        for (int[] edge : edges) {\n            if (used == n - 1) {\n                break;\n            }\n            if (dsu.union(edge[1], edge[2])) {\n                total += edge[0];\n                used++;\n            }\n        }\n        return total;\n    }\n\n    private static final class DSU {\n        private final int[] parent;\n        private final int[] rank;\n\n        DSU(int n) {\n            parent = new int[n];\n            rank = new int[n];\n            for (int i = 0; i < n; i++) {\n                parent[i] = i;\n            }\n        }\n\n        int find(int x) {\n            if (parent[x] != x) {\n                parent[x] = find(parent[x]);\n            }\n            return parent[x];\n        }\n\n        boolean union(int a, int b) {\n            int rootA = find(a);\n            int rootB = find(b);\n            if (rootA == rootB) {\n                return false;\n            }\n            if (rank[rootA] < rank[rootB]) {\n                int tmp = rootA;\n                rootA = rootB;\n                rootB = tmp;\n            }\n            parent[rootB] = rootA;\n            if (rank[rootA] == rank[rootB]) {\n                rank[rootA]++;\n            }\n            return true;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Lazy Prim with Priority Queue",
+      "timeComplexity": "O(n^2 log n)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nUse Prim's algorithm with a min-heap of candidate edges. Whenever a point enters the tree, push edges from that point to every unvisited point. Pop the cheapest edge until it reaches a new point, add its cost, and continue.\n\n## Key Insight\n\nThis version mirrors the usual heap-based Prim template and is useful when the graph is sparse. In this problem the graph is complete, so the heap may hold many stale candidate edges; it is simpler to adapt but not as memory efficient as the distance-array version.\n\n## Complexity Analysis\n\nEach accepted point can push O(n) candidate edges, giving O(n^2) heap entries and O(n^2 log n) time. The heap can grow to O(n^2) space in the worst case.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minCostConnectPoints(int[][] points) {\n        int n = points.length;\n        boolean[] visited = new boolean[n];\n        PriorityQueue<int[]> heap = new PriorityQueue<>(Comparator.comparingInt(edge -> edge[0]));\n        heap.offer(new int[]{0, 0});\n\n        int total = 0;\n        int added = 0;\n        while (added < n) {\n            int[] edge = heap.poll();\n            int cost = edge[0];\n            int point = edge[1];\n            if (visited[point]) {\n                continue;\n            }\n\n            visited[point] = true;\n            total += cost;\n            added++;\n            for (int next = 0; next < n; next++) {\n                if (!visited[next]) {\n                    int dist = Math.abs(points[point][0] - points[next][0])\n                            + Math.abs(points[point][1] - points[next][1]);\n                    heap.offer(new int[]{dist, next});\n                }\n            }\n        }\n        return total;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Boruvka Component Merging",
+      "timeComplexity": "O(n^2 log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStart with every point as its own component. In each phase, scan all point pairs and remember the cheapest outgoing edge for every current component. Add all chosen safe edges with Union-Find, reducing the number of components until only one remains.\n\n## Key Insight\n\nBoruvka's algorithm gives a third classic MST perspective: each component independently takes its cheapest edge across the cut, and all of those choices are safe. It reinforces why greedy MST edges can be added in batches, not only one at a time.\n\n## Complexity Analysis\n\nEach phase scans O(n^2) pairs, and the number of components at least halves after successful phases in the standard Boruvka analysis, so the time complexity is O(n^2 log n). Union-Find plus the cheapest-edge arrays use O(n) extra space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int minCostConnectPoints(int[][] points) {\n        int n = points.length;\n        DSU dsu = new DSU(n);\n        int components = n;\n        int total = 0;\n\n        while (components > 1) {\n            int[] bestU = new int[n];\n            int[] bestV = new int[n];\n            int[] bestW = new int[n];\n            Arrays.fill(bestW, Integer.MAX_VALUE);\n\n            for (int i = 0; i < n; i++) {\n                for (int j = i + 1; j < n; j++) {\n                    int rootI = dsu.find(i);\n                    int rootJ = dsu.find(j);\n                    if (rootI == rootJ) {\n                        continue;\n                    }\n                    int weight = Math.abs(points[i][0] - points[j][0])\n                            + Math.abs(points[i][1] - points[j][1]);\n                    if (weight < bestW[rootI]) {\n                        bestU[rootI] = i;\n                        bestV[rootI] = j;\n                        bestW[rootI] = weight;\n                    }\n                    if (weight < bestW[rootJ]) {\n                        bestU[rootJ] = i;\n                        bestV[rootJ] = j;\n                        bestW[rootJ] = weight;\n                    }\n                }\n            }\n\n            for (int root = 0; root < n; root++) {\n                if (bestW[root] != Integer.MAX_VALUE && dsu.union(bestU[root], bestV[root])) {\n                    total += bestW[root];\n                    components--;\n                }\n            }\n        }\n        return total;\n    }\n\n    private static final class DSU {\n        private final int[] parent;\n        private final int[] rank;\n\n        DSU(int n) {\n            parent = new int[n];\n            rank = new int[n];\n            for (int i = 0; i < n; i++) {\n                parent[i] = i;\n            }\n        }\n\n        int find(int x) {\n            if (parent[x] != x) {\n                parent[x] = find(parent[x]);\n            }\n            return parent[x];\n        }\n\n        boolean union(int a, int b) {\n            int rootA = find(a);\n            int rootB = find(b);\n            if (rootA == rootB) {\n                return false;\n            }\n            if (rank[rootA] < rank[rootB]) {\n                int tmp = rootA;\n                rootA = rootB;\n                rootB = tmp;\n            }\n            parent[rootB] = rootA;\n            if (rank[rootA] == rank[rootB]) {\n                rank[rootA]++;\n            }\n            return true;\n        }\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "points = [[0,0],[2,2],[3,10],[5,2],[7,0]]", "output": "20" },
-    { "input": "points = [[3,12],[-2,5],[-4,1]]", "output": "18" },
-    { "input": "points = [[0,0],[1,1]]", "output": "2" },
-    { "input": "points = [[0,0]]", "output": "0" }
+    {
+      "input": "points = [[0,0],[2,2],[3,10],[5,2],[7,0]]",
+      "output": "20",
+      "description": "Canonical five-point set whose minimum spanning tree has total Manhattan cost twenty."
+    },
+    {
+      "input": "points = [[3,12],[-2,5],[-4,1]]",
+      "output": "18",
+      "description": "Negative coordinates verify Manhattan distance across quadrants."
+    },
+    {
+      "input": "points = [[0,0]]",
+      "output": "0",
+      "description": "A single point needs no connecting edge."
+    },
+    {
+      "input": "points = [[0,0],[1,1]]",
+      "output": "2",
+      "description": "Two points require exactly one edge."
+    },
+    {
+      "input": "points = [[0,0],[2,0],[5,0],[9,0]]",
+      "output": "9",
+      "description": "Collinear points should connect through adjacent gaps instead of a long direct edge."
+    },
+    {
+      "input": "points = [[0,0],[0,2],[2,0],[2,2]]",
+      "output": "6",
+      "description": "A square has many optimal MSTs with equal edge weights."
+    },
+    {
+      "input": "points = [[0,0],[0,5],[5,0],[5,5],[2,2]]",
+      "output": "19",
+      "description": "A center-ish point changes the cheapest tree but does not connect every corner directly."
+    },
+    {
+      "input": "points = [[-1,-1],[1,1],[1,-1],[-1,1]]",
+      "output": "6",
+      "description": "Symmetric negative and positive coordinates create tied MST choices."
+    },
+    {
+      "input": "points = [[-1000000,-1000000],[1000000,1000000],[1000000,-1000000]]",
+      "output": "4000000",
+      "description": "Large coordinate extremes stay within 32-bit total cost for this constraint range."
+    },
+    {
+      "input": "points = [[0,0],[2,2],[4,0],[2,-2]]",
+      "output": "12",
+      "description": "All pairwise distances tie, so solutions must handle arbitrary valid MST structure."
+    }
   ],
   "diagrams": [
     {
       "id": "example1",
-      "file": "p145_mst.png",
-      "caption": "Minimum Spanning Tree connecting all points"
+      "file": "p145_points.png",
+      "caption": "Input points on a plane with Manhattan distance as the connection cost"
     }
   ]
 }

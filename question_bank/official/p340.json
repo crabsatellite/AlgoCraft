@@ -1,46 +1,128 @@
 {
   "id": "340",
-  "title": "Word Search II",
-  "description": "# Word Search II\n\nGiven an `m x n` `board` of characters and a list of strings `words`, return *all words on the board*.\n\nEach word must be constructed from letters of sequentially adjacent cells, where **adjacent cells** are horizontally or vertically neighboring. The same letter cell may not be used more than once in a word.\n\n## Example 1:\n\n**Input:** board = [[\"o\",\"a\",\"a\",\"n\"],[\"e\",\"t\",\"a\",\"e\"],[\"i\",\"h\",\"k\",\"r\"],[\"i\",\"f\",\"l\",\"v\"]], words = [\"oath\",\"pea\",\"eat\",\"rain\"]\n**Output:** [\"eat\",\"oath\"]\n\n## Example 2:\n\n**Input:** board = [[\"a\",\"b\"],[\"c\",\"d\"]], words = [\"abcb\"]\n**Output:** []\n\n## Constraints:\n\n*   `m == board.length`\n*   `n == board[i].length`\n*   `1 <= m, n <= 12`\n*   `board[i][j]` is a lowercase English letter.\n*   `1 <= words.length <= 3 * 10^4`\n*   `1 <= words[i].length <= 10`\n*   `words[i]` consists of lowercase English letters.\n*   All the strings of `words` are unique.",
-  "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public List<String> findWords(char[][] board, String[] words) {\n        \n    }\n}",
-  "tags": ["Array", "String", "Backtracking", "Trie", "Matrix"],
+  "title": "Count Reversed Two-Letter Word Pairs",
+  "description": "# Count Reversed Two-Letter Word Pairs\n\nYou are given an array `words` where every word has exactly two lowercase English letters. Count the number of index pairs `(i, j)` such that `i < j` and `words[i]` is exactly the reverse of `words[j]`.\n\nA word may participate in more than one counted pair if there are multiple valid indices. For example, two copies of `\"ab\"` and two copies of `\"ba\"` form four index pairs. A palindromic word such as `\"aa\"` can pair only with another occurrence of the same word.\n\n## Example 1:\n\n**Input:** words = [\"cd\",\"ac\",\"dc\",\"ca\",\"zz\"]\n**Output:** 2\n**Explanation:** `\"cd\"` pairs with `\"dc\"`, and `\"ac\"` pairs with `\"ca\"`. The single `\"zz\"` has no later or earlier second copy.\n\n## Example 2:\n\n**Input:** words = [\"ab\",\"ba\",\"ab\",\"ba\"]\n**Output:** 4\n**Explanation:** Each `\"ab\"` index can be paired with each `\"ba\"` index that appears on the other side of the pair ordering.\n\n## Constraints:\n\n*   `0 <= words.length <= 2000`\n*   `words[i].length == 2`\n*   `words[i]` contains only lowercase English letters.\n*   Count every valid index pair; do not greedily match each word at most once.",
+  "difficulty": "EASY",
+  "initialCode": "class Solution {\n    public int maximumNumberOfStringPairs(String[] words) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Hash Table",
+    "String"
+  ],
   "examples": [
     {
-      "input": "board = [[\"o\",\"a\",\"a\",\"n\"],[\"e\",\"t\",\"a\",\"e\"],[\"i\",\"h\",\"k\",\"r\"],[\"i\",\"f\",\"l\",\"v\"]], words = [\"oath\",\"pea\",\"eat\",\"rain\"]",
-      "output": "[\"eat\",\"oath\"]"
+      "input": "words = [\"cd\",\"ac\",\"dc\",\"ca\",\"zz\"]",
+      "output": "2"
     },
     {
-      "input": "board = [[\"a\",\"b\"],[\"c\",\"d\"]], words = [\"abcb\"]",
-      "output": "[]"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "Trie + Backtracking",
-      "timeComplexity": "O(m * n * 4^L)",
-      "spaceComplexity": "O(W * L)",
-      "description": "Build a Trie from all words. DFS from each cell on the board, following Trie nodes. When a word is found, add to result and remove from Trie to avoid duplicates.",
-      "code": "class Solution {\n    private int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}};\n    public List<String> findWords(char[][] board, String[] words) {\n        int[][] trie = new int[words.length * 11 + 1][26];\n        String[] endWord = new String[trie.length];\n        int size = 1;\n        for (String w : words) {\n            int node = 0;\n            for (char c : w.toCharArray()) {\n                int idx = c - 'a';\n                if (trie[node][idx] == 0) trie[node][idx] = size++;\n                node = trie[node][idx];\n            }\n            endWord[node] = w;\n        }\n        List<String> result = new java.util.ArrayList<>();\n        int m = board.length, n = board[0].length;\n        for (int i = 0; i < m; i++)\n            for (int j = 0; j < n; j++)\n                dfs(board, i, j, 0, trie, endWord, result);\n        return result;\n    }\n    private void dfs(char[][] board, int r, int c, int node, int[][] trie, String[] endWord, List<String> result) {\n        if (r < 0 || r >= board.length || c < 0 || c >= board[0].length || board[r][c] == '#') return;\n        int idx = board[r][c] - 'a';\n        if (trie[node][idx] == 0) return;\n        node = trie[node][idx];\n        if (endWord[node] != null) { result.add(endWord[node]); endWord[node] = null; }\n        char tmp = board[r][c];\n        board[r][c] = '#';\n        for (int[] d : dirs) dfs(board, r + d[0], c + d[1], node, trie, endWord, result);\n        board[r][c] = tmp;\n    }\n}",
-      "language": "java"
-    },
-    {
-      "name": "Trie with TrieNode Objects + Pruning",
-      "timeComplexity": "O(m * n * 4^L)",
-      "spaceComplexity": "O(W * L)",
-      "description": "Build a Trie using TrieNode objects with child arrays. During DFS backtracking, prune Trie nodes with no remaining children to reduce future search paths. Store the word at leaf nodes.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<String> findWords(char[][] board, String[] words) {\n        List<String> result = new ArrayList<>();\n        int[] root = new int[27];\n        int[][] children = new int[words.length * 11 + 1][27];\n        int nodeCount = 1;\n        for (String word : words) {\n            int[] node = root;\n            for (int ci = 0; ci < word.length(); ci++) {\n                int c = word.charAt(ci) - 'a';\n                if (node[c] == 0) {\n                    node[c] = nodeCount++;\n                }\n                node = children[node[c]];\n            }\n            node[26] = 1;\n        }\n        Map<Integer, String> nodeWords = new HashMap<>();\n        for (String word : words) {\n            int[] node = root;\n            for (int ci = 0; ci < word.length(); ci++) {\n                node = children[node[word.charAt(ci) - 'a']];\n            }\n        }\n        int m = board.length, n = board[0].length;\n        for (int i = 0; i < m; i++) {\n            for (int j = 0; j < n; j++) {\n                dfs(board, i, j, root, children, new StringBuilder(), result);\n            }\n        }\n        return result;\n    }\n    private void dfs(char[][] board, int r, int c, int[] node, int[][] children, StringBuilder sb, List<String> result) {\n        if (r < 0 || r >= board.length || c < 0 || c >= board[0].length || board[r][c] == '#') return;\n        char ch = board[r][c];\n        int idx = ch - 'a';\n        if (node[idx] == 0) return;\n        int[] child = children[node[idx]];\n        sb.append(ch);\n        if (child[26] == 1) {\n            result.add(sb.toString());\n            child[26] = 0;\n        }\n        board[r][c] = '#';\n        dfs(board, r + 1, c, child, children, sb, result);\n        dfs(board, r - 1, c, child, children, sb, result);\n        dfs(board, r, c + 1, child, children, sb, result);\n        dfs(board, r, c - 1, child, children, sb, result);\n        board[r][c] = ch;\n        sb.deleteCharAt(sb.length() - 1);\n    }\n}",
-      "language": "java"
+      "input": "words = [\"ab\",\"ba\",\"ab\",\"ba\"]",
+      "output": "4"
     }
   ],
   "tests": [
     {
-      "input": "board = [[\"o\",\"a\",\"a\",\"n\"],[\"e\",\"t\",\"a\",\"e\"],[\"i\",\"h\",\"k\",\"r\"],[\"i\",\"f\",\"l\",\"v\"]], words = [\"oath\",\"pea\",\"eat\",\"rain\"]",
-      "output": "[\"eat\",\"oath\"]"
+      "input": "words = [\"cd\",\"ac\",\"dc\",\"ca\",\"zz\"]",
+      "output": "2",
+      "description": "canonical sample with two non-palindromic reversal pairs"
     },
     {
-      "input": "board = [[\"a\",\"b\"],[\"c\",\"d\"]], words = [\"abcb\"]",
-      "output": "[]"
+      "input": "words = [\"ab\",\"ba\",\"cc\"]",
+      "output": "1",
+      "description": "a single palindromic word is not enough to form a pair"
+    },
+    {
+      "input": "words = [\"aa\",\"ab\"]",
+      "output": "0",
+      "description": "palindromic words still need a second occurrence"
+    },
+    {
+      "input": "words = [\"ab\",\"ba\",\"ab\",\"ba\"]",
+      "output": "4",
+      "description": "duplicates count all valid index pairs rather than one greedy match"
+    },
+    {
+      "input": "words = [\"aa\",\"aa\",\"aa\"]",
+      "output": "3",
+      "description": "three identical palindromic words create three index pairs"
+    },
+    {
+      "input": "words = [\"ab\",\"cd\",\"ef\"]",
+      "output": "0",
+      "description": "no reversed word appears"
+    },
+    {
+      "input": "words = [\"ab\",\"ba\",\"cd\",\"dc\",\"ee\",\"ee\"]",
+      "output": "3",
+      "description": "two ordinary reversal pairs plus one palindromic pair"
+    },
+    {
+      "input": "words = []",
+      "output": "0",
+      "description": "empty input has no index pairs"
+    },
+    {
+      "input": "words = [\"aa\"]",
+      "output": "0",
+      "description": "one palindromic word alone cannot pair with itself"
+    },
+    {
+      "input": "words = [\"az\",\"za\",\"za\",\"az\",\"zz\",\"zz\",\"zz\"]",
+      "output": "7",
+      "description": "two-by-two reverse groups plus three palindromic zz pairs"
+    },
+    {
+      "input": "words = [\"ab\",\"bc\",\"cb\",\"ba\",\"aa\",\"aa\",\"aa\",\"xy\",\"yx\"]",
+      "output": "6",
+      "description": "mixed reversal groups and a size-three palindromic group"
+    },
+    {
+      "input": "words = [\"ab\",\"ba\",\"ba\"]",
+      "output": "2",
+      "description": "one word can pair with multiple later reverse occurrences"
+    },
+    {
+      "input": "words = [\"aa\",\"bb\",\"aa\",\"bb\",\"cc\"]",
+      "output": "2",
+      "description": "separate palindromic letters are counted independently"
+    },
+    {
+      "input": "words = [\"ab\",\"ba\",\"cd\",\"dc\",\"ef\",\"fe\",\"gh\",\"hg\",\"ij\",\"ji\"]",
+      "output": "5",
+      "description": "several independent reversal pairs in one array"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Fixed Alphabet Matrix Counts",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan the array from left to right. Store how many times each two-letter word has already appeared in a `26 x 26` matrix. For a current word `ab`, every earlier `ba` creates one valid pair, so add `seen[b][a]` before recording `ab`.\n\n## Key Insight\n\nThe order condition `i < j` is handled by looking only at words already seen. Palindromic words also work naturally because `aa` looks up the same matrix cell before incrementing it.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1), because the matrix has only 676 cells.",
+      "code": "class Solution {\n    public int maximumNumberOfStringPairs(String[] words) {\n        int[][] seen = new int[26][26];\n        int pairs = 0;\n        for (String word : words) {\n            int first = word.charAt(0) - 'a';\n            int second = word.charAt(1) - 'a';\n            pairs += seen[second][first];\n            seen[first][second]++;\n        }\n        return pairs;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Hash Map Reverse Lookup",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nKeep a frequency map of words that have appeared earlier. For each current word, construct its reverse, add the previous frequency of that reverse, then increase the frequency of the current word.\n\n## Key Insight\n\nCounting previous reverses avoids any need to remove or greedily match words. If there are duplicates, every earlier reverse occurrence contributes one distinct index pair.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1) under the fixed two-lowercase-letter alphabet, or O(k) for `k` distinct words.",
+      "code": "class Solution {\n    public int maximumNumberOfStringPairs(String[] words) {\n        java.util.Map<String, Integer> seen = new java.util.HashMap<>();\n        int pairs = 0;\n        for (String word : words) {\n            String reversed = \"\" + word.charAt(1) + word.charAt(0);\n            pairs += seen.getOrDefault(reversed, 0);\n            seen.put(word, seen.getOrDefault(word, 0) + 1);\n        }\n        return pairs;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Canonical Batch Aggregation",
+      "timeComplexity": "O(n + 676)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFirst count every two-letter word in a matrix. Then aggregate unordered reversal classes: for different letters `a` and `b`, add `count[a][b] * count[b][a]`; for palindromic words `aa`, add `k * (k - 1) / 2`.\n\n## Key Insight\n\nThe one-pass method counts pairs online, while this route counts whole reversal groups after the scan. The formulas make the duplicate behavior explicit and prevent double counting non-palindromic classes.\n\n## Complexity Analysis\n- Time Complexity: O(n + 676)\n- Space Complexity: O(1).",
+      "code": "class Solution {\n    public int maximumNumberOfStringPairs(String[] words) {\n        int[][] count = new int[26][26];\n        for (String word : words) {\n            int first = word.charAt(0) - 'a';\n            int second = word.charAt(1) - 'a';\n            count[first][second]++;\n        }\n        int pairs = 0;\n        for (int first = 0; first < 26; first++) {\n            int same = count[first][first];\n            pairs += same * (same - 1) / 2;\n            for (int second = first + 1; second < 26; second++) {\n                pairs += count[first][second] * count[second][first];\n            }\n        }\n        return pairs;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Definition Pair Enumeration",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nEnumerate every pair of indices `i < j` and compare the two characters directly in reversed order. Increase the answer only when `words[i][0] == words[j][1]` and `words[i][1] == words[j][0]`.\n\n## Key Insight\n\nThis baseline mirrors the statement exactly. It is slower, but it is useful for validating optimized counting solutions on small inputs and for understanding why duplicates produce multiple pairs.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(1).",
+      "code": "class Solution {\n    public int maximumNumberOfStringPairs(String[] words) {\n        int pairs = 0;\n        for (int i = 0; i < words.length; i++) {\n            for (int j = i + 1; j < words.length; j++) {\n                if (words[i].charAt(0) == words[j].charAt(1)\n                        && words[i].charAt(1) == words[j].charAt(0)) {\n                    pairs++;\n                }\n            }\n        }\n        return pairs;\n    }\n}",
+      "language": "java"
     }
   ]
 }

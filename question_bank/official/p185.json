@@ -1,7 +1,7 @@
 {
   "id": "185",
   "title": "Meeting Rooms",
-  "description": "# Meeting Rooms\n\nGiven an array of meeting time `intervals` where `intervals[i] = [starti, endi]`, determine if a person could attend all meetings.\n\n## Example 1:\n\n**Input:** intervals = [[0,30],[5,10],[15,20]]\n**Output:** false\n\n## Example 2:\n\n**Input:** intervals = [[7,10],[2,4]]\n**Output:** true\n\n## Constraints:\n\n*   `0 <= intervals.length <= 10^4`\n*   `intervals[i].length == 2`\n*   `0 <= starti < endi <= 10^6`",
+  "description": "# Meeting Rooms\n\nYou are given an array of meeting time intervals `intervals`, where `intervals[i] = [starti, endi]` means one meeting starts at `starti` and ends at `endi`.\n\nReturn `true` if one person can attend every meeting, and return `false` if any two meetings overlap.\n\nA meeting that starts exactly when another meeting ends is allowed. In other words, `[1,5]` and `[5,8]` do not conflict. The input intervals are not guaranteed to be sorted.\n\n## Example 1:\n\n**Input:** intervals = [[0,30],[5,10],[15,20]]\n**Output:** false\n**Explanation:** The meeting `[0,30]` overlaps both other meetings.\n\n## Example 2:\n\n**Input:** intervals = [[7,10],[2,4]]\n**Output:** true\n**Explanation:** The two meetings are separated in time.\n\n## Constraints:\n\n*   `0 <= intervals.length <= 10^4`\n*   `intervals[i].length == 2`\n*   `0 <= starti < endi <= 10^6`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public boolean canAttendMeetings(int[][] intervals) {\n        // Write your code here\n        return false;\n    }\n}",
   "tags": [
@@ -20,62 +20,138 @@
   ],
   "solutions": [
     {
-      "name": "Sort and Check",
+      "name": "Sort By Start And Check Neighbors",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(1)",
-      "description": "Sort intervals by start time. Check if any adjacent intervals overlap (previous end > current start).",
-      "code": "class Solution {\n    public boolean canAttendMeetings(int[][] intervals) {\n        java.util.Arrays.sort(intervals, (a, b) -> a[0] - b[0]);\n        for (int i = 1; i < intervals.length; i++) {\n            if (intervals[i][0] < intervals[i - 1][1]) return false;\n        }\n        return true;\n    }\n}",
+      "description": "## Approach\n\nSort meetings by start time. After sorting, every conflict must appear between two neighboring meetings, so scan once and compare each start with the previous meeting's end.\n\n## Key Insight\n\nIf the current meeting starts before the previous sorted meeting ends, the same person would need to be in two meetings at once. Equality is safe because one meeting can end exactly when the next starts.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), dominated by sorting.\n- Space Complexity: O(1), aside from the sorting implementation.",
+      "code": "class Solution {\n    public boolean canAttendMeetings(int[][] intervals) {\n        java.util.Arrays.sort(intervals, (a, b) -> {\n            int byStart = Integer.compare(a[0], b[0]);\n            return byStart != 0 ? byStart : Integer.compare(a[1], b[1]);\n        });\n        for (int i = 1; i < intervals.length; i++) {\n            if (intervals[i][0] < intervals[i - 1][1]) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Brute Force Pairwise Check",
+      "name": "Pairwise Overlap Check",
       "timeComplexity": "O(n^2)",
       "spaceComplexity": "O(1)",
-      "description": "Check every pair of intervals for overlap. If any pair overlaps, return false. No sorting needed.",
+      "description": "## Approach\n\nCompare every pair of meetings. Two intervals `[a,b]` and `[c,d]` conflict exactly when `a < d && c < b`. If no pair conflicts, all meetings can be attended.\n\n## Key Insight\n\nThis is the direct definition of overlap. It is slower than sorting, but it is a useful baseline because it handles unsorted input without relying on any ordering argument.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), because every pair may be checked.\n- Space Complexity: O(1).",
       "code": "class Solution {\n    public boolean canAttendMeetings(int[][] intervals) {\n        for (int i = 0; i < intervals.length; i++) {\n            for (int j = i + 1; j < intervals.length; j++) {\n                if (intervals[i][0] < intervals[j][1] && intervals[j][0] < intervals[i][1]) {\n                    return false;\n                }\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Separate Starts And Ends Sweep",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCopy all start times into one array and all end times into another, then sort both. The `i`th earliest start must be at or after the `(i - 1)`th earliest end; otherwise two meetings are active at the same time.\n\n## Key Insight\n\nThis separates meeting attendance into timeline events. Since endpoint touching is allowed, the conflict condition is strictly `starts[i] < ends[i - 1]`, not `<=`.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), because both arrays are sorted.\n- Space Complexity: O(n), for the start and end arrays.",
+      "code": "class Solution {\n    public boolean canAttendMeetings(int[][] intervals) {\n        int n = intervals.length;\n        int[] starts = new int[n];\n        int[] ends = new int[n];\n        for (int i = 0; i < n; i++) {\n            starts[i] = intervals[i][0];\n            ends[i] = intervals[i][1];\n        }\n        java.util.Arrays.sort(starts);\n        java.util.Arrays.sort(ends);\n        for (int i = 1; i < n; i++) {\n            if (starts[i] < ends[i - 1]) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Event Delta Sweep",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStore timeline deltas in a sorted map: add `+1` at every meeting start and `-1` at every meeting end. Sweep coordinates in order and track how many meetings are active. If active count ever exceeds one, there is a conflict.\n\n## Key Insight\n\nCombining all deltas at the same timestamp makes endpoint touching safe. At time `5`, one meeting ending and another starting produce net zero extra overlap for a single attendee.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), because events are inserted into an ordered map.\n- Space Complexity: O(n), for the event map.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean canAttendMeetings(int[][] intervals) {\n        TreeMap<Integer, Integer> events = new TreeMap<>();\n        for (int[] interval : intervals) {\n            events.merge(interval[0], 1, Integer::sum);\n            events.merge(interval[1], -1, Integer::sum);\n        }\n        int active = 0;\n        for (int delta : events.values()) {\n            active += delta;\n            if (active > 1) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Ordered Calendar Insertion",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nInsert meetings one by one into a `TreeMap` keyed by start time. Before inserting `[start,end]`, check the previous meeting's end and the next meeting's start. If either neighbor overlaps, the schedule is impossible.\n\n## Key Insight\n\nIn an ordered calendar, a new interval can only conflict with its immediate predecessor or successor by start time. This mirrors how an actual calendar booking system validates a new event.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n), because each insertion uses ordered-map lookups.\n- Space Complexity: O(n), for the calendar map.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean canAttendMeetings(int[][] intervals) {\n        TreeMap<Integer, Integer> calendar = new TreeMap<>();\n        for (int[] interval : intervals) {\n            int start = interval[0];\n            int end = interval[1];\n            Map.Entry<Integer, Integer> previous = calendar.floorEntry(start);\n            if (previous != null && previous.getValue() > start) {\n                return false;\n            }\n            Map.Entry<Integer, Integer> next = calendar.ceilingEntry(start);\n            if (next != null && end > next.getKey()) {\n                return false;\n            }\n            calendar.put(start, Math.max(calendar.getOrDefault(start, end), end));\n        }\n        return true;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "intervals = [[0,30],[5,10],[15,20]]",
-      "output": "false"
+      "output": "false",
+      "description": "Canonical meeting conflict blocks attending all meetings."
     },
     {
       "input": "intervals = [[7,10],[2,4]]",
-      "output": "true"
+      "output": "true",
+      "description": "Two separated meetings can both be attended."
     },
     {
       "input": "intervals = []",
-      "output": "true"
+      "output": "true",
+      "description": "No meetings means there is no conflict."
     },
     {
       "input": "intervals = [[1,5]]",
-      "output": "true"
+      "output": "true",
+      "description": "A single meeting is always attendable."
     },
     {
-      "input": "intervals = [[1,5],[5,10]]",
-      "output": "true"
+      "input": "intervals = [[1,5],[5,8]]",
+      "output": "true",
+      "description": "A meeting that starts exactly when another ends is allowed."
     },
     {
-      "input": "intervals = [[1,5],[4,10]]",
-      "output": "false"
-    },
-    {
-      "input": "intervals = [[1,2],[3,4],[5,6],[7,8]]",
-      "output": "true"
+      "input": "intervals = [[1,5],[4,6]]",
+      "output": "false",
+      "description": "Partial overlap between two meetings creates a conflict."
     },
     {
       "input": "intervals = [[1,10],[2,3],[4,5]]",
-      "output": "false"
+      "output": "false",
+      "description": "One long meeting conflicts with meetings contained inside it."
+    },
+    {
+      "input": "intervals = [[5,8],[1,3],[3,5]]",
+      "output": "true",
+      "description": "Unsorted endpoint-touching chain should be accepted."
+    },
+    {
+      "input": "intervals = [[1,2],[1,2]]",
+      "output": "false",
+      "description": "Duplicate meetings conflict completely."
+    },
+    {
+      "input": "intervals = [[0,1],[1,2],[2,3],[3,4]]",
+      "output": "true",
+      "description": "Many back-to-back meetings remain conflict-free."
+    },
+    {
+      "input": "intervals = [[0,10],[5,10]]",
+      "output": "false",
+      "description": "Meetings with the same end can still overlap."
+    },
+    {
+      "input": "intervals = [[1,4],[2,3],[4,5]]",
+      "output": "false",
+      "description": "Nested conflict before a compatible tail must be detected."
+    },
+    {
+      "input": "intervals = [[10,20],[0,5],[5,10]]",
+      "output": "true",
+      "description": "Unsorted separated meetings should sort into a valid schedule."
+    },
+    {
+      "input": "intervals = [[0,1000000],[1,2]]",
+      "output": "false",
+      "description": "Boundary-length meeting conflicts with a contained short meeting."
+    },
+    {
+      "input": "intervals = [[2,6],[6,9],[1,2],[9,10]]",
+      "output": "true",
+      "description": "Unsorted chain with several endpoint touches is valid."
+    },
+    {
+      "input": "intervals = [[2,6],[6,9],[1,3]]",
+      "output": "false",
+      "description": "A hidden overlap remains invalid even when later meetings touch endpoints."
+    },
+    {
+      "input": "intervals = [[0,1],[1,2],[0,2]]",
+      "output": "false",
+      "description": "A broad meeting conflicts with two individually compatible short meetings."
     }
   ],
-  "diagram": "images/p185_meeting_rooms.png",
   "diagrams": [
     {
       "id": "example1",
       "file": "p185_example1.png",
-      "caption": "Meeting Rooms: [0,30] conflicts (red)"
+      "caption": "Meeting intervals on a timeline for attendance conflict checking"
     }
   ]
 }

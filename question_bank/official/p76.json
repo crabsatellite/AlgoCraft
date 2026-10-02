@@ -1,68 +1,132 @@
 {
   "id": "76",
   "title": "Palindrome Linked List",
-  "description": "# Palindrome Linked List\n\nGiven the `head` of a singly linked list, return `true` *if it is a palindrome or* `false` *otherwise*.\n\n## Example 1:\n\n**Input:** head = [1,2,2,1]\n**Output:** true\n\n## Example 2:\n\n**Input:** head = [1,2]\n**Output:** false\n\n## Constraints:\n\n*   The number of nodes in the list is in the range `[1, 10^5]`.\n*   `0 <= Node.val <= 9`",
+  "description": "# Palindrome Linked List\n\nGiven the `head` of a singly linked list, return `true` if the node values read the same from head to tail and from tail to head. Otherwise, return `false`.\n\nOnly the values are compared. Repeated values do not prove that a list is a palindrome; the mirrored positions must match all the way to the center.\n\nExample arrays display values in `next` order; `[]` denotes an empty list (`null`). A node stores its value in `val` and its next node in `next`. Use node objects for list parameters and results as shown in the initial code.\n\n## Example 1\n\n**Input:** head = [1,2,2,1]\n**Output:** true\n**Explanation:** The values read as 1,2,2,1 in both directions.\n\n## Example 2\n\n**Input:** head = [1,2]\n**Output:** false\n**Explanation:** The first and last values differ.\n\n## Constraints\n\n*   The number of nodes in the list is in the range `[1, 10^5]`.\n*   `0 <= Node.val <= 9`",
   "difficulty": "EASY",
-  "initialCode": "/**\n * Definition for singly-linked list.\n * public class ListNode {\n *     int val;\n *     ListNode next;\n *     ListNode() {}\n *     ListNode(int val) { this.val = val; }\n *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n * }\n */\nclass Solution {\n    public boolean isPalindrome(ListNode head) {\n        // Write your code here\n        return false;\n    }\n}",
-  "tags": ["Linked List", "Two Pointers", "Stack", "Recursion"],
+  "initialCode": "/**\n * Definition for singly-linked list.\n * public class ListNode {\n *     int val;\n *     ListNode next;\n *     ListNode() {}\n *     ListNode(int val) { this.val = val; }\n *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n * }\n */\nclass Solution {\n    public boolean isPalindrome(ListNode head) {\n        return false;\n    }\n}",
+  "tags": [
+    "Linked List",
+    "Two Pointers",
+    "Stack",
+    "Recursion"
+  ],
   "examples": [
     {
       "input": "head = [1,2,2,1]",
-      "output": "true"
+      "output": "true",
+      "description": "Even-length palindrome"
     },
     {
       "input": "head = [1,2]",
-      "output": "false"
+      "output": "false",
+      "description": "Two-node non-palindrome"
     }
   ],
   "tests": [
     {
       "input": "head = [1,2,2,1]",
-      "output": "true"
+      "output": "true",
+      "description": "Canonical even-length palindrome"
     },
     {
       "input": "head = [1,2]",
-      "output": "false"
+      "output": "false",
+      "description": "Canonical two-node non-palindrome"
     },
     {
       "input": "head = [1]",
-      "output": "true"
+      "output": "true",
+      "description": "Single node is always a palindrome"
     },
     {
       "input": "head = [1,2,1]",
-      "output": "true"
+      "output": "true",
+      "description": "Odd-length palindrome with one middle node"
     },
     {
       "input": "head = [1,2,3,4]",
-      "output": "false"
+      "output": "false",
+      "description": "Even-length non-palindrome"
     },
     {
       "input": "head = [1,0,0,1]",
-      "output": "true"
+      "output": "true",
+      "description": "Palindrome containing zero values"
+    },
+    {
+      "input": "head = [1,2,3,2,1]",
+      "output": "true",
+      "description": "Longer odd-length palindrome"
+    },
+    {
+      "input": "head = [1,2,3,4,2,1]",
+      "output": "false",
+      "description": "Longer even-length list with an inner mismatch"
+    },
+    {
+      "input": "head = [1,1,2,1]",
+      "output": "false",
+      "description": "Repeated values are not enough when mirrored positions differ"
+    },
+    {
+      "input": "head = [9,0,9]",
+      "output": "true",
+      "description": "Upper and lower allowed digit values"
+    },
+    {
+      "input": "head = [7,7,7,7,7]",
+      "output": "true",
+      "description": "All equal values"
+    },
+    {
+      "input": "head = [1,2,3,2,2]",
+      "output": "false",
+      "description": "Late mismatch near the tail"
+    },
+    {
+      "input": "head = [0,1,2,3,2,1,0]",
+      "output": "true",
+      "description": "Longer odd palindrome with boundary zeros"
     }
   ],
   "diagrams": [
     {
       "id": "example1",
       "file": "p76_example1.png",
-      "caption": "Example 1"
+      "caption": "Input linked list values to check"
     }
   ],
   "solutions": [
     {
-      "name": "Reverse Second Half",
+      "name": "Reverse Second Half and Restore",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Find the middle using slow/fast pointers, reverse the second half, then compare both halves node by node.",
-      "code": "class Solution {\n    public boolean isPalindrome(ListNode head) {\n        if (head == null || head.next == null) return true;\n        \n        // Find middle\n        ListNode slow = head, fast = head;\n        while (fast.next != null && fast.next.next != null) {\n            slow = slow.next;\n            fast = fast.next.next;\n        }\n        \n        // Reverse second half\n        ListNode prev = null;\n        ListNode curr = slow.next;\n        while (curr != null) {\n            ListNode next = curr.next;\n            curr.next = prev;\n            prev = curr;\n            curr = next;\n        }\n        \n        // Compare\n        ListNode p1 = head, p2 = prev;\n        while (p2 != null) {\n            if (p1.val != p2.val) return false;\n            p1 = p1.next;\n            p2 = p2.next;\n        }\n        \n        return true;\n    }\n}",
+      "description": "## Approach\n\nUse slow and fast pointers to find the end of the first half. Reverse the second half, compare the first half with the reversed second half, then reverse the second half again to restore the original list before returning.\n\n## Key Insight\n\nA singly linked list cannot be scanned backward, so reversing only the second half creates a forward traversal of the mirrored suffix. Restoring the suffix keeps the input list unchanged for callers.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public boolean isPalindrome(ListNode head) {\n        if (head == null || head.next == null) {\n            return true;\n        }\n\n        ListNode firstHalfEnd = endOfFirstHalf(head);\n        ListNode secondHalfStart = reverse(firstHalfEnd.next);\n\n        boolean palindrome = true;\n        ListNode p1 = head;\n        ListNode p2 = secondHalfStart;\n        while (palindrome && p2 != null) {\n            if (p1.val != p2.val) {\n                palindrome = false;\n            }\n            p1 = p1.next;\n            p2 = p2.next;\n        }\n\n        firstHalfEnd.next = reverse(secondHalfStart);\n        return palindrome;\n    }\n\n    private ListNode endOfFirstHalf(ListNode head) {\n        ListNode slow = head;\n        ListNode fast = head;\n        while (fast.next != null && fast.next.next != null) {\n            slow = slow.next;\n            fast = fast.next.next;\n        }\n        return slow;\n    }\n\n    private ListNode reverse(ListNode head) {\n        ListNode prev = null;\n        ListNode curr = head;\n        while (curr != null) {\n            ListNode next = curr.next;\n            curr.next = prev;\n            prev = curr;\n            curr = next;\n        }\n        return prev;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Stack (First Half)",
+      "name": "Stack of First-Half Values",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Push first half onto a stack, then compare the stack top with the second half of the list.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isPalindrome(ListNode head) {\n        ListNode slow = head, fast = head;\n        Deque<Integer> stack = new ArrayDeque<>();\n        \n        while (fast != null && fast.next != null) {\n            stack.push(slow.val);\n            slow = slow.next;\n            fast = fast.next.next;\n        }\n        \n        // Skip middle element for odd length\n        if (fast != null) {\n            slow = slow.next;\n        }\n        \n        while (slow != null) {\n            if (stack.pop() != slow.val) return false;\n            slow = slow.next;\n        }\n        \n        return true;\n    }\n}",
+      "description": "## Approach\n\nMove slow and fast pointers together. While fast advances two nodes, push each first-half value seen by slow onto a stack. If the list length is odd, skip the middle node, then compare the second half against stack pops.\n\n## Key Insight\n\nThe stack stores the first half in reverse order, exactly matching the order needed to compare against the second half. This avoids mutating links, at the cost of extra memory.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isPalindrome(ListNode head) {\n        Deque<Integer> firstHalf = new ArrayDeque<>();\n        ListNode slow = head;\n        ListNode fast = head;\n\n        while (fast != null && fast.next != null) {\n            firstHalf.push(slow.val);\n            slow = slow.next;\n            fast = fast.next.next;\n        }\n\n        if (fast != null) {\n            slow = slow.next;\n        }\n\n        while (slow != null) {\n            if (firstHalf.pop().intValue() != slow.val) {\n                return false;\n            }\n            slow = slow.next;\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Front Pointer",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse recursion to move a `right` pointer to the end of the list. During recursive unwinding, compare `right` with a `front` pointer that moves forward from the head.\n\n## Key Insight\n\nThe call stack visits nodes from tail back to head during unwinding, so it supplies the backward traversal that a singly linked list does not have. In Java this is mainly a teaching route because very deep lists can overflow the call stack.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n) recursion stack",
+      "code": "class Solution {\n    private ListNode front;\n\n    public boolean isPalindrome(ListNode head) {\n        front = head;\n        return check(head);\n    }\n\n    private boolean check(ListNode right) {\n        if (right == null) {\n            return true;\n        }\n        if (!check(right.next)) {\n            return false;\n        }\n        boolean same = front.val == right.val;\n        front = front.next;\n        return same;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Array Snapshot Two Pointers",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCopy all node values into an array list. Then compare the value at the left index with the value at the right index while the two indices move toward the center.\n\n## Key Insight\n\nOnce the linked-list values are in random-access storage, the problem becomes the ordinary two-pointer palindrome check used for arrays or strings. This baseline is simple and does not mutate the list.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isPalindrome(ListNode head) {\n        List<Integer> values = new ArrayList<>();\n        ListNode curr = head;\n        while (curr != null) {\n            values.add(curr.val);\n            curr = curr.next;\n        }\n\n        int left = 0;\n        int right = values.size() - 1;\n        while (left < right) {\n            if (!values.get(left).equals(values.get(right))) {\n                return false;\n            }\n            left++;\n            right--;\n        }\n        return true;\n    }\n}",
       "language": "java"
     }
   ]

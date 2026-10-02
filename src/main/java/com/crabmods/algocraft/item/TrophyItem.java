@@ -1,16 +1,18 @@
 package com.crabmods.algocraft.item;
 
-import com.crabmods.algocraft.AlgoCraft;
 import com.crabmods.algocraft.logic.AchievementRegistry;
+import com.crabmods.algocraft.logic.ModTrophyBlocks;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.CustomModelData;
 
 import java.util.List;
 
@@ -18,7 +20,7 @@ import java.util.List;
  * Trophy item that represents an earned achievement.
  * Each trophy stores metadata about when and who earned it.
  */
-public class TrophyItem extends Item {
+public class TrophyItem extends BlockItem {
     
     public static final String TAG_ACHIEVEMENT_ID = "AchievementId";
     public static final String TAG_PLAYER_NAME = "PlayerName";
@@ -29,7 +31,7 @@ public class TrophyItem extends Item {
     private final TrophyTier tier;
     
     public TrophyItem(TrophyTier tier) {
-        super(new Item.Properties()
+        super(ModTrophyBlocks.forTier(tier).get(), new Item.Properties()
             .stacksTo(1)
             .rarity(tier.getItemRarity())
             .fireResistant()  // Trophies are precious!
@@ -53,7 +55,7 @@ public class TrophyItem extends Item {
         }
         
         // Fallback to generic trophy name
-        return Component.translatable("item.algocraft.trophy." + tier.name().toLowerCase())
+        return Component.translatable(tier.getTranslationKey())
             .withStyle(tier.getChatColor());
     }
     
@@ -129,6 +131,7 @@ public class TrophyItem extends Item {
         tag.putLong(TAG_TIMESTAMP, timestamp);
         
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+        stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(achievement.getTrophyModelData()));
         
         return stack;
     }
@@ -187,18 +190,20 @@ public class TrophyItem extends Item {
     // ==================== Trophy Tiers ====================
     
     public enum TrophyTier {
-        BRONZE(Rarity.COMMON, ChatFormatting.GOLD),
-        SILVER(Rarity.UNCOMMON, ChatFormatting.GRAY),
-        GOLD(Rarity.RARE, ChatFormatting.YELLOW),
-        DIAMOND(Rarity.EPIC, ChatFormatting.AQUA),
-        NETHERITE(Rarity.EPIC, ChatFormatting.DARK_RED);
+        BRONZE(Rarity.COMMON, ChatFormatting.GOLD, "bronze_trophy"),
+        SILVER(Rarity.UNCOMMON, ChatFormatting.GRAY, "silver_trophy"),
+        GOLD(Rarity.RARE, ChatFormatting.YELLOW, "gold_trophy"),
+        DIAMOND(Rarity.EPIC, ChatFormatting.AQUA, "diamond_trophy"),
+        NETHERITE(Rarity.EPIC, ChatFormatting.DARK_RED, "netherite_trophy");
         
         private final Rarity itemRarity;
         private final ChatFormatting chatColor;
+        private final String itemId;
         
-        TrophyTier(Rarity itemRarity, ChatFormatting chatColor) {
+        TrophyTier(Rarity itemRarity, ChatFormatting chatColor, String itemId) {
             this.itemRarity = itemRarity;
             this.chatColor = chatColor;
+            this.itemId = itemId;
         }
         
         public Rarity getItemRarity() {
@@ -207,6 +212,14 @@ public class TrophyItem extends Item {
         
         public ChatFormatting getChatColor() {
             return chatColor;
+        }
+
+        public String getItemId() {
+            return itemId;
+        }
+
+        public String getTranslationKey() {
+            return "item.algocraft." + itemId;
         }
     }
 }

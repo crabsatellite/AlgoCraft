@@ -1,28 +1,64 @@
 {
   "id": "6",
   "title": "Product of Array Except Self",
-  "description": "# Product of Array Except Self\n\nGiven an integer array `nums`, return *an array* `answer` *such that* `answer[i]` *is equal to the product of all the elements of* `nums` *except* `nums[i]`.\n\nThe product of any prefix or suffix of `nums` is **guaranteed** to fit in a **32-bit** integer.\n\nYou must write an algorithm that runs in `O(n)` time and without using the division operation.\n\n## Example 1:\n\n**Input:** nums = [1,2,3,4]\n**Output:** [24,12,8,6]\n\n## Example 2:\n\n**Input:** nums = [-1,1,0,-3,3]\n**Output:** [0,0,9,0,0]\n\n## Constraints:\n\n*   `2 <= nums.length <= 10^5`\n*   `-30 <= nums[i] <= 30`\n*   The product of any prefix or suffix of `nums` is **guaranteed** to fit in a **32-bit** integer.",
+  "description": "# Product of Array Except Self\n\nGiven an integer array `nums`, return an array `answer` where `answer[i]` equals the product of every element of `nums` except `nums[i]`.\n\nThe product of any prefix or suffix of `nums` is **guaranteed** to fit in a **32-bit** integer.\n\nYour algorithm must run in `O(n)` time and must not use division.\n\n## Example 1:\n\n**Input:** nums = [1,2,3,4]\n**Output:** [24,12,8,6]\n\n## Example 2:\n\n**Input:** nums = [-1,1,0,-3,3]\n**Output:** [0,0,9,0,0]\n\n## Constraints:\n\n*   `2 <= nums.length <= 10^5`\n*   `-30 <= nums[i] <= 30`\n*   The product of any prefix or suffix of `nums` is **guaranteed** to fit in a **32-bit** integer.",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int[] productExceptSelf(int[] nums) {\n        // Write your code here\n        return new int[]{};\n    }\n}",
-  "tags": ["Array", "Prefix Sum"],
-  "examples": [{ "input": "nums = [1,2,3,4]", "output": "[24,12,8,6]" }],
+  "tags": [
+    "Array",
+    "Prefix Sum"
+  ],
+  "examples": [
+    {
+      "input": "nums = [1,2,3,4]",
+      "output": "[24,12,8,6]"
+    }
+  ],
   "tests": [
-    { "input": "nums = [1,2,3,4]", "output": "[24,12,8,6]" },
-    { "input": "nums = [-1,1,0,-3,3]", "output": "[0,0,9,0,0]" },
-    { "input": "nums = [0,0]", "output": "[0,0]" },
-    { "input": "nums = [1,0]", "output": "[0,1]" }
+    {
+      "input": "nums = [1,2,3,4]",
+      "output": "[24,12,8,6]"
+    },
+    {
+      "input": "nums = [-1,1,0,-3,3]",
+      "output": "[0,0,9,0,0]"
+    },
+    {
+      "input": "nums = [0,0]",
+      "output": "[0,0]"
+    },
+    {
+      "input": "nums = [1,0]",
+      "output": "[0,1]"
+    },
+    {
+      "input": "nums = [2,3,0,4]",
+      "output": "[0,0,24,0]",
+      "description": "Single zero should produce exactly one non-zero output"
+    },
+    {
+      "input": "nums = [-1,-2,-3,-4]",
+      "output": "[-24,-12,-8,-6]",
+      "description": "Negative values without zero"
+    }
   ],
   "solutions": [
     {
       "name": "Prefix and Suffix Products",
-      "description": "## Approach\n\nFor each position i, we need product of all elements except nums[i]. This equals (product of all elements before i) × (product of all elements after i).\n\n1. First pass: calculate prefix products\n2. Second pass: multiply with suffix products\n\n## Complexity Analysis\n- Time Complexity: O(n) - Two passes through the array\n- Space Complexity: O(1) - Output array doesn't count as extra space",
+      "description": "## Approach\n\nFor each position, the answer is the product of everything to its left times the product of everything to its right. Store the left products directly in the output array, then scan from right to left while carrying one running suffix product.\n\n## Key Insight\n\nThis is the canonical solution because it respects both important constraints: O(n) time and no division. The output array is allowed, so only the running suffix variable counts as extra working memory.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1) extra space, excluding the required output array",
       "code": "class Solution {\n    public int[] productExceptSelf(int[] nums) {\n        int n = nums.length;\n        int[] answer = new int[n];\n        \n        // Calculate prefix products\n        answer[0] = 1;\n        for (int i = 1; i < n; i++) {\n            answer[i] = answer[i - 1] * nums[i - 1];\n        }\n        \n        // Multiply with suffix products\n        int suffix = 1;\n        for (int i = n - 1; i >= 0; i--) {\n            answer[i] *= suffix;\n            suffix *= nums[i];\n        }\n        \n        return answer;\n    }\n}",
       "language": "java"
     },
     {
       "name": "Two Arrays (Prefix and Suffix)",
-      "description": "## Approach\n\nUse two separate arrays to store prefix and suffix products, then multiply them together.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n) - Using two extra arrays",
+      "description": "## Approach\n\nUse two explicit helper arrays: one for products before each index and one for products after each index. Multiplying the two arrays gives the answer.\n\n## Key Insight\n\nThis is less space-efficient than the optimized version, but it is valuable as a teaching step because it exposes the exact prefix/suffix invariant before compressing the suffix array into one variable.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
       "code": "class Solution {\n    public int[] productExceptSelf(int[] nums) {\n        int n = nums.length;\n        int[] prefix = new int[n];\n        int[] suffix = new int[n];\n        int[] answer = new int[n];\n        \n        // Calculate prefix products\n        prefix[0] = 1;\n        for (int i = 1; i < n; i++) {\n            prefix[i] = prefix[i - 1] * nums[i - 1];\n        }\n        \n        // Calculate suffix products\n        suffix[n - 1] = 1;\n        for (int i = n - 2; i >= 0; i--) {\n            suffix[i] = suffix[i + 1] * nums[i + 1];\n        }\n        \n        // Combine\n        for (int i = 0; i < n; i++) {\n            answer[i] = prefix[i] * suffix[i];\n        }\n        \n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bidirectional Single-Loop Sweep",
+      "description": "## Approach\n\nInitialize every output slot to 1. Walk one index from the left and one index from the right in the same loop. Before multiplying the current number into a running product, write that running product into the matching output position.\n\n## Key Insight\n\nThe left running product gives the product of values before the current left index, while the right running product gives the product of values after the current right index. Updating both directions in one loop keeps the same prefix/suffix invariant as the canonical solution while staying O(n), division-free, and O(1) in extra working memory.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1) extra space, excluding the required output array",
+      "code": "class Solution {\n    public int[] productExceptSelf(int[] nums) {\n        int n = nums.length;\n        int[] answer = new int[n];\n        for (int i = 0; i < n; i++) {\n            answer[i] = 1;\n        }\n\n        int leftProduct = 1;\n        int rightProduct = 1;\n        for (int i = 0; i < n; i++) {\n            answer[i] *= leftProduct;\n            leftProduct *= nums[i];\n\n            int rightIndex = n - 1 - i;\n            answer[rightIndex] *= rightProduct;\n            rightProduct *= nums[rightIndex];\n        }\n\n        return answer;\n    }\n}",
       "language": "java"
     }
   ]

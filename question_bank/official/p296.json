@@ -1,34 +1,93 @@
 {
   "id": "296",
   "title": "Number of Common Factors",
-  "description": "# Number of Common Factors\n\nGiven two positive integers `a` and `b`, return *the number of **common factors** of* `a` *and* `b`.\n\nAn integer `x` is a **common factor** of `a` and `b` if `x` divides both `a` and `b`.\n\n## Example 1:\n\n**Input:** a = 12, b = 6\n**Output:** 4\n**Explanation:** The common factors of 12 and 6 are 1, 2, 3, 6.\n\n## Example 2:\n\n**Input:** a = 25, b = 30\n**Output:** 2\n**Explanation:** The common factors of 25 and 30 are 1, 5.\n\n## Constraints:\n\n*   `1 <= a, b <= 1000`",
+  "description": "# Number of Common Factors\n\nGiven two positive integers `a` and `b`, return the number of **common factors** of `a` and `b`.\n\nA positive integer `x` is a common factor when both `a % x == 0` and `b % x == 0`.\n\nReturn only the count, not the list of factors.\n\n## Example 1\n\n**Input:** a = 12, b = 6\n**Output:** 4\n**Explanation:** The common factors are `1`, `2`, `3`, and `6`.\n\n## Example 2\n\n**Input:** a = 25, b = 30\n**Output:** 2\n**Explanation:** The common factors are `1` and `5`.\n\n## Constraints\n\n* `1 <= a, b <= 1000`",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public int commonFactors(int a, int b) {\n        \n    }\n}",
-  "tags": ["Math", "Enumeration", "Number Theory"],
+  "initialCode": "class Solution {\n    public int commonFactors(int a, int b) {\n        // Write your code here\n        return 0;\n    }\n}",
+  "tags": [
+    "Math",
+    "Enumeration",
+    "Number Theory"
+  ],
   "examples": [
-    { "input": "a = 12, b = 6", "output": "4" },
-    { "input": "a = 25, b = 30", "output": "2" }
+    {
+      "input": "a = 12, b = 6",
+      "output": "4"
+    },
+    {
+      "input": "a = 25, b = 30",
+      "output": "2"
+    }
   ],
   "solutions": [
     {
-      "name": "Enumerate Factors",
-      "timeComplexity": "O(min(a, b))",
+      "name": "Enumerate Up To Minimum",
+      "timeComplexity": "O(min(a,b))",
       "spaceComplexity": "O(1)",
-      "description": "Iterate from 1 to min(a, b). For each i, check if it divides both a and b. Count such common factors.",
-      "code": "class Solution {\n    public int commonFactors(int a, int b) {\n        int count = 0;\n        int min = Math.min(a, b);\n        for (int i = 1; i <= min; i++) {\n            if (a % i == 0 && b % i == 0) count++;\n        }\n        return count;\n    }\n}",
+      "description": "## Approach\n\nEvery common factor must be at most `min(a, b)`. Scan every candidate from `1` through that limit and count it only when it divides both numbers.\n\n## Key Insight\n\nThis is the direct translation of the definition. It is intentionally simple and is a good first solution before using `gcd` or factor-pair counting.\n\n## Complexity Analysis\n- Time Complexity: O(min(a,b))\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int commonFactors(int a, int b) {\n        int limit = Math.min(a, b);\n        int count = 0;\n        for (int factor = 1; factor <= limit; factor++) {\n            if (a % factor == 0 && b % factor == 0) {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "GCD-Based Enumeration",
+      "name": "Divisor Set Of Smaller Number",
+      "timeComplexity": "O(sqrt(min(a,b)))",
+      "spaceComplexity": "O(sqrt(min(a,b)))",
+      "description": "## Approach\n\nEnumerate factor pairs of the smaller number and store every divisor in a set. Then count the stored divisors that also divide the larger number.\n\n## Key Insight\n\nA factor pair `d` and `n / d` is discovered together, so scanning only up to the square root can still recover all divisors of the smaller number. The set also avoids double-counting when the smaller number is a perfect square.\n\n## Complexity Analysis\n- Time Complexity: O(sqrt(min(a,b)))\n- Space Complexity: O(sqrt(min(a,b)))",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int commonFactors(int a, int b) {\n        int smaller = Math.min(a, b);\n        int larger = Math.max(a, b);\n        Set<Integer> divisors = new HashSet<>();\n\n        for (int factor = 1; factor * factor <= smaller; factor++) {\n            if (smaller % factor == 0) {\n                divisors.add(factor);\n                divisors.add(smaller / factor);\n            }\n        }\n\n        int count = 0;\n        for (int factor : divisors) {\n            if (larger % factor == 0) {\n                count++;\n            }\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Enumerate Factors Of GCD",
       "timeComplexity": "O(sqrt(gcd(a,b)))",
       "spaceComplexity": "O(1)",
-      "description": "Compute GCD of a and b. Common factors of a and b are exactly the factors of gcd(a,b). Count factors of the GCD by iterating up to sqrt(gcd).",
-      "code": "class Solution {\n    public int commonFactors(int a, int b) {\n        int g = gcd(a, b);\n        int count = 0;\n        for (int i = 1; i * i <= g; i++) {\n            if (g % i == 0) {\n                count++;\n                if (i != g / i) count++;\n            }\n        }\n        return count;\n    }\n    \n    private int gcd(int a, int b) {\n        while (b != 0) {\n            int t = b;\n            b = a % b;\n            a = t;\n        }\n        return a;\n    }\n}",
+      "description": "## Approach\n\nFirst compute `gcd(a, b)`. The common factors of `a` and `b` are exactly the factors of this gcd, so count the gcd's factor pairs up to its square root.\n\n## Key Insight\n\nThe gcd compresses the problem to one number. When `factor` divides `g`, both `factor` and `g / factor` are divisors; count one or two depending on whether they are the same value.\n\n## Complexity Analysis\n- Time Complexity: O(sqrt(gcd(a,b)))\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int commonFactors(int a, int b) {\n        int g = gcd(a, b);\n        int count = 0;\n        for (int factor = 1; factor * factor <= g; factor++) {\n            if (g % factor == 0) {\n                count++;\n                if (factor != g / factor) {\n                    count++;\n                }\n            }\n        }\n        return count;\n    }\n\n    private int gcd(int a, int b) {\n        while (b != 0) {\n            int r = a % b;\n            a = b;\n            b = r;\n        }\n        return a;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Prime Factor Count Of GCD",
+      "timeComplexity": "O(sqrt(gcd(a,b)))",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCompute `gcd(a, b)`, factorize it into prime powers, and apply the divisor-count formula. If the prime exponents are `e1`, `e2`, and so on, the number of divisors is `(e1 + 1) * (e2 + 1) * ...`.\n\n## Key Insight\n\nThis route teaches the number-theory structure behind the count. It is more abstract than pair enumeration, but it scales the idea to larger divisor-count problems.\n\n## Complexity Analysis\n- Time Complexity: O(sqrt(gcd(a,b)))\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int commonFactors(int a, int b) {\n        int g = gcd(a, b);\n        int answer = 1;\n        for (int prime = 2; prime * prime <= g; prime++) {\n            if (g % prime != 0) {\n                continue;\n            }\n            int exponent = 0;\n            while (g % prime == 0) {\n                g /= prime;\n                exponent++;\n            }\n            answer *= exponent + 1;\n        }\n        if (g > 1) {\n            answer *= 2;\n        }\n        return answer;\n    }\n\n    private int gcd(int a, int b) {\n        while (b != 0) {\n            int r = a % b;\n            a = b;\n            b = r;\n        }\n        return a;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "a = 12, b = 6", "output": "4" },
-    { "input": "a = 25, b = 30", "output": "2" }
+    {
+      "input": "a = 12, b = 6",
+      "output": "4",
+      "description": "sample with four common factors"
+    },
+    {
+      "input": "a = 25, b = 30",
+      "output": "2",
+      "description": "sample with one nontrivial common factor"
+    },
+    {
+      "input": "a = 1, b = 1",
+      "output": "1",
+      "description": "lower boundary counts 1"
+    },
+    {
+      "input": "a = 7, b = 13",
+      "output": "1",
+      "description": "coprime primes share only 1"
+    },
+    {
+      "input": "a = 18, b = 24",
+      "output": "4",
+      "description": "gcd 6 has factors 1,2,3,6"
+    },
+    {
+      "input": "a = 36, b = 72",
+      "output": "9",
+      "description": "square gcd 36 catches duplicate square-root factor counting"
+    },
+    {
+      "input": "a = 1000, b = 1000",
+      "output": "16",
+      "description": "equal upper boundary counts every factor of 1000"
+    }
   ]
 }

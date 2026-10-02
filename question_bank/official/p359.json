@@ -1,34 +1,154 @@
 {
   "id": "359",
   "title": "Find the Closest Palindrome",
-  "description": "# Find the Closest Palindrome\n\nGiven a string `n` representing an integer, return *the closest integer (not including itself), which is a palindrome*. If there is a tie, return *the smaller one*.\n\nThe closest is defined as the absolute difference minimized between two integers.\n\n## Example 1:\n\n**Input:** n = \"123\"\n**Output:** \"121\"\n\n## Example 2:\n\n**Input:** n = \"1\"\n**Output:** \"0\"\n**Explanation:** 0 and 2 are the closest palindromes but we return the smallest which is 0.\n\n## Constraints:\n\n*   `1 <= n.length <= 18`\n*   `n` consists of only digits.\n*   `n` does not have leading zeros.\n*   `n` is representing an integer in the range `[1, 10^18 - 1]`.",
+  "description": "# Find the Closest Palindrome\n\nGiven a string `n` representing a positive integer, return the closest integer to `n` that is also a palindrome. The answer must not be `n` itself. If two palindrome integers have the same absolute distance from `n`, return the smaller one.\n\nA palindrome integer has the same decimal digits forward and backward, such as `121` or `0`. Return the answer as a decimal string without leading zeroes.\n\n## Example 1:\n\n**Input:** n = \"123\"\n**Output:** \"121\"\n**Explanation:** `121` is the nearest palindrome.\n\n## Example 2:\n\n**Input:** n = \"1\"\n**Output:** \"0\"\n**Explanation:** `0` and `2` are equally close to `1`, so the smaller palindrome is returned.\n\n## Example 3:\n\n**Input:** n = \"99\"\n**Output:** \"101\"\n**Explanation:** The input itself is excluded. `101` is closer than `88`.\n\n## Constraints:\n\n* `1 <= n.length <= 18`\n* `n` consists only of digits.\n* `n` has no leading zeros.\n* `n` represents an integer in the range `[1, 10^18 - 1]`.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public String nearestPalindromic(String n) {\n        \n    }\n}",
-  "tags": ["Math", "String"],
+  "initialCode": "class Solution {\n    public String nearestPalindromic(String n) {\n        return \"\";\n    }\n}",
+  "tags": [
+    "Math",
+    "String"
+  ],
   "examples": [
-    { "input": "n = \"123\"", "output": "\"121\"" },
-    { "input": "n = \"1\"", "output": "\"0\"" }
+    {
+      "input": "n = \"123\"",
+      "output": "\"121\""
+    },
+    {
+      "input": "n = \"1\"",
+      "output": "\"0\""
+    },
+    {
+      "input": "n = \"99\"",
+      "output": "\"101\""
+    }
   ],
   "solutions": [
     {
-      "name": "Generate Candidates from Half",
+      "name": "Prefix Candidate Enumeration",
       "timeComplexity": "O(L)",
       "spaceComplexity": "O(L)",
-      "description": "Generate 5 candidates: mirror the first half, mirror first half +/- 1, 10^(len-1) - 1 (all 9s), 10^len + 1 (100..001). Pick the closest to n that is not n itself. On tie, pick the smaller.",
-      "code": "class Solution {\n    public String nearestPalindromic(String n) {\n        int len = n.length();\n        long num = Long.parseLong(n);\n        java.util.Set<Long> candidates = new java.util.HashSet<>();\n        candidates.add((long) Math.pow(10, len - 1) - 1);\n        candidates.add((long) Math.pow(10, len) + 1);\n        long half = Long.parseLong(n.substring(0, (len + 1) / 2));\n        for (long h = half - 1; h <= half + 1; h++) {\n            String hs = String.valueOf(h);\n            StringBuilder sb = new StringBuilder(hs);\n            for (int i = len / 2 - 1; i >= 0; i--) sb.append(hs.charAt(i));\n            candidates.add(Long.parseLong(sb.toString()));\n        }\n        candidates.remove(num);\n        long closest = -1;\n        for (long c : candidates) {\n            if (closest == -1 || Math.abs(c - num) < Math.abs(closest - num) ||\n                (Math.abs(c - num) == Math.abs(closest - num) && c < closest)) {\n                closest = c;\n            }\n        }\n        return String.valueOf(closest);\n    }\n}",
+      "description": "## Approach\n\nLet `L` be the number of digits. The nearest palindrome can only come from a small set: the all-9 number with `L - 1` digits, the `1` followed by zeros and another `1`, or a palindrome made by mirroring the first half of `n` after changing that half by `-1`, `0`, or `+1`.\n\n## Key Insight\n\nEvery palindrome of the same length is determined by its left half. If the left half differs by at least two, the resulting palindrome is farther away than one of the three neighboring-half candidates. The two length-boundary palindromes handle values such as `99`, `1000`, and a long string of 9s.\n\n## Complexity Analysis\n\n- Time Complexity: O(L)\n- Space Complexity: O(L)",
+      "code": "class Solution {\n    public String nearestPalindromic(String n) {\n        long target = Long.parseLong(n);\n        int len = n.length();\n        int prefixLen = (len + 1) / 2;\n        long prefix = Long.parseLong(n.substring(0, prefixLen));\n        Set<Long> candidates = new HashSet<>();\n        candidates.add(pow10(len - 1) - 1);\n        candidates.add(pow10(len) + 1);\n\n        for (long nextPrefix = prefix - 1; nextPrefix <= prefix + 1; nextPrefix++) {\n            if (nextPrefix < 0) continue;\n            String left = Long.toString(nextPrefix);\n            if (left.length() != prefixLen) continue;\n            candidates.add(buildPalindrome(left, len));\n        }\n\n        long best = -1;\n        for (long candidate : candidates) {\n            if (candidate == target) continue;\n            if (best == -1\n                    || Math.abs(candidate - target) < Math.abs(best - target)\n                    || (Math.abs(candidate - target) == Math.abs(best - target) && candidate < best)) {\n                best = candidate;\n            }\n        }\n        return Long.toString(best);\n    }\n\n    private long buildPalindrome(String left, int totalLength) {\n        StringBuilder builder = new StringBuilder(left);\n        int start = totalLength % 2 == 0 ? left.length() - 1 : left.length() - 2;\n        for (int i = start; i >= 0; i--) {\n            builder.append(left.charAt(i));\n        }\n        return Long.parseLong(builder.toString());\n    }\n\n    private long pow10(int exp) {\n        long value = 1;\n        for (int i = 0; i < exp; i++) value *= 10;\n        return value;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Brute Force Candidate Check",
+      "name": "Bidirectional Mirror Boundary Search",
       "timeComplexity": "O(L)",
       "spaceComplexity": "O(L)",
-      "description": "Generate all possible closest palindrome candidates by mirroring the first half as-is, incrementing it, and decrementing it. Also include edge cases like all-9s (10^(len-1)-1) and 10^len+1. Compare all candidates to find the closest.",
-      "code": "class Solution {\n    public String nearestPalindromic(String n) {\n        int len = n.length();\n        long num = Long.parseLong(n);\n        long[] candidates = new long[5];\n        candidates[0] = (long) Math.pow(10, len - 1) - 1;\n        candidates[1] = (long) Math.pow(10, len) + 1;\n        long halfVal = Long.parseLong(n.substring(0, (len + 1) / 2));\n        long[] halfOptions = {halfVal - 1, halfVal, halfVal + 1};\n        for (int idx = 0; idx < 3; idx++) {\n            String hs = String.valueOf(halfOptions[idx]);\n            StringBuilder sb = new StringBuilder(hs);\n            int start = len / 2 - 1;\n            for (int i = start; i >= 0; i--) {\n                sb.append(hs.charAt(i));\n            }\n            candidates[idx + 2] = Long.parseLong(sb.toString());\n        }\n        long best = -1;\n        for (int i = 0; i < 5; i++) {\n            if (candidates[i] == num) continue;\n            if (best == -1\n                || Math.abs(candidates[i] - num) < Math.abs(best - num)\n                || (Math.abs(candidates[i] - num) == Math.abs(best - num) && candidates[i] < best)) {\n                best = candidates[i];\n            }\n        }\n        return String.valueOf(best);\n    }\n}",
+      "description": "## Approach\n\nConstruct the closest palindrome strictly below `n` and the closest palindrome strictly above `n`, then compare those two distances. To find the lower side, mirror the current prefix; if that mirror is not smaller, decrement the prefix and mirror again. The higher side is symmetric with an incremented prefix.\n\n## Key Insight\n\nThe final answer must be either the nearest valid palindrome below `n` or the nearest valid palindrome above `n`. Separating the two directions makes the exclusion of `n` explicit and exposes the tricky digit-length changes: decrementing `100...` falls to all 9s, while incrementing `999...` jumps to `100...001`.\n\n## Complexity Analysis\n\n- Time Complexity: O(L)\n- Space Complexity: O(L)",
+      "code": "class Solution {\n    public String nearestPalindromic(String n) {\n        if (n.equals(\"1\")) return \"0\";\n        long target = Long.parseLong(n);\n        long lower = lowerPalindrome(n, target);\n        long higher = higherPalindrome(n, target);\n        if (target - lower <= higher - target) {\n            return Long.toString(lower);\n        }\n        return Long.toString(higher);\n    }\n\n    private long lowerPalindrome(String n, long target) {\n        int len = n.length();\n        int prefixLen = (len + 1) / 2;\n        long prefix = Long.parseLong(n.substring(0, prefixLen));\n        long direct = mirror(prefix, len);\n        if (direct < target) return direct;\n        prefix--;\n        if (prefix <= 0 || Long.toString(prefix).length() < prefixLen) {\n            return pow10(len - 1) - 1;\n        }\n        return mirror(prefix, len);\n    }\n\n    private long higherPalindrome(String n, long target) {\n        int len = n.length();\n        int prefixLen = (len + 1) / 2;\n        long prefix = Long.parseLong(n.substring(0, prefixLen));\n        long direct = mirror(prefix, len);\n        if (direct > target) return direct;\n        prefix++;\n        if (Long.toString(prefix).length() > prefixLen) {\n            return pow10(len) + 1;\n        }\n        return mirror(prefix, len);\n    }\n\n    private long mirror(long prefix, int len) {\n        String left = Long.toString(prefix);\n        StringBuilder builder = new StringBuilder(left);\n        int start = len % 2 == 0 ? left.length() - 1 : left.length() - 2;\n        for (int i = start; i >= 0; i--) {\n            builder.append(left.charAt(i));\n        }\n        return Long.parseLong(builder.toString());\n    }\n\n    private long pow10(int exp) {\n        long value = 1;\n        for (int i = 0; i < exp; i++) value *= 10;\n        return value;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Arithmetic Half Mirror",
+      "timeComplexity": "O(L)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse the same neighboring-prefix idea, but build palindromes arithmetically instead of appending characters. After parsing the left half, mirror digits by repeatedly taking `prefix % 10` and appending that digit to the right side of the numeric result.\n\n## Key Insight\n\nString construction is not required once the useful prefixes are known. The only danger is when a prefix adjustment changes the number of left-half digits; those cases are intentionally skipped and covered by the explicit lower and upper length-boundary candidates.\n\n## Complexity Analysis\n\n- Time Complexity: O(L)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public String nearestPalindromic(String n) {\n        long target = Long.parseLong(n);\n        int len = n.length();\n        int prefixLen = (len + 1) / 2;\n        long prefix = Long.parseLong(n.substring(0, prefixLen));\n        long[] candidates = new long[5];\n        int size = 0;\n        candidates[size++] = pow10(len - 1) - 1;\n        candidates[size++] = pow10(len) + 1;\n\n        for (long adjusted = prefix - 1; adjusted <= prefix + 1; adjusted++) {\n            if (adjusted < 0) continue;\n            if (Long.toString(adjusted).length() != prefixLen) continue;\n            candidates[size++] = mirrorNumber(adjusted, len % 2 == 1);\n        }\n\n        long best = -1;\n        for (int i = 0; i < size; i++) {\n            long candidate = candidates[i];\n            if (candidate == target) continue;\n            long distance = Math.abs(candidate - target);\n            long bestDistance = best == -1 ? Long.MAX_VALUE : Math.abs(best - target);\n            if (distance < bestDistance || (distance == bestDistance && candidate < best)) {\n                best = candidate;\n            }\n        }\n        return Long.toString(best);\n    }\n\n    private long mirrorNumber(long prefix, boolean oddLength) {\n        long result = prefix;\n        if (oddLength) prefix /= 10;\n        while (prefix > 0) {\n            result = result * 10 + prefix % 10;\n            prefix /= 10;\n        }\n        return result;\n    }\n\n    private long pow10(int exp) {\n        long value = 1;\n        for (int i = 0; i < exp; i++) value *= 10;\n        return value;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "BigInteger String Candidate Set",
+      "timeComplexity": "O(L)",
+      "spaceComplexity": "O(L)",
+      "description": "## Approach\n\nKeep every candidate as a decimal string and use `BigInteger` only for comparison. Generate the all-9 lower boundary, the `100...001` upper boundary, and the three neighboring-prefix mirrors. Then choose by absolute distance and tie by numeric order.\n\n## Key Insight\n\nThe prompt fits in `long`, but a string-first solution shows the general shape of the algorithm without depending on primitive integer limits. This is a useful teaching route because the candidate proof is separate from how large-number arithmetic is represented.\n\n## Complexity Analysis\n\n- Time Complexity: O(L)\n- Space Complexity: O(L)",
+      "code": "class Solution {\n    public String nearestPalindromic(String n) {\n        int len = n.length();\n        int prefixLen = (len + 1) / 2;\n        long prefix = Long.parseLong(n.substring(0, prefixLen));\n        Set<String> candidates = new HashSet<>();\n        candidates.add(lowerBoundary(len));\n        candidates.add(upperBoundary(len));\n        for (long adjusted = prefix - 1; adjusted <= prefix + 1; adjusted++) {\n            if (adjusted < 0) continue;\n            String left = Long.toString(adjusted);\n            if (left.length() != prefixLen) continue;\n            candidates.add(mirror(left, len));\n        }\n\n        java.math.BigInteger target = new java.math.BigInteger(n);\n        java.math.BigInteger best = null;\n        for (String candidateText : candidates) {\n            if (candidateText.equals(n)) continue;\n            java.math.BigInteger candidate = new java.math.BigInteger(candidateText);\n            if (best == null\n                    || candidate.subtract(target).abs().compareTo(best.subtract(target).abs()) < 0\n                    || (candidate.subtract(target).abs().equals(best.subtract(target).abs())\n                    && candidate.compareTo(best) < 0)) {\n                best = candidate;\n            }\n        }\n        return best.toString();\n    }\n\n    private String lowerBoundary(int len) {\n        if (len == 1) return \"0\";\n        return \"9\".repeat(len - 1);\n    }\n\n    private String upperBoundary(int len) {\n        return \"1\" + \"0\".repeat(len - 1) + \"1\";\n    }\n\n    private String mirror(String left, int totalLength) {\n        StringBuilder builder = new StringBuilder(left);\n        int start = totalLength % 2 == 0 ? left.length() - 1 : left.length() - 2;\n        for (int i = start; i >= 0; i--) {\n            builder.append(left.charAt(i));\n        }\n        return builder.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Borrow Carry Neighbor Builder",
+      "timeComplexity": "O(L)",
+      "spaceComplexity": "O(L)",
+      "description": "## Approach\n\nBuild the previous palindrome and next palindrome as two helper operations. Each helper first mirrors the current prefix. If the mirror is on the wrong side, it borrows from or carries into the prefix and mirrors once more. Boundary transitions return all 9s or `100...001`.\n\n## Key Insight\n\nThis route treats the problem like decimal rounding. The left half is the rounded quantity, and the right half is forced by palindromic symmetry. Making borrow and carry explicit gives students a concrete way to reason about inputs such as `1000`, `101`, `999`, and already-palindromic large numbers.\n\n## Complexity Analysis\n\n- Time Complexity: O(L)\n- Space Complexity: O(L)",
+      "code": "class Solution {\n    public String nearestPalindromic(String n) {\n        if (n.equals(\"1\")) return \"0\";\n        long target = Long.parseLong(n);\n        String previous = previousPalindrome(n);\n        String next = nextPalindrome(n);\n        long previousValue = Long.parseLong(previous);\n        long nextValue = Long.parseLong(next);\n        if (target - previousValue <= nextValue - target) {\n            return previous;\n        }\n        return next;\n    }\n\n    private String previousPalindrome(String n) {\n        int len = n.length();\n        int prefixLen = (len + 1) / 2;\n        String prefixText = n.substring(0, prefixLen);\n        String direct = mirrorSameLength(prefixText, len);\n        long target = Long.parseLong(n);\n        if (Long.parseLong(direct) < target) return direct;\n        long borrowed = Long.parseLong(prefixText) - 1;\n        if (borrowed <= 0 || Long.toString(borrowed).length() < prefixLen) {\n            return len == 1 ? \"0\" : \"9\".repeat(len - 1);\n        }\n        return mirrorSameLength(Long.toString(borrowed), len);\n    }\n\n    private String nextPalindrome(String n) {\n        int len = n.length();\n        int prefixLen = (len + 1) / 2;\n        String prefixText = n.substring(0, prefixLen);\n        String direct = mirrorSameLength(prefixText, len);\n        long target = Long.parseLong(n);\n        if (Long.parseLong(direct) > target) return direct;\n        long carried = Long.parseLong(prefixText) + 1;\n        if (Long.toString(carried).length() > prefixLen) {\n            return \"1\" + \"0\".repeat(len - 1) + \"1\";\n        }\n        return mirrorSameLength(Long.toString(carried), len);\n    }\n\n    private String mirrorSameLength(String left, int totalLength) {\n        StringBuilder builder = new StringBuilder(left);\n        int start = totalLength % 2 == 0 ? left.length() - 1 : left.length() - 2;\n        for (int i = start; i >= 0; i--) {\n            builder.append(left.charAt(i));\n        }\n        return builder.toString();\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "n = \"123\"", "output": "\"121\"" },
-    { "input": "n = \"1\"", "output": "\"0\"" }
+    {
+      "input": "n = \"1\"",
+      "output": "\"0\"",
+      "description": "single digit tie chooses the smaller palindrome"
+    },
+    {
+      "input": "n = \"2\"",
+      "output": "\"1\"",
+      "description": "another single digit tie"
+    },
+    {
+      "input": "n = \"9\"",
+      "output": "\"8\"",
+      "description": "single digit all-nines still excludes itself"
+    },
+    {
+      "input": "n = \"10\"",
+      "output": "\"9\"",
+      "description": "lower one-digit boundary"
+    },
+    {
+      "input": "n = \"11\"",
+      "output": "\"9\"",
+      "description": "palindromic input must be excluded"
+    },
+    {
+      "input": "n = \"99\"",
+      "output": "\"101\"",
+      "description": "two-digit all-nines crosses upward"
+    },
+    {
+      "input": "n = \"100\"",
+      "output": "\"99\"",
+      "description": "power-of-ten-adjacent value crosses downward"
+    },
+    {
+      "input": "n = \"101\"",
+      "output": "\"99\"",
+      "description": "already-palindromic value chooses the nearer lower boundary"
+    },
+    {
+      "input": "n = \"123\"",
+      "output": "\"121\"",
+      "description": "standard odd-length mirror"
+    },
+    {
+      "input": "n = \"1283\"",
+      "output": "\"1331\"",
+      "description": "nearest mirror may require incrementing the prefix"
+    },
+    {
+      "input": "n = \"999\"",
+      "output": "\"1001\"",
+      "description": "odd-length all-nines crosses upward"
+    },
+    {
+      "input": "n = \"1000\"",
+      "output": "\"999\"",
+      "description": "even-length power of ten crosses downward"
+    },
+    {
+      "input": "n = \"10000\"",
+      "output": "\"9999\"",
+      "description": "longer power-of-ten boundary"
+    },
+    {
+      "input": "n = \"10987\"",
+      "output": "\"11011\"",
+      "description": "odd length prefix carry beats direct downward mirror"
+    },
+    {
+      "input": "n = \"999999999999999999\"",
+      "output": "\"1000000000000000001\"",
+      "description": "maximum 18-digit all-nines boundary"
+    },
+    {
+      "input": "n = \"100000000000000000\"",
+      "output": "\"99999999999999999\"",
+      "description": "18-digit power-of-ten downward boundary"
+    },
+    {
+      "input": "n = \"100000000000000001\"",
+      "output": "\"99999999999999999\"",
+      "description": "large palindrome input still excludes itself"
+    }
   ]
 }

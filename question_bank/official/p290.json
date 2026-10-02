@@ -1,12 +1,18 @@
 {
   "id": "290",
   "title": "Cells in a Range on an Excel Sheet",
-  "description": "# Cells in a Range on an Excel Sheet\n\nA cell `(r, c)` of an excel sheet is represented as a string `\"<col><row>\"` where:\n\n*   `<col>` denotes the column number `c` of the cell. The first column is denoted by `'A'`, the second by `'B'` and so on.\n*   `<row>` denotes the row number `r` of the cell. The first row is denoted by `'1'`, the second by `'2'` and so on.\n\nGiven a string `s` in the format `\"<col1><row1>:<col2><row2>\"`, where `<col1>` represents the column `c1`, `<row1>` represents the row `r1`, `<col2>` represents the column `c2`, and `<row2>` represents the row `r2`, such that `c1 <= c2` and `r1 <= r2`.\n\nReturn *the list of cells* `(x, y)` *such that* `r1 <= x <= r2` *and* `c1 <= y <= c2`. The cells should be represented as **strings** in the format mentioned above and be sorted in **non-decreasing** order first by columns and then by rows.\n\n## Example 1:\n\n**Input:** s = \"K1:L2\"\n**Output:** [\"K1\",\"K2\",\"L1\",\"L2\"]\n**Explanation:**\nThe above diagram shows the cells which should be present in the list.\nThe red arrows denote the order in which the cells should be presented.\n\n## Example 2:\n\n**Input:** s = \"A1:F1\"\n**Output:** [\"A1\",\"B1\",\"C1\",\"D1\",\"E1\",\"F1\"]\n**Explanation:**\nThe above diagram shows the cells which should be present in the list.\nThe red arrow denotes the order in which the cells should be presented.\n\n## Constraints:\n\n*   `s.length == 5`\n*   `'A' <= s[0] <= s[3] <= 'Z'`\n*   `'1' <= s[1] <= s[4] <= '9'`\n*   `s` consists of uppercase English letters, digits and ':'.",
+  "description": "# Cells in a Range on an Excel Sheet\n\nA cell in an Excel sheet is written as `\"<column><row>\"`. The column is an uppercase letter from `'A'` to `'Z'`, and the row is a digit from `'1'` to `'9'`. For example, `\"C7\"` means column `C`, row `7`.\n\nYou are given a string `s` in the format `\"<col1><row1>:<col2><row2>\"`. It represents the rectangular range whose top-left corner is `<col1><row1>` and whose bottom-right corner is `<col2><row2>`. The input always satisfies `col1 <= col2` and `row1 <= row2`.\n\nReturn every cell in the range as a list of strings. The order must be column-major: list all rows for the first column, then all rows for the next column, and so on.\n\n## Example 1\n\n**Input**\ns = \"K1:L2\"\n\n**Output**\n[\"K1\",\"K2\",\"L1\",\"L2\"]\n\n**Explanation**\nColumn `K` contributes `K1, K2`, then column `L` contributes `L1, L2`.\n\n## Example 2\n\n**Input**\ns = \"A1:F1\"\n\n**Output**\n[\"A1\",\"B1\",\"C1\",\"D1\",\"E1\",\"F1\"]\n\n**Explanation**\nThere is only one row, so each column contributes exactly one cell.\n\n## Constraints\n\n* `s.length == 5`\n* `'A' <= s[0] <= s[3] <= 'Z'`\n* `'1' <= s[1] <= s[4] <= '9'`\n* `s[2] == ':'`",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public List<String> cellsInRange(String s) {\n        \n    }\n}",
-  "tags": ["String"],
+  "initialCode": "import java.util.*;\n\nclass Solution {\n    public List<String> cellsInRange(String s) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
+  "tags": [
+    "String",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "s = \"K1:L2\"", "output": "[\"K1\",\"K2\",\"L1\",\"L2\"]" },
+    {
+      "input": "s = \"K1:L2\"",
+      "output": "[\"K1\",\"K2\",\"L1\",\"L2\"]"
+    },
     {
       "input": "s = \"A1:F1\"",
       "output": "[\"A1\",\"B1\",\"C1\",\"D1\",\"E1\",\"F1\"]"
@@ -14,27 +20,93 @@
   ],
   "solutions": [
     {
-      "name": "Nested Loop",
+      "name": "Nested Column Row Loops",
       "timeComplexity": "O(C * R)",
       "spaceComplexity": "O(C * R)",
-      "description": "Parse the column and row ranges from the input string. Iterate columns first (outer loop), then rows (inner loop), building each cell string.",
-      "code": "class Solution {\n    public List<String> cellsInRange(String s) {\n        List<String> result = new java.util.ArrayList<>();\n        char c1 = s.charAt(0), r1 = s.charAt(1);\n        char c2 = s.charAt(3), r2 = s.charAt(4);\n        for (char c = c1; c <= c2; c++) {\n            for (char r = r1; r <= r2; r++) {\n                result.add(\"\" + c + r);\n            }\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\nParse the starting and ending column and row directly from fixed positions in `s`. Use an outer loop over columns and an inner loop over rows, appending each cell name to the answer list.\n\n## Key Insight\nThe required order is column-major, so the column loop must be outside the row loop. Reversing these loops would produce row-major order, which is not accepted.\n\n## Complexity Analysis\nIf the range spans `C` columns and `R` rows, exactly `C * R` cell names are created. The time complexity is O(C * R), and the output list also uses O(C * R) space.",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public List<String> cellsInRange(String s) {\n        List<String> cells = new ArrayList<>();\n        for (char column = s.charAt(0); column <= s.charAt(3); column++) {\n            for (char row = s.charAt(1); row <= s.charAt(4); row++) {\n                cells.add(\"\" + column + row);\n            }\n        }\n        return cells;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "StringBuilder Build",
+      "name": "Pre-Sized Result Builder",
       "timeComplexity": "O(C * R)",
       "spaceComplexity": "O(C * R)",
-      "description": "Same logic but use StringBuilder to construct each cell string, adding to an ArrayList.",
-      "code": "import java.util.List;\nimport java.util.ArrayList;\n\nclass Solution {\n    public List<String> cellsInRange(String s) {\n        List<String> result = new ArrayList<>();\n        char colStart = s.charAt(0), rowStart = s.charAt(1);\n        char colEnd = s.charAt(3), rowEnd = s.charAt(4);\n        for (char col = colStart; col <= colEnd; col++) {\n            for (char row = rowStart; row <= rowEnd; row++) {\n                StringBuilder sb = new StringBuilder();\n                sb.append(col);\n                sb.append(row);\n                result.add(sb.toString());\n            }\n        }\n        return result;\n    }\n}",
+      "description": "## Approach\nCompute the number of columns and rows first, then create the `ArrayList` with its final capacity. Use the same column-major traversal and build each two-character cell with a `StringBuilder`.\n\n## Key Insight\nThe number of cells is known before generation. Pre-sizing does not change the asymptotic complexity, but it teaches students to connect range dimensions with output size and avoid unnecessary list growth.\n\n## Complexity Analysis\nThe algorithm still creates one string per cell, so the time complexity is O(C * R). The returned list stores all `C * R` cells, giving O(C * R) space.",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public List<String> cellsInRange(String s) {\n        int columnCount = s.charAt(3) - s.charAt(0) + 1;\n        int rowCount = s.charAt(4) - s.charAt(1) + 1;\n        List<String> cells = new ArrayList<>(columnCount * rowCount);\n        for (char column = s.charAt(0); column <= s.charAt(3); column++) {\n            for (char row = s.charAt(1); row <= s.charAt(4); row++) {\n                StringBuilder builder = new StringBuilder(2);\n                builder.append(column).append(row);\n                cells.add(builder.toString());\n            }\n        }\n        return cells;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Reusable Character Cell",
+      "timeComplexity": "O(C * R)",
+      "spaceComplexity": "O(C * R)",
+      "description": "## Approach\nKeep a two-character array where index `0` is the current column and index `1` is the current row. Update the array for each cell and create a new string from it.\n\n## Key Insight\nEvery cell name has exactly two characters under the constraints. A reusable character buffer makes that fixed format explicit while still producing a separate immutable string for each answer entry.\n\n## Complexity Analysis\nThe nested loops visit `C * R` cells, so the time complexity is O(C * R). The output list dominates the space usage at O(C * R), while the reusable buffer is O(1).",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public List<String> cellsInRange(String s) {\n        List<String> cells = new ArrayList<>();\n        char[] cell = new char[2];\n        for (char column = s.charAt(0); column <= s.charAt(3); column++) {\n            cell[0] = column;\n            for (char row = s.charAt(1); row <= s.charAt(4); row++) {\n                cell[1] = row;\n                cells.add(new String(cell));\n            }\n        }\n        return cells;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Linear Index Mapping",
+      "timeComplexity": "O(C * R)",
+      "spaceComplexity": "O(C * R)",
+      "description": "## Approach\nCompute `columnCount` and `rowCount`, then generate cells with one loop from `0` to `columnCount * rowCount - 1`. The quotient chooses the column offset and the remainder chooses the row offset.\n\n## Key Insight\nColumn-major order can be expressed as a linear index mapping: `index / rowCount` advances columns only after every row in the current column has been emitted, and `index % rowCount` walks the rows inside that column.\n\n## Complexity Analysis\nThere is one iteration per output cell, so the time complexity is O(C * R). The result list stores all cells, so the space complexity is O(C * R).",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public List<String> cellsInRange(String s) {\n        int columnCount = s.charAt(3) - s.charAt(0) + 1;\n        int rowCount = s.charAt(4) - s.charAt(1) + 1;\n        List<String> cells = new ArrayList<>(columnCount * rowCount);\n        for (int index = 0; index < columnCount * rowCount; index++) {\n            char column = (char) (s.charAt(0) + index / rowCount);\n            char row = (char) (s.charAt(1) + index % rowCount);\n            cells.add(\"\" + column + row);\n        }\n        return cells;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"K1:L2\"", "output": "[\"K1\",\"K2\",\"L1\",\"L2\"]" },
+    {
+      "input": "s = \"K1:L2\"",
+      "output": "[\"K1\",\"K2\",\"L1\",\"L2\"]",
+      "description": "sample iterates columns first, then rows"
+    },
     {
       "input": "s = \"A1:F1\"",
-      "output": "[\"A1\",\"B1\",\"C1\",\"D1\",\"E1\",\"F1\"]"
+      "output": "[\"A1\",\"B1\",\"C1\",\"D1\",\"E1\",\"F1\"]",
+      "description": "sample single row across several columns"
+    },
+    {
+      "input": "s = \"A1:A3\"",
+      "output": "[\"A1\",\"A2\",\"A3\"]",
+      "description": "single column across several rows"
+    },
+    {
+      "input": "s = \"C3:C3\"",
+      "output": "[\"C3\"]",
+      "description": "single cell range boundary"
+    },
+    {
+      "input": "s = \"B2:D3\"",
+      "output": "[\"B2\",\"B3\",\"C2\",\"C3\",\"D2\",\"D3\"]",
+      "description": "multi-column multi-row ordering"
+    },
+    {
+      "input": "s = \"Y9:Z9\"",
+      "output": "[\"Y9\",\"Z9\"]",
+      "description": "upper-end columns and row 9 boundary"
+    },
+    {
+      "input": "s = \"Z1:Z3\"",
+      "output": "[\"Z1\",\"Z2\",\"Z3\"]",
+      "description": "last column with multiple rows"
+    },
+    {
+      "input": "s = \"A9:C9\"",
+      "output": "[\"A9\",\"B9\",\"C9\"]",
+      "description": "last row with multiple columns"
+    },
+    {
+      "input": "s = \"D4:F6\"",
+      "output": "[\"D4\",\"D5\",\"D6\",\"E4\",\"E5\",\"E6\",\"F4\",\"F5\",\"F6\"]",
+      "description": "three by three block verifies column-major order"
+    },
+    {
+      "input": "s = \"M2:N4\"",
+      "output": "[\"M2\",\"M3\",\"M4\",\"N2\",\"N3\",\"N4\"]",
+      "description": "middle columns and rows"
+    },
+    {
+      "input": "s = \"X7:Z9\"",
+      "output": "[\"X7\",\"X8\",\"X9\",\"Y7\",\"Y8\",\"Y9\",\"Z7\",\"Z8\",\"Z9\"]",
+      "description": "upper-right block covers late alphabet and late rows"
     }
   ]
 }

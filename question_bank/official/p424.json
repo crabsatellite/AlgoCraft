@@ -1,52 +1,100 @@
 {
   "id": "424",
-  "title": "Design Browser History",
-  "description": "# Design Browser History\n\nYou have a browser of one tab where you start on the `homepage` and you can visit another `url`, get back in the history number of `steps` or move forward in the history number of `steps`.\n\nImplement the `BrowserHistory` class:\n\n*   `BrowserHistory(string homepage)` Initializes the object with the `homepage` of the browser.\n*   `void visit(string url)` Visits `url` from the current page. It clears up all the forward history.\n*   `string back(int steps)` Move `steps` back in history. If you can only return `x` steps in the history and `steps > x`, you will return only `x` steps. Return the current `url` after moving back in history **at most** `steps`.\n*   `string forward(int steps)` Move `steps` forward in history. If you can only forward `x` steps in the history and `steps > x`, you will forward only `x` steps. Return the current `url` after forwarding in history **at most** `steps`.\n\n## Example 1:\n\n**Input:**\n[\"BrowserHistory\",\"visit\",\"visit\",\"visit\",\"back\",\"back\",\"forward\",\"visit\",\"forward\",\"back\",\"back\"]\n[[\"leetcode.com\"],[\"google.com\"],[\"facebook.com\"],[\"youtube.com\"],[1],[1],[1],[\"linkedin.com\"],[2],[2],[7]]\n**Output:**\n[null,null,null,null,\"facebook.com\",\"google.com\",\"facebook.com\",null,\"linkedin.com\",\"google.com\",\"leetcode.com\"]\n**Explanation:**\nBrowserHistory browserHistory = new BrowserHistory(\"leetcode.com\");\nbrowserHistory.visit(\"google.com\");       // You are in \"leetcode.com\". Visit \"google.com\"\nbrowserHistory.visit(\"facebook.com\");     // You are in \"google.com\". Visit \"facebook.com\"\nbrowserHistory.visit(\"youtube.com\");      // You are in \"facebook.com\". Visit \"youtube.com\"\nbrowserHistory.back(1);                   // You are in \"youtube.com\", move back to \"facebook.com\" return \"facebook.com\"\nbrowserHistory.back(1);                   // You are in \"facebook.com\", move back to \"google.com\" return \"google.com\"\nbrowserHistory.forward(1);                // You are in \"google.com\", move forward to \"facebook.com\" return \"facebook.com\"\nbrowserHistory.visit(\"linkedin.com\");     // You are in \"facebook.com\". Visit \"linkedin.com\"\nbrowserHistory.forward(2);                // You are in \"linkedin.com\", you cannot move forward any steps.\nbrowserHistory.back(2);                   // You are in \"linkedin.com\", move back two steps to \"facebook.com\" then to \"google.com\". return \"google.com\"\nbrowserHistory.back(7);                   // You are in \"google.com\", you can move back only one step to \"leetcode.com\". return \"leetcode.com\"\n\n## Constraints:\n\n*   `1 <= homepage.length <= 20`\n*   `1 <= url.length <= 20`\n*   `1 <= steps <= 100`\n*   `homepage` and `url` consist of  '.' or lower case English letters.\n*   At most `5000` calls will be made to `visit`, `back`, and `forward`.",
-  "difficulty": "MEDIUM",
-  "initialCode": "class BrowserHistory {\n\n    public BrowserHistory(String homepage) {\n        \n    }\n    \n    public void visit(String url) {\n        \n    }\n    \n    public String back(int steps) {\n        \n    }\n    \n    public String forward(int steps) {\n        \n    }\n}",
+  "title": "Longest Unequal Adjacent Groups Subsequence",
+  "description": "# Longest Unequal Adjacent Groups Subsequence\n\nGiven a binary array `groups`, choose a subsequence by deleting zero or more elements while keeping the remaining order. The chosen subsequence is valid only when every pair of neighboring chosen values is different.\n\nReturn the maximum possible length of a valid subsequence.\n\n## Example 1:\n\n**Input:** groups = [0,1,1,1]\n\n**Output:** 2\n\n**Explanation:** Choose `[0,1]`. Only one `1` from the final run can be useful.\n\n## Example 2:\n\n**Input:** groups = [0,1,0,1]\n\n**Output:** 4\n\n**Explanation:** The whole array already alternates.\n\n## Constraints:\n\n*   `0 <= groups.length <= 100`\n*   `groups[i]` is either `0` or `1`.",
+  "difficulty": "EASY",
+  "initialCode": "class Solution {\n    public int longestAlternatingGroups(int[] groups) {\n        // Write your code here\n    }\n}",
   "tags": [
     "Array",
-    "Linked List",
-    "Stack",
-    "Design",
-    "Doubly Linked List",
-    "Data Stream"
+    "Greedy",
+    "Dynamic Programming"
   ],
   "examples": [
     {
-      "input": "[\"BrowserHistory\",\"visit\",\"visit\",\"visit\",\"back\",\"back\",\"forward\",\"visit\",\"forward\",\"back\",\"back\"]\n[[\"leetcode.com\"],[\"google.com\"],[\"facebook.com\"],[\"youtube.com\"],[1],[1],[1],[\"linkedin.com\"],[2],[2],[7]]",
-      "output": "[null,null,null,null,\"facebook.com\",\"google.com\",\"facebook.com\",null,\"linkedin.com\",\"google.com\",\"leetcode.com\"]"
-    }
-  ],
-  "solutions": [
-    {
-      "name": "ArrayList with Index Tracking",
-      "timeComplexity": "O(1) per operation",
-      "spaceComplexity": "O(n)",
-      "description": "Store URLs in a list. Track current index and end boundary. Visit appends at current+1, resets end. Back/forward clamp index to valid range.",
-      "code": "class BrowserHistory {\n    private java.util.List<String> history = new java.util.ArrayList<>();\n    private int cur = 0, end = 0;\n    public BrowserHistory(String homepage) { history.add(homepage); }\n    public void visit(String url) {\n        cur++;\n        if (cur < history.size()) history.set(cur, url); else history.add(url);\n        end = cur;\n    }\n    public String back(int steps) { cur = Math.max(0, cur - steps); return history.get(cur); }\n    public String forward(int steps) { cur = Math.min(end, cur + steps); return history.get(cur); }\n}",
-      "language": "java"
+      "input": "groups = [0,1,1,1]",
+      "output": "2"
     },
     {
-      "name": "Two Stacks",
-      "timeComplexity": "O(steps) per back/forward",
-      "spaceComplexity": "O(n)",
-      "description": "Use two stacks: one for back history and one for forward history. Visit pushes current to back stack and clears forward. Back pops from back to forward. Forward pops from forward to back.",
-      "code": "import java.util.*;\n\nclass BrowserHistory {\n    private Deque<String> backStack;\n    private Deque<String> forwardStack;\n    private String current;\n    public BrowserHistory(String homepage) {\n        backStack = new ArrayDeque();\n        forwardStack = new ArrayDeque();\n        current = homepage;\n    }\n    public void visit(String url) {\n        backStack.push(current);\n        current = url;\n        forwardStack.clear();\n    }\n    public String back(int steps) {\n        while (steps > 0 && !backStack.isEmpty()) {\n            forwardStack.push(current);\n            current = backStack.pop();\n            steps--;\n        }\n        return current;\n    }\n    public String forward(int steps) {\n        while (steps > 0 && !forwardStack.isEmpty()) {\n            backStack.push(current);\n            current = forwardStack.pop();\n            steps--;\n        }\n        return current;\n    }\n}",
-      "language": "java"
+      "input": "groups = [0,1,0,1]",
+      "output": "4"
     }
   ],
   "tests": [
     {
-      "input": "[\"BrowserHistory\",\"visit\",\"visit\",\"visit\",\"back\",\"back\",\"forward\",\"visit\",\"forward\",\"back\",\"back\"]\n[[\"leetcode.com\"],[\"google.com\"],[\"facebook.com\"],[\"youtube.com\"],[1],[1],[1],[\"linkedin.com\"],[2],[2],[7]]",
-      "output": "[null,null,null,null,\"facebook.com\",\"google.com\",\"facebook.com\",null,\"linkedin.com\",\"google.com\",\"leetcode.com\"]"
+      "input": "groups = [0,1,1,1]",
+      "output": "2"
+    },
+    {
+      "input": "groups = [0,1,0,1]",
+      "output": "4"
+    },
+    {
+      "input": "groups = [1,1,1]",
+      "output": "1"
+    },
+    {
+      "input": "groups = []",
+      "output": "0"
+    },
+    {
+      "input": "groups = [0]",
+      "output": "1"
+    },
+    {
+      "input": "groups = [1,0,0,1,0]",
+      "output": "4"
+    },
+    {
+      "description": "Runs compress to alternating chosen group values.",
+      "input": "groups = [0,0,1,0,0,1,1,0]",
+      "output": "5"
+    },
+    {
+      "description": "Two long runs still allow only one value from each run.",
+      "input": "groups = [0,0,0,1,1,1]",
+      "output": "2"
     }
   ],
-  "diagrams": [
+  "solutions": [
     {
-      "id": "design",
-      "file": "p403_design.png",
-      "caption": "Browser History: Doubly Linked List"
+      "name": "Run Boundary Greedy",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nIf the array is empty, the answer is `0`. Otherwise, select one value from the first run. Every time `groups[i]` differs from `groups[i - 1]`, a new run starts and we can extend the alternating subsequence by one.\n\n## Key Insight\n\nInside one consecutive run, all values are equal, so choosing two of them would make neighboring chosen values equal unless another run is placed between them. Keeping one representative per run is both necessary and sufficient.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because the array is scanned once.\n- Space Complexity: O(1), because only the answer counter is stored.",
+      "code": "class Solution {\n    public int longestAlternatingGroups(int[] groups) {\n        if (groups.length == 0) {\n            return 0;\n        }\n        int answer = 1;\n        for (int i = 1; i < groups.length; i++) {\n            if (groups[i] != groups[i - 1]) {\n                answer++;\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Explicit Run Compression",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nBuild the compressed sequence of runs. For each group value, append it only when it differs from the last compressed value. The compressed list itself is a valid longest alternating subsequence, so its size is the answer.\n\n## Key Insight\n\nRun compression makes the subsequence structure visible: deletions remove duplicate values inside runs, while the remaining run labels already alternate.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because every group value is inspected once.\n- Space Complexity: O(n), for the compressed run list in the worst case.",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public int longestAlternatingGroups(int[] groups) {\n        List<Integer> runs = new ArrayList<>();\n        for (int group : groups) {\n            if (runs.isEmpty() || runs.get(runs.size() - 1) != group) {\n                runs.add(group);\n            }\n        }\n        return runs.size();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two-State Dynamic Programming",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nMaintain `zero`, the best valid subsequence length ending with `0`, and `one`, the best valid subsequence length ending with `1`. Reading a `0` can extend only a sequence ending with `1`; reading a `1` can extend only a sequence ending with `0`.\n\n## Key Insight\n\nThe only information needed to extend a valid subsequence is its last chosen group value. This state view is useful because it generalizes directly to more group labels.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because each value updates one state.\n- Space Complexity: O(1), because there are only two ending states.",
+      "code": "class Solution {\n    public int longestAlternatingGroups(int[] groups) {\n        int zero = 0;\n        int one = 0;\n        for (int group : groups) {\n            if (group == 0) {\n                zero = Math.max(zero, one + 1);\n            } else {\n                one = Math.max(one, zero + 1);\n            }\n        }\n        return Math.max(zero, one);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Quadratic Subsequence DP",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nLet `dp[i]` be the longest valid subsequence that must end at index `i`. For every earlier index `j`, if `groups[j] != groups[i]`, then `groups[i]` can be appended after the best sequence ending at `j`.\n\n## Key Insight\n\nThis is the direct longest-subsequence formulation. It is slower than the binary greedy solution, but it exposes why the answer depends on compatible previous endings rather than contiguous positions.\n\n## Complexity Analysis\n\n- Time Complexity: O(n^2), because every ordered pair of indices can be checked.\n- Space Complexity: O(n), for the `dp` array.",
+      "code": "class Solution {\n    public int longestAlternatingGroups(int[] groups) {\n        if (groups.length == 0) {\n            return 0;\n        }\n        int[] dp = new int[groups.length];\n        java.util.Arrays.fill(dp, 1);\n        int best = 1;\n        for (int i = 0; i < groups.length; i++) {\n            for (int j = 0; j < i; j++) {\n                if (groups[i] != groups[j]) {\n                    dp[i] = Math.max(dp[i], dp[j] + 1);\n                }\n            }\n            best = Math.max(best, dp[i]);\n        }\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Memoized Choice",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nProcess positions from left to right. At each index, either skip the current value or take it if it differs from the previously chosen value. Memoize by `(index, previousGroup)`, where `previousGroup = 2` means no value has been chosen yet.\n\n## Key Insight\n\nThe recursion mirrors the definition of a subsequence. Memoization removes repeated work, while the small previous-group state keeps the number of states linear.\n\n## Complexity Analysis\n\n- Time Complexity: O(n), because there are `3 * n` states and each state has constant work.\n- Space Complexity: O(n), for the memo table and recursion stack.",
+      "code": "class Solution {\n    private int[][] memo;\n    private int[] groups;\n\n    public int longestAlternatingGroups(int[] groups) {\n        this.groups = groups;\n        memo = new int[groups.length][3];\n        for (int i = 0; i < groups.length; i++) {\n            java.util.Arrays.fill(memo[i], -1);\n        }\n        return dfs(0, 2);\n    }\n\n    private int dfs(int index, int previous) {\n        if (index == groups.length) {\n            return 0;\n        }\n        if (memo[index][previous] != -1) {\n            return memo[index][previous];\n        }\n        int best = dfs(index + 1, previous);\n        if (previous == 2 || groups[index] != previous) {\n            best = Math.max(best, 1 + dfs(index + 1, groups[index]));\n        }\n        memo[index][previous] = best;\n        return best;\n    }\n}",
+      "language": "java"
     }
   ]
 }

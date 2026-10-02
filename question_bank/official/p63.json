@@ -1,50 +1,122 @@
 {
   "id": "63",
   "title": "Capacity To Ship Packages Within D Days",
-  "description": "# Capacity To Ship Packages Within D Days\n\nA conveyor belt has packages that must be shipped from one port to another within `days` days.\n\nThe `i`th package on the conveyor belt has a weight of `weights[i]`. Each day, we load the ship with packages on the conveyor belt (in the order given by `weights`). We may not load more weight than the maximum weight capacity of the ship.\n\nReturn the least weight capacity of the ship that will result in all the packages on the conveyor belt being shipped within `days` days.\n\n## Example 1:\n\n**Input:** weights = [1,2,3,4,5,6,7,8,9,10], days = 5\n**Output:** 15\n**Explanation:** A ship capacity of 15 is the minimum to ship all the packages in 5 days like this:\n1st day: 1, 2, 3, 4, 5\n2nd day: 6, 7\n3rd day: 8\n4th day: 9\n5th day: 10\n\nNote that the cargo must be shipped in the order given, so using a ship of capacity 14 and splitting the packages into parts like (2, 3, 4, 5), (1, 6, 7), (8), (9), (10) is not allowed.\n\n## Example 2:\n\n**Input:** weights = [3,2,2,4,1,4], days = 3\n**Output:** 6\n**Explanation:** A ship capacity of 6 is the minimum to ship all the packages in 3 days like this:\n1st day: 3, 2\n2nd day: 2, 4\n3rd day: 1, 4\n\n## Example 3:\n\n**Input:** weights = [1,2,3,1,1], days = 4\n**Output:** 3\n**Explanation:**\n1st day: 1\n2nd day: 2\n3rd day: 3\n4th day: 1, 1\n\n## Constraints:\n\n*   `1 <= days <= weights.length <= 5 * 10^4`\n*   `1 <= weights[i] <= 500`",
+  "description": "# Capacity To Ship Packages Within D Days\n\nA conveyor belt lists packages in a fixed order. The `i`th package has weight `weights[i]`, and the packages must be loaded onto the ship in that order.\n\nEach day, you may load a consecutive prefix of the remaining packages, but the total weight loaded that day cannot exceed the ship's capacity. Once a day ends, the next day continues with the next unloaded package.\n\nGiven `weights` and `days`, return the smallest ship capacity that can ship every package within `days` days.\n\nThe order constraint is essential: you may choose where each day ends, but you may not reorder packages to balance the loads.\n\n## Example 1\n\n**Input:** weights = [1,2,3,4,5,6,7,8,9,10], days = 5\n\n**Output:** 15\n\n**Explanation:** Capacity 15 can ship the packages as `[1,2,3,4,5]`, `[6,7]`, `[8]`, `[9]`, `[10]`. Capacity 14 is not enough when the package order is preserved.\n\n## Example 2\n\n**Input:** weights = [3,2,2,4,1,4], days = 3\n\n**Output:** 6\n\n**Explanation:** Capacity 6 ships the packages as `[3,2]`, `[2,4]`, `[1,4]`.\n\n## Example 3\n\n**Input:** weights = [1,2,3,1,1], days = 4\n\n**Output:** 3\n\n**Explanation:** The package of weight 3 forces the capacity to be at least 3, and that capacity is sufficient.\n\n## Constraints\n\n* `1 <= days <= weights.length <= 5 * 10^4`\n* `1 <= weights[i] <= 500`",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public int shipWithinDays(int[] weights, int days) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Binary Search"],
+  "initialCode": "class Solution {\n    public int shipWithinDays(int[] weights, int days) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Binary Search",
+    "Greedy",
+    "Prefix Sum"
+  ],
   "examples": [
-    { "input": "weights = [1,2,3,4,5,6,7,8,9,10], days = 5", "output": "15" },
-    { "input": "weights = [3,2,2,4,1,4], days = 3", "output": "6" },
-    { "input": "weights = [1,2,3,1,1], days = 4", "output": "3" }
+    {
+      "input": "weights = [1,2,3,4,5,6,7,8,9,10], days = 5",
+      "output": "15"
+    },
+    {
+      "input": "weights = [3,2,2,4,1,4], days = 3",
+      "output": "6"
+    },
+    {
+      "input": "weights = [1,2,3,1,1], days = 4",
+      "output": "3"
+    }
   ],
   "tests": [
-    { "input": "weights = [1,2,3,4,5,6,7,8,9,10], days = 5", "output": "15" },
-    { "input": "weights = [3,2,2,4,1,4], days = 3", "output": "6" },
-    { "input": "weights = [1,2,3,1,1], days = 4", "output": "3" },
+    {
+      "input": "weights = [1,2,3,4,5,6,7,8,9,10], days = 5",
+      "output": "15",
+      "description": "Canonical five-day shipping example"
+    },
+    {
+      "input": "weights = [3,2,2,4,1,4], days = 3",
+      "output": "6",
+      "description": "Mixed weights in three days"
+    },
+    {
+      "input": "weights = [1,2,3,1,1], days = 4",
+      "output": "3",
+      "description": "Small packages with a tight day limit"
+    },
     {
       "input": "weights = [10,50,100,100,50,100,100,100], days = 5",
-      "output": "160"
+      "output": "160",
+      "description": "Large weights requiring careful grouping"
     },
-    { "input": "weights = [10], days = 1", "output": "10", "note": "单包裹" },
+    {
+      "input": "weights = [10], days = 1",
+      "output": "10",
+      "description": "Single package boundary"
+    },
     {
       "input": "weights = [1,2,3,4,5], days = 5",
       "output": "5",
-      "note": "天数=包裹数"
+      "description": "One package can be shipped per day"
     },
     {
       "input": "weights = [1,2,3,4,5], days = 1",
       "output": "15",
-      "note": "1天运完，容量=总重"
+      "description": "One day requires capacity equal to the total weight"
+    },
+    {
+      "input": "weights = [7,2,5,10,8], days = 2",
+      "output": "18",
+      "description": "Order-preserving split beats naive load balancing"
+    },
+    {
+      "input": "weights = [5,5,5,5], days = 2",
+      "output": "10",
+      "description": "Equal weights with an even split"
+    },
+    {
+      "input": "weights = [500,500,500,500], days = 2",
+      "output": "1000",
+      "description": "Maximum individual weights"
+    },
+    {
+      "input": "weights = [1,1,1,1,1,1,1,1,1], days = 3",
+      "output": "3",
+      "description": "Many tiny packages grouped evenly"
+    },
+    {
+      "input": "weights = [9,1,9,1,9], days = 3",
+      "output": "10",
+      "description": "Alternating heavy and light packages where order matters"
     }
   ],
   "solutions": [
     {
-      "name": "Binary Search on Answer",
+      "name": "Half-Open Capacity Binary Search",
       "timeComplexity": "O(n log S)",
       "spaceComplexity": "O(1)",
-      "description": "Binary search on the ship capacity. The lower bound is max(weights) (must carry the heaviest single package), the upper bound is sum(weights) (carry everything in one day). For each candidate capacity, greedily check if we can ship within the given days.",
-      "code": "class Solution {\n    public int shipWithinDays(int[] weights, int days) {\n        int left = 0, right = 0;\n        \n        for (int w : weights) {\n            left = Math.max(left, w);\n            right += w;\n        }\n        \n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            \n            if (canShip(weights, days, mid)) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        \n        return left;\n    }\n    \n    private boolean canShip(int[] weights, int days, int capacity) {\n        int daysNeeded = 1;\n        int currentLoad = 0;\n        \n        for (int w : weights) {\n            if (currentLoad + w > capacity) {\n                daysNeeded++;\n                currentLoad = 0;\n            }\n            currentLoad += w;\n        }\n        \n        return daysNeeded <= days;\n    }\n}",
+      "description": "## Approach\n\nBinary search the ship capacity between the heaviest package and the sum of all package weights. For each candidate capacity, greedily simulate shipping in order: keep adding packages to the current day until the next package would exceed the capacity, then start a new day.\n\n## Key Insight\n\nThe feasibility predicate is monotonic. If capacity `C` can ship all packages within `days`, every larger capacity can also do it; if `C` cannot, every smaller capacity fails. That monotonicity makes binary search on the answer valid.\n\n## Complexity Analysis\n- Time Complexity: O(n log S), where `S = sum(weights) - max(weights)` is the capacity search range.\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int shipWithinDays(int[] weights, int days) {\n        int left = 0;\n        int right = 0;\n        for (int weight : weights) {\n            left = Math.max(left, weight);\n            right += weight;\n        }\n\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (canShip(weights, days, mid)) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        return left;\n    }\n\n    private boolean canShip(int[] weights, int days, int capacity) {\n        int usedDays = 1;\n        int load = 0;\n        for (int weight : weights) {\n            if (load + weight > capacity) {\n                usedDays++;\n                load = 0;\n            }\n            load += weight;\n        }\n        return usedDays <= days;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Dynamic Programming (Prefix Sum)",
-      "timeComplexity": "O(n^2 * days)",
-      "spaceComplexity": "O(n * days)",
-      "description": "Use DP where dp[i][j] represents the minimum capacity needed to ship the first i packages in exactly j days. Use prefix sums to compute subarray sums efficiently. For each state, try all possible split points for the last day's packages.",
-      "code": "class Solution {\n    public int shipWithinDays(int[] weights, int days) {\n        int n = weights.length;\n        int[] prefix = new int[n + 1];\n        for (int i = 0; i < n; i++) {\n            prefix[i + 1] = prefix[i] + weights[i];\n        }\n        \n        // dp[i][j] = min capacity to ship first i packages in j days\n        int[][] dp = new int[n + 1][days + 1];\n        for (int i = 0; i <= n; i++) {\n            for (int j = 0; j <= days; j++) {\n                dp[i][j] = Integer.MAX_VALUE;\n            }\n        }\n        dp[0][0] = 0;\n        \n        for (int i = 1; i <= n; i++) {\n            for (int j = 1; j <= Math.min(i, days); j++) {\n                for (int m = j - 1; m < i; m++) {\n                    if (dp[m][j - 1] == Integer.MAX_VALUE) continue;\n                    int load = prefix[i] - prefix[m];\n                    int needed = Math.max(dp[m][j - 1], load);\n                    dp[i][j] = Math.min(dp[i][j], needed);\n                }\n            }\n        }\n        \n        return dp[n][days];\n    }\n}",
+      "name": "Closed Interval with Answer Variable",
+      "timeComplexity": "O(n log S)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nUse a closed binary-search interval and store the best feasible capacity in `answer`. When a candidate capacity works, record it and keep searching smaller capacities. When it fails, move the lower bound above it.\n\n## Key Insight\n\nKeeping an explicit `answer` separates the feasibility check from the boundary movement. This is useful when teaching answer-space binary search because the return value is always the smallest feasible capacity seen so far.\n\n## Complexity Analysis\n- Time Complexity: O(n log S)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int shipWithinDays(int[] weights, int days) {\n        int left = 0;\n        int right = 0;\n        for (int weight : weights) {\n            left = Math.max(left, weight);\n            right += weight;\n        }\n\n        int answer = right;\n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            int needed = daysNeeded(weights, mid);\n            if (needed <= days) {\n                answer = mid;\n                right = mid - 1;\n            } else {\n                left = mid + 1;\n            }\n        }\n        return answer;\n    }\n\n    private int daysNeeded(int[] weights, int capacity) {\n        int days = 1;\n        int load = 0;\n        for (int weight : weights) {\n            if (load + weight > capacity) {\n                days++;\n                load = 0;\n            }\n            load += weight;\n        }\n        return days;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Average Lower Bound with Early Exit",
+      "timeComplexity": "O(n log S)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nTighten the initial lower bound to the larger of the heaviest package and `ceil(total / days)`. During the greedy feasibility check, return false immediately once the candidate capacity already needs too many days.\n\n## Key Insight\n\nThe average daily load is a necessary lower bound but not a sufficient one because packages cannot be reordered. It reduces the search space, while the order-preserving greedy check still proves actual feasibility.\n\n## Complexity Analysis\n- Time Complexity: O(n log S)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int shipWithinDays(int[] weights, int days) {\n        int heaviest = 0;\n        int total = 0;\n        for (int weight : weights) {\n            heaviest = Math.max(heaviest, weight);\n            total += weight;\n        }\n\n        int left = Math.max(heaviest, (total + days - 1) / days);\n        int right = total;\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (canFinish(weights, days, mid)) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        return left;\n    }\n\n    private boolean canFinish(int[] weights, int days, int capacity) {\n        int usedDays = 1;\n        int load = 0;\n        for (int weight : weights) {\n            if (load + weight > capacity) {\n                usedDays++;\n                load = 0;\n                if (usedDays > days) {\n                    return false;\n                }\n            }\n            load += weight;\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Prefix-Sum Jump Feasibility",
+      "timeComplexity": "O((n + days log n) log S)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nBuild prefix sums so the total weight of any consecutive block is a difference of two prefix values. For a candidate capacity, each simulated day uses binary search on the prefix array to jump to the farthest package that can fit that day.\n\n## Key Insight\n\nThe greedy rule still applies: for a fixed capacity, shipping as many consecutive packages as possible each day can never hurt. Prefix sums change how the feasibility check advances, making the day-by-day jumps explicit.\n\n## Complexity Analysis\n- Time Complexity: O((n + days log n) log S)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int shipWithinDays(int[] weights, int days) {\n        int n = weights.length;\n        int[] prefix = new int[n + 1];\n        int heaviest = 0;\n        for (int i = 0; i < n; i++) {\n            heaviest = Math.max(heaviest, weights[i]);\n            prefix[i + 1] = prefix[i] + weights[i];\n        }\n\n        int left = heaviest;\n        int right = prefix[n];\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (canShip(prefix, days, mid)) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        return left;\n    }\n\n    private boolean canShip(int[] prefix, int days, int capacity) {\n        int index = 0;\n        int n = prefix.length - 1;\n        for (int day = 0; day < days && index < n; day++) {\n            int limit = prefix[index] + capacity;\n            index = upperBound(prefix, limit) - 1;\n        }\n        return index == n;\n    }\n\n    private int upperBound(int[] values, int target) {\n        int left = 0;\n        int right = values.length;\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (values[mid] <= target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n}",
       "language": "java"
     }
   ]

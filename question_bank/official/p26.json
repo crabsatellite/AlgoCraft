@@ -1,44 +1,113 @@
 {
   "id": "26",
   "title": "Remove Duplicates from Sorted Array",
-  "description": "# Remove Duplicates from Sorted Array\n\nGiven an integer array `nums` sorted in **non-decreasing order**, remove the duplicates **in-place** such that each unique element appears only **once**. The **relative order** of the elements should be kept the **same**. Then return *the number of unique elements in* `nums`.\n\nConsider the number of unique elements of `nums` to be `k`, to get accepted, you need to do the following things:\n\n*   Change the array `nums` such that the first `k` elements of `nums` contain the unique elements in the order they were present in `nums` initially. The remaining elements of `nums` are not important as well as the size of `nums`.\n*   Return `k`.\n\n## Example 1:\n\n**Input:** nums = [1,1,2]\n**Output:** 2, nums = [1,2,_]\n**Explanation:** Your function should return k = 2, with the first two elements of nums being 1 and 2 respectively.\nIt does not matter what you leave beyond the returned k (hence they are underscores).\n\n## Example 2:\n\n**Input:** nums = [0,0,1,1,1,2,2,3,3,4]\n**Output:** 5, nums = [0,1,2,3,4,_,_,_,_,_]\n**Explanation:** Your function should return k = 5, with the first five elements of nums being 0, 1, 2, 3, and 4 respectively.\nIt does not matter what you leave beyond the returned k (hence they are underscores).\n\n## Constraints:\n\n*   `1 <= nums.length <= 3 * 10^4`\n*   `-100 <= nums[i] <= 100`\n*   `nums` is sorted in **non-decreasing** order.",
+  "description": "# Remove Duplicates from Sorted Array\n\nYou are given an integer array `nums` sorted in **non-decreasing order**. Remove the duplicates **in-place** so that each distinct value appears exactly once in the front of the array, preserving the original relative order.\n\nReturn the number of distinct values, called `k`.\n\nThe judge checks two things:\n\n*   The returned value is `k`.\n*   The first `k` elements of `nums` are exactly the distinct values from the original array, in order.\n\nValues after index `k - 1` do not matter.\n\n## Example 1:\n\n**Input:** nums = [1,1,2]\n**Output:** 2, nums = [1,2,_]\n**Explanation:** There are two distinct values. The method must return `2`, and the first two positions of `nums` must be `1` and `2`.\n\n## Example 2:\n\n**Input:** nums = [0,0,1,1,1,2,2,3,3,4]\n**Output:** 5, nums = [0,1,2,3,4,_,_,_,_,_]\n**Explanation:** The compacted prefix contains the five distinct values in the same order.\n\n## Constraints:\n\n*   `1 <= nums.length <= 3 * 10^4`\n*   `-100 <= nums[i] <= 100`\n*   `nums` is sorted in **non-decreasing** order.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int removeDuplicates(int[] nums) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Two Pointers"],
+  "tags": [
+    "Array",
+    "Two Pointers"
+  ],
   "examples": [
-    { "input": "nums = [1,1,2]", "output": "2" },
-    { "input": "nums = [0,0,1,1,1,2,2,3,3,4]", "output": "5" }
+    {
+      "input": "nums = [1,1,2]",
+      "output": "2"
+    },
+    {
+      "input": "nums = [0,0,1,1,1,2,2,3,3,4]",
+      "output": "5"
+    }
   ],
   "tests": [
-    { "input": "nums = [1,1,2]", "output": "2" },
-    { "input": "nums = [0,0,1,1,1,2,2,3,3,4]", "output": "5" },
-    { "input": "nums = [1,2,3]", "output": "3" },
-    { "input": "nums = [1,1,1]", "output": "1" },
+    {
+      "input": "nums = [1,1,2]",
+      "output": "2",
+      "description": "Canonical small duplicate run"
+    },
+    {
+      "input": "nums = [0,0,1,1,1,2,2,3,3,4]",
+      "output": "5",
+      "description": "Canonical multiple duplicate runs"
+    },
+    {
+      "input": "nums = [1,2,3]",
+      "output": "3",
+      "description": "Already unique"
+    },
+    {
+      "input": "nums = [1,1,1]",
+      "output": "1",
+      "description": "All values equal"
+    },
     {
       "input": "nums = [5]",
       "output": "1",
-      "description": "Single element array"
+      "description": "Single element"
     },
     {
       "input": "nums = [-3,-3,-1,0,0,2]",
       "output": "4",
-      "description": "Array with negative numbers"
+      "description": "Negative numbers and zero"
+    },
+    {
+      "input": "nums = [-100,-100,-99,-99,-98]",
+      "output": "3",
+      "description": "Lower value boundary with repeated runs"
+    },
+    {
+      "input": "nums = [100,100,100]",
+      "output": "1",
+      "description": "Upper value boundary all duplicated"
+    },
+    {
+      "input": "nums = [-2,-1,-1,-1,0,0,0,1,2,2]",
+      "output": "5",
+      "description": "Long middle runs with both signs"
+    },
+    {
+      "input": "nums = [0]",
+      "output": "1",
+      "description": "Single zero"
+    },
+    {
+      "input": "nums = [-1,0,1,2]",
+      "output": "4",
+      "description": "Unique mixed signs"
+    },
+    {
+      "input": "nums = [-100,-50,-50,0,0,50,100,100]",
+      "output": "5",
+      "description": "Both constraint boundaries and repeated interior values"
     }
   ],
   "solutions": [
     {
-      "name": "Two Pointers - Fast & Slow",
+      "name": "Write Pointer with Last Kept Value",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use slow pointer to track position of unique elements, fast pointer to scan array. When a new unique element is found, place it at slow pointer position.",
-      "code": "class Solution {\n    public int removeDuplicates(int[] nums) {\n        if (nums.length == 0) return 0;\n        \n        int slow = 0; // Points to last unique element\n        \n        for (int fast = 1; fast < nums.length; fast++) {\n            // Found a new unique element\n            if (nums[fast] != nums[slow]) {\n                slow++;\n                nums[slow] = nums[fast];\n            }\n        }\n        \n        return slow + 1; // Length = last index + 1\n    }\n}"
+      "description": "## Approach\n\nKeep `write` as the length of the compacted unique prefix. Scan every value from left to right. A value is copied into `nums[write]` only when the prefix is empty or the value differs from the last value already kept.\n\n## Key Insight\n\nThe array is sorted, so all copies of the same value are adjacent. Once the last kept value differs from the current value, this current value is the first occurrence of a new run and belongs at the next write position.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int removeDuplicates(int[] nums) {\n        int write = 0;\n\n        for (int value : nums) {\n            if (write == 0 || nums[write - 1] != value) {\n                nums[write] = value;\n                write++;\n            }\n        }\n\n        return write;\n    }\n}"
     },
     {
-      "name": "Two Pointers - Alternative Style",
+      "name": "Run-Length Group Compression",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Similar two-pointer approach but with different loop structure. Insert position starts at 1 since first element is always unique.",
-      "code": "class Solution {\n    public int removeDuplicates(int[] nums) {\n        if (nums.length == 0) return 0;\n        \n        int insertPos = 1; // Position to insert next unique element\n        \n        for (int i = 1; i < nums.length; i++) {\n            // Compare with previous element\n            if (nums[i] != nums[i - 1]) {\n                nums[insertPos] = nums[i];\n                insertPos++;\n            }\n        }\n        \n        return insertPos;\n    }\n}"
+      "description": "## Approach\n\nTreat the sorted array as runs of equal values. At the start of each run, write that value once into the compacted prefix, then advance the read pointer across the rest of the run.\n\n## Key Insight\n\nThis is the run-length encoding view of the problem. Sorting turns duplicate removal into taking exactly one representative from each consecutive run.\n\n## Complexity Analysis\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int removeDuplicates(int[] nums) {\n        int write = 0;\n        int read = 0;\n\n        while (read < nums.length) {\n            int value = nums[read];\n            nums[write] = value;\n            write++;\n\n            while (read < nums.length && nums[read] == value) {\n                read++;\n            }\n        }\n\n        return write;\n    }\n}"
+    },
+    {
+      "name": "Binary Search Next Run Boundary",
+      "timeComplexity": "O(k log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nBecause the array is sorted, use binary search to jump from the first value of a run to the first value greater than it. Write one representative per run into the prefix.\n\n## Key Insight\n\nThe linear run-length method advances through duplicates one by one. Binary search teaches the same sorted-run boundary idea from a different angle: each step asks for the upper bound of the current value.\n\n## Complexity Analysis\n- Time Complexity: O(k log n), where `k` is the number of distinct values\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int removeDuplicates(int[] nums) {\n        int write = 0;\n        int read = 0;\n\n        while (read < nums.length) {\n            int value = nums[read];\n            nums[write] = value;\n            write++;\n            read = upperBound(nums, read + 1, nums.length, value);\n        }\n\n        return write;\n    }\n\n    private int upperBound(int[] nums, int left, int right, int value) {\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (nums[mid] <= value) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n}"
+    },
+    {
+      "name": "Quadratic Shift Baseline",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan adjacent values. When a duplicate is found, shift every later element one position left and shrink the active length. Keep checking the same index because another duplicate may have shifted into it.\n\n## Key Insight\n\nThis baseline directly performs deletion from an array. It is inefficient, but it makes the write-pointer optimization concrete: instead of repeatedly shifting the suffix, the optimized solution writes each distinct value once.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int removeDuplicates(int[] nums) {\n        int length = nums.length;\n        int i = 1;\n\n        while (i < length) {\n            if (nums[i] == nums[i - 1]) {\n                for (int j = i; j < length - 1; j++) {\n                    nums[j] = nums[j + 1];\n                }\n                length--;\n            } else {\n                i++;\n            }\n        }\n\n        return length;\n    }\n}"
     }
   ]
 }

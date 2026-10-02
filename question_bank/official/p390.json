@@ -1,36 +1,139 @@
 {
   "id": "390",
   "title": "Equal Rational Numbers",
-  "description": "# Equal Rational Numbers\n\nGiven two strings `s` and `t`, each of which represents a non-negative rational number, return `true` if and only if they represent the same number. The strings may use parentheses to denote the repeating part of the rational number.\n\nA rational number can be represented using up to three parts: `<IntegerPart>`, `<NonRepeatingPart>`, and a `<RepeatingPart>`. The number will be represented in one of the following three ways:\n\n*   `<IntegerPart>` (e.g., 0, 12, 123)\n*   `<IntegerPart><.><NonRepeatingPart>` (e.g., 0.5, 12.12, 123.0001)\n*   `<IntegerPart><.><NonRepeatingPart><(><RepeatingPart><)>` (e.g., 0.1(6), 0.9(9), 0.00(1212))\n\nThe repeating portion of a decimal expansion is conventionally denoted within a pair of round brackets. For example:\n\n*   1 / 6 = 0.1666666... = 0.1(6) = 0.1666(6) = 0.166(66)\n\n## Example 1:\n\n**Input:** s = \"0.(52)\", t = \"0.5(25)\"\n**Output:** true\n**Explanation:** Because \"0.(52)\" represents 0.52525252... and \"0.5(25)\" represents 0.5252525252... The strings represent the same number.\n\n## Example 2:\n\n**Input:** s = \"0.1666(6)\", t = \"0.166(66)\"\n**Output:** true\n\n## Example 3:\n\n**Input:** s = \"0.9(9)\", t = \"1.\"\n**Output:** true\n**Explanation:** \"0.9(9)\" represents 0.9999... which equals 1.\n\n## Constraints:\n\n*   Each part consists only of digits.\n*   The `<IntegerPart>` does not have a leading zero (except for the zero itself).\n*   `1 <= <IntegerPart>.length <= 4`\n*   `0 <= <NonRepeatingPart>.length <= 4`\n*   `1 <= <RepeatingPart>.length <= 4`",
+  "description": "# Equal Rational Numbers\n\nGiven two strings `s` and `t`, each representing a non-negative rational number, return `true` if and only if they represent the same value. A pair of parentheses marks the repeating part of the decimal expansion.\n\nA number may appear in one of these forms:\n\n* `<IntegerPart>`, for example `0`, `12`, or `123`.\n* `<IntegerPart>.<NonRepeatingPart>`, for example `0.5`, `12.12`, `123.0001`, or `1.`.\n* `<IntegerPart>.<NonRepeatingPart>(<RepeatingPart>)`, for example `0.1(6)`, `0.9(9)`, or `0.00(1212)`.\n\nThe repeating block repeats forever: `0.1(6)` means `0.1666...`, and `0.(52)` means `0.525252...`. Compare values rather than spelling; `0.(9)` and `1` also denote the same number.\n\n## Example 1:\n\n**Input:** s = \"0.(52)\", t = \"0.5(25)\"\n**Output:** true\n**Explanation:** Both strings describe 0.52525252...\n\n## Example 2:\n\n**Input:** s = \"0.1666(6)\", t = \"0.166(66)\"\n**Output:** true\n**Explanation:** Both strings describe 1/6.\n\n## Example 3:\n\n**Input:** s = \"0.9(9)\", t = \"1.\"\n**Output:** true\n**Explanation:** 0.9999... equals 1.\n\n## Constraints:\n\n* Each part consists only of digits.\n* The `<IntegerPart>` does not have a leading zero, except for `0` itself.\n* `1 <= <IntegerPart>.length <= 4`.\n* `0 <= <NonRepeatingPart>.length <= 4`.\n* `1 <= <RepeatingPart>.length <= 4` when a repeating part is present.",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public boolean isRationalEqual(String s, String t) {\n        \n    }\n}",
-  "tags": ["Math", "String"],
+  "initialCode": "class Solution {\n    public boolean isRationalEqual(String s, String t) {\n        return false;\n    }\n}",
+  "tags": [
+    "Math",
+    "String"
+  ],
   "examples": [
-    { "input": "s = \"0.(52)\", t = \"0.5(25)\"", "output": "true" },
-    { "input": "s = \"0.1666(6)\", t = \"0.166(66)\"", "output": "true" },
-    { "input": "s = \"0.9(9)\", t = \"1.\"", "output": "true" }
+    {
+      "input": "s = \"0.(52)\", t = \"0.5(25)\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"0.1666(6)\", t = \"0.166(66)\"",
+      "output": "true"
+    },
+    {
+      "input": "s = \"0.9(9)\", t = \"1.\"",
+      "output": "true"
+    }
   ],
   "solutions": [
     {
-      "name": "Expand Repeating Decimal",
-      "timeComplexity": "O(1)",
+      "name": "Reduced Long Fraction under Constraints",
+      "timeComplexity": "O(L)",
       "spaceComplexity": "O(1)",
-      "description": "Expand the repeating part enough times (e.g., 20 digits) to get a precise decimal representation. Compare the two expanded decimal values with epsilon tolerance.",
-      "code": "class Solution {\n    public boolean isRationalEqual(String s, String t) {\n        return Math.abs(parse(s) - parse(t)) < 1e-9;\n    }\n    private double parse(String s) {\n        int lparen = s.indexOf('(');\n        if (lparen < 0) return Double.parseDouble(s);\n        String base = s.substring(0, lparen);\n        String rep = s.substring(lparen + 1, s.length() - 1);\n        StringBuilder sb = new StringBuilder(base);\n        for (int i = 0; i < 20; i++) sb.append(rep);\n        return Double.parseDouble(sb.toString());\n    }\n}",
+      "description": "## Approach\nParse the integer, non-repeating, and repeating parts and convert the value to a numerator and denominator. The problem bounds keep every numerator and denominator inside `long`, so reducing by gcd gives a canonical pair.\n\n## Key Insight\nFor `I.N(R)`, the fractional denominator is `10^len(N) * (10^len(R) - 1)`. Reducing the fraction handles repeating zeros, repeating nines, and shifted repeat blocks without floating point.\n\n## Complexity Analysis\n- Time Complexity: O(L), where L is the input string length.\n- Space Complexity: O(1).",
+      "code": "class Solution {\n    public boolean isRationalEqual(String s, String t) {\n        long[] a = toReducedFraction(s);\n        long[] b = toReducedFraction(t);\n        return a[0] == b[0] && a[1] == b[1];\n    }\n\n    private long[] toReducedFraction(String value) {\n        int dot = value.indexOf('.');\n        int open = value.indexOf('(');\n        String integerPart = dot < 0 ? value : value.substring(0, dot);\n        String nonRepeat = \"\";\n        String repeat = \"\";\n        if (dot >= 0) {\n            if (open >= 0) {\n                nonRepeat = value.substring(dot + 1, open);\n                repeat = value.substring(open + 1, value.length() - 1);\n            } else {\n                nonRepeat = value.substring(dot + 1);\n            }\n        }\n\n        long integer = parseLongOrZero(integerPart);\n        long non = parseLongOrZero(nonRepeat);\n        long numerator;\n        long denominator;\n        long scale = pow10(nonRepeat.length());\n        if (repeat.isEmpty()) {\n            denominator = scale;\n            numerator = integer * denominator + non;\n        } else {\n            long repeatValue = parseLongOrZero(repeat);\n            long repeatBase = pow10(repeat.length()) - 1;\n            denominator = scale * repeatBase;\n            numerator = integer * denominator + non * repeatBase + repeatValue;\n        }\n\n        long gcd = gcd(Math.abs(numerator), denominator);\n        return new long[]{numerator / gcd, denominator / gcd};\n    }\n\n    private long pow10(int digits) {\n        long value = 1;\n        for (int i = 0; i < digits; i++) {\n            value *= 10;\n        }\n        return value;\n    }\n\n    private long parseLongOrZero(String digits) {\n        return digits.isEmpty() ? 0 : Long.parseLong(digits);\n    }\n\n    private long gcd(long a, long b) {\n        while (b != 0) {\n            long next = a % b;\n            a = b;\n            b = next;\n        }\n        return a == 0 ? 1 : a;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Fraction Comparison (Exact Arithmetic)",
+      "name": "BigInteger Canonical Fraction",
       "timeComplexity": "O(L)",
       "spaceComplexity": "O(L)",
-      "description": "Convert each rational number to an exact fraction (numerator/denominator) using the formula: for 0.abc(def), the value is (abcdef - abc) / (999...000...). Compare the two fractions by cross-multiplication to avoid floating point errors.",
-      "code": "class Solution {\n    public boolean isRationalEqual(String s, String t) {\n        long[] f1 = toFraction(s);\n        long[] f2 = toFraction(t);\n        return f1[0] * f2[1] == f1[1] * f2[0];\n    }\n    private long[] toFraction(String s) {\n        int dotIdx = s.indexOf('.');\n        int lp = s.indexOf('(');\n        if (dotIdx < 0) {\n            return new long[]{Long.parseLong(s), 1};\n        }\n        String intPart = s.substring(0, dotIdx);\n        String nonRep = lp < 0 ? s.substring(dotIdx + 1) : s.substring(dotIdx + 1, lp);\n        String rep = lp < 0 ? \"\" : s.substring(lp + 1, s.length() - 1);\n        long intVal = intPart.isEmpty() ? 0 : Long.parseLong(intPart);\n        long nonRepVal = nonRep.isEmpty() ? 0 : Long.parseLong(nonRep);\n        int nonRepLen = nonRep.length();\n        if (rep.isEmpty()) {\n            long den = 1;\n            for (int i = 0; i < nonRepLen; i++) den *= 10;\n            long num = intVal * den + nonRepVal;\n            long g = gcd(Math.abs(num), den);\n            return new long[]{num / g, den / g};\n        }\n        long repVal = Long.parseLong(rep);\n        int repLen = rep.length();\n        long nines = 1;\n        for (int i = 0; i < repLen; i++) nines *= 10;\n        nines -= 1;\n        long pow10 = 1;\n        for (int i = 0; i < nonRepLen; i++) pow10 *= 10;\n        long den = nines * pow10;\n        long num = intVal * den + nonRepVal * nines + repVal;\n        long g = gcd(Math.abs(num), den);\n        return new long[]{num / g, den / g};\n    }\n    private long gcd(long a, long b) {\n        while (b != 0) { long t = b; b = a % b; a = t; }\n        return a;\n    }\n}",
+      "description": "## Approach\nUse the same fraction formula but store the numerator and denominator as `BigInteger`. Reduce by gcd and compare the normalized numerator and denominator pair.\n\n## Key Insight\nThis route is independent of the current constraints. It remains correct even if a future version allows longer integer or repeating parts, because it never multiplies in fixed-width arithmetic.\n\n## Complexity Analysis\n- Time Complexity: O(L), ignoring the tiny cost of BigInteger arithmetic under the current bounds.\n- Space Complexity: O(L), for parsed digit strings and BigInteger values.",
+      "code": "import java.math.BigInteger;\n\nclass Solution {\n    public boolean isRationalEqual(String s, String t) {\n        Fraction a = parse(s);\n        Fraction b = parse(t);\n        return a.numerator.equals(b.numerator) && a.denominator.equals(b.denominator);\n    }\n\n    private Fraction parse(String value) {\n        Parts parts = split(value);\n        BigInteger integer = parseBig(parts.integerPart);\n        BigInteger nonRepeat = parseBig(parts.nonRepeatingPart);\n        BigInteger tenToNonRepeat = BigInteger.TEN.pow(parts.nonRepeatingPart.length());\n        BigInteger numerator;\n        BigInteger denominator;\n\n        if (parts.repeatingPart.isEmpty()) {\n            denominator = tenToNonRepeat;\n            numerator = integer.multiply(denominator).add(nonRepeat);\n        } else {\n            BigInteger repeat = parseBig(parts.repeatingPart);\n            BigInteger repeatBase = BigInteger.TEN.pow(parts.repeatingPart.length()).subtract(BigInteger.ONE);\n            denominator = tenToNonRepeat.multiply(repeatBase);\n            numerator = integer.multiply(denominator).add(nonRepeat.multiply(repeatBase)).add(repeat);\n        }\n\n        BigInteger gcd = numerator.gcd(denominator);\n        return new Fraction(numerator.divide(gcd), denominator.divide(gcd));\n    }\n\n    private Parts split(String value) {\n        int dot = value.indexOf('.');\n        int open = value.indexOf('(');\n        String integer = dot < 0 ? value : value.substring(0, dot);\n        String nonRepeat = \"\";\n        String repeat = \"\";\n        if (dot >= 0) {\n            if (open >= 0) {\n                nonRepeat = value.substring(dot + 1, open);\n                repeat = value.substring(open + 1, value.length() - 1);\n            } else {\n                nonRepeat = value.substring(dot + 1);\n            }\n        }\n        return new Parts(integer, nonRepeat, repeat);\n    }\n\n    private BigInteger parseBig(String digits) {\n        return digits.isEmpty() ? BigInteger.ZERO : new BigInteger(digits);\n    }\n\n    private static final class Parts {\n        final String integerPart;\n        final String nonRepeatingPart;\n        final String repeatingPart;\n        Parts(String integerPart, String nonRepeatingPart, String repeatingPart) {\n            this.integerPart = integerPart;\n            this.nonRepeatingPart = nonRepeatingPart;\n            this.repeatingPart = repeatingPart;\n        }\n    }\n\n    private static final class Fraction {\n        final BigInteger numerator;\n        final BigInteger denominator;\n        Fraction(BigInteger numerator, BigInteger denominator) {\n            this.numerator = numerator;\n            this.denominator = denominator;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Direct Formula Cross Multiplication",
+      "timeComplexity": "O(L)",
+      "spaceComplexity": "O(L)",
+      "description": "## Approach\nFor repeating decimals, compute the raw fraction directly as `(digitsBeforeRepeatAndOnePeriod - digitsBeforeRepeat) / (10^(n+r) - 10^n)`. Compare two raw fractions by BigInteger cross multiplication.\n\n## Key Insight\nThe subtraction formula derives the infinite tail in one step. Because the comparison cross-multiplies BigIntegers, no reduction is required and repeating-nine carries are still exact.\n\n## Complexity Analysis\n- Time Complexity: O(L).\n- Space Complexity: O(L).",
+      "code": "import java.math.BigInteger;\n\nclass Solution {\n    public boolean isRationalEqual(String s, String t) {\n        BigInteger[] a = rawFraction(s);\n        BigInteger[] b = rawFraction(t);\n        return a[0].multiply(b[1]).equals(b[0].multiply(a[1]));\n    }\n\n    private BigInteger[] rawFraction(String value) {\n        int dot = value.indexOf('.');\n        int open = value.indexOf('(');\n        String integer = dot < 0 ? value : value.substring(0, dot);\n        String nonRepeat = \"\";\n        String repeat = \"\";\n        if (dot >= 0) {\n            if (open >= 0) {\n                nonRepeat = value.substring(dot + 1, open);\n                repeat = value.substring(open + 1, value.length() - 1);\n            } else {\n                nonRepeat = value.substring(dot + 1);\n            }\n        }\n\n        if (repeat.isEmpty()) {\n            return new BigInteger[]{\n                    parseBig(integer + nonRepeat),\n                    BigInteger.TEN.pow(nonRepeat.length())\n            };\n        }\n\n        BigInteger full = parseBig(integer + nonRepeat + repeat);\n        BigInteger prefix = parseBig(integer + nonRepeat);\n        BigInteger denominator = BigInteger.TEN.pow(nonRepeat.length() + repeat.length())\n                .subtract(BigInteger.TEN.pow(nonRepeat.length()));\n        return new BigInteger[]{full.subtract(prefix), denominator};\n    }\n\n    private BigInteger parseBig(String digits) {\n        return digits.isEmpty() ? BigInteger.ZERO : new BigInteger(digits);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Fixed Common Denominator Scaling",
+      "timeComplexity": "O(L)",
+      "spaceComplexity": "O(L)",
+      "description": "## Approach\nUse the official bounds to scale every rational to one common denominator. The least common denominator for up to four non-repeating and four repeating digits is `11098890000`; after scaling, compare integer numerators.\n\n## Key Insight\nAll valid finite denominators divide `10^4`, and all repeating denominators divide `10^4 * lcm(9, 99, 999, 9999)`. This converts equality into exact integer equality.\n\n## Complexity Analysis\n- Time Complexity: O(L).\n- Space Complexity: O(L), from BigInteger parsing.",
+      "code": "import java.math.BigInteger;\n\nclass Solution {\n    private static final BigInteger COMMON_DENOMINATOR = new BigInteger(\"11098890000\");\n\n    public boolean isRationalEqual(String s, String t) {\n        return scaledNumerator(s).equals(scaledNumerator(t));\n    }\n\n    private BigInteger scaledNumerator(String value) {\n        BigInteger[] fraction = rawFraction(value);\n        BigInteger numerator = fraction[0];\n        BigInteger denominator = fraction[1];\n        return numerator.multiply(COMMON_DENOMINATOR.divide(denominator));\n    }\n\n    private BigInteger[] rawFraction(String value) {\n        int dot = value.indexOf('.');\n        int open = value.indexOf('(');\n        String integer = dot < 0 ? value : value.substring(0, dot);\n        String nonRepeat = \"\";\n        String repeat = \"\";\n        if (dot >= 0) {\n            if (open >= 0) {\n                nonRepeat = value.substring(dot + 1, open);\n                repeat = value.substring(open + 1, value.length() - 1);\n            } else {\n                nonRepeat = value.substring(dot + 1);\n            }\n        }\n        if (repeat.isEmpty()) {\n            return new BigInteger[]{parseBig(integer + nonRepeat), BigInteger.TEN.pow(nonRepeat.length())};\n        }\n        BigInteger full = parseBig(integer + nonRepeat + repeat);\n        BigInteger prefix = parseBig(integer + nonRepeat);\n        BigInteger denominator = BigInteger.TEN.pow(nonRepeat.length() + repeat.length())\n                .subtract(BigInteger.TEN.pow(nonRepeat.length()));\n        return new BigInteger[]{full.subtract(prefix), denominator};\n    }\n\n    private BigInteger parseBig(String digits) {\n        return digits.isEmpty() ? BigInteger.ZERO : new BigInteger(digits);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bounded Decimal Expansion with Gap Proof",
+      "timeComplexity": "O(L)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\nExpand each value to exactly 80 fractional digits, remove the decimal point, and compare the scaled integers with tolerance 1. This is not a general-purpose decimal algorithm, but it is exact for the stated constraints.\n\n## Key Insight\nDistinct valid rationals have denominators at most about 10^8, so after scaling by 10^80 two different values are separated by far more than 1. Equal repeating-nine forms, such as 0.9(9) and 1., differ by exactly 1 after truncation.\n\n## Complexity Analysis\n- Time Complexity: O(L), because the expansion length is a fixed constant.\n- Space Complexity: O(1), for the fixed-size expanded strings and BigInteger values.",
+      "code": "import java.math.BigInteger;\n\nclass Solution {\n    private static final int EXPANDED_DIGITS = 80;\n    private static final BigInteger TOLERANCE = BigInteger.ONE;\n\n    public boolean isRationalEqual(String s, String t) {\n        return expandedInteger(s).subtract(expandedInteger(t)).abs().compareTo(TOLERANCE) <= 0;\n    }\n\n    private BigInteger expandedInteger(String value) {\n        int dot = value.indexOf('.');\n        int open = value.indexOf('(');\n        String integer = dot < 0 ? value : value.substring(0, dot);\n        String nonRepeat = \"\";\n        String repeat = \"\";\n        if (dot >= 0) {\n            if (open >= 0) {\n                nonRepeat = value.substring(dot + 1, open);\n                repeat = value.substring(open + 1, value.length() - 1);\n            } else {\n                nonRepeat = value.substring(dot + 1);\n            }\n        }\n\n        StringBuilder digits = new StringBuilder(integer);\n        int fractionalDigits = 0;\n        for (int i = 0; i < nonRepeat.length() && fractionalDigits < EXPANDED_DIGITS; i++) {\n            digits.append(nonRepeat.charAt(i));\n            fractionalDigits++;\n        }\n        int repeatIndex = 0;\n        while (fractionalDigits < EXPANDED_DIGITS) {\n            if (repeat.isEmpty()) {\n                digits.append('0');\n            } else {\n                digits.append(repeat.charAt(repeatIndex));\n                repeatIndex = (repeatIndex + 1) % repeat.length();\n            }\n            fractionalDigits++;\n        }\n        return new BigInteger(digits.toString());\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"0.(52)\", t = \"0.5(25)\"", "output": "true" },
-    { "input": "s = \"0.1666(6)\", t = \"0.166(66)\"", "output": "true" },
-    { "input": "s = \"0.9(9)\", t = \"1.\"", "output": "true" }
+    {
+      "input": "s = \"0.(52)\", t = \"0.5(25)\"",
+      "output": "true",
+      "description": "same rational with different repeat alignment"
+    },
+    {
+      "input": "s = \"0.1666(6)\", t = \"0.166(66)\"",
+      "output": "true",
+      "description": "same repeating six with different split point"
+    },
+    {
+      "input": "s = \"0.9(9)\", t = \"1.\"",
+      "output": "true",
+      "description": "repeating nine carries to the next integer"
+    },
+    {
+      "input": "s = \"0.(1)\", t = \"0.1\"",
+      "output": "false",
+      "description": "one ninth is not one tenth"
+    },
+    {
+      "input": "s = \"0.2\", t = \"0.20\"",
+      "output": "true",
+      "description": "trailing finite zero does not change value"
+    },
+    {
+      "input": "s = \"0.1(6)\", t = \"0.16(6)\"",
+      "output": "true",
+      "description": "same value with different non-repeating prefix"
+    },
+    {
+      "input": "s = \"1.0(0)\", t = \"1.\"",
+      "output": "true",
+      "description": "repeating zero is still a finite decimal"
+    },
+    {
+      "input": "s = \"2.(9)\", t = \"3.\"",
+      "output": "true",
+      "description": "integer carry from repeating nines above two"
+    },
+    {
+      "input": "s = \"12.(56)\", t = \"12.56(56)\"",
+      "output": "true",
+      "description": "repeat block can be shifted into a valid non-repeating prefix"
+    },
+    {
+      "input": "s = \"0.0(9)\", t = \"0.1\"",
+      "output": "true",
+      "description": "repeating nine after one zero equals one tenth"
+    },
+    {
+      "input": "s = \"123.000(0)\", t = \"123\"",
+      "output": "true",
+      "description": "zero fractional tail equals an integer-only representation"
+    },
+    {
+      "input": "s = \"0.(012)\", t = \"0.01(201)\"",
+      "output": "true",
+      "description": "rotated repeat block with shifted prefix"
+    },
+    {
+      "input": "s = \"0.1234(9)\", t = \"0.1235\"",
+      "output": "true",
+      "description": "repeating nine carries through the last non-repeating digit"
+    },
+    {
+      "input": "s = \"0.58(3)\", t = \"0.5(83)\"",
+      "output": "false",
+      "description": "similar-looking periods can still represent different rationals"
+    }
   ]
 }

@@ -1,35 +1,134 @@
 {
   "id": "227",
   "title": "Arranging Coins",
-  "description": "# Arranging Coins\n\nYou have `n` coins and you want to build a staircase with these coins. The staircase consists of `k` rows where the `i-th` row has exactly `i` coins. The last row of the staircase **may be** incomplete.\n\nGiven the integer `n`, return *the number of **complete rows** of the staircase you will build*.\n\n## Example 1:\n\n**Input:** n = 5\n**Output:** 2\n**Explanation:** Because the 3rd row is incomplete, we return 2.\n\n## Example 2:\n\n**Input:** n = 8\n**Output:** 3\n**Explanation:** Because the 4th row is incomplete, we return 3.\n\n## Constraints:\n\n*   `1 <= n <= 2^31 - 1`",
+  "description": "# Arranging Coins\n\nYou have `n` coins and want to build a staircase. The first row needs `1` coin, the second row needs `2` coins, and in general the `i`-th row needs exactly `i` coins.\n\nThe last row may be incomplete. Return the number of complete rows that can be built.\n\nEquivalently, find the largest integer `k` such that `1 + 2 + ... + k <= n`, or `k * (k + 1) / 2 <= n`.\n\n## Example 1:\n\n**Input:** n = 5\n**Output:** 2\n**Explanation:** Rows `1` and `2` use `3` coins. The third row would need `3` more coins, but only `2` remain.\n\n## Example 2:\n\n**Input:** n = 8\n**Output:** 3\n**Explanation:** Rows `1`, `2`, and `3` use `6` coins. The fourth row is incomplete.\n\n## Example 3:\n\n**Input:** n = 6\n**Output:** 3\n**Explanation:** `6` is exactly `1 + 2 + 3`, so all three rows are complete.\n\n## Constraints:\n\n* `1 <= n <= 2^31 - 1`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int arrangeCoins(int n) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Math", "Binary Search"],
+  "tags": [
+    "Math",
+    "Binary Search"
+  ],
   "examples": [
-    { "input": "n = 5", "output": "2" },
-    { "input": "n = 8", "output": "3" }
+    {
+      "input": "n = 5",
+      "output": "2"
+    },
+    {
+      "input": "n = 8",
+      "output": "3"
+    },
+    {
+      "input": "n = 6",
+      "output": "3"
+    }
   ],
   "solutions": [
     {
-      "name": "Binary Search",
+      "name": "Binary Search on Complete Rows",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(1)",
-      "description": "Binary search for the largest k where k*(k+1)/2 <= n. Use long to avoid overflow.",
-      "code": "class Solution {\n    public int arrangeCoins(int n) {\n        long lo = 1, hi = n;\n        while (lo <= hi) {\n            long mid = lo + (hi - lo) / 2;\n            if (mid * (mid + 1) / 2 <= n) lo = mid + 1;\n            else hi = mid - 1;\n        }\n        return (int) hi;\n    }\n}",
+      "description": "## Approach\n\nBinary search the largest row count `k` whose triangular number `k * (k + 1) / 2` is no larger than `n`.\n\n## Key Insight\n\nThe predicate \"can build `k` complete rows\" is monotonic: if `k` rows fit, every smaller row count also fits. The product must be computed with `long` to avoid overflowing near `2^31 - 1`.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int arrangeCoins(int n) {\n        int left = 1;\n        int right = n;\n        int answer = 0;\n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            long need = (long) mid * (mid + 1) / 2;\n            if (need <= n) {\n                answer = mid;\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Math Formula",
+      "name": "Corrected Quadratic Formula",
       "timeComplexity": "O(1)",
       "spaceComplexity": "O(1)",
-      "description": "Solve k*(k+1)/2 = n using the quadratic formula: k = (-1 + sqrt(1 + 8n)) / 2.",
-      "code": "class Solution {\n    public int arrangeCoins(int n) {\n        return (int) ((-1 + Math.sqrt(1 + 8.0 * n)) / 2);\n    }\n}",
+      "description": "## Approach\n\nSolve `k^2 + k - 2n <= 0`, take the positive root `(sqrt(1 + 8n) - 1) / 2`, and floor it. A small correction loop guards against floating-point rounding at the upper bound.\n\n## Key Insight\n\nThe staircase size is the inverse of triangular numbers. The formula is concise, but production code should still verify the integer answer around the rounded root.\n\n## Complexity Analysis\n\n- Time Complexity: O(1)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int arrangeCoins(int n) {\n        int result = (int) ((Math.sqrt(1.0 + 8.0 * n) - 1) / 2);\n        while ((long) (result + 1) * (result + 2) / 2 <= n) {\n            result++;\n        }\n        while ((long) result * (result + 1) / 2 > n) {\n            result--;\n        }\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Integer Sqrt of Discriminant",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nTransform the formula into the discriminant `1 + 8n`, compute its integer square root with overflow-safe binary search, then return `(root - 1) / 2`.\n\n## Key Insight\n\nThis keeps the formula route fully integer. Comparing `mid <= target / mid` avoids multiplying two large `long` values during the square-root search.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int arrangeCoins(int n) {\n        long target = 8L * n + 1;\n        long left = 1;\n        long right = target;\n        long root = 1;\n        while (left <= right) {\n            long mid = left + (right - left) / 2;\n            if (mid <= target / mid) {\n                root = mid;\n                left = mid + 1;\n            } else {\n                right = mid - 1;\n            }\n        }\n        return (int) ((root - 1) / 2);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Newton Integer Square Root",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nAgain use the discriminant `1 + 8n`, but compute its integer square root with Newton's method. Once `x <= target / x`, `x` is at or below the square root.\n\n## Key Insight\n\nNewton's method converges quickly and can be written without floating point. Division-based comparisons keep the loop safe for the largest valid input.\n\n## Complexity Analysis\n\n- Time Complexity: O(log n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int arrangeCoins(int n) {\n        long target = 8L * n + 1;\n        long x = target;\n        while (x > target / x) {\n            x = (x + target / x) / 2;\n        }\n        return (int) ((x - 1) / 2);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Iterative Row Subtraction",
+      "timeComplexity": "O(sqrt(n))",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nSimulate the staircase definition directly. Pay for row `1`, then row `2`, and continue while the remaining coins can pay for the next row.\n\n## Key Insight\n\nAfter `k` complete rows, exactly `k * (k + 1) / 2` coins have been removed. This baseline is slower but makes the meaning of \"complete row\" explicit and avoids multiplication overflow entirely.\n\n## Complexity Analysis\n\n- Time Complexity: O(sqrt(n))\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int arrangeCoins(int n) {\n        int rows = 0;\n        int next = 1;\n        int remaining = n;\n        while (remaining >= next) {\n            remaining -= next;\n            rows++;\n            next++;\n        }\n        return rows;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "n = 5", "output": "2" },
-    { "input": "n = 8", "output": "3" },
-    { "input": "n = 1", "output": "1" }
+    {
+      "input": "n = 5",
+      "output": "2",
+      "description": "The canonical incomplete third row example."
+    },
+    {
+      "input": "n = 8",
+      "output": "3",
+      "description": "The canonical incomplete fourth row example."
+    },
+    {
+      "input": "n = 1",
+      "output": "1",
+      "description": "Smallest input."
+    },
+    {
+      "input": "n = 2",
+      "output": "1",
+      "description": "One coin remains after the first row, but row two is incomplete."
+    },
+    {
+      "input": "n = 3",
+      "output": "2",
+      "description": "Exact triangular number for two rows."
+    },
+    {
+      "input": "n = 6",
+      "output": "3",
+      "description": "Exact triangular number for three rows."
+    },
+    {
+      "input": "n = 7",
+      "output": "3",
+      "description": "One coin after an exact triangular number should not add a row."
+    },
+    {
+      "input": "n = 10",
+      "output": "4",
+      "description": "Exact triangular number for four rows."
+    },
+    {
+      "input": "n = 14",
+      "output": "4",
+      "description": "One less than the triangular number for five rows."
+    },
+    {
+      "input": "n = 15",
+      "output": "5",
+      "description": "Exact triangular number for five rows."
+    },
+    {
+      "input": "n = 1804289383",
+      "output": "60070",
+      "description": "Large non-boundary value that catches overflow-prone multiplication."
+    },
+    {
+      "input": "n = 2147450880",
+      "output": "65535",
+      "description": "Largest exact triangular number within the 32-bit constraint."
+    },
+    {
+      "input": "n = 2147483647",
+      "output": "65535",
+      "description": "Maximum input should still return 65535 complete rows."
+    }
   ]
 }

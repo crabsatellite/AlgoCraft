@@ -2,7 +2,6 @@ package com.crabmods.algocraft.testengine;
 
 import java.lang.reflect.*;
 import java.util.*;
-import java.util.stream.*;
 
 /**
  * Compares actual output against expected output with type-aware comparison.
@@ -11,7 +10,6 @@ import java.util.stream.*;
  * - Floating point epsilon comparison
  * - TreeNode level-order comparison (with trailing null stripping)
  * - ListNode comparison
- * - Unordered array/list comparison
  * - Void method output (modified input argument)
  */
 public class OutputComparator {
@@ -262,19 +260,6 @@ public class OutputComparator {
             return true;
         }
 
-        // Unordered array comparison (for problems where order doesn't matter)
-        if (returnType == int[].class) {
-            if (compareUnorderedIntArray(actual, expected)) return true;
-        }
-        if (returnType == int[][].class) {
-            if (compareUnorderedNested(actual, expected)) return true;
-        }
-
-        // List comparison (may be unordered)
-        if (returnType != null && List.class.isAssignableFrom(returnType)) {
-            if (compareUnorderedNested(actual, expected)) return true;
-        }
-
         // Fallback: try double array comparison (for List<Double> etc.)
         if (expected.contains(".") && actual.contains(".")) {
             if (compareDoubleArrays(actual, expected)) return true;
@@ -369,59 +354,4 @@ public class OutputComparator {
         return aNorm.equals(eNorm);
     }
 
-    // ─── Unordered comparison ───────────────────────────────────────
-
-    private static boolean compareUnorderedIntArray(String actual, String expected) {
-        try {
-            int[] a = InputParser.parseIntArray(actual);
-            int[] e = InputParser.parseIntArray(expected);
-            Arrays.sort(a);
-            Arrays.sort(e);
-            return Arrays.equals(a, e);
-        } catch (Exception ex) {
-            return false;
-        }
-    }
-
-    private static boolean compareUnorderedNested(String actual, String expected) {
-        String aNorm = actual.replaceAll("\\s+", "");
-        String eNorm = expected.replaceAll("\\s+", "");
-
-        // Flat list unordered comparison
-        if (aNorm.startsWith("[") && !aNorm.startsWith("[[")
-                && eNorm.startsWith("[") && !eNorm.startsWith("[[")) {
-            Set<String> aSet = parseAsSet(aNorm.substring(1, aNorm.length() - 1));
-            Set<String> eSet = parseAsSet(eNorm.substring(1, eNorm.length() - 1));
-            if (aSet.equals(eSet)) return true;
-        }
-
-        // Nested list unordered comparison
-        Set<Set<String>> aSets = parseAsSetOfSets(actual);
-        Set<Set<String>> eSets = parseAsSetOfSets(expected);
-        return aSets.equals(eSets);
-    }
-
-    private static Set<String> parseAsSet(String inner) {
-        if (inner.isEmpty()) return new HashSet<>();
-        return Arrays.stream(inner.split(","))
-                .map(s -> s.trim().replace("\"", "").toLowerCase())
-                .collect(Collectors.toSet());
-    }
-
-    private static Set<Set<String>> parseAsSetOfSets(String s) {
-        s = s.trim();
-        if (s.startsWith("[")) s = s.substring(1);
-        if (s.endsWith("]")) s = s.substring(0, s.length() - 1);
-        Set<Set<String>> result = new HashSet<>();
-        List<String> items = InputParser.splitTopLevel(s, ',');
-        for (String item : items) {
-            item = item.trim();
-            if (item.startsWith("[") && item.endsWith("]")) {
-                result.add(parseAsSet(item.substring(1, item.length() - 1)));
-            } else {
-                result.add(Set.of(item.replace("\"", "").toLowerCase()));
-            }
-        }
-        return result;
-    }
 }

@@ -1,41 +1,147 @@
 {
   "id": "172",
   "title": "Burst Balloons",
-  "description": "# Burst Balloons\n\nYou are given `n` balloons, indexed from `0` to `n - 1`. Each balloon is painted with a number on it represented by an array `nums`. You are asked to burst all the balloons.\n\nIf you burst the `i`-th balloon, you will get `nums[i - 1] * nums[i] * nums[i + 1]` coins. If `i - 1` or `i + 1` goes out of bounds of the array, then treat it as if there is a balloon with a `1` painted on it.\n\nReturn *the maximum coins you can collect by bursting the balloons wisely*.\n\n## Example 1:\n\n**Input:** nums = [3,1,5,8]\n**Output:** 167\n**Explanation:**\nnums = [3,1,5,8] --> [3,5,8] --> [3,8] --> [8] --> []\ncoins =  3*1*5    +   3*5*8   +  1*3*8  + 1*8*1 = 167\n\n## Example 2:\n\n**Input:** nums = [1,5]\n**Output:** 10\n\n## Constraints:\n\n*   `n == nums.length`\n*   `1 <= n <= 300`\n*   `0 <= nums[i] <= 100`",
+  "description": "# Burst Balloons\n\nYou are given an array `nums` where `nums[i]` is the number painted on the `i`-th balloon. You must burst every balloon.\n\nWhen you burst a balloon with current value `x`, let `left` and `right` be the nearest still-unburst balloons immediately to its left and right. If one side has no remaining balloon, use value `1` for that side. The coins gained by this burst are `left * x * right`.\n\nReturn the maximum coins you can collect by choosing the burst order wisely.\n\n## Example 1:\n\n**Input:** nums = [3,1,5,8]\n**Output:** 167\n**Explanation:** One optimal order bursts values `1`, `5`, `3`, then `8`, for `3*1*5 + 3*5*8 + 1*3*8 + 1*8*1 = 167` coins.\n\n## Example 2:\n\n**Input:** nums = [1,5]\n**Output:** 10\n**Explanation:** Burst `1` first for `1*1*5 = 5`, then burst `5` for `1*5*1 = 5`.\n\n## Constraints:\n\n*   `n == nums.length`\n*   `1 <= n <= 300`\n*   `0 <= nums[i] <= 100`",
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public int maxCoins(int[] nums) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Dynamic Programming"],
+  "tags": [
+    "Array",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "nums = [3,1,5,8]", "output": "167" },
-    { "input": "nums = [1,5]", "output": "10" }
+    {
+      "input": "nums = [3,1,5,8]",
+      "output": "167"
+    },
+    {
+      "input": "nums = [1,5]",
+      "output": "10"
+    }
   ],
   "solutions": [
     {
-      "name": "Bottom-Up Interval DP",
+      "name": "Closed-Interval Bottom-Up DP",
       "timeComplexity": "O(n^3)",
       "spaceComplexity": "O(n^2)",
-      "description": "Pad the array with 1s on both ends. Use interval DP where dp[left][right] is the max coins from bursting all balloons in [left, right]. For each interval, try every balloon k as the last one to burst.",
-      "code": "class Solution {\n    public int maxCoins(int[] nums) {\n        int n = nums.length;\n        int[] arr = new int[n + 2];\n        arr[0] = arr[n + 1] = 1;\n        for (int i = 0; i < n; i++) arr[i + 1] = nums[i];\n        int[][] dp = new int[n + 2][n + 2];\n        for (int len = 1; len <= n; len++) {\n            for (int left = 1; left <= n - len + 1; left++) {\n                int right = left + len - 1;\n                for (int k = left; k <= right; k++) {\n                    dp[left][right] = Math.max(dp[left][right], dp[left][k - 1] + arr[left - 1] * arr[k] * arr[right + 1] + dp[k + 1][right]);\n                }\n            }\n        }\n        return dp[1][n];\n    }\n}",
+      "description": "## Approach\n\nPad the array with virtual `1` values and let `dp[left][right]` be the best coins from bursting all real balloons in the closed interval `[left, right]` of the padded array. Iterate by interval length and choose which balloon `last` is burst last inside that interval.\n\n## Key Insight\n\nChoosing the next balloon to burst makes its neighbors change dynamically. Choosing the last balloon in an interval fixes its two neighbors as the interval boundaries, so the left and right subintervals become independent.\n\n## Complexity Analysis\n- Time Complexity: O(n^3)\n- Space Complexity: O(n^2)",
+      "code": "class Solution {\n    public int maxCoins(int[] nums) {\n        int n = nums.length;\n        int[] values = new int[n + 2];\n        values[0] = 1;\n        values[n + 1] = 1;\n        for (int i = 0; i < n; i++) {\n            values[i + 1] = nums[i];\n        }\n        int[][] dp = new int[n + 2][n + 2];\n        for (int length = 1; length <= n; length++) {\n            for (int left = 1; left + length - 1 <= n; left++) {\n                int right = left + length - 1;\n                for (int last = left; last <= right; last++) {\n                    int coins = dp[left][last - 1]\n                            + values[left - 1] * values[last] * values[right + 1]\n                            + dp[last + 1][right];\n                    dp[left][right] = Math.max(dp[left][right], coins);\n                }\n            }\n        }\n        return dp[1][n];\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Top-Down Memoization",
+      "name": "Top-Down Open-Interval Memoization",
       "timeComplexity": "O(n^3)",
       "spaceComplexity": "O(n^2)",
-      "description": "Pad the array with 1s on both ends. Use recursion with memoization where solve(left, right) returns the max coins from bursting all balloons strictly between left and right. For each k in (left, right), try k as the last balloon to burst.",
-      "code": "class Solution {\n    private int[][] memo;\n    private int[] arr;\n\n    public int maxCoins(int[] nums) {\n        int n = nums.length;\n        arr = new int[n + 2];\n        arr[0] = 1;\n        arr[n + 1] = 1;\n        for (int i = 0; i < n; i++) arr[i + 1] = nums[i];\n        memo = new int[n + 2][n + 2];\n        for (int[] row : memo) java.util.Arrays.fill(row, -1);\n        return solve(0, n + 1);\n    }\n\n    private int solve(int left, int right) {\n        if (left + 1 == right) return 0;\n        if (memo[left][right] != -1) return memo[left][right];\n        int best = 0;\n        for (int k = left + 1; k < right; k++) {\n            int coins = arr[left] * arr[k] * arr[right] + solve(left, k) + solve(k, right);\n            best = Math.max(best, coins);\n        }\n        memo[left][right] = best;\n        return best;\n    }\n}",
+      "description": "## Approach\n\nUse padded boundaries and define `solve(left, right)` as the best result from bursting only the balloons strictly between `left` and `right`. Try every inner balloon as the last one to burst, then memoize the open interval.\n\n## Key Insight\n\nOpen intervals make boundary handling clean: `values[left]` and `values[right]` are guaranteed to still exist when the last inner balloon is burst. Empty intervals return zero.\n\n## Complexity Analysis\n- Time Complexity: O(n^3)\n- Space Complexity: O(n^2)",
+      "code": "class Solution {\n    private int[] values;\n    private int[][] memo;\n\n    public int maxCoins(int[] nums) {\n        int n = nums.length;\n        values = new int[n + 2];\n        values[0] = 1;\n        values[n + 1] = 1;\n        for (int i = 0; i < n; i++) {\n            values[i + 1] = nums[i];\n        }\n        memo = new int[n + 2][n + 2];\n        for (int[] row : memo) {\n            java.util.Arrays.fill(row, -1);\n        }\n        return solve(0, n + 1);\n    }\n\n    private int solve(int left, int right) {\n        if (left + 1 == right) {\n            return 0;\n        }\n        if (memo[left][right] != -1) {\n            return memo[left][right];\n        }\n        int best = 0;\n        for (int last = left + 1; last < right; last++) {\n            int coins = values[left] * values[last] * values[right]\n                    + solve(left, last)\n                    + solve(last, right);\n            best = Math.max(best, coins);\n        }\n        memo[left][right] = best;\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Gap-Ordered Open-Interval DP",
+      "timeComplexity": "O(n^3)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nFill the same open-interval state iteratively by increasing boundary gap. An interval `(left, right)` is ready once every smaller interval inside it has already been computed. For each gap, try every possible last balloon between the boundaries.\n\n## Key Insight\n\nThis version exposes the dependency order of the top-down recurrence without recursion. The boundary gap must be at least two before there is any real balloon to burst.\n\n## Complexity Analysis\n- Time Complexity: O(n^3)\n- Space Complexity: O(n^2)",
+      "code": "class Solution {\n    public int maxCoins(int[] nums) {\n        int n = nums.length;\n        int[] values = new int[n + 2];\n        values[0] = 1;\n        values[n + 1] = 1;\n        for (int i = 0; i < n; i++) {\n            values[i + 1] = nums[i];\n        }\n        int[][] dp = new int[n + 2][n + 2];\n        for (int gap = 2; gap < n + 2; gap++) {\n            for (int left = 0; left + gap < n + 2; left++) {\n                int right = left + gap;\n                for (int last = left + 1; last < right; last++) {\n                    int coins = dp[left][last]\n                            + values[left] * values[last] * values[right]\n                            + dp[last][right];\n                    dp[left][right] = Math.max(dp[left][right], coins);\n                }\n            }\n        }\n        return dp[0][n + 1];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Zero-Compressed Interval DP",
+      "timeComplexity": "O(k^3 + n)",
+      "spaceComplexity": "O(k^2)",
+      "description": "## Approach\n\nFirst remove all zero-valued balloons, then run the standard interval DP on the positive values. Here `k` is the number of positive balloons. If all values are zero, the answer is zero.\n\n## Key Insight\n\nBursting a zero balloon always gives zero coins, and doing it earlier can only remove a blocking zero between useful neighbors. Therefore an optimal order may burst all zero balloons first and solve the remaining positive sequence.\n\n## Complexity Analysis\n- Time Complexity: O(k^3 + n)\n- Space Complexity: O(k^2)",
+      "code": "class Solution {\n    public int maxCoins(int[] nums) {\n        java.util.ArrayList<Integer> positive = new java.util.ArrayList<>();\n        for (int num : nums) {\n            if (num > 0) {\n                positive.add(num);\n            }\n        }\n        int k = positive.size();\n        if (k == 0) {\n            return 0;\n        }\n        int[] values = new int[k + 2];\n        values[0] = 1;\n        values[k + 1] = 1;\n        for (int i = 0; i < k; i++) {\n            values[i + 1] = positive.get(i);\n        }\n        int[][] dp = new int[k + 2][k + 2];\n        for (int length = 1; length <= k; length++) {\n            for (int left = 1; left + length - 1 <= k; left++) {\n                int right = left + length - 1;\n                for (int last = left; last <= right; last++) {\n                    int coins = dp[left][last - 1]\n                            + values[left - 1] * values[last] * values[right + 1]\n                            + dp[last + 1][right];\n                    dp[left][right] = Math.max(dp[left][right], coins);\n                }\n            }\n        }\n        return dp[1][k];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Flat Table Open-Interval DP",
+      "timeComplexity": "O(n^3)",
+      "spaceComplexity": "O(n^2)",
+      "description": "## Approach\n\nStore the open-interval DP table in a one-dimensional array indexed by `(left, right)`. The recurrence is identical to open-interval DP, but the flat storage makes the memory layout explicit and avoids allocating many small row arrays.\n\n## Key Insight\n\nThe mathematical state is still the pair of boundaries. Flattening the table is an implementation route that keeps the same dependencies while making it clear that only O(n^2) interval states exist.\n\n## Complexity Analysis\n- Time Complexity: O(n^3)\n- Space Complexity: O(n^2)",
+      "code": "class Solution {\n    public int maxCoins(int[] nums) {\n        int n = nums.length;\n        int size = n + 2;\n        int[] values = new int[size];\n        values[0] = 1;\n        values[size - 1] = 1;\n        for (int i = 0; i < n; i++) {\n            values[i + 1] = nums[i];\n        }\n        int[] dp = new int[size * size];\n        for (int gap = 2; gap < size; gap++) {\n            for (int left = 0; left + gap < size; left++) {\n                int right = left + gap;\n                int best = 0;\n                for (int last = left + 1; last < right; last++) {\n                    int coins = dp[index(left, last, size)]\n                            + values[left] * values[last] * values[right]\n                            + dp[index(last, right, size)];\n                    best = Math.max(best, coins);\n                }\n                dp[index(left, right, size)] = best;\n            }\n        }\n        return dp[index(0, size - 1, size)];\n    }\n\n    private int index(int left, int right, int size) {\n        return left * size + right;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [3,1,5,8]", "output": "167" },
-    { "input": "nums = [1,5]", "output": "10" },
-    { "input": "nums = [1]", "output": "1" },
-    { "input": "nums = [9,76,64,21]", "output": "116718" },
-    { "input": "nums = [7,9,8,0,7,1,3]", "output": "1141" },
-    { "input": "nums = [5,5,5,5]", "output": "280" },
-    { "input": "nums = [1,2,3,4,5]", "output": "110" },
-    { "input": "nums = [100]", "output": "100" }
+    {
+      "input": "nums = [3,1,5,8]",
+      "output": "167",
+      "description": "Canonical example requires choosing the order carefully."
+    },
+    {
+      "input": "nums = [1,5]",
+      "output": "10",
+      "description": "Two balloons test virtual boundary multipliers."
+    },
+    {
+      "input": "nums = [1]",
+      "output": "1",
+      "description": "Single balloon earns its own value between two virtual ones."
+    },
+    {
+      "input": "nums = [9,76,64,21]",
+      "output": "116718",
+      "description": "Large values stress interval arithmetic and last-burst ordering."
+    },
+    {
+      "input": "nums = [7,9,8,0,7,1,3]",
+      "output": "1141",
+      "description": "Zero-valued balloon can be removed for no coins but changes future neighbors."
+    },
+    {
+      "input": "nums = [5,5,5,5]",
+      "output": "280",
+      "description": "Equal values still require correct interval splitting."
+    },
+    {
+      "input": "nums = [1,2,3,4,5]",
+      "output": "110",
+      "description": "Increasing values are not solved by simply bursting in input order."
+    },
+    {
+      "input": "nums = [100]",
+      "output": "100",
+      "description": "Single large balloon checks the upper value boundary."
+    },
+    {
+      "input": "nums = [0]",
+      "output": "0",
+      "description": "Single zero-valued balloon earns no coins."
+    },
+    {
+      "input": "nums = [0,0]",
+      "output": "0",
+      "description": "All zero balloons should not create phantom coins."
+    },
+    {
+      "input": "nums = [1,1,1]",
+      "output": "3",
+      "description": "All ones produce one coin per burst."
+    },
+    {
+      "input": "nums = [2,4]",
+      "output": "12",
+      "description": "Two non-one balloons show why first order matters."
+    },
+    {
+      "input": "nums = [1,0,5]",
+      "output": "10",
+      "description": "Zero between positive balloons should be removed before useful products."
+    },
+    {
+      "input": "nums = [3,1,5,8,2]",
+      "output": "192",
+      "description": "Canonical prefix with an extra tail checks wider intervals."
+    },
+    {
+      "input": "nums = [8,2,6,8]",
+      "output": "552",
+      "description": "Repeated high boundaries create multiple plausible last-burst choices."
+    }
   ],
-  "diagram": "images/p172_burst_balloons.png"
+  "diagrams": [
+    {
+      "id": "example1",
+      "file": "p172_burst_balloons.png",
+      "caption": "Example 1 current row: bursting value 1 earns 3*1*5 coins, then values 3 and 5 become neighbors"
+    }
+  ]
 }

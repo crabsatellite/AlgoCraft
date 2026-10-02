@@ -1,17 +1,46 @@
 {
   "id": "15",
   "title": "Intersection of Two Arrays II",
-  "description": "# Intersection of Two Arrays II\n\nGiven two integer arrays `nums1` and `nums2`, return *an array of their intersection*. Each element in the result must appear as many times as it shows in both arrays and you may return the result in **any order**.\n\n## Example 1:\n\n**Input:** nums1 = [1,2,2,1], nums2 = [2,2]\n**Output:** [2,2]\n\n## Example 2:\n\n**Input:** nums1 = [4,9,5], nums2 = [9,4,9,8,4]\n**Output:** [4,9]\n**Explanation:** [9,4] is also accepted.\n\n## Constraints:\n\n*   `1 <= nums1.length, nums2.length <= 1000`\n*   `0 <= nums1[i], nums2[i] <= 1000`",
+  "description": "# Intersection of Two Arrays II\n\nGiven two integer arrays `nums1` and `nums2`, return an array containing their intersection with multiplicity. A value should appear in the result exactly `min(count in nums1, count in nums2)` times. You may return the result in any order.\n\nThis problem is different from a set intersection: duplicates are not discarded unless one array runs out of that value.\n\n## Example 1:\n\n**Input:** nums1 = [1,2,2,1], nums2 = [2,2]\n**Output:** [2,2]\n**Explanation:** The value 2 appears twice in both arrays, so it appears twice in the answer.\n\n## Example 2:\n\n**Input:** nums1 = [4,9,5], nums2 = [9,4,9,8,4]\n**Output:** [4,9]\n**Explanation:** [9,4] is also accepted because the output order does not matter.\n\n## Example 3:\n\n**Input:** nums1 = [1,1,1], nums2 = [1,1]\n**Output:** [1,1]\n**Explanation:** Only two copies can be used because `nums2` contains two 1s.\n\n## Constraints:\n\n*   `1 <= nums1.length, nums2.length <= 1000`\n*   `0 <= nums1[i], nums2[i] <= 1000`\n\n## Follow-up:\n\n*   What changes if both arrays are already sorted?\n*   What changes if `nums2` is stored on disk and cannot fit entirely in memory?",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int[] intersect(int[] nums1, int[] nums2) {\n        // Write your code here\n        return new int[]{};\n    }\n}",
-  "tags": ["Array", "Hash Table", "Two Pointers", "Binary Search", "Sorting"],
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Two Pointers",
+    "Binary Search",
+    "Sorting"
+  ],
   "examples": [
-    { "input": "nums1 = [1,2,2,1], nums2 = [2,2]", "output": "[2,2]" }
+    {
+      "input": "nums1 = [1,2,2,1], nums2 = [2,2]",
+      "output": "[2,2]"
+    },
+    {
+      "input": "nums1 = [4,9,5], nums2 = [9,4,9,8,4]",
+      "output": "[4,9]"
+    },
+    {
+      "input": "nums1 = [1,1,1], nums2 = [1,1]",
+      "output": "[1,1]"
+    }
   ],
   "tests": [
-    { "input": "nums1 = [1,2,2,1], nums2 = [2,2]", "output": "[2,2]" },
-    { "input": "nums1 = [4,9,5], nums2 = [9,4,9,8,4]", "output": "[4,9]" },
-    { "input": "nums1 = [1,2,3], nums2 = [4,5,6]", "output": "[]" },
+    {
+      "input": "nums1 = [1,2,2,1], nums2 = [2,2]",
+      "output": "[2,2]",
+      "description": "Canonical duplicate intersection"
+    },
+    {
+      "input": "nums1 = [4,9,5], nums2 = [9,4,9,8,4]",
+      "output": "[4,9]",
+      "description": "Order-independent result with different input order"
+    },
+    {
+      "input": "nums1 = [1,2,3], nums2 = [4,5,6]",
+      "output": "[]",
+      "description": "No shared values"
+    },
     {
       "input": "nums1 = [1,2,3], nums2 = [1,2,3]",
       "output": "[1,2,3]",
@@ -20,26 +49,57 @@
     {
       "input": "nums1 = [1,1,1], nums2 = [1,1]",
       "output": "[1,1]",
-      "description": "One array is subset of another"
+      "description": "Multiplicity is capped by the smaller count"
+    },
+    {
+      "input": "nums1 = [0,0,1], nums2 = [0,0,0]",
+      "output": "[0,0]",
+      "description": "Zero is a normal value and duplicates still count"
+    },
+    {
+      "input": "nums1 = [1000,1000,2], nums2 = [1000,3,1000,1000]",
+      "output": "[1000,1000]",
+      "description": "Upper value boundary with clipped multiplicity"
+    },
+    {
+      "input": "nums1 = [7], nums2 = [8]",
+      "output": "[]",
+      "description": "Single-element non-intersection"
+    },
+    {
+      "input": "nums1 = [2,2,2,2,2,3], nums2 = [2,3,3]",
+      "output": "[2,3]",
+      "description": "Very different duplicate counts on both sides"
+    },
+    {
+      "input": "nums1 = [0,0,1,2,2,1000,1000], nums2 = [0,2,2,2,3,1000]",
+      "output": "[0,2,2,1000]",
+      "description": "Mixed values across lower and upper bounds"
     }
   ],
   "solutions": [
     {
-      "name": "HashMap Counting",
-      "description": "## Approach\n\nCount occurrences in the smaller array using HashMap. Iterate through the larger array and collect common elements.\n\n## Complexity Analysis\n- Time Complexity: O(m + n)\n- Space Complexity: O(min(m, n))",
-      "code": "class Solution {\n    public int[] intersect(int[] nums1, int[] nums2) {\n        if (nums1.length > nums2.length) {\n            return intersect(nums2, nums1);\n        }\n        \n        Map<Integer, Integer> map = new HashMap<>();\n        for (int num : nums1) {\n            map.put(num, map.getOrDefault(num, 0) + 1);\n        }\n        \n        List<Integer> result = new ArrayList<>();\n        for (int num : nums2) {\n            int count = map.getOrDefault(num, 0);\n            if (count > 0) {\n                result.add(num);\n                map.put(num, count - 1);\n            }\n        }\n        \n        int[] arr = new int[result.size()];\n        for (int i = 0; i < result.size(); i++) {\n            arr[i] = result.get(i);\n        }\n        return arr;\n    }\n}",
+      "name": "HashMap Counting - Smaller Array",
+      "description": "## Approach\n\nCount occurrences in the shorter array, then scan the longer array. When a value still has a positive count, append it to the result and decrement the stored count.\n\n## Key Insight\n\nThe answer is controlled by multiplicity, not set membership. Counting the shorter array stores exactly the remaining copies that may still be matched while minimizing auxiliary space.\n\n## Complexity Analysis\n- Time Complexity: O(m + n)\n- Space Complexity: O(min(m, n))",
+      "code": "class Solution {\n    public int[] intersect(int[] nums1, int[] nums2) {\n        if (nums1.length > nums2.length) {\n            return intersect(nums2, nums1);\n        }\n\n        Map<Integer, Integer> counts = new HashMap<>();\n        for (int num : nums1) {\n            counts.put(num, counts.getOrDefault(num, 0) + 1);\n        }\n\n        List<Integer> result = new ArrayList<>();\n        for (int num : nums2) {\n            int remaining = counts.getOrDefault(num, 0);\n            if (remaining > 0) {\n                result.add(num);\n                counts.put(num, remaining - 1);\n            }\n        }\n\n        int[] answer = new int[result.size()];\n        for (int i = 0; i < result.size(); i++) {\n            answer[i] = result.get(i);\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
       "name": "Sorting + Two Pointers",
-      "description": "## Approach\n\nSort both arrays. Use two pointers to find common elements.\n\n## Complexity Analysis\n- Time Complexity: O(m log m + n log n)\n- Space Complexity: O(1) excluding output",
-      "code": "class Solution {\n    public int[] intersect(int[] nums1, int[] nums2) {\n        Arrays.sort(nums1);\n        Arrays.sort(nums2);\n        \n        List<Integer> result = new ArrayList<>();\n        int i = 0, j = 0;\n        \n        while (i < nums1.length && j < nums2.length) {\n            if (nums1[i] < nums2[j]) {\n                i++;\n            } else if (nums1[i] > nums2[j]) {\n                j++;\n            } else {\n                result.add(nums1[i]);\n                i++;\n                j++;\n            }\n        }\n        \n        int[] arr = new int[result.size()];\n        for (int k = 0; k < result.size(); k++) {\n            arr[k] = result.get(k);\n        }\n        return arr;\n    }\n}",
+      "description": "## Approach\n\nSort both arrays and compare them as two ordered streams. Equal values form one matched copy; otherwise advance the pointer pointing to the smaller value.\n\n## Key Insight\n\nSorting groups duplicate values together. Advancing both pointers after a match naturally consumes one copy from each array, which is exactly the required minimum-count behavior.\n\n## Complexity Analysis\n- Time Complexity: O(m log m + n log n)\n- Space Complexity: O(1) to O(m + n), depending on the sorting implementation and excluding the output",
+      "code": "class Solution {\n    public int[] intersect(int[] nums1, int[] nums2) {\n        Arrays.sort(nums1);\n        Arrays.sort(nums2);\n\n        List<Integer> result = new ArrayList<>();\n        int i = 0;\n        int j = 0;\n        while (i < nums1.length && j < nums2.length) {\n            if (nums1[i] < nums2[j]) {\n                i++;\n            } else if (nums1[i] > nums2[j]) {\n                j++;\n            } else {\n                result.add(nums1[i]);\n                i++;\n                j++;\n            }\n        }\n\n        int[] answer = new int[result.size()];\n        for (int k = 0; k < result.size(); k++) {\n            answer[k] = result.get(k);\n        }\n        return answer;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Counting Array (For Small Range)",
-      "description": "## Approach\n\nUse counting array when element range is known and small.\n\n## Complexity Analysis\n- Time Complexity: O(m + n + k) where k is range\n- Space Complexity: O(k)",
-      "code": "class Solution {\n    public int[] intersect(int[] nums1, int[] nums2) {\n        int[] count = new int[1001];\n        \n        for (int num : nums1) {\n            count[num]++;\n        }\n        \n        List<Integer> result = new ArrayList<>();\n        for (int num : nums2) {\n            if (count[num] > 0) {\n                result.add(num);\n                count[num]--;\n            }\n        }\n        \n        int[] arr = new int[result.size()];\n        for (int i = 0; i < result.size(); i++) {\n            arr[i] = result.get(i);\n        }\n        return arr;\n    }\n}",
+      "name": "Counting Array - Bounded Value Range",
+      "description": "## Approach\n\nUse the constraint `0 <= value <= 1000` to build a fixed-size frequency array. Count one input array, then consume counts while scanning the other input.\n\n## Key Insight\n\nWhen the value range is small and known, an array index can replace a hash table. The stored count still represents how many copies remain available for matching.\n\n## Complexity Analysis\n- Time Complexity: O(m + n + range)\n- Space Complexity: O(range)",
+      "code": "class Solution {\n    public int[] intersect(int[] nums1, int[] nums2) {\n        int[] counts = new int[1001];\n        for (int num : nums1) {\n            counts[num]++;\n        }\n\n        List<Integer> result = new ArrayList<>();\n        for (int num : nums2) {\n            if (counts[num] > 0) {\n                result.add(num);\n                counts[num]--;\n            }\n        }\n\n        int[] answer = new int[result.size()];\n        for (int i = 0; i < result.size(); i++) {\n            answer[i] = result.get(i);\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Binary Search on Sorted Second Array",
+      "description": "## Approach\n\nSort `nums2`. For each value from `nums1`, use lower and upper bounds in the sorted array to find how many copies exist in `nums2`, and track how many copies of that value have already been consumed.\n\n## Key Insight\n\nBinary search answers membership and frequency-range questions on a sorted array. A separate consumed-count map is still necessary because duplicates may be matched only as many times as `nums2` provides them.\n\n## Complexity Analysis\n- Time Complexity: O(n log n + m log n)\n- Space Complexity: O(u), where `u` is the number of distinct matched values",
+      "code": "class Solution {\n    public int[] intersect(int[] nums1, int[] nums2) {\n        Arrays.sort(nums2);\n        Map<Integer, Integer> used = new HashMap<>();\n        List<Integer> result = new ArrayList<>();\n\n        for (int num : nums1) {\n            int first = lowerBound(nums2, num);\n            if (first == nums2.length || nums2[first] != num) {\n                continue;\n            }\n            int last = upperBound(nums2, num);\n            int consumed = used.getOrDefault(num, 0);\n            if (consumed < last - first) {\n                result.add(num);\n                used.put(num, consumed + 1);\n            }\n        }\n\n        int[] answer = new int[result.size()];\n        for (int i = 0; i < result.size(); i++) {\n            answer[i] = result.get(i);\n        }\n        return answer;\n    }\n\n    private int lowerBound(int[] nums, int target) {\n        int left = 0;\n        int right = nums.length;\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (nums[mid] < target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n\n    private int upperBound(int[] nums, int target) {\n        int left = 0;\n        int right = nums.length;\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (nums[mid] <= target) {\n                left = mid + 1;\n            } else {\n                right = mid;\n            }\n        }\n        return left;\n    }\n}",
       "language": "java"
     }
   ]

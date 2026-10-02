@@ -1,36 +1,112 @@
 {
   "id": "58",
   "title": "First Bad Version",
-  "description": "# First Bad Version\n\nYou are a product manager and currently leading a team to develop a new product. Unfortunately, the latest version of your product fails the quality check. Since each version is developed based on the previous version, all the versions after a bad version are also bad.\n\nSuppose you have `n` versions `[1, 2, ..., n]` and you want to find out the first bad one, which causes all the following ones to be bad.\n\nYou are given an API `bool isBadVersion(version)` which returns whether `version` is bad. Implement a function to find the first bad version. You should minimize the number of calls to the API.\n\n## Example 1:\n\n**Input:** n = 5, bad = 4\n**Output:** 4\n**Explanation:**\ncall isBadVersion(3) -> false\ncall isBadVersion(5) -> true\ncall isBadVersion(4) -> true\nThen 4 is the first bad version.\n\n## Example 2:\n\n**Input:** n = 1, bad = 1\n**Output:** 1\n\n## Constraints:\n\n*   `1 <= bad <= n <= 2^31 - 1`",
+  "description": "# First Bad Version\n\nProduct versions are numbered from `1` through `n`, and at least one is bad. Once a version is bad, all later versions are bad too.\n\nImplement `firstBadVersion(int n)` to return the first bad version number. Call `boolean isBadVersion(int version)` to determine whether a version is bad: it returns `true` for bad versions and `false` otherwise.\n\n`VersionControl` supplies `isBadVersion`; do not implement it. The example field `bad` configures the first bad version in the evaluation environment. It is not an argument to `firstBadVersion` and is not directly available to your method. Use `O(log n)` API calls.\n\n## Example 1\n\n**Input:** n = 5, bad = 4\n\n**Output:** 4\n\n**Explanation:** Versions 1, 2, and 3 are good. Versions 4 and 5 are bad, so the first bad version is 4.\n\n## Example 2\n\n**Input:** n = 1, bad = 1\n\n**Output:** 1\n\n## Constraints\n\n* `1 <= bad <= n <= 2^31 - 1`\n* Calls to `isBadVersion` are counted by the judge.\n* You may assume at least one bad version exists.",
   "difficulty": "EASY",
-  "initialCode": "/* The isBadVersion API is defined in the parent class VersionControl.\n      boolean isBadVersion(int version); */\n\npublic class Solution extends VersionControl {\n    public int firstBadVersion(int n) {\n        // Write your code here\n        return -1;\n    }\n}",
-  "tags": ["Binary Search", "Interactive"],
+  "initialCode": "/* The isBadVersion API is defined in the parent class VersionControl.\n      boolean isBadVersion(int version); */\n\npublic class Solution extends VersionControl {\n    public int firstBadVersion(int n) {\n        return -1;\n    }\n}",
+  "tags": [
+    "Binary Search",
+    "Interactive"
+  ],
   "examples": [
-    { "input": "n = 5, bad = 4", "output": "4" },
-    { "input": "n = 1, bad = 1", "output": "1" }
+    {
+      "input": "n = 5, bad = 4",
+      "output": "4"
+    },
+    {
+      "input": "n = 1, bad = 1",
+      "output": "1"
+    }
   ],
   "tests": [
-    { "input": "n = 5, bad = 4", "output": "4" },
-    { "input": "n = 1, bad = 1", "output": "1" },
-    { "input": "n = 2147483647, bad = 2147483647", "output": "2147483647" },
-    { "input": "n = 5, bad = 1", "output": "1", "note": "首个版本就是坏的" },
-    { "input": "n = 10, bad = 5", "output": "5", "note": "中间版本坏" },
-    { "input": "n = 2, bad = 2", "output": "2", "note": "两个版本，最后一个坏" }
+    {
+      "input": "n = 5, bad = 4",
+      "output": "4",
+      "description": "Canonical boundary near the right side"
+    },
+    {
+      "input": "n = 1, bad = 1",
+      "output": "1",
+      "description": "Single version"
+    },
+    {
+      "input": "n = 2, bad = 1",
+      "output": "1",
+      "description": "Two versions with the first already bad"
+    },
+    {
+      "input": "n = 2, bad = 2",
+      "output": "2",
+      "description": "Two versions with only the last one bad"
+    },
+    {
+      "input": "n = 3, bad = 2",
+      "output": "2",
+      "description": "Small odd range with boundary in the middle"
+    },
+    {
+      "input": "n = 10, bad = 5",
+      "output": "5",
+      "description": "Middle boundary in an even range"
+    },
+    {
+      "input": "n = 100, bad = 99",
+      "output": "99",
+      "description": "Boundary just before the final version"
+    },
+    {
+      "input": "n = 2147483647, bad = 1",
+      "output": "1",
+      "description": "Maximum n with the first version bad"
+    },
+    {
+      "input": "n = 2147483647, bad = 2147483647",
+      "output": "2147483647",
+      "description": "Maximum n with the last version bad, requiring overflow-safe midpoint"
+    },
+    {
+      "input": "n = 2147483647, bad = 2147483646",
+      "output": "2147483646",
+      "description": "Maximum n with boundary next to the end"
+    },
+    {
+      "input": "n = 1024, bad = 513",
+      "output": "513",
+      "description": "Power-of-two range with boundary just after half"
+    }
   ],
   "solutions": [
     {
-      "name": "二分查找",
+      "name": "Binary Search First True",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(1)",
-      "description": "二分查找第一个坏版本。如果 mid 是坏版本，说明第一个坏版本在左边（包含 mid）；否则在右边。注意使用 left + (right - left) / 2 防止整数溢出。",
-      "code": "/* The isBadVersion API is defined in the parent class VersionControl.\n      boolean isBadVersion(int version); */\n\npublic class Solution extends VersionControl {\n    public int firstBadVersion(int n) {\n        int left = 1, right = n;\n        \n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            \n            if (isBadVersion(mid)) {\n                right = mid; // 第一个坏版本在 mid 或左边\n            } else {\n                left = mid + 1; // 第一个坏版本在右边\n            }\n        }\n        \n        return left;\n    }\n}"
+      "description": "## Approach\n\nTreat `isBadVersion(version)` as a monotonic predicate: it is false for a prefix of good versions and true for a suffix of bad versions. Keep the answer inside `[left, right]`. When `mid` is bad, keep `mid` by moving `right = mid`; when `mid` is good, move `left = mid + 1`.\n\n## Key Insight\n\nThis is the standard \"first true\" binary search. The loop stops only when the search range has one version left, so that version is the first bad one. The midpoint uses `left + (right - left) / 2` to avoid overflow when `n` is near `Integer.MAX_VALUE`.\n\n## Complexity Analysis\n- Time Complexity: O(log n)\n- Space Complexity: O(1)",
+      "code": "/* The isBadVersion API is defined in the parent class VersionControl.\n      boolean isBadVersion(int version); */\n\npublic class Solution extends VersionControl {\n    public int firstBadVersion(int n) {\n        int left = 1;\n        int right = n;\n        while (left < right) {\n            int mid = left + (right - left) / 2;\n            if (isBadVersion(mid)) {\n                right = mid;\n            } else {\n                left = mid + 1;\n            }\n        }\n        return left;\n    }\n}",
+      "language": "java"
     },
     {
-      "name": "二分查找 - 闭区间写法",
+      "name": "Closed Interval with Answer Variable",
       "timeComplexity": "O(log n)",
       "spaceComplexity": "O(1)",
-      "description": "使用闭区间 [left, right] 的写法。当 left == right 时循环结束，此时左右指针重合在第一个坏版本上。",
-      "code": "/* The isBadVersion API is defined in the parent class VersionControl.\n      boolean isBadVersion(int version); */\n\npublic class Solution extends VersionControl {\n    public int firstBadVersion(int n) {\n        int left = 1, right = n;\n        \n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            \n            if (isBadVersion(mid)) {\n                if (mid == 1 || !isBadVersion(mid - 1)) {\n                    return mid; // 找到第一个坏版本\n                }\n                right = mid - 1;\n            } else {\n                left = mid + 1;\n            }\n        }\n        \n        return left;\n    }\n}"
+      "description": "## Approach\n\nUse a closed interval `[left, right]` and store the best bad version seen so far in `answer`. If `mid` is bad, update `answer = mid` and continue searching to the left. If `mid` is good, discard `mid` and everything before it.\n\n## Key Insight\n\nThe answer variable makes the invariant explicit: it is always a known bad version, while the active interval searches for an even earlier bad version. This form is useful when teaching lower-bound binary search with a retained candidate.\n\n## Complexity Analysis\n- Time Complexity: O(log n)\n- Space Complexity: O(1)",
+      "code": "/* The isBadVersion API is defined in the parent class VersionControl.\n      boolean isBadVersion(int version); */\n\npublic class Solution extends VersionControl {\n    public int firstBadVersion(int n) {\n        int left = 1;\n        int right = n;\n        int answer = n;\n        while (left <= right) {\n            int mid = left + (right - left) / 2;\n            if (isBadVersion(mid)) {\n                answer = mid;\n                right = mid - 1;\n            } else {\n                left = mid + 1;\n            }\n        }\n        return answer;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Good-Bad Sentinel Boundary",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nMaintain two sentinels: version `0` is treated as known good without calling the API, and `n` is known bad by the problem guarantee. While the sentinels are not adjacent, test the midpoint. A bad midpoint becomes the new bad sentinel; a good midpoint becomes the new good sentinel.\n\n## Key Insight\n\nThe boundary always lies strictly between `good` and `bad`, and `bad` is always a valid candidate answer. When the sentinels are adjacent, the bad sentinel is exactly the first bad version.\n\n## Complexity Analysis\n- Time Complexity: O(log n)\n- Space Complexity: O(1)",
+      "code": "/* The isBadVersion API is defined in the parent class VersionControl.\n      boolean isBadVersion(int version); */\n\npublic class Solution extends VersionControl {\n    public int firstBadVersion(int n) {\n        int good = 0;\n        int bad = n;\n        while (good + 1 < bad) {\n            int mid = good + (bad - good) / 2;\n            if (isBadVersion(mid)) {\n                bad = mid;\n            } else {\n                good = mid;\n            }\n        }\n        return bad;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Boundary Search",
+      "timeComplexity": "O(log n)",
+      "spaceComplexity": "O(log n)",
+      "description": "## Approach\n\nWrite the same boundary search recursively. The helper receives a range that is guaranteed to contain the first bad version. If `mid` is bad, recurse into `[left, mid]`; otherwise recurse into `[mid + 1, right]`.\n\n## Key Insight\n\nThe recursive form highlights the divide-and-conquer structure of binary search. The base case `left == right` means the range has collapsed to the only possible first bad version.\n\n## Complexity Analysis\n- Time Complexity: O(log n)\n- Space Complexity: O(log n)",
+      "code": "/* The isBadVersion API is defined in the parent class VersionControl.\n      boolean isBadVersion(int version); */\n\npublic class Solution extends VersionControl {\n    public int firstBadVersion(int n) {\n        return search(1, n, true);\n    }\n\n    private int search(int left, int right, boolean active) {\n        if (left == right) {\n            return left;\n        }\n        int mid = left + (right - left) / 2;\n        if (isBadVersion(mid)) {\n            return search(left, mid, active);\n        }\n        return search(mid + 1, right, active);\n    }\n}",
+      "language": "java"
     }
   ]
 }

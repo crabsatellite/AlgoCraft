@@ -1,36 +1,122 @@
 {
   "id": "260",
   "title": "Final Value of Variable After Performing Operations",
-  "description": "# Final Value of Variable After Performing Operations\n\nThere is a programming language with only four operations and one variable `X`:\n\n*   `++X` and `X++` increments the value of the variable `X` by 1.\n*   `--X` and `X--` decrements the value of the variable `X` by 1.\n\nInitially, the value of `X` is `0`.\n\nGiven an array of strings `operations` containing a list of operations, return *the **final value** of* `X` *after performing all the operations*.\n\n## Example 1:\n\n**Input:** operations = [\"--X\",\"X++\",\"X++\"]\n**Output:** 1\n**Explanation:** The operations are performed as follows:\nInitially, X = 0.\n--X: X is decremented by 1, X =  0 - 1 = -1.\nX++: X is incremented by 1, X = -1 + 1 =  0.\nX++: X is incremented by 1, X =  0 + 1 =  1.\n\n## Example 2:\n\n**Input:** operations = [\"++X\",\"++X\",\"X++\"]\n**Output:** 3\n**Explanation:** The operations are performed as follows:\nInitially, X = 0.\n++X: X is incremented by 1, X = 0 + 1 = 1.\n++X: X is incremented by 1, X = 1 + 1 = 2.\nX++: X is incremented by 1, X = 2 + 1 = 3.\n\n## Example 3:\n\n**Input:** operations = [\"X++\",\"++X\",\"--X\",\"X--\"]\n**Output:** 0\n**Explanation:** The operations are performed as follows:\nInitially, X = 0.\nX++: X is incremented by 1, X = 0 + 1 = 1.\n++X: X is incremented by 1, X = 1 + 1 = 2.\n--X: X is decremented by 1, X = 2 - 1 = 1.\nX--: X is decremented by 1, X = 1 - 1 = 0.\n\n## Constraints:\n\n*   `1 <= operations.length <= 100`\n*   `operations[i]` will be either `\"++X\"`, `\"X++\"`, `\"--X\"`, or `\"X--\"`.",
+  "description": "# Final Value of Variable After Performing Operations\n\nA tiny programming language has one integer variable `X` and exactly four valid operations:\n\n* `++X` and `X++` increase `X` by 1.\n* `--X` and `X--` decrease `X` by 1.\n\nThe initial value of `X` is `0`. Given an array of operation strings `operations`, return the final value of `X` after executing every operation in order.\n\nAll four operation strings have length 3. Prefix and postfix notation do not change the result here: each operation is only asking whether `X` should go up by 1 or down by 1.\n\n## Example 1:\n\n**Input:** operations = [\"--X\",\"X++\",\"X++\"]\n**Output:** 1\n**Explanation:** Starting from 0, the operations apply -1, +1, and +1, so the final value is 1.\n\n## Example 2:\n\n**Input:** operations = [\"++X\",\"++X\",\"X++\"]\n**Output:** 3\n**Explanation:** All three operations increment `X`.\n\n## Example 3:\n\n**Input:** operations = [\"X++\",\"++X\",\"--X\",\"X--\"]\n**Output:** 0\n**Explanation:** The two increments and two decrements cancel each other.\n\n## Constraints:\n\n* `1 <= operations.length <= 100`\n* `operations[i]` is either `\"++X\"`, `\"X++\"`, `\"--X\"`, or `\"X--\"`.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int finalValueAfterOperations(String[] operations) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "String", "Simulation"],
+  "tags": [
+    "Array",
+    "String",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "operations = [\"--X\",\"X++\",\"X++\"]", "output": "1" },
-    { "input": "operations = [\"++X\",\"++X\",\"X++\"]", "output": "3" },
-    { "input": "operations = [\"X++\",\"++X\",\"--X\",\"X--\"]", "output": "0" }
+    {
+      "input": "operations = [\"--X\",\"X++\",\"X++\"]",
+      "output": "1"
+    },
+    {
+      "input": "operations = [\"++X\",\"++X\",\"X++\"]",
+      "output": "3"
+    },
+    {
+      "input": "operations = [\"X++\",\"++X\",\"--X\",\"X--\"]",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
-      "name": "Check Middle Character",
+      "name": "Middle Character Sign",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "The middle character of each operation is '+' for increment and '-' for decrement. Use this to determine the operation.",
+      "description": "## Approach\n\nEvery valid operation has length 3. The middle character is `+` for both increment forms and `-` for both decrement forms, so scan the array and add either `1` or `-1` for each operation.\n\n## Key Insight\n\nThe prefix/postfix position of `X` is irrelevant in this problem. The sign at index 1 completely determines the effect of the operation.\n\n## Complexity Analysis\n\nWe inspect one character from each operation, so the time complexity is O(n). Only the running value is stored, so the space complexity is O(1).",
       "code": "class Solution {\n    public int finalValueAfterOperations(String[] operations) {\n        int x = 0;\n        for (String op : operations) {\n            x += op.charAt(1) == '+' ? 1 : -1;\n        }\n        return x;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Contains Check",
+      "name": "Explicit Switch Contract",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "For each operation string, check if it contains '+'. If so, increment; otherwise decrement.",
-      "code": "class Solution {\n    public int finalValueAfterOperations(String[] operations) {\n        int x = 0;\n        for (String op : operations) {\n            if (op.contains(\"+\")) {\n                x++;\n            } else {\n                x--;\n            }\n        }\n        return x;\n    }\n}",
+      "description": "## Approach\n\nUse a `switch` on the exact operation string. The two increment strings share the `+1` branch, and the two decrement strings share the `-1` branch.\n\n## Key Insight\n\nThis is the most explicit contract-checking version. It is longer than the character trick, but it documents all four legal inputs directly in code.\n\n## Complexity Analysis\n\nEach operation is matched once, so the time complexity is O(n). The algorithm stores only the running value, giving O(1) space.",
+      "code": "class Solution {\n    public int finalValueAfterOperations(String[] operations) {\n        int x = 0;\n        for (String op : operations) {\n            switch (op) {\n                case \"++X\":\n                case \"X++\":\n                    x++;\n                    break;\n                case \"--X\":\n                case \"X--\":\n                    x--;\n                    break;\n                default:\n                    throw new IllegalArgumentException(op);\n            }\n        }\n        return x;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Count Increments Then Subtract",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCount how many operations are increments. Every remaining operation must be a decrement, so the final value is `increments - decrements`.\n\n## Key Insight\n\nBecause `X` starts at 0 and every operation changes it by exactly one, only the counts of positive and negative operations matter. Their original order does not affect the final total.\n\n## Complexity Analysis\n\nThe count pass is linear, so the time complexity is O(n). Only two counters are needed, so the space complexity is O(1).",
+      "code": "class Solution {\n    public int finalValueAfterOperations(String[] operations) {\n        int increments = 0;\n        for (String op : operations) {\n            if (op.charAt(1) == '+') {\n                increments++;\n            }\n        }\n        int decrements = operations.length - increments;\n        return increments - decrements;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Delta Lookup Table",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCreate a small lookup table that maps each legal operation string to its numeric delta. Then sum the table value for every operation.\n\n## Key Insight\n\nThis treats the problem as interpretation of a tiny instruction set. The table separates parsing from execution and is easy to extend if more operations are added later.\n\n## Complexity Analysis\n\nThere is one constant-time lookup per operation, so the time complexity is O(n). The table has four entries regardless of input size, so the space complexity is O(1).",
+      "code": "import java.util.Map;\n\nclass Solution {\n    public int finalValueAfterOperations(String[] operations) {\n        Map<String, Integer> delta = Map.of(\n                \"++X\", 1,\n                \"X++\", 1,\n                \"--X\", -1,\n                \"X--\", -1);\n        int x = 0;\n        for (String op : operations) {\n            x += delta.get(op);\n        }\n        return x;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "operations = [\"--X\",\"X++\",\"X++\"]", "output": "1" },
-    { "input": "operations = [\"++X\",\"++X\",\"X++\"]", "output": "3" },
-    { "input": "operations = [\"X++\",\"++X\",\"--X\",\"X--\"]", "output": "0" }
+    {
+      "input": "operations = [\"--X\",\"X++\",\"X++\"]",
+      "output": "1",
+      "description": "canonical mixed decrement and increments"
+    },
+    {
+      "input": "operations = [\"++X\",\"++X\",\"X++\"]",
+      "output": "3",
+      "description": "all increment forms"
+    },
+    {
+      "input": "operations = [\"X++\",\"++X\",\"--X\",\"X--\"]",
+      "output": "0",
+      "description": "all four forms cancel"
+    },
+    {
+      "input": "operations = [\"--X\"]",
+      "output": "-1",
+      "description": "single prefix decrement"
+    },
+    {
+      "input": "operations = [\"X++\"]",
+      "output": "1",
+      "description": "single postfix increment"
+    },
+    {
+      "input": "operations = [\"--X\",\"--X\",\"X--\"]",
+      "output": "-3",
+      "description": "all decrement forms"
+    },
+    {
+      "input": "operations = [\"++X\",\"X--\",\"X++\",\"--X\",\"++X\"]",
+      "output": "1",
+      "description": "prefix and postfix forms mixed by sign"
+    },
+    {
+      "input": "operations = [\"++X\"]",
+      "output": "1",
+      "description": "single prefix increment"
+    },
+    {
+      "input": "operations = [\"X--\"]",
+      "output": "-1",
+      "description": "single postfix decrement"
+    },
+    {
+      "input": "operations = [\"++X\",\"X++\",\"--X\",\"X--\",\"++X\",\"--X\"]",
+      "output": "0",
+      "description": "balanced six-operation sequence"
+    },
+    {
+      "input": "operations = [\"X++\",\"X++\",\"X++\",\"X++\",\"X++\"]",
+      "output": "5",
+      "description": "repeated postfix increments"
+    },
+    {
+      "input": "operations = [\"--X\",\"X--\",\"--X\",\"X--\",\"++X\"]",
+      "output": "-3",
+      "description": "mostly decrements with one recovery"
+    }
   ]
 }

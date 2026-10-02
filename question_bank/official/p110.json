@@ -1,9 +1,9 @@
 {
   "id": "110",
   "title": "Task Scheduler",
-  "description": "# Task Scheduler\n\nGiven a characters array `tasks`, representing the tasks a CPU needs to do, where each letter represents a different task. Tasks could be done in any order. Each task is done in one unit of time. For each unit of time, the CPU could complete either one task or just be idle.\n\nHowever, there is a non-negative integer `n` that represents the cooldown period between two **same tasks** (the same letter in the array), that is that there must be at least `n` units of time between any two same tasks.\n\nReturn *the least number of units of times that the CPU will take to finish all the given tasks*.\n\n## Example 1:\n\n**Input:** tasks = [\"A\",\"A\",\"A\",\"B\",\"B\",\"B\"], n = 2\n**Output:** 8\n**Explanation:** \nA -> B -> idle -> A -> B -> idle -> A -> B\nThere is at least 2 units of time between any two same tasks.\n\n## Example 2:\n\n**Input:** tasks = [\"A\",\"A\",\"A\",\"B\",\"B\",\"B\"], n = 0\n**Output:** 6\n**Explanation:** On this case any permutation of size 6 would work since n = 0.\n[\"A\",\"A\",\"A\",\"B\",\"B\",\"B\"]\n[\"A\",\"B\",\"A\",\"B\",\"A\",\"B\"]\n[\"B\",\"B\",\"B\",\"A\",\"A\",\"A\"]\n...\nAnd so on.\n\n## Example 3:\n\n**Input:** tasks = [\"A\",\"A\",\"A\",\"A\",\"A\",\"A\",\"B\",\"C\",\"D\",\"E\",\"F\",\"G\"], n = 2\n**Output:** 16\n**Explanation:** \nOne possible solution is\nA -> B -> C -> A -> D -> E -> A -> F -> G -> A -> idle -> idle -> A -> idle -> idle -> A\n\n## Constraints:\n\n*   `1 <= task.length <= 10^4`\n*   `tasks[i]` is upper-case English letter.\n*   `0 <= n <= 100`",
+  "description": "# Task Scheduler\n\nGiven an array `tasks`, where each uppercase letter represents one CPU task type, and a non-negative cooldown `n`, return the minimum number of time units needed to execute every task.\n\nEach task takes exactly one unit of time. The CPU may execute one task or stay idle during each unit. Two executions of the same task type must have at least `n` full time units between them. Different task types do not block each other.\n\n## Example\n\nInput: `tasks = [\"A\",\"A\",\"A\",\"B\",\"B\",\"B\"], n = 2`\n\nOutput: `8`\n\nOne optimal schedule is `A, B, idle, A, B, idle, A, B`.\n\n## Constraints\n\n`1 <= tasks.length <= 10^4`. Every task is an uppercase English letter. `0 <= n <= 100`.",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public int leastInterval(char[] tasks, int n) {\n        // Write your code here\n        return 0;\n    }\n}",
+  "initialCode": "class Solution { public int leastInterval(char[] tasks, int n) { return 0; } }",
   "tags": [
     "Array",
     "Hash Table",
@@ -39,24 +39,74 @@
       "input": "tasks = [\"A\",\"A\",\"A\",\"A\",\"A\",\"A\",\"B\",\"C\",\"D\",\"E\",\"F\",\"G\"], n = 2",
       "output": "16"
     },
-    { "input": "tasks = [\"A\"], n = 2", "output": "1" },
-    { "input": "tasks = [\"A\",\"B\",\"C\",\"D\"], n = 3", "output": "4" }
+    {
+      "input": "tasks = [\"A\"], n = 2",
+      "output": "1"
+    },
+    {
+      "input": "tasks = [\"A\",\"B\",\"C\",\"D\"], n = 3",
+      "output": "4"
+    },
+    {
+      "input": "tasks = [\"A\",\"A\",\"A\",\"B\",\"B\",\"B\",\"C\",\"C\",\"C\"], n = 2",
+      "output": "9"
+    },
+    {
+      "input": "tasks = [\"A\",\"A\",\"A\",\"A\",\"B\",\"C\"], n = 3",
+      "output": "13"
+    },
+    {
+      "input": "tasks = [\"A\",\"A\",\"A\",\"A\",\"B\",\"B\",\"B\",\"B\",\"C\",\"C\",\"D\",\"D\"], n = 2",
+      "output": "12"
+    },
+    {
+      "input": "tasks = [\"A\",\"A\",\"B\",\"B\",\"C\",\"C\",\"D\",\"D\"], n = 1",
+      "output": "8"
+    },
+    {
+      "input": "tasks = [\"A\",\"A\",\"A\",\"A\",\"A\",\"B\",\"B\",\"B\",\"B\",\"B\",\"C\",\"C\",\"C\",\"C\",\"C\"], n = 4",
+      "output": "23"
+    },
+    {
+      "input": "tasks = [\"A\",\"A\",\"A\",\"A\",\"A\",\"A\",\"A\",\"A\",\"A\",\"A\"], n = 100",
+      "output": "910"
+    },
+    {
+      "input": "tasks = [\"A\",\"A\",\"A\",\"A\",\"B\",\"B\",\"B\",\"C\",\"C\",\"D\"], n = 2",
+      "output": "10"
+    }
   ],
   "solutions": [
     {
-      "name": "Greedy - Math Formula",
-      "timeComplexity": "O(n)",
+      "name": "Frequency Frame Formula",
+      "timeComplexity": "O(m + 26)",
       "spaceComplexity": "O(1)",
-      "description": "Count frequencies. The most frequent task determines the frame: (maxFreq-1) * (n+1) + countOfMax. The answer is max of this formula and total tasks (when tasks fill all idle slots).",
-      "code": "class Solution {\n    public int leastInterval(char[] tasks, int n) {\n        int[] freq = new int[26];\n        for (char t : tasks) freq[t - 'A']++;\n        \n        int maxFreq = 0;\n        int countMax = 0;\n        for (int f : freq) {\n            if (f > maxFreq) {\n                maxFreq = f;\n                countMax = 1;\n            } else if (f == maxFreq) {\n                countMax++;\n            }\n        }\n        \n        int result = (maxFreq - 1) * (n + 1) + countMax;\n        return Math.max(result, tasks.length);\n    }\n}",
+      "description": "## Approach\n\nCount each task type. Let `maxFrequency` be the largest count, and let `maxCount` be how many task types have that count. The most frequent tasks form `maxFrequency - 1` frames of length `n + 1`, plus the final group of tied most-frequent tasks.\n\n## Key Insight\n\nOnly the most frequent task types can force idle time. If all other tasks fill the frame gaps, the answer is just `tasks.length`; otherwise the frame formula gives the required length.\n\n## Complexity Analysis\n\nCounting and scanning the 26 letters costs `O(m + 26)`, where `m` is `tasks.length`. The frequency array uses `O(1)` space.",
+      "code": "class Solution {\n    public int leastInterval(char[] tasks, int n) {\n        int[] frequencies = new int[26];\n        for (char task : tasks) {\n            frequencies[task - 'A']++;\n        }\n\n        int maxFrequency = 0;\n        int maxCount = 0;\n        for (int frequency : frequencies) {\n            if (frequency > maxFrequency) {\n                maxFrequency = frequency;\n                maxCount = 1;\n            } else if (frequency == maxFrequency) {\n                maxCount++;\n            }\n        }\n\n        int frameLength = (maxFrequency - 1) * (n + 1) + maxCount;\n        return Math.max(tasks.length, frameLength);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Max Heap Simulation",
-      "timeComplexity": "O(n log 26) = O(n)",
+      "name": "Max Heap Cycle Simulation",
+      "timeComplexity": "O(T log 26)",
       "spaceComplexity": "O(1)",
-      "description": "Use a max-heap of task frequencies. Each round, pick up to n+1 most frequent tasks. Decrement their counts and re-add non-zero counts after the round. Count total time including idle slots.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int leastInterval(char[] tasks, int n) {\n        int[] freq = new int[26];\n        for (char t : tasks) freq[t - 'A']++;\n        \n        PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());\n        for (int f : freq) {\n            if (f > 0) maxHeap.offer(f);\n        }\n        \n        int time = 0;\n        while (!maxHeap.isEmpty()) {\n            List<Integer> temp = new ArrayList<>();\n            int cycle = n + 1;\n            int taskCount = 0;\n            while (cycle > 0 && !maxHeap.isEmpty()) {\n                int count = maxHeap.poll();\n                if (count > 1) temp.add(count - 1);\n                taskCount++;\n                cycle--;\n            }\n            for (int t : temp) maxHeap.offer(t);\n            time += maxHeap.isEmpty() ? taskCount : n + 1;\n        }\n        return time;\n    }\n}",
+      "description": "## Approach\n\nPut remaining task frequencies into a max heap. Each scheduling round can execute at most `n + 1` distinct task types. Remove up to that many largest counts, decrement them, then push unfinished tasks back for the next round.\n\n## Key Insight\n\nA full round consumes one cooldown window. If work remains after the round, the round must count as `n + 1` time units; if no work remains, only the tasks actually executed in the last round count.\n\n## Complexity Analysis\n\nLet `T` be the final schedule length. Every simulated execution touches a heap of at most 26 letters, so the time complexity is `O(T log 26)`, effectively linear for a fixed alphabet. Space is `O(1)`.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int leastInterval(char[] tasks, int n) {\n        int[] frequencies = new int[26];\n        for (char task : tasks) {\n            frequencies[task - 'A']++;\n        }\n\n        PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Collections.reverseOrder());\n        for (int frequency : frequencies) {\n            if (frequency > 0) {\n                maxHeap.offer(frequency);\n            }\n        }\n\n        int time = 0;\n        while (!maxHeap.isEmpty()) {\n            List<Integer> used = new ArrayList<>();\n            int executed = 0;\n            for (int slot = 0; slot <= n && !maxHeap.isEmpty(); slot++) {\n                int remaining = maxHeap.poll() - 1;\n                if (remaining > 0) {\n                    used.add(remaining);\n                }\n                executed++;\n            }\n            for (int remaining : used) {\n                maxHeap.offer(remaining);\n            }\n            time += maxHeap.isEmpty() ? executed : n + 1;\n        }\n        return time;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Time Simulation with Cooldown Queue",
+      "timeComplexity": "O(T log 26)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nSimulate one time unit at a time. A max heap stores task types that are currently available, and a FIFO cooldown queue stores pairs of ready time and remaining count. At every time unit, move ready tasks back to the heap, execute one available task if possible, and queue it again if work remains.\n\n## Key Insight\n\nThis route models the rule literally: a task executed at time `t` may next run at `t + n + 1`. It is slower than the formula but is the easiest way to debug off-by-one cooldown mistakes.\n\n## Complexity Analysis\n\nThe simulation runs for `T` time units and heap operations use at most 26 letters, so the time complexity is `O(T log 26)`. The heap and queue store `O(26)` task types.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int leastInterval(char[] tasks, int n) {\n        int[] frequencies = new int[26];\n        for (char task : tasks) {\n            frequencies[task - 'A']++;\n        }\n\n        PriorityQueue<Integer> available = new PriorityQueue<>(Collections.reverseOrder());\n        for (int frequency : frequencies) {\n            if (frequency > 0) {\n                available.offer(frequency);\n            }\n        }\n\n        Queue<int[]> cooldown = new ArrayDeque<>();\n        int time = 0;\n        while (!available.isEmpty() || !cooldown.isEmpty()) {\n            time++;\n            while (!cooldown.isEmpty() && cooldown.peek()[0] <= time) {\n                available.offer(cooldown.poll()[1]);\n            }\n            if (!available.isEmpty()) {\n                int remaining = available.poll() - 1;\n                if (remaining > 0) {\n                    cooldown.offer(new int[] {time + n + 1, remaining});\n                }\n            }\n        }\n        return time;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Counts Round Simulation",
+      "timeComplexity": "O(T * 26 log 26)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nKeep the 26 frequencies sorted. In each round, take from the largest counts for up to `n + 1` slots, decrementing those counts. Sort again before the next round. Stop early inside the last round as soon as no task remains.\n\n## Key Insight\n\nThis is a heap-free simulation of the same cooldown window idea. Re-sorting a fixed-size frequency array is simple and still constant-factor bounded because there are only 26 task types.\n\n## Complexity Analysis\n\nThe simulation may consider `T` schedule slots, and each round sorts 26 counters, so the time complexity is `O(T * 26 log 26)`. The counter array is fixed size, so space is `O(1)`.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int leastInterval(char[] tasks, int n) {\n        int[] counts = new int[26];\n        for (char task : tasks) {\n            counts[task - 'A']++;\n        }\n        Arrays.sort(counts);\n\n        int time = 0;\n        while (counts[25] > 0) {\n            for (int slot = 0; slot <= n; slot++) {\n                if (counts[25] == 0) {\n                    break;\n                }\n                if (slot < 26 && counts[25 - slot] > 0) {\n                    counts[25 - slot]--;\n                }\n                time++;\n            }\n            Arrays.sort(counts);\n        }\n        return time;\n    }\n}",
       "language": "java"
     }
   ]

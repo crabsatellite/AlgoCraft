@@ -1,36 +1,117 @@
 {
   "id": "313",
   "title": "Permutation Sequence",
-  "description": "# Permutation Sequence\n\nThe set `[1, 2, 3, ..., n]` contains a total of `n!` unique permutations.\n\nBy listing and labeling all of the permutations in order, we get the following sequence for `n = 3`:\n\n1.  `\"123\"`\n2.  `\"132\"`\n3.  `\"213\"`\n4.  `\"231\"`\n5.  `\"312\"`\n6.  `\"321\"`\n\nGiven `n` and `k`, return the `k`th permutation sequence.\n\n## Example 1:\n\n**Input:** n = 3, k = 3\n**Output:** \"213\"\n\n## Example 2:\n\n**Input:** n = 4, k = 9\n**Output:** \"2314\"\n\n## Example 3:\n\n**Input:** n = 3, k = 1\n**Output:** \"123\"\n\n## Constraints:\n\n*   `1 <= n <= 9`\n*   `1 <= k <= n!`",
+  "description": "# Permutation Sequence\n\nForm all permutations using each integer from `1` to `n` exactly once, and sort them lexicographically. At the first differing position, the smaller digit comes first.\n\nGiven integers `n` and `k`, return the `k`th permutation sequence as a string. The input `k` is 1-based, so `k = 1` means the sorted ascending permutation.\n\nFor `n = 3`, the ordered sequence is `123`, `132`, `213`, `231`, `312`, `321`.\n\n## Example 1:\n\n**Input:** n = 3, k = 3\n**Output:** \"213\"\n\n## Example 2:\n\n**Input:** n = 4, k = 9\n**Output:** \"2314\"\n\n## Example 3:\n\n**Input:** n = 3, k = 1\n**Output:** \"123\"\n\n## Constraints:\n\n*   `1 <= n <= 9`\n*   `1 <= k <= n!`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public String getPermutation(int n, int k) {\n        \n    }\n}",
-  "tags": ["Math", "Recursion"],
-  "examples": [
-    { "input": "n = 3, k = 3", "output": "\"213\"" },
-    { "input": "n = 4, k = 9", "output": "\"2314\"" },
-    { "input": "n = 3, k = 1", "output": "\"123\"" }
+  "initialCode": "class Solution {\n    public String getPermutation(int n, int k) {\n        return \"\";\n    }\n}",
+  "tags": [
+    "Math",
+    "Recursion",
+    "Combinatorics"
   ],
-  "solutions": [
+  "examples": [
     {
-      "name": "Factorial Number System",
-      "timeComplexity": "O(n^2)",
-      "spaceComplexity": "O(n)",
-      "description": "Use factorial number system to determine each digit. For position i, divide (k-1) by (n-1-i)! to get the index into remaining available digits.",
-      "code": "class Solution {\n    public String getPermutation(int n, int k) {\n        List<Integer> nums = new java.util.ArrayList<>();\n        int[] fact = new int[n + 1];\n        fact[0] = 1;\n        for (int i = 1; i <= n; i++) {\n            fact[i] = fact[i - 1] * i;\n            nums.add(i);\n        }\n        k--;\n        StringBuilder sb = new StringBuilder();\n        for (int i = n; i > 0; i--) {\n            int idx = k / fact[i - 1];\n            sb.append(nums.remove(idx));\n            k %= fact[i - 1];\n        }\n        return sb.toString();\n    }\n}",
-      "language": "java"
+      "input": "n = 3, k = 3",
+      "output": "\"213\""
     },
     {
-      "name": "Iterative Permutation Generation",
-      "timeComplexity": "O(n^2)",
-      "spaceComplexity": "O(n)",
-      "description": "Use an array-based approach. Maintain available digits in a boolean array. For each position, compute which digit to pick using factorial division, then scan the boolean array to find the k-th available digit.",
-      "code": "class Solution {\n    public String getPermutation(int n, int k) {\n        boolean[] used = new boolean[n + 1];\n        int[] fact = new int[n + 1];\n        fact[0] = 1;\n        for (int i = 1; i <= n; i++) {\n            fact[i] = fact[i - 1] * i;\n        }\n        k--;\n        StringBuilder sb = new StringBuilder();\n        for (int i = n; i > 0; i--) {\n            int idx = k / fact[i - 1];\n            k %= fact[i - 1];\n            int count = 0;\n            for (int j = 1; j <= n; j++) {\n                if (!used[j]) {\n                    if (count == idx) {\n                        sb.append(j);\n                        used[j] = true;\n                        break;\n                    }\n                    count++;\n                }\n            }\n        }\n        return sb.toString();\n    }\n}",
-      "language": "java"
+      "input": "n = 4, k = 9",
+      "output": "\"2314\""
+    },
+    {
+      "input": "n = 3, k = 1",
+      "output": "\"123\""
     }
   ],
   "tests": [
-    { "input": "n = 3, k = 3", "output": "\"213\"" },
-    { "input": "n = 4, k = 9", "output": "\"2314\"" },
-    { "input": "n = 3, k = 1", "output": "\"123\"" }
+    {
+      "input": "n = 3, k = 3",
+      "output": "\"213\"",
+      "description": "sample using the second leading-digit block"
+    },
+    {
+      "input": "n = 4, k = 9",
+      "output": "\"2314\"",
+      "description": "sample crossing several factorial blocks"
+    },
+    {
+      "input": "n = 3, k = 1",
+      "output": "\"123\"",
+      "description": "first permutation is ascending order"
+    },
+    {
+      "input": "n = 1, k = 1",
+      "output": "\"1\"",
+      "description": "minimum constraint"
+    },
+    {
+      "input": "n = 2, k = 2",
+      "output": "\"21\"",
+      "description": "smallest case with a non-first answer"
+    },
+    {
+      "input": "n = 4, k = 24",
+      "output": "\"4321\"",
+      "description": "last permutation of four digits"
+    },
+    {
+      "input": "n = 5, k = 16",
+      "output": "\"14352\"",
+      "description": "middle factorial-block selection"
+    },
+    {
+      "input": "n = 5, k = 96",
+      "output": "\"45321\"",
+      "description": "large k near the end of five digits"
+    },
+    {
+      "input": "n = 6, k = 400",
+      "output": "\"425361\"",
+      "description": "multi-position block changes"
+    },
+    {
+      "input": "n = 9, k = 1",
+      "output": "\"123456789\"",
+      "description": "upper n with first permutation"
+    },
+    {
+      "input": "n = 9, k = 362880",
+      "output": "\"987654321\"",
+      "description": "upper n with final permutation"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "Factorial Number System with List Removal",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nPrecompute factorials and store the remaining digits in a list. Convert `k` to zero-based indexing. For each output position with `len` remaining digits, divide by `(len - 1)!` to choose the list index, remove that digit, and continue inside the selected block with the remainder.\n\n## Key Insight\n\nLexicographic permutations are grouped into equal factorial-sized blocks. A zero-based `k` written in factorial number system directly tells which remaining digit belongs at each position.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String getPermutation(int n, int k) {\n        int[] factorial = new int[n + 1];\n        factorial[0] = 1;\n        java.util.List<Integer> remaining = new java.util.ArrayList<>();\n        for (int digit = 1; digit <= n; digit++) {\n            factorial[digit] = factorial[digit - 1] * digit;\n            remaining.add(digit);\n        }\n\n        int index = k - 1;\n        StringBuilder answer = new StringBuilder();\n        for (int len = n; len >= 1; len--) {\n            int block = factorial[len - 1];\n            int pick = index / block;\n            answer.append(remaining.remove(pick));\n            index %= block;\n        }\n        return answer.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Boolean Availability Scan",
+      "timeComplexity": "O(n^2)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nUse the same factorial block arithmetic, but keep digits in a `used` array instead of removing from a list. Each factorial digit gives an order statistic among unused digits; scan `1..n` to find that order and mark it used.\n\n## Key Insight\n\nThis separates the math from the container choice. The rank among remaining digits is the same, but a boolean array makes the available-digit scan explicit for learners.\n\n## Complexity Analysis\n- Time Complexity: O(n^2)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String getPermutation(int n, int k) {\n        int[] factorial = new int[n + 1];\n        factorial[0] = 1;\n        for (int i = 1; i <= n; i++) {\n            factorial[i] = factorial[i - 1] * i;\n        }\n\n        boolean[] used = new boolean[n + 1];\n        int index = k - 1;\n        StringBuilder answer = new StringBuilder();\n        for (int len = n; len >= 1; len--) {\n            int block = factorial[len - 1];\n            int order = index / block + 1;\n            int digit = takeUnused(used, order);\n            answer.append(digit);\n            index %= block;\n        }\n        return answer.toString();\n    }\n\n    private int takeUnused(boolean[] used, int order) {\n        for (int digit = 1; digit < used.length; digit++) {\n            if (used[digit]) {\n                continue;\n            }\n            order--;\n            if (order == 0) {\n                used[digit] = true;\n                return digit;\n            }\n        }\n        return -1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Fenwick Order Statistic",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nKeep factorial block selection, but store the remaining digits in a Fenwick tree where each unused digit has frequency one. The rank from the factorial block becomes a Fenwick order-statistic query, and removing a digit is a point update by `-1`.\n\n## Key Insight\n\nList removal and boolean scans spend linear time finding the ranked unused digit. A Fenwick tree preserves the same factorial-number-system logic while teaching a general ranked-set technique.\n\n## Complexity Analysis\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String getPermutation(int n, int k) {\n        int[] factorial = new int[n + 1];\n        int[] bit = new int[n + 1];\n        factorial[0] = 1;\n        for (int digit = 1; digit <= n; digit++) {\n            factorial[digit] = factorial[digit - 1] * digit;\n            add(bit, digit, 1);\n        }\n\n        int index = k - 1;\n        StringBuilder answer = new StringBuilder();\n        for (int len = n; len >= 1; len--) {\n            int block = factorial[len - 1];\n            int order = index / block + 1;\n            int digit = findByOrder(bit, order);\n            answer.append(digit);\n            add(bit, digit, -1);\n            index %= block;\n        }\n        return answer.toString();\n    }\n\n    private void add(int[] bit, int index, int delta) {\n        for (int i = index; i < bit.length; i += i & -i) {\n            bit[i] += delta;\n        }\n    }\n\n    private int findByOrder(int[] bit, int order) {\n        int index = 0;\n        for (int step = Integer.highestOneBit(bit.length - 1); step != 0; step >>= 1) {\n            int next = index + step;\n            if (next < bit.length && bit[next] < order) {\n                index = next;\n                order -= bit[next];\n            }\n        }\n        return index + 1;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Next Permutation Baseline",
+      "timeComplexity": "O(k * n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nStart from the sorted digit array and repeatedly apply the standard next-permutation operation until the `k`th permutation is reached. The helper finds the descending suffix, swaps with the next larger digit, and reverses the suffix.\n\n## Key Insight\n\nThis route is slower, but it is a valuable baseline: it demonstrates the literal lexicographic ordering that the factorial block method jumps through mathematically.\n\n## Complexity Analysis\n- Time Complexity: O(k * n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String getPermutation(int n, int k) {\n        int[] digits = new int[n];\n        for (int i = 0; i < n; i++) {\n            digits[i] = i + 1;\n        }\n        for (int step = 1; step < k; step++) {\n            nextPermutation(digits);\n        }\n        StringBuilder answer = new StringBuilder();\n        for (int digit : digits) {\n            answer.append(digit);\n        }\n        return answer.toString();\n    }\n\n    private void nextPermutation(int[] digits) {\n        int pivot = digits.length - 2;\n        while (pivot >= 0 && digits[pivot] > digits[pivot + 1]) {\n            pivot--;\n        }\n        if (pivot >= 0) {\n            int larger = digits.length - 1;\n            while (digits[larger] < digits[pivot]) {\n                larger--;\n            }\n            swap(digits, pivot, larger);\n        }\n        reverse(digits, pivot + 1, digits.length - 1);\n    }\n\n    private void reverse(int[] digits, int left, int right) {\n        while (left < right) {\n            swap(digits, left++, right--);\n        }\n    }\n\n    private void swap(int[] digits, int i, int j) {\n        int temp = digits[i];\n        digits[i] = digits[j];\n        digits[j] = temp;\n    }\n}",
+      "language": "java"
+    }
   ]
 }

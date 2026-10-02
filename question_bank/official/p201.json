@@ -1,35 +1,134 @@
 {
   "id": "201",
   "title": "Sum of Two Integers",
-  "description": "# Sum of Two Integers\n\nGiven two integers `a` and `b`, return *the sum of the two integers without using the operators* `+` *and* `-`.\n\n## Example 1:\n\n**Input:** a = 1, b = 2\n**Output:** 3\n\n## Example 2:\n\n**Input:** a = 2, b = 3\n**Output:** 5\n\n## Constraints:\n\n*   `-1000 <= a, b <= 1000`",
+  "description": "# Sum of Two Integers\n\nGiven two integers `a` and `b`, return their sum without using the `+` or `-` operators in the addition logic.\n\n## Example 1:\n\n**Input:** a = 1, b = 2\n**Output:** 3\n\n## Example 2:\n\n**Input:** a = 2, b = 3\n**Output:** 5\n\n## Example 3:\n\n**Input:** a = -5, b = -7\n**Output:** -12\n**Explanation:** The same carry rules apply to negative values because Java integers are two's-complement bit patterns.\n\n## Constraints:\n\n*   `-1000 <= a, b <= 1000`",
   "difficulty": "MEDIUM",
   "initialCode": "class Solution {\n    public int getSum(int a, int b) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Bit Manipulation", "Math"],
+  "tags": [
+    "Bit Manipulation",
+    "Math"
+  ],
   "examples": [
-    { "input": "a = 1, b = 2", "output": "3" },
-    { "input": "a = 2, b = 3", "output": "5" }
+    {
+      "input": "a = 1, b = 2",
+      "output": "3"
+    },
+    {
+      "input": "a = 2, b = 3",
+      "output": "5"
+    },
+    {
+      "input": "a = -5, b = -7",
+      "output": "-12"
+    }
   ],
   "solutions": [
     {
-      "name": "Bit Manipulation",
+      "name": "Iterative Half-Adder Carry Loop",
       "timeComplexity": "O(1)",
       "spaceComplexity": "O(1)",
-      "description": "Use XOR for addition without carry, AND + left shift for carry. Repeat until carry is 0.",
+      "description": "## Approach\n\nUse XOR to compute the partial sum without carries, and use `(a & b) << 1` to compute the carry bits. Repeat until there is no carry left.\n\n## Key Insight\n\nThis is binary column addition written with bit operations. XOR answers each bit when only one input has a 1, while AND finds the positions where two 1 bits produce a carry into the next column. With a fixed 32-bit `int`, the loop has a constant upper bound.\n\n## Complexity Analysis\n- Time Complexity: O(1)\n- Space Complexity: O(1)",
       "code": "class Solution {\n    public int getSum(int a, int b) {\n        while (b != 0) {\n            int carry = (a & b) << 1;\n            a = a ^ b;\n            b = carry;\n        }\n        return a;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Recursive Bit Manipulation",
+      "name": "Recursive Half-Adder Recurrence",
       "timeComplexity": "O(1)",
       "spaceComplexity": "O(1)",
-      "description": "Recursively compute sum: base case when b is 0, otherwise recurse with XOR as sum and AND-shift as carry.",
-      "code": "class Solution {\n    public int getSum(int a, int b) {\n        if (b == 0) return a;\n        return getSum(a ^ b, (a & b) << 1);\n    }\n}",
+      "description": "## Approach\n\nWrite the same transition recursively: the next partial sum is `a ^ b`, and the next carry is `(a & b) << 1`. Stop when the carry argument becomes zero.\n\n## Key Insight\n\nThe recurrence `sum(a, b) = sum(a ^ b, (a & b) << 1)` exposes the algebra behind the iterative version. It is concise for teaching, while the loop version is usually preferable in production because it avoids recursive calls.\n\n## Complexity Analysis\n- Time Complexity: O(1)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int getSum(int a, int b) {\n        if (b == 0) {\n            return a;\n        }\n        return getSum(a ^ b, (a & b) << 1);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Bitwise Full Adder",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nScan all 32 bits with a moving mask. For each bit, compute the result bit from the two input bits and the incoming carry, then compute the carry that should move to the next bit.\n\n## Key Insight\n\nThis is the hardware full-adder truth table in code. The result bit is the XOR of the three inputs, and the next carry exists when at least two of the three inputs are true. It teaches why the compact XOR/carry formula works.\n\n## Complexity Analysis\n- Time Complexity: O(1)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int getSum(int a, int b) {\n        int result = 0;\n        boolean carry = false;\n        int mask = 1;\n        do {\n            boolean bitA = (a & mask) != 0;\n            boolean bitB = (b & mask) != 0;\n            boolean sumBit = bitA ^ bitB ^ carry;\n            if (sumBit) {\n                result |= mask;\n            }\n            carry = (bitA && bitB) || (bitA && carry) || (bitB && carry);\n            mask <<= 1;\n        } while (mask != 0);\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Parallel Prefix Carry Lookahead",
+      "timeComplexity": "O(1)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nCompute propagate bits with `a ^ b` and generate bits with `a & b`. Then combine carry information over distances 1, 2, 4, 8, and 16 so each bit knows whether a lower bit will generate a carry into it.\n\n## Key Insight\n\nThis is a carry-lookahead adder shape rather than a ripple-carry loop. It teaches how hardware can collapse carry propagation with parallel prefix operations, while still using only fixed-width bitwise operators.\n\n## Complexity Analysis\n- Time Complexity: O(1)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int getSum(int a, int b) {\n        int partial = a ^ b;\n        int propagate = partial;\n        int generate = a & b;\n        for (int shift = 1; shift < 32; shift <<= 1) {\n            generate |= propagate & (generate << shift);\n            propagate &= propagate << shift;\n        }\n        return partial ^ (generate << 1);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Increment Decrement Transfer Baseline",
+      "timeComplexity": "O(|b|)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nMove the second operand into the first one step at a time. If `b` is positive, repeatedly increment `a` and decrement `b`; if `b` is negative, repeatedly decrement `a` and increment `b`.\n\n## Key Insight\n\nThis is not the optimal production solution, but it is a useful constrained-input baseline: addition can be constructed from successor and predecessor operations, and those operations can themselves be implemented with bit flips. The stated constraint keeps the transfer loop small.\n\n## Complexity Analysis\n- Time Complexity: O(|b|)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int getSum(int a, int b) {\n        while (b > 0) {\n            a = increment(a);\n            b = decrement(b);\n        }\n        while (b < 0) {\n            a = decrement(a);\n            b = increment(b);\n        }\n        return a;\n    }\n\n    private int increment(int value) {\n        int mask = 1;\n        while (mask != 0 && (value & mask) != 0) {\n            value ^= mask;\n            mask <<= 1;\n        }\n        return mask == 0 ? value : value ^ mask;\n    }\n\n    private int decrement(int value) {\n        int mask = 1;\n        while (mask != 0 && (value & mask) == 0) {\n            value ^= mask;\n            mask <<= 1;\n        }\n        return mask == 0 ? value : value ^ mask;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "a = 1, b = 2", "output": "3" },
-    { "input": "a = 2, b = 3", "output": "5" },
-    { "input": "a = -1, b = 1", "output": "0" }
+    {
+      "input": "a = 1, b = 2",
+      "output": "3",
+      "description": "Small positive numbers exercise the basic carry-free sum."
+    },
+    {
+      "input": "a = 2, b = 3",
+      "output": "5",
+      "description": "Positive numbers that share one set bit require a carry."
+    },
+    {
+      "input": "a = -1, b = 1",
+      "output": "0",
+      "description": "Opposite signed values cancel to zero."
+    },
+    {
+      "input": "a = -5, b = -7",
+      "output": "-12",
+      "description": "Two negative values must propagate carries through the sign representation."
+    },
+    {
+      "input": "a = 0, b = 0",
+      "output": "0",
+      "description": "Both zero inputs leave the accumulator unchanged."
+    },
+    {
+      "input": "a = 1000, b = -500",
+      "output": "500",
+      "description": "Mixed signs with a positive result check subtraction-by-addition behavior."
+    },
+    {
+      "input": "a = -1000, b = 1000",
+      "output": "0",
+      "description": "Constraint-edge opposite values cancel exactly."
+    },
+    {
+      "input": "a = 999, b = 1",
+      "output": "1000",
+      "description": "Carry chain reaches the positive constraint edge."
+    },
+    {
+      "input": "a = -999, b = -1",
+      "output": "-1000",
+      "description": "Negative carry behavior reaches the lower constraint edge."
+    },
+    {
+      "input": "a = 123, b = -456",
+      "output": "-333",
+      "description": "Mixed signs with a negative result."
+    },
+    {
+      "input": "a = -123, b = 456",
+      "output": "333",
+      "description": "Mixed signs with a positive result."
+    },
+    {
+      "input": "a = 1000, b = 1000",
+      "output": "2000",
+      "description": "The sum can exceed the individual input bound."
+    },
+    {
+      "input": "a = -1000, b = -1000",
+      "output": "-2000",
+      "description": "The negative sum can exceed the individual input bound."
+    }
   ]
 }

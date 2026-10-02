@@ -1,40 +1,117 @@
 {
   "id": "251",
   "title": "Shuffle String",
-  "description": "# Shuffle String\n\nYou are given a string `s` and an integer array `indices` of the **same length**.\n\nThe string `s` will be shuffled such that the character at the `i-th` position moves to `indices[i]` in the shuffled string.\n\nReturn *the shuffled string*.\n\n## Example 1:\n\n**Input:** s = \"codeleet\", indices = [4,5,6,7,0,2,1,3]\n**Output:** \"leetcode\"\n**Explanation:** As shown, \"codeleet\" becomes \"leetcode\" after shuffling.\n\n## Example 2:\n\n**Input:** s = \"abc\", indices = [0,1,2]\n**Output:** \"abc\"\n**Explanation:** After shuffling, each character remains in its position.\n\n## Constraints:\n\n*   `s.length == indices.length == n`\n*   `1 <= n <= 100`\n*   `s` consists of only lowercase English letters.\n*   `0 <= indices[i] < n`\n*   All values of `indices` are **unique**.",
+  "description": "# Shuffle String\n\nYou are given a string `s` and an integer array `indices` with the same length `n`.\n\nFor every position `i`, the character `s.charAt(i)` must move to position `indices[i]` in the restored string. The array `indices` is a permutation of `0..n-1`, so every target position is used exactly once.\n\nReturn the restored string.\n\n## Example 1:\n\n**Input:** s = \"codeleet\", indices = [4,5,6,7,0,2,1,3]\n**Output:** \"leetcode\"\n**Explanation:** The character `'c'` at index 0 moves to index 4, `'o'` moves to index 5, and so on. Reading the target positions from 0 to 7 gives \"leetcode\".\n\n## Example 2:\n\n**Input:** s = \"abc\", indices = [0,1,2]\n**Output:** \"abc\"\n**Explanation:** Every character already maps to its current index.\n\n## Constraints:\n\n*   `s.length == indices.length == n`\n*   `1 <= n <= 100`\n*   `s` consists of only lowercase English letters.\n*   `0 <= indices[i] < n`\n*   All values of `indices` are unique.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public String restoreString(String s, int[] indices) {\n        // Write your code here\n        return \"\";\n    }\n}",
-  "tags": ["Array", "String"],
+  "tags": [
+    "Array",
+    "String"
+  ],
   "examples": [
     {
       "input": "s = \"codeleet\", indices = [4,5,6,7,0,2,1,3]",
       "output": "\"leetcode\""
     },
-    { "input": "s = \"abc\", indices = [0,1,2]", "output": "\"abc\"" }
+    {
+      "input": "s = \"abc\", indices = [0,1,2]",
+      "output": "\"abc\""
+    }
   ],
   "solutions": [
     {
-      "name": "Direct Index Mapping",
+      "name": "Direct Target Array",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Place each character at its target index position as given by the indices array.",
-      "code": "class Solution {\n    public String restoreString(String s, int[] indices) {\n        char[] result = new char[s.length()];\n        for (int i = 0; i < s.length(); i++) {\n            result[indices[i]] = s.charAt(i);\n        }\n        return new String(result);\n    }\n}",
+      "description": "## Approach\n\nCreate a result character array with length `n`. For each source index `i`, write `s.charAt(i)` directly into `answer[indices[i]]`.\n\n## Key Insight\n\n`indices[i]` is the destination position, not the source position to read from. Because `indices` is a permutation, each write fills a different slot and no character is overwritten.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String restoreString(String s, int[] indices) {\n        char[] answer = new char[s.length()];\n        for (int i = 0; i < s.length(); i++) {\n            answer[indices[i]] = s.charAt(i);\n        }\n        return new String(answer);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Sorting by Index",
+      "name": "Inverse Permutation Builder",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nFirst build an inverse array where `source[target]` stores the original index that supplies the character for `target`. Then append characters in target-index order.\n\n## Key Insight\n\nDirect placement answers the question from source to target. The inverse permutation flips that view and asks which original character should be read for each answer position.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String restoreString(String s, int[] indices) {\n        int n = s.length();\n        int[] source = new int[n];\n        for (int i = 0; i < n; i++) {\n            source[indices[i]] = i;\n        }\n\n        StringBuilder answer = new StringBuilder(n);\n        for (int target = 0; target < n; target++) {\n            answer.append(s.charAt(source[target]));\n        }\n        return answer.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sort Pairs by Destination",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "Create pairs of (index, char), sort by index, then build the result string from the sorted pairs.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public String restoreString(String s, int[] indices) {\n        int n = s.length();\n        int[][] pairs = new int[n][2];\n        for (int i = 0; i < n; i++) {\n            pairs[i][0] = indices[i];\n            pairs[i][1] = s.charAt(i);\n        }\n        Arrays.sort(pairs, (a, b) -> a[0] - b[0]);\n        StringBuilder sb = new StringBuilder();\n        for (int[] pair : pairs) {\n            sb.append((char) pair[1]);\n        }\n        return sb.toString();\n    }\n}",
+      "description": "## Approach\n\nStore each character together with its destination index, sort the pairs by destination, and then read the characters in sorted order.\n\n## Key Insight\n\nThe restored string is the list of source characters ordered by their target positions. Sorting is not optimal here, but it makes the ordering relationship explicit and is useful for recognizing similar permutation problems.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n)\n- Space Complexity: O(n)",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public String restoreString(String s, int[] indices) {\n        int n = s.length();\n        int[][] pairs = new int[n][2];\n        for (int i = 0; i < n; i++) {\n            pairs[i][0] = indices[i];\n            pairs[i][1] = s.charAt(i);\n        }\n\n        Arrays.sort(pairs, (a, b) -> Integer.compare(a[0], b[0]));\n        StringBuilder answer = new StringBuilder(n);\n        for (int[] pair : pairs) {\n            answer.append((char) pair[1]);\n        }\n        return answer.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Cycle Swap on Working Arrays",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nCopy the characters and destination array, then repeatedly swap the item at position `i` into its destination until the item currently at `i` already belongs at `i`.\n\n## Key Insight\n\nA permutation is made of cycles. Swapping along each cycle places every character into its final position without a separate answer array, while cloning `indices` avoids mutating the caller's input.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public String restoreString(String s, int[] indices) {\n        char[] letters = s.toCharArray();\n        int[] destinations = indices.clone();\n\n        for (int i = 0; i < letters.length; i++) {\n            while (destinations[i] != i) {\n                int target = destinations[i];\n\n                char tempLetter = letters[i];\n                letters[i] = letters[target];\n                letters[target] = tempLetter;\n\n                int tempDestination = destinations[i];\n                destinations[i] = destinations[target];\n                destinations[target] = tempDestination;\n            }\n        }\n        return new String(letters);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "s = \"codeleet\", indices = [4,5,6,7,0,2,1,3]",
-      "output": "\"leetcode\""
+      "output": "\"leetcode\"",
+      "description": "canonical shuffled string"
     },
-    { "input": "s = \"abc\", indices = [0,1,2]", "output": "\"abc\"" }
+    {
+      "input": "s = \"abc\", indices = [0,1,2]",
+      "output": "\"abc\"",
+      "description": "identity permutation"
+    },
+    {
+      "input": "s = \"aiohn\", indices = [3,1,4,2,0]",
+      "output": "\"nihao\"",
+      "description": "permutation with one fixed point and one longer cycle"
+    },
+    {
+      "input": "s = \"a\", indices = [0]",
+      "output": "\"a\"",
+      "description": "single-character boundary"
+    },
+    {
+      "input": "s = \"abcde\", indices = [4,3,2,1,0]",
+      "output": "\"edcba\"",
+      "description": "reverse permutation with an odd-length middle fixed point"
+    },
+    {
+      "input": "s = \"abcdef\", indices = [1,2,3,4,5,0]",
+      "output": "\"fabcde\"",
+      "description": "single long cycle"
+    },
+    {
+      "input": "s = \"leetcode\", indices = [0,7,6,5,4,3,2,1]",
+      "output": "\"ledoctee\"",
+      "description": "mixture of fixed points and mirrored swaps"
+    },
+    {
+      "input": "s = \"abab\", indices = [2,0,3,1]",
+      "output": "\"bbaa\"",
+      "description": "repeated letters still follow positions, not values"
+    },
+    {
+      "input": "s = \"xzy\", indices = [0,2,1]",
+      "output": "\"xyz\"",
+      "description": "two-character swap with one fixed point"
+    },
+    {
+      "input": "s = \"bca\", indices = [1,2,0]",
+      "output": "\"abc\"",
+      "description": "three-cycle restores sorted-looking output"
+    },
+    {
+      "input": "s = \"dcba\", indices = [3,2,1,0]",
+      "output": "\"abcd\"",
+      "description": "even-length reverse permutation"
+    },
+    {
+      "input": "s = \"zyxwv\", indices = [4,3,2,1,0]",
+      "output": "\"vwxyz\"",
+      "description": "reverse permutation with nonalphabetical source order"
+    }
   ]
 }

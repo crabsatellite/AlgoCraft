@@ -1,36 +1,111 @@
 {
   "id": "285",
   "title": "Reverse Prefix of Word",
-  "description": "# Reverse Prefix of Word\n\nGiven a **0-indexed** string `word` and a character `ch`, **reverse** the segment of `word` that starts at index `0` and ends at the index of the **first occurrence** of `ch` (inclusive). If the character `ch` does not exist in `word`, do nothing.\n\n*   For example, if `word = \"abcdefd\"` and `ch = \"d\"`, then you should **reverse** the segment that starts at `0` and ends at `3` (inclusive). The resulting string will be `\"dcbaefd\"`.\n\nReturn *the resulting string*.\n\n## Example 1:\n\n**Input:** word = \"abcdefd\", ch = \"d\"\n**Output:** \"dcbaefd\"\n**Explanation:** \nThe first occurrence of \"d\" is at index 3. \nReverse the part of word from 0 to 3 (inclusive), the resulting string is \"dcbaefd\".\n\n## Example 2:\n\n**Input:** word = \"xyxzxe\", ch = \"z\"\n**Output:** \"zxyxxe\"\n**Explanation:** \nThe first and only occurrence of \"z\" is at index 3.\nReverse the part of word from 0 to 3 (inclusive), the resulting string is \"zxyxxe\".\n\n## Example 3:\n\n**Input:** word = \"abcd\", ch = \"z\"\n**Output:** \"abcd\"\n**Explanation:** \n\"z\" does not exist in word.\nYou should not do any reverse operation, the resulting string is \"abcd\".\n\n## Constraints:\n\n*   `1 <= word.length <= 250`\n*   `word` consists of lowercase English letters.\n*   `ch` is a lowercase English letter.",
+  "description": "# Reverse Prefix of Word\n\nGiven a 0-indexed string `word` and a character `ch`, find the first occurrence of `ch` in `word`.\n\nIf `ch` appears, reverse the prefix from index `0` through that first occurrence, inclusive. The rest of the string must stay in its original order.\n\nIf `ch` does not appear, return `word` unchanged.\n\nOnly the first occurrence of `ch` matters. Later occurrences must not change where the reversed prefix ends.\n\n## Example 1\n\n**Input**\nword = \"abcdefd\", ch = 'd'\n\n**Output**\n\"dcbaefd\"\n\n**Explanation**\nThe first `d` is at index `3`, so the prefix `\"abcd\"` is reversed to `\"dcba\"` and the suffix `\"efd\"` stays unchanged.\n\n## Example 2\n\n**Input**\nword = \"xyxzxe\", ch = 'z'\n\n**Output**\n\"zxyxxe\"\n\n**Explanation**\nThe first `z` is at index `3`, so the prefix `\"xyxz\"` is reversed.\n\n## Example 3\n\n**Input**\nword = \"abcd\", ch = 'z'\n\n**Output**\n\"abcd\"\n\n**Explanation**\nThe character `z` does not appear, so the word is unchanged.\n\n## Constraints\n\n* `1 <= word.length <= 250`\n* `word` consists of lowercase English letters.\n* `ch` is a lowercase English letter.",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public String reversePrefix(String word, char ch) {\n        \n    }\n}",
-  "tags": ["Two Pointers", "String"],
-  "examples": [
-    { "input": "word = \"abcdefd\", ch = \"d\"", "output": "\"dcbaefd\"" },
-    { "input": "word = \"xyxzxe\", ch = \"z\"", "output": "\"zxyxxe\"" },
-    { "input": "word = \"abcd\", ch = \"z\"", "output": "\"abcd\"" }
+  "initialCode": "class Solution {\n    public String reversePrefix(String word, char ch) {\n        // Write your code here\n        return word;\n    }\n}",
+  "tags": [
+    "Two Pointers",
+    "String"
   ],
-  "solutions": [
+  "examples": [
     {
-      "name": "StringBuilder Reverse",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Find the first occurrence of ch using indexOf. If found, reverse the prefix substring from 0 to that index (inclusive) and append the rest.",
-      "code": "class Solution {\n    public String reversePrefix(String word, char ch) {\n        int idx = word.indexOf(ch);\n        if (idx == -1) return word;\n        StringBuilder sb = new StringBuilder(word.substring(0, idx + 1));\n        sb.reverse();\n        sb.append(word.substring(idx + 1));\n        return sb.toString();\n    }\n}",
-      "language": "java"
+      "input": "word = \"abcdefd\", ch = 'd'",
+      "output": "\"dcbaefd\""
     },
     {
-      "name": "Two Pointer Swap",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Find the first occurrence of ch. Convert to char array and use two pointers to swap characters from both ends of the prefix segment.",
-      "code": "class Solution {\n    public String reversePrefix(String word, char ch) {\n        int idx = word.indexOf(ch);\n        if (idx == -1) return word;\n        char[] arr = word.toCharArray();\n        int left = 0, right = idx;\n        while (left < right) {\n            char temp = arr[left];\n            arr[left] = arr[right];\n            arr[right] = temp;\n            left++;\n            right--;\n        }\n        return new String(arr);\n    }\n}",
-      "language": "java"
+      "input": "word = \"xyxzxe\", ch = 'z'",
+      "output": "\"zxyxxe\""
+    },
+    {
+      "input": "word = \"abcd\", ch = 'z'",
+      "output": "\"abcd\""
     }
   ],
   "tests": [
-    { "input": "word = \"abcdefd\", ch = 'd'", "output": "\"dcbaefd\"" },
-    { "input": "word = \"xyxzxe\", ch = 'z'", "output": "\"zxyxxe\"" },
-    { "input": "word = \"abcd\", ch = 'z'", "output": "\"abcd\"" }
+    {
+      "input": "word = \"abcdefd\", ch = 'd'",
+      "output": "\"dcbaefd\"",
+      "description": "sample reverses through the first d, not the later d"
+    },
+    {
+      "input": "word = \"xyxzxe\", ch = 'z'",
+      "output": "\"zxyxxe\"",
+      "description": "sample target appears in the middle"
+    },
+    {
+      "input": "word = \"abcd\", ch = 'z'",
+      "output": "\"abcd\"",
+      "description": "word is unchanged when ch does not occur"
+    },
+    {
+      "input": "word = \"abc\", ch = 'a'",
+      "output": "\"abc\"",
+      "description": "reversing a one-character prefix changes nothing"
+    },
+    {
+      "input": "word = \"abc\", ch = 'c'",
+      "output": "\"cba\"",
+      "description": "target at the last position reverses the whole word"
+    },
+    {
+      "input": "word = \"a\", ch = 'a'",
+      "output": "\"a\"",
+      "description": "single-character word boundary"
+    },
+    {
+      "input": "word = \"ababa\", ch = 'b'",
+      "output": "\"baaba\"",
+      "description": "only the first occurrence of ch determines the prefix"
+    },
+    {
+      "input": "word = \"leetcode\", ch = 'e'",
+      "output": "\"eletcode\"",
+      "description": "first occurrence can be very early even when the character appears again later"
+    },
+    {
+      "input": "word = \"minecraft\", ch = 'c'",
+      "output": "\"cenimraft\"",
+      "description": "middle prefix reversal keeps the suffix unchanged"
+    },
+    {
+      "input": "word = \"zzzz\", ch = 'z'",
+      "output": "\"zzzz\"",
+      "description": "first occurrence at index zero leaves repeated characters unchanged"
+    }
+  ],
+  "solutions": [
+    {
+      "name": "StringBuilder Prefix Reverse",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nUse `word.indexOf(ch)` to find the first occurrence. If it is missing, return `word`. Otherwise, put the prefix into a `StringBuilder`, reverse it, and append the unchanged suffix.\n\n## Key Insight\nThe operation affects exactly two pieces: the prefix through the first target character, and the suffix after it. Once the first target index is known, reversing the prefix does not require examining later occurrences of `ch`.\n\n## Complexity Analysis\nFinding the index, reversing the prefix, and appending the suffix each take linear time in the worst case, so the time complexity is O(n). The builder stores characters from the result, so the space complexity is O(n).",
+      "code": "class Solution {\n    public String reversePrefix(String word, char ch) {\n        int index = word.indexOf(ch);\n        if (index == -1) {\n            return word;\n        }\n        StringBuilder prefix = new StringBuilder(word.substring(0, index + 1));\n        prefix.reverse();\n        return prefix.append(word.substring(index + 1)).toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Two Pointer Char Swap",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nCopy the word into a character array, scan the array to locate the first `ch`, then use two pointers to swap characters inside the prefix until the pointers meet.\n\n## Key Insight\nA string is immutable in Java, but a character array gives a direct view of the target arrangement. Swapping only between indices `0` and `end` preserves the suffix automatically.\n\n## Complexity Analysis\nThe scan and swaps together touch each relevant character at most a constant number of times, so the time complexity is O(n). The character array stores a mutable copy of the word, so the space complexity is O(n).",
+      "code": "class Solution {\n    public String reversePrefix(String word, char ch) {\n        char[] chars = word.toCharArray();\n        int end = -1;\n        for (int i = 0; i < chars.length; i++) {\n            if (chars[i] == ch) {\n                end = i;\n                break;\n            }\n        }\n        if (end == -1) {\n            return word;\n        }\n        int left = 0;\n        int right = end;\n        while (left < right) {\n            char temp = chars[left];\n            chars[left++] = chars[right];\n            chars[right--] = temp;\n        }\n        return new String(chars);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Manual Builder By Index",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nFind the first target index with a loop. Build the answer by appending characters from that index down to `0`, then append the suffix from `index + 1` to the end.\n\n## Key Insight\nReversing a prefix can be written as a controlled output order instead of mutating characters. This makes the boundary between reversed prefix and unchanged suffix explicit.\n\n## Complexity Analysis\nThe algorithm scans for `ch` and then writes each output character once, so the time complexity is O(n). The output builder stores the resulting string, so the space complexity is O(n).",
+      "code": "class Solution {\n    public String reversePrefix(String word, char ch) {\n        int end = -1;\n        for (int i = 0; i < word.length(); i++) {\n            if (word.charAt(i) == ch) {\n                end = i;\n                break;\n            }\n        }\n        if (end == -1) {\n            return word;\n        }\n        StringBuilder answer = new StringBuilder(word.length());\n        for (int i = end; i >= 0; i--) {\n            answer.append(word.charAt(i));\n        }\n        for (int i = end + 1; i < word.length(); i++) {\n            answer.append(word.charAt(i));\n        }\n        return answer.toString();\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Stack Prefix Rebuild",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\nFind the first occurrence of `ch`, push every character in the prefix onto a stack, then pop the stack into the answer before appending the unchanged suffix.\n\n## Key Insight\nA stack is last-in first-out, so popping it naturally emits the prefix in reverse order. This route demonstrates the same transformation with an explicit data structure.\n\n## Complexity Analysis\nEach prefix character is pushed and popped once, and the suffix is appended once, so the time complexity is O(n). The stack and answer builder store up to O(n) characters, so the space complexity is O(n).",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\nclass Solution {\n    public String reversePrefix(String word, char ch) {\n        int end = word.indexOf(ch);\n        if (end == -1) {\n            return word;\n        }\n        Deque<Character> stack = new ArrayDeque<>();\n        for (int i = 0; i <= end; i++) {\n            stack.push(word.charAt(i));\n        }\n        StringBuilder answer = new StringBuilder(word.length());\n        while (!stack.isEmpty()) {\n            answer.append(stack.pop());\n        }\n        answer.append(word.substring(end + 1));\n        return answer.toString();\n    }\n}",
+      "language": "java"
+    }
   ]
 }

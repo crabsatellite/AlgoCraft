@@ -1,34 +1,139 @@
 {
   "id": "378",
   "title": "Max Chunks To Make Sorted II",
-  "description": "# Max Chunks To Make Sorted II\n\nYou are given an integer array `arr`.\n\nWe split `arr` into some number of chunks (i.e., partitions), and individually sort each chunk. After concatenating them, the result should equal the sorted version of `arr`.\n\nReturn the largest number of chunks we can make to sort the array.\n\n## Example 1:\n\n**Input:** arr = [5,4,3,2,1]\n**Output:** 1\n**Explanation:**\nSplitting into two or more chunks will not return the required result.\nFor example, splitting into [5, 4], [3, 2, 1] will result in [4, 5, 1, 2, 3], which isn't sorted.\n\n## Example 2:\n\n**Input:** arr = [2,1,3,4,4]\n**Output:** 4\n**Explanation:**\nWe can split into two chunks, such as [2, 1], [3, 4, 4].\nHowever, splitting into [2, 1], [3], [4], [4] is the highest number of chunks possible.\n\n## Constraints:\n\n*   `1 <= arr.length <= 2000`\n*   `0 <= arr[i] <= 10^8`",
+  "description": "# Max Chunks To Make Sorted II\n\nYou are given an integer array `arr`, which may contain duplicate values.\n\nSplit `arr` into one or more non-empty contiguous chunks. Sort each chunk independently, then concatenate the sorted chunks in their original order. The final concatenated array must equal `arr` sorted as one whole array.\n\nReturn the largest possible number of chunks.\n\n## Example 1\n\n**Input:** arr = [5,4,3,2,1]\n\n**Output:** 1\n\n**Explanation:** Any split into two or more chunks keeps at least one large value before a smaller value after concatenation. The whole array must stay as one chunk.\n\n## Example 2\n\n**Input:** arr = [2,1,3,4,4]\n\n**Output:** 4\n\n**Explanation:** One optimal split is `[2,1] | [3] | [4] | [4]`. Sorting each chunk gives `[1,2] | [3] | [4] | [4]`, which concatenates to `[1,2,3,4,4]`.\n\n## Constraints\n\n* `1 <= arr.length <= 2000`\n* `0 <= arr[i] <= 10^8`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int maxChunksToSorted(int[] arr) {\n        \n    }\n}",
-  "tags": ["Stack", "Greedy", "Sorting", "Monotonic Stack"],
+  "initialCode": "class Solution {\n    public int maxChunksToSorted(int[] arr) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Stack",
+    "Greedy",
+    "Sorting",
+    "Monotonic Stack"
+  ],
   "examples": [
-    { "input": "arr = [5,4,3,2,1]", "output": "1" },
-    { "input": "arr = [2,1,3,4,4]", "output": "4" }
+    {
+      "input": "arr = [5,4,3,2,1]",
+      "output": "1"
+    },
+    {
+      "input": "arr = [2,1,3,4,4]",
+      "output": "4"
+    }
   ],
   "solutions": [
     {
-      "name": "Monotonic Stack",
+      "name": "Monotonic Stack of Chunk Maximums",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Maintain a stack of chunk maximums. For each element, if it's smaller than the stack top, pop (merge chunks) keeping track of the maximum. Push the max back. The stack size is the number of chunks.",
-      "code": "class Solution {\n    public int maxChunksToSorted(int[] arr) {\n        java.util.Deque<Integer> stack = new java.util.ArrayDeque<>();\n        for (int num : arr) {\n            int max = num;\n            while (!stack.isEmpty() && stack.peek() > num) {\n                max = Math.max(max, stack.pop());\n            }\n            stack.push(max);\n        }\n        return stack.size();\n    }\n}",
+      "description": "## Approach\n\nMaintain a stack where each entry is the maximum value of one currently valid chunk. When the next value is at least the top chunk maximum, it can start a new chunk. Otherwise, every previous chunk whose maximum is greater than this value must merge with the current value; keep the largest maximum of that merged block and push it back.\n\n## Key Insight\n\nA boundary is invalid as soon as a later value is smaller than a chunk maximum on the left. The monotonic stack stores exactly the chunk maxima that have survived so far, and popping merges all chunks that the new value proves incompatible.\n\n## Complexity Analysis\n\nEach element is pushed once and popped at most once, so the time complexity is O(n). The stack can contain at most n chunk maxima, giving O(n) space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxChunksToSorted(int[] arr) {\n        Deque<Integer> stack = new ArrayDeque<>();\n        for (int value : arr) {\n            if (stack.isEmpty() || stack.peek() <= value) {\n                stack.push(value);\n                continue;\n            }\n\n            int mergedMax = stack.pop();\n            while (!stack.isEmpty() && stack.peek() > value) {\n                mergedMax = Math.max(mergedMax, stack.pop());\n            }\n            stack.push(mergedMax);\n        }\n        return stack.size();\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Prefix Sum Comparison with Sorted Array",
+      "name": "Prefix Max with Suffix Min",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nPrecompute `suffixMin[i]`, the minimum value in `arr[i..n-1]`. Scan left to right while maintaining the maximum value in the current prefix. A boundary after index `i` is valid exactly when the largest value on the left is no greater than the smallest value on the right.\n\n## Key Insight\n\nIf `max(left) <= min(right)`, then after sorting the left chunk and the remaining right-side chunks, no left value needs to move past a right value. If the inequality fails, some larger left value must cross the boundary, so the boundary cannot be kept.\n\n## Complexity Analysis\n\nThe suffix minimum array and the final scan are both linear. Time complexity is O(n), and the suffix array uses O(n) space.",
+      "code": "class Solution {\n    public int maxChunksToSorted(int[] arr) {\n        int n = arr.length;\n        int[] suffixMin = new int[n + 1];\n        suffixMin[n] = Integer.MAX_VALUE;\n        for (int i = n - 1; i >= 0; i--) {\n            suffixMin[i] = Math.min(arr[i], suffixMin[i + 1]);\n        }\n\n        int chunks = 0;\n        int prefixMax = Integer.MIN_VALUE;\n        for (int i = 0; i < n; i++) {\n            prefixMax = Math.max(prefixMax, arr[i]);\n            if (prefixMax <= suffixMin[i + 1]) {\n                chunks++;\n            }\n        }\n        return chunks;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Prefix Sum Equality",
       "timeComplexity": "O(n log n)",
       "spaceComplexity": "O(n)",
-      "description": "A chunk boundary can exist at position i if the max of arr[0..i] equals the max of sorted[0..i] and the sum of arr[0..i] equals the sum of sorted[0..i]. Equivalently, compare prefix sums of arr with prefix sums of sorted arr.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int maxChunksToSorted(int[] arr) {\n        int n = arr.length;\n        int[] sorted = arr.clone();\n        Arrays.sort(sorted);\n        long sum1 = 0, sum2 = 0;\n        int chunks = 0;\n        for (int i = 0; i < n; i++) {\n            sum1 += arr[i];\n            sum2 += sorted[i];\n            if (sum1 == sum2) chunks++;\n        }\n        return chunks;\n    }\n}",
+      "description": "## Approach\n\nSort a copy of `arr`. Scan both arrays in parallel and compare the prefix sums. Whenever the original prefix sum equals the sorted prefix sum, the original prefix contains exactly the multiset of values that belong before this boundary, so a chunk can end here.\n\n## Key Insight\n\nThe constraint `arr[i] >= 0` matters: for any fixed prefix length, the sorted prefix has the minimum possible sum among all prefixes of that length. Equality means the original prefix did not include any value outside that smallest multiset, except for equal duplicate values.\n\n## Complexity Analysis\n\nSorting takes O(n log n), and the scan is O(n). The sorted copy uses O(n) space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxChunksToSorted(int[] arr) {\n        int[] sorted = arr.clone();\n        Arrays.sort(sorted);\n\n        long originalSum = 0;\n        long sortedSum = 0;\n        int chunks = 0;\n        for (int i = 0; i < arr.length; i++) {\n            originalSum += arr[i];\n            sortedSum += sorted[i];\n            if (originalSum == sortedSum) {\n                chunks++;\n            }\n        }\n        return chunks;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sorted Prefix Multiset Balance",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort a copy of the array. While scanning index `i`, add `arr[i]` to a difference map and subtract `sorted[i]` from the same map. Track how many values currently have a nonzero difference. A boundary is valid exactly when all differences return to zero.\n\n## Key Insight\n\nA chunk boundary means the original prefix and the sorted prefix contain the same multiset, not merely the same maximum. The difference map states that condition directly and handles duplicates without relying on a numeric shortcut.\n\n## Complexity Analysis\n\nSorting costs O(n log n). Each map adjustment is expected O(1), so the scan is O(n). The map and sorted copy use O(n) space.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxChunksToSorted(int[] arr) {\n        int[] sorted = arr.clone();\n        Arrays.sort(sorted);\n\n        Map<Integer, Integer> balance = new HashMap<>();\n        int nonZero = 0;\n        int chunks = 0;\n        for (int i = 0; i < arr.length; i++) {\n            nonZero = adjust(balance, arr[i], 1, nonZero);\n            nonZero = adjust(balance, sorted[i], -1, nonZero);\n            if (nonZero == 0) {\n                chunks++;\n            }\n        }\n        return chunks;\n    }\n\n    private int adjust(Map<Integer, Integer> balance, int value, int delta, int nonZero) {\n        int before = balance.getOrDefault(value, 0);\n        int after = before + delta;\n        if (before == 0 && after != 0) {\n            nonZero++;\n        } else if (before != 0 && after == 0) {\n            nonZero--;\n        }\n\n        if (after == 0) {\n            balance.remove(value);\n        } else {\n            balance.put(value, after);\n        }\n        return nonZero;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Stable Sorted Rank Mapping",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nSort a copy of `arr` and assign every occurrence in the sorted array a stable target index. Use queues per value so duplicates receive distinct target positions. Then scan the original array, map each value to its next target index, and cut whenever the maximum target index seen so far equals the current index.\n\n## Key Insight\n\nAfter stable ranking, the problem becomes the permutation version: a prefix can be a chunk exactly when all ranked positions needed by that prefix are also inside the prefix. The condition `maxRank == i` captures that closure.\n\n## Complexity Analysis\n\nSorting takes O(n log n). Building queues and scanning the original array are O(n). The queues store n target indices, so the extra space is O(n).",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int maxChunksToSorted(int[] arr) {\n        int[] sorted = arr.clone();\n        Arrays.sort(sorted);\n\n        Map<Integer, ArrayDeque<Integer>> targetPositions = new HashMap<>();\n        for (int i = 0; i < sorted.length; i++) {\n            targetPositions.computeIfAbsent(sorted[i], key -> new ArrayDeque<>()).addLast(i);\n        }\n\n        int maxTarget = -1;\n        int chunks = 0;\n        for (int i = 0; i < arr.length; i++) {\n            int target = targetPositions.get(arr[i]).removeFirst();\n            maxTarget = Math.max(maxTarget, target);\n            if (maxTarget == i) {\n                chunks++;\n            }\n        }\n        return chunks;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "arr = [5,4,3,2,1]", "output": "1" },
-    { "input": "arr = [2,1,3,4,4]", "output": "4" }
+    {
+      "input": "arr = [5,4,3,2,1]",
+      "output": "1",
+      "description": "strictly descending array must be one chunk"
+    },
+    {
+      "input": "arr = [2,1,3,4,4]",
+      "output": "4",
+      "description": "duplicates allow later singleton chunks"
+    },
+    {
+      "input": "arr = [0]",
+      "output": "1",
+      "description": "single element boundary"
+    },
+    {
+      "input": "arr = [1,1,1]",
+      "output": "3",
+      "description": "all duplicate values can each be their own chunk"
+    },
+    {
+      "input": "arr = [1,0,1,3,2]",
+      "output": "3",
+      "description": "duplicate one with later inversion"
+    },
+    {
+      "input": "arr = [4,2,2,1,1]",
+      "output": "1",
+      "description": "small values force all chunks to merge"
+    },
+    {
+      "input": "arr = [1,1,0,0,1]",
+      "output": "2",
+      "description": "prefix multiset equality with duplicates"
+    },
+    {
+      "input": "arr = [2,0,1]",
+      "output": "1",
+      "description": "one late small value blocks early cuts"
+    },
+    {
+      "input": "arr = [1,0,2,3,4]",
+      "output": "4",
+      "description": "one merged prefix followed by sorted singleton chunks"
+    },
+    {
+      "input": "arr = [2,0,1,3,4]",
+      "output": "3",
+      "description": "three-element prefix closes at index two"
+    },
+    {
+      "input": "arr = [0,2,1,3,4,4]",
+      "output": "5",
+      "description": "already closed first value plus duplicate suffix"
+    },
+    {
+      "input": "arr = [4,3,2,1,0,5,6]",
+      "output": "3",
+      "description": "descending prefix plus sorted tail"
+    },
+    {
+      "input": "arr = [100000000,0,100000000]",
+      "output": "2",
+      "description": "maximum allowed value with duplicate boundary"
+    }
+  ],
+  "diagrams": [
+    {
+      "id": "chunk-sort-example",
+      "file": "p378_chunks.png",
+      "caption": "Example split [2,1] | [3] | [4] | [4]"
+    }
   ]
 }

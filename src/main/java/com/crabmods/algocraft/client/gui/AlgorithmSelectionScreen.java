@@ -1,7 +1,9 @@
 package com.crabmods.algocraft.client.gui;
 
+import com.crabmods.algocraft.client.ClientHooks;
+import com.crabmods.algocraft.client.gui.modern.IdeButton;
+import com.crabmods.algocraft.client.gui.modern.IdeTheme;
 import com.crabmods.algocraft.client.gui.modern.ModernAlgorithmScreen;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -25,25 +27,33 @@ public class AlgorithmSelectionScreen extends Screen {
             buttonWidth = this.width - 40;
         }
 
-        // Button 1: Open In-Game IDE
-        this.addRenderableWidget(Button.builder(Component.translatable("algocraft.gui.open_ingame_ide"), button -> {
+        // Button 1: Open the immersive in-game IDE.
+        this.addRenderableWidget(IdeButton.primary(Component.translatable("algocraft.gui.open_ingame_ide"), button -> {
             Minecraft.getInstance().setScreen(new ModernAlgorithmScreen());
-        }).bounds(centerX - buttonWidth / 2, centerY - 30, buttonWidth, 20).build());
+        }, centerX - buttonWidth / 2, centerY - 10, buttonWidth, 20));
 
-        // Button 2: Open Web IDE
-        this.addRenderableWidget(Button.builder(Component.translatable("algocraft.gui.open_web_ide"), button -> {
-            Util.getPlatform().openUri("http://localhost:3000");
-            if (Minecraft.getInstance().player != null) {
-                Minecraft.getInstance().player.displayClientMessage(Component.translatable("algocraft.msg.opened_web_ide"), true);
-            }
+        // Button 2: Open Web IDE backed by Monaco Editor.
+        Button web = IdeButton.of(Component.translatable("algocraft.gui.open_web_ide"), button -> {
+            ClientHooks.openWebIde();
             this.onClose();
-        }).bounds(centerX - buttonWidth / 2, centerY + 10, buttonWidth, 20).build());
+        }, centerX - buttonWidth / 2, centerY + 20, buttonWidth, 20);
+        web.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("algocraft.gui.web.tooltip")));
+        this.addRenderableWidget(web);
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
-        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, this.height / 2 - 60, 0xFFFFFF);
+        guiGraphics.drawCenteredString(this.font, Component.translatable("itemGroup.algocraft"), this.width / 2, this.height / 2 - 48, IdeTheme.ACCENT);
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, this.height / 2 - 34, IdeTheme.TEXT);
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        guiGraphics.fill(0, 0, this.width, this.height, IdeTheme.withAlpha(IdeTheme.BACKGROUND, 0xE0));
+        int cardWidth = Math.min(240, this.width - 16);
+        int top = Math.max(0, this.height / 2 - 60);
+        IdeTheme.frame(guiGraphics, this.width / 2 - cardWidth / 2, top, cardWidth, Math.min(this.height - top, 118), IdeTheme.PANEL, IdeTheme.BORDER);
+        guiGraphics.fill(this.width / 2 - cardWidth / 2 + 1, top + 1, this.width / 2 + cardWidth / 2 - 1, top + 3, IdeTheme.ACCENT);
     }
 }

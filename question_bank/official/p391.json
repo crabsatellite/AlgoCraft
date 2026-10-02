@@ -1,36 +1,149 @@
 {
   "id": "391",
   "title": "Tallest Billboard",
-  "description": "# Tallest Billboard\n\nYou are installing a billboard and want it to have the largest height. The billboard will have two steel supports, one on each side. Each steel support must be an equal height.\n\nYou are given a collection of `rods` that can be welded together. For example, if you have rods of lengths 1, 2, and 3, you can weld them together to make a support of length 6.\n\nReturn *the largest possible height of your billboard installation*. If you cannot support the billboard, return 0.\n\n## Example 1:\n\n**Input:** rods = [1,2,3,6]\n**Output:** 6\n**Explanation:** We have two disjoint subsets {1,2,3} and {6}, which have the same sum = 6.\n\n## Example 2:\n\n**Input:** rods = [1,2,3,4,5,6]\n**Output:** 10\n**Explanation:** We have two disjoint subsets {2,3,5} and {4,6}, which have the same sum = 10.\n\n## Example 3:\n\n**Input:** rods = [1,2]\n**Output:** 0\n**Explanation:** The billboard cannot be supported, so we return 0.\n\n## Constraints:\n\n*   `1 <= rods.length <= 20`\n*   `1 <= rods[i] <= 1000`\n*   `sum(rods[i]) <= 5000`",
+  "description": "# Tallest Billboard\n\nYou are installing a billboard with two steel supports. The two supports must have exactly the same height, and each support is made by welding together a disjoint subset of the given rods.\n\nEach rod may be used at most once. You may also discard rods that are not useful. Return the largest possible equal support height. If no positive equal height can be built, return `0`.\n\nThe problem is not asking for two adjacent subarrays or for using every rod. It is asking for two disjoint subsets with the same sum and maximum common sum.\n\n## Example 1:\n\n**Input:** rods = [1,2,3,6]\n**Output:** 6\n**Explanation:** One support uses rods {1,2,3}; the other support uses rod {6}.\n\n## Example 2:\n\n**Input:** rods = [1,2,3,4,5,6]\n**Output:** 10\n**Explanation:** One support can use {2,3,5}; the other can use {4,6}.\n\n## Example 3:\n\n**Input:** rods = [1,2]\n**Output:** 0\n**Explanation:** No two non-empty disjoint subsets have the same positive sum.\n\n## Constraints:\n\n* `1 <= rods.length <= 20`\n* `1 <= rods[i] <= 1000`\n* `sum(rods[i]) <= 5000`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int tallestBillboard(int[] rods) {\n        \n    }\n}",
-  "tags": ["Dynamic Programming", "Array"],
+  "initialCode": "class Solution {\n    public int tallestBillboard(int[] rods) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Dynamic Programming",
+    "Array"
+  ],
   "examples": [
-    { "input": "rods = [1,2,3,6]", "output": "6" },
-    { "input": "rods = [1,2,3,4,5,6]", "output": "10" },
-    { "input": "rods = [1,2]", "output": "0" }
+    {
+      "input": "rods = [1,2,3,6]",
+      "output": "6"
+    },
+    {
+      "input": "rods = [1,2,3,4,5,6]",
+      "output": "10"
+    },
+    {
+      "input": "rods = [1,2]",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
-      "name": "DP on Difference",
+      "name": "HashMap Difference DP with Taller Height",
       "timeComplexity": "O(n * S)",
       "spaceComplexity": "O(S)",
-      "description": "dp[diff] = max taller support height when the difference between two supports is diff. For each rod, try adding it to the taller side, shorter side, or skipping it.",
-      "code": "class Solution {\n    public int tallestBillboard(int[] rods) {\n        java.util.Map<Integer, Integer> dp = new java.util.HashMap<>();\n        dp.put(0, 0);\n        for (int rod : rods) {\n            java.util.Map<Integer, Integer> cur = new java.util.HashMap<>(dp);\n            for (var e : cur.entrySet()) {\n                int diff = e.getKey(), tall = e.getValue();\n                dp.merge(diff + rod, tall + rod, Math::max);\n                dp.merge(diff - rod, tall, Math::max);\n            }\n        }\n        return dp.getOrDefault(0, 0);\n    }\n}",
+      "description": "## Approach\nKeep `dp[diff] = best taller support height` after processing some rods, where `diff` is the non-negative height difference between the two supports. For each rod, either skip it, add it to the taller side, or add it to the shorter side.\n\n## Key Insight\nThe shorter support height is always `taller - diff`. If a rod is added to the shorter side, the taller height only increases when the rod is longer than the current difference. This gives the update `taller + max(0, rod - diff)`.\n\n## Complexity Analysis\nLet `S = sum(rods)`. There are at most `S + 1` differences, so the time complexity is O(n * S) and the space complexity is O(S).",
+      "code": "import java.util.HashMap;\nimport java.util.Map;\n\nclass Solution {\n    public int tallestBillboard(int[] rods) {\n        Map<Integer, Integer> dp = new HashMap<>();\n        dp.put(0, 0);\n\n        for (int rod : rods) {\n            Map<Integer, Integer> snapshot = new HashMap<>(dp);\n            for (Map.Entry<Integer, Integer> entry : snapshot.entrySet()) {\n                int diff = entry.getKey();\n                int taller = entry.getValue();\n\n                dp.merge(diff + rod, taller + rod, Math::max);\n\n                int newDiff = Math.abs(diff - rod);\n                int newTaller = taller + Math.max(0, rod - diff);\n                dp.merge(newDiff, newTaller, Math::max);\n            }\n        }\n\n        return dp.getOrDefault(0, 0);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Meet in the Middle",
+      "name": "Shorter-Height Array DP",
+      "timeComplexity": "O(n * S)",
+      "spaceComplexity": "O(S)",
+      "description": "## Approach\nUse an array where `dp[diff]` stores the largest shorter-support height that can be achieved with this difference. An unreachable difference is `-1`. For each rod, update the state for putting it on the taller side and for putting it on the shorter side.\n\n## Key Insight\nWhen the rod goes to the shorter side, the equal part grows by `min(diff, rod)`. If the rod is longer than the current gap, it crosses over and becomes the new taller side, but only `diff` units helped close the old gap.\n\n## Complexity Analysis\nLet `S = sum(rods)`. The time complexity is O(n * S) and the space complexity is O(S).",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int tallestBillboard(int[] rods) {\n        int sum = 0;\n        for (int rod : rods) {\n            sum += rod;\n        }\n\n        int[] dp = new int[sum + 1];\n        Arrays.fill(dp, -1);\n        dp[0] = 0;\n\n        for (int rod : rods) {\n            int[] previous = dp.clone();\n            for (int diff = 0; diff <= sum - rod; diff++) {\n                if (previous[diff] < 0) {\n                    continue;\n                }\n\n                dp[diff + rod] = Math.max(dp[diff + rod], previous[diff]);\n\n                int newDiff = Math.abs(diff - rod);\n                int newShorter = previous[diff] + Math.min(diff, rod);\n                dp[newDiff] = Math.max(dp[newDiff], newShorter);\n            }\n        }\n\n        return dp[0];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Signed Offset Sum DP",
+      "timeComplexity": "O(n * S)",
+      "spaceComplexity": "O(S)",
+      "description": "## Approach\nStore signed differences directly. `dp[offset + diff]` is the largest left-support height for a signed difference `left - right = diff`. For each rod, place it on the left, place it on the right, or skip it.\n\n## Key Insight\nKeeping the signed difference makes the transition symmetric and easy to audit. At the end, only difference `0` is valid, and the stored left height is the billboard height.\n\n## Complexity Analysis\nThe signed difference range is `[-S, S]`, so the time complexity is O(n * S) and the space complexity is O(S).",
+      "code": "import java.util.Arrays;\n\nclass Solution {\n    public int tallestBillboard(int[] rods) {\n        int sum = 0;\n        for (int rod : rods) {\n            sum += rod;\n        }\n\n        int offset = sum;\n        int negative = -1_000_000;\n        int[] dp = new int[2 * sum + 1];\n        Arrays.fill(dp, negative);\n        dp[offset] = 0;\n\n        for (int rod : rods) {\n            int[] next = dp.clone();\n            for (int diff = -sum; diff <= sum; diff++) {\n                int leftHeight = dp[offset + diff];\n                if (leftHeight < 0) {\n                    continue;\n                }\n                if (diff + rod <= sum) {\n                    next[offset + diff + rod] = Math.max(next[offset + diff + rod], leftHeight + rod);\n                }\n                if (diff - rod >= -sum) {\n                    next[offset + diff - rod] = Math.max(next[offset + diff - rod], leftHeight);\n                }\n            }\n            dp = next;\n        }\n\n        return dp[offset];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Top-Down Memoized Signed Difference",
+      "timeComplexity": "O(n * S)",
+      "spaceComplexity": "O(n * S)",
+      "description": "## Approach\nDefine `dfs(index, diff)` as the maximum final left-support height that can still be achieved from `index` onward when the current signed difference is `left - right = diff`. The next rod can be skipped, added to the left, or added to the right.\n\n## Key Insight\nOnly rods placed on the left contribute to the returned height. The base case accepts `diff == 0` and rejects all other differences. This gives an exact recursive formulation of the three choices without relying on greedy decisions.\n\n## Complexity Analysis\nThere are O(n * S) `(index, diff)` states and each has three transitions, so the time and space complexities are O(n * S).",
+      "code": "import java.util.HashMap;\nimport java.util.Map;\n\nclass Solution {\n    private int[] rods;\n    private Map<Long, Integer> memo = new HashMap<>();\n    private static final int NEGATIVE = -1_000_000;\n\n    public int tallestBillboard(int[] rods) {\n        this.rods = rods;\n        return Math.max(0, dfs(0, 0));\n    }\n\n    private int dfs(int index, int diff) {\n        if (index == rods.length) {\n            return diff == 0 ? 0 : NEGATIVE;\n        }\n        long key = (((long) index) << 32) ^ (diff + 5000L);\n        Integer cached = memo.get(key);\n        if (cached != null) {\n            return cached;\n        }\n\n        int rod = rods[index];\n        int skip = dfs(index + 1, diff);\n        int useLeft = rod + dfs(index + 1, diff + rod);\n        int useRight = dfs(index + 1, diff - rod);\n        int best = Math.max(skip, Math.max(useLeft, useRight));\n        memo.put(key, best);\n        return best;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Meet-in-the-Middle Ternary Enumeration",
       "timeComplexity": "O(3^(n/2))",
       "spaceComplexity": "O(3^(n/2))",
-      "description": "Split rods into two halves. For each half, enumerate all possibilities: each rod goes to left support, right support, or neither. Record (diff, maxTaller) for each combo. Then combine halves: for each combo from first half, look up complementary diff from second half.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public int tallestBillboard(int[] rods) {\n        int n = rods.length;\n        int half = n / 2;\n        Map<Integer, Integer> left = enumerate(rods, 0, half);\n        Map<Integer, Integer> right = enumerate(rods, half, n);\n        int result = 0;\n        for (Map.Entry<Integer, Integer> entry : left.entrySet()) {\n            int diff = entry.getKey();\n            int tall = entry.getValue();\n            if (right.containsKey(-diff)) {\n                result = Math.max(result, tall + right.get(-diff));\n            }\n        }\n        return result;\n    }\n    private Map<Integer, Integer> enumerate(int[] rods, int start, int end) {\n        Map<Integer, Integer> dp = new HashMap<>();\n        dp.put(0, 0);\n        for (int i = start; i < end; i++) {\n            Map<Integer, Integer> ndp = new HashMap<>(dp);\n            for (Map.Entry<Integer, Integer> entry : dp.entrySet()) {\n                int diff = entry.getKey();\n                int tall = entry.getValue();\n                int newDiff1 = diff + rods[i];\n                ndp.merge(newDiff1, tall + rods[i], Math::max);\n                int newDiff2 = diff - rods[i];\n                ndp.merge(newDiff2, tall, Math::max);\n            }\n            dp = ndp;\n        }\n        return dp;\n    }\n}",
+      "description": "## Approach\nSplit the rods into two halves. For each half, enumerate every ternary choice: put the rod on the left support, put it on the right support, or discard it. Store the best left-support height for each signed difference, then match complementary differences across the two halves.\n\n## Key Insight\n`n <= 20`, so each half has at most ten rods and `3^10` states. Matching `diff` from the left half with `-diff` from the right half produces a global zero difference.\n\n## Complexity Analysis\nEach half has O(3^(n/2)) assignments. The time and space complexities are O(3^(n/2)).",
+      "code": "import java.util.HashMap;\nimport java.util.Map;\n\nclass Solution {\n    public int tallestBillboard(int[] rods) {\n        int half = rods.length / 2;\n        Map<Integer, Integer> left = enumerate(rods, 0, half);\n        Map<Integer, Integer> right = enumerate(rods, half, rods.length);\n\n        int answer = 0;\n        for (Map.Entry<Integer, Integer> entry : left.entrySet()) {\n            int diff = entry.getKey();\n            Integer rightLeftHeight = right.get(-diff);\n            if (rightLeftHeight != null) {\n                answer = Math.max(answer, entry.getValue() + rightLeftHeight);\n            }\n        }\n        return answer;\n    }\n\n    private Map<Integer, Integer> enumerate(int[] rods, int start, int end) {\n        Map<Integer, Integer> states = new HashMap<>();\n        states.put(0, 0);\n        for (int i = start; i < end; i++) {\n            int rod = rods[i];\n            Map<Integer, Integer> next = new HashMap<>(states);\n            for (Map.Entry<Integer, Integer> entry : states.entrySet()) {\n                int diff = entry.getKey();\n                int leftHeight = entry.getValue();\n                next.merge(diff + rod, leftHeight + rod, Math::max);\n                next.merge(diff - rod, leftHeight, Math::max);\n            }\n            states = next;\n        }\n        return states;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "rods = [1,2,3,6]", "output": "6" },
-    { "input": "rods = [1,2,3,4,5,6]", "output": "10" },
-    { "input": "rods = [1,2]", "output": "0" }
+    {
+      "input": "rods = [1,2,3,6]",
+      "output": "6",
+      "description": "canonical exact balance"
+    },
+    {
+      "input": "rods = [1,2,3,4,5,6]",
+      "output": "10",
+      "description": "larger set forms height ten"
+    },
+    {
+      "input": "rods = [1,2]",
+      "output": "0",
+      "description": "cannot build equal positive supports"
+    },
+    {
+      "input": "rods = [1,2,3]",
+      "output": "3",
+      "description": "one side uses rod 3, the other uses 1 and 2"
+    },
+    {
+      "input": "rods = [5,5]",
+      "output": "5",
+      "description": "two equal rods form one support pair"
+    },
+    {
+      "input": "rods = [1,2,3,4,5,6,7,8]",
+      "output": "18",
+      "description": "all rods can be split into two supports of height eighteen"
+    },
+    {
+      "input": "rods = [7]",
+      "output": "0",
+      "description": "single rod cannot form two supports"
+    },
+    {
+      "input": "rods = [1,1,1,1]",
+      "output": "2",
+      "description": "many small duplicates should combine cleanly"
+    },
+    {
+      "input": "rods = [10,6,5,5,5]",
+      "output": "10",
+      "description": "best answer discards rods instead of using every rod"
+    },
+    {
+      "input": "rods = [1000,1000,1000,1000,1000]",
+      "output": "2000",
+      "description": "near maximum total sum with repeated large rods"
+    },
+    {
+      "input": "rods = [1,2,3,4,5,6,7,8,9,10]",
+      "output": "27",
+      "description": "larger mixed set with odd total sum"
+    },
+    {
+      "input": "rods = [3,4,3,3,2]",
+      "output": "6",
+      "description": "duplicates plus one awkward rod"
+    },
+    {
+      "input": "rods = [2,4,8,16]",
+      "output": "0",
+      "description": "powers of two cannot make equal disjoint positive sums"
+    },
+    {
+      "input": "rods = [2,3,5,6,7]",
+      "output": "9",
+      "description": "best split is not half of all rods"
+    },
+    {
+      "input": "rods = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]",
+      "output": "10",
+      "description": "maximum rod count with tiny repeated rods"
+    },
+    {
+      "input": "rods = [50,50,50,50,75,25]",
+      "output": "150",
+      "description": "uses multiple equivalent combinations with leftovers"
+    }
   ]
 }

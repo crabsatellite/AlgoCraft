@@ -1,7 +1,7 @@
 {
   "id": "86",
   "title": "Subtree of Another Tree",
-  "description": "# Subtree of Another Tree\n\nGiven the roots of two binary trees `root` and `subRoot`, return `true` if there is a subtree of `root` with the same structure and node values of `subRoot` and `false` otherwise.\n\nA subtree of a binary tree `tree` is a tree that consists of a node in `tree` and all of this node's descendants. The tree `tree` could also be considered as a subtree of itself.\n\n## Example 1:\n\n**Input:** root = [3,4,5,1,2], subRoot = [4,1,2]\n**Output:** true\n\n## Example 2:\n\n**Input:** root = [3,4,5,1,2,null,null,null,null,0], subRoot = [4,1,2]\n**Output:** false\n\n## Constraints:\n\n*   The number of nodes in the `root` tree is in the range `[1, 2000]`.\n*   The number of nodes in the `subRoot` tree is in the range `[1, 1000]`.\n*   `-10^4 <= root.val, subRoot.val <= 10^4`",
+  "description": "# Subtree of Another Tree\n\nGiven the roots of two binary trees `root` and `subRoot`, return `true` if `subRoot` is exactly the same as a subtree of `root`, and `false` otherwise.\n\nA subtree must include one node of `root` and all descendants below that node. Therefore, matching only some values is not enough: the candidate subtree must have the same root value, the same left/right structure, and the same value at every corresponding node. The whole `root` tree is also considered a subtree of itself.\n\nExample trees use a level-order display: list the root, then each existing node's left and right children in node order. `null` means an absent child; trailing nulls may be omitted. A tree node stores `val`, `left`, and `right`; tree parameters or return values in code are `TreeNode` objects.\n\n## Example 1:\n\n**Input:** root = [3,4,5,1,2], subRoot = [4,1,2]\n**Output:** true\n**Explanation:** The subtree rooted at value 4 in `root` has exactly the same structure and values as `subRoot`.\n\n## Example 2:\n\n**Input:** root = [3,4,5,1,2,null,null,null,null,0], subRoot = [4,1,2]\n**Output:** false\n**Explanation:** The node with value 4 has children 1 and 2, but that 2 also has an extra child 0, so the subtree is not exactly the same.\n\n## Constraints:\n\n* The number of nodes in the `root` tree is in the range `[1, 2000]`.\n* The number of nodes in the `subRoot` tree is in the range `[1, 1000]`.\n* `-10^4 <= root.val, subRoot.val <= 10^4`",
   "difficulty": "EASY",
   "initialCode": "/**\n * Definition for a binary tree node.\n * public class TreeNode {\n *     int val;\n *     TreeNode left;\n *     TreeNode right;\n *     TreeNode() {}\n *     TreeNode(int val) { this.val = val; }\n *     TreeNode(int val, TreeNode left, TreeNode right) {\n *         this.val = val;\n *         this.left = left;\n *         this.right = right;\n *     }\n * }\n */\nclass Solution {\n    public boolean isSubtree(TreeNode root, TreeNode subRoot) {\n        // Write your code here\n        return false;\n    }\n}",
   "tags": [
@@ -24,44 +24,106 @@
   "tests": [
     {
       "input": "root = [3,4,5,1,2], subRoot = [4,1,2]",
-      "output": "true"
+      "output": "true",
+      "description": "Canonical exact subtree match."
     },
     {
       "input": "root = [3,4,5,1,2,null,null,null,null,0], subRoot = [4,1,2]",
-      "output": "false"
+      "output": "false",
+      "description": "An extra descendant in root invalidates an apparent match."
     },
     {
       "input": "root = [1,1], subRoot = [1]",
-      "output": "true"
+      "output": "true",
+      "description": "A single-node candidate may appear below the root."
     },
     {
       "input": "root = [1,2,3], subRoot = [1,2,3]",
-      "output": "true"
+      "output": "true",
+      "description": "The whole tree is a subtree of itself."
     },
     {
       "input": "root = [1], subRoot = [1]",
-      "output": "true"
+      "output": "true",
+      "description": "Single-node equal trees should match."
     },
     {
       "input": "root = [1,2,3], subRoot = [2]",
-      "output": "true"
+      "output": "true",
+      "description": "A single-node candidate can match a leaf."
+    },
+    {
+      "input": "root = [1,2,3], subRoot = [4]",
+      "output": "false",
+      "description": "A missing value should fail."
+    },
+    {
+      "input": "root = [1,2,3,null,4], subRoot = [2,4]",
+      "output": "false",
+      "description": "The same values in the wrong child position are not an exact subtree."
+    },
+    {
+      "input": "root = [1,2,3,null,4], subRoot = [2,null,4]",
+      "output": "true",
+      "description": "The matching null placement should be accepted."
+    },
+    {
+      "input": "root = [0,-10000,10000], subRoot = [-10000]",
+      "output": "true",
+      "description": "Boundary values should be handled normally."
+    },
+    {
+      "input": "root = [5,5,5,5,null,null,5], subRoot = [5,null,5]",
+      "output": "true",
+      "description": "Duplicate values require structural matching, not just value presence."
+    },
+    {
+      "input": "root = [5,5,5,5,null,null,5], subRoot = [5,5,5]",
+      "output": "false",
+      "description": "Duplicate values cannot hide extra descendants or missing child positions."
+    },
+    {
+      "input": "root = [1,12], subRoot = [2]",
+      "output": "false",
+      "description": "Serialization-based solutions need separators so value 2 does not match inside 12."
+    },
+    {
+      "input": "root = [-1,-2,-3], subRoot = [-2]",
+      "output": "true",
+      "description": "Negative single-node candidates should match by value and position."
     }
   ],
   "solutions": [
     {
-      "name": "Recursive DFS",
+      "name": "Recursive Candidate DFS",
       "timeComplexity": "O(m * n)",
       "spaceComplexity": "O(h)",
-      "description": "For each node in root, check if the subtree rooted there is identical to subRoot using a helper isSameTree function.",
-      "code": "class Solution {\n    public boolean isSubtree(TreeNode root, TreeNode subRoot) {\n        if (root == null) return false;\n        \n        if (isSameTree(root, subRoot)) return true;\n        \n        return isSubtree(root.left, subRoot) || isSubtree(root.right, subRoot);\n    }\n    \n    private boolean isSameTree(TreeNode p, TreeNode q) {\n        if (p == null && q == null) return true;\n        if (p == null || q == null) return false;\n        return p.val == q.val \n            && isSameTree(p.left, q.left) \n            && isSameTree(p.right, q.right);\n    }\n}",
+      "description": "## Approach\n\nVisit every node in `root` as a possible candidate root. When a candidate is reached, run a same-tree check against `subRoot`. If the current candidate does not match, continue searching the left and right subtrees.\n\n## Key Insight\n\nThis is the direct definition: a subtree match is a node in `root` whose entire descendant tree is identical to `subRoot`. A matching root value alone is only a starting point, not a proof.\n\n## Complexity Analysis\n- Time Complexity: O(m * n) in the worst case, where m is the number of nodes in `root` and n is the number of nodes in `subRoot`.\n- Space Complexity: O(h), where h is the combined recursion depth of the search and same-tree checks.",
+      "code": "class Solution {\n    public boolean isSubtree(TreeNode root, TreeNode subRoot) {\n        if (subRoot == null) {\n            return true;\n        }\n        if (root == null) {\n            return false;\n        }\n        if (same(root, subRoot)) {\n            return true;\n        }\n        return isSubtree(root.left, subRoot) || isSubtree(root.right, subRoot);\n    }\n\n    private boolean same(TreeNode a, TreeNode b) {\n        if (a == null && b == null) {\n            return true;\n        }\n        if (a == null || b == null) {\n            return false;\n        }\n        return a.val == b.val && same(a.left, b.left) && same(a.right, b.right);\n    }\n}",
       "language": "java"
     },
     {
-      "name": "String Serialization",
+      "name": "Iterative Candidate Stack",
+      "timeComplexity": "O(m * n)",
+      "spaceComplexity": "O(m + n)",
+      "description": "## Approach\n\nScan candidate roots in `root` with an explicit stack. For each candidate, run an iterative same-tree comparison using a stack of node pairs. If any candidate compares equal to `subRoot`, return true.\n\n## Key Insight\n\nThis is the same candidate-root idea as recursion, but both layers of recursion are made explicit. Keeping pairs together is what preserves exact left/right structure during comparison.\n\n## Complexity Analysis\n- Time Complexity: O(m * n) in the worst case, because many candidate roots may require a partial or full same-tree comparison.\n- Space Complexity: O(m + n) in the worst case for the candidate stack and the comparison stack.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isSubtree(TreeNode root, TreeNode subRoot) {\n        if (subRoot == null) {\n            return true;\n        }\n        if (root == null) {\n            return false;\n        }\n\n        Deque<TreeNode> candidates = new ArrayDeque<>();\n        candidates.push(root);\n        while (!candidates.isEmpty()) {\n            TreeNode node = candidates.pop();\n            if (sameIterative(node, subRoot)) {\n                return true;\n            }\n            if (node.left != null) {\n                candidates.push(node.left);\n            }\n            if (node.right != null) {\n                candidates.push(node.right);\n            }\n        }\n        return false;\n    }\n\n    private boolean sameIterative(TreeNode a, TreeNode b) {\n        Deque<Pair> stack = new ArrayDeque<>();\n        stack.push(new Pair(a, b));\n        while (!stack.isEmpty()) {\n            Pair current = stack.pop();\n            TreeNode left = current.left;\n            TreeNode right = current.right;\n            if (left == null && right == null) {\n                continue;\n            }\n            if (left == null || right == null || left.val != right.val) {\n                return false;\n            }\n            stack.push(new Pair(left.left, right.left));\n            stack.push(new Pair(left.right, right.right));\n        }\n        return true;\n    }\n\n    private static class Pair {\n        TreeNode left;\n        TreeNode right;\n\n        Pair(TreeNode left, TreeNode right) {\n            this.left = left;\n            this.right = right;\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Preorder Serialization with KMP",
       "timeComplexity": "O(m + n)",
       "spaceComplexity": "O(m + n)",
-      "description": "Serialize both trees to strings using preorder traversal with null markers and delimiters. Check if subRoot's serialization is a substring of root's serialization.",
-      "code": "class Solution {\n    public boolean isSubtree(TreeNode root, TreeNode subRoot) {\n        String rootStr = serialize(root);\n        String subStr = serialize(subRoot);\n        return rootStr.contains(subStr);\n    }\n    \n    private String serialize(TreeNode node) {\n        if (node == null) return \",#\";\n        return \",\" + node.val + serialize(node.left) + serialize(node.right);\n    }\n}",
+      "description": "## Approach\n\nSerialize both trees into token lists with preorder traversal. Real nodes become value tokens and null children become marker tokens. Then use KMP pattern matching to test whether the serialized `subRoot` token list appears inside the serialized `root` token list.\n\n## Key Insight\n\nNull markers and token boundaries are mandatory. They prevent shape ambiguity and prevent values such as `2` from matching inside a larger value such as `12`.\n\n## Complexity Analysis\n- Time Complexity: O(m + n), because serialization and KMP each scan their inputs linearly.\n- Space Complexity: O(m + n), for the serialized token lists and the KMP prefix table.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public boolean isSubtree(TreeNode root, TreeNode subRoot) {\n        List<String> text = new ArrayList<>();\n        List<String> pattern = new ArrayList<>();\n        serialize(root, text);\n        serialize(subRoot, pattern);\n        return containsWithKmp(text, pattern);\n    }\n\n    private void serialize(TreeNode node, List<String> output) {\n        if (node == null) {\n            output.add(\"#\");\n            return;\n        }\n        output.add(\"V\" + node.val);\n        serialize(node.left, output);\n        serialize(node.right, output);\n    }\n\n    private boolean containsWithKmp(List<String> text, List<String> pattern) {\n        if (pattern.isEmpty()) {\n            return true;\n        }\n        int[] lps = buildLps(pattern);\n        int j = 0;\n        for (int i = 0; i < text.size(); i++) {\n            while (j > 0 && !pattern.get(j).equals(text.get(i))) {\n                j = lps[j - 1];\n            }\n            if (pattern.get(j).equals(text.get(i))) {\n                j++;\n                if (j == pattern.size()) {\n                    return true;\n                }\n            }\n        }\n        return false;\n    }\n\n    private int[] buildLps(List<String> pattern) {\n        int[] lps = new int[pattern.size()];\n        int length = 0;\n        for (int i = 1; i < pattern.size(); i++) {\n            while (length > 0 && !pattern.get(i).equals(pattern.get(length))) {\n                length = lps[length - 1];\n            }\n            if (pattern.get(i).equals(pattern.get(length))) {\n                length++;\n                lps[i] = length;\n            }\n        }\n        return lps;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Subtree Structural IDs",
+      "timeComplexity": "O(m + n)",
+      "spaceComplexity": "O(m + n)",
+      "description": "## Approach\n\nAssign an integer ID to every unique triple `(node value, left subtree ID, right subtree ID)`. First compute the ID for `subRoot`, then encode `root` while recording every subtree ID that appears in it.\n\n## Key Insight\n\nThis is structural hashing without relying on raw strings. Two subtrees receive the same ID only when their root value and both child structures match.\n\n## Complexity Analysis\n- Time Complexity: O(m + n), because each node is encoded once.\n- Space Complexity: O(m + n), for the ID table and the set of subtree IDs seen in `root`.",
+      "code": "import java.util.*;\n\nclass Solution {\n    private final Map<String, Integer> ids = new HashMap<>();\n    private final Set<Integer> rootSubtreeIds = new HashSet<>();\n    private int nextId = 1;\n\n    public boolean isSubtree(TreeNode root, TreeNode subRoot) {\n        int targetId = encode(subRoot, false);\n        encode(root, true);\n        return rootSubtreeIds.contains(targetId);\n    }\n\n    private int encode(TreeNode node, boolean record) {\n        if (node == null) {\n            return 0;\n        }\n        int left = encode(node.left, record);\n        int right = encode(node.right, record);\n        String key = node.val + \",\" + left + \",\" + right;\n        int id = ids.computeIfAbsent(key, ignored -> nextId++);\n        if (record) {\n            rootSubtreeIds.add(id);\n        }\n        return id;\n    }\n}",
       "language": "java"
     }
   ],
@@ -69,12 +131,12 @@
     {
       "id": "example1",
       "file": "p86_example1.png",
-      "caption": "Example 1: Subtree Match"
+      "caption": "Example 1 main tree"
     },
     {
       "id": "example2",
       "file": "p86_example2.png",
-      "caption": "Example 2: Subtree Mismatch (extra node 0)"
+      "caption": "Example 1 candidate subtree"
     }
   ]
 }

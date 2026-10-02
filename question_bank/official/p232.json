@@ -1,42 +1,130 @@
 {
   "id": "232",
   "title": "Baseball Game",
-  "description": "# Baseball Game\n\nYou are keeping the scores for a baseball game with strange rules. At the beginning of the game, you start with an empty record.\n\nYou are given a list of strings `operations`, where `operations[i]` is the `i-th` operation you must apply to the record and is one of the following:\n\n*   An integer `x`. Record a new score of `x`.\n*   `\"+\"`. Record a new score that is the sum of the previous two scores.\n*   `\"D\"`. Record a new score that is the double of the previous score.\n*   `\"C\"`. Invalidate the previous score, removing it from the record.\n\nReturn *the sum of all the scores on the record after applying all the operations*.\n\nThe test cases are generated such that the answer and all intermediate calculations fit in a **32-bit** integer and that all operations are valid.\n\n## Example 1:\n\n**Input:** ops = [\"5\",\"2\",\"C\",\"D\",\"+\"]\n**Output:** 30\n**Explanation:**\n\"5\" - Add 5 to the record, record is [5].\n\"2\" - Add 2 to the record, record is [5, 2].\n\"C\" - Invalidate and remove the previous score, record is [5].\n\"D\" - Record 2 * 5 = 10, record is [5, 10].\n\"+\" - Record 5 + 10 = 15, record is [5, 10, 15].\nThe total sum is 5 + 10 + 15 = 30.\n\n## Example 2:\n\n**Input:** ops = [\"5\",\"-2\",\"4\",\"C\",\"D\",\"9\",\"+\",\"+\"]\n**Output:** 27\n\n## Example 3:\n\n**Input:** ops = [\"1\",\"C\"]\n**Output:** 0\n\n## Constraints:\n\n*   `1 <= operations.length <= 1000`\n*   `operations[i]` is `\"C\"`, `\"D\"`, `\"+\"`, or a string representing an integer in the range `[-3 * 10^4, 3 * 10^4]`.\n*   For operation `\"+\"`, there will always be at least two previous scores on the record.\n*   For operations `\"C\"` and `\"D\"`, there will always be at least one previous score on the record.",
+  "description": "# Baseball Game\n\nYou are keeping score for a baseball game with unusual record operations. The record starts empty.\n\nGiven a string array `operations`, apply each operation to the current valid score record:\n\n* An integer `x`: record a new score of `x`.\n* `\"+\"`: record a new score equal to the sum of the previous two valid scores.\n* `\"D\"`: record a new score equal to twice the previous valid score.\n* `\"C\"`: invalidate and remove the previous valid score.\n\nReturn the sum of all valid scores after every operation has been applied.\n\nThe input is valid: `\"+\"` always has at least two previous valid scores, and `\"C\"` and `\"D\"` always have at least one previous valid score. All intermediate scores and the final answer fit in a 32-bit signed integer.\n\n## Example 1:\n\n**Input:** ops = [\"5\",\"2\",\"C\",\"D\",\"+\"]\n**Output:** 30\n**Explanation:** The record becomes [5], then [5,2], then [5], then [5,10], then [5,10,15]. The sum is 30.\n\n## Example 2:\n\n**Input:** ops = [\"5\",\"-2\",\"4\",\"C\",\"D\",\"9\",\"+\",\"+\"]\n**Output:** 27\n\n## Example 3:\n\n**Input:** ops = [\"1\",\"C\"]\n**Output:** 0\n\n## Constraints:\n\n* `1 <= operations.length <= 1000`\n* `operations[i]` is `\"C\"`, `\"D\"`, `\"+\"`, or a string representing an integer in the range `[-3 * 10^4, 3 * 10^4]`.\n* For operation `\"+\"`, there will always be at least two previous valid scores on the record.\n* For operations `\"C\"` and `\"D\"`, there will always be at least one previous valid score on the record.",
   "difficulty": "EASY",
-  "initialCode": "class Solution {\n    public int calPoints(String[] operations) {\n        // Write your code here\n        return 0;\n    }\n}",
-  "tags": ["Array", "Stack", "Simulation"],
+  "initialCode": "class Solution {\n    public int calPoints(String[] operations) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Array",
+    "Stack",
+    "Simulation"
+  ],
   "examples": [
-    { "input": "ops = [\"5\",\"2\",\"C\",\"D\",\"+\"]", "output": "30" },
+    {
+      "input": "ops = [\"5\",\"2\",\"C\",\"D\",\"+\"]",
+      "output": "30"
+    },
     {
       "input": "ops = [\"5\",\"-2\",\"4\",\"C\",\"D\",\"9\",\"+\",\"+\"]",
       "output": "27"
     },
-    { "input": "ops = [\"1\",\"C\"]", "output": "0" }
+    {
+      "input": "ops = [\"1\",\"C\"]",
+      "output": "0"
+    }
   ],
   "solutions": [
     {
-      "name": "Stack Simulation",
+      "name": "Dynamic List Stack Simulation",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use a stack (ArrayList) to simulate the record. Process each operation according to the rules, then sum all remaining scores.",
-      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public int calPoints(String[] operations) {\n        List<Integer> stack = new ArrayList<>();\n        for (String op : operations) {\n            int sz = stack.size();\n            if (op.equals(\"+\")) {\n                stack.add(stack.get(sz - 1) + stack.get(sz - 2));\n            } else if (op.equals(\"D\")) {\n                stack.add(2 * stack.get(sz - 1));\n            } else if (op.equals(\"C\")) {\n                stack.remove(sz - 1);\n            } else {\n                stack.add(Integer.parseInt(op));\n            }\n        }\n        int sum = 0;\n        for (int s : stack) sum += s;\n        return sum;\n    }\n}",
+      "description": "## Approach\n\nRepresent the current valid record as a list-backed stack. Numeric operations append a score, `C` removes the last score, `D` appends twice the last score, and `+` appends the sum of the last two scores. Sum the stack after all operations.\n\n## Key Insight\n\nEvery non-numeric command refers only to the most recent one or two valid scores, and `C` removes the most recent valid score. That is exactly the access pattern of a stack.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public int calPoints(String[] operations) {\n        List<Integer> stack = new ArrayList<>();\n        for (String op : operations) {\n            int size = stack.size();\n            if (op.equals(\"+\")) {\n                stack.add(stack.get(size - 1) + stack.get(size - 2));\n            } else if (op.equals(\"D\")) {\n                stack.add(2 * stack.get(size - 1));\n            } else if (op.equals(\"C\")) {\n                stack.remove(size - 1);\n            } else {\n                stack.add(Integer.parseInt(op));\n            }\n        }\n\n        int total = 0;\n        for (int score : stack) {\n            total += score;\n        }\n        return total;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Array-Based Stack",
+      "name": "Manual Array Stack",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(n)",
-      "description": "Use a plain int array as a stack with a top pointer. Process operations and sum the array at the end.",
-      "code": "class Solution {\n    public int calPoints(String[] operations) {\n        int[] stack = new int[operations.length];\n        int top = 0;\n        for (String op : operations) {\n            if (op.equals(\"+\")) {\n                stack[top] = stack[top - 1] + stack[top - 2];\n                top++;\n            } else if (op.equals(\"D\")) {\n                stack[top] = 2 * stack[top - 1];\n                top++;\n            } else if (op.equals(\"C\")) {\n                top--;\n            } else {\n                stack[top] = Integer.parseInt(op);\n                top++;\n            }\n        }\n        int sum = 0;\n        for (int i = 0; i < top; i++) sum += stack[i];\n        return sum;\n    }\n}",
+      "description": "## Approach\n\nUse an integer array and a `top` pointer as a manual stack. Valid scores occupy `scores[0]` through `scores[top - 1]`; each operation updates only this active prefix.\n\n## Key Insight\n\nThe maximum number of valid scores is at most `operations.length`, so a fixed array is enough. The `top` pointer makes push and pop explicit and avoids collection overhead.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    public int calPoints(String[] operations) {\n        int[] scores = new int[operations.length];\n        int top = 0;\n        for (String op : operations) {\n            if (op.equals(\"+\")) {\n                scores[top] = scores[top - 1] + scores[top - 2];\n                top++;\n            } else if (op.equals(\"D\")) {\n                scores[top] = 2 * scores[top - 1];\n                top++;\n            } else if (op.equals(\"C\")) {\n                top--;\n            } else {\n                scores[top] = Integer.parseInt(op);\n                top++;\n            }\n        }\n\n        int total = 0;\n        for (int i = 0; i < top; i++) {\n            total += scores[i];\n        }\n        return total;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Running Total Deque Stack",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nKeep a stack of valid scores and update the running total at the same time. When a score is added, add it to `total`; when `C` removes the latest score, subtract that removed score.\n\n## Key Insight\n\nThe final answer is an aggregate over a mutable record. Maintaining the aggregate as the record changes avoids a second pass and highlights how undo-style updates affect totals.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "import java.util.ArrayDeque;\nimport java.util.Deque;\n\nclass Solution {\n    public int calPoints(String[] operations) {\n        Deque<Integer> scores = new ArrayDeque<>();\n        int total = 0;\n        for (String op : operations) {\n            int score;\n            if (op.equals(\"C\")) {\n                total -= scores.removeLast();\n            } else if (op.equals(\"D\")) {\n                score = scores.peekLast() * 2;\n                scores.addLast(score);\n                total += score;\n            } else if (op.equals(\"+\")) {\n                int last = scores.removeLast();\n                int previous = scores.peekLast();\n                scores.addLast(last);\n                score = last + previous;\n                scores.addLast(score);\n                total += score;\n            } else {\n                score = Integer.parseInt(op);\n                scores.addLast(score);\n                total += score;\n            }\n        }\n        return total;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Linked Node Stack with Aggregate",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nBuild the score record as a linked stack. The top node stores the latest score and a link to the previous valid score. Maintain the total beside the linked stack.\n\n## Key Insight\n\nThe `+` operation only needs `top.score` and `top.previous.score`, while `C` moves the top pointer back one node. This is the pointer-based version of the stack invariant and is useful for understanding linked stacks.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n)",
+      "code": "class Solution {\n    private static final class Node {\n        final int score;\n        final Node previous;\n\n        Node(int score, Node previous) {\n            this.score = score;\n            this.previous = previous;\n        }\n    }\n\n    public int calPoints(String[] operations) {\n        Node top = null;\n        int total = 0;\n        for (String op : operations) {\n            if (op.equals(\"C\")) {\n                total -= top.score;\n                top = top.previous;\n            } else {\n                int score;\n                if (op.equals(\"D\")) {\n                    score = top.score * 2;\n                } else if (op.equals(\"+\")) {\n                    score = top.score + top.previous.score;\n                } else {\n                    score = Integer.parseInt(op);\n                }\n                top = new Node(score, top);\n                total += score;\n            }\n        }\n        return total;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Operation Processor",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(n)",
+      "description": "## Approach\n\nProcess operations recursively. At each index, mutate the current score stack according to the operation, then recurse to the next index. When all operations are consumed, sum the valid record.\n\n## Key Insight\n\nThe recursion separates the idea of applying one command from the loop that advances through the command list. It is not the most practical Java style, but it is a clear way to teach the state transition for each operation.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(n), for the score record and recursion stack",
+      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public int calPoints(String[] operations) {\n        List<Integer> record = new ArrayList<>();\n        apply(operations, 0, record);\n        int total = 0;\n        for (int score : record) {\n            total += score;\n        }\n        return total;\n    }\n\n    private void apply(String[] operations, int index, List<Integer> record) {\n        if (index == operations.length) {\n            return;\n        }\n        String op = operations[index];\n        int size = record.size();\n        if (op.equals(\"C\")) {\n            record.remove(size - 1);\n        } else if (op.equals(\"D\")) {\n            record.add(record.get(size - 1) * 2);\n        } else if (op.equals(\"+\")) {\n            record.add(record.get(size - 1) + record.get(size - 2));\n        } else {\n            record.add(Integer.parseInt(op));\n        }\n        apply(operations, index + 1, record);\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "ops = [\"5\",\"2\",\"C\",\"D\",\"+\"]", "output": "30" },
+    {
+      "input": "ops = [\"5\",\"2\",\"C\",\"D\",\"+\"]",
+      "output": "30",
+      "description": "The canonical sequence exercises add, cancel, double, and sum operations."
+    },
     {
       "input": "ops = [\"5\",\"-2\",\"4\",\"C\",\"D\",\"9\",\"+\",\"+\"]",
-      "output": "27"
+      "output": "27",
+      "description": "Negative scores and chained plus operations are valid."
     },
-    { "input": "ops = [\"1\",\"C\"]", "output": "0" }
+    {
+      "input": "ops = [\"1\",\"C\"]",
+      "output": "0",
+      "description": "Canceling the only score leaves an empty record."
+    },
+    {
+      "input": "ops = [\"10\",\"D\",\"D\",\"C\",\"+\"]",
+      "output": "60",
+      "description": "Cancel removes the most recent doubled score before the plus operation."
+    },
+    {
+      "input": "ops = [\"-1\",\"-2\",\"D\",\"+\"]",
+      "output": "-13",
+      "description": "Doubling and summing can produce negative record totals."
+    },
+    {
+      "input": "ops = [\"3\",\"4\",\"+\",\"D\",\"C\"]",
+      "output": "14",
+      "description": "The final cancel can remove a derived score while leaving earlier derived scores."
+    },
+    {
+      "input": "ops = [\"7\"]",
+      "output": "7",
+      "description": "A single numeric operation is already a complete record."
+    },
+    {
+      "input": "ops = [\"0\",\"D\",\"+\"]",
+      "output": "0",
+      "description": "Zero can be doubled and used by plus without changing the total."
+    },
+    {
+      "input": "ops = [\"1\",\"2\",\"+\",\"C\",\"D\"]",
+      "output": "7",
+      "description": "Canceling a plus-derived score exposes the previous numeric score for doubling."
+    },
+    {
+      "input": "ops = [\"-3\",\"D\",\"C\",\"D\",\"+\"]",
+      "output": "-18",
+      "description": "Canceling a doubled negative score and deriving again keeps stack order important."
+    },
+    {
+      "input": "ops = [\"4\",\"5\",\"D\",\"+\",\"C\",\"7\",\"+\"]",
+      "output": "43",
+      "description": "A mixed chain cancels one derived score and then derives a new one from the remaining suffix."
+    },
+    {
+      "input": "ops = [\"8\",\"-4\",\"C\",\"C\",\"3\",\"D\",\"+\"]",
+      "output": "18",
+      "description": "Consecutive cancels can empty the record before new scores are added."
+    }
   ]
 }

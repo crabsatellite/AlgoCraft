@@ -1,7 +1,7 @@
 {
   "id": "205",
   "title": "Longest Common Prefix",
-  "description": "# Longest Common Prefix\n\nWrite a function to find the longest common prefix string amongst an array of strings.\n\nIf there is no common prefix, return an empty string `\"\"`.\n\n## Example 1:\n\n**Input:** strs = [\"flower\",\"flow\",\"flight\"]\n**Output:** \"fl\"\n\n## Example 2:\n\n**Input:** strs = [\"dog\",\"racecar\",\"car\"]\n**Output:** \"\"\n**Explanation:** There is no common prefix among the input strings.\n\n## Constraints:\n\n*   `1 <= strs.length <= 200`\n*   `0 <= strs[i].length <= 200`\n*   `strs[i]` consists of only lowercase English letters.",
+  "description": "# Longest Common Prefix\n\nGiven an array of lowercase strings `strs`, return the longest string that is a prefix of every string in the array.\n\nA prefix starts at the first character of a string and may be the whole string. If the strings do not share any first character, return the empty string `\"\"`.\n\n## Example 1:\n\n**Input:** strs = [\"flower\",\"flow\",\"flight\"]\n**Output:** \"fl\"\n**Explanation:** All three strings start with `\"fl\"`, but `\"flo\"` is not a prefix of `\"flight\"`.\n\n## Example 2:\n\n**Input:** strs = [\"dog\",\"racecar\",\"car\"]\n**Output:** \"\"\n**Explanation:** The first characters already differ, so there is no common prefix.\n\n## Constraints:\n\n* `1 <= strs.length <= 200`\n* `0 <= strs[i].length <= 200`\n* `strs[i]` consists of only lowercase English letters.\n* An empty string inside the array makes the answer `\"\"`.",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public String longestCommonPrefix(String[] strs) {\n        // Write your code here\n        return \"\";\n    }\n}",
   "tags": [
@@ -20,41 +20,106 @@
   ],
   "solutions": [
     {
-      "name": "Vertical Scanning",
-      "timeComplexity": "O(S) where S = sum of all chars",
+      "name": "Horizontal Prefix Shrinking",
+      "timeComplexity": "O(S) where S is the total number of characters",
       "spaceComplexity": "O(1)",
-      "description": "Compare characters column by column across all strings. Stop when a mismatch is found or a string ends.",
-      "code": "class Solution {\n    public String longestCommonPrefix(String[] strs) {\n        if (strs.length == 0) return \"\";\n        for (int i = 0; i < strs[0].length(); i++) {\n            char c = strs[0].charAt(i);\n            for (int j = 1; j < strs.length; j++) {\n                if (i >= strs[j].length() || strs[j].charAt(i) != c)\n                    return strs[0].substring(0, i);\n            }\n        }\n        return strs[0];\n    }\n}",
+      "description": "## Approach\n\nKeep a current candidate prefix, starting with the first string. For each later string, repeatedly remove the last character from the candidate until that string starts with it. Stop early if the candidate becomes empty.\n\n## Key Insight\n\nAfter processing the first `k` strings, the candidate is exactly their longest common prefix. The next string can only make that prefix shorter, never longer, so shrinking preserves the invariant.\n\n## Complexity Analysis\n\n- Time Complexity: O(S), where `S` is the total number of characters inspected across the input strings.\n- Space Complexity: O(1), ignoring the returned prefix string.",
+      "code": "class Solution {\n    public String longestCommonPrefix(String[] strs) {\n        String prefix = strs[0];\n        for (int i = 1; i < strs.length; i++) {\n            while (!strs[i].startsWith(prefix)) {\n                prefix = prefix.substring(0, prefix.length() - 1);\n                if (prefix.isEmpty()) {\n                    return \"\";\n                }\n            }\n        }\n        return prefix;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Sort and Compare First/Last",
-      "timeComplexity": "O(S log n) where S = sum of all chars",
+      "name": "Vertical Character Scan",
+      "timeComplexity": "O(S) where S is the total number of characters",
       "spaceComplexity": "O(1)",
-      "description": "Sort the array lexicographically. The longest common prefix of all strings equals the common prefix of the first and last strings in sorted order.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public String longestCommonPrefix(String[] strs) {\n        if (strs.length == 0) return \"\";\n        Arrays.sort(strs);\n        String first = strs[0];\n        String last = strs[strs.length - 1];\n        int i = 0;\n        while (i < first.length() && i < last.length() && first.charAt(i) == last.charAt(i)) {\n            i++;\n        }\n        return first.substring(0, i);\n    }\n}",
+      "description": "## Approach\n\nUse the first string as a reference and scan character position by character position. At each position, compare the reference character with the same position in every other string. The first mismatch or shorter string gives the answer length.\n\n## Key Insight\n\nA common prefix is decided column by column. Once any string disagrees at position `i`, no longer prefix can be valid, and the first `i` characters are already known to be shared.\n\n## Complexity Analysis\n\n- Time Complexity: O(S), with early stopping when the prefix ends.\n- Space Complexity: O(1), ignoring the returned prefix string.",
+      "code": "class Solution {\n    public String longestCommonPrefix(String[] strs) {\n        String first = strs[0];\n        for (int i = 0; i < first.length(); i++) {\n            char expected = first.charAt(i);\n            for (int j = 1; j < strs.length; j++) {\n                if (i == strs[j].length() || strs[j].charAt(i) != expected) {\n                    return first.substring(0, i);\n                }\n            }\n        }\n        return first;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Divide and Conquer Merge",
+      "timeComplexity": "O(S) where S is the total number of characters",
+      "spaceComplexity": "O(log n)",
+      "description": "## Approach\n\nRecursively split the array into halves. Compute the longest common prefix of the left half and the right half, then merge those two prefix strings by comparing them from the start.\n\n## Key Insight\n\nThe longest common prefix operation is associative: the prefix shared by the whole array is the common prefix of the prefix from each half. That turns the problem into a clean reduction over subarrays.\n\n## Complexity Analysis\n\n- Time Complexity: O(S), because each merge compares only prefix characters and the total useful comparison work is bounded by the input size.\n- Space Complexity: O(log n) for the recursion stack.",
+      "code": "class Solution {\n    public String longestCommonPrefix(String[] strs) {\n        return longestCommonPrefix(strs, 0, strs.length - 1);\n    }\n\n    private String longestCommonPrefix(String[] strs, int left, int right) {\n        if (left == right) {\n            return strs[left];\n        }\n        int mid = left + (right - left) / 2;\n        String leftPrefix = longestCommonPrefix(strs, left, mid);\n        String rightPrefix = longestCommonPrefix(strs, mid + 1, right);\n        return commonPrefix(leftPrefix, rightPrefix);\n    }\n\n    private String commonPrefix(String a, String b) {\n        int limit = Math.min(a.length(), b.length());\n        int i = 0;\n        while (i < limit && a.charAt(i) == b.charAt(i)) {\n            i++;\n        }\n        return a.substring(0, i);\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Binary Search on Prefix Length",
+      "timeComplexity": "O(S log m) where m is the shortest string length",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nFirst find the shortest string length. Binary search the answer length from `0` to that minimum length. For a candidate length, take that prefix from the first string and check whether every string starts with it.\n\n## Key Insight\n\nPrefix validity is monotonic by length. If all strings share a prefix of length `L`, then every shorter length is also valid. If length `L` fails, every longer length must fail.\n\n## Complexity Analysis\n\n- Time Complexity: O(S log m), where `m` is the shortest input length.\n- Space Complexity: O(1), ignoring temporary substring objects and the returned prefix string.",
+      "code": "class Solution {\n    public String longestCommonPrefix(String[] strs) {\n        int minLength = Integer.MAX_VALUE;\n        for (String word : strs) {\n            minLength = Math.min(minLength, word.length());\n        }\n\n        int low = 0;\n        int high = minLength;\n        while (low < high) {\n            int mid = low + (high - low + 1) / 2;\n            if (isCommonPrefix(strs, mid)) {\n                low = mid;\n            } else {\n                high = mid - 1;\n            }\n        }\n        return strs[0].substring(0, low);\n    }\n\n    private boolean isCommonPrefix(String[] strs, int length) {\n        String prefix = strs[0].substring(0, length);\n        for (int i = 1; i < strs.length; i++) {\n            if (!strs[i].startsWith(prefix)) {\n                return false;\n            }\n        }\n        return true;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Trie Single-Branch Walk",
+      "timeComplexity": "O(S) where S is the total number of characters",
+      "spaceComplexity": "O(S)",
+      "description": "## Approach\n\nInsert every word into a trie. Starting from the root, keep walking while the current trie node has exactly one child and is not the end of a word. The characters along that single path form the common prefix.\n\n## Key Insight\n\nAll strings share a prefix exactly while their trie paths are forced to use the same next edge. A branch means two strings differ; a terminal node means one string has ended and the prefix cannot extend further.\n\n## Complexity Analysis\n\n- Time Complexity: O(S), where `S` is the total number of inserted characters.\n- Space Complexity: O(S) for the trie nodes.",
+      "code": "class Solution {\n    private static class Node {\n        Node[] children = new Node[26];\n        int childCount;\n        boolean terminal;\n    }\n\n    public String longestCommonPrefix(String[] strs) {\n        Node root = new Node();\n        for (String word : strs) {\n            insert(root, word);\n        }\n\n        StringBuilder prefix = new StringBuilder();\n        Node node = root;\n        while (node.childCount == 1 && !node.terminal) {\n            for (int i = 0; i < 26; i++) {\n                if (node.children[i] != null) {\n                    prefix.append((char) ('a' + i));\n                    node = node.children[i];\n                    break;\n                }\n            }\n        }\n        return prefix.toString();\n    }\n\n    private void insert(Node root, String word) {\n        Node node = root;\n        for (int i = 0; i < word.length(); i++) {\n            int index = word.charAt(i) - 'a';\n            if (node.children[index] == null) {\n                node.children[index] = new Node();\n                node.childCount++;\n            }\n            node = node.children[index];\n        }\n        node.terminal = true;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "strs = [\"flower\",\"flow\",\"flight\"]",
-      "output": "\"fl\""
+      "output": "\"fl\"",
+      "description": "Canonical shared prefix across three related words."
     },
     {
       "input": "strs = [\"dog\",\"racecar\",\"car\"]",
-      "output": "\"\""
+      "output": "\"\"",
+      "description": "No first-character agreement means the prefix is empty."
     },
     {
       "input": "strs = [\"a\"]",
-      "output": "\"a\""
-    }
-  ],
-  "diagrams": [
+      "output": "\"a\"",
+      "description": "A single string is its own longest common prefix."
+    },
     {
-      "id": "trie",
-      "file": "p205_trie.png",
-      "caption": "Trie of flower, flow, flight"
+      "input": "strs = [\"interspace\",\"interstellar\",\"interstate\"]",
+      "output": "\"inters\"",
+      "description": "Long shared prefix stops where the words diverge."
+    },
+    {
+      "input": "strs = [\"throne\",\"throne\"]",
+      "output": "\"throne\"",
+      "description": "Identical strings preserve the full word as the prefix."
+    },
+    {
+      "input": "strs = [\"\",\"b\"]",
+      "output": "\"\"",
+      "description": "An empty string in the array forces an empty common prefix."
+    },
+    {
+      "input": "strs = [\"prefix\",\"preach\",\"prevent\"]",
+      "output": "\"pre\"",
+      "description": "Shared prefix ends before the fourth character differs."
+    },
+    {
+      "input": "strs = [\"ab\",\"a\"]",
+      "output": "\"a\"",
+      "description": "The shortest word can be the entire common prefix."
+    },
+    {
+      "input": "strs = [\"\",\"\"]",
+      "output": "\"\"",
+      "description": "All strings may be empty, and the prefix is still empty."
+    },
+    {
+      "input": "strs = [\"cir\",\"car\"]",
+      "output": "\"c\"",
+      "description": "Only the first character is shared."
+    },
+    {
+      "input": "strs = [\"same\",\"same\",\"same\"]",
+      "output": "\"same\"",
+      "description": "Multiple identical strings return the whole shared word."
+    },
+    {
+      "input": "strs = [\"alphabet\",\"alpha\",\"alpine\",\"alps\"]",
+      "output": "\"alp\"",
+      "description": "Several words can share a nontrivial prefix before one branch."
     }
   ]
 }

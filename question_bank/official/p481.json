@@ -1,34 +1,111 @@
 {
   "id": "481",
   "title": "Set Mismatch",
-  "description": "# Set Mismatch\n\nYou have a set of integers `s`, which originally contains all the numbers from `1` to `n`. Unfortunately, due to some error, one of the numbers in `s` got duplicated to another number in the set, which results in **repetition of one** number and **loss of another** number.\n\nYou are given an integer array `nums` representing the data status of this set after the error.\n\nFind the number that occurs twice and the number that is missing and return them in the form of an array.\n\n## Example 1:\n\n**Input:** nums = [1,2,2,4]\n**Output:** [2,3]\n\n## Example 2:\n\n**Input:** nums = [1,1]\n**Output:** [1,2]\n\n## Constraints:\n\n*   `2 <= nums.length <= 10^4`\n*   `1 <= nums[i] <= 10^4`",
+  "description": "# Set Mismatch\n\nA set originally contained every integer from `1` to `n` exactly once.\n\nBecause of an error, one number was duplicated and therefore one other number disappeared. You are given the corrupted array `nums`, which still has length `n`.\n\nReturn an array `[duplicate, missing]`, where `duplicate` is the number that appears twice and `missing` is the number from `1..n` that does not appear.\n\nThe input is guaranteed to contain exactly one duplicated number and exactly one missing number.\n\n## Example 1:\n\n**Input:** nums = [1,2,2,4]\n**Output:** [2,3]\n**Explanation:** The value 2 appears twice, and 3 is missing from the set {1,2,3,4}.\n\n## Example 2:\n\n**Input:** nums = [1,1]\n**Output:** [1,2]\n**Explanation:** The smallest valid array can still miss the largest value.\n\n## Example 3:\n\n**Input:** nums = [2,2]\n**Output:** [2,1]\n**Explanation:** The duplicated value can be `n`, and the missing value can be 1.\n\n## Constraints:\n\n* `2 <= nums.length <= 10^4`\n* `1 <= nums[i] <= nums.length`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int[] findErrorNums(int[] nums) {\n        \n    }\n}",
-  "tags": ["Array", "Hash Table", "Bit Manipulation", "Sorting"],
+  "tags": [
+    "Array",
+    "Hash Table",
+    "Bit Manipulation",
+    "Sorting"
+  ],
   "examples": [
-    { "input": "nums = [1,2,2,4]", "output": "[2,3]" },
-    { "input": "nums = [1,1]", "output": "[1,2]" }
+    {
+      "input": "nums = [1,2,2,4]",
+      "output": "[2,3]"
+    },
+    {
+      "input": "nums = [1,1]",
+      "output": "[1,2]"
+    },
+    {
+      "input": "nums = [2,2]",
+      "output": "[2,1]"
+    }
   ],
   "solutions": [
     {
-      "name": "Index Marking",
+      "name": "In-Place Index Marking",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use the array itself as a hash map by negating values at index positions. The index that gets visited twice (already negative) gives the duplicate, then scan for the positive value to find the missing number.",
-      "code": "class Solution {\n    public int[] findErrorNums(int[] nums) {\n        int dup = -1, missing = -1;\n        for (int n : nums) {\n            int idx = Math.abs(n) - 1;\n            if (nums[idx] < 0) dup = Math.abs(n);\n            else nums[idx] = -nums[idx];\n        }\n        for (int i = 0; i < nums.length; i++) {\n            if (nums[i] > 0) missing = i + 1;\n        }\n        return new int[]{dup, missing};\n    }\n}",
+      "description": "## Approach\n\nUse the input array as a visited table. For each value `x`, look at index `x - 1`; if that position is already negative, `x` is the duplicate, otherwise negate that position. A final scan finds the still-positive index, which marks the missing number.\n\n## Key Insight\n\nEvery value is guaranteed to be in `1..n`, so each value maps to a valid array index. Sign marking stores whether a value has appeared without allocating a separate hash table.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int[] findErrorNums(int[] nums) {\n        int duplicate = -1;\n        int missing = -1;\n\n        for (int value : nums) {\n            int index = Math.abs(value) - 1;\n            if (nums[index] < 0) {\n                duplicate = Math.abs(value);\n            } else {\n                nums[index] = -nums[index];\n            }\n        }\n\n        for (int i = 0; i < nums.length; i++) {\n            if (nums[i] > 0) {\n                missing = i + 1;\n            }\n        }\n\n        return new int[]{duplicate, missing};\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Math Sum and Sum of Squares",
+      "name": "Sum and Square Equations",
       "timeComplexity": "O(n)",
       "spaceComplexity": "O(1)",
-      "description": "Use sum and sum-of-squares equations. Let a = duplicate, b = missing. Then sum(nums) - sum(1..n) = a - b, and sum(nums^2) - sum(1^2..n^2) = a^2 - b^2 = (a-b)(a+b). Solve for a and b.",
-      "code": "class Solution {\n    public int[] findErrorNums(int[] nums) {\n        int n = nums.length;\n        long sumDiff = 0, sqDiff = 0;\n        for (int i = 0; i < n; i++) {\n            sumDiff += nums[i] - (i + 1);\n            sqDiff += (long) nums[i] * nums[i] - (long) (i + 1) * (i + 1);\n        }\n        long sumAB = sqDiff / sumDiff;\n        int dup = (int) ((sumDiff + sumAB) / 2);\n        int missing = (int) ((sumAB - sumDiff) / 2);\n        return new int[]{dup, missing};\n    }\n}",
+      "description": "## Approach\n\nLet `a` be the duplicate and `b` be the missing number. The difference between the observed sum and the expected sum gives `a - b`. The difference between observed and expected square sums gives `a^2 - b^2`, which equals `(a - b)(a + b)`.\n\n## Key Insight\n\nOnce `a - b` and `a + b` are known, solving the two linear equations gives `a` and `b`. Use `long` for square sums so the intermediate arithmetic stays correct near the constraint limit.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int[] findErrorNums(int[] nums) {\n        int n = nums.length;\n        long sumDiff = 0;\n        long squareDiff = 0;\n\n        for (int i = 0; i < n; i++) {\n            long expected = i + 1L;\n            long actual = nums[i];\n            sumDiff += actual - expected;\n            squareDiff += actual * actual - expected * expected;\n        }\n\n        long sumPair = squareDiff / sumDiff;\n        int duplicate = (int) ((sumDiff + sumPair) / 2);\n        int missing = (int) ((sumPair - sumDiff) / 2);\n        return new int[]{duplicate, missing};\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "XOR Partition",
+      "timeComplexity": "O(n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nXOR all values in `nums` and all integers from `1` to `n`. The duplicate and missing numbers are the only unmatched values, so the result is `duplicate ^ missing`. Use one set bit from that result to partition both ranges into two groups and recover the two candidates.\n\n## Key Insight\n\nThe partition bit must differ between the duplicate and missing values. After XORing within each partition, one candidate is the duplicate and the other is the missing number; a final scan of `nums` tells which candidate appeared in the array.\n\n## Complexity Analysis\n\n- Time Complexity: O(n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int[] findErrorNums(int[] nums) {\n        int xor = 0;\n        for (int i = 1; i <= nums.length; i++) {\n            xor ^= i;\n        }\n        for (int value : nums) {\n            xor ^= value;\n        }\n\n        int distinguishingBit = xor & -xor;\n        int first = 0;\n        int second = 0;\n\n        for (int i = 1; i <= nums.length; i++) {\n            if ((i & distinguishingBit) == 0) {\n                first ^= i;\n            } else {\n                second ^= i;\n            }\n        }\n        for (int value : nums) {\n            if ((value & distinguishingBit) == 0) {\n                first ^= value;\n            } else {\n                second ^= value;\n            }\n        }\n\n        for (int value : nums) {\n            if (value == first) {\n                return new int[]{first, second};\n            }\n        }\n        return new int[]{second, first};\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Sort and Gap Scan",
+      "timeComplexity": "O(n log n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nSort the array. Equal adjacent values reveal the duplicate, and a gap larger than one between adjacent sorted values reveals the missing number. Boundary checks handle missing 1 and missing `n`.\n\n## Key Insight\n\nSorting turns the corrupted set back into almost-increasing order. The only local defects are one repeated adjacent pair and one missing jump in the expected sequence.\n\n## Complexity Analysis\n\n- Time Complexity: O(n log n)\n- Space Complexity: O(1) besides the output array and the sorting algorithm's internal stack",
+      "code": "class Solution {\n    public int[] findErrorNums(int[] nums) {\n        java.util.Arrays.sort(nums);\n        int duplicate = -1;\n        int missing = 1;\n\n        for (int i = 1; i < nums.length; i++) {\n            if (nums[i] == nums[i - 1]) {\n                duplicate = nums[i];\n            } else if (nums[i] > nums[i - 1] + 1) {\n                missing = nums[i - 1] + 1;\n            }\n        }\n        if (nums[nums.length - 1] != nums.length) {\n            missing = nums.length;\n        }\n\n        return new int[]{duplicate, missing};\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [1,2,2,4]", "output": "[2,3]" },
-    { "input": "nums = [1,1]", "output": "[1,2]" }
+    {
+      "input": "nums = [1,2,2,4]",
+      "output": "[2,3]"
+    },
+    {
+      "input": "nums = [1,1]",
+      "output": "[1,2]"
+    },
+    {
+      "input": "nums = [2,2]",
+      "output": "[2,1]"
+    },
+    {
+      "input": "nums = [3,2,3,4,6,5]",
+      "output": "[3,1]"
+    },
+    {
+      "input": "nums = [1,5,3,2,2,7,6,4,8,9]",
+      "output": "[2,10]"
+    },
+    {
+      "input": "nums = [1,2,3,4,4]",
+      "output": "[4,5]"
+    },
+    {
+      "input": "nums = [5,3,1,2,2,7,6,4]",
+      "output": "[2,8]"
+    },
+    {
+      "input": "nums = [1,1,3,4,5,6]",
+      "output": "[1,2]"
+    },
+    {
+      "input": "nums = [1,2,3,3,5,6,7,8]",
+      "output": "[3,4]"
+    },
+    {
+      "input": "nums = [4,1,2,3,6,7,8,8,9]",
+      "output": "[8,5]"
+    },
+    {
+      "input": "nums = [10,9,8,7,6,5,4,3,2,2]",
+      "output": "[2,1]"
+    },
+    {
+      "input": "nums = [1,2,3,4,5,6,7,8,9,9]",
+      "output": "[9,10]"
+    }
   ]
 }

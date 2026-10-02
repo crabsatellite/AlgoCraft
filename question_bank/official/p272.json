@@ -1,34 +1,116 @@
 {
   "id": "272",
   "title": "Decompress Run-Length Encoded List",
-  "description": "# Decompress Run-Length Encoded List\n\nWe are given a list `nums` of integers representing a list compressed with run-length encoding.\n\nConsider each adjacent pair of elements `[freq, val] = [nums[2*i], nums[2*i+1]]` (with `i >= 0`).  For each such pair, there are `freq` elements with value `val` concatenated in a sublist. Concatenate all the sublists from left to right to generate the decompressed list.\n\nReturn the decompressed list.\n\n## Example 1:\n\n**Input:** nums = [1,2,3,4]\n**Output:** [2,4,4,4]\n**Explanation:** The first pair [1,2] means we have freq = 1 and val = 2 so we generate the array [2].\nThe second pair [3,4] means we have freq = 3 and val = 4 so we generate [4,4,4].\nAt the end the concatenation [2] + [4,4,4] is [2,4,4,4].\n\n## Example 2:\n\n**Input:** nums = [1,1,2,3]\n**Output:** [1,3,3]\n\n## Constraints:\n\n*   `2 <= nums.length <= 100`\n*   `nums.length % 2 == 0`\n*   `1 <= nums[i] <= 100`",
+  "description": "# Decompress Run-Length Encoded List\n\nThe array `nums` stores a run-length encoded list. Every adjacent pair `[freq, val]` means that the value `val` should appear `freq` times in the decompressed output.\n\nFor each pair `[nums[2 * i], nums[2 * i + 1]]`, create `freq` copies of `val`, and concatenate all runs from left to right.\n\nReturn the decompressed array.\n\n## Example 1:\n\n**Input:** nums = [1,2,3,4]\n**Output:** [2,4,4,4]\n**Explanation:** The first pair `[1,2]` expands to `[2]`. The second pair `[3,4]` expands to `[4,4,4]`. Concatenating them gives `[2,4,4,4]`.\n\n## Example 2:\n\n**Input:** nums = [1,1,2,3]\n**Output:** [1,3,3]\n**Explanation:** The first pair `[1,1]` expands to `[1]`, and the second pair `[2,3]` expands to `[3,3]`.\n\n## Constraints:\n\n*   `2 <= nums.length <= 100`\n*   `nums.length % 2 == 0`\n*   `1 <= nums[i] <= 100`",
   "difficulty": "EASY",
   "initialCode": "class Solution {\n    public int[] decompressRLElist(int[] nums) {\n        // Write your code here\n        return new int[]{};\n    }\n}",
-  "tags": ["Array"],
+  "tags": [
+    "Array"
+  ],
   "examples": [
-    { "input": "nums = [1,2,3,4]", "output": "[2,4,4,4]" },
-    { "input": "nums = [1,1,2,3]", "output": "[1,3,3]" }
+    {
+      "input": "nums = [1,2,3,4]",
+      "output": "[2,4,4,4]"
+    },
+    {
+      "input": "nums = [1,1,2,3]",
+      "output": "[1,3,3]"
+    }
   ],
   "solutions": [
     {
-      "name": "ArrayList Expansion",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "Process pairs (freq, val) and append val freq times to a list, then convert to array.",
-      "code": "import java.util.ArrayList;\nimport java.util.List;\n\nclass Solution {\n    public int[] decompressRLElist(int[] nums) {\n        List<Integer> res = new ArrayList<>();\n        for (int i = 0; i < nums.length; i += 2) {\n            for (int j = 0; j < nums[i]; j++) {\n                res.add(nums[i + 1]);\n            }\n        }\n        return res.stream().mapToInt(Integer::intValue).toArray();\n    }\n}",
+      "name": "Append To Dynamic List",
+      "timeComplexity": "O(m)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nRead `nums` two positions at a time. For each `[freq, value]` pair, append `value` to an `ArrayList` exactly `freq` times, then copy the list into an `int[]` result.\n\n## Key Insight\n\nThis is the most direct simulation of decompression. A dynamic list avoids needing to know the output length before processing the encoded runs.\n\n## Complexity Analysis\n- Time Complexity: O(m), where `m` is the decompressed output length.\n- Space Complexity: O(m), for the dynamic list and returned array.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] decompressRLElist(int[] nums) {\n        List<Integer> values = new ArrayList<>();\n        for (int i = 0; i < nums.length; i += 2) {\n            int freq = nums[i];\n            int value = nums[i + 1];\n            for (int count = 0; count < freq; count++) {\n                values.add(value);\n            }\n        }\n\n        int[] ans = new int[values.size()];\n        for (int i = 0; i < values.size(); i++) {\n            ans[i] = values.get(i);\n        }\n        return ans;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Precompute Size Array",
-      "timeComplexity": "O(n)",
-      "spaceComplexity": "O(n)",
-      "description": "First compute total output size by summing all freq values. Allocate result array of that size, then fill it using a write pointer.",
-      "code": "class Solution {\n    public int[] decompressRLElist(int[] nums) {\n        int total = 0;\n        for (int i = 0; i < nums.length; i += 2) {\n            total += nums[i];\n        }\n        int[] res = new int[total];\n        int idx = 0;\n        for (int i = 0; i < nums.length; i += 2) {\n            int freq = nums[i];\n            int val = nums[i + 1];\n            for (int j = 0; j < freq; j++) {\n                res[idx++] = val;\n            }\n        }\n        return res;\n    }\n}",
+      "name": "Precompute Length Then Fill",
+      "timeComplexity": "O(n + m)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nFirst add all frequencies to compute the exact output length. Allocate the result array once, then scan the pairs again and write each value into the next available positions.\n\n## Key Insight\n\nThe frequencies already tell us the final length. Precomputing that length avoids dynamic resizing and makes the write index explicit.\n\n## Complexity Analysis\n- Time Complexity: O(n + m), where `n` is the encoded length and `m` is the decompressed length.\n- Space Complexity: O(m), for the returned array.",
+      "code": "class Solution {\n    public int[] decompressRLElist(int[] nums) {\n        int length = 0;\n        for (int i = 0; i < nums.length; i += 2) {\n            length += nums[i];\n        }\n\n        int[] ans = new int[length];\n        int index = 0;\n        for (int i = 0; i < nums.length; i += 2) {\n            int freq = nums[i];\n            int value = nums[i + 1];\n            for (int count = 0; count < freq; count++) {\n                ans[index++] = value;\n            }\n        }\n        return ans;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Arrays Fill By Runs",
+      "timeComplexity": "O(n + m)",
+      "spaceComplexity": "O(m)",
+      "description": "## Approach\n\nAfter allocating the exact output array, treat every encoded pair as one contiguous run in the output. Use `Arrays.fill(ans, start, end, value)` to fill that segment, then advance the start index.\n\n## Key Insight\n\nRun-length encoding describes contiguous segments. Filling an entire segment at once expresses the compressed structure more directly than writing one element at a time.\n\n## Complexity Analysis\n- Time Complexity: O(n + m), because each output slot is still written once.\n- Space Complexity: O(m), for the returned array.",
+      "code": "import java.util.*;\n\nclass Solution {\n    public int[] decompressRLElist(int[] nums) {\n        int length = 0;\n        for (int i = 0; i < nums.length; i += 2) {\n            length += nums[i];\n        }\n\n        int[] ans = new int[length];\n        int index = 0;\n        for (int i = 0; i < nums.length; i += 2) {\n            int freq = nums[i];\n            int value = nums[i + 1];\n            Arrays.fill(ans, index, index + freq, value);\n            index += freq;\n        }\n        return ans;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Prefix Run Starts",
+      "timeComplexity": "O(n + m)",
+      "spaceComplexity": "O(n + m)",
+      "description": "## Approach\n\nCompute a prefix array `starts` where `starts[p]` is the output start index of run `p`. Allocate the final array from `starts[pairs]`, then fill each run between its stored start and next start.\n\n## Key Insight\n\nThe prefix array turns frequencies into output ranges. This teaches the same idea used in prefix sums: accumulated lengths locate where each block belongs.\n\n## Complexity Analysis\n- Time Complexity: O(n + m), because encoded pairs and output positions are both scanned linearly.\n- Space Complexity: O(n + m), for the prefix starts array plus the output array.",
+      "code": "class Solution {\n    public int[] decompressRLElist(int[] nums) {\n        int pairs = nums.length / 2;\n        int[] starts = new int[pairs + 1];\n        for (int pair = 0; pair < pairs; pair++) {\n            starts[pair + 1] = starts[pair] + nums[2 * pair];\n        }\n\n        int[] ans = new int[starts[pairs]];\n        for (int pair = 0; pair < pairs; pair++) {\n            int value = nums[2 * pair + 1];\n            for (int index = starts[pair]; index < starts[pair + 1]; index++) {\n                ans[index] = value;\n            }\n        }\n        return ans;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "nums = [1,2,3,4]", "output": "[2,4,4,4]" },
-    { "input": "nums = [1,1,2,3]", "output": "[1,3,3]" }
+    {
+      "input": "nums = [1,2,3,4]",
+      "output": "[2,4,4,4]",
+      "description": "sample expands one 2 and three 4 values"
+    },
+    {
+      "input": "nums = [1,1,2,3]",
+      "output": "[1,3,3]",
+      "description": "sample with two pairs"
+    },
+    {
+      "input": "nums = [4,7]",
+      "output": "[7,7,7,7]",
+      "description": "single pair with frequency greater than one"
+    },
+    {
+      "input": "nums = [2,100,1,1,3,2]",
+      "output": "[100,100,1,2,2,2]",
+      "description": "values can be at the upper bound"
+    },
+    {
+      "input": "nums = [2,1,1,2,2,3]",
+      "output": "[1,1,2,3,3]",
+      "description": "multiple pairs with different frequencies"
+    },
+    {
+      "input": "nums = [1,5]",
+      "output": "[5]",
+      "description": "minimum encoded length"
+    },
+    {
+      "input": "nums = [1,100]",
+      "output": "[100]",
+      "description": "single value at the upper bound"
+    },
+    {
+      "input": "nums = [3,1,1,2,1,3]",
+      "output": "[1,1,1,2,3]",
+      "description": "a long first run followed by two singleton runs"
+    },
+    {
+      "input": "nums = [1,1,1,2,1,3,1,4]",
+      "output": "[1,2,3,4]",
+      "description": "all runs have frequency one"
+    },
+    {
+      "input": "nums = [5,6,2,7]",
+      "output": "[6,6,6,6,6,7,7]",
+      "description": "two adjacent longer runs"
+    },
+    {
+      "input": "nums = [10,9]",
+      "output": "[9,9,9,9,9,9,9,9,9,9]",
+      "description": "larger single run checks repeated writes"
+    },
+    {
+      "input": "nums = [2,4,3,5,1,6,4,7]",
+      "output": "[4,4,5,5,5,6,7,7,7,7]",
+      "description": "several runs with increasing values and mixed frequencies"
+    }
   ]
 }

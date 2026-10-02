@@ -1,10 +1,14 @@
 {
   "id": "120",
   "title": "Combination Sum II",
-  "description": "# Combination Sum II\n\nGiven a collection of candidate numbers (`candidates`) and a target number (`target`), find all unique combinations in `candidates` where the candidate numbers sum to `target`.\n\nEach number in `candidates` may only be used **once** in the combination.\n\n**Note:** The solution set must not contain duplicate combinations.\n\n## Example 1:\n\n**Input:** candidates = [10,1,2,7,6,1,5], target = 8\n**Output:** \n[\n[1,1,6],\n[1,2,5],\n[1,7],\n[2,6]\n]\n\n## Example 2:\n\n**Input:** candidates = [2,5,2,1,2], target = 5\n**Output:** \n[\n[1,2,2],\n[5]\n]\n\n## Constraints:\n\n*   `1 <= candidates.length <= 100`\n*   `1 <= candidates[i] <= 50`\n*   `1 <= target <= 30`",
+  "description": "# Combination Sum II\n\nGiven an integer array `candidates` that may contain duplicate values and an integer `target`, return all unique combinations whose values sum to `target`.\n\nEach input position may be used at most once. Two combinations are considered the same when they contain the same values with the same multiplicities, even if those values came from different duplicate positions. The judge accepts the combinations in any outer order; the examples show each combination in nondecreasing order for readability.\n\n## Example 1:\n\n**Input:** candidates = [10,1,2,7,6,1,5], target = 8\n**Output:** [[1,1,6],[1,2,5],[1,7],[2,6]]\n\n## Example 2:\n\n**Input:** candidates = [2,5,2,1,2], target = 5\n**Output:** [[1,2,2],[5]]\n\n## Constraints:\n\n* `1 <= candidates.length <= 100`\n* `1 <= candidates[i] <= 50`\n* `1 <= target <= 30`",
   "difficulty": "MEDIUM",
-  "initialCode": "class Solution {\n    public List<List<Integer>> combinationSum2(int[] candidates, int target) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
-  "tags": ["Array", "Backtracking"],
+  "initialCode": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> combinationSum2(int[] candidates, int target) {\n        // Write your code here\n        return new ArrayList<>();\n    }\n}",
+  "tags": [
+    "Array",
+    "Backtracking",
+    "Dynamic Programming"
+  ],
   "examples": [
     {
       "input": "candidates = [10,1,2,7,6,1,5], target = 8",
@@ -17,32 +21,98 @@
   ],
   "solutions": [
     {
-      "name": "Backtracking with Sort + Skip Duplicates",
-      "timeComplexity": "O(2^n)",
+      "name": "Sorted Same-Depth Skip Backtracking",
+      "timeComplexity": "O(2^n * n)",
       "spaceComplexity": "O(n)",
-      "description": "Sort candidates. Backtrack choosing each candidate once, skipping duplicates at the same recursion level (if candidates[i] == candidates[i-1] and i > start).",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> combinationSum2(int[] candidates, int target) {\n        List<List<Integer>> result = new ArrayList<>();\n        Arrays.sort(candidates);\n        backtrack(candidates, target, 0, new ArrayList<>(), result);\n        return result;\n    }\n\n    private void backtrack(int[] candidates, int remain, int start, List<Integer> path, List<List<Integer>> result) {\n        if (remain == 0) {\n            result.add(new ArrayList<>(path));\n            return;\n        }\n        for (int i = start; i < candidates.length; i++) {\n            if (candidates[i] > remain) break;\n            if (i > start && candidates[i] == candidates[i - 1]) continue;\n            path.add(candidates[i]);\n            backtrack(candidates, remain - candidates[i], i + 1, path, result);\n            path.remove(path.size() - 1);\n        }\n    }\n}",
+      "description": "## Approach\n\nSort the candidates, then run depth-first search from a `start` index. At each depth, choose an index once and recurse from `i + 1`; when a value equals the previous value at the same depth, skip it so the same combination row is not started twice.\n\n## Key Insight\n\nThe difference from Combination Sum I is the recursive step. Advancing to `i + 1` enforces one use per input position, while same-depth duplicate skipping collapses repeated values into one branch per depth.\n\n## Complexity Analysis\n- Time Complexity: O(2^n * n), including copying each emitted combination\n- Space Complexity: O(n) excluding the returned combinations",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> combinationSum2(int[] candidates, int target) {\n        Arrays.sort(candidates);\n        List<List<Integer>> answer = new ArrayList<>();\n        backtrack(candidates, target, 0, new ArrayList<>(), answer);\n        return answer;\n    }\n\n    private void backtrack(int[] candidates, int remain, int start, List<Integer> path, List<List<Integer>> answer) {\n        if (remain == 0) {\n            answer.add(new ArrayList<>(path));\n            return;\n        }\n        for (int i = start; i < candidates.length; i++) {\n            if (candidates[i] > remain) {\n                break;\n            }\n            if (i > start && candidates[i] == candidates[i - 1]) {\n                continue;\n            }\n            path.add(candidates[i]);\n            backtrack(candidates, remain - candidates[i], i + 1, path, answer);\n            path.remove(path.size() - 1);\n        }\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Counting-Based Backtracking",
-      "timeComplexity": "O(2^n)",
-      "spaceComplexity": "O(n)",
-      "description": "Count frequency of each candidate. Backtrack over unique candidates with their counts, choosing 0 to count[i] copies of each. This naturally avoids duplicates without needing to sort and skip.",
-      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> combinationSum2(int[] candidates, int target) {\n        Map<Integer, Integer> countMap = new TreeMap<>();\n        for (int c : candidates) {\n            countMap.put(c, countMap.getOrDefault(c, 0) + 1);\n        }\n        List<int[]> uniqueCands = new ArrayList<>();\n        for (Map.Entry<Integer, Integer> entry : countMap.entrySet()) {\n            uniqueCands.add(new int[]{entry.getKey(), entry.getValue()});\n        }\n        List<List<Integer>> result = new ArrayList<>();\n        backtrack(uniqueCands, target, 0, new ArrayList<>(), result);\n        return result;\n    }\n    \n    private void backtrack(List<int[]> cands, int remain, int idx, List<Integer> path, List<List<Integer>> result) {\n        if (remain == 0) {\n            result.add(new ArrayList<>(path));\n            return;\n        }\n        if (idx == cands.size()) return;\n        \n        int val = cands.get(idx)[0];\n        int maxCount = cands.get(idx)[1];\n        int canUse = Math.min(maxCount, remain / val);\n        \n        for (int count = canUse; count >= 0; count--) {\n            for (int c = 0; c < count; c++) {\n                path.add(val);\n            }\n            backtrack(cands, remain - count * val, idx + 1, path, result);\n            for (int c = 0; c < count; c++) {\n                path.remove(path.size() - 1);\n            }\n        }\n    }\n}",
+      "name": "Value-Count Choice Recursion",
+      "timeComplexity": "O(U * C)",
+      "spaceComplexity": "O(u + n)",
+      "description": "## Approach\n\nCompress the input into sorted value/count pairs. For each distinct value, choose how many copies to take, from 0 up to the smaller of its available count and the remaining target divided by the value, then recurse to the next distinct value.\n\n## Key Insight\n\nDuplicate positions are not independent decisions in the final answer; the answer only cares about how many copies of each value are used. This model makes duplicate removal explicit and avoids same-depth skip conditions.\n\n## Complexity Analysis\n- Time Complexity: O(U * C), where U is the number of unique combinations and C is the average copied combination length\n- Space Complexity: O(u + n), where u is the number of distinct candidate values",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> combinationSum2(int[] candidates, int target) {\n        TreeMap<Integer, Integer> counts = new TreeMap<>();\n        for (int value : candidates) {\n            counts.put(value, counts.getOrDefault(value, 0) + 1);\n        }\n\n        List<Integer> values = new ArrayList<>(counts.keySet());\n        List<Integer> frequencies = new ArrayList<>();\n        for (int value : values) {\n            frequencies.add(counts.get(value));\n        }\n\n        List<List<Integer>> answer = new ArrayList<>();\n        dfs(values, frequencies, 0, target, new ArrayList<>(), answer);\n        return answer;\n    }\n\n    private void dfs(List<Integer> values, List<Integer> frequencies, int index, int remain,\n                     List<Integer> path, List<List<Integer>> answer) {\n        if (remain == 0) {\n            answer.add(new ArrayList<>(path));\n            return;\n        }\n        if (index == values.size()) {\n            return;\n        }\n\n        int value = values.get(index);\n        int maxCopies = Math.min(frequencies.get(index), remain / value);\n        for (int used = 0; used <= maxCopies; used++) {\n            for (int copy = 0; copy < used; copy++) {\n                path.add(value);\n            }\n            dfs(values, frequencies, index + 1, remain - used * value, path, answer);\n            for (int copy = 0; copy < used; copy++) {\n                path.remove(path.size() - 1);\n            }\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Descending Sum DP with Combination Sets",
+      "timeComplexity": "O(n * target * C)",
+      "spaceComplexity": "O(target * C)",
+      "description": "## Approach\n\nSort the candidates and keep, for every sum up to `target`, a set of combinations that produce that sum. For each candidate, update sums in descending order so the current input position is used at most once, append the value to previous combinations, and let the set remove duplicate rows.\n\n## Key Insight\n\nDescending sum iteration is the dynamic-programming expression of the one-use rule. Sorting keeps each built combination nondecreasing, so equal-value rows have identical list form and can be deduplicated by a set.\n\n## Complexity Analysis\n- Time Complexity: O(n * target * C), where C is the number of stored combinations per sum\n- Space Complexity: O(target * C)",
+      "code": "import java.util.*;\n\nclass Solution {\n    public List<List<Integer>> combinationSum2(int[] candidates, int target) {\n        Arrays.sort(candidates);\n        List<Set<List<Integer>>> dp = new ArrayList<>();\n        for (int sum = 0; sum <= target; sum++) {\n            dp.add(new LinkedHashSet<>());\n        }\n        dp.get(0).add(new ArrayList<>());\n\n        for (int candidate : candidates) {\n            for (int sum = target; sum >= candidate; sum--) {\n                List<List<Integer>> previous = new ArrayList<>(dp.get(sum - candidate));\n                for (List<Integer> combination : previous) {\n                    List<Integer> next = new ArrayList<>(combination);\n                    next.add(candidate);\n                    dp.get(sum).add(next);\n                }\n            }\n        }\n        return new ArrayList<>(dp.get(target));\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Explicit Stack DFS",
+      "timeComplexity": "O(2^n * n)",
+      "spaceComplexity": "O(2^n * n)",
+      "description": "## Approach\n\nSort the candidates and put search states on a stack. Each state stores the next allowed start index, the remaining target, and the current path. Expanding a state pushes one child for each legal same-depth candidate, advancing to `i + 1` so the chosen position is not reused.\n\n## Key Insight\n\nThe stack traverses the same state space as recursive backtracking, but the state object makes the one-use rule and duplicate-skip rule explicit. This is useful when teaching how recursion can be converted into an iterative search.\n\n## Complexity Analysis\n- Time Complexity: O(2^n * n), including path copies for queued states\n- Space Complexity: O(2^n * n) in the worst case because unfinished paths are stored on the stack",
+      "code": "import java.util.*;\n\nclass Solution {\n    private static class State {\n        final int start;\n        final int remain;\n        final List<Integer> path;\n\n        State(int start, int remain, List<Integer> path) {\n            this.start = start;\n            this.remain = remain;\n            this.path = path;\n        }\n    }\n\n    public List<List<Integer>> combinationSum2(int[] candidates, int target) {\n        Arrays.sort(candidates);\n        List<List<Integer>> answer = new ArrayList<>();\n        Deque<State> stack = new ArrayDeque<>();\n        stack.push(new State(0, target, new ArrayList<>()));\n\n        while (!stack.isEmpty()) {\n            State state = stack.pop();\n            if (state.remain == 0) {\n                answer.add(state.path);\n                continue;\n            }\n            for (int i = candidates.length - 1; i >= state.start; i--) {\n                if (candidates[i] > state.remain) {\n                    continue;\n                }\n                if (i > state.start && candidates[i] == candidates[i - 1]) {\n                    continue;\n                }\n                List<Integer> next = new ArrayList<>(state.path);\n                next.add(candidates[i]);\n                stack.push(new State(i + 1, state.remain - candidates[i], next));\n            }\n        }\n        return answer;\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
     {
       "input": "candidates = [10,1,2,7,6,1,5], target = 8",
-      "output": "[[1,1,6],[1,2,5],[1,7],[2,6]]"
+      "output": "[[1,1,6],[1,2,5],[1,7],[2,6]]",
+      "description": "Canonical duplicate candidates with four unique combinations."
     },
     {
       "input": "candidates = [2,5,2,1,2], target = 5",
-      "output": "[[1,2,2],[5]]"
+      "output": "[[1,2,2],[5]]",
+      "description": "Duplicate 2 values must not produce duplicate answer rows."
     },
-    { "input": "candidates = [3,4,5], target = 2", "output": "[]" },
-    { "input": "candidates = [1], target = 1", "output": "[[1]]" }
+    {
+      "input": "candidates = [31,40,50], target = 30",
+      "output": "[]",
+      "description": "Target below every candidate, including the value boundary, has no solution."
+    },
+    {
+      "input": "candidates = [1], target = 1",
+      "output": "[[1]]",
+      "description": "Single candidate equal to target returns one combination."
+    },
+    {
+      "input": "candidates = [1,1,1,1], target = 2",
+      "output": "[[1,1]]",
+      "description": "Four identical candidates should collapse to one two-copy combination."
+    },
+    {
+      "input": "candidates = [1,1,2,2,5], target = 4",
+      "output": "[[1,1,2],[2,2]]",
+      "description": "Two duplicate groups verify independent copy limits."
+    },
+    {
+      "input": "candidates = [4,4,2,1,4,3,2], target = 6",
+      "output": "[[1,2,3],[2,4]]",
+      "description": "Unsorted input with several duplicate values must still deduplicate rows."
+    },
+    {
+      "input": "candidates = [5,5,5,5,10], target = 20",
+      "output": "[[5,5,5,5],[5,5,10]]",
+      "description": "Many equal values test that copy counts cannot exceed available positions."
+    },
+    {
+      "input": "candidates = [1,2,3,4,5], target = 10",
+      "output": "[[1,2,3,4],[1,4,5],[2,3,5]]",
+      "description": "Distinct candidates keep the normal subset-sum behavior."
+    },
+    {
+      "input": "candidates = [1,1,2,5,6,7,10], target = 8",
+      "output": "[[1,1,6],[1,2,5],[1,7],[2,6]]",
+      "description": "Classic target with duplicate 1 values catches duplicate-row regressions."
+    },
+    {
+      "input": "candidates = [10,20,10,5,5,15], target = 30",
+      "output": "[[5,5,10,10],[5,5,20],[5,10,15],[10,20]]",
+      "description": "Target upper boundary with multiple value counts checks pruning and counting."
+    },
+    {
+      "input": "candidates = [1,1,1,2,2,3], target = 4",
+      "output": "[[1,1,2],[1,3],[2,2]]",
+      "description": "Overlapping duplicate groups verify all unique multiplicity combinations."
+    }
   ]
 }

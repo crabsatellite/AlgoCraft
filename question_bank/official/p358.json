@@ -1,34 +1,139 @@
 {
   "id": "358",
   "title": "K-th Smallest in Lexicographical Order",
-  "description": "# K-th Smallest in Lexicographical Order\n\nGiven two integers `n` and `k`, return *the* `k`*-th lexicographically smallest integer in the range* `[1, n]`.\n\n## Example 1:\n\n**Input:** n = 13, k = 2\n**Output:** 10\n**Explanation:** The lexicographical order is [1, 10, 11, 12, 13, 2, 3, 4, 5, 6, 7, 8, 9], so the second smallest number is 10.\n\n## Example 2:\n\n**Input:** n = 1, k = 1\n**Output:** 1\n\n## Constraints:\n\n*   `1 <= k <= n <= 10^9`",
+  "description": "# K-th Smallest in Lexicographical Order\n\nGiven two integers `n` and `k`, return the `k`-th smallest integer in lexicographical order among all integers in the inclusive range `[1, n]`.\n\nLexicographical order compares the decimal strings of the numbers, not their numeric values. For example, before `2` comes `10`, `11`, `12`, and so on, if those numbers are within the range.\n\nLexicographic order compares the first differing letter using `a` through `z`. If one string is the complete beginning of another, the shorter string comes first: `\"ab\"` precedes `\"abc\"`.\n\n## Example 1:\n\n**Input:** n = 13, k = 2\n**Output:** 10\n**Explanation:** The lexicographical order is `[1, 10, 11, 12, 13, 2, 3, 4, 5, 6, 7, 8, 9]`, so the second number is `10`.\n\n## Example 2:\n\n**Input:** n = 1, k = 1\n**Output:** 1\n\n## Constraints:\n\n* `1 <= k <= n <= 10^9`",
   "difficulty": "HARD",
-  "initialCode": "class Solution {\n    public int findKthNumber(int n, int k) {\n        \n    }\n}",
-  "tags": ["Trie"],
+  "initialCode": "class Solution {\n    public int findKthNumber(int n, int k) {\n        return 0;\n    }\n}",
+  "tags": [
+    "Trie"
+  ],
   "examples": [
-    { "input": "n = 13, k = 2", "output": "10" },
-    { "input": "n = 1, k = 1", "output": "1" }
+    {
+      "input": "n = 13, k = 2",
+      "output": "10"
+    },
+    {
+      "input": "n = 1, k = 1",
+      "output": "1"
+    }
   ],
   "solutions": [
     {
-      "name": "Trie-like Prefix Counting",
+      "name": "Prefix-Skip Greedy Trie Walk",
       "timeComplexity": "O(log^2 n)",
       "spaceComplexity": "O(1)",
-      "description": "Think of numbers 1..n in a virtual trie. Count nodes under each prefix to navigate: if count <= k, skip this subtree; otherwise go deeper. Count function calculates nodes between prefix and prefix+1 bounded by n.",
-      "code": "class Solution {\n    public int findKthNumber(int n, int k) {\n        long cur = 1;\n        k--;\n        while (k > 0) {\n            long steps = countSteps(n, cur, cur + 1);\n            if (steps <= k) { k -= steps; cur++; }\n            else { k--; cur *= 10; }\n        }\n        return (int) cur;\n    }\n    private long countSteps(int n, long cur, long next) {\n        long steps = 0;\n        while (cur <= n) {\n            steps += Math.min(n + 1, next) - cur;\n            cur *= 10;\n            next *= 10;\n        }\n        return steps;\n    }\n}",
+      "description": "## Approach\n\nView the numbers `1..n` as a virtual decimal trie. At prefix `current`, count how many valid numbers are inside that prefix subtree. If the subtree size is at most the remaining offset, skip the whole subtree and move to the next sibling; otherwise descend to the first child.\n\n## Key Insight\n\nLexicographical order is preorder traversal of the decimal trie. Counting a whole prefix subtree lets us jump over many numbers at once, so we never enumerate up to `k` values.\n\n## Complexity Analysis\n- Time Complexity: O(log^2 n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int findKthNumber(int n, int k) {\n        long current = 1;\n        long remaining = k - 1L;\n        while (remaining > 0) {\n            long steps = countSteps(n, current);\n            if (steps <= remaining) {\n                current++;\n                remaining -= steps;\n            } else {\n                current *= 10;\n                remaining--;\n            }\n        }\n        return (int) current;\n    }\n\n    private long countSteps(int n, long prefix) {\n        long first = prefix;\n        long next = prefix + 1;\n        long steps = 0;\n        while (first <= n) {\n            steps += Math.min(n + 1L, next) - first;\n            first *= 10;\n            next *= 10;\n        }\n        return steps;\n    }\n}",
       "language": "java"
     },
     {
-      "name": "Iterative Prefix Tree Traversal",
+      "name": "Inclusive Prefix Range Counter",
       "timeComplexity": "O(log^2 n)",
       "spaceComplexity": "O(1)",
-      "description": "Navigate a virtual decimal trie. Start at prefix 1. At each step, count how many numbers exist under the current prefix. If k is within this subtree, go deeper (prefix *= 10). Otherwise skip to the next sibling (prefix++) and subtract the count.",
-      "code": "class Solution {\n    public int findKthNumber(int n, int k) {\n        long prefix = 1;\n        k--;\n        while (k > 0) {\n            long count = 0;\n            long first = prefix;\n            long last = prefix + 1;\n            while (first <= n) {\n                count += Math.min((long) n + 1, last) - first;\n                first *= 10;\n                last *= 10;\n            }\n            if (k >= count) {\n                k -= (int) count;\n                prefix++;\n            } else {\n                k--;\n                prefix *= 10;\n            }\n        }\n        return (int) prefix;\n    }\n}",
+      "description": "## Approach\n\nUse the same greedy trie walk, but count a prefix subtree as inclusive numeric ranges. For prefix `p`, the first level is `[p, p]`, the next is `[10p, 10p + 9]`, then `[100p, 100p + 99]`, capped by `n` at every level.\n\n## Key Insight\n\nThe subtree below a decimal prefix forms simple numeric intervals by depth. The inclusive range formulation makes the boundary handling explicit and avoids off-by-one mistakes around `n = 10^9`.\n\n## Complexity Analysis\n- Time Complexity: O(log^2 n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int findKthNumber(int n, int k) {\n        long prefix = 1;\n        long rank = k - 1L;\n        while (rank > 0) {\n            long subtree = countInclusiveRange(n, prefix);\n            if (subtree <= rank) {\n                prefix++;\n                rank -= subtree;\n            } else {\n                prefix *= 10;\n                rank--;\n            }\n        }\n        return (int) prefix;\n    }\n\n    private long countInclusiveRange(int n, long prefix) {\n        long first = prefix;\n        long last = prefix;\n        long count = 0;\n        while (first <= n) {\n            count += Math.min((long) n, last) - first + 1;\n            first *= 10;\n            last = last * 10 + 9;\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Recursive Subtree Pruning",
+      "timeComplexity": "O(log^2 n)",
+      "spaceComplexity": "O(log n)",
+      "description": "## Approach\n\nChoose among root prefixes `1..9` by their subtree sizes. Once the target subtree is found, consume the prefix itself, then recursively choose among child prefixes `prefix0..prefix9`, pruning every child subtree that lies before the target.\n\n## Key Insight\n\nThis is true preorder selection in the virtual trie. The recursion mirrors the conceptual traversal, while subtree counts keep the search from visiting every number.\n\n## Complexity Analysis\n- Time Complexity: O(log^2 n)\n- Space Complexity: O(log n)",
+      "code": "class Solution {\n    public int findKthNumber(int n, int k) {\n        long remaining = k;\n        for (int root = 1; root <= 9; root++) {\n            long count = countPrefix(n, root);\n            if (remaining > count) {\n                remaining -= count;\n            } else {\n                return select(n, root, remaining);\n            }\n        }\n        return -1;\n    }\n\n    private int select(int n, long prefix, long remaining) {\n        if (remaining == 1) {\n            return (int) prefix;\n        }\n        remaining--;\n        for (int digit = 0; digit <= 9; digit++) {\n            long child = prefix * 10 + digit;\n            long count = countPrefix(n, child);\n            if (remaining > count) {\n                remaining -= count;\n            } else {\n                return select(n, child, remaining);\n            }\n        }\n        return -1;\n    }\n\n    private long countPrefix(int n, long prefix) {\n        long current = prefix;\n        long next = prefix + 1;\n        long count = 0;\n        while (current <= n) {\n            count += Math.min(n + 1L, next) - current;\n            current *= 10;\n            next *= 10;\n        }\n        return count;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Digit-Choice Unranking",
+      "timeComplexity": "O(log^2 n)",
+      "spaceComplexity": "O(1)",
+      "description": "## Approach\n\nMaintain the selected prefix and choose the next digit by scanning candidates in lexicographical order. At the root, scan digits `1..9`; inside a prefix, scan `0..9`. A candidate digit is chosen when the remaining rank falls inside that candidate's subtree.\n\n## Key Insight\n\nInstead of moving between the current node and its next sibling, this version directly un-ranks one digit at a time. It exposes lexicographical order as repeated child selection in a virtual trie.\n\n## Complexity Analysis\n- Time Complexity: O(log^2 n)\n- Space Complexity: O(1)",
+      "code": "class Solution {\n    public int findKthNumber(int n, int k) {\n        long prefix = 0;\n        long remaining = k;\n        while (true) {\n            int start = prefix == 0 ? 1 : 0;\n            for (int digit = start; digit <= 9; digit++) {\n                long candidate = prefix * 10 + digit;\n                long count = countPrefix(n, candidate);\n                if (remaining > count) {\n                    remaining -= count;\n                    continue;\n                }\n                if (remaining == 1) {\n                    return (int) candidate;\n                }\n                remaining--;\n                prefix = candidate;\n                break;\n            }\n        }\n    }\n\n    private long countPrefix(int n, long prefix) {\n        long left = prefix;\n        long right = prefix + 1;\n        long total = 0;\n        while (left <= n) {\n            total += Math.min(n + 1L, right) - left;\n            left *= 10;\n            right *= 10;\n        }\n        return total;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "String-Bound Prefix Counting",
+      "timeComplexity": "O(log^3 n)",
+      "spaceComplexity": "O(log n)",
+      "description": "## Approach\n\nKeep the prefix-skip greedy walk, but count each prefix subtree by comparing decimal strings with the upper bound `n`. For every possible length, build the lowest and highest number with that prefix, then add the overlap with `[1, n]`.\n\n## Key Insight\n\nThe arithmetic prefix counter is compact but easy to misread. A string-bound counter is slower, yet it directly matches the problem statement's lexicographical-string viewpoint and is useful as an independent teaching implementation.\n\n## Complexity Analysis\n- Time Complexity: O(log^3 n)\n- Space Complexity: O(log n)",
+      "code": "class Solution {\n    public int findKthNumber(int n, int k) {\n        String limit = Integer.toString(n);\n        long current = 1;\n        long remaining = k - 1L;\n        while (remaining > 0) {\n            long count = countByStringBound(limit, Long.toString(current));\n            if (count <= remaining) {\n                current++;\n                remaining -= count;\n            } else {\n                current *= 10;\n                remaining--;\n            }\n        }\n        return (int) current;\n    }\n\n    private long countByStringBound(String limit, String prefix) {\n        long total = 0;\n        for (int length = prefix.length(); length <= limit.length(); length++) {\n            String zeros = repeat('0', length - prefix.length());\n            String nines = repeat('9', length - prefix.length());\n            String low = prefix + zeros;\n            String high = prefix + nines;\n            if (length < limit.length()) {\n                total += Long.parseLong(high) - Long.parseLong(low) + 1;\n            } else if (low.compareTo(limit) <= 0) {\n                long upper = Math.min(Long.parseLong(high), Long.parseLong(limit));\n                total += upper - Long.parseLong(low) + 1;\n            }\n        }\n        return total;\n    }\n\n    private String repeat(char ch, int count) {\n        StringBuilder builder = new StringBuilder();\n        for (int i = 0; i < count; i++) {\n            builder.append(ch);\n        }\n        return builder.toString();\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "n = 13, k = 2", "output": "10" },
-    { "input": "n = 1, k = 1", "output": "1" }
+    {
+      "input": "n = 1, k = 1",
+      "output": "1",
+      "description": "single number"
+    },
+    {
+      "input": "n = 9, k = 9",
+      "output": "9",
+      "description": "one-digit range has numeric and lexicographical order aligned"
+    },
+    {
+      "input": "n = 10, k = 2",
+      "output": "10",
+      "description": "10 appears immediately after 1"
+    },
+    {
+      "input": "n = 10, k = 3",
+      "output": "2",
+      "description": "after the 1-subtree, traversal returns to sibling 2"
+    },
+    {
+      "input": "n = 13, k = 2",
+      "output": "10",
+      "description": "sample with a partial 1-subtree"
+    },
+    {
+      "input": "n = 13, k = 6",
+      "output": "2",
+      "description": "sample-sized range after skipping prefix 1"
+    },
+    {
+      "input": "n = 99, k = 10",
+      "output": "18",
+      "description": "deeply walks within the prefix-1 subtree"
+    },
+    {
+      "input": "n = 99, k = 90",
+      "output": "90",
+      "description": "late sibling subtrees near the end of a two-digit range"
+    },
+    {
+      "input": "n = 100, k = 10",
+      "output": "17",
+      "description": "boundary where prefix 10 has a child 100"
+    },
+    {
+      "input": "n = 100, k = 90",
+      "output": "9",
+      "description": "last root-level sibling after partial prefix expansion"
+    },
+    {
+      "input": "n = 1000, k = 100",
+      "output": "188",
+      "description": "medium trie navigation"
+    },
+    {
+      "input": "n = 1000, k = 1000",
+      "output": "999",
+      "description": "last number in lexicographical order for this range"
+    },
+    {
+      "input": "n = 12345, k = 6789",
+      "output": "4998",
+      "description": "non-round range with partial subtrees"
+    },
+    {
+      "input": "n = 681692778, k = 351251360",
+      "output": "416126219",
+      "description": "large irregular bound"
+    },
+    {
+      "input": "n = 1000000000, k = 1000000000",
+      "output": "999999999",
+      "description": "maximum constraint and overflow-sensitive counting"
+    }
   ]
 }

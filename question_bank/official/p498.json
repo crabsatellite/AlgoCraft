@@ -1,20 +1,29 @@
 {
   "id": "498",
   "title": "Strange Printer",
-  "description": "# Strange Printer\n\nThere is a strange printer with the following two special properties:\n\n1.  The printer can only print a sequence of the same character each time.\n2.  At each turn, the printer can print new characters starting from and ending at any place and will cover the original existing characters.\n\nGiven a string `s`, return *the minimum number of turns the printer needed to print it*.\n\n## Example 1:\n\n**Input:** s = \"aaabbb\"\n**Output:** 2\n**Explanation:** Print \"aaa\" first and then print \"bbb\".\n\n## Example 2:\n\n**Input:** s = \"aba\"\n**Output:** 2\n**Explanation:** Print \"aaa\" first and then print \"b\" from the second place of the string, which will cover the existing character 'a'.\n\n## Constraints:\n\n*   `1 <= s.length <= 100`\n*   `s` consists of lowercase English letters.",
+  "description": "# Strange Printer\n\nA strange printer prints in turns and has two rules:\n\n1. In one turn, it can print one repeated lowercase character over any contiguous interval.\n2. Newly printed characters overwrite whatever was already present in that interval.\n\nGiven a string `s`, return the minimum number of turns needed to print exactly `s` from a blank paper.\n\n## Example 1:\n\n**Input:** s = \"aaabbb\"\n**Output:** 2\n**Explanation:** Print `aaa` first, then print `bbb`.\n\n## Example 2:\n\n**Input:** s = \"aba\"\n**Output:** 2\n**Explanation:** Print `aaa` first, then print `b` over the middle position.\n\n## Constraints:\n\n* `1 <= s.length <= 100`.\n* `s` consists of lowercase English letters.",
   "difficulty": "HARD",
   "initialCode": "class Solution {\n    public int strangePrinter(String s) {\n        \n    }\n}",
-  "tags": ["String", "Dynamic Programming"],
+  "tags": [
+    "String",
+    "Dynamic Programming"
+  ],
   "examples": [
-    { "input": "s = \"aaabbb\"", "output": "2" },
-    { "input": "s = \"aba\"", "output": "2" }
+    {
+      "input": "s = \"aaabbb\"",
+      "output": "2"
+    },
+    {
+      "input": "s = \"aba\"",
+      "output": "2"
+    }
   ],
   "solutions": [
     {
       "name": "Interval DP",
       "timeComplexity": "O(n^3)",
       "spaceComplexity": "O(n^2)",
-      "description": "dp[i][j] = minimum turns to print s[i..j]. Base case: dp[i][i] = 1. For interval [i,j], if s[i]==s[k] for some k in (i,j], we can merge those prints, trying dp[i][k-1] + dp[k+1][j] for each such k.",
+      "description": "## Approach\n\nLet `dp[i][j]` be the minimum number of turns needed for substring `s[i..j]`. Start by printing `s[j]` separately after `s[i..j-1]`, then try to merge that final `s[j]` turn with an earlier matching character.\n\n## Key Insight\n\nIf `s[k] == s[j]`, the turn that prints position `k` can also print position `j`; any characters between them may be overwritten later. This is why the transition can skip printing `s[j]` as an independent turn.\n\n## Complexity Analysis\n- Time Complexity: O(n^3)\n- Space Complexity: O(n^2)",
       "code": "class Solution {\n    public int strangePrinter(String s) {\n        int n = s.length();\n        int[][] dp = new int[n][n];\n        for (int i = n - 1; i >= 0; i--) {\n            dp[i][i] = 1;\n            for (int j = i + 1; j < n; j++) {\n                dp[i][j] = dp[i][j - 1] + 1;\n                for (int k = i; k < j; k++) {\n                    if (s.charAt(k) == s.charAt(j)) {\n                        dp[i][j] = Math.min(dp[i][j], dp[i][k] + (k + 1 <= j - 1 ? dp[k + 1][j - 1] : 0));\n                    }\n                }\n            }\n        }\n        return dp[0][n - 1];\n    }\n}",
       "language": "java"
     },
@@ -22,13 +31,91 @@
       "name": "Top-Down Memoization",
       "timeComplexity": "O(n^3)",
       "spaceComplexity": "O(n^2)",
-      "description": "Use recursive top-down DP with memoization. memo[i][j] = minimum turns to print s[i..j]. For each interval, try splitting at every position where the character matches s[j] to merge prints.",
+      "description": "## Approach\n\nUse the same interval state recursively: `solve(i, j)` returns the minimum turns for `s[i..j]`. Memoize every interval and try all earlier positions that match the right endpoint.\n\n## Key Insight\n\nThe recursive form exposes the overlapping subproblems directly. Matching the right endpoint with a previous equal character is the only way to avoid paying one new turn for `s[j]`.\n\n## Complexity Analysis\n- Time Complexity: O(n^3)\n- Space Complexity: O(n^2)",
       "code": "class Solution {\n    private int[][] memo;\n\n    public int strangePrinter(String s) {\n        int n = s.length();\n        memo = new int[n][n];\n        return solve(s, 0, n - 1);\n    }\n\n    private int solve(String s, int i, int j) {\n        if (i > j) return 0;\n        if (i == j) return 1;\n        if (memo[i][j] != 0) return memo[i][j];\n        int result = solve(s, i, j - 1) + 1;\n        for (int k = i; k < j; k++) {\n            if (s.charAt(k) == s.charAt(j)) {\n                result = Math.min(result, solve(s, i, k) + solve(s, k + 1, j - 1));\n            }\n        }\n        memo[i][j] = result;\n        return result;\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Compressed Interval DP",
+      "timeComplexity": "O(r^3)",
+      "spaceComplexity": "O(r^2)",
+      "description": "## Approach\n\nFirst compress consecutive equal characters, because a run such as `aaa` never needs more turns than a single `a` at the same position in the reduced problem. Then run interval DP on the compressed string.\n\n## Key Insight\n\nRun compression reduces duplicate work without changing the answer. After compression, every adjacent character differs, so the DP focuses on useful merges between equal characters across an interval.\n\n## Complexity Analysis\n- Time Complexity: O(r^3), where `r` is the compressed length\n- Space Complexity: O(r^2)",
+      "code": "class Solution {\n    public int strangePrinter(String s) {\n        StringBuilder compact = new StringBuilder();\n        for (int i = 0; i < s.length(); i++) {\n            char ch = s.charAt(i);\n            if (compact.length() == 0 || compact.charAt(compact.length() - 1) != ch) {\n                compact.append(ch);\n            }\n        }\n\n        String t = compact.toString();\n        int n = t.length();\n        int[][] dp = new int[n][n];\n        for (int i = n - 1; i >= 0; i--) {\n            dp[i][i] = 1;\n            for (int j = i + 1; j < n; j++) {\n                dp[i][j] = dp[i + 1][j] + 1;\n                for (int split = i + 1; split <= j; split++) {\n                    if (t.charAt(split) == t.charAt(i)) {\n                        int middle = split == i + 1 ? 0 : dp[i + 1][split - 1];\n                        dp[i][j] = Math.min(dp[i][j], middle + dp[split][j]);\n                    }\n                }\n            }\n        }\n        return dp[0][n - 1];\n    }\n}",
+      "language": "java"
+    },
+    {
+      "name": "Compressed Top-Down DP",
+      "timeComplexity": "O(r^3)",
+      "spaceComplexity": "O(r^2)",
+      "description": "## Approach\n\nCompress consecutive duplicate runs, then solve the interval problem recursively on the compressed string. For each left endpoint, either print it separately or merge it with a later matching character.\n\n## Key Insight\n\nCombining compression with top-down DP keeps the state space smaller and makes the merge logic explicit: if `text[left] == text[same]`, one turn can cover both endpoints while the middle is handled independently.\n\n## Complexity Analysis\n- Time Complexity: O(r^3), where `r` is the compressed length\n- Space Complexity: O(r^2)",
+      "code": "class Solution {\n    private String text;\n    private int[][] memo;\n\n    public int strangePrinter(String s) {\n        text = compress(s);\n        int n = text.length();\n        memo = new int[n][n];\n        return dfs(0, n - 1);\n    }\n\n    private int dfs(int left, int right) {\n        if (left > right) {\n            return 0;\n        }\n        if (left == right) {\n            return 1;\n        }\n        if (memo[left][right] != 0) {\n            return memo[left][right];\n        }\n\n        int best = dfs(left + 1, right) + 1;\n        for (int same = left + 1; same <= right; same++) {\n            if (text.charAt(same) == text.charAt(left)) {\n                int middle = dfs(left + 1, same - 1);\n                int suffix = dfs(same, right);\n                best = Math.min(best, middle + suffix);\n            }\n        }\n        memo[left][right] = best;\n        return best;\n    }\n\n    private String compress(String s) {\n        StringBuilder compact = new StringBuilder();\n        for (int i = 0; i < s.length(); i++) {\n            char ch = s.charAt(i);\n            if (compact.length() == 0 || compact.charAt(compact.length() - 1) != ch) {\n                compact.append(ch);\n            }\n        }\n        return compact.toString();\n    }\n}",
       "language": "java"
     }
   ],
   "tests": [
-    { "input": "s = \"aaabbb\"", "output": "2" },
-    { "input": "s = \"aba\"", "output": "2" }
+    {
+      "input": "s = \"aaabbb\"",
+      "output": "2"
+    },
+    {
+      "input": "s = \"aba\"",
+      "output": "2"
+    },
+    {
+      "input": "s = \"a\"",
+      "output": "1"
+    },
+    {
+      "input": "s = \"aa\"",
+      "output": "1"
+    },
+    {
+      "input": "s = \"abc\"",
+      "output": "3"
+    },
+    {
+      "input": "s = \"aaaaaaaaaa\"",
+      "output": "1"
+    },
+    {
+      "input": "s = \"aaabaaa\"",
+      "output": "2"
+    },
+    {
+      "input": "s = \"aabbaa\"",
+      "output": "2"
+    },
+    {
+      "input": "s = \"abaaba\"",
+      "output": "3"
+    },
+    {
+      "input": "s = \"abab\"",
+      "output": "3"
+    },
+    {
+      "input": "s = \"abcba\"",
+      "output": "3"
+    },
+    {
+      "input": "s = \"abccba\"",
+      "output": "3"
+    },
+    {
+      "input": "s = \"leetcode\"",
+      "output": "6"
+    },
+    {
+      "input": "s = \"abcabc\"",
+      "output": "5"
+    },
+    {
+      "input": "s = \"ababababab\"",
+      "output": "6"
+    },
+    {
+      "input": "s = \"zzzyyyxxxwww\"",
+      "output": "4"
+    }
   ]
 }

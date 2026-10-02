@@ -389,9 +389,15 @@ class VerificationGateContractTest {
         assertContains(workflow, "java-version: '17'");
         assertContains(workflow, "run: ./mod-build.ps1 build --no-daemon");
         assertContains(workflow, "ide-client-acceptance:");
-        assertContains(workflow, "needs: build");
+        assertFalse(workflow.contains("needs: build"),
+                "native CI must run independently so a build failure cannot hide client defects");
         assertContains(workflow, "runs-on: windows-latest");
-        assertContains(workflow, "run: ./mod-build.ps1 gradle ideClientAcceptanceTest --no-daemon");
+        assertContains(workflow, "run: ./mod-build.ps1 gradle ideStressTest --no-daemon");
+        assertContains(workflow, "GALLIUM_DRIVER=llvmpipe");
+        assertContains(workflow, "LP_NUM_THREADS=2");
+        assertContains(workflow, "mingw-w64-ucrt-x86_64-mesa");
+        assertContains(workflow, "RUNNER_ENVIRONMENT");
+        assertContains(workflow, "build/test-results/");
         assertContains(workflow, "build/algocraft-ide-smoke/");
         assertContains(workflow, "build/algocraft-ide-stress/");
         assertFalse(workflow.contains("continue-on-error: true"),

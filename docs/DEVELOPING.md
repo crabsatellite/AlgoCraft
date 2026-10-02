@@ -17,8 +17,10 @@ For real editor acceptance, run:
 ```
 
 All tests must be invisible, muted and input/clipboard isolated. The native lane
-requires a working OpenGL driver; CI driver support is checked by the actual
-launch. Missing graphics support is a failed lane, never permission to show a
+requires a working OpenGL driver. GitHub-hosted Windows CI installs the public
+MSYS2 Mesa package and uses LLVMpipe in its disposable JDK; it does not modify
+the operating system or the local developer JDK. Driver support is checked by
+the actual hidden launch. Missing graphics support is a failed lane, never permission to show a
 window. Keep the desktop-isolation and clean-exit receipts.
 
 The two branches share the official JSON/PNG bank and component formats.

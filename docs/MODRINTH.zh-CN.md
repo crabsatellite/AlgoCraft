@@ -8,7 +8,7 @@
 
 **当前版本：0.1.0 Beta**（`0.1.0-beta`）。这是用于收集玩家对学习流程和生存奖励平衡反馈的早期测试版本。
 
-<iframe src="https://www.youtube.com/embed/DsKH72bj73o?rel=0" width="100%" style="aspect-ratio:16/9;width:100%;border:0" frameborder="0" allowfullscreen></iframe>
+<iframe src="https://www.youtube.com/embed/DsKH72bj73o?rel=0" width="100%" height="420" frameborder="0" allowfullscreen></iframe>
 
 [在 YouTube 上观看](https://www.youtube.com/watch?v=DsKH72bj73o)
 

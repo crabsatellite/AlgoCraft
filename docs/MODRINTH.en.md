@@ -8,7 +8,7 @@
 
 **Current release: 0.1.0 Beta** (`0.1.0-beta`). This early Beta is intended for player feedback on the learning flow and survival reward balance.
 
-<iframe src="https://www.youtube.com/embed/DsKH72bj73o?rel=0" width="100%" style="aspect-ratio:16/9;width:100%;border:0" frameborder="0" allowfullscreen></iframe>
+<iframe src="https://www.youtube.com/embed/DsKH72bj73o?rel=0" width="100%" height="420" frameborder="0" allowfullscreen></iframe>
 
 [Watch on YouTube](https://www.youtube.com/watch?v=DsKH72bj73o)
 

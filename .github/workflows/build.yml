@@ -66,6 +66,32 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Install Mesa software OpenGL for hosted native tests
+        id: mesa
+        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: mingw-w64-ucrt-x86_64-mesa
+
+      - name: Scope Mesa to the disposable runner JDK
+        env:
+          MESA_ROOT: ${{ steps.mesa.outputs.msys2-location }}
+        run: |
+          if ($env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hosted') {
+            throw 'Mesa deployment is only allowed on disposable GitHub-hosted runners'
+          }
+          $mesaBin = Join-Path $env:MESA_ROOT 'ucrt64/bin'
+          $jdkBin = Join-Path $env:JAVA_HOME 'bin'
+          foreach ($name in @('opengl32.dll', 'libgallium_wgl.dll')) {
+            if (-not (Test-Path -LiteralPath (Join-Path $mesaBin $name))) {
+              throw "Missing Mesa driver: $name"
+            }
+          }
+          Get-ChildItem -LiteralPath $mesaBin -Filter '*.dll' | Copy-Item -Destination $jdkBin
+          "GALLIUM_DRIVER=llvmpipe" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "LP_NUM_THREADS=2" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
       # JVM and full-bank coverage run in the build job; this independent job
       # runs the same ten-pass native gate without repeating the JVM suite.
       - name: Run IDE client smoke and stress tests

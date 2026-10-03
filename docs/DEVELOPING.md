@@ -1,6 +1,6 @@
 # Build AlgoCraft
 
-This branch targets NeoForge 1.21.1 (1.21.1). Use Windows, PowerShell 7, Python 3.11+,
+This branch targets NeoForge 1.21.1. The branch name is `1.21.1`. Use Windows, PowerShell 7, Python 3.11+,
 JDK 21 and a working OpenGL driver for native client tests. Set `JAVA_HOME`
 to your JDK. The build uses only the repository and public Gradle/Minecraft
 dependencies; GitHub sign-in, API tokens and internal tools are unnecessary.

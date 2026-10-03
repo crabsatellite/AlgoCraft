@@ -99,7 +99,7 @@ Only the server console or an operator (permission level 2) can manage public ba
 | `/algocraft bank reload` | Reload banks from the server folder |
 | `/algocraft bank update-official` | Update the official bank |
 
-Use **Import → Official format** for a [JSON template and format guide](https://github.com/crabsatellite/AlgoCraft/blob/main/docs/PROBLEM_FORMAT.md). The guide links to the official bank and [GitHub source](https://github.com/crabsatellite/AlgoCraft).
+Use **Import → Official format** for a [JSON template and format guide](https://github.com/crabsatellite/AlgoCraft/blob/1.21.1/docs/PROBLEM_FORMAT.md). The guide links to the official bank and [GitHub source](https://github.com/crabsatellite/AlgoCraft).
 
 Players can still **import their own problems** for private practice. Personal imports stay on their computer and never give server rewards, so nobody can farm loot with homemade easy problems. Server owners can turn rewards off with `enableRewards=false`; progress is still saved.
 

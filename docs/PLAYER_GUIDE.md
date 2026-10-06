@@ -31,6 +31,8 @@ You can clear several new problems on the same day. A previously solved problem 
 
 Unique-clear item milestones are **10, 25, 50, 100, 200 and 500**. The 500-clear milestone gives a **dragon egg**. Trophy achievements have their own thresholds, including first clear, problem-count milestones, streaks and difficulty achievements.
 
+Trophies arrive automatically when an achievement unlocks; there is no claim screen or button. Open your inventory (default key **E**) and look for the achievement name, such as **First Steps**. Chat confirms whether the trophy was added to your inventory or dropped at your feet because your inventory was full.
+
 There are five trophy materials: **bronze, silver, gold, diamond and netherite**. Each earned trophy records your player name, award date and achievement. Place trophies on blocks to display them in your base, or use vanilla item frames. Breaking a placed trophy returns the same award, with its owner, date and achievement preserved. Clearing every problem in an enabled server bank awards the **netherite Completionist trophy**; the official bank has 500 problems.
 
 An administrator can set `enableRewards=false`: accepted progress still saves, but items, XP and trophies are disabled.

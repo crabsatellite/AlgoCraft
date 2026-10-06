@@ -286,6 +286,11 @@ public class AchievementManager {
         // Give to player (drop if inventory full)
         if (!player.getInventory().add(trophy)) {
             player.drop(trophy, false);
+            player.sendSystemMessage(Component.translatable("algocraft.trophy.delivered_ground", achievement.getName())
+                    .withStyle(ChatFormatting.GOLD));
+        } else {
+            player.sendSystemMessage(Component.translatable("algocraft.trophy.delivered_inventory", achievement.getName())
+                    .withStyle(ChatFormatting.GOLD));
         }
     }
     
